@@ -15,7 +15,12 @@ const withMDX = nextMDX({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: true,
   pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'mdx'],
+  webpack: config => {
+    config.externals.push('pino-pretty', 'lokijs', 'encoding');
+    return config;
+  },
 }
 
 export default withMDX(nextConfig)
