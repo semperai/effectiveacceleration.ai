@@ -1,0 +1,128 @@
+import { ethers, upgrades } from "hardhat";
+import { BigNumber } from 'ethers';
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { expect } from "./chai-setup";
+import { Signer } from "ethers";
+import { MarketplaceV1 as Marketplace } from "../typechain/MarketplaceV1";
+
+describe("Marketplace Unit Tests", () => {
+  let signers: SignerWithAddress[];
+  // let deployer: Signer;
+  let deployer:   SignerWithAddress;
+  let user1:      SignerWithAddress;
+  let user2:      SignerWithAddress;
+
+  let marketplace: Marketplace;
+
+  beforeEach("Deploy and initialize", async () => {
+    signers = await ethers.getSigners();
+    deployer = signers[0];
+    user1    = signers[1];
+    user2    = signers[2];
+
+    const Marketplace = await ethers.getContractFactory(
+      "MarketplaceV1"
+    );
+    marketplace = (await upgrades.deployProxy(Marketplace, [
+      await deployer.getAddress(),
+    ])) as Marketplace;
+    await marketplace.deployed();
+    // console.log("Engine deployed to:", engine.address);
+    
+  });
+
+  describe("admin", () => {
+    it("transfer owner", async () => {
+      await expect(marketplace
+        .connect(deployer)
+        .transferOwnership(await user1.getAddress())
+      ).to.emit(marketplace, 'OwnershipTransferred')
+      .withArgs(await deployer.getAddress(), await user1.getAddress());
+
+      expect(await marketplace.owner()).to.equal(await user1.getAddress());
+    });
+
+    it("non owner cannot transfer owner", async () => {
+      await expect(marketplace
+        .connect(user1)
+        .transferOwnership(await user1.getAddress())
+      ).to.be.reverted;
+    });
+
+    it("transfer pauser", async () => {
+      await expect(marketplace
+        .connect(deployer)
+        .transferPauser(await user1.getAddress())
+      ).to.emit(marketplace, 'PauserTransferred')
+      .withArgs(await deployer.getAddress(), await user1.getAddress());
+
+      expect(await marketplace.pauser()).to.equal(await user1.getAddress());
+    });
+
+    it("non owner cannot transfer pauser", async () => {
+      await expect(marketplace
+        .connect(user1)
+        .transferPauser(await user1.getAddress())
+      ).to.be.reverted;
+    });
+
+    it("transfer treasury", async () => {
+      await expect(marketplace
+        .connect(deployer)
+        .transferTreasury(await user1.getAddress())
+      ).to.emit(marketplace, 'TreasuryTransferred')
+      .withArgs(await deployer.getAddress(), await user1.getAddress());
+
+      expect(await marketplace.treasury()).to.equal(await user1.getAddress());
+    });
+
+    it("non owner cannot transfer treasury", async () => {
+      await expect(marketplace
+        .connect(user1)
+        .transferTreasury(await user1.getAddress())
+      ).to.be.reverted;
+    });
+
+    it("pause/unpause", async () => {
+      await expect(marketplace
+        .connect(deployer)
+        .setPaused(true)
+      ).to.emit(marketplace, 'PausedChanged')
+      .withArgs(true);
+
+      expect(await marketplace.paused()).to.equal(true);
+
+      await expect(marketplace
+        .connect(deployer)
+        .setPaused(false)
+      ).to.emit(marketplace, 'PausedChanged')
+      .withArgs(false);
+
+      expect(await marketplace.paused()).to.equal(false);
+    });
+
+    it("non pauser cannot pause", async () => {
+      await expect(marketplace
+        .connect(user1)
+        .setPaused(true)
+      ).to.be.reverted;
+    });
+
+    it("set version", async () => {
+      await expect(marketplace
+        .connect(deployer)
+        .setVersion(25)
+      ).to.emit(marketplace, 'VersionChanged')
+      .withArgs(25);
+
+      expect(await marketplace.version()).to.equal(25);
+    });
+
+    it("non owner cannot set version", async () => {
+      await expect(marketplace
+        .connect(user1)
+        .setVersion(25)
+      ).to.be.reverted;
+    });
+  });
+});
