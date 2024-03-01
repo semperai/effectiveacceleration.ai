@@ -22,15 +22,16 @@ export interface MarketplaceV1Interface extends utils.Interface {
     "generateIPFSCID(bytes)": FunctionFragment;
     "initialize(address)": FunctionFragment;
     "owner()": FunctionFragment;
+    "pause()": FunctionFragment;
     "paused()": FunctionFragment;
     "pauser()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
-    "setPaused(bool)": FunctionFragment;
     "setVersion(uint256)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
     "transferPauser(address)": FunctionFragment;
     "transferTreasury(address)": FunctionFragment;
     "treasury()": FunctionFragment;
+    "unpause()": FunctionFragment;
     "version()": FunctionFragment;
   };
 
@@ -40,13 +41,13 @@ export interface MarketplaceV1Interface extends utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "initialize", values: [string]): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(functionFragment: "pause", values?: undefined): string;
   encodeFunctionData(functionFragment: "paused", values?: undefined): string;
   encodeFunctionData(functionFragment: "pauser", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "setPaused", values: [boolean]): string;
   encodeFunctionData(
     functionFragment: "setVersion",
     values: [BigNumberish]
@@ -64,6 +65,7 @@ export interface MarketplaceV1Interface extends utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(functionFragment: "treasury", values?: undefined): string;
+  encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
   encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(
@@ -72,13 +74,13 @@ export interface MarketplaceV1Interface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "pause", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "pauser", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "setPaused", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setVersion", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "transferOwnership",
@@ -93,22 +95,25 @@ export interface MarketplaceV1Interface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "treasury", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 
   events: {
     "Initialized(uint8)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
-    "PausedChanged(bool)": EventFragment;
+    "Paused(address)": EventFragment;
     "PauserTransferred(address,address)": EventFragment;
     "TreasuryTransferred(address,address)": EventFragment;
+    "Unpaused(address)": EventFragment;
     "VersionChanged(uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Initialized"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "PausedChanged"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Paused"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "PauserTransferred"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TreasuryTransferred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Unpaused"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "VersionChanged"): EventFragment;
 }
 
@@ -124,9 +129,9 @@ export type OwnershipTransferredEvent = TypedEvent<
 export type OwnershipTransferredEventFilter =
   TypedEventFilter<OwnershipTransferredEvent>;
 
-export type PausedChangedEvent = TypedEvent<[boolean], { paused: boolean }>;
+export type PausedEvent = TypedEvent<[string], { account: string }>;
 
-export type PausedChangedEventFilter = TypedEventFilter<PausedChangedEvent>;
+export type PausedEventFilter = TypedEventFilter<PausedEvent>;
 
 export type PauserTransferredEvent = TypedEvent<
   [string, string],
@@ -143,6 +148,10 @@ export type TreasuryTransferredEvent = TypedEvent<
 
 export type TreasuryTransferredEventFilter =
   TypedEventFilter<TreasuryTransferredEvent>;
+
+export type UnpausedEvent = TypedEvent<[string], { account: string }>;
+
+export type UnpausedEventFilter = TypedEventFilter<UnpausedEvent>;
 
 export type VersionChangedEvent = TypedEvent<
   [BigNumber],
@@ -190,16 +199,15 @@ export interface MarketplaceV1 extends BaseContract {
 
     owner(overrides?: CallOverrides): Promise<[string]>;
 
+    pause(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     paused(overrides?: CallOverrides): Promise<[boolean]>;
 
     pauser(overrides?: CallOverrides): Promise<[string]>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    setPaused(
-      paused_: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -225,6 +233,10 @@ export interface MarketplaceV1 extends BaseContract {
 
     treasury(overrides?: CallOverrides): Promise<[string]>;
 
+    unpause(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     version(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
 
@@ -240,16 +252,15 @@ export interface MarketplaceV1 extends BaseContract {
 
   owner(overrides?: CallOverrides): Promise<string>;
 
+  pause(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   paused(overrides?: CallOverrides): Promise<boolean>;
 
   pauser(overrides?: CallOverrides): Promise<string>;
 
   renounceOwnership(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  setPaused(
-    paused_: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -275,6 +286,10 @@ export interface MarketplaceV1 extends BaseContract {
 
   treasury(overrides?: CallOverrides): Promise<string>;
 
+  unpause(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   version(overrides?: CallOverrides): Promise<BigNumber>;
 
   callStatic: {
@@ -287,13 +302,13 @@ export interface MarketplaceV1 extends BaseContract {
 
     owner(overrides?: CallOverrides): Promise<string>;
 
+    pause(overrides?: CallOverrides): Promise<void>;
+
     paused(overrides?: CallOverrides): Promise<boolean>;
 
     pauser(overrides?: CallOverrides): Promise<string>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
-
-    setPaused(paused_: boolean, overrides?: CallOverrides): Promise<void>;
 
     setVersion(
       version_: BigNumberish,
@@ -307,6 +322,8 @@ export interface MarketplaceV1 extends BaseContract {
     transferTreasury(to_: string, overrides?: CallOverrides): Promise<void>;
 
     treasury(overrides?: CallOverrides): Promise<string>;
+
+    unpause(overrides?: CallOverrides): Promise<void>;
 
     version(overrides?: CallOverrides): Promise<BigNumber>;
   };
@@ -324,8 +341,8 @@ export interface MarketplaceV1 extends BaseContract {
       newOwner?: string | null
     ): OwnershipTransferredEventFilter;
 
-    "PausedChanged(bool)"(paused?: boolean | null): PausedChangedEventFilter;
-    PausedChanged(paused?: boolean | null): PausedChangedEventFilter;
+    "Paused(address)"(account?: null): PausedEventFilter;
+    Paused(account?: null): PausedEventFilter;
 
     "PauserTransferred(address,address)"(
       previousPauser?: string | null,
@@ -344,6 +361,9 @@ export interface MarketplaceV1 extends BaseContract {
       previousTreasury?: string | null,
       newTreasury?: string | null
     ): TreasuryTransferredEventFilter;
+
+    "Unpaused(address)"(account?: null): UnpausedEventFilter;
+    Unpaused(account?: null): UnpausedEventFilter;
 
     "VersionChanged(uint256)"(
       version?: BigNumberish | null
@@ -364,16 +384,15 @@ export interface MarketplaceV1 extends BaseContract {
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
+    pause(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     paused(overrides?: CallOverrides): Promise<BigNumber>;
 
     pauser(overrides?: CallOverrides): Promise<BigNumber>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    setPaused(
-      paused_: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -399,6 +418,10 @@ export interface MarketplaceV1 extends BaseContract {
 
     treasury(overrides?: CallOverrides): Promise<BigNumber>;
 
+    unpause(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     version(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
@@ -415,16 +438,15 @@ export interface MarketplaceV1 extends BaseContract {
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    pause(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     paused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     pauser(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     renounceOwnership(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setPaused(
-      paused_: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -449,6 +471,10 @@ export interface MarketplaceV1 extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     treasury(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    unpause(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     version(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };

@@ -86,17 +86,17 @@ describe("Marketplace Unit Tests", () => {
     it("pause/unpause", async () => {
       await expect(marketplace
         .connect(deployer)
-        .setPaused(true)
-      ).to.emit(marketplace, 'PausedChanged')
-      .withArgs(true);
+        .pause()
+      ).to.emit(marketplace, 'Paused')
+      .withArgs(await deployer.getAddress());
 
       expect(await marketplace.paused()).to.equal(true);
 
       await expect(marketplace
         .connect(deployer)
-        .setPaused(false)
-      ).to.emit(marketplace, 'PausedChanged')
-      .withArgs(false);
+        .unpause()
+      ).to.emit(marketplace, 'Unpaused')
+      .withArgs(await deployer.getAddress());
 
       expect(await marketplace.paused()).to.equal(false);
     });
@@ -104,7 +104,16 @@ describe("Marketplace Unit Tests", () => {
     it("non pauser cannot pause", async () => {
       await expect(marketplace
         .connect(user1)
-        .setPaused(true)
+        .pause()
+      ).to.be.reverted;
+    });
+
+    it("non pauser cannot unpause", async () => {
+      await marketplace.connect(deployer).pause();
+
+      await expect(marketplace
+        .connect(user1)
+        .unpause()
       ).to.be.reverted;
     });
 

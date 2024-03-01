@@ -3,6 +3,7 @@ pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@arbitrum/nitro-contracts/src/precompiles/ArbSys.sol";
 import {getIPFSCID} from "./libraries/IPFS.sol";
@@ -13,12 +14,10 @@ uint256 constant ARBITRUM_SEPOLIA_CHAINID = 0x66eee;
 // https://github.com/OffchainLabs/arbitrum-classic/blob/master/docs/sol_contract_docs/md_docs/arb-os/arbos/builtin/ArbSys.md
 address constant ARBSYS_ADDRESS = address(100);
 
-contract MarketplaceV1 is OwnableUpgradeable {
+contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     address public treasury; // where treasury fees/rewards go
 
     address public pauser; // who can pause contract
-
-    bool public paused; // if contract is paused
 
     uint256 public version; // version (should be updated when performing updates)
 
@@ -30,12 +29,6 @@ contract MarketplaceV1 is OwnableUpgradeable {
         _;
     }
 
-    /// @notice Modifier to restrict to only not paused
-    modifier notPaused() {
-        require(!paused, "paused");
-        _;
-    }
-
     event PauserTransferred(
         address indexed previousPauser,
         address indexed newPauser
@@ -44,7 +37,6 @@ contract MarketplaceV1 is OwnableUpgradeable {
         address indexed previousTreasury,
         address indexed newTreasury
     );
-    event PausedChanged(bool indexed paused);
     event VersionChanged(uint256 indexed version);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -57,8 +49,9 @@ contract MarketplaceV1 is OwnableUpgradeable {
     /// @param treasury_ Address of treasury
     function initialize(address treasury_) public initializer {
         __Ownable_init();
-        treasury = treasury_;
+        __Pausable_init();
         pauser = msg.sender;
+        treasury = treasury_;
     }
 
     /// @notice Transfer ownership
@@ -69,6 +62,13 @@ contract MarketplaceV1 is OwnableUpgradeable {
         super.transferOwnership(to_);
     }
 
+    /// @notice Transfer pause ability
+    /// @param to_ Address to transfer pauser to
+    function transferPauser(address to_) external onlyOwner {
+        emit PauserTransferred(pauser, to_);
+        pauser = to_;
+    }
+
     /// @notice Transfer treasury
     /// @param to_ Address to transfer treasury to
     function transferTreasury(address to_) external onlyOwner {
@@ -76,18 +76,14 @@ contract MarketplaceV1 is OwnableUpgradeable {
         treasury = to_;
     }
 
-    /// @notice Transfer ownership
-    /// @param to_ Address to transfer pauser to
-    function transferPauser(address to_) external onlyOwner {
-        emit PauserTransferred(pauser, to_);
-        pauser = to_;
+    /// @notice Pauses contract
+    function pause() external onlyPauser {
+        _pause();
     }
 
-    /// @notice Pause/unpause contract
-    /// @param paused_ Whether to pause or unpause
-    function setPaused(bool paused_) external onlyPauser {
-        paused = paused_;
-        emit PausedChanged(paused_);
+    /// @notice Unpauses contract
+    function unpause() external onlyPauser {
+        _unpause();
     }
 
     /// @notice Set version

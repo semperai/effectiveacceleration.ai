@@ -4,6 +4,7 @@
 export type { ArbSys } from "./ArbSys";
 export type { OwnableUpgradeable } from "./OwnableUpgradeable";
 export type { Initializable } from "./Initializable";
+export type { PausableUpgradeable } from "./PausableUpgradeable";
 export type { ContextUpgradeable } from "./ContextUpgradeable";
 export type { IERC20 } from "./IERC20";
 export type { MarketplaceV1 } from "./MarketplaceV1";
@@ -11,6 +12,7 @@ export type { MarketplaceV1 } from "./MarketplaceV1";
 export { ArbSys__factory } from "./factories/ArbSys__factory";
 export { OwnableUpgradeable__factory } from "./factories/OwnableUpgradeable__factory";
 export { Initializable__factory } from "./factories/Initializable__factory";
+export { PausableUpgradeable__factory } from "./factories/PausableUpgradeable__factory";
 export { ContextUpgradeable__factory } from "./factories/ContextUpgradeable__factory";
 export { IERC20__factory } from "./factories/IERC20__factory";
 export { MarketplaceV1__factory } from "./factories/MarketplaceV1__factory";
