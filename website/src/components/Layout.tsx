@@ -1,7 +1,6 @@
 'use client'
-import { useId } from 'react'
 
-import { Fragment, useState } from 'react'
+import { useId, Fragment, useState } from 'react'
 import { clsx } from 'clsx'
 import { Dialog, Transition } from '@headlessui/react'
 import { ConnectButton } from '@rainbow-me/rainbowkit';
@@ -25,6 +24,7 @@ const navigation = [
   { name: 'Documents', href: '#', icon: DocumentDuplicateIcon, current: false },
   { name: 'Reports', href: '#', icon: ChartPieIcon, current: false },
 ]
+
 const teams = [
   { id: 1, name: 'Heroicons', href: '#', initial: 'H', current: false },
   { id: 2, name: 'Tailwind Labs', href: '#', initial: 'T', current: false },

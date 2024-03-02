@@ -23,8 +23,8 @@ import {
 import clsx from 'clsx'
 import type React from 'react'
 import { Fragment } from 'react'
-import { Button } from './button'
-import { Link } from './link'
+import { Button } from './Button'
+import { Link } from './Link'
 
 export function Dropdown(props: HeadlessMenuProps) {
   return <HeadlessMenu {...props} />

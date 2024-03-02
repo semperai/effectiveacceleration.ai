@@ -10,7 +10,7 @@ import {
 import clsx from 'clsx'
 import type React from 'react'
 import { Fragment } from 'react'
-import { Text } from './text'
+import { Text } from './Text'
 
 const sizes = {
   xs: 'sm:max-w-xs',

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Image, { type ImageProps } from 'next/image'
-import Link from 'next/link'
+import { Link } from './Link'
 import clsx from 'clsx'
 
 import { FormattedDate } from '@/components/FormattedDate'

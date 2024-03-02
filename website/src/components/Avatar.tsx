@@ -1,8 +1,8 @@
 import { Button as HeadlessButton, type ButtonProps as HeadlessButtonProps } from '@headlessui/react'
 import clsx from 'clsx'
 import React from 'react'
-import { TouchTarget } from './button'
-import { Link } from './link'
+import { TouchTarget } from './Button'
+import { Link } from './Link'
 
 type AvatarProps = {
   src?: string | null
