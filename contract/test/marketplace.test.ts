@@ -1,18 +1,17 @@
 import { ethers, upgrades } from "hardhat";
-import { BigNumber } from 'ethers';
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { expect } from "./chai-setup";
+import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
+import { expect } from "chai";
 import { Signer } from "ethers";
 import { MarketplaceV1 as Marketplace } from "../typechain/MarketplaceV1";
 
 describe("Marketplace Unit Tests", () => {
-  let signers: SignerWithAddress[];
+  let signers: ethers.Signer[];
   // let deployer: Signer;
   let deployer:   SignerWithAddress;
   let user1:      SignerWithAddress;
   let user2:      SignerWithAddress;
 
-  let marketplace: Marketplace;
+  let marketplace: ethers.Contract;
 
   beforeEach("Deploy and initialize", async () => {
     signers = await ethers.getSigners();
@@ -25,9 +24,9 @@ describe("Marketplace Unit Tests", () => {
     );
     marketplace = (await upgrades.deployProxy(Marketplace, [
       await deployer.getAddress(),
-    ])) as Marketplace;
-    await marketplace.deployed();
-    // console.log("Engine deployed to:", engine.address);
+    ]));
+    await marketplace.waitForDeployment();
+    // console.log("Marketplace deployed to:", await marketplace.getAddress());
     
   });
 
