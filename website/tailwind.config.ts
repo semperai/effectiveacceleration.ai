@@ -1,4 +1,5 @@
 import { type Config } from 'tailwindcss'
+import defaultTheme from 'tailwindcss/defaultTheme'
 
 export default {
   content: ['./{src,mdx}/**/*.{js,mjs,jsx,ts,tsx,mdx}'],
@@ -9,8 +10,8 @@ export default {
         '2xs': '.6875rem',
       },
       fontFamily: {
-        sans: 'var(--font-inter)',
-        display: 'var(--font-mona-sans)',
+        sans: ['Inter', ...defaultTheme.fontFamily.sans],
+        display: ['Inter', ...defaultTheme.fontFamily.sans],
       },
       opacity: {
         2.5: '0.025',

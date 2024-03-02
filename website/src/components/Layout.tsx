@@ -1,108 +1,252 @@
+'use client'
 import { useId } from 'react'
 
-import { Intro, IntroFooter } from '@/components/Intro'
-import { StarField } from '@/components/StarField'
+import { Fragment, useState } from 'react'
+import { clsx } from 'clsx'
+import { Dialog, Transition } from '@headlessui/react'
+import { ConnectButton } from '@rainbow-me/rainbowkit';
+import {
+  Bars3Icon,
+  CalendarIcon,
+  ChartPieIcon,
+  DocumentDuplicateIcon,
+  FolderIcon,
+  HomeIcon,
+  UsersIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline'
 import { ThemeToggle } from '@/components/ThemeToggle'
 
-function Timeline() {
-  let id = useId()
+const navigation = [
+  { name: 'Dashboard', href: '#', icon: HomeIcon, current: true },
+  { name: 'Team', href: '#', icon: UsersIcon, current: false },
+  { name: 'Projects', href: '#', icon: FolderIcon, current: false },
+  { name: 'Calendar', href: '#', icon: CalendarIcon, current: false },
+  { name: 'Documents', href: '#', icon: DocumentDuplicateIcon, current: false },
+  { name: 'Reports', href: '#', icon: ChartPieIcon, current: false },
+]
+const teams = [
+  { id: 1, name: 'Heroicons', href: '#', initial: 'H', current: false },
+  { id: 2, name: 'Tailwind Labs', href: '#', initial: 'T', current: false },
+  { id: 3, name: 'Workcation', href: '#', initial: 'W', current: false },
+]
 
-  return (
-    <div className="pointer-events-none absolute inset-0 z-50 overflow-hidden lg:right-[calc(max(2rem,50%-38rem)+40rem)] lg:min-w-[32rem] lg:overflow-visible">
-      <svg
-        className="absolute left-[max(0px,calc(50%-18.125rem))] top-0 h-full w-1.5 lg:left-full lg:ml-1 xl:left-auto xl:right-1 xl:ml-0"
-        aria-hidden="true"
-      >
-        <defs>
-          <pattern id={id} width="6" height="8" patternUnits="userSpaceOnUse">
-            <path
-              d="M0 0H6M0 8H6"
-              className="stroke-sky-900/10 xl:stroke-white/10 dark:stroke-white/10"
-              fill="none"
-            />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill={`url(#${id})`} />
-      </svg>
-    </div>
-  )
-}
-
-function Glow() {
-  let id = useId()
-
-  return (
-    <div className="absolute inset-0 -z-10 overflow-hidden bg-gray-950 lg:right-[calc(max(2rem,50%-38rem)+40rem)] lg:min-w-[32rem]">
-      <svg
-        className="absolute -bottom-48 left-[-40%] h-[80rem] w-[180%] lg:-right-40 lg:bottom-auto lg:left-auto lg:top-[-40%] lg:h-[180%] lg:w-[80rem]"
-        aria-hidden="true"
-      >
-        <defs>
-          <radialGradient id={`${id}-desktop`} cx="100%">
-            <stop offset="0%" stopColor="rgba(56, 189, 248, 0.3)" />
-            <stop offset="53.95%" stopColor="rgba(0, 71, 255, 0.09)" />
-            <stop offset="100%" stopColor="rgba(10, 14, 23, 0)" />
-          </radialGradient>
-          <radialGradient id={`${id}-mobile`} cy="100%">
-            <stop offset="0%" stopColor="rgba(56, 189, 248, 0.3)" />
-            <stop offset="53.95%" stopColor="rgba(0, 71, 255, 0.09)" />
-            <stop offset="100%" stopColor="rgba(10, 14, 23, 0)" />
-          </radialGradient>
-        </defs>
-        <rect
-          width="100%"
-          height="100%"
-          fill={`url(#${id}-desktop)`}
-          className="hidden lg:block"
-        />
-        <rect
-          width="100%"
-          height="100%"
-          fill={`url(#${id}-mobile)`}
-          className="lg:hidden"
-        />
-      </svg>
-      <div className="absolute inset-x-0 bottom-0 right-0 h-px bg-white mix-blend-overlay lg:left-auto lg:top-0 lg:h-auto lg:w-px" />
-    </div>
-  )
-}
-
-function FixedSidebar({
-  main,
-  footer,
-}: {
-  main: React.ReactNode
-  footer: React.ReactNode
-}) {
-  return (
-    <div className="relative flex-none overflow-hidden px-6 lg:pointer-events-none lg:fixed lg:inset-0 lg:z-40 lg:flex lg:px-0">
-      <Glow />
-      <div className="relative flex w-full lg:pointer-events-auto lg:mr-[calc(max(2rem,50%-38rem)+40rem)] lg:min-w-[32rem] lg:overflow-y-auto lg:overflow-x-hidden lg:pl-[max(4rem,calc(50%-38rem))]">
-        <div className="mx-auto max-w-lg lg:mx-0 lg:flex lg:w-96 lg:max-w-none lg:flex-col lg:before:flex-1 lg:before:pt-6">
-          <div className="pb-16 pt-20 sm:pb-20 sm:pt-32 lg:py-20">
-            <div className="relative">
-              <StarField className="-right-44 top-14" />
-              {main}
-            </div>
-          </div>
-          <div className="flex flex-1 items-end justify-center pb-4 lg:justify-start lg:pb-6">
-            {footer}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
   return (
     <>
-      <FixedSidebar main={<Intro />} footer={<IntroFooter />} />
-      <ThemeToggle />
-      <div className="relative flex-auto">
-        <Timeline />
-        <main className="space-y-20 py-20 sm:space-y-32 sm:py-32">
-          {children}
+      <div>
+        <Transition.Root show={sidebarOpen} as={Fragment}>
+          <Dialog as="div" className="relative z-50 lg:hidden" onClose={setSidebarOpen}>
+            <Transition.Child
+              as={Fragment}
+              enter="transition-opacity ease-linear duration-300"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
+              leave="transition-opacity ease-linear duration-300"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
+            >
+              <div className="fixed inset-0 bg-gray-900/80" />
+            </Transition.Child>
+
+            <div className="fixed inset-0 flex">
+              <Transition.Child
+                as={Fragment}
+                enter="transition ease-in-out duration-300 transform"
+                enterFrom="-translate-x-full"
+                enterTo="translate-x-0"
+                leave="transition ease-in-out duration-300 transform"
+                leaveFrom="translate-x-0"
+                leaveTo="-translate-x-full"
+              >
+                <Dialog.Panel className="relative mr-16 flex w-full max-w-xs flex-1">
+                  <Transition.Child
+                    as={Fragment}
+                    enter="ease-in-out duration-300"
+                    enterFrom="opacity-0"
+                    enterTo="opacity-100"
+                    leave="ease-in-out duration-300"
+                    leaveFrom="opacity-100"
+                    leaveTo="opacity-0"
+                  >
+                    <div className="absolute left-full top-0 flex w-16 justify-center pt-5">
+                      <button type="button" className="-m-2.5 p-2.5" onClick={() => setSidebarOpen(false)}>
+                        <span className="sr-only">Close sidebar</span>
+                        <XMarkIcon className="h-6 w-6 text-white" aria-hidden="true" />
+                      </button>
+                    </div>
+                  </Transition.Child>
+                  {/* Sidebar component, swap this element with another sidebar if you like */}
+                  <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-2">
+                    <div className="flex h-16 shrink-0 items-center">
+                      <img
+                        className="h-8 w-auto"
+                        src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600"
+                        alt="Your Company"
+                      />
+                    </div>
+                    <nav className="flex flex-1 flex-col">
+                      <ul role="list" className="flex flex-1 flex-col gap-y-7">
+                        <li>
+                          <ul role="list" className="-mx-2 space-y-1">
+                            {navigation.map((item) => (
+                              <li key={item.name}>
+                                <a
+                                  href={item.href}
+                                  className={clsx(
+                                    item.current
+                                      ? 'bg-gray-50 text-indigo-600'
+                                      : 'text-gray-700 hover:text-indigo-600 hover:bg-gray-50',
+                                    'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
+                                  )}
+                                >
+                                  <item.icon
+                                    className={clsx(
+                                      item.current ? 'text-indigo-600' : 'text-gray-400 group-hover:text-indigo-600',
+                                      'h-6 w-6 shrink-0'
+                                    )}
+                                    aria-hidden="true"
+                                  />
+                                  {item.name}
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        </li>
+                        <li>
+                          <div className="text-xs font-semibold leading-6 text-gray-400">Your teams</div>
+                          <ul role="list" className="-mx-2 mt-2 space-y-1">
+                            {teams.map((team) => (
+                              <li key={team.name}>
+                                <a
+                                  href={team.href}
+                                  className={clsx(
+                                    team.current
+                                      ? 'bg-gray-50 text-indigo-600'
+                                      : 'text-gray-700 hover:text-indigo-600 hover:bg-gray-50',
+                                    'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
+                                  )}
+                                >
+                                  <span
+                                    className={clsx(
+                                      team.current
+                                        ? 'text-indigo-600 border-indigo-600'
+                                        : 'text-gray-400 border-gray-200 group-hover:border-indigo-600 group-hover:text-indigo-600',
+                                      'flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border text-[0.625rem] font-medium bg-white'
+                                    )}
+                                  >
+                                    {team.initial}
+                                  </span>
+                                  <span className="truncate">{team.name}</span>
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        </li>
+                      </ul>
+                    </nav>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </Dialog>
+        </Transition.Root>
+
+        {/* Static sidebar for desktop */}
+        <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
+          {/* Sidebar component, swap this element with another sidebar if you like */}
+          <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6">
+            <div className="flex h-16 shrink-0 items-center">
+              <img
+                className="h-8 w-auto"
+                src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600"
+                alt="Your Company"
+              />
+            </div>
+            <nav className="flex flex-1 flex-col">
+              <ul role="list" className="flex flex-1 flex-col gap-y-7">
+                <li>
+                  <ul role="list" className="-mx-2 space-y-1">
+                    {navigation.map((item) => (
+                      <li key={item.name}>
+                        <a
+                          href={item.href}
+                          className={clsx(
+                            item.current
+                              ? 'bg-gray-50 text-indigo-600'
+                              : 'text-gray-700 hover:text-indigo-600 hover:bg-gray-50',
+                            'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
+                          )}
+                        >
+                          <item.icon
+                            className={clsx(
+                              item.current ? 'text-indigo-600' : 'text-gray-400 group-hover:text-indigo-600',
+                              'h-6 w-6 shrink-0'
+                            )}
+                            aria-hidden="true"
+                          />
+                          {item.name}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+                <li>
+                  <div className="text-xs font-semibold leading-6 text-gray-400">Your teams</div>
+                  <ul role="list" className="-mx-2 mt-2 space-y-1">
+                    {teams.map((team) => (
+                      <li key={team.name}>
+                        <a
+                          href={team.href}
+                          className={clsx(
+                            team.current
+                              ? 'bg-gray-50 text-indigo-600'
+                              : 'text-gray-700 hover:text-indigo-600 hover:bg-gray-50',
+                            'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
+                          )}
+                        >
+                          <span
+                            className={clsx(
+                              team.current
+                                ? 'text-indigo-600 border-indigo-600'
+                                : 'text-gray-400 border-gray-200 group-hover:border-indigo-600 group-hover:text-indigo-600',
+                              'flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border text-[0.625rem] font-medium bg-white'
+                            )}
+                          >
+                            {team.initial}
+                          </span>
+                          <span className="truncate">{team.name}</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+
+        <div className="sticky top-0 z-40 flex items-center gap-x-6 bg-white px-4 py-4 shadow-sm sm:px-6 lg:hidden">
+          <button type="button" className="-m-2.5 p-2.5 text-gray-700 lg:hidden" onClick={() => setSidebarOpen(true)}>
+            <span className="sr-only">Open sidebar</span>
+            <Bars3Icon className="h-6 w-6" aria-hidden="true" />
+          </button>
+          <div className="flex-1 text-sm font-semibold leading-6 text-gray-900">
+            <ConnectButton />
+          </div>
+
+          <div className="flex-1">
+            <ThemeToggle />
+          </div>
+        </div>
+
+        <main className="py-10 lg:pl-72">
+          <div className="px-4 sm:px-6 lg:px-8">
+            {children}
+          </div>
         </main>
       </div>
     </>

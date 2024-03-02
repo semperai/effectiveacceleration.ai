@@ -3,7 +3,6 @@ import Link from 'next/link'
 import { IconLink } from '@/components/IconLink'
 import { Logo } from '@/components/Logo'
 import { SignUpForm } from '@/components/SignUpForm'
-import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 
 function BookIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
@@ -49,7 +48,6 @@ export function Intro() {
         <Link href="/">
           <Logo className="inline-block h-8 w-auto" />
         </Link>
-        <ConnectButton />
       </div>
       <h1 className="mt-14 font-display text-4xl/tight font-light text-white">
         Open-source P2P marketplace{' '}
