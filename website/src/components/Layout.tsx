@@ -2,8 +2,10 @@
 
 import { clsx } from 'clsx'
 import { Fragment, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { Logo } from '@/components/Logo'
 import { Link } from '@/components/Link'
 import { Dialog, Menu, Transition } from '@headlessui/react'
 import {
@@ -22,22 +24,13 @@ import {
 import { ChevronDownIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 
 const navigation = [
-  { name: 'Home', href: '#', icon: HomeIcon, current: true },
-  /*
-  { name: 'Team', href: '#', icon: UsersIcon, current: false },
-  { name: 'Projects', href: '#', icon: FolderIcon, current: false },
-  { name: 'Calendar', href: '#', icon: CalendarIcon, current: false },
-  { name: 'Documents', href: '#', icon: DocumentDuplicateIcon, current: false },
-  */
-  { name: 'Changelog', href: '/changelog', icon: SparklesIcon, current: false },
-]
-const teams = [
-  { id: 1, name: 'Heroicons', href: '#', initial: 'H', current: false },
-  { id: 2, name: 'Tailwind Labs', href: '#', initial: 'T', current: false },
-  { id: 3, name: 'Workcation', href: '#', initial: 'W', current: false },
+  { name: 'Home', href: '/', icon: HomeIcon },
+  { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
+  { name: 'Changelog', href: '/changelog', icon: SparklesIcon },
 ]
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
@@ -86,11 +79,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 {/* Sidebar component, swap this element with another sidebar if you like */}
                 <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-indigo-600 px-6 pb-4">
                   <div className="flex h-16 shrink-0 items-center">
-                    <img
-                      className="h-8 w-auto"
-                      src="https://tailwindui.com/img/logos/mark.svg?color=white"
-                      alt="Your Company"
-                    />
+                    <Logo className="h-8 w-auto" />
                   </div>
                   <nav className="flex flex-1 flex-col">
                     <ul role="list" className="flex flex-1 flex-col gap-y-7">
@@ -101,7 +90,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                               <Link
                                 href={item.href}
                                 className={clsx(
-                                  item.current
+                                  pathname == item.href
                                     ? 'bg-indigo-700 text-white'
                                     : 'text-indigo-200 hover:text-white hover:bg-indigo-700',
                                   'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
@@ -109,7 +98,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                               >
                                 <item.icon
                                   className={clsx(
-                                    item.current ? 'text-white' : 'text-indigo-200 group-hover:text-white',
+                                    pathname == item.href ? 'text-white' : 'text-indigo-200 group-hover:text-white',
                                     'h-6 w-6 shrink-0'
                                   )}
                                   aria-hidden="true"
@@ -119,41 +108,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
                             </li>
                           ))}
                         </ul>
-                      </li>
-                      <li>
-                        <div className="text-xs font-semibold leading-6 text-indigo-200">Your teams</div>
-                        <ul role="list" className="-mx-2 mt-2 space-y-1">
-                          {teams.map((team) => (
-                            <li key={team.name}>
-                              <Link
-                                href={team.href}
-                                className={clsx(
-                                  team.current
-                                    ? 'bg-indigo-700 text-white'
-                                    : 'text-indigo-200 hover:text-white hover:bg-indigo-700',
-                                  'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
-                                )}
-                              >
-                                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-indigo-400 bg-indigo-500 text-[0.625rem] font-medium text-white">
-                                  {team.initial}
-                                </span>
-                                <span className="truncate">{team.name}</span>
-                              </Link>
-                            </li>
-                          ))}
-                        </ul>
-                      </li>
-                      <li className="mt-auto">
-                        <Link
-                          href="/settings"
-                          className="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-indigo-200 hover:bg-indigo-700 hover:text-white"
-                        >
-                          <Cog6ToothIcon
-                            className="h-6 w-6 shrink-0 text-indigo-200 group-hover:text-white"
-                            aria-hidden="true"
-                          />
-                          Settings
-                        </Link>
                       </li>
                     </ul>
                   </nav>
@@ -169,11 +123,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {/* Sidebar component, swap this element with another sidebar if you like */}
         <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-indigo-600 px-6 pb-4">
           <div className="flex h-16 shrink-0 items-center">
-            <img
-              className="h-8 w-auto"
-              src="https://tailwindui.com/img/logos/mark.svg?color=white"
-              alt="Your Company"
-            />
+            <Logo className="h-8 w-auto" />
           </div>
           <nav className="flex flex-1 flex-col">
             <ul role="list" className="flex flex-1 flex-col gap-y-7">
@@ -184,7 +134,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                       <Link
                         href={item.href}
                         className={clsx(
-                          item.current
+                          pathname == item.href
                             ? 'bg-indigo-700 text-white'
                             : 'text-indigo-200 hover:text-white hover:bg-indigo-700',
                           'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
@@ -192,7 +142,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                       >
                         <item.icon
                           className={clsx(
-                            item.current ? 'text-white' : 'text-indigo-200 group-hover:text-white',
+                            pathname == item.href ? 'text-white' : 'text-indigo-200 group-hover:text-white',
                             'h-6 w-6 shrink-0'
                           )}
                           aria-hidden="true"
@@ -202,41 +152,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     </li>
                   ))}
                 </ul>
-              </li>
-              <li>
-                <div className="text-xs font-semibold leading-6 text-indigo-200">Your teams</div>
-                <ul role="list" className="-mx-2 mt-2 space-y-1">
-                  {teams.map((team) => (
-                    <li key={team.name}>
-                      <a
-                        href={team.href}
-                        className={clsx(
-                          team.current
-                            ? 'bg-indigo-700 text-white'
-                            : 'text-indigo-200 hover:text-white hover:bg-indigo-700',
-                          'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
-                        )}
-                      >
-                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-indigo-400 bg-indigo-500 text-[0.625rem] font-medium text-white">
-                          {team.initial}
-                        </span>
-                        <span className="truncate">{team.name}</span>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </li>
-              <li className="mt-auto">
-                <a
-                  href="#"
-                  className="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-indigo-200 hover:bg-indigo-700 hover:text-white"
-                >
-                  <Cog6ToothIcon
-                    className="h-6 w-6 shrink-0 text-indigo-200 group-hover:text-white"
-                    aria-hidden="true"
-                  />
-                  Settings
-                </a>
               </li>
             </ul>
           </nav>
