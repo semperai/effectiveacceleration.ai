@@ -3,6 +3,14 @@ import { Layout } from '@/components/Layout'
 import { Link } from '@/components/Link'
 import { ChevronRightIcon } from '@heroicons/react/20/solid'
 import { Token, tokens } from '@/tokens'
+import {
+  Pagination,
+  PaginationGap,
+  PaginationList,
+  PaginationNext,
+  PaginationPage,
+  PaginationPrevious,
+} from '@/components/Pagination'
 
 
 const environments: Record<string, string> = {
@@ -93,6 +101,23 @@ export default function OpenJobsPage() {
           <ChevronRightIcon className="h-5 w-5 flex-none text-gray-400" aria-hidden="true" />
         </li>
       ))}
+
+      <Pagination className="mt-20">
+        <PaginationPrevious href="?page=2" />
+        <PaginationList>
+          <PaginationPage href="?page=1">1</PaginationPage>
+          <PaginationPage href="?page=2">2</PaginationPage>
+          <PaginationPage href="?page=3" current>
+            3
+          </PaginationPage>
+          <PaginationPage href="?page=4">4</PaginationPage>
+          <PaginationGap />
+          <PaginationPage href="?page=65">65</PaginationPage>
+          <PaginationPage href="?page=66">66</PaginationPage>
+        </PaginationList>
+        <PaginationNext href="?page=4" />
+      </Pagination>
+
     </Layout>
   );
 }
