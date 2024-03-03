@@ -35,7 +35,7 @@ export function ThemeToggle() {
       onClick={() => setTheme(otherTheme)}
     >
       <span className="sr-only">Switch to {otherTheme} theme</span>
-      <ThemeIcon className="h-6 w-6 fill-black opacity-50 transition-opacity group-hover:opacity-100 lg:fill-gray-900 lg:dark:fill-white" />
+      <ThemeIcon className="h-6 w-6 transition-opacity opacity-50 hover:opacity-100 fill-gray-900 dark:fill-white" />
     </button>
   )
 }
