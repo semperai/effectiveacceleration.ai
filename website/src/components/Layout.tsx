@@ -27,9 +27,17 @@ const navigation = [
   { name: 'Changelog', href: '/changelog', icon: SparklesIcon },
 ]
 
+const navigationLinkOnPageClasses = 'bg-indigo-700 dark:bg-fuchsia-700 text-white';
+const navigationLinkOffPageClasses = 'text-slate-800 dark:text-slate-100 hover:text-white hover:bg-indigo-500 hover:dark:bg-fuchsia-500';
+
+const navigationIconOnPageClasses = 'text-white';
+const navigationIconOffPageClasses = 'text-slate-800 dark:text-slate-100 group-hover:text-white';
+
 export function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+
 
   return (
     <div>
@@ -89,14 +97,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
                                 href={item.href}
                                 className={clsx(
                                   pathname == item.href
-                                    ? 'bg-indigo-700 dark:bg-fuchsia-700 text-white'
-                                    : 'text-slate-800 dark:text-slate-100 hover:text-white hover:bg-indigo-500 hover:dark:bg-fuchsia-500',
+                                    ? navigationLinkOnPageClasses
+                                    : navigationLinkOffPageClasses,
                                   'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
                                 )}
                               >
                                 <item.icon
                                   className={clsx(
-                                    pathname == item.href ? 'text-white' : 'text-slate-800 dark:text-slate-100 group-hover:text-white',
+                                    pathname == item.href ? navigationIconOnPageClasses : navigationIconOffPageClasses,
                                     'h-6 w-6 shrink-0'
                                   )}
                                   aria-hidden="true"
@@ -119,7 +127,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       {/* Static sidebar for desktop */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
         {/* Sidebar component, swap this element with another sidebar if you like */}
-        <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-indigo-600 px-6 pb-4">
+        <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white dark:bg-black px-6 pb-4">
           <div className="flex h-16 shrink-0 items-center">
             <Logo className="h-8 w-auto" />
           </div>
@@ -133,14 +141,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
                         href={item.href}
                         className={clsx(
                           pathname == item.href
-                            ? 'bg-indigo-700 dark:bg-fuchsia-700 text-white'
-                            : 'text-indigo-200 hover:text-white hover:bg-indigo-500',
+                            ? navigationLinkOnPageClasses
+                            : navigationLinkOffPageClasses,
                           'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
                         )}
                       >
                         <item.icon
                           className={clsx(
-                            pathname == item.href ? 'text-white' : 'text-slate-200 dark:text-slate-800 group-hover:text-white',
+                            pathname == item.href ? navigationIconOnPageClasses : navigationIconOffPageClasses,
                             'h-6 w-6 shrink-0'
                           )}
                           aria-hidden="true"
