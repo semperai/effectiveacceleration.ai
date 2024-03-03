@@ -36,6 +36,7 @@ const navigationIconOffPageClasses = 'text-slate-800 dark:text-slate-100';
 export function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [notificationsCount, setNotificationsCount] = useState(3)
 
 
 
@@ -177,10 +178,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
             <div className="relative flex flex-1" />
             <div className="flex items-center gap-x-4 lg:gap-x-6">
-              <button type="button" className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500">
+              <Link href="/notifications" className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500">
                 <span className="sr-only">View notifications</span>
-                <BellIcon className="h-6 w-6" aria-hidden="true" />
-              </button>
+                <span className="relative">
+                  {notificationsCount > 0 && (
+                    <span className="absolute -top-2 -right-2 h-4 w-4 rounded-full text-xs text-white bg-red-400 flex justify-center items-center">
+                      {notificationsCount}
+                    </span>
+                  )}
+                  <BellIcon className="h-6 w-6" aria-hidden="true" />
+                </span>
+              </Link>
 
               <div className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-900/10" aria-hidden="true" />
 
