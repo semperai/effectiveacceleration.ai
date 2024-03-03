@@ -64,6 +64,7 @@ export default function OpenJobsPage() {
 
   return (
     <Layout>
+      <h1 className="text-xl font-medium mb-8 ml-2">Open Jobs</h1>
       {jobs.map((job, idx) => (
         <li key={idx} className="relative flex items-center space-x-4 px-2 py-4 hover:bg-gray-50 dark:hover:bg-gray-950 transition ease-in-out rounded-md">
           <div className="min-w-0 flex-auto">

@@ -16,8 +16,8 @@ export default function OpenJobsPage() {
 
   return (
     <Layout>
+      <h1 className="text-xl font-medium mb-8">Create a Job Post</h1>
       <Fieldset className="max-w-screen-sm">
-        <Legend>Post a job</Legend>
         <Text>Using this interface to post a job</Text>
         <FieldGroup> 
           <Field>

@@ -133,7 +133,7 @@ function TagsActivityItem(activityItem: NotificationTags) {
 }
   
 
-export default function OpenJobsPage() {
+export default function NotificationsPage() {
   const activity: Notification[] = [
     {
       id: 1,
@@ -176,6 +176,7 @@ export default function OpenJobsPage() {
 
   return (
     <Layout>
+      <h1 className="text-xl font-medium mb-8">Notifications</h1>
       <div className="flow-root">
         <ul role="list" className="-mb-8">
           {activity.map((activityItem, activityItemIdx) => (
