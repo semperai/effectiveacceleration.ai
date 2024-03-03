@@ -28,7 +28,7 @@ function TokenButton({ onClick, selectedToken }: {
         onClick={onClick}
         className={`${baseClass} bg-blue-500 hover:bg-blue-600 text-white`}
       >
-        <div>Select token</div>
+        <div className="px-2">Select token</div>
         <ChevronDownIcon className="h-6 w-6 text-white" aria-hidden="true" />
       </button>
     )
