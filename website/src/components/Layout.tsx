@@ -11,13 +11,9 @@ import { Dialog, Menu, Transition } from '@headlessui/react'
 import {
   Bars3Icon,
   BellIcon,
-  CalendarIcon,
-  ChartPieIcon,
   Cog6ToothIcon,
-  DocumentDuplicateIcon,
-  FolderIcon,
+  DocumentPlusIcon,
   HomeIcon,
-  UsersIcon,
   XMarkIcon,
   SparklesIcon,
 } from '@heroicons/react/24/outline'
@@ -25,6 +21,7 @@ import { ChevronDownIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 
 const navigation = [
   { name: 'Home', href: '/', icon: HomeIcon },
+  { name: 'Post Job', href: '/post-job', icon: DocumentPlusIcon },
   { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
   { name: 'Changelog', href: '/changelog', icon: SparklesIcon },
 ]
