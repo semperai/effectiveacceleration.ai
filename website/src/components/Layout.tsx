@@ -27,10 +27,10 @@ const navigation = [
   { name: 'Changelog', href: '/changelog', icon: SparklesIcon },
 ]
 
-const navigationLinkOnPageClasses = 'bg-indigo-700 dark:bg-fuchsia-700 text-white';
+const navigationLinkOnPageClasses = 'bg-indigo-200 dark:bg-fuchsia-700 text-slate-800 dark:text-slate-100';
 const navigationLinkOffPageClasses = 'text-slate-800 dark:text-slate-100 hover:bg-indigo-500/10 hover:dark:bg-fuchsia-500/10';
 
-const navigationIconOnPageClasses = 'text-white';
+const navigationIconOnPageClasses = 'text-slate-800 dark:text-slate-100';
 const navigationIconOffPageClasses = 'text-slate-800 dark:text-slate-100';
 
 export function Layout({ children }: { children: React.ReactNode }) {
