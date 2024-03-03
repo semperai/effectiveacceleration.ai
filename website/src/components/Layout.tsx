@@ -11,6 +11,7 @@ import { Dialog, Menu, Transition } from '@headlessui/react'
 import {
   Bars3Icon,
   BellIcon,
+  BriefcaseIcon,
   Cog6ToothIcon,
   DocumentPlusIcon,
   HomeIcon,
@@ -20,6 +21,7 @@ import {
 
 const navigation = [
   { name: 'Home', href: '/', icon: HomeIcon },
+  { name: 'Open Jobs', href: '/open-jobs', icon: BriefcaseIcon },
   { name: 'Post Job', href: '/post-job', icon: DocumentPlusIcon },
   { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
   { name: 'Changelog', href: '/changelog', icon: SparklesIcon },
