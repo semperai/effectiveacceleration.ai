@@ -8,7 +8,7 @@ import { Text } from '@/components/Text'
 import { Textarea } from '@/components/Textarea'
 import { Input } from '@/components/Input'
 import { Select } from '@/components/Select'
-import { TokenModal } from '@/components/TokenModal'
+import { TokenSelector } from '@/components/TokenSelector'
 import { Token } from '@/tokens'
 
 export default function OpenJobsPage() {
@@ -37,7 +37,7 @@ export default function OpenJobsPage() {
             <Description></Description>
 
             <div className="flex flex-col gap-4">
-              <TokenModal
+              <TokenSelector
                 selectedToken={selectedToken}
                 onClick={(token: Token) => setSelectedToken(token)}
               />
