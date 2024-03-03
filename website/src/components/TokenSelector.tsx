@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import { Avatar } from '@/components/Avatar'
 import { ChevronDownIcon } from '@heroicons/react/20/solid'
 import { Dialog, Transition } from '@headlessui/react'
@@ -9,13 +10,13 @@ function TokenButton({ onClick, selectedToken }: {
   onClick: () => void
   selectedToken: Token | undefined
 }) {
-  const baseClass = "w-fit rounded-lg font-medium flex gap-2 items-center"
+  const baseClass = "w-fit rounded-lg font-medium flex gap-2 items-center transition ease-in-out delay-50 duration-150"
 
   if (selectedToken) {
     return (
       <button
         onClick={onClick}
-        className={`${baseClass} bg-slate-100 hover:bg-slate-200 text-slate-900`}
+        className={clsx(baseClass, 'bg-slate-100 hover:bg-slate-200 text-slate-900')}
       >
         <Avatar className="size-8" src={selectedToken.icon} />
         <div>{selectedToken.symbol}</div>
@@ -26,7 +27,7 @@ function TokenButton({ onClick, selectedToken }: {
     return (
       <button
         onClick={onClick}
-        className={`${baseClass} bg-blue-500 hover:bg-blue-600 text-white`}
+        className={clsx(baseClass, 'bg-blue-500 hover:bg-blue-600 text-white')}
       >
         <div className="px-2">Select token</div>
         <ChevronDownIcon className="h-6 w-6 text-white" aria-hidden="true" />
