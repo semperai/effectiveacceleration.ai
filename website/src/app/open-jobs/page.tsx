@@ -66,7 +66,7 @@ export default function OpenJobsPage() {
     <Layout>
       <h1 className="text-xl font-medium mb-8 ml-2">Open Jobs</h1>
       {jobs.map((job, idx) => (
-        <li key={idx} className="relative flex items-center space-x-4 px-2 py-4 hover:bg-gray-50 dark:hover:bg-gray-950 transition ease-in-out rounded-md">
+        <li key={idx} className="relative flex items-center space-x-4 px-2 py-4 hover:bg-zinc-50 dark:hover:bg-zinc-950 transition ease-in-out rounded-md">
           <div className="min-w-0 flex-auto">
             <div className="flex items-center gap-x-3">
               <img src={job.token.icon} alt="" className="h-6 w-6 flex-none rounded-full bg-gray-100 dark:bg-gray-800" />
