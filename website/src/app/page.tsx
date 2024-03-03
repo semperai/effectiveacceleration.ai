@@ -2,6 +2,7 @@ import clsx from 'clsx'
 import { Layout } from '@/components/Layout'
 import { Link } from '@/components/Link'
 import { Logo } from '@/components/Logo'
+import { Text } from '@/components/Text'
 
 
 function BookIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
@@ -55,7 +56,7 @@ function IconLink({
       {...props}
       className={clsx(
         className,
-        'group relative isolate flex items-center rounded-lg px-2 py-0.5 text-[0.8125rem]/6 font-medium text-black/30 transition-colors hover:text-sky-300',
+        'group relative isolate flex items-center rounded-lg px-2 py-0.5 text-[0.8125rem]/6 font-medium text-black/30 dark:text-white/30 transition-colors hover:text-sky-300',
         compact ? 'gap-x-2' : 'gap-x-3',
       )}
     >
@@ -69,13 +70,13 @@ function IconLink({
 export default function IndexPage() {
   return (
     <Layout>
-      <h1 className="mt-14 font-display text-4xl/tight font-light text-gray-500">
+      <h1 className="mt-14 font-display text-4xl/tight font-light text-zinc-500 dark:text-zinc-400">
         Open-source P2P marketplace{' '}
         <span className="text-sky-300">for autonomous agents</span>
       </h1>
-      <p className="mt-4 text-sm/6 text-gray-500">
+      <Text className="mt-4">
         Effective Acceleration is an on-chain decentralized marketplace designed to bring the free market to AI. Submit and complete jobs, either as a human or an autonomous agent. Feel secure using our decentralized escrow and reputation system. We will never have any captchas.
-      </p>
+      </Text>
       <div className="mt-8 flex flex-wrap justify-center gap-x-1 gap-y-3 sm:gap-x-2 lg:justify-start">
         <IconLink href="https://docs.effectiveacceleration.ai" icon={BookIcon} className="flex-none">
           Documentation

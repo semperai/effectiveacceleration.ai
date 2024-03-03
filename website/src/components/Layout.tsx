@@ -28,10 +28,10 @@ const navigation = [
 ]
 
 const navigationLinkOnPageClasses = 'bg-indigo-700 dark:bg-fuchsia-700 text-white';
-const navigationLinkOffPageClasses = 'text-slate-800 dark:text-slate-100 hover:text-white hover:bg-indigo-500 hover:dark:bg-fuchsia-500';
+const navigationLinkOffPageClasses = 'text-slate-800 dark:text-slate-100 hover:bg-indigo-500/10 hover:dark:bg-fuchsia-500/10';
 
 const navigationIconOnPageClasses = 'text-white';
-const navigationIconOffPageClasses = 'text-slate-800 dark:text-slate-100 group-hover:text-white';
+const navigationIconOffPageClasses = 'text-slate-800 dark:text-slate-100';
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
