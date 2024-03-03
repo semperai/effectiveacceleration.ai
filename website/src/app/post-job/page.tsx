@@ -1,3 +1,6 @@
+'use client'
+
+import { useState } from 'react'
 import { Layout } from '@/components/Layout'
 import { Button } from '@/components/Button'
 import { Description, Field, FieldGroup, Fieldset, Label, Legend } from '@/components/Fieldset'
@@ -5,8 +8,12 @@ import { Text } from '@/components/Text'
 import { Textarea } from '@/components/Textarea'
 import { Input } from '@/components/Input'
 import { Select } from '@/components/Select'
+import { TokenModal } from '@/components/TokenModal'
+import { Token } from '@/tokens'
 
 export default function OpenJobsPage() {
+  const [selectedToken, setSelectedToken] = useState<Token | undefined>(undefined)
+
   return (
     <Layout>
       <Fieldset className="max-w-screen-sm">
@@ -26,8 +33,15 @@ export default function OpenJobsPage() {
           </Field>
           <Field>
             <Label>Payment Token</Label>
-            <Input name="token" />
+            <Input name="token" value={selectedToken && selectedToken.id} />
             <Description></Description>
+
+            <div className="flex flex-col gap-4">
+              <TokenModal
+                selectedToken={selectedToken}
+                onClick={(token: Token) => setSelectedToken(token)}
+              />
+            </div>
           </Field>
           <Field>
             <Label>Payment Amount</Label>
