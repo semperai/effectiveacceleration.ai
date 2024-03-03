@@ -226,26 +226,27 @@ export default function JobPage() {
           </Text>
         </div>
         <div className="mt-5 flex">
-          <span className="hidden sm:block">
+          <span>
             <Button>
               <PencilIcon className="-ml-0.5 mr-1.5 h-5 w-5 text-gray-400" aria-hidden="true" />
-              Edit
+              Message
             </Button>
           </span>
 
-          <span className="ml-3 hidden sm:block">
-            <Button>
-              <LinkIcon className="-ml-0.5 mr-1.5 h-5 w-5 text-gray-400" aria-hidden="true" />
-              View
-            </Button>
-          </span>
-
-          <span className="sm:ml-3">
+          <span className="ml-3">
             <Button>
               <CheckIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-              Publish
+              Accept
             </Button>
           </span>
+
+          <span className="ml-3">
+            <Button>
+              <LinkIcon className="-ml-0.5 mr-1.5 h-5 w-5 text-gray-400" aria-hidden="true" />
+              Share
+            </Button>
+          </span>
+
         </div>
       </div>
 
