@@ -20,21 +20,23 @@ address constant ARBSYS_ADDRESS = address(100);
 // a discussion thread looks like this:
 // object (type jobpost (1 byte), address(20 bytes), index of cid of input text(8 bytes),
 
-struct ObjectJobPost {
-    uint8 t;
-    uint8 active;
-    uint40 owner_obj_idx;
-    uint40 title_blob_idx;
-    uint40 cid_blob_idx;
-    uint40 erc20_obj_idx;
-    uint40 amount_obj_idx;
-    uint40 time_obj_idx;
+struct JobPost {
+    uint8 state; // 0 open, 1 taken, etc?
+    address creator;
+    uint40  title_blob_idx; // 5 bytes
+    uint40  content_cid_blob_idx; // 5 bytes
+
+    address token;
+    uint32  allowed_time; // 4 bytes
+
+    uint256 amount; // wei
 }
 
 uint8 constant OBJ_TYPE_JOBPOST = 0x01;
 
-uint8 constant REF_MAGIC_ALL_JOBS = 0x01;
-uint8 constant REF_MAGIC_ALL_TAGS = 0x02;
+uint8 constant TYPE_TAG = 0x03;
+
+uint16 constant REF_MAGIC_ALL_JOBS = 0xFF01;
 
 contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     address public treasury; // where treasury fees/rewards go
@@ -67,6 +69,9 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
     // objects can reference blobs via index to here
     bytes[] public blobs;
+
+
+    JobPost[] public jobs;
 
     uint256[48] __gap; // upgradeable gap
 
@@ -184,44 +189,36 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         return blobs.length;
     }
 
-    /*
+    // to subscribe to this, use TYPE_JOB then 
     function publishJobPost(
         bytes calldata title_,
         bytes calldata content_,
-        IERC20 token_,
+        address token_,
         uint256 amount_,
-        uint256 time_,
+        uint256 allowed_time_,
         uint256[] calldata tags_ // indexes of refs[0xFF.REF_MAGIC_ALL_TAGS][idx]
     ) public returns (uint256) {
-        objects.push(uint256(uint160(msg.sender)));
+        IERC20(token_).transferFrom(msg.sender, address(this), amount_);
 
         blobs.push(title_);
-        objects.push(blobs.length);
+        uint256 title_blob_idx = blobs.length;
 
-        bytes memory cid = getIPFSCID(content_); 
-        blobs.push(cid);
+        {
+            bytes memory cid = getIPFSCID(content_); 
+            blobs.push(cid);
+        }
+        uint256 content_cid_blob_idx = blobs.length;
 
-        objects.push(uint256(uint160(address(token_))));
-        objects.push(amount_);
-        objects.push(time_);
+        jobs.push(JobPost({
+            state:                 0,
+            creator:               msg.sender,
+            title_blob_idx:        uint40(title_blob_idx),
+            content_cid_blob_idx:  uint40(content_cid_blob_idx),
+            token:                 token_,
+            amount:                amount_,
+            allowed_time:          uint32(allowed_time_)
+        }));
 
-        uint256 objects_length = objects.length;
-        uint256 blobs_length = blobs.length;
-
-        ObjectJobPost memory obj = ObjectJobPost({
-            t:              OBJ_TYPE_JOBPOST,
-            active:         0x1,
-            owner_obj_idx:  uint40(objects.length - 3),
-            title_blob_idx: uint40(blobs_length - 1),
-            cid_blob_idx:   uint40(blobs_length),
-            erc20_obj_idx:  uint40(objects_length - 2),
-            amount_obj_idx: uint40(objects_length - 1),
-            time_obj_idx:   uint40(objects_length)
-        });
-        uint256 obj_num = uint256(bytes32(bytes(obj)));
-
-        objects.push(obj_num);
-        refs[REF_MAGIC_ALL_TAGS].push(objects_length + 1);
+        refs[REF_MAGIC_ALL_JOBS].push(jobs.length);
     }
-    */
 }
