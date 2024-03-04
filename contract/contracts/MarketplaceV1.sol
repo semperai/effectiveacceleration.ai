@@ -5,6 +5,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@arbitrum/nitro-contracts/src/precompiles/ArbSys.sol";
 import {getIPFSCID} from "./libraries/IPFS.sol";
 
@@ -20,17 +21,19 @@ address constant ARBSYS_ADDRESS = address(100);
 // a discussion thread looks like this:
 // object (type jobpost (1 byte), address(20 bytes), index of cid of input text(8 bytes),
 
+uint8 constant JOB_STATE_OPEN = 0;
+uint8 constant JOB_STATE_CLOSED = 1;
+uint8 constant JOB_STATE_TAKEN = 2;
+
 struct JobPost {
-    uint8 state; // 0 open, 1 taken, etc?
+    uint8 state;
     // if true, only workers in allowedWorkers can take or message
     bool whitelist_workers;
     address creator;
-    uint40  title_blob_idx; // 5 bytes
-    uint40  content_cid_blob_idx; // 5 bytes
-
+    uint40 title_blob_idx; // 5 bytes
+    uint40 content_cid_blob_idx; // 5 bytes
     address token;
-    uint32  allowed_time; // 4 bytes
-
+    uint32 allowed_time; // 4 bytes
     uint256 amount; // wei
 }
 
@@ -51,6 +54,8 @@ struct JobUpdate {
     address user; // 20 bytes (used for whitelist worker)
 }
 
+uint8 constant JOB_THREAD_WORKER_MESSAGE = 1;
+uint8 constant JOB_THREAD_OWNER_MESSAGE = 2;
 struct JobThreadObject {
     uint8 t; // 1 byte / type of object
     uint40 blob_idx; // 5 bytes
@@ -67,7 +72,6 @@ struct Notification {
     address from; // who sent it
 }
 
-
 contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     address public treasury; // where treasury fees/rewards go
 
@@ -78,14 +82,12 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     // objects can reference blobs via index to here
     bytes[] public blobs;
 
-
     // user and bots receive notifications
     mapping(address => Notification[]) public notifications;
 
     // users must register by signing a message
     // this allows others to guarantee they can message securely
     mapping(address => bytes) public publicKeys;
-
 
     JobPost[] public jobs;
 
@@ -99,12 +101,16 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
     mapping(uint256 => JobThreadObject[]) public threads;
 
-
     uint256[48] __gap; // upgradeable gap
 
     /// @notice Modifier to restrict to only pauser
     modifier onlyPauser() {
         require(msg.sender == pauser, "not pauser");
+        _;
+    }
+
+    modifier onlyJobCreator(uint256 job_id_) {
+        require(jobs[job_id_].creator == msg.sender, "not creator");
         _;
     }
 
@@ -208,7 +214,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         return block.number;
     }
 
-
     function blobsLength() public view returns (uint256) {
         return blobs.length;
     }
@@ -217,11 +222,17 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         return jobUpdates[job_id_].length;
     }
 
-    function getThreadKey(address bot_, uint256 job_id_) public pure returns (uint256) {
-        return uint256(uint160(bot_)) << 160 | job_id_;
+    function getThreadKey(
+        address bot_,
+        uint256 job_id_
+    ) public pure returns (uint256) {
+        return (uint256(uint160(bot_)) << 160) | job_id_;
     }
 
-    function threadLength(address bot_, uint256 job_id_) public view returns (uint256) {
+    function threadLength(
+        address bot_,
+        uint256 job_id_
+    ) public view returns (uint256) {
         return threads[getThreadKey(bot_, job_id_)].length;
     }
 
@@ -239,7 +250,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         emit PublicKeyRegistered(msg.sender, pubkey);
     }
 
-    // to subscribe to this, use TYPE_JOB then 
+    // to subscribe to this, use TYPE_JOB then
     function publishJobPost(
         bytes calldata title_,
         bytes calldata content_,
@@ -257,49 +268,59 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         uint40 title_blob_idx = uint40(blobs.length);
 
         {
-            bytes memory cid = getIPFSCID(content_); 
+            bytes memory cid = getIPFSCID(content_);
             blobs.push(cid);
         }
         uint40 content_cid_blob_idx = uint40(blobs.length);
 
-        jobs.push(JobPost({
-            state:                 0,
-            whitelist_workers:     allowed_workers_.length > 0,
-            creator:               msg.sender,
-            title_blob_idx:        uint40(title_blob_idx),
-            content_cid_blob_idx:  uint40(content_cid_blob_idx),
-            token:                 token_,
-            amount:                amount_,
-            allowed_time:          uint32(allowed_time_)
-        }));
+        jobs.push(
+            JobPost({
+                state: 0,
+                whitelist_workers: allowed_workers_.length > 0,
+                creator: msg.sender,
+                title_blob_idx: uint40(title_blob_idx),
+                content_cid_blob_idx: uint40(content_cid_blob_idx),
+                token: token_,
+                amount: amount_,
+                allowed_time: uint32(allowed_time_)
+            })
+        );
 
-        jobUpdates[jobs.length].push(JobUpdate({
-            t: JOB_UPDATE_TITLE,
-            blob_idx: title_blob_idx,
-            user: address(0)
-        }));
-        jobUpdates[jobs.length].push(JobUpdate({
-            t: JOB_UPDATE_CONTENT,
-            blob_idx: content_cid_blob_idx,
-            user: address(0)
-        }));
+        jobUpdates[jobs.length].push(
+            JobUpdate({
+                t: JOB_UPDATE_TITLE,
+                blob_idx: title_blob_idx,
+                user: address(0)
+            })
+        );
+        jobUpdates[jobs.length].push(
+            JobUpdate({
+                t: JOB_UPDATE_CONTENT,
+                blob_idx: content_cid_blob_idx,
+                user: address(0)
+            })
+        );
 
         blobs.push(abi.encodePacked(token_, allowed_time_, amount_));
         {
             uint40 offer_blob_idx = uint40(blobs.length);
-            jobUpdates[jobs.length].push(JobUpdate({
-                t: JOB_UPDATE_OFFER,
-                blob_idx: offer_blob_idx,
-                user: address(0)
-            }));
+            jobUpdates[jobs.length].push(
+                JobUpdate({
+                    t: JOB_UPDATE_OFFER,
+                    blob_idx: offer_blob_idx,
+                    user: address(0)
+                })
+            );
         }
 
         if (allowed_workers_.length > 0) {
-            jobUpdates[jobs.length].push(JobUpdate({
-                t: JOB_UPDATE_ENABLE_WHITELIST,
-                blob_idx: 0,
-                user: address(0)
-            }));
+            jobUpdates[jobs.length].push(
+                JobUpdate({
+                    t: JOB_UPDATE_ENABLE_WHITELIST,
+                    blob_idx: 0,
+                    user: address(0)
+                })
+            );
         }
 
         for (uint256 i = 0; i < tags_.length; i++) {
@@ -308,30 +329,238 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         for (uint256 i = 0; i < allowed_workers_.length; i++) {
             whitelistWorkers[jobs.length][allowed_workers_[i]] = true;
-            jobUpdates[jobs.length].push(JobUpdate({
-                t: JOB_UPDATE_ADD_WORKER,
-                blob_idx: 0,
-                user: allowed_workers_[i]
-            }));
+            jobUpdates[jobs.length].push(
+                JobUpdate({
+                    t: JOB_UPDATE_ADD_WORKER,
+                    blob_idx: 0,
+                    user: allowed_workers_[i]
+                })
+            );
 
-            notifications[allowed_workers_[i]].push(Notification({
-                t: NOTIFICATION_WHITELISTED_FOR_JOB,
-                jobid: uint40(jobs.length),
-                threadid: uint40(jobUpdates[jobs.length].length), // threadid overloaded for jobUpdates index on type
-                from: msg.sender
-            }));
-            emit NotificationBroadcast(allowed_workers_[i], notifications[allowed_workers_[i]].length);
+            notifications[allowed_workers_[i]].push(
+                Notification({
+                    t: NOTIFICATION_WHITELISTED_FOR_JOB,
+                    jobid: uint40(jobs.length),
+                    threadid: uint40(jobUpdates[jobs.length].length), // threadid overloaded for jobUpdates index on type
+                    from: msg.sender
+                })
+            );
+            emit NotificationBroadcast(
+                allowed_workers_[i],
+                notifications[allowed_workers_[i]].length
+            );
         }
 
-        notifications[msg.sender].push(Notification({
-            t: NOTIFICATION_CREATE_JOB,
-            jobid: uint40(jobs.length),
-            threadid: 0,
-            from: address(0)
-        }));
-        emit NotificationBroadcast(msg.sender, notifications[msg.sender].length);
+        notifications[msg.sender].push(
+            Notification({
+                t: NOTIFICATION_CREATE_JOB,
+                jobid: uint40(jobs.length),
+                threadid: 0,
+                from: address(0)
+            })
+        );
+        emit NotificationBroadcast(
+            msg.sender,
+            notifications[msg.sender].length
+        );
 
         emit JobUpdated(jobs.length);
         return jobs.length;
+    }
+
+    function updateJobTitle(
+        uint256 job_id_,
+        bytes calldata title_
+    ) public onlyJobCreator(job_id_) {
+        blobs.push(title_);
+        uint40 title_blob_idx = uint40(blobs.length);
+        jobs[job_id_].title_blob_idx = title_blob_idx;
+        jobUpdates[job_id_].push(
+            JobUpdate({
+                t: JOB_UPDATE_TITLE,
+                blob_idx: title_blob_idx,
+                user: address(0)
+            })
+        );
+        emit JobUpdated(job_id_);
+    }
+
+    function updateJobContent(
+        uint256 job_id_,
+        bytes calldata content_
+    ) public onlyJobCreator(job_id_) {
+        bytes memory cid = getIPFSCID(content_);
+        blobs.push(cid);
+        uint40 content_cid_blob_idx = uint40(blobs.length);
+        jobs[job_id_].content_cid_blob_idx = content_cid_blob_idx;
+        jobUpdates[job_id_].push(
+            JobUpdate({
+                t: JOB_UPDATE_CONTENT,
+                blob_idx: content_cid_blob_idx,
+                user: address(0)
+            })
+        );
+        emit JobUpdated(job_id_);
+    }
+
+    function updateJobOffer(
+        uint256 job_id_,
+        address token_,
+        uint256 amount_,
+        uint256 allowed_time_
+    ) public onlyJobCreator(job_id_) {
+        blobs.push(abi.encodePacked(token_, allowed_time_, amount_));
+        uint40 offer_blob_idx = uint40(blobs.length);
+        jobs[job_id_].token = token_;
+        jobs[job_id_].amount = amount_;
+        jobs[job_id_].allowed_time = uint32(allowed_time_);
+        jobUpdates[job_id_].push(
+            JobUpdate({
+                t: JOB_UPDATE_OFFER,
+                blob_idx: offer_blob_idx,
+                user: address(0)
+            })
+        );
+        emit JobUpdated(job_id_);
+    }
+
+    function updateJobAddAllowedWorker(
+        uint256 job_id_,
+        address worker_
+    ) public onlyJobCreator(job_id_) {
+        whitelistWorkers[job_id_][worker_] = true;
+        jobUpdates[job_id_].push(
+            JobUpdate({t: JOB_UPDATE_ADD_WORKER, blob_idx: 0, user: worker_})
+        );
+        notifications[worker_].push(
+            Notification({
+                t: NOTIFICATION_WHITELISTED_FOR_JOB,
+                jobid: uint40(job_id_),
+                threadid: uint40(jobUpdates[job_id_].length), // threadid overloaded for jobUpdates index on type
+                from: msg.sender
+            })
+        );
+        emit NotificationBroadcast(worker_, notifications[worker_].length);
+        emit JobUpdated(job_id_);
+    }
+
+    function updateJobRemoveAllowedWorker(
+        uint256 job_id_,
+        address worker_
+    ) public onlyJobCreator(job_id_) {
+        whitelistWorkers[job_id_][worker_] = false;
+        jobUpdates[job_id_].push(
+            JobUpdate({t: JOB_UPDATE_REMOVE_WORKER, blob_idx: 0, user: worker_})
+        );
+        notifications[worker_].push(
+            Notification({
+                t: NOTIFICATION_REMOVE_WHITELISTED_FOR_JOB,
+                jobid: uint40(job_id_),
+                threadid: uint40(jobUpdates[job_id_].length), // threadid overloaded for jobUpdates index on type
+                from: msg.sender
+            })
+        );
+        emit NotificationBroadcast(worker_, notifications[worker_].length);
+        emit JobUpdated(job_id_);
+    }
+
+    function updateJobEnableWhitelist(
+        uint256 job_id_
+    ) public onlyJobCreator(job_id_) {
+        jobs[job_id_].whitelist_workers = true;
+        jobUpdates[job_id_].push(
+            JobUpdate({
+                t: JOB_UPDATE_ENABLE_WHITELIST,
+                blob_idx: 0,
+                user: address(0)
+            })
+        );
+        emit JobUpdated(job_id_);
+    }
+
+    function updateJobDisableWhitelist(
+        uint256 job_id_
+    ) public onlyJobCreator(job_id_) {
+        jobs[job_id_].whitelist_workers = false;
+        jobUpdates[job_id_].push(
+            JobUpdate({
+                t: JOB_UPDATE_DISABLE_WHITELIST,
+                blob_idx: 0,
+                user: address(0)
+            })
+        );
+        emit JobUpdated(job_id_);
+    }
+
+    function closeJob(uint256 job_id_) public onlyJobCreator(job_id_) {
+        require(jobs[job_id_].state == JOB_STATE_OPEN, "not open");
+        jobs[job_id_].state = JOB_STATE_CLOSED;
+        jobUpdates[job_id_].push(
+            JobUpdate({t: JOB_UPDATE_CLOSE, blob_idx: 0, user: address(0)})
+        );
+        emit JobUpdated(job_id_);
+    }
+
+    function reopenJob(uint256 job_id_) public onlyJobCreator(job_id_) {
+        require(jobs[job_id_].state == JOB_STATE_CLOSED, "not closed");
+        jobs[job_id_].state = JOB_STATE_OPEN;
+        jobUpdates[job_id_].push(
+            JobUpdate({t: JOB_UPDATE_REOPEN, blob_idx: 0, user: address(0)})
+        );
+        emit JobUpdated(job_id_);
+    }
+
+    function postThreadMessage(
+        uint256 job_id_,
+        bytes calldata content_
+    ) public {
+        require(jobs[job_id_].state == JOB_STATE_OPEN, "not open");
+
+        bool isOwner = jobs[job_id_].creator == msg.sender;
+        if (isOwner) {
+            require(
+                jobs[job_id_].whitelist_workers == false ||
+                    whitelistWorkers[job_id_][msg.sender],
+                "not whitelisted"
+            );
+        }
+
+        bytes memory content_cid = getIPFSCID(content_);
+        blobs.push(content_cid);
+        uint40 content_cid_blob_idx = uint40(blobs.length);
+
+        uint256 threadid = getThreadKey(msg.sender, job_id_);
+
+        if (isOwner) {
+            threads[threadid].push(
+                JobThreadObject({
+                    t: JOB_THREAD_OWNER_MESSAGE,
+                    blob_idx: content_cid_blob_idx
+                })
+            );
+            notifications[jobs[job_id_].creator].push(
+                Notification({
+                    t: JOB_THREAD_OWNER_MESSAGE,
+                    jobid: uint40(job_id_),
+                    threadid: uint40(threads[threadid].length),
+                    from: msg.sender
+                })
+            );
+        } else {
+            threads[threadid].push(
+                JobThreadObject({
+                    t: JOB_THREAD_WORKER_MESSAGE,
+                    blob_idx: content_cid_blob_idx
+                })
+            );
+            notifications[jobs[job_id_].creator].push(
+                Notification({
+                    t: JOB_THREAD_WORKER_MESSAGE,
+                    jobid: uint40(job_id_),
+                    threadid: uint40(threads[threadid].length),
+                    from: msg.sender
+                })
+            );
+        }
     }
 }
