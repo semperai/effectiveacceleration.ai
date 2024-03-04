@@ -1,37 +1,45 @@
+import {
+  time,
+  loadFixture,
+} from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { ethers, upgrades } from "hardhat";
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 import { expect } from "chai";
 import { Signer } from "ethers";
-import { MarketplaceV1 as Marketplace } from "../typechain/MarketplaceV1";
+import { MarketplaceV1 as Marketplace } from "../typechain-types/contracts/MarketplaceV1";
+import { FakeToken } from "../typechain-types/contracts/unicrow/FakeToken";
 
 describe("Marketplace Unit Tests", () => {
-  let signers: ethers.Signer[];
-  // let deployer: Signer;
-  let deployer:   SignerWithAddress;
-  let user1:      SignerWithAddress;
-  let user2:      SignerWithAddress;
-
-  let marketplace: ethers.Contract;
-
-  beforeEach("Deploy and initialize", async () => {
-    signers = await ethers.getSigners();
-    deployer = signers[0];
-    user1    = signers[1];
-    user2    = signers[2];
+  async function deployContractsFixture(): Promise<{
+    marketplace: Marketplace;
+    fakeToken: FakeToken;
+    deployer: SignerWithAddress;
+    user1: SignerWithAddress;
+    user2: SignerWithAddress;
+  }> {
+    const [deployer, user1, user2] = await ethers.getSigners();
 
     const Marketplace = await ethers.getContractFactory(
       "MarketplaceV1"
     );
-    marketplace = (await upgrades.deployProxy(Marketplace, [
+    const marketplace = (await upgrades.deployProxy(Marketplace, [
       await deployer.getAddress(),
     ]));
     await marketplace.waitForDeployment();
     // console.log("Marketplace deployed to:", await marketplace.getAddress());
-    
-  });
+
+    const FakeToken = await ethers.getContractFactory(
+      "FakeToken"
+    );
+    const fakeToken = await FakeToken.deploy("Test", "TST");
+    // console.log("FakeToken deployed to:", await fakeToken.getAddress());
+
+    return { marketplace, fakeToken, deployer, user1, user2 };
+  }
 
   describe("admin", () => {
     it("transfer owner", async () => {
+      const { marketplace, deployer, user1 } = await loadFixture(deployContractsFixture);
       await expect(marketplace
         .connect(deployer)
         .transferOwnership(await user1.getAddress())
@@ -42,6 +50,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("non owner cannot transfer owner", async () => {
+      const { marketplace, user1 } = await loadFixture(deployContractsFixture);
       await expect(marketplace
         .connect(user1)
         .transferOwnership(await user1.getAddress())
@@ -49,6 +58,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("transfer pauser", async () => {
+      const { marketplace, deployer, user1 } = await loadFixture(deployContractsFixture);
       await expect(marketplace
         .connect(deployer)
         .transferPauser(await user1.getAddress())
@@ -59,6 +69,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("non owner cannot transfer pauser", async () => {
+      const { marketplace, user1 } = await loadFixture(deployContractsFixture);
       await expect(marketplace
         .connect(user1)
         .transferPauser(await user1.getAddress())
@@ -66,6 +77,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("transfer treasury", async () => {
+      const { marketplace, deployer, user1 } = await loadFixture(deployContractsFixture);
       await expect(marketplace
         .connect(deployer)
         .transferTreasury(await user1.getAddress())
@@ -76,6 +88,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("non owner cannot transfer treasury", async () => {
+      const { marketplace, user1 } = await loadFixture(deployContractsFixture);
       await expect(marketplace
         .connect(user1)
         .transferTreasury(await user1.getAddress())
@@ -83,6 +96,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("pause/unpause", async () => {
+      const { marketplace, deployer, user1 } = await loadFixture(deployContractsFixture);
       await expect(marketplace
         .connect(deployer)
         .pause()
@@ -101,6 +115,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("non pauser cannot pause", async () => {
+      const { marketplace, user1 } = await loadFixture(deployContractsFixture);
       await expect(marketplace
         .connect(user1)
         .pause()
@@ -108,6 +123,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("non pauser cannot unpause", async () => {
+      const { marketplace, deployer, user1 } = await loadFixture(deployContractsFixture);
       await marketplace.connect(deployer).pause();
 
       await expect(marketplace
@@ -117,6 +133,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("set version", async () => {
+      const { marketplace, deployer } = await loadFixture(deployContractsFixture);
       await expect(marketplace
         .connect(deployer)
         .setVersion(25)
@@ -127,6 +144,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("non owner cannot set version", async () => {
+      const { marketplace, user1 } = await loadFixture(deployContractsFixture);
       await expect(marketplace
         .connect(user1)
         .setVersion(25)
