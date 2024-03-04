@@ -35,6 +35,7 @@ struct JobPost {
     address token;
     uint32 allowed_time; // 4 bytes
     uint256 amount; // wei
+    address worker; // who took the job
 }
 
 uint8 constant JOB_UPDATE_TITLE = 1; // update title
@@ -45,8 +46,8 @@ uint8 constant JOB_UPDATE_REMOVE_WORKER = 5; // remove whitelist worker
 uint8 constant JOB_UPDATE_ENABLE_WHITELIST = 6; // enable whitelist
 uint8 constant JOB_UPDATE_DISABLE_WHITELIST = 7; // disable whitelist
 uint8 constant JOB_UPDATE_CLOSE = 8; // close job
-uint8 constant JOB_UPDATE_REOPEN = 9; // reopen job
-uint8 constant JOB_UPDATE_CANCEL = 10; // cancel job
+uint8 constant JOB_UPDATE_TAKEN = 9; // job taken by worker
+uint8 constant JOB_UPDATE_OPEN = 10; // job reopened
 
 struct JobUpdate {
     uint8 t; // 1 byte / type of object
@@ -64,6 +65,8 @@ struct JobThreadObject {
 uint8 constant NOTIFICATION_WHITELISTED_FOR_JOB = 1;
 uint8 constant NOTIFICATION_REMOVE_WHITELISTED_FOR_JOB = 2;
 uint8 constant NOTIFICATION_CREATE_JOB = 3;
+uint8 constant NOTIFICATION_JOB_TAKEN = 4;
+uint8 constant NOTIFICATION_JOB_UPDATED = 5;
 
 struct Notification {
     uint8 t; // 1 byte / type of object
@@ -90,6 +93,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     mapping(address => bytes) public publicKeys;
 
     JobPost[] public jobs;
+
+    mapping(uint256 => JobPost[]) public jobHistory;
 
     // tag -> jobid
     mapping(uint256 => uint256[]) public taggedJobs;
@@ -250,7 +255,35 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         emit PublicKeyRegistered(msg.sender, pubkey);
     }
 
-    // to subscribe to this, use TYPE_JOB then
+    function publishJobUpdate(
+        uint256 job_id_,
+        uint8 t_,
+        uint40 blob_idx_,
+        address user_
+    ) internal {
+        jobUpdates[job_id_].push(
+            JobUpdate({t: t_, blob_idx: blob_idx_, user: user_})
+        );
+        emit JobUpdated(job_id_);
+    }
+
+    function publishNotification(
+        address addr_,
+        uint8 t_,
+        uint40 job_id_,
+        uint40 thread_id_
+    ) internal {
+        notifications[addr_].push(
+            Notification({
+                t: t_,
+                jobid: job_id_,
+                threadid: thread_id_,
+                from: msg.sender
+            })
+        );
+        emit NotificationBroadcast(addr_, notifications[addr_].length);
+    }
+
     function publishJobPost(
         bytes calldata title_,
         bytes calldata content_,
@@ -264,249 +297,130 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         IERC20(token_).transferFrom(msg.sender, address(this), amount_);
 
-        blobs.push(title_);
-        uint40 title_blob_idx = uint40(blobs.length);
-
-        {
-            bytes memory cid = getIPFSCID(content_);
-            blobs.push(cid);
-        }
-        uint40 content_cid_blob_idx = uint40(blobs.length);
-
         jobs.push(
             JobPost({
                 state: 0,
                 whitelist_workers: allowed_workers_.length > 0,
                 creator: msg.sender,
-                title_blob_idx: uint40(title_blob_idx),
-                content_cid_blob_idx: uint40(content_cid_blob_idx),
+                title_blob_idx: 0,
+                content_cid_blob_idx: 0,
                 token: token_,
                 amount: amount_,
-                allowed_time: uint32(allowed_time_)
+                allowed_time: uint32(allowed_time_),
+                worker: address(0)
             })
         );
-
-        jobUpdates[jobs.length].push(
-            JobUpdate({
-                t: JOB_UPDATE_TITLE,
-                blob_idx: title_blob_idx,
-                user: address(0)
-            })
-        );
-        jobUpdates[jobs.length].push(
-            JobUpdate({
-                t: JOB_UPDATE_CONTENT,
-                blob_idx: content_cid_blob_idx,
-                user: address(0)
-            })
-        );
-
-        blobs.push(abi.encodePacked(token_, allowed_time_, amount_));
-        {
-            uint40 offer_blob_idx = uint40(blobs.length);
-            jobUpdates[jobs.length].push(
-                JobUpdate({
-                    t: JOB_UPDATE_OFFER,
-                    blob_idx: offer_blob_idx,
-                    user: address(0)
-                })
-            );
-        }
-
-        if (allowed_workers_.length > 0) {
-            jobUpdates[jobs.length].push(
-                JobUpdate({
-                    t: JOB_UPDATE_ENABLE_WHITELIST,
-                    blob_idx: 0,
-                    user: address(0)
-                })
-            );
-        }
 
         for (uint256 i = 0; i < tags_.length; i++) {
             taggedJobs[tags_[i]].push(jobs.length);
         }
 
-        for (uint256 i = 0; i < allowed_workers_.length; i++) {
-            whitelistWorkers[jobs.length][allowed_workers_[i]] = true;
-            jobUpdates[jobs.length].push(
-                JobUpdate({
-                    t: JOB_UPDATE_ADD_WORKER,
-                    blob_idx: 0,
-                    user: allowed_workers_[i]
-                })
-            );
+        updateJobPost(
+            jobs.length,
+            allowed_workers_.length > 0,
+            title_,
+            content_,
+            token_,
+            amount_,
+            allowed_time_
+        );
 
-            notifications[allowed_workers_[i]].push(
-                Notification({
-                    t: NOTIFICATION_WHITELISTED_FOR_JOB,
-                    jobid: uint40(jobs.length),
-                    threadid: uint40(jobUpdates[jobs.length].length), // threadid overloaded for jobUpdates index on type
-                    from: msg.sender
-                })
-            );
-            emit NotificationBroadcast(
-                allowed_workers_[i],
-                notifications[allowed_workers_[i]].length
-            );
+        if (allowed_workers_.length > 0) {
+            updateJobWhitelist(jobs.length, allowed_workers_, new address[](0));
         }
 
-        notifications[msg.sender].push(
-            Notification({
-                t: NOTIFICATION_CREATE_JOB,
-                jobid: uint40(jobs.length),
-                threadid: 0,
-                from: address(0)
-            })
-        );
-        emit NotificationBroadcast(
+        publishNotification(
             msg.sender,
-            notifications[msg.sender].length
+            NOTIFICATION_CREATE_JOB,
+            uint40(jobs.length),
+            0
         );
 
-        emit JobUpdated(jobs.length);
         return jobs.length;
     }
 
-    function updateJobTitle(
+    function updateJobPost(
         uint256 job_id_,
-        bytes calldata title_
-    ) public onlyJobCreator(job_id_) {
-        blobs.push(title_);
-        uint40 title_blob_idx = uint40(blobs.length);
-        jobs[job_id_].title_blob_idx = title_blob_idx;
-        jobUpdates[job_id_].push(
-            JobUpdate({
-                t: JOB_UPDATE_TITLE,
-                blob_idx: title_blob_idx,
-                user: address(0)
-            })
-        );
-        emit JobUpdated(job_id_);
-    }
-
-    function updateJobContent(
-        uint256 job_id_,
-        bytes calldata content_
-    ) public onlyJobCreator(job_id_) {
-        bytes memory cid = getIPFSCID(content_);
-        blobs.push(cid);
-        uint40 content_cid_blob_idx = uint40(blobs.length);
-        jobs[job_id_].content_cid_blob_idx = content_cid_blob_idx;
-        jobUpdates[job_id_].push(
-            JobUpdate({
-                t: JOB_UPDATE_CONTENT,
-                blob_idx: content_cid_blob_idx,
-                user: address(0)
-            })
-        );
-        emit JobUpdated(job_id_);
-    }
-
-    function updateJobOffer(
-        uint256 job_id_,
+        bool whitelist_workers_,
+        bytes calldata title_,
+        bytes calldata content_,
         address token_,
         uint256 amount_,
         uint256 allowed_time_
     ) public onlyJobCreator(job_id_) {
-        blobs.push(abi.encodePacked(token_, allowed_time_, amount_));
-        uint40 offer_blob_idx = uint40(blobs.length);
-        jobs[job_id_].token = token_;
-        jobs[job_id_].amount = amount_;
-        jobs[job_id_].allowed_time = uint32(allowed_time_);
-        jobUpdates[job_id_].push(
-            JobUpdate({
-                t: JOB_UPDATE_OFFER,
-                blob_idx: offer_blob_idx,
-                user: address(0)
-            })
-        );
+        require(jobs[job_id_].state == JOB_STATE_OPEN, "not open");
+
+        {
+            jobHistory[job_id_].push(jobs[job_id_]);
+
+            blobs.push(title_);
+            uint40 title_blob_idx = uint40(blobs.length);
+            jobs[job_id_].title_blob_idx = title_blob_idx;
+        }
+        {
+            bytes memory cid = getIPFSCID(content_);
+            blobs.push(cid);
+            uint40 content_cid_blob_idx = uint40(blobs.length);
+            jobs[job_id_].content_cid_blob_idx = content_cid_blob_idx;
+        }
+        {
+            jobs[job_id_].whitelist_workers = whitelist_workers_;
+            jobs[job_id_].token = token_;
+            jobs[job_id_].amount = amount_;
+            jobs[job_id_].allowed_time = uint32(allowed_time_);
+        }
+
+        if (jobs[job_id_].worker != address(0)) {
+            publishNotification(
+                jobs[job_id_].worker,
+                NOTIFICATION_JOB_UPDATED,
+                uint40(job_id_),
+                0
+            );
+        }
+
         emit JobUpdated(job_id_);
     }
 
-    function updateJobAddAllowedWorker(
+    function updateJobWhitelist(
         uint256 job_id_,
-        address worker_
+        address[] calldata allowed_workers_,
+        address[] memory disallowed_workers_
     ) public onlyJobCreator(job_id_) {
-        whitelistWorkers[job_id_][worker_] = true;
-        jobUpdates[job_id_].push(
-            JobUpdate({t: JOB_UPDATE_ADD_WORKER, blob_idx: 0, user: worker_})
-        );
-        notifications[worker_].push(
-            Notification({
-                t: NOTIFICATION_WHITELISTED_FOR_JOB,
-                jobid: uint40(job_id_),
-                threadid: uint40(jobUpdates[job_id_].length), // threadid overloaded for jobUpdates index on type
-                from: msg.sender
-            })
-        );
-        emit NotificationBroadcast(worker_, notifications[worker_].length);
-        emit JobUpdated(job_id_);
-    }
+        require(jobs[job_id_].state == JOB_STATE_OPEN, "not open");
 
-    function updateJobRemoveAllowedWorker(
-        uint256 job_id_,
-        address worker_
-    ) public onlyJobCreator(job_id_) {
-        whitelistWorkers[job_id_][worker_] = false;
-        jobUpdates[job_id_].push(
-            JobUpdate({t: JOB_UPDATE_REMOVE_WORKER, blob_idx: 0, user: worker_})
-        );
-        notifications[worker_].push(
-            Notification({
-                t: NOTIFICATION_REMOVE_WHITELISTED_FOR_JOB,
-                jobid: uint40(job_id_),
-                threadid: uint40(jobUpdates[job_id_].length), // threadid overloaded for jobUpdates index on type
-                from: msg.sender
-            })
-        );
-        emit NotificationBroadcast(worker_, notifications[worker_].length);
-        emit JobUpdated(job_id_);
-    }
+        for (uint256 i = 0; i < allowed_workers_.length; i++) {
+            whitelistWorkers[job_id_][allowed_workers_[i]] = true;
+            publishNotification(
+                allowed_workers_[i],
+                NOTIFICATION_WHITELISTED_FOR_JOB,
+                uint40(job_id_),
+                0
+            );
+        }
 
-    function updateJobEnableWhitelist(
-        uint256 job_id_
-    ) public onlyJobCreator(job_id_) {
-        jobs[job_id_].whitelist_workers = true;
-        jobUpdates[job_id_].push(
-            JobUpdate({
-                t: JOB_UPDATE_ENABLE_WHITELIST,
-                blob_idx: 0,
-                user: address(0)
-            })
-        );
-        emit JobUpdated(job_id_);
-    }
-
-    function updateJobDisableWhitelist(
-        uint256 job_id_
-    ) public onlyJobCreator(job_id_) {
-        jobs[job_id_].whitelist_workers = false;
-        jobUpdates[job_id_].push(
-            JobUpdate({
-                t: JOB_UPDATE_DISABLE_WHITELIST,
-                blob_idx: 0,
-                user: address(0)
-            })
-        );
-        emit JobUpdated(job_id_);
+        for (uint256 i = 0; i < disallowed_workers_.length; i++) {
+            whitelistWorkers[job_id_][disallowed_workers_[i]] = false;
+            publishNotification(
+                disallowed_workers_[i],
+                NOTIFICATION_REMOVE_WHITELISTED_FOR_JOB,
+                uint40(job_id_),
+                0
+            );
+        }
     }
 
     function closeJob(uint256 job_id_) public onlyJobCreator(job_id_) {
         require(jobs[job_id_].state == JOB_STATE_OPEN, "not open");
         jobs[job_id_].state = JOB_STATE_CLOSED;
-        jobUpdates[job_id_].push(
-            JobUpdate({t: JOB_UPDATE_CLOSE, blob_idx: 0, user: address(0)})
-        );
+        publishJobUpdate(job_id_, JOB_UPDATE_CLOSE, 0, address(0));
         emit JobUpdated(job_id_);
     }
 
     function reopenJob(uint256 job_id_) public onlyJobCreator(job_id_) {
         require(jobs[job_id_].state == JOB_STATE_CLOSED, "not closed");
         jobs[job_id_].state = JOB_STATE_OPEN;
-        jobUpdates[job_id_].push(
-            JobUpdate({t: JOB_UPDATE_REOPEN, blob_idx: 0, user: address(0)})
-        );
+        publishJobUpdate(job_id_, JOB_UPDATE_OPEN, 0, address(0));
         emit JobUpdated(job_id_);
     }
 
@@ -514,7 +428,16 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         uint256 job_id_,
         bytes calldata content_
     ) public {
-        require(jobs[job_id_].state == JOB_STATE_OPEN, "not open");
+        if (jobs[job_id_].state == JOB_STATE_TAKEN) {
+            require(jobs[job_id_].worker == msg.sender, "taken/not worker");
+        } else {
+            require(jobs[job_id_].state == JOB_STATE_OPEN, "not open");
+            require(
+                jobs[job_id_].whitelist_workers == false ||
+                    whitelistWorkers[job_id_][msg.sender],
+                "not whitelisted"
+            );
+        }
 
         bool isOwner = jobs[job_id_].creator == msg.sender;
         if (isOwner) {
@@ -538,13 +461,11 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
                     blob_idx: content_cid_blob_idx
                 })
             );
-            notifications[jobs[job_id_].creator].push(
-                Notification({
-                    t: JOB_THREAD_OWNER_MESSAGE,
-                    jobid: uint40(job_id_),
-                    threadid: uint40(threads[threadid].length),
-                    from: msg.sender
-                })
+            publishNotification(
+                jobs[job_id_].worker,
+                JOB_THREAD_OWNER_MESSAGE,
+                uint40(job_id_),
+                uint40(threads[threadid].length)
             );
         } else {
             threads[threadid].push(
@@ -553,14 +474,32 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
                     blob_idx: content_cid_blob_idx
                 })
             );
-            notifications[jobs[job_id_].creator].push(
-                Notification({
-                    t: JOB_THREAD_WORKER_MESSAGE,
-                    jobid: uint40(job_id_),
-                    threadid: uint40(threads[threadid].length),
-                    from: msg.sender
-                })
+            publishNotification(
+                jobs[job_id_].creator,
+                JOB_THREAD_WORKER_MESSAGE,
+                uint40(job_id_),
+                uint40(threads[threadid].length)
             );
         }
+    }
+
+    function takeJob(uint256 job_id_) public {
+        require(publicKeys[msg.sender].length > 0, "not registered");
+        require(jobs[job_id_].state == JOB_STATE_OPEN, "not open");
+        require(
+            jobs[job_id_].whitelist_workers == false ||
+                whitelistWorkers[job_id_][msg.sender],
+            "not whitelisted"
+        );
+        jobs[job_id_].state = JOB_STATE_TAKEN;
+        jobs[job_id_].worker = msg.sender;
+
+        publishJobUpdate(job_id_, JOB_UPDATE_TAKEN, 0, address(0));
+        publishNotification(
+            jobs[job_id_].creator,
+            NOTIFICATION_JOB_TAKEN,
+            uint40(job_id_),
+            0
+        );
     }
 }
