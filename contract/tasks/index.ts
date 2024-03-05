@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import ProxyAdminArtifact from '@openzeppelin/upgrades-core/artifacts/@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol/ProxyAdmin.json';
+import { FakeToken } from '../typechain-types/contracts/unicrow/FakeToken';
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { task } from "hardhat/config";
 import Config from '../scripts/config.json';
@@ -17,17 +18,6 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   }
 });
 
-
-task("mint", "Mint test tokens")
-.addParam("to", "address")
-.addParam("amount", "amount")
-.setAction(async ({ to, amount }, hre) => {
-    const TestToken = await hre.ethers.getContractFactory("TestToken");
-    const testToken = await TestToken.attach(Config.testTokenAddress);
-    const tx = await testToken.mint(to, hre.ethers.utils.parseEther(amount));
-    await tx.wait();
-    console.log(`minted ${amount} tokens to ${to}`);
-});
 
 task("mine", "mine blocks locally")
 .addParam("blocks", "how many")
@@ -50,15 +40,30 @@ task("gen-wallet", "Creates a new wallet", async (taskArgs, hre) => {
 });
 
 task("send-eth", "Send ether")
-.addParam("address", "Receiver address")
+.addParam("to", "Receiver address")
 .addParam("amount", "Eth")
-.setAction(async ({ address, amount }, hre) => {
+.setAction(async ({ to, amount }, hre) => {
   const [account] = await hre.ethers.getSigners();
-  await account.sendTransaction({
-    to: address,
-    value: hre.ethers.utils.parseEther(amount),
+  console.log(`Sending ${amount} ETH to ${to}`);
+  const receipt = await account.sendTransaction({
+    to,
+    value: hre.ethers.parseEther(amount),
   });
+  console.log(`Transaction hash: ${receipt.hash}`);
 });
+
+task("send-token", "Mint test tokens")
+.addParam("to", "address")
+.addParam("amount", "amount")
+.setAction(async ({ to, amount }, hre) => {
+    console.log(`Sending ${amount} TST to ${to}`);
+    const Token = await hre.ethers.getContractFactory("FakeToken");
+    const fakeToken = await Token.attach(Config.fakeTokenAddress) as FakeToken;
+    const tx = await fakeToken.transfer(to, hre.ethers.parseEther(amount));
+    const receipt = await tx.wait();
+    console.log(`Transaction hash: ${receipt.hash}`);
+});
+
 
 task("marketplace:transferOwnership", "Transfer admin ownership of Marketplace")
 .addParam("address", "To who?")
