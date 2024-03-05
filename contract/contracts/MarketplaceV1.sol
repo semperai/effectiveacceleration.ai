@@ -11,7 +11,6 @@ import {getIPFSCID} from "./libraries/IPFS.sol";
 
 import "hardhat/console.sol";
 
-
 uint256 constant ARBITRUM_NOVA_CHAINID = 0xa4ba;
 uint256 constant ARBITRUM_GOERLI_CHAINID = 0x66eed;
 uint256 constant ARBITRUM_SEPOLIA_CHAINID = 0x66eee;
@@ -33,17 +32,17 @@ struct JobPost {
     // if true, only workers in allowedWorkers can take or message
     bool whitelist_workers;
     address creator;
-    uint40 title_blob_idx; // 5 bytes
+    string title;
     uint40 content_cid_blob_idx; // 5 bytes
     address token;
-    uint32 allowed_time; // 4 bytes
+    uint32 deadline; // 4 bytes
     uint256 amount; // wei
     address worker; // who took the job
 }
 
 uint8 constant JOB_UPDATE_TITLE = 1; // update title
 uint8 constant JOB_UPDATE_CONTENT = 2; // update content
-uint8 constant JOB_UPDATE_OFFER = 3; // update token/allowed_time/amount
+uint8 constant JOB_UPDATE_OFFER = 3; // update token/deadline/amount
 uint8 constant JOB_UPDATE_ADD_WORKER = 4; // add whitelist worker
 uint8 constant JOB_UPDATE_REMOVE_WORKER = 5; // remove whitelist worker
 uint8 constant JOB_UPDATE_ENABLE_WHITELIST = 6; // enable whitelist
@@ -288,11 +287,11 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     }
 
     function publishJobPost(
-        bytes calldata title_,
+        string calldata title_,
         bytes calldata content_,
         address token_,
         uint256 amount_,
-        uint256 allowed_time_,
+        uint256 deadline_,
         uint256[] calldata tags_,
         address[] calldata allowed_workers_
     ) public returns (uint256) {
@@ -309,11 +308,11 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
                 state: 0,
                 whitelist_workers: allowed_workers_.length > 0,
                 creator: msg.sender,
-                title_blob_idx: 0,
+                title: title_,
                 content_cid_blob_idx: 0,
                 token: token_,
                 amount: amount_,
-                allowed_time: uint32(allowed_time_),
+                deadline: uint32(deadline_),
                 worker: address(0)
             })
         );
@@ -333,7 +332,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             content_,
             token_,
             amount_,
-            allowed_time_
+            deadline_
         );
 
         if (allowed_workers_.length > 0) {
@@ -353,32 +352,30 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     function updateJobPost(
         uint256 job_id_,
         bool whitelist_workers_,
-        bytes calldata title_,
+        string calldata title_,
         bytes calldata content_,
         address token_,
         uint256 amount_,
-        uint256 allowed_time_
+        uint256 deadline_
     ) public onlyJobCreator(job_id_) {
         require(jobs[job_id_].state == JOB_STATE_OPEN, "not open");
 
-        {
-            jobHistory[job_id_].push(jobs[job_id_]);
+        // store old job
+        jobHistory[job_id_].push(jobs[job_id_]);
 
-            blobs.push(title_);
-            uint40 title_blob_idx = uint40(blobs.length);
-            jobs[job_id_].title_blob_idx = title_blob_idx;
+        {
+            jobs[job_id_].title = title_;
         }
         {
             bytes memory cid = getIPFSCID(content_);
             blobs.push(cid);
-            uint40 content_cid_blob_idx = uint40(blobs.length);
-            jobs[job_id_].content_cid_blob_idx = content_cid_blob_idx;
+            jobs[job_id_].content_cid_blob_idx = uint40(blobs.length - 1);
         }
         {
             jobs[job_id_].whitelist_workers = whitelist_workers_;
             jobs[job_id_].token = token_;
             jobs[job_id_].amount = amount_;
-            jobs[job_id_].allowed_time = uint32(allowed_time_);
+            jobs[job_id_].deadline = uint32(deadline_);
         }
 
         if (jobs[job_id_].worker != address(0)) {
@@ -461,7 +458,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         bytes memory content_cid = getIPFSCID(content_);
         blobs.push(content_cid);
-        uint40 content_cid_blob_idx = uint40(blobs.length);
+        uint40 content_cid_blob_idx = uint40(blobs.length - 1);
 
         uint256 threadid = getThreadKey(msg.sender, job_id_);
 

@@ -202,13 +202,12 @@ describe("Marketplace Unit Tests", () => {
       const title = "Create a marketplace in solidity";
       const content = "Please create a marketplace in solidity";
 
-      const titleBytes = ethers.getBytes(Buffer.from(title, "utf-8"));
       const contentBytes = ethers.getBytes(Buffer.from(content, "utf-8"));
 
       await expect(marketplace
         .connect(user1)
         .publishJobPost(
-          titleBytes,
+          title,
           contentBytes,
           await fakeToken.getAddress(),
           100,
@@ -218,6 +217,23 @@ describe("Marketplace Unit Tests", () => {
         )
       ).to.emit(marketplace, 'JobUpdated').withArgs(0) // jobid
       .to.emit(marketplace, 'NotificationBroadcast').withArgs(await user1.getAddress(), 0); // jobid
+
+      const data = await marketplace.jobs(0);
+      
+      await expect(data.state).to.equal(0); // JOB_STATE_OPEN
+      await expect(data.whitelist_workers).to.equal(false);
+      await expect(data.creator).to.equal(await user1.getAddress());
+      await expect(data.title).to.equal(title);
+      await expect(data.content_cid_blob_idx).to.equal(0);
+      await expect(data.token).to.equal(await fakeToken.getAddress());
+      await expect(data.amount).to.equal(100);
+      await expect(data.deadline).to.equal(120);
+      await expect(data.worker).to.equal(ethers.ZeroAddress);
+
+
+      const contentBlob = await marketplace.blobs(0);
+      const contentCid = await marketplace.generateIPFSCID(contentBytes);
+      await expect(contentBlob).to.equal(contentCid);
     });
   });
 });
