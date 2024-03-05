@@ -11,6 +11,8 @@ async function main() {
 
   const FakeToken = await ethers.getContractFactory("FakeToken");
   const fakeToken = await FakeToken.deploy("Test", "TST");
+  await fakeToken.waitForDeployment();
+  console.log("FakeToken deployed to:", fakeToken.target);
 
   const Marketplace = await ethers.getContractFactory(
     "MarketplaceV1"
@@ -18,13 +20,14 @@ async function main() {
   const marketplace = await upgrades.deployProxy(Marketplace, [
     deployer.address, // deployer as treasury
   ]);
-  await marketplace.deployed();
-  console.log("Marketplace deployed to:", marketplace.address);
+  await marketplace.waitForDeployment();
+  console.log("Marketplace deployed to:", marketplace.target);
 
   // SAVE CONFIG
   const configPath = __dirname + '/config.json';
   fs.writeFileSync(configPath, JSON.stringify({
-    marketplaceAddress: marketplace.address,
+    marketplaceAddress: marketplace.target,
+    fakeTokenAddress: fakeToken.target,
   }, null, 2));
   console.log('Saved config to', configPath);
   process.exit(0)

@@ -16,13 +16,13 @@ async function main() {
   const marketplace = await upgrades.deployProxy(Marketplace, [
     deployer.address, // deployer as treasury
   ]);
-  await marketplace.deployed();
-  console.log("Marketplace deployed to:", marketplace.address);
+  await marketplace.waitForDeployment();
+  console.log("Marketplace deployed to:", marketplace.target);
 
   // SAVE CONFIG
   const configPath = __dirname + '/config.json';
   fs.writeFileSync(configPath, JSON.stringify({
-    marketplaceAddress: marketplace.address,
+    marketplaceAddress: marketplace.target,
   }, null, 2));
   console.log('Saved config to', configPath);
   process.exit(0)
