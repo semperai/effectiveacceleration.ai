@@ -32,6 +32,7 @@ describe("Marketplace Unit Tests", () => {
       "FakeToken"
     );
     const fakeToken = await FakeToken.deploy("Test", "TST");
+    await fakeToken.waitForDeployment();
     // console.log("FakeToken deployed to:", await fakeToken.getAddress());
       //
 
