@@ -33,8 +33,22 @@ describe("Marketplace Unit Tests", () => {
     );
     const fakeToken = await FakeToken.deploy("Test", "TST");
     // console.log("FakeToken deployed to:", await fakeToken.getAddress());
+      //
+
+    await fakeToken.connect(deployer).transfer(await user1.getAddress(), 1000);
+    await fakeToken.connect(user1).approve(await marketplace.getAddress(), 1000);
 
     return { marketplace, fakeToken, deployer, user1, user2 };
+  }
+
+  async function getWalletsFixture(): Promise<{
+    wallet1: ethers.Wallet;
+    wallet2: ethers.Wallet;
+  }> {
+    const wallet1 = ethers.Wallet.createRandom();
+    const wallet2 = ethers.Wallet.createRandom();
+
+    return { wallet1, wallet2 };
   }
 
   describe("admin", () => {
@@ -149,6 +163,61 @@ describe("Marketplace Unit Tests", () => {
         .connect(user1)
         .setVersion(25)
       ).to.be.reverted;
+    });
+  });
+
+  describe("pubkey register", () => {
+    it("register pubkey", async () => {
+      const { marketplace, user1 } = await loadFixture(deployContractsFixture);
+      const { wallet1 } = await loadFixture(getWalletsFixture);
+
+      await expect(marketplace
+        .connect(user1)
+        .registerPublicKey(wallet1.publicKey)
+      ).to.emit(marketplace, 'PublicKeyRegistered')
+      .withArgs(await user1.getAddress(), wallet1.publicKey);
+
+      expect(await marketplace.publicKeys(await user1.getAddress())).to.equal(wallet1.publicKey);
+    });
+  });
+
+  async function registerPublicKey(
+    marketplace: Marketplace,
+    user: Signer,
+    wallet: ethers.Wallet
+  ) {
+    await marketplace
+      .connect(user)
+      .registerPublicKey(wallet.publicKey);
+  }
+
+  describe("job posting", () => {
+    it("post job", async () => {
+      const { marketplace, fakeToken, user1 } = await loadFixture(deployContractsFixture);
+
+      const { wallet1 } = await loadFixture(getWalletsFixture);
+
+      await registerPublicKey(marketplace, user1, wallet1);
+
+      const title = "Create a marketplace in solidity";
+      const content = "Please create a marketplace in solidity";
+
+      const titleBytes = ethers.getBytes(Buffer.from(title, "utf-8"));
+      const contentBytes = ethers.getBytes(Buffer.from(content, "utf-8"));
+
+      await expect(marketplace
+        .connect(user1)
+        .publishJobPost(
+          titleBytes,
+          contentBytes,
+          await fakeToken.getAddress(),
+          100,
+          120,
+          [],
+          []
+        )
+      ).to.emit(marketplace, 'JobUpdated').withArgs(0) // jobid
+      .to.emit(marketplace, 'NotificationBroadcast').withArgs(await user1.getAddress(), 0); // jobid
     });
   });
 });

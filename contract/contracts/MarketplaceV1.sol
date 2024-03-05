@@ -9,6 +9,9 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@arbitrum/nitro-contracts/src/precompiles/ArbSys.sol";
 import {getIPFSCID} from "./libraries/IPFS.sol";
 
+import "hardhat/console.sol";
+
+
 uint256 constant ARBITRUM_NOVA_CHAINID = 0xa4ba;
 uint256 constant ARBITRUM_GOERLI_CHAINID = 0x66eed;
 uint256 constant ARBITRUM_SEPOLIA_CHAINID = 0x66eee;
@@ -281,7 +284,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
                 from: msg.sender
             })
         );
-        emit NotificationBroadcast(addr_, notifications[addr_].length);
+        emit NotificationBroadcast(addr_, notifications[addr_].length - 1);
     }
 
     function publishJobPost(
@@ -295,7 +298,11 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     ) public returns (uint256) {
         require(publicKeys[msg.sender].length > 0, "not registered");
 
+        console.log("publishJobPost");
+
         IERC20(token_).transferFrom(msg.sender, address(this), amount_);
+
+        console.log("transferred");
 
         jobs.push(
             JobPost({
@@ -311,12 +318,16 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             })
         );
 
+        uint256 jobid = jobs.length - 1;
+
+        console.log("jobid", jobid);
+
         for (uint256 i = 0; i < tags_.length; i++) {
-            taggedJobs[tags_[i]].push(jobs.length);
+            taggedJobs[tags_[i]].push(jobid);
         }
 
         updateJobPost(
-            jobs.length,
+            jobid,
             allowed_workers_.length > 0,
             title_,
             content_,
@@ -326,17 +337,17 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         );
 
         if (allowed_workers_.length > 0) {
-            updateJobWhitelist(jobs.length, allowed_workers_, new address[](0));
+            updateJobWhitelist(jobid, allowed_workers_, new address[](0));
         }
 
         publishNotification(
             msg.sender,
             NOTIFICATION_CREATE_JOB,
-            uint40(jobs.length),
+            uint40(jobid),
             0
         );
 
-        return jobs.length;
+        return jobid;
     }
 
     function updateJobPost(
