@@ -230,17 +230,17 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     }
 
     function getThreadKey(
-        address bot_,
-        uint256 job_id_
+        uint256 job_id_,
+        address bot_
     ) public pure returns (uint256) {
-        return (uint256(uint160(bot_)) << 160) | job_id_;
+        return (uint256(uint160(bot_)) << (256-170)) | job_id_;
     }
 
     function threadLength(
-        address bot_,
-        uint256 job_id_
+        uint256 job_id_,
+        address bot_
     ) public view returns (uint256) {
-        return threads[getThreadKey(bot_, job_id_)].length;
+        return threads[getThreadKey(job_id_, bot_)].length;
     }
 
     function notificationLength(address addr_) public view returns (uint256) {
@@ -297,11 +297,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     ) public returns (uint256) {
         require(publicKeys[msg.sender].length > 0, "not registered");
 
-        console.log("publishJobPost");
-
         IERC20(token_).transferFrom(msg.sender, address(this), amount_);
-
-        console.log("transferred");
 
         jobs.push(
             JobPost({
@@ -318,8 +314,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         );
 
         uint256 jobid = jobs.length - 1;
-
-        console.log("jobid", jobid);
 
         for (uint256 i = 0; i < tags_.length; i++) {
             taggedJobs[tags_[i]].push(jobid);
@@ -460,7 +454,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         blobs.push(content_cid);
         uint40 content_cid_blob_idx = uint40(blobs.length - 1);
 
-        uint256 threadid = getThreadKey(msg.sender, job_id_);
+        uint256 threadid = getThreadKey(job_id_, msg.sender);
 
         if (isOwner) {
             threads[threadid].push(
@@ -499,6 +493,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
                 whitelistWorkers[job_id_][msg.sender],
             "not whitelisted"
         );
+
         jobs[job_id_].state = JOB_STATE_TAKEN;
         jobs[job_id_].worker = msg.sender;
 

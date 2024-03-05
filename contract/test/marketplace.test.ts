@@ -296,13 +296,37 @@ describe("Marketplace Unit Tests", () => {
     it("post job and apply", async () => {
       const { marketplace, fakeToken, user1, user2, jobId } = await deployMarketplaceWithUsersAndJob();
 
-      expect(
+      await expect(
         marketplace.connect(user2).takeJob(jobId)
       ).to.emit(marketplace, 'JobUpdated').withArgs(jobId)
       .to.emit(marketplace, 'NotificationBroadcast').withArgs(await user1.getAddress(), 1)
 
       const data = await marketplace.jobs(jobId);
-      expect(data.worker).to.equal(await user2.getAddress());
+      await expect(data.worker).to.equal(await user2.getAddress());
+    });
+  });
+
+  describe("messaging", () => {
+    it("send message prior to accepting job", async () => {
+      const { marketplace, fakeToken, user1, user2, jobId } = await deployMarketplaceWithUsersAndJob();
+
+      const message = "I am interested in this job";
+      const messageBytes = ethers.getBytes(Buffer.from(message, "utf-8"));
+      await expect(
+        marketplace.connect(user2).postThreadMessage(jobId, messageBytes)
+      ).to.emit(marketplace, 'NotificationBroadcast').withArgs(await user1.getAddress(), 1);
+
+      const threadId = await marketplace.getThreadKey(jobId, await user2.getAddress());
+      const threadObject = await marketplace.threads(threadId, 0);
+
+      await expect(await marketplace.threadLength(jobId, await user2.getAddress())).to.equal(1);
+
+      await expect(threadObject.t).to.equal(1); // worker message
+      await expect(threadObject.blob_idx).to.equal(1); // first blob
+
+      const blob = await marketplace.blobs(1);
+      const blobCid = await marketplace.generateIPFSCID(messageBytes);
+      await expect(blob).to.equal(blobCid);
     });
   });
 });
