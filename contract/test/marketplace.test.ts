@@ -184,24 +184,53 @@ describe("Marketplace Unit Tests", () => {
   async function registerPublicKey(
     marketplace: Marketplace,
     user: Signer,
-    wallet: ethers.Wallet
+    wallet: ethers.Wallet,
   ) {
     await marketplace
       .connect(user)
       .registerPublicKey(wallet.publicKey);
   }
 
+  async function deployMarketplaceWithUsersAndJob() {
+    const {
+      marketplace,
+      fakeToken,
+      user1,
+      user2
+    } = await loadFixture(deployContractsFixture);
+    const { wallet1, wallet2 } = await loadFixture(getWalletsFixture);
+    await registerPublicKey(marketplace, user1, wallet1);
+    await registerPublicKey(marketplace, user2, wallet2);
+
+    const title = "Create a marketplace in solidity";
+    const content = "Please create a marketplace in solidity";
+    const contentBytes = ethers.getBytes(Buffer.from(content, "utf-8"));
+
+    await marketplace
+      .connect(user1)
+      .publishJobPost(
+        title,
+        contentBytes,
+        await fakeToken.getAddress(),
+        100,
+        120,
+        [],
+        []
+      );
+
+    return { marketplace, fakeToken, user1, user2, wallet1, wallet2, jobId: 0 };
+  }
+
+
   describe("job posting", () => {
     it("post job", async () => {
       const { marketplace, fakeToken, user1 } = await loadFixture(deployContractsFixture);
-
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
       await registerPublicKey(marketplace, user1, wallet1);
 
       const title = "Create a marketplace in solidity";
       const content = "Please create a marketplace in solidity";
-
       const contentBytes = ethers.getBytes(Buffer.from(content, "utf-8"));
 
       await expect(marketplace
@@ -234,6 +263,46 @@ describe("Marketplace Unit Tests", () => {
       const contentBlob = await marketplace.blobs(0);
       const contentCid = await marketplace.generateIPFSCID(contentBytes);
       await expect(contentBlob).to.equal(contentCid);
+    });
+
+    it("post job with whitelist", async () => {
+      // TODO test whitelist
+    });
+
+    it("post job with workers", async () => {
+      // TODO test workers
+    });
+
+    it("post job with both whitelist and workers", async () => {
+      // TODO test whitelist and workers
+    });
+
+    it("post job with invalid token", async () => {
+      // TODO test invalid token
+    });
+
+    it("post job with invalid amount", async () => {
+      // TODO test invalid amount
+    });
+
+    it("post job with invalid deadline", async () => {
+      // TODO test invalid deadline
+    });
+
+    it("update job", async () => {
+      // TODO test update job
+    });
+
+    it("post job and apply", async () => {
+      const { marketplace, fakeToken, user1, user2, jobId } = await deployMarketplaceWithUsersAndJob();
+
+      expect(
+        marketplace.connect(user2).takeJob(jobId)
+      ).to.emit(marketplace, 'JobUpdated').withArgs(jobId)
+      .to.emit(marketplace, 'NotificationBroadcast').withArgs(await user1.getAddress(), 1)
+
+      const data = await marketplace.jobs(jobId);
+      expect(data.worker).to.equal(await user2.getAddress());
     });
   });
 });
