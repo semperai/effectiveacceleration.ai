@@ -243,7 +243,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         return threads[getThreadKey(job_id_, bot_)].length;
     }
 
-    function notificationLength(address addr_) public view returns (uint256) {
+    function notificationsLength(address addr_) public view returns (uint256) {
         return notifications[addr_].length;
     }
 

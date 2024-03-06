@@ -1,9 +1,11 @@
 import * as fs from 'fs';
 import ProxyAdminArtifact from '@openzeppelin/upgrades-core/artifacts/@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol/ProxyAdmin.json';
+import { MarketplaceV1 as Marketplace } from '../typechain-types/contracts/MarketplaceV1';
 import { FakeToken } from '../typechain-types/contracts/unicrow/FakeToken';
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { task } from "hardhat/config";
 import Config from '../scripts/config.json';
+
 
 async function getMinerAddress(hre: HardhatRuntimeEnvironment) {
   const accounts = await hre.ethers.getSigners();
@@ -17,7 +19,6 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
     console.log(account.address);
   }
 });
-
 
 task("mine", "mine blocks locally")
 .addParam("blocks", "how many")
@@ -69,7 +70,7 @@ task("marketplace:transferOwnership", "Transfer admin ownership of Marketplace")
 .addParam("address", "To who?")
 .setAction(async ({ address }, hre) => {
   const Marketplace = await hre.ethers.getContractFactory("MarketplaceV1");
-  const marketplace = await Marketplace.attach(Config.marketplaceAddress);
+  const marketplace = await Marketplace.attach(Config.marketplaceAddress) as Marketplace;
   const tx = await marketplace.transferOwnership(address);
   await tx.wait();
 });
@@ -78,7 +79,7 @@ task("marketplace:transferPauser", "Transfer pause ability of Marketplace")
 .addParam("address", "To who?")
 .setAction(async ({ address }, hre) => {
   const Marketplace = await hre.ethers.getContractFactory("MarketplaceV1");
-  const marketplace = await Marketplace.attach(Config.marketplaceAddress);
+  const marketplace = await Marketplace.attach(Config.marketplaceAddress) as Marketplace;
   const tx = await marketplace.transferPauser(address);
   await tx.wait();
 });
@@ -86,7 +87,7 @@ task("marketplace:transferPauser", "Transfer pause ability of Marketplace")
 task("marketplace:isPaused", "Check if marketplace is paused")
 .setAction(async ({ }, hre) => {
   const Marketplace = await hre.ethers.getContractFactory("MarketplaceV1");
-  const marketplace = await Marketplace.attach(Config.marketplaceAddress);
+  const marketplace = await Marketplace.attach(Config.marketplaceAddress) as Marketplace;
   const paused = await marketplace.paused();
   console.log(`Marketplace is paused: ${paused}`);
 });
@@ -95,7 +96,7 @@ task("marketplace:setPaused", "Pause engine")
 .addParam("pause", "Pause/Unpause")
 .setAction(async ({ pause }, hre) => {
   const Marketplace = await hre.ethers.getContractFactory("MarketplaceV1");
-  const marketplace = await Marketplace.attach(Config.marketplaceAddress);
+  const marketplace = await Marketplace.attach(Config.marketplaceAddress) as Marketplace;
   const tx = await marketplace.setPaused(pause === 'true');
   await tx.wait();
   const paused = await marketplace.paused();
@@ -106,7 +107,7 @@ task("marketplace:setVersion", "Set engine version for miner check")
 .addParam("n", "Version Number")
 .setAction(async ({ n }, hre) => {
   const Marketplace = await hre.ethers.getContractFactory("MarketplaceV1");
-  const marketplace = await Marketplace.attach(Config.marketplaceAddress);
+  const marketplace = await Marketplace.attach(Config.marketplaceAddress) as Marketplace;
   const tx = await marketplace.setVersion(n);
   await tx.wait();
   const versionNow = await marketplace.version();
@@ -116,7 +117,7 @@ task("marketplace:setVersion", "Set engine version for miner check")
 task("marketplace:version", "Set engine version for miner check")
 .setAction(async ({ }, hre) => {
   const Marketplace = await hre.ethers.getContractFactory("MarketplaceV1");
-  const marketplace = await Marketplace.attach(Config.marketplaceAddress);
+  const marketplace = await Marketplace.attach(Config.marketplaceAddress) as Marketplace;
   const versionNow = await marketplace.version();
   console.log(`Marketplace is now version ${versionNow}`);
 });
