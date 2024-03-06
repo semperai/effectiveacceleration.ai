@@ -12,6 +12,7 @@ import {
 } from '@rainbow-me/rainbowkit';
 import { WagmiProvider } from 'wagmi';
 import {
+  hardhat,
   arbitrumNova,
 } from 'wagmi/chains';
 import {
@@ -22,7 +23,7 @@ import {
 const config = getDefaultConfig({
   appName: 'Effective Acceleration',
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!,
-  chains: [arbitrumNova],
+  chains: [hardhat, arbitrumNova],
   ssr: true, // If your dApp uses server side rendering (SSR)
 });
 
