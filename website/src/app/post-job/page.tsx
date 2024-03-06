@@ -1,5 +1,6 @@
 'use client'
 
+import { ethers } from 'ethers'
 import {
   useAccount,
   useReadContract,
@@ -62,6 +63,13 @@ export default function OpenJobsPage() {
                 onClick={(token: Token) => setSelectedToken(token)}
               />
             </div>
+            {selectedToken && !!balanceData && (
+              <Text>
+                {ethers.formatEther(balanceData as ethers.BigNumberish)}
+                {' '}
+                {selectedToken.symbol} available
+              </Text>
+            )}
           </Field>
           <Field>
             <Label>Payment Amount</Label>

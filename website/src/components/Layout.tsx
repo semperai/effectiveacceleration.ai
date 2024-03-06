@@ -51,7 +51,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (notificationsLengthData) {
-      setNotificationsCount(notificationsLengthData as BigInt)
+      setNotificationsCount(notificationsLengthData as bigint)
     }
   }, [notificationsLengthData])
   console.log('notifications', notificationsLengthData)
@@ -205,7 +205,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <span className="relative">
                   {notificationsCount > 0 && (
                     <span className="absolute -top-2 -right-2 h-4 w-4 rounded-full text-xs text-white bg-red-400 flex justify-center items-center">
-                      {notificationsCount}
+                      {notificationsCount.toString()}
                     </span>
                   )}
                   <BellIcon className="h-6 w-6" aria-hidden="true" />

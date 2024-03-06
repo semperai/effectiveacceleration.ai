@@ -132,7 +132,6 @@ function TagsActivityItem(activityItem: NotificationTags) {
   )
 }
   
-
 export default function NotificationsPage() {
   const activity: Notification[] = [
     {
