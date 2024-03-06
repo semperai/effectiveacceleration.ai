@@ -1,5 +1,10 @@
 'use client'
 
+import {
+  useAccount,
+  useReadContract,
+} from 'wagmi'
+import FakeTokenArtifact from '@/artifacts/contracts/unicrow/FakeToken.sol/FakeToken.json'
 import { useState } from 'react'
 import { Layout } from '@/components/Layout'
 import { Button } from '@/components/Button'
@@ -12,7 +17,22 @@ import { TokenSelector } from '@/components/TokenSelector'
 import { Token } from '@/tokens'
 
 export default function OpenJobsPage() {
+  const { address } = useAccount();
+
   const [selectedToken, setSelectedToken] = useState<Token | undefined>(undefined)
+
+  const { data: balanceData } = useReadContract({
+    account:      address,
+    abi:          FakeTokenArtifact.abi,
+    address:      selectedToken?.id as `0x${string}`|undefined,
+    functionName: 'balanceOf',
+    args:         [address],
+  });
+
+  if (balanceData) {
+    console.log('balance', balanceData.toString())
+  }
+
 
   return (
     <Layout>
@@ -33,7 +53,7 @@ export default function OpenJobsPage() {
           </Field>
           <Field>
             <Label>Payment Token</Label>
-            <Input name="token" value={selectedToken && selectedToken.id} />
+            <Input name="token" value={selectedToken?.id} />
             <Description></Description>
 
             <div className="flex flex-col gap-4">

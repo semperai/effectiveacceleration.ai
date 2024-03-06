@@ -1,7 +1,13 @@
 'use client'
 
+import {
+  useAccount,
+  useReadContract,
+} from 'wagmi'
+import MarketplaceArtifact from '@/artifacts/contracts/MarketplaceV1.sol/MarketplaceV1.json'
+import Config from '@/config.json'
 import { clsx } from 'clsx'
-import { Fragment, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { ThemeToggle } from '@/components/ThemeToggle'
@@ -34,9 +40,25 @@ const navigationIconOnPageClasses = 'text-slate-800 dark:text-slate-100';
 const navigationIconOffPageClasses = 'text-slate-800 dark:text-slate-100';
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const { address } = useAccount();
+  const { data: notificationsLengthData } = useReadContract({
+    account:      address,
+    abi:          MarketplaceArtifact.abi,
+    address:      Config.marketplaceAddress as `0x${string}`,
+    functionName: 'notificationsLength',
+    args:         [address],
+  });
+
+  useEffect(() => {
+    if (notificationsLengthData) {
+      setNotificationsCount(notificationsLengthData as BigInt)
+    }
+  }, [notificationsLengthData])
+  console.log('notifications', notificationsLengthData)
+
   const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [notificationsCount, setNotificationsCount] = useState(3)
+  const [notificationsCount, setNotificationsCount] = useState(BigInt(0))
 
 
 
