@@ -71,6 +71,7 @@ export function ApproveButton({
     f();
   }
 
+    /*
   useEffect(() => {
     if (approveTxData) {
       setShowApprove(false);
@@ -86,6 +87,7 @@ export function ApproveButton({
       updateNeedsAllowance(false);
     }
   });
+  */
 
 
   return (
