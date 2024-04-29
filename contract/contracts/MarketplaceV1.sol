@@ -21,11 +21,13 @@ address constant ARBSYS_ADDRESS = address(100);
 // messages
 
 // a discussion thread looks like this:
-// object (type jobpost (1 byte), address(20 bytes), index of cid of input text(8 bytes),
+// object (type jobpost (1 byte), address(20 bytes), index_ of cid of input text(8 bytes),
 
 uint8 constant JOB_STATE_OPEN = 0;
 uint8 constant JOB_STATE_TAKEN = 1;
 uint8 constant JOB_STATE_CLOSED = 2;
+
+uint constant 24_HRS = 60 * 60 * 24;
 
 struct JobPost {
     uint8 state;
@@ -38,6 +40,7 @@ struct JobPost {
     bool multipleApplicants;
     uint256 amount; // wei
     address token;
+    uint32 timestamp; // Timestamp of the latest update on the job (posted, started, closed)
     //NOTE: what used to be deadline is now maximum time to deliver the job and a snapshot of when the job was started. 
     //      TBD if that's the best approach
     uint32 maxTime; // 4 bytes
@@ -47,6 +50,7 @@ struct JobPost {
     address worker; // who took the job
     string deliveryMethod;
     bytes workerSignature;
+    mapping(address => uint256) collateralOwed; // Maps token addresses to amounts owed
     uint32 escrowId;
 }
 
@@ -87,22 +91,6 @@ uint8 constant NOTIFICATION_CREATE_JOB = 3;
 uint8 constant NOTIFICATION_JOB_TAKEN = 4;
 uint8 constant NOTIFICATION_JOB_UPDATED = 5;
 
-//NOTE: There's probably a better way to do this. The point is to make this governable and easily usable in job posting and reading.
-//      The reason for the shortened labels is to save contract storage. The developer could submit easily readable 
-//      full label which would be converted to the shorter one (and also its absence in this list would throw an error). 
-//      However, it's not very helpful for reading the full label back, so again - perhaps there's better way to do this.
-//TODO: add governance function and a function to check and convert the label 
-mapping(string => string) constant CATEGORIES = {
-    "DIGITAL_VIDEO" : "DV",
-    "DIGITAL_AUDIO" : "DA",
-    "DIGITAL_TEXT" : "DT",
-    "DIGITAL_SOFTWARE" : "DS",
-    "DIGITAL_OTHERS" : "DO",
-    "NON_DIGITAL_GOODS" : "NG",
-    "NON_DIGITAL_SERVICES" : "NS",
-    "NON_DIGITAL_OTHERS" : "NO"
-}
-
 struct Notification {
     uint8 t; // 1 byte / type of object
     uint40 jobid; // job index
@@ -129,6 +117,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     mapping(address => bytes) public publicKeys;
 
     JobPost[] public jobs;
+
+    mapping(string => string) private meceTags;
 
     mapping(uint256 => JobPost[]) public jobHistory;
 
@@ -171,6 +161,18 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         _;
     }
 
+    // Governance function to add or update MECE tags
+    //TODO: not sure if this should be onlyOwner or we should have a separate governance role and modifier
+    function updateMeceTag(string memory shortForm, string memory longForm) public onlyOwner {
+        require(bytes(shortForm).length > 0 && bytes(longForm).length > 0, "Invalid tag data");
+        meceTags[shortForm] = longForm;
+    }
+
+    function removeMeceTag(string memory shortForm) public onlyOwner {
+        require(bytes(meceTags[shortForm]).length != 0, "MECE tag does not exist");
+        delete meceTags[shortForm];
+    }
+    
     event PauserTransferred(
         address indexed previousPauser,
         address indexed newPauser
@@ -191,6 +193,15 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
+
+        meceTags["DA"] = "DIGITAL_AUDIO";
+        meceTags["DV"] = "DIGIAL_VIDEO";
+        meceTags["DT"] = "DIGITAL_TEXT";
+        meceTags["DS"] = "DIGITAL_SOFTWARE";
+        meceTags["DO"] = "DIGITAL_OTHERS";
+        meceTags["DG"] = "NON_DIGITAL_GOODS";
+        meceTags["DS"] = "NON_DIGITAL_SERVICES";
+        meceTags["DO"] = "NON_DIGITAL_OTHERS";
     }
 
     /// @notice Initialize contract
@@ -299,12 +310,16 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         return notifications[addr_].length;
     }
 
-    //TBD: should we add a function to read and return notifications in a specified range? E.g. like this
-    function getNotifications(address addr_, uint256 from) {
-        Notifications[] notificationsToReturn;
-        for (i = from; i < notificationsLength(addr_); i++) {
-            notifications.push(notifications[i]);
+    // Function to get notifications starting from a specific index
+    function getNotifications(address user_, uint index_) public view returns (Notification[] memory) {
+        require(index_ < notifications[user_].length, "Index out of bounds");
+
+        uint length = notifications[user_].length - index_;
+        Notification[] memory notificationsToReturn = new Notification[](length);
+        for (uint i = 0; i < length; i++) {
+            notificationsToReturn[i] = notifications[user_][i + index_];
         }
+        
         return notificationsToReturn;
     }
     
@@ -349,10 +364,11 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         emit NotificationBroadcast(addr_, notifications[addr_].length - 1);
     }
 
-    function checkMeceLabel(string callable full_label_) returns (string) {
-        //TODO: this would convert the full label to short label and throw an error if such a label doesn't exist
+    // Function to read MECE tag's long form given the short form
+    function readMeceTag(string memory shortForm) public view returns (string memory) {
+        require(bytes(meceTags[shortForm]).length != 0, "Invalid MECE tag");
+        return meceTags[shortForm];
     }
-
 
     //TODO: handle MECE tags and worker whitelists
     //TODO: handle collateral (token/amount)
@@ -386,6 +402,24 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         address[] calldata allowed_workers_,
     ) public returns (uint256) {
         require(publicKeys[msg.sender].length > 0, "not registered");
+        require(tags_.length > 0, "At least one tag is required");
+
+        uint meceCount = 0;
+        string memory meceShortForm = "";
+
+        // Check for exactly one MECE tag
+        for (uint8 i = 0; i < _tags.length; i++) {
+            if (bytes(meceTags[_tags[i]]).length != 0) {
+                meceCount++;
+                if (meceCount > 1) {
+                    revert("Only one MECE tag is allowed");
+                }
+                meceShortForm = _tags[i]; // Save the short form
+            }
+        }
+
+        require(meceCount == 1, "Exactly one MECE tag is required");
+
 
         IERC20(token_).transferFrom(msg.sender, address(this), amount_);
 
@@ -399,6 +433,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
                 multipleApplicants: multiple_applicants_,
                 token: token_,
                 amount: amount_,
+                timestamp: block.timestamp,
                 maxTime: uint32(max_time_),
                 deliveryMethod: deliver_method_,
                 arbitratorRequired: arbitrator_required_,
@@ -409,6 +444,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         uint256 jobid = jobs.length - 1;
 
+        //NOTE: aren't we abusing the storage here a bit?
         for (uint256 i = 0; i < tags_.length; i++) {
             taggedJobs[tags_[i]].push(jobid);
         }
@@ -454,6 +490,47 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         // store old job
         jobHistory[job_id_].push(jobs[job_id_]);
 
+        JobPost storage job = jobs[job_id_];
+
+        if (job.token != token_ || job.amount != amount_) {
+            if (job.state != JOB_STATE_CLOSED) {
+                if (job.token == token_ && job.amount != amount_) {
+                    if (amount_ > job.amount) {
+                        uint256 difference = amount_ - job.amount;
+
+                        if (job.collateralOwed[token_] > 0) {
+                            if (job.collateralOwed[token_] >= difference) {
+                                job.collateralOwed[token_] -= difference;
+                            } else {
+                                difference -= job.collateralOwed[token_];
+                                require(IERC20(token_).transferFrom(msg.sender, address(this), difference), "Failed to transfer additional tokens");
+                                delete job.collateralOwed[token_];
+                            }
+                        } else {
+                            require(IERC20(token_).transferFrom(msg.sender, address(this), difference), "Failed to transfer additional tokens");
+                        }
+                    } else {
+                        uint256 difference = job.price - amount_;
+                        if (block.timestamp >= job.timestamp + 24_HRS) {
+                            IERC20(token_).transfer(msg.sender, difference);
+                        } else {
+                            job.collateralOwed[token_] += difference; // Record to owe later
+                        }
+                    }
+                } else {
+                    if (block.timestamp >= job.timestamp + 24_HRS) {
+                        IERC20(job.token).transfer(msg.sender, job.collateralOwed[job.token]);
+                    } else {
+                        job.collateralOwed[job.token] += job.amount; // Record to owe later
+                    }
+                    require(IERC20(token_).transferFrom(msg.sender, address(this), amount_), "Failed to transfer new tokens");
+                }
+            }
+            
+            job.token = token_;
+            job.amount = amount_;
+        }
+
         {
             jobs[job_id_].title = title_;
         }
@@ -464,8 +541,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         }
         {
             jobs[job_id_].whitelist_workers = whitelist_workers_;
-            jobs[job_id_].token = token_;
-            jobs[job_id_].amount = amount_;
             jobs[job_id_].deadline = uint32(maxTime_);
         }
 
@@ -517,7 +592,17 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      */
     function closeJob(uint256 job_id_) public onlyJobCreator(job_id_) {
         require(jobs[job_id_].state == JOB_STATE_OPEN, "not open");
-        jobs[job_id_].state = JOB_STATE_CLOSED;
+        job = jobs[job_id_];
+        job.state = JOB_STATE_CLOSED;
+
+        if (block.timestamp >= job.timestamp + 24_HRS) {
+            uint256 amount = job.amount + job.collateralOwed[job.token];
+            delete job.collateralOwed[job.token]; // Clear the collateral record
+            IERC20(job.token).transfer(job.creator, amount);
+        } else {
+            job.collateralOwed[job.token] += job.amount;
+        }
+
         publishJobUpdate(job_id_, JOB_UPDATE_CLOSE, 0, address(0));
         emit JobUpdated(job_id_);
     }
@@ -525,14 +610,30 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     /**
      * @notice Withdraw collateral from the closed job 
      */
-    function withdrawCollateral(uint256 job_id_) public onlyJobCreator(job_id_) {
-        require(jobs[job_id_].state == JOB_STATE_CLOSED, "not closed");
-        //TODO: refund the collateral to the buyer
+    function withdrawCollateral(uint256 jobId, address token) public {
+        JobPost storage job = jobs[jobId];
+        require(block.timestamp >= job.timestamp + 24_HRS, "24 hours have not passed yet");
+        require(job.collateralOwed[token] > 0, "No collateral to withdraw for this token");
+
+        uint256 amount = job.collateralOwed[token];
+        delete job.collateralOwed[token]; // Reset the owed amount
+        IERC20(token).transfer(job.creator, amount);
     }
 
     function reopenJob(uint256 job_id_) public onlyJobCreator(job_id_) {
-        require(jobs[job_id_].state == JOB_STATE_CLOSED, "not closed");
-        jobs[job_id_].state = JOB_STATE_OPEN;
+        JobPost storage job = jobs[jobs_id_];
+
+        require(job.state == JOB_STATE_CLOSED, "not closed");
+
+        if (job.collateralOwed[job.token] < job.amount)) {
+            require(IERC20(job.token).transferFrom(msg.sender, this, job.amount - job.collateralOwed[job.token]));
+            delete job.collateralOwed[job.token];
+        } else {
+            job.collateralOwed[job.token] -= job.amount;
+        }
+
+        job.state = JOB_STATE_OPEN;
+        job.timestamp = block.timestamp;
         publishJobUpdate(job_id_, JOB_UPDATE_OPEN, 0, address(0));
         emit JobUpdated(job_id_);
     }
