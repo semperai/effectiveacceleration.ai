@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -9,6 +9,9 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@arbitrum/nitro-contracts/src/precompiles/ArbSys.sol";
 import {getIPFSCID} from "./libraries/IPFS.sol";
 
+import "./unicrow/Unicrow.sol";
+import "./unicrow/UnicrowTypes.sol";
+
 import "hardhat/console.sol";
 
 uint256 constant ARBITRUM_NOVA_CHAINID = 0xa4ba;
@@ -16,6 +19,10 @@ uint256 constant ARBITRUM_GOERLI_CHAINID = 0x66eed;
 uint256 constant ARBITRUM_SEPOLIA_CHAINID = 0x66eee;
 // https://github.com/OffchainLabs/arbitrum-classic/blob/master/docs/sol_contract_docs/md_docs/arb-os/arbos/builtin/ArbSys.md
 address constant ARBSYS_ADDRESS = address(100);
+address UNICROW_ADDRESS = address(100);
+
+address MARKETPLACE_ADDRESS = address();
+address MARKETPLACE_FEE = 2000;
 
 // tags
 // messages
@@ -27,7 +34,7 @@ uint8 constant JOB_STATE_OPEN = 0;
 uint8 constant JOB_STATE_TAKEN = 1;
 uint8 constant JOB_STATE_CLOSED = 2;
 
-uint constant 24_HRS = 60 * 60 * 24;
+uint constant _24_HRS = 60 * 60 * 24;
 
 struct JobPost {
     uint8 state;
@@ -49,7 +56,7 @@ struct JobPost {
     address arbitrator;
     address worker; // who took the job
     string deliveryMethod;
-    bytes workerSignature;
+    mapping(address => bytes) workerSignatures;
     mapping(address => uint256) collateralOwed; // Maps token addresses to amounts owed
     uint32 escrowId;
 }
@@ -89,13 +96,21 @@ uint8 constant NOTIFICATION_WHITELISTED_FOR_JOB = 1;
 uint8 constant NOTIFICATION_REMOVE_WHITELISTED_FOR_JOB = 2;
 uint8 constant NOTIFICATION_CREATE_JOB = 3;
 uint8 constant NOTIFICATION_JOB_TAKEN = 4;
-uint8 constant NOTIFICATION_JOB_UPDATED = 5;
+uint8 constant NOTIFICATION_JOB_PAID = 5;
+uint8 constant NOTIFICATION_JOB_UPDATED = 6;
+uint8 constant NOTIFICATION_JOB_SIGNED = 7;
 
 struct Notification {
     uint8 t; // 1 byte / type of object
     uint40 jobid; // job index
     uint40 threadid; // thread index
     address from; // who sent it
+}
+
+struct Arbitrator {
+    bytes publicKey;
+    string name;
+    uint16 fee;
 }
 
 contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
@@ -115,6 +130,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     // this allows others to guarantee they can message securely
     // NOTE: perhaps we could allow users to add their (pseudo) identity too? 
     mapping(address => bytes) public publicKeys;
+
+    mapping(address => Arbitrator) public arbitrators;
 
     JobPost[] public jobs;
 
@@ -173,6 +190,10 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         delete meceTags[shortForm];
     }
     
+    function setMarketplaceAddress(address marketplaceAddress) onlyOwner {
+        MARKETPLACE_ADDRESS = markatplaceAddress;
+    }
+
     event PauserTransferred(
         address indexed previousPauser,
         address indexed newPauser
@@ -332,6 +353,14 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         // require(publicKeys[msg.sender].length == 0, "already registered");
         publicKeys[msg.sender] = pubkey;
         emit PublicKeyRegistered(msg.sender, pubkey);
+    }
+
+    function registerArbitrator(bytes calldata pubkey, string calldata name, uint16 calldata fee) public {
+        arbitrators[msg.sender] = Arbitrator(
+            pubkey,
+            name,
+            fee
+        );
     }
 
     // called every time a job is updated in any way to log the update in the job's history
@@ -705,9 +734,62 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      * @param job_id_ id of the job
      * @param signature worker's signature of all the job parameters
      */
-    function takeJob(uint256 job_id_, bytes signature) public {
+    function takeJob(uint256 job_id_, bytes signature_) public {
         //TODO: store worker's signature
         //TODO: move funds from collateral to escrow, incl. storing and perhaps returning escrow id
+        require(publicKeys[msg.sender].length > 0, "not registered");
+
+        JobPost storage job = jobs[job_id_];
+
+        require(job.state == JOB_STATE_OPEN, "not open");
+        require(
+            job.whitelist_workers == false ||
+                whitelistWorkers[job_id_][msg.sender],
+            "not whitelisted"
+        );
+
+        signJob(job_id_, signature_);
+
+        
+        if (!job.multipleApplicants) {
+            job.state = JOB_STATE_TAKEN;
+            job.worker = msg.sender;
+
+            Unicrow unicrow = Unicrow(UNICROW_ADDRESS);
+            //TODO: Unicrow needs to be updated to allow custom "buyer" and that needs to be reflected here. 
+            //      For now working without this option
+            EscrowInput escrowInput = EscrowInput(
+                msg.sender,
+                MARKETPLACE_ADDRESS,
+                MARKETPLACE_FEE,
+                job.token,
+                job.maxTime + _24_HRS,
+                job.maxTime + _24_HRS,
+                job.amount
+            );
+
+            //TODO: Currently, default (and the only) Unicrow's pay function simply sets msg.sender as the buyer and
+            //      asks them to send the money. 
+            //      We need a function that will
+            //          - allow us to pay from this contract (from the collateral) rather than from the user's wallet 
+            //          - will check whether a buyer was defined and if yes use it
+            //      For now calling the function as is
+            job.escrowId = unicrow.pay(escrowInput, job.arbitrator, arbitrators[job.arbitrator].fee);
+
+            publishJobUpdate(job_id_, JOB_UPDATE_TAKEN, 0, address(0));
+            publishNotification(
+                job.creator,
+                NOTIFICATION_JOB_TAKEN,
+                uint40(job_id_),
+                0
+            );
+        }
+    }
+
+    //NOTE: there's no checking of the signature here yet. We could do it I guess, just need to figure out
+    //      the IPFS integration but also how to concatanate the job parameters and thread to one message 
+    //      (that needs to be done on the frontend anyway so it's just about making sure the method is unified)
+    function signJob(uint256 job_id_, bytes signature) public {
         require(publicKeys[msg.sender].length > 0, "not registered");
         require(jobs[job_id_].state == JOB_STATE_OPEN, "not open");
         require(
@@ -716,20 +798,61 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             "not whitelisted"
         );
 
-        jobs[job_id_].state = JOB_STATE_TAKEN;
-        jobs[job_id_].worker = msg.sender;
+        // potentially multiple applicants could sign the job so we need to be able to store all of them
+        jobs[job_id_].workerSignatures[msg.sender] = signature;
 
-        publishJobUpdate(job_id_, JOB_UPDATE_TAKEN, 0, address(0));
         publishNotification(
-            jobs[job_id_].creator,
-            NOTIFICATION_JOB_TAKEN,
+            job.creator,
+            NOTIFICATION_JOB_SIGNED,
             uint40(job_id_),
             0
         );
     }
 
-    //TODO: add start a job with a selected candidate, incl. paying invoice
-    // ... or perhaps not - see my note in notion
+    /**
+     * @notice Pay for a job so that the it gets started.
+     * @notice The token and the amount can be different to what was set in the job posting if the 
+     * @notice  customer and the worker agreed on it. 
+     * @notice  The function handles the difference - if the required amount is higher, 
+     * @notice  it will ask the user to pay the difference. 
+     * @notice  If the final amount is lower than what was paid in the collateral, it will refund it or 
+     * @param job_id_ ID of the job
+     * @param worker_ An address of the worker selected for the job
+     * @param token_ Which token should be used for the payment (0x00..00 for ETH)
+     * @param amount_ The price for the job in the defined token. 
+     */
+    function payStartJob(uint256 job_id_, address worker_, address token_, uint amount_) public onlyCreator {
+        JobPost storage job = jobs[job_id_];
+
+        require(job.state == JOB_STATE_OPEN, "not open");
+
+        //NOTE: we could  check that the worker has signed the job scope, but if the customer decides
+        //      to assign and pay for the job anyway, that should perhaps be their perogative
+
+        job.state = JOB_STATE_TAKEN;
+        job.worker = worker_;
+
+        //TODO: 
+        //  1. Check if the token_ == job.token.
+        //  1a. If yes, compare job.amount + job.collateralOwed[token_] with amount_
+        //      - If the amount required is higher, ask user to top up
+        //      - If the amount required is lower, refund or update collateralOwed (based on timeStamp + 24hrs)
+        //      - If the amount is equal, Sim
+        // 2b. If not, do almost the same but job.amount is in this case 0, 
+        //      and whatever has been paid into the collateral must be refunded or put into collateralOwed
+        //
+        // Subsequently the payment needs to be handled in a similar way as takeJob, 
+        //      i.e. Unicrow needs to be able to receive it from this contract rather than user's wallet
+
+            publishJobUpdate(job_id_, JOB_UPDATE_TAKEN, 0, address(0));
+            publishNotification(
+                worker_,
+                NOTIFICATION_JOB_PAID,
+                uint40(job_id_),
+                0
+            );
+        }
+    }
 
     //NOTE: perhaps this is redundant and might be handled by a message with a specific type
     /** 
