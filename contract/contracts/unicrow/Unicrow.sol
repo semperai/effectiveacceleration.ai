@@ -127,7 +127,7 @@ contract Unicrow is ReentrancyGuard, IUnicrow, Context {
         EscrowInput calldata input,
         address arbitrator,
         uint16 arbitratorFee
-    ) external payable override nonReentrant {
+    ) external payable override nonReentrant returns (uint256) {
         // Get current escrow id from the incremental counter
         uint256 escrowId = escrowIdCounter.current();
 
@@ -241,6 +241,8 @@ contract Unicrow is ReentrancyGuard, IUnicrow, Context {
             arbitratorFee,
             input.challengePeriod
         );
+
+        return escrowId;
     }
 
     /// @inheritdoc IUnicrow

@@ -4,7 +4,7 @@ pragma solidity ^0.8.19;
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+// import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@arbitrum/nitro-contracts/src/precompiles/ArbSys.sol";
 import {getIPFSCID} from "./libraries/IPFS.sol";
@@ -12,20 +12,13 @@ import {getIPFSCID} from "./libraries/IPFS.sol";
 import "./unicrow/Unicrow.sol";
 import "./unicrow/UnicrowTypes.sol";
 
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 
 uint256 constant ARBITRUM_NOVA_CHAINID = 0xa4ba;
 uint256 constant ARBITRUM_GOERLI_CHAINID = 0x66eed;
 uint256 constant ARBITRUM_SEPOLIA_CHAINID = 0x66eee;
 // https://github.com/OffchainLabs/arbitrum-classic/blob/master/docs/sol_contract_docs/md_docs/arb-os/arbos/builtin/ArbSys.md
 address constant ARBSYS_ADDRESS = address(100);
-address UNICROW_ADDRESS = address(100);
-
-address MARKETPLACE_ADDRESS = address();
-address MARKETPLACE_FEE = 2000;
-
-// tags
-// messages
 
 // a discussion thread looks like this:
 // object (type jobpost (1 byte), address(20 bytes), index_ of cid of input text(8 bytes),
@@ -34,7 +27,7 @@ uint8 constant JOB_STATE_OPEN = 0;
 uint8 constant JOB_STATE_TAKEN = 1;
 uint8 constant JOB_STATE_CLOSED = 2;
 
-uint constant _24_HRS = 60 * 60 * 24;
+uint32 constant _24_HRS = 60 * 60 * 24;
 
 struct JobPost {
     uint8 state;
@@ -47,7 +40,7 @@ struct JobPost {
     bool multipleApplicants;
     uint256 amount; // wei
     address token;
-    uint32 timestamp; // Timestamp of the latest update on the job (posted, started, closed)
+    uint256 timestamp; // Timestamp of the latest update on the job (posted, started, closed)
     //NOTE: what used to be deadline is now maximum time to deliver the job and a snapshot of when the job was started. 
     //      TBD if that's the best approach
     uint32 maxTime; // 4 bytes
@@ -58,7 +51,7 @@ struct JobPost {
     string deliveryMethod;
     mapping(address => bytes) workerSignatures;
     mapping(address => uint256) collateralOwed; // Maps token addresses to amounts owed
-    uint32 escrowId;
+    uint256 escrowId;
 }
 
 uint8 constant JOB_UPDATE_TITLE = 1; // update title
@@ -107,7 +100,7 @@ struct Notification {
     address from; // who sent it
 }
 
-struct Arbitrator {
+struct JobArbitrator {
     bytes publicKey;
     string name;
     uint16 fee;
@@ -131,7 +124,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     // NOTE: perhaps we could allow users to add their (pseudo) identity too? 
     mapping(address => bytes) public publicKeys;
 
-    mapping(address => Arbitrator) public arbitrators;
+    mapping(address => JobArbitrator) public arbitrators;
 
     JobPost[] public jobs;
 
@@ -150,6 +143,11 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     mapping(uint256 => JobThreadObject[]) public threads;
 
     uint256[48] __gap; // upgradeable gap
+
+    address UNICROW_ADDRESS = address(100);
+
+    address MARKETPLACE_ADDRESS = address(100);
+    uint16 MARKETPLACE_FEE = 2000;
 
     /// @notice Modifier to restrict to only pauser
     modifier onlyPauser() {
@@ -190,10 +188,12 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         delete meceTags[shortForm];
     }
     
-    function setMarketplaceAddress(address marketplaceAddress) onlyOwner {
-        MARKETPLACE_ADDRESS = markatplaceAddress;
+    function setMarketplaceAddress(address marketplaceAddress) public onlyOwner {
+        MARKETPLACE_ADDRESS = marketplaceAddress;
     }
 
+    //TODO: add marketplace fee governance
+    
     event PauserTransferred(
         address indexed previousPauser,
         address indexed newPauser
@@ -355,8 +355,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         emit PublicKeyRegistered(msg.sender, pubkey);
     }
 
-    function registerArbitrator(bytes calldata pubkey, string calldata name, uint16 calldata fee) public {
-        arbitrators[msg.sender] = Arbitrator(
+    function registerArbitrator(bytes calldata pubkey, string calldata name, uint16 fee) public {
+        arbitrators[msg.sender] = JobArbitrator(
             pubkey,
             name,
             fee
@@ -399,8 +399,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         return meceTags[shortForm];
     }
 
-    //TODO: handle MECE tags and worker whitelists
-    //TODO: handle collateral (token/amount)
+    //TODO: handle worker whitelists 
+    //TODO: potentially add review filter sperate from whitelists
     /**
      * @notice Publish a new job post
      * @notice To assign the job to a specific worker, set multiple_applicants_ to false and add the worker to the allowed_workers_. In such a case, title and description can be encrypted for the worker
@@ -420,15 +420,15 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     function publishJobPost(
         string calldata title_,
         bytes calldata content_,
-        bool calldata multiple_applicants_,
+        bool multiple_applicants_,
         string[] calldata tags_,
-        address calldata token_,
-        uint256 calldata amount_,
-        uint256 calldata max_time_,
-        string calldata deliver_method_,
-        bool calldata arbitrator_required_,
-        address calldata arbitrator_,
-        address[] calldata allowed_workers_,
+        address token_,
+        uint256 amount_,
+        uint256 max_time_,
+        string calldata delivery_method_,
+        bool arbitrator_required_,
+        address arbitrator_,
+        address[] calldata allowed_workers_
     ) public returns (uint256) {
         require(publicKeys[msg.sender].length > 0, "not registered");
         require(tags_.length > 0, "At least one tag is required");
@@ -437,13 +437,13 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         string memory meceShortForm = "";
 
         // Check for exactly one MECE tag
-        for (uint8 i = 0; i < _tags.length; i++) {
-            if (bytes(meceTags[_tags[i]]).length != 0) {
+        for (uint8 i = 0; i < tags_.length; i++) {
+            if (bytes(meceTags[tags_[i]]).length != 0) {
                 meceCount++;
                 if (meceCount > 1) {
                     revert("Only one MECE tag is allowed");
                 }
-                meceShortForm = _tags[i]; // Save the short form
+                meceShortForm = tags_[i]; // Save the short form
             }
         }
 
@@ -451,32 +451,57 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
 
         IERC20(token_).transferFrom(msg.sender, address(this), amount_);
+/*
+    uint8 state;
+    // if true, only workers in allowedWorkers can take or message
+    // NOTE: couldn't this be determined by the whitelist being empty or not?
+    bool whitelist_workers;
+    address creator;
+    string title;
+    uint40 content_cid_blob_idx; // 5 bytes
+    bool multipleApplicants;
+    uint256 amount; // wei
+    address token;
+    uint32 timestamp; // Timestamp of the latest update on the job (posted, started, closed)
+    //NOTE: what used to be deadline is now maximum time to deliver the job and a snapshot of when the job was started. 
+    //      TBD if that's the best approach
+    uint32 maxTime; // 4 bytes
+    uint32 jobStarted;
+    bool arbitratorRequired;
+    address arbitrator;
+    address worker; // who took the job
+    string deliveryMethod;
+    mapping(address => bytes) workerSignatures;
+    mapping(address => uint256) collateralOwed; // Maps token addresses to amounts owed
+    uint32 escrowId;*/
 
-        jobs.push(
-            JobPost({
-                state: 0,
-                whitelist_workers: allowed_workers_.length > 0,
-                creator: msg.sender,
-                title: title_,
-                content_cid_blob_idx: 0,
-                multipleApplicants: multiple_applicants_,
-                token: token_,
-                amount: amount_,
-                timestamp: block.timestamp,
-                maxTime: uint32(max_time_),
-                deliveryMethod: deliver_method_,
-                arbitratorRequired: arbitrator_required_,
-                arbitrator: arbitrator_,
-                worker: address(0)
-            })
-        );
+        jobs.push();
 
         uint256 jobid = jobs.length - 1;
 
+        JobPost storage jobPost = jobs[jobid];
+
+        jobPost.state = 0;
+        jobPost.whitelist_workers = allowed_workers_.length > 0;
+        jobPost.creator = msg.sender;
+        jobPost.title = title_;
+        jobPost.content_cid_blob_idx = 0;
+        jobPost.multipleApplicants = multiple_applicants_;
+        jobPost.token = token_;
+        jobPost.amount = amount_;
+        jobPost.timestamp = block.timestamp;
+        jobPost.maxTime = uint32(max_time_);
+        jobPost.deliveryMethod = delivery_method_;
+        jobPost.arbitratorRequired = arbitrator_required_;
+        jobPost.arbitrator = arbitrator_;
+        jobPost.worker = address(0);
+
+        
+
         //NOTE: aren't we abusing the storage here a bit?
-        for (uint256 i = 0; i < tags_.length; i++) {
-            taggedJobs[tags_[i]].push(jobid);
-        }
+        // for (uint256 i = 0; i < tags_.length; i++) {
+        //     taggedJobs[tags_[i]].push(jobid);
+        // }
 
         updateJobPost(
             jobid,
@@ -485,7 +510,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             content_,
             token_,
             amount_,
-            maxTime_
+            max_time_
         );
 
         if (allowed_workers_.length > 0) {
@@ -517,7 +542,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         require(jobs[job_id_].state == JOB_STATE_OPEN, "not open");
 
         // store old job
-        jobHistory[job_id_].push(jobs[job_id_]);
+        // TODO: again, consider storage here. Commenting for now
+        // jobHistory[job_id_].push(jobs[job_id_]);
 
         JobPost storage job = jobs[job_id_];
 
@@ -539,15 +565,15 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
                             require(IERC20(token_).transferFrom(msg.sender, address(this), difference), "Failed to transfer additional tokens");
                         }
                     } else {
-                        uint256 difference = job.price - amount_;
-                        if (block.timestamp >= job.timestamp + 24_HRS) {
+                        uint256 difference = job.amount - amount_;
+                        if (block.timestamp >= job.timestamp + _24_HRS) {
                             IERC20(token_).transfer(msg.sender, difference);
                         } else {
                             job.collateralOwed[token_] += difference; // Record to owe later
                         }
                     }
                 } else {
-                    if (block.timestamp >= job.timestamp + 24_HRS) {
+                    if (block.timestamp >= job.timestamp + _24_HRS) {
                         IERC20(job.token).transfer(msg.sender, job.collateralOwed[job.token]);
                     } else {
                         job.collateralOwed[job.token] += job.amount; // Record to owe later
@@ -570,7 +596,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         }
         {
             jobs[job_id_].whitelist_workers = whitelist_workers_;
-            jobs[job_id_].deadline = uint32(maxTime_);
+            jobs[job_id_].maxTime = uint32(maxTime_);
         }
 
         if (jobs[job_id_].worker != address(0)) {
@@ -621,10 +647,10 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      */
     function closeJob(uint256 job_id_) public onlyJobCreator(job_id_) {
         require(jobs[job_id_].state == JOB_STATE_OPEN, "not open");
-        job = jobs[job_id_];
+        JobPost storage job = jobs[job_id_];
         job.state = JOB_STATE_CLOSED;
 
-        if (block.timestamp >= job.timestamp + 24_HRS) {
+        if (block.timestamp >= job.timestamp + _24_HRS) {
             uint256 amount = job.amount + job.collateralOwed[job.token];
             delete job.collateralOwed[job.token]; // Clear the collateral record
             IERC20(job.token).transfer(job.creator, amount);
@@ -641,7 +667,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      */
     function withdrawCollateral(uint256 jobId, address token) public {
         JobPost storage job = jobs[jobId];
-        require(block.timestamp >= job.timestamp + 24_HRS, "24 hours have not passed yet");
+        require(block.timestamp >= job.timestamp + _24_HRS, "24 hours have not passed yet");
         require(job.collateralOwed[token] > 0, "No collateral to withdraw for this token");
 
         uint256 amount = job.collateralOwed[token];
@@ -650,12 +676,12 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     }
 
     function reopenJob(uint256 job_id_) public onlyJobCreator(job_id_) {
-        JobPost storage job = jobs[jobs_id_];
+        JobPost storage job = jobs[job_id_];
 
         require(job.state == JOB_STATE_CLOSED, "not closed");
 
-        if (job.collateralOwed[job.token] < job.amount)) {
-            require(IERC20(job.token).transferFrom(msg.sender, this, job.amount - job.collateralOwed[job.token]));
+        if (job.collateralOwed[job.token] < job.amount) {
+            require(IERC20(job.token).transferFrom(msg.sender, address(this), job.amount - job.collateralOwed[job.token]));
             delete job.collateralOwed[job.token];
         } else {
             job.collateralOwed[job.token] -= job.amount;
@@ -732,9 +758,9 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      *         The worker also cryptographically signs job parameters to prevent disputes about job specification.
      *         If this is FCFS job, the function may move money to the 
      * @param job_id_ id of the job
-     * @param signature worker's signature of all the job parameters
+     * @param signature_ worker's signature of all the job parameters
      */
-    function takeJob(uint256 job_id_, bytes signature_) public {
+    function takeJob(uint256 job_id_, bytes calldata signature_) public {
         //TODO: store worker's signature
         //TODO: move funds from collateral to escrow, incl. storing and perhaps returning escrow id
         require(publicKeys[msg.sender].length > 0, "not registered");
@@ -758,7 +784,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             Unicrow unicrow = Unicrow(UNICROW_ADDRESS);
             //TODO: Unicrow needs to be updated to allow custom "buyer" and that needs to be reflected here. 
             //      For now working without this option
-            EscrowInput escrowInput = EscrowInput(
+            EscrowInput memory escrowInput = EscrowInput(
                 msg.sender,
                 MARKETPLACE_ADDRESS,
                 MARKETPLACE_FEE,
@@ -775,7 +801,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             //          - will check whether a buyer was defined and if yes use it
             //      For now calling the function as is
             job.escrowId = unicrow.pay(escrowInput, job.arbitrator, arbitrators[job.arbitrator].fee);
-
+            
             publishJobUpdate(job_id_, JOB_UPDATE_TAKEN, 0, address(0));
             publishNotification(
                 job.creator,
@@ -789,7 +815,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     //NOTE: there's no checking of the signature here yet. We could do it I guess, just need to figure out
     //      the IPFS integration but also how to concatanate the job parameters and thread to one message 
     //      (that needs to be done on the frontend anyway so it's just about making sure the method is unified)
-    function signJob(uint256 job_id_, bytes signature) public {
+    function signJob(uint256 job_id_, bytes calldata signature_) public {
         require(publicKeys[msg.sender].length > 0, "not registered");
         require(jobs[job_id_].state == JOB_STATE_OPEN, "not open");
         require(
@@ -799,10 +825,10 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         );
 
         // potentially multiple applicants could sign the job so we need to be able to store all of them
-        jobs[job_id_].workerSignatures[msg.sender] = signature;
+        jobs[job_id_].workerSignatures[msg.sender] = signature_;
 
         publishNotification(
-            job.creator,
+            jobs[job_id_].creator,
             NOTIFICATION_JOB_SIGNED,
             uint40(job_id_),
             0
@@ -821,7 +847,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      * @param token_ Which token should be used for the payment (0x00..00 for ETH)
      * @param amount_ The price for the job in the defined token. 
      */
-    function payStartJob(uint256 job_id_, address worker_, address token_, uint amount_) public onlyCreator {
+    function payStartJob(uint256 job_id_, address worker_, address token_, uint amount_) public onlyJobCreator(job_id_) {
         JobPost storage job = jobs[job_id_];
 
         require(job.state == JOB_STATE_OPEN, "not open");
@@ -851,16 +877,18 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
                 uint40(job_id_),
                 0
             );
-        }
     }
+    
 
     //NOTE: perhaps this is redundant and might be handled by a message with a specific type
     /** 
      * @notice Information about the job delivery
      * @param job_id_ Id of the job
-     * @param result e.g. IPFS url or a tracking no.
+     * @param result_ e.g. IPFS url or a tracking no.
     */
-    function deliverResult(uint256 job_id_, bytes result) public onlyWorker {
+    function deliverResult(uint256 job_id_, bytes calldata result_) public onlyWorker(job_id_) {
+        JobPost storage job = jobs[job_id_];
+
         //TODO: buyer should be notified. TBD if the result should be saved somewhere
     }
 
@@ -870,14 +898,16 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      * @param review_score_ 1-5 (tbd) score of the worker. Set to 0 for no review
      * @param review_text_ Optional review text. Empty string for no text
      */
-    function approveResult(uint256 job_id_, uint8 review_score_, string review_text_) public onlyJobCreator {
+    function approveResult(uint256 job_id_, uint8 review_score_, string calldata review_text_) public onlyJobCreator(job_id_) {
+        JobPost storage job = jobs[job_id_];
+
         //TODO: 
         // - mark job as done
         // - release the escrow
         // - store review if provided (call review function())
     }
 
-    function review(uint8 review_score_, string review_text_) onlyJobCreator {} {
+    function review(uint256 job_id_, uint8 review_score_, string calldata review_text_) public onlyJobCreator(job_id_) {
         //TODO: define review structure and use it here to store the review
         //TBD: decide if we really want to support also review text 
         //TBD: to deal with limitations of solidity, we could probably keep record of how many reviews the worker got and what's the current average
@@ -887,7 +917,9 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     /**
      * @notice Worker refunds the buyer and switches the job back to non-started state
      */
-    function refund(uint256 job_id_) public onlyWorker {
+    function refund(uint256 job_id_) public onlyWorker(job_id_) {
+        JobPost storage job = jobs[job_id_];
+
         //TODO: 
         // - escrow refund
         // - change job state to not started
@@ -906,7 +938,9 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      * @param chat_signature_ Signature matching the chat history
      * @param message_ reason for the dispute
      */
-    function dispute(uint256 job_id_, string content_, string deliveryMethod_, string chat_history_, bytes chat_signature_, string message_) onlyCreatorOrWorker {
+    function dispute(uint256 job_id_, string calldata content_, string calldata deliveryMethod_, string calldata chat_history_, bytes calldata chat_signature_, string calldata message_) public onlyCreatorOrWorker(job_id_) {
+        JobPost storage job = jobs[job_id_];
+
         //TODO: start a group chat including at least the message
         //TBD: decide whether the job data and chat history should also be included in the message or provided some other way
         //TBD: result should be included too, TBD how (it might simply be part of the chat history, or a separate parameter)
@@ -915,10 +949,11 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     /**
      * @notice decide on a dispute about the job.
      * @param buyer_share_ how much of the payment should be refunded back to the buyer (in BPS)
-     * @param seller_share_ how much of the payment should be released to the worker (in BPS)
-     * @param reawson_ reason for arbitrator's decision (encrypted for all three parties)
+     * @param worker_share_ how much of the payment should be released to the worker (in BPS)
+     * @param reason_ reason for arbitrator's decision (encrypted for all three parties)
      */
-    function arbitrate(uint256 job_id_, uint16 buyer_share_, uint16 worker_share_, string reason_) public onlyArbitrator {
+    function arbitrate(uint256 job_id_, uint16 buyer_share_, uint16 worker_share_, string calldata reason_) public onlyArbitrator(job_id_) {
+        JobPost storage job = jobs[job_id_];
 
     }
 
@@ -929,7 +964,9 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      *      funds from potentially illicit transactions. However, perhaps it might be better for the arbitrator to keep the fee to prevent spam? 
      *      More in Notion
      */
-    function refuseArbitration(uint256 job_id_) public onlyArbitrator {
+    function refuseArbitration(uint256 job_id_) public onlyArbitrator(job_id_) {
+        JobPost storage job = jobs[job_id_];
+
         //TODO: 
         // - remove arbitrator from the job
         // - if the job has been started:
@@ -938,5 +975,3 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
     }
 }
-
-//TODO: select applicant
