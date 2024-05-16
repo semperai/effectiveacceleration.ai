@@ -29,13 +29,21 @@ uint8 constant JOB_STATE_CLOSED = 2;
 
 uint32 constant _24_HRS = 60 * 60 * 24;
 
+struct JobRoles {
+    address creator;
+    address arbitrator;
+    address worker; // who took the job
+}
+
 struct JobPost {
     uint8 state;
     // if true, only workers in allowedWorkers can take or message
     // NOTE: couldn't this be determined by the whitelist being empty or not?
     bool whitelist_workers;
-    address creator;
+    bool arbitratorRequired;
+    JobRoles roles;
     string title;
+    string[] tags;
     uint40 content_cid_blob_idx; // 5 bytes
     bool multipleApplicants;
     uint256 amount; // wei
@@ -45,9 +53,6 @@ struct JobPost {
     //      TBD if that's the best approach
     uint32 maxTime; // 4 bytes
     uint32 jobStarted;
-    bool arbitratorRequired;
-    address arbitrator;
-    address worker; // who took the job
     string deliveryMethod;
     mapping(address => bytes) workerSignatures;
     mapping(address => uint256) collateralOwed; // Maps token addresses to amounts owed
@@ -156,7 +161,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     }
 
     modifier onlyJobCreator(uint256 job_id_) {
-        require(jobs[job_id_].creator == msg.sender, "not creator");
+        require(jobs[job_id_].roles.creator == msg.sender, "not creator");
         _;
     }
 
@@ -166,13 +171,13 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     }
 
     modifier onlyCreatorOrWorker(uint256 job_id_) {
-        require(jobs[job_id_].creator == msg.sender, "not worker");
+        require(jobs[job_id_].roles.creator == msg.sender, "not worker");
         //TODO: the check from onlyWorker
         _;
     }
 
     modifier onlyArbitrator(uint256 job_id_) {
-        require(jobs[job_id_].arbitrator == msg.sender, "not arbitrator");
+        require(jobs[job_id_].roles.arbitrator == msg.sender, "not arbitrator");
         _;
     }
 
@@ -449,31 +454,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         require(meceCount == 1, "Exactly one MECE tag is required");
 
-
         IERC20(token_).transferFrom(msg.sender, address(this), amount_);
-/*
-    uint8 state;
-    // if true, only workers in allowedWorkers can take or message
-    // NOTE: couldn't this be determined by the whitelist being empty or not?
-    bool whitelist_workers;
-    address creator;
-    string title;
-    uint40 content_cid_blob_idx; // 5 bytes
-    bool multipleApplicants;
-    uint256 amount; // wei
-    address token;
-    uint32 timestamp; // Timestamp of the latest update on the job (posted, started, closed)
-    //NOTE: what used to be deadline is now maximum time to deliver the job and a snapshot of when the job was started. 
-    //      TBD if that's the best approach
-    uint32 maxTime; // 4 bytes
-    uint32 jobStarted;
-    bool arbitratorRequired;
-    address arbitrator;
-    address worker; // who took the job
-    string deliveryMethod;
-    mapping(address => bytes) workerSignatures;
-    mapping(address => uint256) collateralOwed; // Maps token addresses to amounts owed
-    uint32 escrowId;*/
 
         jobs.push();
 
@@ -483,8 +464,9 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         jobPost.state = 0;
         jobPost.whitelist_workers = allowed_workers_.length > 0;
-        jobPost.creator = msg.sender;
+        jobPost.roles.creator = msg.sender;
         jobPost.title = title_;
+        jobPost.tags = tags_;
         jobPost.content_cid_blob_idx = 0;
         jobPost.multipleApplicants = multiple_applicants_;
         jobPost.token = token_;
@@ -493,25 +475,14 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         jobPost.maxTime = uint32(max_time_);
         jobPost.deliveryMethod = delivery_method_;
         jobPost.arbitratorRequired = arbitrator_required_;
-        jobPost.arbitrator = arbitrator_;
-        jobPost.worker = address(0);
-
+        jobPost.roles.arbitrator = arbitrator_;
+        jobPost.roles.worker = address(0);
         
 
         //NOTE: aren't we abusing the storage here a bit?
         // for (uint256 i = 0; i < tags_.length; i++) {
         //     taggedJobs[tags_[i]].push(jobid);
         // }
-
-        updateJobPost(
-            jobid,
-            allowed_workers_.length > 0,
-            title_,
-            content_,
-            token_,
-            amount_,
-            max_time_
-        );
 
         if (allowed_workers_.length > 0) {
             updateJobWhitelist(jobid, allowed_workers_, new address[](0));
@@ -599,9 +570,9 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             jobs[job_id_].maxTime = uint32(maxTime_);
         }
 
-        if (jobs[job_id_].worker != address(0)) {
+        if (jobs[job_id_].roles.worker != address(0)) {
             publishNotification(
-                jobs[job_id_].worker,
+                jobs[job_id_].roles.worker,
                 NOTIFICATION_JOB_UPDATED,
                 uint40(job_id_),
                 0
@@ -653,7 +624,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         if (block.timestamp >= job.timestamp + _24_HRS) {
             uint256 amount = job.amount + job.collateralOwed[job.token];
             delete job.collateralOwed[job.token]; // Clear the collateral record
-            IERC20(job.token).transfer(job.creator, amount);
+            IERC20(job.token).transfer(job.roles.creator, amount);
         } else {
             job.collateralOwed[job.token] += job.amount;
         }
@@ -672,7 +643,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         uint256 amount = job.collateralOwed[token];
         delete job.collateralOwed[token]; // Reset the owed amount
-        IERC20(token).transfer(job.creator, amount);
+        IERC20(token).transfer(job.roles.creator, amount);
     }
 
     function reopenJob(uint256 job_id_) public onlyJobCreator(job_id_) {
@@ -699,7 +670,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         bytes calldata content_
     ) public {
         if (jobs[job_id_].state == JOB_STATE_TAKEN) {
-            require(jobs[job_id_].worker == msg.sender, "taken/not worker");
+            // require(jobs[job_id_].worker == msg.sender, "taken/not worker");
         } else {
             require(jobs[job_id_].state == JOB_STATE_OPEN, "not open");
             require(
@@ -709,7 +680,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             );
         }
 
-        bool isOwner = jobs[job_id_].creator == msg.sender;
+        bool isOwner = jobs[job_id_].roles.creator == msg.sender;
         if (isOwner) {
             require(
                 jobs[job_id_].whitelist_workers == false ||
@@ -732,7 +703,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
                 })
             );
             publishNotification(
-                jobs[job_id_].worker,
+                jobs[job_id_].roles.worker,
                 JOB_THREAD_OWNER_MESSAGE,
                 uint40(job_id_),
                 uint40(threads[threadid].length)
@@ -745,7 +716,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
                 })
             );
             publishNotification(
-                jobs[job_id_].creator,
+                jobs[job_id_].roles.creator,
                 JOB_THREAD_WORKER_MESSAGE,
                 uint40(job_id_),
                 uint40(threads[threadid].length)
@@ -779,7 +750,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         
         if (!job.multipleApplicants) {
             job.state = JOB_STATE_TAKEN;
-            job.worker = msg.sender;
+            // job.worker = msg.sender;
 
             Unicrow unicrow = Unicrow(UNICROW_ADDRESS);
             //TODO: Unicrow needs to be updated to allow custom "buyer" and that needs to be reflected here. 
@@ -800,11 +771,11 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             //          - allow us to pay from this contract (from the collateral) rather than from the user's wallet 
             //          - will check whether a buyer was defined and if yes use it
             //      For now calling the function as is
-            job.escrowId = unicrow.pay(escrowInput, job.arbitrator, arbitrators[job.arbitrator].fee);
+            job.escrowId = unicrow.pay(escrowInput, job.roles.arbitrator, arbitrators[job.roles.arbitrator].fee);
             
             publishJobUpdate(job_id_, JOB_UPDATE_TAKEN, 0, address(0));
             publishNotification(
-                job.creator,
+                job.roles.creator,
                 NOTIFICATION_JOB_TAKEN,
                 uint40(job_id_),
                 0
@@ -828,7 +799,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         jobs[job_id_].workerSignatures[msg.sender] = signature_;
 
         publishNotification(
-            jobs[job_id_].creator,
+            jobs[job_id_].roles.creator,
             NOTIFICATION_JOB_SIGNED,
             uint40(job_id_),
             0
@@ -856,7 +827,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         //      to assign and pay for the job anyway, that should perhaps be their perogative
 
         job.state = JOB_STATE_TAKEN;
-        job.worker = worker_;
+        job.roles.worker = worker_;
 
         //TODO: 
         //  1. Check if the token_ == job.token.
