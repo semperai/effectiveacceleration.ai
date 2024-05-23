@@ -637,7 +637,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     //TODO: reflect possibility of external whitelist
     function updateJobWhitelist(
         uint256 job_id_,
-        address[] calldata allowed_workers_,
+        address[] memory allowed_workers_,
         address[] memory disallowed_workers_
     ) public onlyJobCreator(job_id_) {
         require(jobs[job_id_].state == JOB_STATE_OPEN, "not open");
@@ -998,7 +998,9 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         job.state = JOB_STATE_OPEN;
 
         // remove the worker from the whitelist
-        updateJobWhitelist(job_id_, [], [job.roles.worker]);
+        address[] memory disallowed_workers_ = new address[](1);
+        disallowed_workers_[0] = job.roles.worker;
+        updateJobWhitelist(job_id_, new address[](0), disallowed_workers_);
     }
 
     /**
