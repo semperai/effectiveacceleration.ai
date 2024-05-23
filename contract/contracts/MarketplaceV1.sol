@@ -166,11 +166,11 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     address unicrowDisputeAddress;
     address unicrowArbitratorAddress;
 
-    address marketplaceAddress;
-    uint16 marketplaceFee;
+    address unicrowMarketplaceAddress;
+    uint16 unicrowMarketplaceFee;
 
-    uint3 constant ratingMin = 1;
-    uint3 constant ratingMax = 5;
+    uint8 constant ratingMin = 1;
+    uint8 constant ratingMax = 5;
 
 
     /// @notice Modifier to restrict to only pauser
@@ -211,8 +211,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         delete meceTags[shortForm];
     }
     
-    function setMarketplaceAddress(address marketplaceAddress) public onlyOwner {
-        marketplaceAddress = marketplaceAddress;
+    function setunicrowMarketplaceAddress(address unicrowMarketplaceAddress) public onlyOwner {
+        unicrowMarketplaceAddress = unicrowMarketplaceAddress;
     }
 
     //TODO: add marketplace fee governance
@@ -255,7 +255,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             address treasury_,
             address unicrow_address_,
             address unicrow_dispute_address_,
-            address unicrow_arbitrator_address_,
+            address unicrow_arbitrator_address_
         ) public initializer {
         __Ownable_init(msg.sender);
         __Pausable_init();
@@ -266,8 +266,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         unicrowDisputeAddress = unicrow_dispute_address_;
         unicrowArbitratorAddress = unicrow_arbitrator_address_;
 
-        marketplaceAddress = address(100);
-        marketplaceFee = 2000;
+        unicrowMarketplaceAddress = address(100);
+        unicrowMarketplaceFee = 2000;
     }
 
     /// @notice Transfer ownership
@@ -806,8 +806,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             //      For now working without this option
             EscrowInput memory escrowInput = EscrowInput(
                 msg.sender,
-                marketplaceAddress,
-                marketplaceFee,
+                unicrowMarketplaceAddress,
+                unicrowMarketplaceFee,
                 job.token,
                 job.maxTime + _24_HRS,
                 job.maxTime + _24_HRS,
@@ -921,8 +921,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         //TODO: Replace with a function that receives the amount from this contract 
         EscrowInput memory escrowInput = EscrowInput(
             worker_,
-            marketplaceAddress,
-            marketplaceFee,
+            unicrowMarketplaceAddress,
+            unicrowMarketplaceFee,
             token_,
             job.maxTime + _24_HRS,
             job.maxTime + _24_HRS,
@@ -974,7 +974,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     }
 
     function review(uint256 job_id_, uint8 review_rating_, string calldata review_text_) public onlyJobCreator(job_id_) {
-        requi[]re(review_rating_ >= ratingMin && review_rating_ <= ratingMax, "Invali(2)d review score"[);
+        require(review_rating_ >= ratingMin && review_rating_ <= ratingMax, "Invalid review score");
         require(jobs[job_id_].state == JOB_STATE_CLOSED, "Job doesn't exist or not closed");
         
         UserRating storage rating = userRatings[jobs[job_id_].roles.worker];
