@@ -10,6 +10,8 @@ import "@arbitrum/nitro-contracts/src/precompiles/ArbSys.sol";
 import {getIPFSCID} from "./libraries/IPFS.sol";
 
 import "./unicrow/Unicrow.sol";
+import "./unicrow/UnicrowDispute.sol";
+import "./unicrow/UnicrowArbitrator.sol";
 import "./unicrow/UnicrowTypes.sol";
 
 // import "hardhat/console.sol";
@@ -111,6 +113,13 @@ struct JobArbitrator {
     uint16 fee;
 }
 
+/// @dev Stores current average user's rating and number of reviews so it can be updated with every new review
+struct UserRating {
+    /// @dev Current rating multiplied by 10,000 to achieve sufficient granularity even with lots of existing reviews
+    uint16 averageRating;
+    uint256 numberOfReviews;
+}
+
 contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     address public treasury; // where treasury fees/rewards go
 
@@ -147,12 +156,21 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
     mapping(uint256 => JobThreadObject[]) public threads;
 
+    // Current average rating and number of ratings for each user 
+    mapping(address => UserRating) public userRatings;
+
     uint256[48] __gap; // upgradeable gap
 
-    address UNICROW_ADDRESS = address(100);
+    address unicrowAddress = address(100);
+    address unicrowDisputeAddress = address(100);
+    address unicrowArbitratorAddress = address(100);
 
-    address MARKETPLACE_ADDRESS = address(100);
-    uint16 MARKETPLACE_FEE = 2000;
+    address marketplaceAddress = address(100);
+    uint16 marketplaceFee = 2000;
+
+    uint8 ratingMin = 1;
+    uint8 ratingMax = 5;
+
 
     /// @notice Modifier to restrict to only pauser
     modifier onlyPauser() {
@@ -166,13 +184,12 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     }
 
     modifier onlyWorker(uint256 job_id_) {
-        //TODO: should check that there's only one worker, that it is msg.sender, and perhaps that the message has started
+        require(jobs[job_id_].roles.worker == msg.sender, "not worker");
         _;
     }
 
     modifier onlyCreatorOrWorker(uint256 job_id_) {
-        require(jobs[job_id_].roles.creator == msg.sender, "not worker");
-        //TODO: the check from onlyWorker
+        require(jobs[job_id_].roles.creator == msg.sender || jobs[job_id_].roles.worker == msg.sender, "not worker or creator");
         _;
     }
 
@@ -194,7 +211,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     }
     
     function setMarketplaceAddress(address marketplaceAddress) public onlyOwner {
-        MARKETPLACE_ADDRESS = marketplaceAddress;
+        marketplaceAddress = marketplaceAddress;
     }
 
     //TODO: add marketplace fee governance
@@ -217,7 +234,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     event PublicKeyRegistered(address indexed addr, bytes pubkey);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() {
+    constructor(address unicrow_address_, address unicrow_dispute_address_, address unicrow_arbitrator_address_) {
         _disableInitializers();
 
         meceTags["DA"] = "DIGITAL_AUDIO";
@@ -228,6 +245,10 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         meceTags["DG"] = "NON_DIGITAL_GOODS";
         meceTags["DS"] = "NON_DIGITAL_SERVICES";
         meceTags["DO"] = "NON_DIGITAL_OTHERS";
+
+        unicrowAddress = unicrow_address_;
+        unicrowDisputeAddress = unicrow_dispute_address_;
+        unicrowArbitratorAddress = unicrow_arbitrator_address_;
     }
 
     /// @notice Initialize contract
@@ -278,6 +299,12 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     function setVersion(uint256 version_) external onlyOwner {
         version = version_;
         emit VersionChanged(version_);
+    }
+
+    function updateUnicrowAddresses(address unicrow_address_, address unicrow_dispute_address_, address unicrow_arbitrator_address_) public onlyOwner {
+        unicrowAddress = unicrow_address_;
+        unicrowDisputeAddress = unicrow_dispute_address_;
+        unicrowArbitratorAddress = unicrow_arbitrator_address_;
     }
 
     /// @notice Get IPFS cid
@@ -454,6 +481,11 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         require(meceCount == 1, "Exactly one MECE tag is required");
 
+        if (arbitrator_ != address(0)) {
+            //QUESTION: is this the best way to check whether the arbitrtor has been registered?
+            require(arbitrators[arbitrator_].publicKey.length > 0, "Arbitrator not registered");
+        }
+
         IERC20(token_).transferFrom(msg.sender, address(this), amount_);
 
         jobs.push();
@@ -508,6 +540,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         bytes calldata content_,
         address token_,
         uint256 amount_,
+        address arbitrator_,
         uint256 maxTime_
     ) public onlyJobCreator(job_id_) {
         require(jobs[job_id_].state == JOB_STATE_OPEN, "not open");
@@ -568,6 +601,13 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         {
             jobs[job_id_].whitelist_workers = whitelist_workers_;
             jobs[job_id_].maxTime = uint32(maxTime_);
+        }
+
+        {
+            if (arbitrator_ != address(0)) {
+                require(arbitrators[arbitrator_].publicKey.length > 0, "Arbitrator not registered");
+            }
+            jobs[job_id_].roles.arbitrator = arbitrator_;
         }
 
         if (jobs[job_id_].roles.worker != address(0)) {
@@ -752,13 +792,13 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             job.state = JOB_STATE_TAKEN;
             // job.worker = msg.sender;
 
-            Unicrow unicrow = Unicrow(UNICROW_ADDRESS);
+            Unicrow unicrow = Unicrow(unicrowAddress);
             //TODO: Unicrow needs to be updated to allow custom "buyer" and that needs to be reflected here. 
             //      For now working without this option
             EscrowInput memory escrowInput = EscrowInput(
                 msg.sender,
-                MARKETPLACE_ADDRESS,
-                MARKETPLACE_FEE,
+                marketplaceAddress,
+                marketplaceFee,
                 job.token,
                 job.maxTime + _24_HRS,
                 job.maxTime + _24_HRS,
@@ -806,6 +846,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         );
     }
 
+    //TBD: Do we want to provide a function to calculate an amount required for the payStartJob here or do we simply calculate it in the frontend?
+    //TODO: add a check that the worker has been registered
     /**
      * @notice Pay for a job so that the it gets started.
      * @notice The token and the amount can be different to what was set in the job posting if the 
@@ -818,7 +860,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      * @param token_ Which token should be used for the payment (0x00..00 for ETH)
      * @param amount_ The price for the job in the defined token. 
      */
-    function payStartJob(uint256 job_id_, address worker_, address token_, uint amount_) public onlyJobCreator(job_id_) {
+    function payStartJob(uint256 job_id_, address worker_, address token_, uint amount_) public payable onlyJobCreator(job_id_) {
         JobPost storage job = jobs[job_id_];
 
         require(job.state == JOB_STATE_OPEN, "not open");
@@ -829,25 +871,62 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         job.state = JOB_STATE_TAKEN;
         job.roles.worker = worker_;
 
-        //TODO: 
-        //  1. Check if the token_ == job.token.
-        //  1a. If yes, compare job.amount + job.collateralOwed[token_] with amount_
-        //      - If the amount required is higher, ask user to top up
-        //      - If the amount required is lower, refund or update collateralOwed (based on timeStamp + 24hrs)
-        //      - If the amount is equal, Sim
-        // 2b. If not, do almost the same but job.amount is in this case 0, 
-        //      and whatever has been paid into the collateral must be refunded or put into collateralOwed
-        //
-        // Subsequently the payment needs to be handled in a similar way as takeJob, 
-        //      i.e. Unicrow needs to be able to receive it from this contract rather than user's wallet
+        Unicrow unicrow = Unicrow(unicrowAddress);
 
-            publishJobUpdate(job_id_, JOB_UPDATE_TAKEN, 0, address(0));
-            publishNotification(
-                worker_,
-                NOTIFICATION_JOB_PAID,
-                uint40(job_id_),
-                0
-            );
+        uint amountDifference = 0;
+        uint amountToTopUp = 0;
+        uint amountToReturn = 0;
+        
+        if (token_ == job.token) {
+            if (amount_ > job.amount) {
+                amountToTopUp = amount_ - job.amount;
+            } else {
+                amountToReturn = job.amount - amount_;
+            }
+        } else {
+            amountToReturn = job.amount;
+            amountToTopUp = amount_;
+        }
+
+        if (amountToTopUp > 0) {
+            if (token_ != address(0)) {
+                IERC20(token_).transferFrom(msg.sender, address(this), amountToTopUp);
+            } else {
+                require(msg.value != amountToTopUp, "Required amount doesn't match the amount sent");
+            }
+        }
+
+        if (amountToReturn > 0) {
+            if (block.timestamp > job.timestamp + _24_HRS) {
+                if (job.token != address(0)) {
+                    IERC20(job.token).transfer(msg.sender, amountToTopUp);
+                } else {
+                    (bool success, ) = msg.sender.call{value: amountToReturn}("");
+                    require(success, "Transfer failed");
+                }            
+            } else {
+                job.collateralOwed[job.token] += amountToReturn;
+            }
+        }
+
+        //TODO: Replace with a function that receives the amount from this contract 
+        EscrowInput memory escrowInput = EscrowInput(
+            worker_,
+            marketplaceAddress,
+            marketplaceFee,
+            token_,
+            job.maxTime + _24_HRS,
+            job.maxTime + _24_HRS,
+            amount_
+        );
+
+        publishJobUpdate(job_id_, JOB_UPDATE_TAKEN, 0, address(0));
+        publishNotification(
+            worker_,
+            NOTIFICATION_JOB_PAID,
+            uint40(job_id_),
+            0
+        );
     }
     
 
@@ -866,23 +945,35 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
     /**
      * @notice Buyer approves the result delivered by the seller, releases funds from the escrow, and optionally leaves a review.
-     * @param review_score_ 1-5 (tbd) score of the worker. Set to 0 for no review
+     * @param review_rating_ 1-5 (tbd) score of the worker. Set to 0 for no review
      * @param review_text_ Optional review text. Empty string for no text
      */
-    function approveResult(uint256 job_id_, uint8 review_score_, string calldata review_text_) public onlyJobCreator(job_id_) {
+    function approveResult(uint256 job_id_, uint8 review_rating_, string calldata review_text_) public onlyJobCreator(job_id_) {
         JobPost storage job = jobs[job_id_];
 
-        //TODO: 
-        // - mark job as done
-        // - release the escrow
-        // - store review if provided (call review function())
+        require(job.state == JOB_STATE_TAKEN, "job in invalid state");
+
+        Unicrow unicrow = Unicrow(unicrowAddress);
+
+        unicrow.release(job.escrowId);
+
+        job.state = JOB_STATE_CLOSED;
+
+        if (review_rating_ > 0) {
+            review(job_id_, review_rating_, review_text_);
+        }
     }
 
-    function review(uint256 job_id_, uint8 review_score_, string calldata review_text_) public onlyJobCreator(job_id_) {
-        //TODO: define review structure and use it here to store the review
-        //TBD: decide if we really want to support also review text 
-        //TBD: to deal with limitations of solidity, we could probably keep record of how many reviews the worker got and what's the current average
-        // and update the average with every new review so that the worker's score could be easily read on-chain
+    function review(uint256 job_id_, uint8 review_rating_, string calldata review_text_) public onlyJobCreator(job_id_) {
+        requi[]re(review_rating_ >= ratingMin && review_rating_ <= ratingMax, "Invali(2)d review score"[);
+        require(jobs[job_id_].state == JOB_STATE_CLOSED, "Job doesn't exist or not closed");
+        
+        UserRating storage rating = userRatings[jobs[job_id_].roles.worker];
+
+        rating.averageRating = uint16((rating.averageRating * rating.numberOfReviews + review_rating_ * 10000) / (rating.numberOfReviews + 1));
+        rating.numberOfReviews++;
+
+        //TODO: decide if we really want to support also review text
     }
 
     /**
@@ -891,10 +982,14 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     function refund(uint256 job_id_) public onlyWorker(job_id_) {
         JobPost storage job = jobs[job_id_];
 
-        //TODO: 
-        // - escrow refund
-        // - change job state to not started
-        // - perhaps remove the worker from the job's whitelist
+        Unicrow unicrow = Unicrow(unicrowAddress);
+
+        unicrow.refund(job.escrowId);
+
+        job.state = JOB_STATE_OPEN;
+
+        // remove the worker from the whitelist
+        updateJobWhitelist(job_id_, [], [job.roles.worker]);
     }
 
     /**
@@ -912,6 +1007,14 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     function dispute(uint256 job_id_, string calldata content_, string calldata deliveryMethod_, string calldata chat_history_, bytes calldata chat_signature_, string calldata message_) public onlyCreatorOrWorker(job_id_) {
         JobPost storage job = jobs[job_id_];
 
+        if (msg.sender == job.roles.creator) {
+            UnicrowDispute unicrowDispute = UnicrowDispute(unicrowDisputeAddress);
+
+            unicrowDispute.challenge(job.escrowId);
+        }
+
+        //TODO: add notification / message sending (after we settle on tech implementation of that)
+
         //TODO: start a group chat including at least the message
         //TBD: decide whether the job data and chat history should also be included in the message or provided some other way
         //TBD: result should be included too, TBD how (it might simply be part of the chat history, or a separate parameter)
@@ -926,6 +1029,12 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     function arbitrate(uint256 job_id_, uint16 buyer_share_, uint16 worker_share_, string calldata reason_) public onlyArbitrator(job_id_) {
         JobPost storage job = jobs[job_id_];
 
+        UnicrowArbitrator unicrowArbitrator = UnicrowArbitrator(unicrowArbitratorAddress);
+
+        // the arbitrate function checks that the shares equal 100%, otherwise throws an error
+        unicrowArbitrator.arbitrate(job.escrowId, [buyer_share_, worker_share_]);
+
+        //TODO: add notification / message sending (after we settle on tech implementation of that)
     }
 
     /**
