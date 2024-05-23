@@ -21,6 +21,14 @@ const config: HardhatUserConfig = {
       },
     ],
   },
+  // limit is 24.576 KiB
+  contractSizer: {
+    alphaSort: true,
+    disambiguatePaths: false,
+    runOnCompile: true,
+    strict: true,
+    only: ['contracts/MarketplaceV1.sol'],
+  }
 };
 
 export default config;

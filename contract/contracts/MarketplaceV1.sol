@@ -97,6 +97,7 @@ uint8 constant NOTIFICATION_JOB_TAKEN = 4;
 uint8 constant NOTIFICATION_JOB_PAID = 5;
 uint8 constant NOTIFICATION_JOB_UPDATED = 6;
 uint8 constant NOTIFICATION_JOB_SIGNED = 7;
+uint8 constant NOTIFICATION_JOB_COMPLETED = 8;
 
 struct Notification {
     uint8 t; // 1 byte / type of object
@@ -149,10 +150,10 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
     uint256[48] __gap; // upgradeable gap
 
-    address UNICROW_ADDRESS = address(100);
+    address UNICROW_ADDRESS;
 
-    address MARKETPLACE_ADDRESS = address(100);
-    uint16 MARKETPLACE_FEE = 2000;
+    address MARKETPLACE_ADDRESS;
+    uint16 MARKETPLACE_FEE;
 
     /// @notice Modifier to restrict to only pauser
     modifier onlyPauser() {
@@ -238,6 +239,10 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         __Pausable_init();
         pauser = msg.sender;
         treasury = treasury_;
+
+        UNICROW_ADDRESS = address(100);
+        MARKETPLACE_ADDRESS = address(100);
+        MARKETPLACE_FEE = 2000;
     }
 
     /// @notice Transfer ownership
@@ -319,16 +324,20 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
     function getThreadKey(
         uint256 job_id_,
-        address bot_
+        address creator_,
+        address worker_
     ) public pure returns (uint256) {
-        return (uint256(uint160(bot_)) << (256-170)) | job_id_;
+        unchecked {
+            return job_id_ * uint256(uint160(creator_)) * uint256(uint160(worker_));
+        }
     }
 
     function threadLength(
         uint256 job_id_,
-        address bot_
+        address creator_,
+        address worker_
     ) public view returns (uint256) {
-        return threads[getThreadKey(job_id_, bot_)].length;
+        return threads[getThreadKey(job_id_, creator_, worker_)].length;
     }
 
 
@@ -462,7 +471,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         JobPost storage jobPost = jobs[jobid];
 
-        jobPost.state = 0;
+        jobPost.state = JOB_STATE_OPEN;
         jobPost.whitelist_workers = allowed_workers_.length > 0;
         jobPost.roles.creator = msg.sender;
         jobPost.title = title_;
@@ -476,8 +485,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         jobPost.deliveryMethod = delivery_method_;
         jobPost.arbitratorRequired = arbitrator_required_;
         jobPost.roles.arbitrator = arbitrator_;
-        jobPost.roles.worker = address(0);
-        
+        // jobPost.roles.worker = address(0); // will be zero anyway
 
         //NOTE: aren't we abusing the storage here a bit?
         // for (uint256 i = 0; i < tags_.length; i++) {
@@ -669,31 +677,28 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         uint256 job_id_,
         bytes calldata content_
     ) public {
-        if (jobs[job_id_].state == JOB_STATE_TAKEN) {
-            // require(jobs[job_id_].worker == msg.sender, "taken/not worker");
-        } else {
-            require(jobs[job_id_].state == JOB_STATE_OPEN, "not open");
-            require(
-                jobs[job_id_].whitelist_workers == false ||
-                    whitelistWorkers[job_id_][msg.sender],
-                "not whitelisted"
-            );
-        }
+        require(jobs[job_id_].state != JOB_STATE_CLOSED, "job closed");
 
         bool isOwner = jobs[job_id_].roles.creator == msg.sender;
-        if (isOwner) {
-            require(
-                jobs[job_id_].whitelist_workers == false ||
-                    whitelistWorkers[job_id_][msg.sender],
-                "not whitelisted"
-            );
+        if (!isOwner) {
+            if (jobs[job_id_].state == JOB_STATE_TAKEN) {
+                // only assigned workers can message on the job if it is taken
+                require(jobs[job_id_].roles.worker == msg.sender, "taken/not worker");
+            } else {
+                require(
+                    // only whitelisted workers can message on the job if it is open
+                    jobs[job_id_].whitelist_workers == false ||
+                        whitelistWorkers[job_id_][msg.sender],
+                    "not whitelisted"
+                );
+            }
         }
 
         bytes memory content_cid = getIPFSCID(content_);
         blobs.push(content_cid);
         uint40 content_cid_blob_idx = uint40(blobs.length - 1);
 
-        uint256 threadid = getThreadKey(job_id_, msg.sender);
+        uint256 threadid = getThreadKey(job_id_, jobs[job_id_].roles.creator, jobs[job_id_].roles.worker);
 
         if (isOwner) {
             threads[threadid].push(
@@ -703,7 +708,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
                 })
             );
             publishNotification(
-                jobs[job_id_].roles.worker,
+                jobs[job_id_].roles.creator,
                 JOB_THREAD_OWNER_MESSAGE,
                 uint40(job_id_),
                 uint40(threads[threadid].length)
@@ -716,7 +721,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
                 })
             );
             publishNotification(
-                jobs[job_id_].roles.creator,
+                jobs[job_id_].roles.worker,
                 JOB_THREAD_WORKER_MESSAGE,
                 uint40(job_id_),
                 uint40(threads[threadid].length)
@@ -843,7 +848,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
             publishJobUpdate(job_id_, JOB_UPDATE_TAKEN, 0, address(0));
             publishNotification(
-                worker_,
+                job.roles.creator, // creator paid for job
                 NOTIFICATION_JOB_PAID,
                 uint40(job_id_),
                 0
@@ -911,6 +916,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      */
     function dispute(uint256 job_id_, string calldata content_, string calldata deliveryMethod_, string calldata chat_history_, bytes calldata chat_signature_, string calldata message_) public onlyCreatorOrWorker(job_id_) {
         JobPost storage job = jobs[job_id_];
+        require(job.roles.arbitrator != address(0), "no arbitrator");
+        require(publicKeys[job.roles.arbitrator].length > 0, "arbitrator not registered");
 
         //TODO: start a group chat including at least the message
         //TBD: decide whether the job data and chat history should also be included in the message or provided some other way
@@ -944,5 +951,12 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         //     - change to not started
         //     - refud the escrow, incl. arbitrator fee (see TBD above)
 
+    }
+
+    /**
+     * @notice If the arbitrator was not set or resigned, the job creator can set a new arbitrator
+     */
+    function setArbitrator(uint256 job_id_, address arbitratorAddress_) public onlyJobCreator(job_id_) {
+        jobs[job_id_].roles.arbitrator = arbitratorAddress_;
     }
 }
