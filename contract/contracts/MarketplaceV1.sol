@@ -31,6 +31,9 @@ uint8 constant JOB_STATE_CLOSED = 2;
 
 uint32 constant _24_HRS = 60 * 60 * 24;
 
+uint8 constant ratingMin = 1;
+uint8 constant ratingMax = 5;
+
 struct JobRoles {
     address creator;
     address arbitrator;
@@ -160,8 +163,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     // Current average rating and number of ratings for each user 
     mapping(address => UserRating) public userRatings;
 
-    uint256[48] __gap; // upgradeable gap
-
     address unicrowAddress;
     address unicrowDisputeAddress;
     address unicrowArbitratorAddress;
@@ -169,9 +170,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     address unicrowMarketplaceAddress;
     uint16 unicrowMarketplaceFee;
 
-    uint8 constant ratingMin = 1;
-    uint8 constant ratingMax = 5;
-
+    uint256[43] __gap; // upgradeable gap
 
     /// @notice Modifier to restrict to only pauser
     modifier onlyPauser() {
@@ -211,8 +210,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         delete meceTags[shortForm];
     }
     
-    function setunicrowMarketplaceAddress(address unicrowMarketplaceAddress) public onlyOwner {
-        unicrowMarketplaceAddress = unicrowMarketplaceAddress;
+    function setUnicrowMarketplaceAddress(address unicrowMarketplaceAddress_) public onlyOwner {
+        unicrowMarketplaceAddress = unicrowMarketplaceAddress_;
     }
 
     //TODO: add marketplace fee governance
