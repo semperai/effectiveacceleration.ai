@@ -4,6 +4,8 @@ pragma solidity ^0.8.19;
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+//import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+
 // import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@arbitrum/nitro-contracts/src/precompiles/ArbSys.sol";
@@ -486,7 +488,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             require(arbitrators[arbitrator_].publicKey.length > 0, "Arbitrator not registered");
         }
 
-        IERC20(token_).transferFrom(msg.sender, address(this), amount_);
+        SafeERC20.safeTransferFrom(IERC20(token_), msg.sender, address(this), amount_);
 
         jobs.push();
 
@@ -562,27 +564,28 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
                                 job.collateralOwed[token_] -= difference;
                             } else {
                                 difference -= job.collateralOwed[token_];
-                                require(IERC20(token_).transferFrom(msg.sender, address(this), difference), "Failed to transfer additional tokens");
+                                SafeERC20.safeTransferFrom(IERC20(token_), msg.sender, address(this), difference);
                                 delete job.collateralOwed[token_];
                             }
                         } else {
-                            require(IERC20(token_).transferFrom(msg.sender, address(this), difference), "Failed to transfer additional tokens");
+                            SafeERC20.safeTransferFrom(IERC20(token_), msg.sender, address(this), difference);
                         }
                     } else {
                         uint256 difference = job.amount - amount_;
                         if (block.timestamp >= job.timestamp + _24_HRS) {
-                            IERC20(token_).transfer(msg.sender, difference);
+                            SafeERC20.safeTransferFrom(IERC20(token_), address(this), msg.sender, difference);
                         } else {
                             job.collateralOwed[token_] += difference; // Record to owe later
                         }
                     }
                 } else {
                     if (block.timestamp >= job.timestamp + _24_HRS) {
-                        IERC20(job.token).transfer(msg.sender, job.collateralOwed[job.token]);
+                        SafeERC20.safeTransferFrom(IERC20(token_), address(this), msg.sender, job.collateralOwed[job.token]);
                     } else {
                         job.collateralOwed[job.token] += job.amount; // Record to owe later
                     }
-                    require(IERC20(token_).transferFrom(msg.sender, address(this), amount_), "Failed to transfer new tokens");
+                    
+                    SafeERC20.safeTransferFrom(IERC20(token_), msg.sender, address(this), amount_);
                 }
             }
             
@@ -664,7 +667,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         if (block.timestamp >= job.timestamp + _24_HRS) {
             uint256 amount = job.amount + job.collateralOwed[job.token];
             delete job.collateralOwed[job.token]; // Clear the collateral record
-            IERC20(job.token).transfer(job.roles.creator, amount);
+            SafeERC20.safeTransferFrom(IERC20(job.token), address(this), job.roles.creator, amount);
         } else {
             job.collateralOwed[job.token] += job.amount;
         }
@@ -676,14 +679,14 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     /**
      * @notice Withdraw collateral from the closed job 
      */
-    function withdrawCollateral(uint256 jobId, address token) public {
+    function withdrawCollateral(uint256 jobId, address token_) public {
         JobPost storage job = jobs[jobId];
         require(block.timestamp >= job.timestamp + _24_HRS, "24 hours have not passed yet");
-        require(job.collateralOwed[token] > 0, "No collateral to withdraw for this token");
+        require(job.collateralOwed[token_] > 0, "No collateral to withdraw for this token");
 
-        uint256 amount = job.collateralOwed[token];
-        delete job.collateralOwed[token]; // Reset the owed amount
-        IERC20(token).transfer(job.roles.creator, amount);
+        uint256 amount = job.collateralOwed[token_];
+        delete job.collateralOwed[token_]; // Reset the owed amount
+        SafeERC20.safeTransferFrom(IERC20(token_), address(this), job.roles.creator, amount);
     }
 
     function reopenJob(uint256 job_id_) public onlyJobCreator(job_id_) {
@@ -692,7 +695,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         require(job.state == JOB_STATE_CLOSED, "not closed");
 
         if (job.collateralOwed[job.token] < job.amount) {
-            require(IERC20(job.token).transferFrom(msg.sender, address(this), job.amount - job.collateralOwed[job.token]));
+            SafeERC20.safeTransferFrom(IERC20(job.token), msg.sender, address(this), job.amount - job.collateralOwed[job.token]);
             delete job.collateralOwed[job.token];
         } else {
             job.collateralOwed[job.token] -= job.amount;
@@ -890,7 +893,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         if (amountToTopUp > 0) {
             if (token_ != address(0)) {
-                IERC20(token_).transferFrom(msg.sender, address(this), amountToTopUp);
+                SafeERC20.safeTransferFrom(IERC20(token_), msg.sender, address(this), amountToTopUp);
             } else {
                 require(msg.value != amountToTopUp, "Required amount doesn't match the amount sent");
             }
@@ -899,7 +902,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         if (amountToReturn > 0) {
             if (block.timestamp > job.timestamp + _24_HRS) {
                 if (job.token != address(0)) {
-                    IERC20(job.token).transfer(msg.sender, amountToTopUp);
+                    SafeERC20.safeTransferFrom(IERC20(job.token), address(this), msg.sender, amountToTopUp);
                 } else {
                     (bool success, ) = msg.sender.call{value: amountToReturn}("");
                     require(success, "Transfer failed");
@@ -965,7 +968,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     }
 
     function review(uint256 job_id_, uint8 review_rating_, string calldata review_text_) public onlyJobCreator(job_id_) {
-        requi[]re(review_rating_ >= ratingMin && review_rating_ <= ratingMax, "Invali(2)d review score"[);
+        require(review_rating_ >= ratingMin && review_rating_ <= ratingMax, "Invalid review score");
         require(jobs[job_id_].state == JOB_STATE_CLOSED, "Job doesn't exist or not closed");
         
         UserRating storage rating = userRatings[jobs[job_id_].roles.worker];
