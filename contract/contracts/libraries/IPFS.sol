@@ -32,10 +32,10 @@ function encode_varint(uint64 n) pure returns (bytes memory) {
     return buf;
 }
 
-/// @notice Generates IPFS cidv0 using sha2-256 multihash and merkledag protobuf
+/// @notice Generates IPFS hash using sha2-256 multihash and merkledag protobuf
 /// @param content file
-/// @return CID
-function getIPFSCID(bytes calldata content) pure returns (bytes memory) {
+/// @return hash
+function getIPFSHash(bytes calldata content) pure returns (bytes32) {
     require(content.length <= 65536, "Max content size is 65536 bytes");
 
     bytes memory content_length_varint = encode_varint(uint64(content.length));
@@ -52,14 +52,40 @@ function getIPFSCID(bytes calldata content) pure returns (bytes memory) {
     );
 
     return
-        bytes.concat(
-            hex"1220", // sha256_32b
-            sha256(
-                bytes.concat(
-                    hex"0a", // ProtobufLib.encode_key(1, uint64(ProtobufLib.WireType.LengthDelimited));
-                    encode_varint(uint64(meat.length)),
-                    meat
-                )
+        sha256(
+            bytes.concat(
+                hex"0a", // ProtobufLib.encode_key(1, uint64(ProtobufLib.WireType.LengthDelimited));
+                encode_varint(uint64(meat.length)),
+                meat
+            )
+        );
+}
+
+/// @notice Generates IPFS hash using sha2-256 multihash and merkledag protobuf
+/// @param content file
+/// @return hash
+function getIPFHashMemory(bytes memory content) pure returns (bytes32) {
+    require(content.length <= 65536, "Max content size is 65536 bytes");
+
+    bytes memory content_length_varint = encode_varint(uint64(content.length));
+    bytes memory meat = bytes.concat(
+        // These are concat together:
+        // * ProtobufLib.encode_key(1, uint64(ProtobufLib.WireType.Varint))
+        // * ProtobufLib.encode_varint(uint64(IPFSDataType.File)),
+        // * ProtobufLib.encode_key(2, uint64(ProtobufLib.WireType.LengthDelimited)),
+        hex"080212",
+        content_length_varint,
+        content,
+        hex"18", // ProtobufLib.encode_key(3, uint64(ProtobufLib.WireType.Varint)),
+        content_length_varint
+    );
+
+    return
+        sha256(
+            bytes.concat(
+                hex"0a", // ProtobufLib.encode_key(1, uint64(ProtobufLib.WireType.LengthDelimited));
+                encode_varint(uint64(meat.length)),
+                meat
             )
         );
 }
@@ -67,31 +93,21 @@ function getIPFSCID(bytes calldata content) pure returns (bytes memory) {
 /// @notice Generates IPFS cidv0 using sha2-256 multihash and merkledag protobuf
 /// @param content file
 /// @return CID
-function getIPFSCIDMemory(bytes memory content) pure returns (bytes memory) {
-    require(content.length <= 65536, "Max content size is 65536 bytes");
-
-    bytes memory content_length_varint = encode_varint(uint64(content.length));
-    bytes memory meat = bytes.concat(
-        // These are concat together:
-        // * ProtobufLib.encode_key(1, uint64(ProtobufLib.WireType.Varint))
-        // * ProtobufLib.encode_varint(uint64(IPFSDataType.File)),
-        // * ProtobufLib.encode_key(2, uint64(ProtobufLib.WireType.LengthDelimited)),
-        hex"080212",
-        content_length_varint,
-        content,
-        hex"18", // ProtobufLib.encode_key(3, uint64(ProtobufLib.WireType.Varint)),
-        content_length_varint
-    );
-
+function getIPFSCID(bytes calldata content) pure returns (bytes memory) {
     return
         bytes.concat(
             hex"1220", // sha256_32b
-            sha256(
-                bytes.concat(
-                    hex"0a", // ProtobufLib.encode_key(1, uint64(ProtobufLib.WireType.LengthDelimited));
-                    encode_varint(uint64(meat.length)),
-                    meat
-                )
-            )
+            getIPFSHash(content)
+        );
+}
+
+/// @notice Generates IPFS cidv0 using sha2-256 multihash and merkledag protobuf
+/// @param content file
+/// @return CID
+function getIPFSCIDMemory(bytes memory content) pure returns (bytes memory) {
+    return
+        bytes.concat(
+            hex"1220", // sha256_32b
+            getIPFHashMemory(content)
         );
 }

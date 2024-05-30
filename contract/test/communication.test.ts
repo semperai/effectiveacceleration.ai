@@ -17,6 +17,9 @@ describe("Encrypted communication tests", async () => {
     );
     marketplace = (await upgrades.deployProxy(Marketplace, [
       await deployer.getAddress(),
+      ethers.ZeroAddress,
+      ethers.ZeroAddress,
+      ethers.ZeroAddress,
     ])) as unknown as MarketplaceV1;
     await marketplace.waitForDeployment();
   });

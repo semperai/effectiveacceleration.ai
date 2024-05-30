@@ -4,17 +4,16 @@ pragma solidity ^0.8.19;
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
-// import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@arbitrum/nitro-contracts/src/precompiles/ArbSys.sol";
-import {getIPFSCID} from "./libraries/IPFS.sol";
+import { getIPFSHash } from "./libraries/IPFS.sol";
 
 import "./unicrow/Unicrow.sol";
 import "./unicrow/UnicrowDispute.sol";
 import "./unicrow/UnicrowArbitrator.sol";
 import "./unicrow/UnicrowTypes.sol";
 
-// import "hardhat/console.sol";
+import "hardhat/console.sol";
 
 uint256 constant ARBITRUM_NOVA_CHAINID = 0xa4ba;
 uint256 constant ARBITRUM_GOERLI_CHAINID = 0x66eed;
@@ -31,8 +30,8 @@ uint8 constant JOB_STATE_CLOSED = 2;
 
 uint32 constant _24_HRS = 60 * 60 * 24;
 
-uint8 constant ratingMin = 1;
-uint8 constant ratingMax = 5;
+uint8 constant RATING_MIN = 1;
+uint8 constant RATING_MAX = 5;
 
 struct JobRoles {
     address creator;
@@ -49,7 +48,8 @@ struct JobPost {
     JobRoles roles;
     string title;
     string[] tags;
-    uint40 content_cid_blob_idx; // 5 bytes
+    // uint40 content_cid_blob_idx; // 5 bytes
+    bytes32 content_hash; // 32 bytes
     bool multipleApplicants;
     uint256 amount; // wei
     address token;
@@ -57,58 +57,54 @@ struct JobPost {
     //NOTE: what used to be deadline is now maximum time to deliver the job and a snapshot of when the job was started. 
     //      TBD if that's the best approach
     uint32 maxTime; // 4 bytes
-    uint32 jobStarted;
     string deliveryMethod;
     mapping(address => bytes) workerSignatures;
     mapping(address => uint256) collateralOwed; // Maps token addresses to amounts owed
     uint256 escrowId;
 }
 
-uint8 constant JOB_UPDATE_TITLE = 1; // update title
-uint8 constant JOB_UPDATE_CONTENT = 2; // update content
-uint8 constant JOB_UPDATE_OFFER = 3; // update token/deadline/amount
-uint8 constant JOB_UPDATE_ADD_WORKER = 4; // add whitelist worker
-uint8 constant JOB_UPDATE_REMOVE_WORKER = 5; // remove whitelist worker
-uint8 constant JOB_UPDATE_ENABLE_WHITELIST = 6; // enable whitelist
-uint8 constant JOB_UPDATE_DISABLE_WHITELIST = 7; // disable whitelist
-uint8 constant JOB_UPDATE_CLOSE = 8; // close job
-uint8 constant JOB_UPDATE_TAKEN = 9; // job taken by worker
-uint8 constant JOB_UPDATE_OPEN = 10; // job reopened
-uint8 constant JOB_UPDATE_DELIVERED = 11; // result delivered by the worker
-uint8 constant JOB_UPDATE_RESULT_ACCEPTED = 12; // result accepted by the buyer
-uint8 constant JOB_UPDATE_DISPUTE = 13; // dispute raised
-uint8 constant JOB_UPDATE_ARBITRATION = 14; // dispute settled by arbitrator
-uint8 constant JOB_UPDATE_ARBITRATOR_REFUSED = 15; // arbitrator refused the job
+uint8 constant JOB_EVENT_JOB_CREATED = 1;
+uint8 constant JOB_EVENT_JOB_TAKEN = 2;
+uint8 constant JOB_EVENT_JOB_PAID = 3;
+uint8 constant JOB_EVENT_JOB_UPDATED = 4;
+uint8 constant JOB_EVENT_JOB_SIGNED = 5;
+uint8 constant JOB_EVENT_JOB_COMPLETED = 6;
+uint8 constant JOB_EVENT_JOB_DELIVERED = 7;
+uint8 constant JOB_EVENT_JOB_CLOSED = 8;
+uint8 constant JOB_EVENT_JOB_REOPENED = 9;
+uint8 constant JOB_EVENT_JOB_RATED = 10;
+uint8 constant JOB_EVENT_JOB_REFUNDED = 11;
+uint8 constant JOB_EVENT_JOB_DISPUTED = 12;
+uint8 constant JOB_EVENT_JOB_ARBITRATED = 13;
+uint8 constant JOB_EVENT_JOB_ARBITRATOR_CHANGED = 14;
+uint8 constant JOB_EVENT_JOB_ARBITRATION_REFUSED = 15;
+uint8 constant JOB_EVENT_JOB_ADD_WHITELISTED_WORKER = 16;
+uint8 constant JOB_EVENT_JOB_REMOVE_WHITELISTED_WORKER = 17;
+uint8 constant JOB_EVENT_COLLATERAL_WITHDRAWN = 18;
+// gap
+uint8 constant JOB_EVENT_WORKER_MESSAGE = 21;
+uint8 constant JOB_EVENT_OWNER_MESSAGE = 22;
+// gap
+uint8 constant JOB_EVENT_UPDATE_TITLE = 31; // update title
+uint8 constant JOB_EVENT_UPDATE_CONTENT = 32; // update content
+uint8 constant JOB_EVENT_UPDATE_OFFER = 33; // update token/deadline/amount
+uint8 constant JOB_EVENT_UPDATE_ADD_WORKER = 34; // add whitelist worker
+uint8 constant JOB_EVENT_UPDATE_REMOVE_WORKER = 35; // remove whitelist worker
+uint8 constant JOB_EVENT_UPDATE_ENABLE_WHITELIST = 36; // enable whitelist
+uint8 constant JOB_EVENT_UPDATE_DISABLE_WHITELIST = 37; // disable whitelist
+uint8 constant JOB_EVENT_UPDATE_CLOSE = 38; // close job
+uint8 constant JOB_EVENT_UPDATE_TAKEN = 39; // job taken by worker
+uint8 constant JOB_EVENT_UPDATE_OPEN = 40; // job reopened
+uint8 constant JOB_EVENT_UPDATE_DELIVERED = 41; // result delivered by the worker
+uint8 constant JOB_EVENT_UPDATE_RESULT_ACCEPTED = 42; // result accepted by the buyer
+uint8 constant JOB_EVENT_UPDATE_DISPUTE = 43; // dispute raised
+uint8 constant JOB_EVENT_UPDATE_ARBITRATION = 44; // dispute settled by arbitrator
+uint8 constant JOB_EVENT_UPDATE_ARBITRATOR_REFUSED = 45; // arbitrator refused the job
 
-struct JobUpdate {
-    uint8 t; // 1 byte / type of object
-    uint40 blob_idx; // 5 bytes (used for title or content)
-    address user; // 20 bytes (used for whitelist worker)
-}
-
-// We spoke about potentially linking each discussion thread to a job field. In such a case, 
-// we should probably add a flag for that here
-uint8 constant JOB_THREAD_WORKER_MESSAGE = 1;
-uint8 constant JOB_THREAD_OWNER_MESSAGE = 2;
-struct JobThreadObject {
-    uint8 t; // 1 byte / type of object
-    uint40 blob_idx; // 5 bytes
-}
-
-uint8 constant NOTIFICATION_WHITELISTED_FOR_JOB = 1;
-uint8 constant NOTIFICATION_REMOVE_WHITELISTED_FOR_JOB = 2;
-uint8 constant NOTIFICATION_CREATE_JOB = 3;
-uint8 constant NOTIFICATION_JOB_TAKEN = 4;
-uint8 constant NOTIFICATION_JOB_PAID = 5;
-uint8 constant NOTIFICATION_JOB_UPDATED = 6;
-uint8 constant NOTIFICATION_JOB_SIGNED = 7;
-uint8 constant NOTIFICATION_JOB_COMPLETED = 8;
-
-struct Notification {
-    uint8 t; // 1 byte / type of object
-    uint40 jobid; // job index
-    uint40 threadid; // thread index
-    address from; // who sent it
+struct JobEventData {
+    uint8 type_;      // 1 byte / type of object
+    bytes address_;   // empty or context dependent address data, either who sent it or whom it targets
+    bytes data_;      // extra event data, e.g. 34 bytes for CID
 }
 
 struct JobArbitrator {
@@ -131,15 +127,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
     uint256 public version; // version (should be updated when performing updates)
 
-    // objects can reference blobs via index to here
-    bytes[] public blobs;
-
-    // user and bots receive notifications
-    mapping(address => Notification[]) public notifications;
-
-    // users must register by signing a message
+    // users must register their public keys (compressed, 33 bytes)
     // this allows others to guarantee they can message securely
-    // NOTE: perhaps we could allow users to add their (pseudo) identity too? 
     mapping(address => bytes) public publicKeys;
 
     mapping(address => JobArbitrator) public arbitrators;
@@ -148,19 +137,16 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
     mapping(string => string) private meceTags;
 
-    mapping(uint256 => JobPost[]) public jobHistory;
-
     // tag -> jobid
     mapping(uint256 => uint256[]) public taggedJobs;
 
     // jobid -> address -> bool
     mapping(uint256 => mapping(address => bool)) public whitelistWorkers;
-    // jobid -> JobUpdates
-    mapping(uint256 => JobUpdate[]) public jobUpdates;
 
-    mapping(uint256 => JobThreadObject[]) public threads;
+    // jobid -> JobEvents
+    mapping(uint256 => JobEventData[]) public jobEvents;
 
-    // Current average rating and number of ratings for each user 
+    // Current average rating and number of ratings for each user
     mapping(address => UserRating) public userRatings;
 
     address unicrowAddress;
@@ -170,7 +156,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     address unicrowMarketplaceAddress;
     uint16 unicrowMarketplaceFee;
 
-    uint256[43] __gap; // upgradeable gap
+    uint256[34] __gap; // upgradeable gap
 
     /// @notice Modifier to restrict to only pauser
     modifier onlyPauser() {
@@ -227,24 +213,17 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     event VersionChanged(uint256 indexed version);
 
     event NotificationBroadcast(address indexed addr, uint256 indexed id);
+    event JobEvent(uint256 indexed jobId, JobEventData eventData);
 
     //TODO: double check if this is always sufficient (might be if other details are emitted in the respective functions that caused the update)
-    event JobUpdated(uint256 indexed jobid);
+    // event JobUpdated(uint256 indexed jobid);
 
     event PublicKeyRegistered(address indexed addr, bytes pubkey);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
+        //NOTE: do not put any state initialization here
         _disableInitializers();
-
-        meceTags["DA"] = "DIGITAL_AUDIO";
-        meceTags["DV"] = "DIGIAL_VIDEO";
-        meceTags["DT"] = "DIGITAL_TEXT";
-        meceTags["DS"] = "DIGITAL_SOFTWARE";
-        meceTags["DO"] = "DIGITAL_OTHERS";
-        meceTags["DG"] = "NON_DIGITAL_GOODS";
-        meceTags["DS"] = "NON_DIGITAL_SERVICES";
-        meceTags["DO"] = "NON_DIGITAL_OTHERS";
     }
 
     /// @notice Initialize contract
@@ -267,6 +246,15 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         unicrowMarketplaceAddress = address(100);
         unicrowMarketplaceFee = 2000;
+
+        meceTags["DA"] = "DIGITAL_AUDIO";
+        meceTags["DV"] = "DIGIAL_VIDEO";
+        meceTags["DT"] = "DIGITAL_TEXT";
+        meceTags["DS"] = "DIGITAL_SOFTWARE";
+        meceTags["DO"] = "DIGITAL_OTHERS";
+        meceTags["DG"] = "NON_DIGITAL_GOODS";
+        meceTags["DS"] = "NON_DIGITAL_SERVICES";
+        meceTags["DO"] = "NON_DIGITAL_OTHERS";
     }
 
     /// @notice Transfer ownership
@@ -315,14 +303,14 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         unicrowArbitratorAddress = unicrow_arbitrator_address_;
     }
 
-    /// @notice Get IPFS cid
+    /// @notice Get IPFS hash
     /// @dev use this for testing
-    /// @param content_ Content to get IPFS cid of
+    /// @param content_ Content to get IPFS hash of
     /// @return
-    function generateIPFSCID(
+    function getIPFSHash(
         bytes calldata content_
-    ) external pure returns (bytes memory) {
-        return getIPFSCID(content_);
+    ) external pure returns (bytes32) {
+        return getIPFSHash(content_);
     }
 
     /// @notice Get block number (on both arbitrum and l1)
@@ -344,57 +332,13 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         return block.number;
     }
 
-    function blobsLength() public view returns (uint256) {
-        return blobs.length;
-    }
-
-    function jobUpdatesLength(uint256 job_id_) public view returns (uint256) {
-        return jobUpdates[job_id_].length;
-    }
-
-    function getThreadKey(
-        uint256 job_id_,
-        address creator_,
-        address worker_
-    ) public pure returns (uint256) {
-        unchecked {
-            return job_id_ * uint256(uint160(creator_)) * uint256(uint160(worker_));
-        }
-    }
-
-    function threadLength(
-        uint256 job_id_,
-        address creator_,
-        address worker_
-    ) public view returns (uint256) {
-        return threads[getThreadKey(job_id_, creator_, worker_)].length;
-    }
-
-
-    function notificationsLength(address addr_) public view returns (uint256) {
-        return notifications[addr_].length;
-    }
-
-    // Function to get notifications starting from a specific index
-    function getNotifications(address user_, uint index_) public view returns (Notification[] memory) {
-        require(index_ < notifications[user_].length, "Index out of bounds");
-
-        uint length = notifications[user_].length - index_;
-        Notification[] memory notificationsToReturn = new Notification[](length);
-        for (uint i = 0; i < length; i++) {
-            notificationsToReturn[i] = notifications[user_][i + index_];
-        }
-        
-        return notificationsToReturn;
-    }
-    
-
     // allow users to register their public key
     // this is used to allow others to message you securely
     // we do not do verification here because we want to allow contracts to register
     function registerPublicKey(bytes calldata pubkey) public {
         // we can allow users to update their public key
-        // require(publicKeys[msg.sender].length == 0, "already registered");
+        require(publicKeys[msg.sender].length == 0, "already registered");
+        require(pubkey.length == 33, "invalid pubkey length, must be compressed, 33 bytes");
         publicKeys[msg.sender] = pubkey;
         emit PublicKeyRegistered(msg.sender, pubkey);
     }
@@ -407,40 +351,44 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         );
     }
 
-    // called every time a job is updated in any way to log the update in the job's history
-    function publishJobUpdate(
-        uint256 job_id_,
-        uint8 t_,
-        uint40 blob_idx_,
-        address user_
-    ) internal {
-        jobUpdates[job_id_].push(
-            JobUpdate({t: t_, blob_idx: blob_idx_, user: user_})
-        );
-        emit JobUpdated(job_id_);
+    function eventsLength(uint256 job_id_) public view returns (uint256) {
+        return jobEvents[job_id_].length;
     }
 
-    function publishNotification(
-        address addr_,
-        uint8 t_,
-        uint40 job_id_,
-        uint40 thread_id_
-    ) internal {
-        notifications[addr_].push(
-            Notification({
-                t: t_,
-                jobid: job_id_,
-                threadid: thread_id_,
-                from: msg.sender
-            })
-        );
-        emit NotificationBroadcast(addr_, notifications[addr_].length - 1);
+    // Function to get past job events starting from a specific index
+    function getEvents(uint256 job_id_, uint256 index_, uint256 limit_) public view returns (JobEventData[] memory) {
+        require(index_ < jobEvents[job_id_].length, "Index out of bounds");
+
+        uint length = jobEvents[job_id_].length - index_;
+        length = length > limit_ ? limit_ : length;
+        JobEventData[] memory jobEventsToReturn = new JobEventData[](length);
+        for (uint i = 0; i < length; i++) {
+            jobEventsToReturn[i] = jobEvents[job_id_][i + index_];
+        }
+
+        return jobEventsToReturn;
+    }
+
+    function publishJobEvent(uint256 job_id_, JobEventData memory event_) internal {
+        jobEvents[job_id_].push(event_);
+        emit JobEvent(job_id_, event_);
     }
 
     // Function to read MECE tag's long form given the short form
     function readMeceTag(string memory shortForm) public view returns (string memory) {
         require(bytes(meceTags[shortForm]).length != 0, "Invalid MECE tag");
         return meceTags[shortForm];
+    }
+
+    // Validation of inputs which are common to job creation and update
+    function validateInputs(
+        string calldata title_,
+        address token_
+    ) internal {
+        uint256 titleLength = bytes(title_).length;
+        require(titleLength > 0 && titleLength < 255, "title too short or long");
+        require(token_.code.length > 0 && IERC20(token_).balanceOf(msg.sender) > 0, "Token does not exist");
+        IERC20(token_).approve(address(this), type(uint256).max);
     }
 
     //TODO: handle worker whitelists 
@@ -468,12 +416,16 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         string[] calldata tags_,
         address token_,
         uint256 amount_,
-        uint256 max_time_,
+        uint32 max_time_,
         string calldata delivery_method_,
         bool arbitrator_required_,
         address arbitrator_,
         address[] calldata allowed_workers_
     ) public returns (uint256) {
+        validateInputs(title_, token_);
+
+        uint256 deliveyMethodLength = bytes(delivery_method_).length;
+        require(deliveyMethodLength > 0 && deliveyMethodLength < 255, "delivery method too short or long");
         require(publicKeys[msg.sender].length > 0, "not registered");
         require(tags_.length > 0, "At least one tag is required");
 
@@ -495,10 +447,10 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         if (arbitrator_ != address(0)) {
             //QUESTION: is this the best way to check whether the arbitrtor has been registered?
-            require(arbitrators[arbitrator_].publicKey.length > 0, "Arbitrator not registered");
+            require(publicKeys[arbitrator_].length > 0, "Arbitrator not registered");
         }
 
-        IERC20(token_).transferFrom(msg.sender, address(this), amount_);
+        SafeERC20.safeTransferFrom(IERC20(token_), msg.sender, address(this), amount_);
 
         jobs.push();
 
@@ -506,37 +458,35 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         JobPost storage jobPost = jobs[jobid];
 
-        jobPost.state = JOB_STATE_OPEN;
+        bytes32 content_hash_ = getIPFSHash(content_);
+
+        // jobPost.state = JOB_STATE_OPEN; // will be zero anyway
         jobPost.whitelist_workers = allowed_workers_.length > 0;
         jobPost.roles.creator = msg.sender;
         jobPost.title = title_;
         jobPost.tags = tags_;
-        jobPost.content_cid_blob_idx = 0;
+        jobPost.content_hash = content_hash_;
         jobPost.multipleApplicants = multiple_applicants_;
         jobPost.token = token_;
         jobPost.amount = amount_;
         jobPost.timestamp = block.timestamp;
-        jobPost.maxTime = uint32(max_time_);
+        jobPost.maxTime = max_time_;
         jobPost.deliveryMethod = delivery_method_;
         jobPost.arbitratorRequired = arbitrator_required_;
         jobPost.roles.arbitrator = arbitrator_;
         // jobPost.roles.worker = address(0); // will be zero anyway
 
-        //NOTE: aren't we abusing the storage here a bit?
-        // for (uint256 i = 0; i < tags_.length; i++) {
-        //     taggedJobs[tags_[i]].push(jobid);
-        // }
+        publishJobEvent(jobid,
+            JobEventData({
+                type_: JOB_EVENT_JOB_CREATED,
+                address_: abi.encodePacked(msg.sender),
+                data_: abi.encode(title_, content_hash_, multiple_applicants_, tags_, token_, amount_, max_time_, delivery_method_, arbitrator_required_, arbitrator_, allowed_workers_)
+            })
+        );
 
         if (allowed_workers_.length > 0) {
             updateJobWhitelist(jobid, allowed_workers_, new address[](0));
         }
-
-        publishNotification(
-            msg.sender,
-            NOTIFICATION_CREATE_JOB,
-            uint40(jobid),
-            0
-        );
 
         return jobid;
     }
@@ -546,19 +496,16 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     //QUESTION: to minimize data manipulation and gas costs, should we make it so that if a parameter has empty value (e.g. "" in title or 0 for max_time_) than we wouldn't overwrite the data? 
     function updateJobPost(
         uint256 job_id_,
-        bool whitelist_workers_,
         string calldata title_,
         bytes calldata content_,
         address token_,
         uint256 amount_,
+        uint32 maxTime_,
         address arbitrator_,
-        uint256 maxTime_
+        bool whitelist_workers_
     ) public onlyJobCreator(job_id_) {
         require(jobs[job_id_].state == JOB_STATE_OPEN, "not open");
-
-        // store old job
-        // TODO: again, consider storage here. Commenting for now
-        // jobHistory[job_id_].push(jobs[job_id_]);
+        validateInputs(title_, token_);
 
         JobPost storage job = jobs[job_id_];
 
@@ -573,30 +520,30 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
                                 job.collateralOwed[token_] -= difference;
                             } else {
                                 difference -= job.collateralOwed[token_];
-                                require(IERC20(token_).transferFrom(msg.sender, address(this), difference), "Failed to transfer additional tokens");
+                                SafeERC20.safeTransferFrom(IERC20(token_), msg.sender, address(this), difference);
                                 delete job.collateralOwed[token_];
                             }
                         } else {
-                            require(IERC20(token_).transferFrom(msg.sender, address(this), difference), "Failed to transfer additional tokens");
+                            SafeERC20.safeTransferFrom(IERC20(token_), msg.sender, address(this), difference);
                         }
                     } else {
                         uint256 difference = job.amount - amount_;
                         if (block.timestamp >= job.timestamp + _24_HRS) {
-                            IERC20(token_).transfer(msg.sender, difference);
+                            SafeERC20.safeTransferFrom(IERC20(token_), address(this), msg.sender, difference);
                         } else {
                             job.collateralOwed[token_] += difference; // Record to owe later
                         }
                     }
                 } else {
                     if (block.timestamp >= job.timestamp + _24_HRS) {
-                        IERC20(job.token).transfer(msg.sender, job.collateralOwed[job.token]);
+                        SafeERC20.safeTransferFrom(IERC20(token_), address(this), msg.sender, job.collateralOwed[job.token]);
                     } else {
                         job.collateralOwed[job.token] += job.amount; // Record to owe later
                     }
-                    require(IERC20(token_).transferFrom(msg.sender, address(this), amount_), "Failed to transfer new tokens");
+                    SafeERC20.safeTransferFrom(IERC20(token_), msg.sender, address(this), amount_);
                 }
             }
-            
+
             job.token = token_;
             job.amount = amount_;
         }
@@ -605,9 +552,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             jobs[job_id_].title = title_;
         }
         {
-            bytes memory cid = getIPFSCID(content_);
-            blobs.push(cid);
-            jobs[job_id_].content_cid_blob_idx = uint40(blobs.length - 1);
+            bytes32 hash_ = getIPFSHash(content_);
+            jobs[job_id_].content_hash = hash_;
         }
         {
             jobs[job_id_].whitelist_workers = whitelist_workers_;
@@ -616,21 +562,26 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         {
             if (arbitrator_ != address(0)) {
-                require(arbitrators[arbitrator_].publicKey.length > 0, "Arbitrator not registered");
+                require(publicKeys[arbitrator_].length > 0, "Arbitrator not registered");
             }
             jobs[job_id_].roles.arbitrator = arbitrator_;
         }
 
-        if (jobs[job_id_].roles.worker != address(0)) {
-            publishNotification(
-                jobs[job_id_].roles.worker,
-                NOTIFICATION_JOB_UPDATED,
-                uint40(job_id_),
-                0
-            );
-        }
-
-        emit JobUpdated(job_id_);
+        publishJobEvent(job_id_,
+            JobEventData({
+                type_: JOB_EVENT_JOB_UPDATED,
+                address_: bytes(""),
+                data_: abi.encode(
+                    title_,
+                    jobs[job_id_].content_hash,
+                    token_,
+                    amount_,
+                    maxTime_,
+                    arbitrator_,
+                    whitelist_workers_
+                )
+            })
+        );
     }
 
     //TODO: reflect possibility of external whitelist
@@ -643,21 +594,25 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         for (uint256 i = 0; i < allowed_workers_.length; i++) {
             whitelistWorkers[job_id_][allowed_workers_[i]] = true;
-            publishNotification(
-                allowed_workers_[i],
-                NOTIFICATION_WHITELISTED_FOR_JOB,
-                uint40(job_id_),
-                0
+
+            publishJobEvent(job_id_,
+                JobEventData({
+                    type_: JOB_EVENT_JOB_ADD_WHITELISTED_WORKER,
+                    address_: abi.encodePacked(allowed_workers_[i]),
+                    data_: bytes("")
+                })
             );
         }
 
         for (uint256 i = 0; i < disallowed_workers_.length; i++) {
             whitelistWorkers[job_id_][disallowed_workers_[i]] = false;
-            publishNotification(
-                disallowed_workers_[i],
-                NOTIFICATION_REMOVE_WHITELISTED_FOR_JOB,
-                uint40(job_id_),
-                0
+
+            publishJobEvent(job_id_,
+                JobEventData({
+                    type_: JOB_EVENT_JOB_REMOVE_WHITELISTED_WORKER,
+                    address_: abi.encodePacked(disallowed_workers_[i]),
+                    data_: bytes("")
+                })
             );
         }
     }
@@ -675,26 +630,42 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         if (block.timestamp >= job.timestamp + _24_HRS) {
             uint256 amount = job.amount + job.collateralOwed[job.token];
             delete job.collateralOwed[job.token]; // Clear the collateral record
-            IERC20(job.token).transfer(job.roles.creator, amount);
+            SafeERC20.safeTransferFrom(IERC20(job.token), address(this), job.roles.creator, amount);
         } else {
             job.collateralOwed[job.token] += job.amount;
         }
 
-        publishJobUpdate(job_id_, JOB_UPDATE_CLOSE, 0, address(0));
-        emit JobUpdated(job_id_);
+        publishJobEvent(job_id_,
+            JobEventData({
+                type_: JOB_EVENT_JOB_CLOSED,
+                address_: bytes(""),
+                data_: bytes("")
+            })
+        );
     }
 
     /**
      * @notice Withdraw collateral from the closed job 
      */
-    function withdrawCollateral(uint256 jobId, address token) public {
-        JobPost storage job = jobs[jobId];
-        require(block.timestamp >= job.timestamp + _24_HRS, "24 hours have not passed yet");
-        require(job.collateralOwed[token] > 0, "No collateral to withdraw for this token");
+    function withdrawCollateral(uint256 job_id_, address token_) public {
+        // check if the job is closed
+        require(jobs[job_id_].state == JOB_STATE_CLOSED, "not closed");
 
-        uint256 amount = job.collateralOwed[token];
-        delete job.collateralOwed[token]; // Reset the owed amount
-        IERC20(token).transfer(job.roles.creator, amount);
+        JobPost storage job = jobs[job_id_];
+        require(block.timestamp >= job.timestamp + _24_HRS, "24 hours have not passed yet");
+        require(job.collateralOwed[token_] > 0, "No collateral to withdraw for this token");
+
+        uint256 amount = job.collateralOwed[token_];
+        delete job.collateralOwed[token_]; // Reset the owed amount
+        SafeERC20.safeTransferFrom(IERC20(token_), address(this), job.roles.creator, amount);
+
+        publishJobEvent(job_id_,
+            JobEventData({
+                type_: JOB_EVENT_COLLATERAL_WITHDRAWN,
+                address_: bytes(""),
+                data_: bytes("")
+            })
+        );
     }
 
     function reopenJob(uint256 job_id_) public onlyJobCreator(job_id_) {
@@ -703,7 +674,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         require(job.state == JOB_STATE_CLOSED, "not closed");
 
         if (job.collateralOwed[job.token] < job.amount) {
-            require(IERC20(job.token).transferFrom(msg.sender, address(this), job.amount - job.collateralOwed[job.token]));
+            SafeERC20.safeTransferFrom(IERC20(job.token), msg.sender, address(this), job.amount - job.collateralOwed[job.token]);
             delete job.collateralOwed[job.token];
         } else {
             job.collateralOwed[job.token] -= job.amount;
@@ -711,8 +682,14 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         job.state = JOB_STATE_OPEN;
         job.timestamp = block.timestamp;
-        publishJobUpdate(job_id_, JOB_UPDATE_OPEN, 0, address(0));
-        emit JobUpdated(job_id_);
+
+        publishJobEvent(job_id_,
+            JobEventData({
+                type_: JOB_EVENT_JOB_REOPENED,
+                address_: bytes(""),
+                data_: bytes("")
+            })
+        );
     }
 
     //TODO: update to reflect the agreement about threads being related to elements of the job structure
@@ -737,39 +714,15 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             }
         }
 
-        bytes memory content_cid = getIPFSCID(content_);
-        blobs.push(content_cid);
-        uint40 content_cid_blob_idx = uint40(blobs.length - 1);
+        bytes32 content_hash = getIPFSHash(content_);
 
-        uint256 threadid = getThreadKey(job_id_, jobs[job_id_].roles.creator, jobs[job_id_].roles.worker);
-
-        if (isOwner) {
-            threads[threadid].push(
-                JobThreadObject({
-                    t: JOB_THREAD_OWNER_MESSAGE,
-                    blob_idx: content_cid_blob_idx
-                })
-            );
-            publishNotification(
-                jobs[job_id_].roles.creator,
-                JOB_THREAD_OWNER_MESSAGE,
-                uint40(job_id_),
-                uint40(threads[threadid].length)
-            );
-        } else {
-            threads[threadid].push(
-                JobThreadObject({
-                    t: JOB_THREAD_WORKER_MESSAGE,
-                    blob_idx: content_cid_blob_idx
-                })
-            );
-            publishNotification(
-                jobs[job_id_].roles.worker,
-                JOB_THREAD_WORKER_MESSAGE,
-                uint40(job_id_),
-                uint40(threads[threadid].length)
-            );
-        }
+        publishJobEvent(job_id_,
+            JobEventData({
+                type_: isOwner ? JOB_EVENT_OWNER_MESSAGE : JOB_EVENT_WORKER_MESSAGE,
+                address_: abi.encodePacked(msg.sender),
+                data_: abi.encodePacked(content_hash)
+            })
+        );
     }
 
     /**
@@ -795,14 +748,16 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         signJob(job_id_, signature_);
 
-        
         if (!job.multipleApplicants) {
             job.state = JOB_STATE_TAKEN;
-            // job.worker = msg.sender;
+            job.roles.worker = msg.sender;
 
             Unicrow unicrow = Unicrow(unicrowAddress);
+
             //TODO: Unicrow needs to be updated to allow custom "buyer" and that needs to be reflected here. 
             //      For now working without this option
+            IERC20 token = IERC20(job.token);
+            token.approve(unicrowAddress, type(uint256).max);
             EscrowInput memory escrowInput = EscrowInput(
                 msg.sender,
                 unicrowMarketplaceAddress,
@@ -820,13 +775,13 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             //          - will check whether a buyer was defined and if yes use it
             //      For now calling the function as is
             job.escrowId = unicrow.pay(escrowInput, job.roles.arbitrator, arbitrators[job.roles.arbitrator].fee);
-            
-            publishJobUpdate(job_id_, JOB_UPDATE_TAKEN, 0, address(0));
-            publishNotification(
-                job.roles.creator,
-                NOTIFICATION_JOB_TAKEN,
-                uint40(job_id_),
-                0
+
+            publishJobEvent(job_id_,
+                JobEventData({
+                    type_: JOB_EVENT_JOB_TAKEN,
+                    address_: abi.encodePacked(msg.sender),
+                    data_: abi.encodePacked(job.escrowId)
+                })
             );
         }
     }
@@ -843,14 +798,19 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             "not whitelisted"
         );
 
+        // sign the job at the current revision
+        bytes32 digest = keccak256(abi.encode(jobEvents[job_id_].length, job_id_));
+        require(ECDSA.recover(digest, signature_) == msg.sender, "invalid signature");
+
         // potentially multiple applicants could sign the job so we need to be able to store all of them
         jobs[job_id_].workerSignatures[msg.sender] = signature_;
 
-        publishNotification(
-            jobs[job_id_].roles.creator,
-            NOTIFICATION_JOB_SIGNED,
-            uint40(job_id_),
-            0
+        publishJobEvent(job_id_,
+            JobEventData({
+                type_: JOB_EVENT_JOB_SIGNED,
+                address_: abi.encodePacked(msg.sender),
+                data_: bytes.concat(abi.encodePacked(uint16(jobEvents[job_id_].length), abi.encodePacked(signature_)))
+            })
         );
     }
 
@@ -865,7 +825,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      * @notice  If the final amount is lower than what was paid in the collateral, it will refund it or 
      * @param job_id_ ID of the job
      * @param worker_ An address of the worker selected for the job
-     * @param token_ Which token should be used for the payment (0x00..00 for ETH)
+     * @param token_ Which token should be used for the payment
      * @param amount_ The price for the job in the defined token. 
      */
     function payStartJob(uint256 job_id_, address worker_, address token_, uint amount_) public payable onlyJobCreator(job_id_) {
@@ -874,7 +834,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         require(job.state == JOB_STATE_OPEN, "not open");
 
         //NOTE: we could  check that the worker has signed the job scope, but if the customer decides
-        //      to assign and pay for the job anyway, that should perhaps be their perogative
+        //      to assign and pay for the job anyway, that should perhaps be their prerogative
 
         job.state = JOB_STATE_TAKEN;
         job.roles.worker = worker_;
@@ -884,7 +844,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         uint amountDifference = 0;
         uint amountToTopUp = 0;
         uint amountToReturn = 0;
-        
+
         if (token_ == job.token) {
             if (amount_ > job.amount) {
                 amountToTopUp = amount_ - job.amount;
@@ -898,7 +858,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         if (amountToTopUp > 0) {
             if (token_ != address(0)) {
-                IERC20(token_).transferFrom(msg.sender, address(this), amountToTopUp);
+                SafeERC20.safeTransferFrom(IERC20(token_), msg.sender, address(this), amountToTopUp);
             } else {
                 require(msg.value != amountToTopUp, "Required amount doesn't match the amount sent");
             }
@@ -907,11 +867,11 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         if (amountToReturn > 0) {
             if (block.timestamp > job.timestamp + _24_HRS) {
                 if (job.token != address(0)) {
-                    IERC20(job.token).transfer(msg.sender, amountToTopUp);
+                    SafeERC20.safeTransferFrom(IERC20(job.token), address(this), msg.sender, amountToTopUp);
                 } else {
                     (bool success, ) = msg.sender.call{value: amountToReturn}("");
                     require(success, "Transfer failed");
-                }            
+                }
             } else {
                 job.collateralOwed[job.token] += amountToReturn;
             }
@@ -928,12 +888,14 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             amount_
         );
 
-        publishJobUpdate(job_id_, JOB_UPDATE_TAKEN, 0, address(0));
-        publishNotification(
-            worker_,
-            NOTIFICATION_JOB_PAID,
-            uint40(job_id_),
-            0
+        job.escrowId = unicrow.pay(escrowInput, job.roles.arbitrator, arbitrators[job.roles.arbitrator].fee);
+
+        publishJobEvent(job_id_,
+            JobEventData({
+                type_: JOB_EVENT_JOB_PAID,
+                address_: abi.encodePacked(worker_),
+                data_: abi.encodePacked(job.escrowId)
+            })
         );
     }
     
@@ -948,6 +910,14 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         JobPost storage job = jobs[job_id_];
 
         //TODO: buyer should be notified. TBD if the result should be saved somewhere
+
+        publishJobEvent(job_id_,
+            JobEventData({
+                type_: JOB_EVENT_JOB_DELIVERED,
+                address_: abi.encodePacked(msg.sender),
+                data_: result_
+            })
+        );
     }
 
 
@@ -970,18 +940,33 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         if (review_rating_ > 0) {
             review(job_id_, review_rating_, review_text_);
         }
+
+        publishJobEvent(job_id_,
+            JobEventData({
+                type_: JOB_EVENT_JOB_CLOSED,
+                address_: bytes(""),
+                data_: bytes("")
+            })
+        );
     }
 
     function review(uint256 job_id_, uint8 review_rating_, string calldata review_text_) public onlyJobCreator(job_id_) {
-        require(review_rating_ >= ratingMin && review_rating_ <= ratingMax, "Invalid review score");
+        require(review_rating_ >= RATING_MIN && review_rating_ <= RATING_MAX, "Invalid review score");
         require(jobs[job_id_].state == JOB_STATE_CLOSED, "Job doesn't exist or not closed");
-        
+        require(bytes(review_text_).length <= 100, "Review text too long");
+
         UserRating storage rating = userRatings[jobs[job_id_].roles.worker];
 
         rating.averageRating = uint16((rating.averageRating * rating.numberOfReviews + review_rating_ * 10000) / (rating.numberOfReviews + 1));
         rating.numberOfReviews++;
 
-        //TODO: decide if we really want to support also review text
+        publishJobEvent(job_id_,
+            JobEventData({
+                type_: JOB_EVENT_JOB_RATED,
+                address_: bytes(""),
+                data_: bytes.concat(abi.encodePacked(review_rating_), bytes(review_text_))
+            })
+        );
     }
 
     /**
@@ -1000,6 +985,14 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         address[] memory disallowed_workers_ = new address[](1);
         disallowed_workers_[0] = job.roles.worker;
         updateJobWhitelist(job_id_, new address[](0), disallowed_workers_);
+
+        publishJobEvent(job_id_,
+            JobEventData({
+                type_: JOB_EVENT_JOB_REFUNDED,
+                address_: bytes(""),
+                data_: bytes("")
+            })
+        );
     }
 
     /**
@@ -1025,6 +1018,14 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             unicrowDispute.challenge(job.escrowId);
         }
 
+        publishJobEvent(job_id_,
+            JobEventData({
+                type_: JOB_EVENT_JOB_DISPUTED,
+                address_: abi.encodePacked(msg.sender),
+                data_: bytes("")
+            })
+        );
+
         //TODO: add notification / message sending (after we settle on tech implementation of that)
 
         //TODO: start a group chat including at least the message
@@ -1039,14 +1040,26 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      * @param reason_ reason for arbitrator's decision (encrypted for all three parties)
      */
     function arbitrate(uint256 job_id_, uint16 buyer_share_, uint16 worker_share_, string calldata reason_) public onlyArbitrator(job_id_) {
+        require(bytes(reason_).length <= 100, "Reason too long");
         JobPost storage job = jobs[job_id_];
+        job.state = JOB_STATE_CLOSED;
 
         UnicrowArbitrator unicrowArbitrator = UnicrowArbitrator(unicrowArbitratorAddress);
 
         // the arbitrate function checks that the shares equal 100%, otherwise throws an error
+        // also it sends the shares to all the parties
         unicrowArbitrator.arbitrate(job.escrowId, [buyer_share_, worker_share_]);
+        delete job.collateralOwed[job.token];
 
         //TODO: add notification / message sending (after we settle on tech implementation of that)
+
+        publishJobEvent(job_id_,
+            JobEventData({
+                type_: JOB_EVENT_JOB_ARBITRATED,
+                address_: abi.encodePacked(msg.sender),
+                data_: abi.encode(buyer_share_, worker_share_, reason_)
+            })
+        );
     }
 
     /**
@@ -1064,13 +1077,28 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         // - if the job has been started:
         //     - change to not started
         //     - refud the escrow, incl. arbitrator fee (see TBD above)
-
+        publishJobEvent(job_id_,
+            JobEventData({
+                type_: JOB_EVENT_JOB_ARBITRATION_REFUSED,
+                address_: abi.encodePacked(msg.sender),
+                data_: bytes("")
+            })
+        );
     }
 
     /**
      * @notice If the arbitrator was not set or resigned, the job creator can set a new arbitrator
      */
     function setArbitrator(uint256 job_id_, address arbitratorAddress_) public onlyJobCreator(job_id_) {
+        require(publicKeys[arbitratorAddress_].length > 0, "not registered");
         jobs[job_id_].roles.arbitrator = arbitratorAddress_;
+
+        publishJobEvent(job_id_,
+            JobEventData({
+                type_: JOB_EVENT_JOB_ARBITRATOR_CHANGED,
+                address_: abi.encodePacked(arbitratorAddress_),
+                data_: bytes("")
+            })
+        );
     }
 }
