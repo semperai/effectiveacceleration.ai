@@ -1,4 +1,4 @@
-import { BytesLike, getBytes, AbiCoder, hexlify } from "ethers";
+import { BytesLike, getBytes, AbiCoder, hexlify, toUtf8String } from "ethers";
 
 export enum JobState {
   OPEN = 0,
@@ -47,7 +47,6 @@ export type JobPostEvent = {
 export type JobUpdateEvent = {
   title: string;
   contentHash: string;
-  token: string;
   amount: bigint;
   maxTime: number;
   arbitrator: string;
@@ -58,6 +57,22 @@ export type JobSignedEvent = {
   revision: number;
   signatire: string;
 };
+
+export type JobRatedEvent = {
+  rating: number;
+  review: string;
+}
+
+export type JobDisputedEvent = {
+  sessionKey: string; // Creator's and worker's session key, encrypted for arbitrator
+  content: string; // Dispute content encrypted by contender + arbitrator shared secret
+}
+
+export type JobArbitratedEvent = {
+  creatorShare: number;
+  workerShare: number;
+  reason: string;
+}
 
 export const decodeJobPostEvent = (rawData: BytesLike): JobPostEvent => {
   const decoded = AbiCoder.defaultAbiCoder().decode(["string", "bytes32", "bool", "string[]", "address", "uint256", "uint32", "string", "bool", "address", "address[]"], rawData);
@@ -77,15 +92,14 @@ export const decodeJobPostEvent = (rawData: BytesLike): JobPostEvent => {
 };
 
 export const decodeJobUpdatedEvent = (rawData: BytesLike): JobUpdateEvent => {
-  const decoded = AbiCoder.defaultAbiCoder().decode(["string", "bytes32", "address", "uint256", "uint32", "address", "bool"], rawData);
+  const decoded = AbiCoder.defaultAbiCoder().decode(["string", "bytes32", "uint256", "uint32", "address", "bool"], rawData);
   return {
     title: decoded[0],
     contentHash: decoded[1],
-    token: decoded[2],
-    amount: decoded[3],
-    maxTime: Number(decoded[4]),
-    arbitrator: decoded[5],
-    whitelistWorkers: decoded[6],
+    amount: decoded[2],
+    maxTime: Number(decoded[3]),
+    arbitrator: decoded[4],
+    whitelistWorkers: decoded[5],
   };
 };
 
@@ -94,5 +108,31 @@ export const decodeJobSignedEvent = (rawData: BytesLike): JobSignedEvent => {
   return {
     revision: new DataView(bytes.buffer, 0).getUint16(0),
     signatire: hexlify(bytes.slice(2)),
+  };
+}
+
+export const decodeJobRatedEvent = (rawData: BytesLike): JobRatedEvent => {
+  const bytes = getBytes(rawData);
+
+  return {
+    rating: new DataView(bytes.buffer, 0).getUint8(0),
+    review: toUtf8String(bytes.slice(1)),
+  };
+};
+
+export const decodeJobDisputedEvent = (rawData: BytesLike): JobDisputedEvent => {
+  const bytes = getBytes(rawData);
+  return {
+    sessionKey: hexlify(bytes.slice(0, 32)),
+    content: hexlify(bytes.slice(32)),
+  };
+}
+
+export const decodeJobArbitratedEvent = (rawData: BytesLike): JobArbitratedEvent => {
+  const bytes = getBytes(rawData);
+  return {
+    creatorShare: new DataView(bytes.buffer, 0).getUint16(0),
+    workerShare: new DataView(bytes.buffer, 0).getUint16(2),
+    reason: hexlify(bytes.slice(4)),
   };
 }

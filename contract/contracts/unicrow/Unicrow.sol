@@ -93,6 +93,9 @@ contract Unicrow is ReentrancyGuard, IUnicrow, Context {
         unicrowDispute = UnicrowDispute(unicrowDispute_);
         governanceAddress = governanceAddress_;
         protocolFee = protocolFee_;
+
+        // Increase the escrow id counter, to start from non-zero value
+        escrowIdCounter.increment();
     }
 
     /// Check that the governance contract is calling this
@@ -252,8 +255,13 @@ contract Unicrow is ReentrancyGuard, IUnicrow, Context {
         // Get escrow information from the contract's storage
         Escrow memory escrow = escrows[escrowId];
 
-        // Only seller can refund
-        require(sender == escrow.seller, "1-011");
+        Arbitrator memory arbitrator = unicrowArbitrator.getArbitratorData(
+            escrowId
+        );
+
+        // Only seller/arbitrator or a contract acting on behalf of seller/arbitrator can refund
+        require(sender == escrow.seller || tx.origin == escrow.seller ||
+                sender == arbitrator.arbitrator || tx.origin == arbitrator.arbitrator, "1-011");
 
         // Check that the escrow is not claimed yet
         require(escrow.claimed == 0, "0-005");

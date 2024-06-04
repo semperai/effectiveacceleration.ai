@@ -201,8 +201,8 @@ contract UnicrowArbitrator is IUnicrowArbitrator, Context, ReentrancyGuard {
         Arbitrator memory arbitratorData = getArbitratorData(escrowId);
         Escrow memory escrow = unicrow.getEscrow(escrowId);
 
-        // Check that this is this escrow's arbitrator calling
-        require(_msgSender() == arbitratorData.arbitrator, "2-005");
+        // Check that this is this escrow's arbitrator or a contract acting on behalf of arbitrator calling directly
+        require(_msgSender() == arbitratorData.arbitrator || tx.origin == arbitratorData.arbitrator, "2-005");
 
         // Check that the arbitrator was set by mutual consensus
         require(

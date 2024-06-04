@@ -6,10 +6,15 @@ import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 import { expect } from "chai";
 import { JobEventDataStructOutput, MarketplaceV1 as Marketplace } from "../typechain-types/contracts/MarketplaceV1";
 import { FakeToken } from "../typechain-types/contracts/unicrow/FakeToken";
-import { Signer, HDNodeWallet, EventLog, BigNumberish, getCreateAddress }  from "ethers";
-import { Unicrow, UnicrowDispute, UnicrowArbitrator, UnicrowClaim, IERC20Errors__factory, ECDSA__factory } from "../typechain-types";
+import { Signer, HDNodeWallet, EventLog, getCreateAddress, toBigInt, hexlify, ZeroAddress }  from "ethers";
+import { Unicrow, UnicrowDispute, UnicrowArbitrator, UnicrowClaim, IERC20Errors__factory, ECDSA__factory, OwnableUpgradeable__factory, Initializable__factory } from "../typechain-types";
 import { HardhatNetworkHDAccountsConfig } from "hardhat/types";
-import { decodeJobPostEvent, decodeJobSignedEvent, decodeJobUpdatedEvent, JobEventType, JobPostEvent, JobSignedEvent, JobState, JobUpdateEvent } from "../src/utils";
+import { decodeJobArbitratedEvent, decodeJobDisputedEvent, decodeJobPostEvent, decodeJobRatedEvent, decodeJobSignedEvent, decodeJobUpdatedEvent, JobArbitratedEvent, JobDisputedEvent, JobEventType, JobPostEvent, JobRatedEvent, JobSignedEvent, JobState, JobUpdateEvent } from "../src/utils";
+import { utf8ToBytes } from "@noble/ciphers/utils";
+
+let unicrowGlobal: Unicrow;
+let unicrowDisputeGlobal: UnicrowDispute;
+let unicrowArbitratorGlobal: UnicrowArbitrator;
 
 describe("Marketplace Unit Tests", () => {
   async function deployUnicrowSuite(): Promise<{
@@ -98,6 +103,11 @@ describe("Marketplace Unit Tests", () => {
 
     await unicrowClaim.waitForDeployment();
     console.log(`UnicrowClaim deployed to: ${await unicrowClaim.getAddress()}`);
+
+    unicrowGlobal = unicrow;
+    unicrowDisputeGlobal = unicrowDispute;
+    unicrowArbitratorGlobal = unicrowArbitrator;
+
     return {
       unicrow,
       unicrowDispute,
@@ -276,6 +286,13 @@ describe("Marketplace Unit Tests", () => {
         .setVersion(25)
       ).to.be.reverted;
     });
+
+    it("can not call initializer", async () => {
+      const { marketplace } = await loadFixture(deployContractsFixture);
+      await expect(
+        marketplace.initialize(ZeroAddress, ZeroAddress, ZeroAddress, ZeroAddress)
+      ).to.be.revertedWithCustomError({interface: Initializable__factory.createInterface()}, "InvalidInitialization");
+    });
   });
 
   describe("pubkey register", () => {
@@ -306,7 +323,17 @@ describe("Marketplace Unit Tests", () => {
       .registerPublicKey(wallet.publicKey);
   }
 
-  async function deployMarketplaceWithUsersAndJob() {
+  async function registerArbitrator(
+    marketplace: Marketplace,
+    user: Signer,
+    wallet: HDNodeWallet,
+  ) {
+    await marketplace
+      .connect(user)
+      .registerArbitrator(wallet.publicKey, "testArbitrator", 100);
+  }
+
+  async function deployMarketplaceWithUsersAndJob(multipleApplicants: boolean = false, whitelisted: boolean = true, arbitratorRequired: boolean = true) {
     const {
       marketplace,
       fakeToken,
@@ -314,9 +341,12 @@ describe("Marketplace Unit Tests", () => {
       user2,
       arbitrator,
     } = await loadFixture(deployContractsFixture);
-    const { wallet1, wallet2 } = await loadFixture(getWalletsFixture);
+    const { wallet1, wallet2, wallet3 } = await loadFixture(getWalletsFixture);
     await registerPublicKey(marketplace, user1, wallet1);
     await registerPublicKey(marketplace, user2, wallet2);
+    if (arbitratorRequired) {
+      await registerArbitrator(marketplace, arbitrator, wallet3);
+    }
 
     const title = "Create a marketplace in solidity";
     const content = "Please create a marketplace in solidity";
@@ -327,20 +357,119 @@ describe("Marketplace Unit Tests", () => {
       .publishJobPost(
         title,
         contentBytes,
-        false,
+        multipleApplicants,
         ["DV"],
         await fakeToken.getAddress(),
         100,
         120,
         "digital",
-        false,
-        ethers.ZeroAddress,
-        [user1.address]
+        arbitratorRequired,
+        arbitratorRequired ? arbitrator.address : ethers.ZeroAddress,
+        whitelisted ? [user2.address] : []
       )).wait();
 
     const jobId = (jobIdResponse?.logs.at(-1) as EventLog).args.jobId as bigint;
-    return { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId };
+    return { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, wallet3, jobId };
   }
+
+  describe("unicrow params", () => {
+    it("set unicrow markeplace address", async () => {
+      const { marketplace, deployer } = await loadFixture(deployContractsFixture);
+      await expect(marketplace
+        .connect(deployer)
+        .setUnicrowMarketplaceAddress(ethers.ZeroAddress)
+      ).to.be.not.reverted;
+      expect(await marketplace.unicrowMarketplaceAddress()).to.equal(ethers.ZeroAddress);
+
+      const randomWallet = ethers.Wallet.createRandom();
+      await expect(marketplace
+        .connect(randomWallet.connect(deployer.provider))
+        .setUnicrowMarketplaceAddress(ethers.ZeroAddress)
+      ).to.be.revertedWithCustomError({interface: OwnableUpgradeable__factory.createInterface()}, "OwnableUnauthorizedAccount");
+    });
+
+    it("set unicrow contract addresses", async () => {
+      const { marketplace, deployer } = await loadFixture(deployContractsFixture);
+      await expect(marketplace
+        .connect(deployer)
+        .updateUnicrowAddresses(ethers.ZeroAddress, ethers.ZeroAddress, ethers.ZeroAddress)
+      ).to.be.not.reverted;
+      expect(await marketplace.unicrowAddress()).to.equal(ethers.ZeroAddress);
+      expect(await marketplace.unicrowDisputeAddress()).to.equal(ethers.ZeroAddress);
+      expect(await marketplace.unicrowArbitratorAddress()).to.equal(ethers.ZeroAddress);
+
+      const randomWallet = ethers.Wallet.createRandom();
+      await expect(marketplace
+        .connect(randomWallet.connect(deployer.provider))
+        .updateUnicrowAddresses(ethers.ZeroAddress, ethers.ZeroAddress, ethers.ZeroAddress)
+      ).to.be.revertedWithCustomError({interface: OwnableUpgradeable__factory.createInterface()}, "OwnableUnauthorizedAccount");
+    });
+  });
+
+  describe("mece tags", () => {
+    it("read mece tag", async () => {
+      const { marketplace } = await loadFixture(deployContractsFixture);
+      expect(await marketplace.readMeceTag("DV")).to.equal("DIGIAL_VIDEO");
+
+      await expect(marketplace.readMeceTag("")).to.be.revertedWith("Invalid MECE tag");
+      await expect(marketplace.readMeceTag("LOL")).to.be.revertedWith("Invalid MECE tag");
+    });
+
+    it("update mece tag", async () => {
+      const { marketplace, deployer } = await loadFixture(deployContractsFixture);
+      await expect(marketplace
+        .connect(deployer)
+        .updateMeceTag("DV", "Digital Video2")
+      ).to.be.not.reverted;
+
+      expect(await marketplace.readMeceTag("DV")).to.equal("Digital Video2");
+
+      await expect(marketplace
+        .connect(deployer)
+        .updateMeceTag("TST", "Test")
+      ).to.be.not.reverted;
+
+      expect(await marketplace.readMeceTag("TST")).to.equal("Test");
+
+      await expect(marketplace
+        .connect(deployer)
+        .updateMeceTag("", "Test")
+      ).to.be.revertedWith("Invalid tag data");
+
+      await expect(marketplace
+        .connect(deployer)
+        .updateMeceTag("TST", "")
+      ).to.be.revertedWith("Invalid tag data");
+
+
+      const randomWallet = ethers.Wallet.createRandom();
+      await expect(marketplace
+        .connect(randomWallet.connect(deployer.provider))
+        .updateMeceTag("TST", "")
+      ).to.be.revertedWithCustomError({interface: OwnableUpgradeable__factory.createInterface()}, "OwnableUnauthorizedAccount");
+    });
+
+    it("remove mece tag", async () => {
+      const { marketplace, deployer } = await loadFixture(deployContractsFixture);
+      await expect(marketplace
+        .connect(deployer)
+        .removeMeceTag("DV")
+      ).to.be.not.reverted;
+
+      await expect(marketplace.readMeceTag("")).to.be.revertedWith("Invalid MECE tag");
+
+      await expect(marketplace
+        .connect(deployer)
+        .removeMeceTag("TST")
+      ).to.be.revertedWith("MECE tag does not exist");
+
+      const randomWallet = ethers.Wallet.createRandom();
+      await expect(marketplace
+        .connect(randomWallet.connect(deployer.provider))
+        .removeMeceTag("TST")
+      ).to.be.revertedWithCustomError({interface: OwnableUpgradeable__factory.createInterface()}, "OwnableUnauthorizedAccount");
+    });
+  });
 
   describe("job posting", () => {
     it("post job", async () => {
@@ -505,7 +634,7 @@ describe("Marketplace Unit Tests", () => {
           [user2.address]
         )
       )
-      .to.be.revertedWith("Token does not exist");
+      .to.be.revertedWith("invalid token");
     });
 
     it("post job with invalid amount", async () => {
@@ -549,6 +678,22 @@ describe("Marketplace Unit Tests", () => {
           ethers.ZeroAddress,
           [user2.address]
         )).to.be.revertedWithCustomError({interface: IERC20Errors__factory.createInterface()}, "ERC20InsufficientAllowance");
+
+      await expect(marketplace
+        .connect(user1)
+        .publishJobPost(
+          title,
+          contentBytes,
+          false,
+          ["DV"],
+          await fakeToken.getAddress(),
+          0,
+          120,
+          "digital",
+          false,
+          ethers.ZeroAddress,
+          [user2.address]
+        )).to.be.revertedWith("amount must be greater than 0");
     });
 
     it("post job with invalid deadline", async () => {
@@ -620,6 +765,184 @@ describe("Marketplace Unit Tests", () => {
         )).to.be.revertedWith("title too short or long");
 
     });
+
+    it("post job with invalid delivery method", async () => {
+      const { marketplace, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
+      const { wallet1 } = await loadFixture(getWalletsFixture);
+
+      await registerPublicKey(marketplace, user1, wallet1);
+
+      const title = "Create a marketplace in solidity!";
+      const content = "Please create a marketplace in solidity";
+      const contentBytes = ethers.getBytes(Buffer.from(content, "utf-8"));
+
+      await expect(marketplace
+        .connect(user1)
+        .publishJobPost(
+          title,
+          contentBytes,
+          false,
+          ["DV"],
+          await fakeToken.getAddress(),
+          100,
+          120,
+          "",
+          false,
+          ethers.ZeroAddress,
+          [user2.address]
+        )).to.be.revertedWith("delivery method too short or long");
+
+      await expect(marketplace
+        .connect(user1)
+        .publishJobPost(
+          title,
+          contentBytes,
+          false,
+          ["DV"],
+          await fakeToken.getAddress(),
+          100,
+          120,
+          "a".repeat(256),
+          false,
+          ethers.ZeroAddress,
+          [user2.address]
+        )).to.be.revertedWith("delivery method too short or long");
+
+    });
+
+    it("post job from unregistered user", async () => {
+      const { marketplace, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
+      const { wallet1 } = await loadFixture(getWalletsFixture);
+
+      const title = "Create a marketplace in solidity!";
+      const content = "Please create a marketplace in solidity";
+      const contentBytes = ethers.getBytes(Buffer.from(content, "utf-8"));
+
+      await expect(marketplace
+        .connect(user1)
+        .publishJobPost(
+          title,
+          contentBytes,
+          false,
+          ["DV"],
+          await fakeToken.getAddress(),
+          100,
+          120,
+          "digital",
+          false,
+          ethers.ZeroAddress,
+          [user2.address]
+        )).to.be.revertedWith("not registered");
+    });
+
+    it("post job with invalid mece tags", async () => {
+      const { marketplace, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
+      const { wallet1 } = await loadFixture(getWalletsFixture);
+
+      await registerPublicKey(marketplace, user1, wallet1);
+
+      const title = "Create a marketplace in solidity!";
+      const content = "Please create a marketplace in solidity";
+      const contentBytes = ethers.getBytes(Buffer.from(content, "utf-8"));
+
+      await expect(marketplace
+        .connect(user1)
+        .publishJobPost(
+          title,
+          contentBytes,
+          false,
+          [],
+          await fakeToken.getAddress(),
+          100,
+          120,
+          "digital",
+          false,
+          ethers.ZeroAddress,
+          [user2.address]
+        )).to.be.revertedWith("At least one tag is required");
+
+      await expect(marketplace
+        .connect(user1)
+        .publishJobPost(
+          title,
+          contentBytes,
+          false,
+          ["DV", "DA"],
+          await fakeToken.getAddress(),
+          100,
+          120,
+          "digital",
+          false,
+          ethers.ZeroAddress,
+          [user2.address]
+        )).to.be.revertedWith("Only one MECE tag is allowed");
+
+      await expect(marketplace
+        .connect(user1)
+        .publishJobPost(
+          title,
+          contentBytes,
+          false,
+          ["test"],
+          await fakeToken.getAddress(),
+          100,
+          120,
+          "digital",
+          false,
+          ethers.ZeroAddress,
+          [user2.address]
+        )).to.be.revertedWith("Unknown MECE tag");
+    });
+
+    it("post job with unregistered arbitrator", async () => {
+      const { marketplace, fakeToken, user1, user2, arbitrator } = await loadFixture(deployContractsFixture);
+      const { wallet1, wallet2, wallet3 } = await loadFixture(getWalletsFixture);
+
+      await registerPublicKey(marketplace, user1, wallet1);
+      await registerArbitrator(marketplace, arbitrator, wallet3);
+
+      const title = "Create a marketplace in solidity!";
+      const content = "Please create a marketplace in solidity";
+      const contentBytes = ethers.getBytes(Buffer.from(content, "utf-8"));
+
+      const jobId = 0;
+
+      await expect(marketplace
+        .connect(user1)
+        .publishJobPost(
+          title,
+          contentBytes,
+          false,
+          ["DV"],
+          await fakeToken.getAddress(),
+          100,
+          120,
+          "digital",
+          true,
+          wallet2.address,
+          [user2.address]
+        )
+      ).to.be.revertedWith("arbitrator not registered");
+
+      await registerPublicKey(marketplace, arbitrator, wallet3);
+
+      await expect(marketplace
+        .connect(user1)
+        .publishJobPost(
+          title,
+          contentBytes,
+          false,
+          ["DV"],
+          await fakeToken.getAddress(),
+          100,
+          120,
+          "digital",
+          true,
+          arbitrator.address,
+          [user2.address]
+        )
+      ).to.not.be.revertedWith("arbitrator not registered");
+    });
   });
 
   describe("job worker whitelisting", () => {
@@ -630,11 +953,11 @@ describe("Marketplace Unit Tests", () => {
 
       expect(await marketplace
         .connect(user1)
-        .whitelistWorkers(jobId, user2.address)).to.be.false;
+        .whitelistWorkers(jobId, user1.address)).to.be.false;
 
-      await expect(marketplace.connect(user1).updateJobWhitelist(jobId, [await user2.getAddress()], [])).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      await expect(marketplace.connect(user1).updateJobWhitelist(jobId, [await user1.getAddress()], [])).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.type_).to.equal(JobEventType.JOB_ADD_WHITELISTED_WORKER);
-        expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
+        expect(jobEventData.address_).to.equal(user1.address.toLowerCase());
         expect(jobEventData.data_).to.equal("0x");
 
         return true;
@@ -642,11 +965,11 @@ describe("Marketplace Unit Tests", () => {
 
       expect(await marketplace
         .connect(user1)
-        .whitelistWorkers(jobId, user2.address)).to.be.true;
+        .whitelistWorkers(jobId, user1.address)).to.be.true;
 
-      await expect(marketplace.connect(user1).updateJobWhitelist(jobId, [], [await user2.getAddress()])).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      await expect(marketplace.connect(user1).updateJobWhitelist(jobId, [], [await user1.getAddress()])).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.type_).to.equal(JobEventType.JOB_REMOVE_WHITELISTED_WORKER);
-        expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
+        expect(jobEventData.address_).to.equal(user1.address.toLowerCase());
         expect(jobEventData.data_).to.equal("0x");
 
         return true;
@@ -654,94 +977,84 @@ describe("Marketplace Unit Tests", () => {
 
       expect(await marketplace
         .connect(user1)
-        .whitelistWorkers(jobId, user2.address)).to.be.false;
+        .whitelistWorkers(jobId, user1.address)).to.be.false;
+
+      await marketplace
+        .connect(user1)
+        .closeJob(jobId);
+
+      await expect(marketplace.connect(user1).updateJobWhitelist(jobId, [], [])).to.be.revertedWith("not open");
     });
   });
 
   describe("job updates", () => {
     it("update job", async () => {
-      const [deployer] = await ethers.getSigners();
-      const { marketplace, user1, user2, fakeToken, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
-
-      const FakeToken = await ethers.getContractFactory(
-        "FakeToken"
-      );
-      const otherToken = await FakeToken.deploy("Test", "TST");
-      await otherToken.waitForDeployment();
-
-      await otherToken.connect(deployer).transfer(await user1.getAddress(), 1000);
-      await otherToken.connect(user1).approve(await marketplace.getAddress(), 2000);
+      const { marketplace, user1, user2, fakeToken, wallet2, wallet3, jobId } = await deployMarketplaceWithUsersAndJob();
 
       const title = "New title";
       const content = "Please create a marketplace in solidity";
       const contentBytes = ethers.getBytes(Buffer.from(content, "utf-8"));
       const contentHash = await marketplace.getIPFSHash(contentBytes);
-      const tokenAddress = await otherToken.getAddress();
       const amount = 200;
       const maxTime = 240;
-      const arbitrator = await wallet2.getAddress();
+      const arbitrator = await wallet3.getAddress();
       const whitelistWorkers = true;
 
-      expect(marketplace.connect(user2).updateJobPost(
+      await expect(marketplace.connect(user2).updateJobPost(
         jobId,
         title,
         contentBytes,
-        tokenAddress,
         amount,
         maxTime,
         arbitrator,
         whitelistWorkers,
       )).to.be.revertedWith("not creator");
 
-      expect(marketplace.connect(user1).updateJobPost(
+      await expect(marketplace.connect(user1).updateJobPost(
         jobId,
         "",
         contentBytes,
-        tokenAddress,
         amount,
         maxTime,
         arbitrator,
         whitelistWorkers,
       )).to.be.revertedWith("title too short or long");
 
-      expect(marketplace.connect(user1).updateJobPost(
+      await expect(marketplace.connect(user1).updateJobPost(
         jobId,
         "0".repeat(256),
         contentBytes,
-        tokenAddress,
         amount,
         maxTime,
         arbitrator,
         whitelistWorkers,
       )).to.be.revertedWith("title too short or long");
 
-      expect(marketplace.connect(user1).updateJobPost(
+      await expect(marketplace.connect(user1).updateJobPost(
         jobId,
         title,
-        "0".repeat(99999),
-        tokenAddress,
+        ethers.getBytes(Buffer.from("0".repeat(99999), "utf-8")),
         amount,
         maxTime,
         arbitrator,
         whitelistWorkers,
       )).to.be.revertedWith("Max content size is 65536 bytes");
 
-      expect(marketplace.connect(user1).updateJobPost(
+      await expect(marketplace.connect(user1).updateJobPost(
         jobId,
         title,
-        contentBytes,
-        ethers.ZeroAddress,
-        amount,
+        ethers.getBytes(Buffer.from("0".repeat(99999), "utf-8")),
+        0,
         maxTime,
         arbitrator,
         whitelistWorkers,
-      )).to.be.revertedWith("Token does not exist");
+      )).to.be.revertedWith("amount must be greater than 0");
+
 
       await expect(marketplace.connect(user1).updateJobPost(
         jobId,
         title,
         contentBytes,
-        tokenAddress,
         amount,
         2**32 + 1,
         arbitrator,
@@ -752,7 +1065,6 @@ describe("Marketplace Unit Tests", () => {
         jobId,
         title,
         contentBytes,
-        tokenAddress,
         amount,
         maxTime,
         arbitrator,
@@ -764,7 +1076,6 @@ describe("Marketplace Unit Tests", () => {
         const event: JobUpdateEvent = decodeJobUpdatedEvent(jobEventData.data_);
         expect(event.title).to.equal(title);
         expect(event.contentHash).to.equal(contentHash);
-        expect(event.token).to.equal(tokenAddress);
         expect(event.amount).to.equal(amount);
         expect(event.maxTime).to.equal(maxTime);
         expect(event.arbitrator).to.equal(arbitrator);
@@ -779,7 +1090,7 @@ describe("Marketplace Unit Tests", () => {
       expect(job.title).to.equal(title);
       expect(job.content_hash).to.equal(contentHash);
       expect(job.roles.creator).to.equal(await user1.getAddress());
-      expect(job.token).to.equal(await otherToken.getAddress());
+      expect(job.token).to.equal(await fakeToken.getAddress());
       expect(job.amount).to.equal(amount);
       expect(job.maxTime).to.equal(maxTime);
       expect(job.roles.arbitrator).to.equal(arbitrator);
@@ -792,12 +1103,216 @@ describe("Marketplace Unit Tests", () => {
         jobId,
         title,
         contentBytes,
-        tokenAddress,
         amount,
         maxTime,
         arbitrator,
         whitelistWorkers,
       )).to.be.revertedWith("not open");
+    });
+
+    it("update job arbitrator", async () => {
+      const { marketplace, user1, user2, arbitrator, fakeToken, wallet2, wallet3, jobId } = await deployMarketplaceWithUsersAndJob();
+
+      const title = "New title";
+      const content = "Please create a marketplace in solidity";
+      const contentBytes = ethers.getBytes(Buffer.from(content, "utf-8"));
+      const contentHash = await marketplace.getIPFSHash(contentBytes);
+      const amount = 200;
+      const maxTime = 240;
+      const whitelistWorkers = true;
+
+      await expect(marketplace.connect(user1).updateJobPost(
+        jobId,
+        title,
+        contentBytes,
+        amount,
+        maxTime,
+        ethers.ZeroAddress,
+        whitelistWorkers,
+      )).to.be.not.reverted;
+
+      await expect(marketplace.connect(user1).updateJobPost(
+        jobId,
+        title,
+        contentBytes,
+        amount,
+        maxTime,
+        wallet2.address,
+        whitelistWorkers,
+      )).to.be.revertedWith("arbitrator not registered");
+
+      registerPublicKey(marketplace, arbitrator, wallet3);
+
+      await expect(marketplace.connect(user1).updateJobPost(
+        jobId,
+        title,
+        contentBytes,
+        amount,
+        maxTime,
+        arbitrator.address,
+        whitelistWorkers,
+      )).to.be.not.revertedWith("arbitrator not registered");
+    });
+
+    it("update job amounts", async () => {
+      const { marketplace, user1, user2, fakeToken, wallet2, wallet3, jobId } = await deployMarketplaceWithUsersAndJob();
+
+      const title = "New title";
+      const content = "Please create a marketplace in solidity";
+      const contentBytes = ethers.getBytes(Buffer.from(content, "utf-8"));
+      const amount = 200;
+      const maxTime = 240;
+      const arbitrator = await wallet3.getAddress();
+      const whitelistWorkers = true;
+
+      // increase job amount
+      expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(900);
+      expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(100);
+      expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(0);
+
+      await expect(marketplace.connect(user1).updateJobPost(
+        jobId,
+        title,
+        contentBytes,
+        amount,
+        maxTime,
+        arbitrator,
+        whitelistWorkers,
+      )).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+        const event: JobUpdateEvent = decodeJobUpdatedEvent(jobEventData.data_);
+        expect(event.amount).to.equal(amount);
+
+        return true;
+      });
+
+      expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(800);
+      expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(200);
+      expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(0);
+
+      // lower job amount
+      await expect(marketplace.connect(user1).updateJobPost(
+        jobId,
+        title,
+        contentBytes,
+        100,
+        maxTime,
+        arbitrator,
+        whitelistWorkers,
+      )).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+        const event: JobUpdateEvent = decodeJobUpdatedEvent(jobEventData.data_);
+        expect(event.amount).to.equal(100);
+
+        return true;
+      });
+
+      expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(800);
+      expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(200);
+      expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(100);
+
+      // increase job amount again
+      await expect(marketplace.connect(user1).updateJobPost(
+        jobId,
+        title,
+        contentBytes,
+        300,
+        maxTime,
+        arbitrator,
+        whitelistWorkers,
+      )).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+        const event: JobUpdateEvent = decodeJobUpdatedEvent(jobEventData.data_);
+        expect(event.amount).to.equal(300);
+
+        return true;
+      });
+
+      // collateral will be updated
+      expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(700);
+      expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(300);
+      expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(0);
+
+      // reduce amount after timeout to use up the collateral
+      await user1.provider.send("evm_increaseTime", [`0x${(60 * 60 * 24).toString(16)}`]);
+      await user1.provider.send("evm_mine", []);
+
+      await expect(marketplace.connect(user1).updateJobPost(
+        jobId,
+        title,
+        contentBytes,
+        100,
+        maxTime,
+        arbitrator,
+        whitelistWorkers,
+      )).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+        const event: JobUpdateEvent = decodeJobUpdatedEvent(jobEventData.data_);
+        expect(event.amount).to.equal(100);
+
+        return true;
+      });
+
+      expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(900);
+      expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(100);
+      expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(0);
+    });
+
+    it("update job many times, get history", async () => {
+      const { marketplace, user1, user2, fakeToken, wallet2, wallet3, jobId } = await deployMarketplaceWithUsersAndJob();
+
+      const title = "New title";
+      const content = "Please create a marketplace in solidity";
+      const contentBytes = ethers.getBytes(Buffer.from(content, "utf-8"));
+      const contentHash = await marketplace.getIPFSHash(contentBytes);
+      const amount = 200;
+      const maxTime = 240;
+      const arbitrator = await wallet3.getAddress();
+      const whitelistWorkers = true;
+
+      await expect(marketplace.getEvents(jobId, 10000, 10)).to.be.revertedWith("index out of bounds");
+
+      {
+        const events = await marketplace.getEvents(jobId, 0, 100);
+        // job created, worker whitelisted
+        expect(events.length).to.equal(2);
+      }
+
+      const N = 30;
+
+      for (let i = 0; i < N - 2; i++) {
+        await expect(marketplace.connect(user1).updateJobPost(
+          jobId,
+          title,
+          contentBytes,
+          amount,
+          maxTime,
+          arbitrator,
+          whitelistWorkers,
+        )).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+          expect(jobEventData.address_).to.equal("0x");
+          expect(jobEventData.type_).to.equal(JobEventType.JOB_UPDATED);
+
+          return true;
+        });
+      }
+
+      const eventsLength = await marketplace.eventsLength(jobId);
+      expect(eventsLength).to.equal(N);
+
+      // get limited
+      {
+        const events = await marketplace.getEvents(jobId, N-10, 1);
+        expect(events.length).to.equal(1);
+      }
+
+      // capped
+      {
+        const events = await marketplace.getEvents(jobId, N-10, 1000);
+        expect(events.length).to.equal(10);
+      }
+
+      // get all
+      {
+        const events = await marketplace.getEvents(jobId, 0, 0);
+        expect(events.length).to.equal(N);
+      }
     });
   });
 
@@ -824,6 +1339,8 @@ describe("Marketplace Unit Tests", () => {
       const job = await marketplace.jobs(jobId);
 
       expect(job.state).to.equal(JobState.CLOSED);
+
+      await expect(marketplace.connect(user1).closeJob(jobId)).to.be.revertedWith("not open");
     });
 
     it("close job after timeout", async () => {
@@ -854,14 +1371,16 @@ describe("Marketplace Unit Tests", () => {
     });
   });
 
-  describe("withdraw collateral", () => {
-    it("withdraw collateral", async () => {
+  describe("reopen job", () => {
+    it("reopen job before timeout", async () => {
       const { marketplace, fakeToken, user1, user2, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
-      await expect(marketplace.connect(user1).withdrawCollateral(jobId, fakeToken)).to.be.revertedWith("not closed");
+      await expect(marketplace.connect(user2).reopenJob(jobId)).to.be.revertedWith("not creator");
+      await expect(marketplace.connect(user1).reopenJob(jobId)).to.be.revertedWith("not closed");
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(900);
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(100);
+      expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(0);
 
       await expect(marketplace.connect(user1).closeJob(jobId)).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.type_).to.equal(JobEventType.JOB_CLOSED);
@@ -873,6 +1392,80 @@ describe("Marketplace Unit Tests", () => {
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(900);
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(100);
+      expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(100);
+
+      await expect(marketplace.connect(user1).reopenJob(jobId)).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+        expect(jobEventData.type_).to.equal(JobEventType.JOB_REOPENED);
+        expect(jobEventData.address_).to.equal("0x");
+        expect(jobEventData.data_).to.equal("0x");
+
+        return true;
+      });
+
+      expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(900);
+      expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(100);
+      expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(0);
+    });
+
+    it("reopen job after timeout", async () => {
+      const { marketplace, fakeToken, user1, user2, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+
+      await expect(marketplace.connect(user1).reopenJob(jobId)).to.be.revertedWith("not closed");
+
+      expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(900);
+      expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(100);
+      expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(0);
+
+      await user1.provider.send("evm_increaseTime", [`0x${(60 * 60 * 24).toString(16)}`]);
+      await user1.provider.send("evm_mine", []);
+
+      await expect(marketplace.connect(user1).closeJob(jobId)).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+        expect(jobEventData.type_).to.equal(JobEventType.JOB_CLOSED);
+        expect(jobEventData.address_).to.equal("0x");
+        expect(jobEventData.data_).to.equal("0x");
+
+        return true;
+      });
+
+      expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(1000);
+      expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(0);
+      expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(0);
+
+      await expect(marketplace.connect(user1).reopenJob(jobId)).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+        expect(jobEventData.type_).to.equal(JobEventType.JOB_REOPENED);
+        expect(jobEventData.address_).to.equal("0x");
+        expect(jobEventData.data_).to.equal("0x");
+
+        return true;
+      });
+
+      expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(900);
+      expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(100);
+      expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(0);
+    });
+  });
+
+  describe("withdraw collateral", () => {
+    it("withdraw collateral", async () => {
+      const { marketplace, fakeToken, user1, user2, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+
+      await expect(marketplace.connect(user1).withdrawCollateral(jobId, fakeToken)).to.be.revertedWith("not closed");
+
+      expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(900);
+      expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(100);
+      expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(0);
+
+      await expect(marketplace.connect(user1).closeJob(jobId)).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+        expect(jobEventData.type_).to.equal(JobEventType.JOB_CLOSED);
+        expect(jobEventData.address_).to.equal("0x");
+        expect(jobEventData.data_).to.equal("0x");
+
+        return true;
+      });
+
+      expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(900);
+      expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(100);
+      expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(100);
 
       await expect(marketplace.connect(user1).withdrawCollateral(jobId, fakeToken)).to.be.revertedWith("24 hours have not passed yet");
 
@@ -888,73 +1481,925 @@ describe("Marketplace Unit Tests", () => {
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(1000);
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(0);
+      expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(0);
 
-      await expect(marketplace.connect(user1).withdrawCollateral(jobId, fakeToken)).to.be.revertedWith("No collateral to withdraw for this token");
+      await expect(marketplace.connect(user1).withdrawCollateral(jobId, fakeToken)).to.be.revertedWith("No collateral to withdraw");
     });
   });
 
-  describe("job application", () => {
-    it("post job and apply", async () => {
-      const { marketplace, fakeToken, user1, user2, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
-
-      const revision = await marketplace.eventsLength(jobId);
-      const signature = wallet1.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
-      const wrongSignature = wallet1.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId+1n])));
-      const invalidSignature = "0x" + "00".repeat(65);
+  describe("take job", () => {
+    it("sanity checks", async () => {
+      const randomWallet = ethers.Wallet.createRandom();
+      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
       await expect(
         marketplace.connect(user1).takeJob(jobId, "0x")
+      ).to.be.revertedWith("not whitelisted");
+
+      {
+        const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(true, false);
+
+        await expect(
+          marketplace.connect(user2).takeJob(jobId, "0x")
+        ).to.be.not.revertedWith("not whitelisted");
+      }
+
+      await expect(
+        marketplace.connect(randomWallet.connect(user1.provider)).takeJob(jobId, "0x")
+      ).to.be.revertedWith("not registered");
+
+      const revision = await marketplace.eventsLength(jobId);
+      const wrongSignature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId+1n])));
+      const invalidSignature = "0x" + "00".repeat(65);
+
+      await expect(
+        marketplace.connect(user2).takeJob(jobId, "0x")
       ).to.be.revertedWithCustomError({interface: ECDSA__factory.createInterface()}, "ECDSAInvalidSignatureLength").withArgs(0);
 
       await expect(
-        marketplace.connect(user1).takeJob(jobId, wrongSignature.serialized)
+        marketplace.connect(user2).takeJob(jobId, wrongSignature.serialized)
       ).to.be.revertedWith("invalid signature");
 
       await expect(
-        marketplace.connect(user1).takeJob(jobId, invalidSignature)
+        marketplace.connect(user2).takeJob(jobId, invalidSignature)
       ).to.be.revertedWithCustomError({interface: ECDSA__factory.createInterface()}, "ECDSAInvalidSignature");
 
 
       await expect(
-        marketplace.connect(user1).takeJob(jobId, signature.serialized)
-      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        expect(jobEventData.address_).to.equal(user1.address.toLowerCase());
+        marketplace.connect(user1).closeJob(jobId)
+      ).to.be.not.reverted;
 
-        expect(jobEventData.type_).to.equal(JobEventType.JOB_SIGNED); // JOB_EVENT_JOB_CREATED
+      await expect(
+        marketplace.connect(user2).takeJob(jobId, "0x")
+      ).to.be.revertedWith("not open");
+    });
+
+    it("take job", async () => {
+      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+
+      const revision = await marketplace.eventsLength(jobId);
+      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+
+      let escrowId: bigint = 0n;
+
+      expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(900);
+      expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(100);
+      expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(0);
+
+      await expect(
+        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+        expect(jobEventData.type_).to.equal(JobEventType.JOB_SIGNED);
+        expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
 
         const event: JobSignedEvent = decodeJobSignedEvent(jobEventData.data_);
         expect(event.revision).to.equal(revision);
         expect(event.signatire).to.equal(signature.serialized);
 
         return true;
-      });
+      }).and.to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+        expect(jobEventData.type_).to.equal(JobEventType.JOB_TAKEN);
+        expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
+
+        escrowId = toBigInt(jobEventData.data_);
+        expect(escrowId).to.not.equal(0n);
+
+        return true;
+      }).and.to.emit(unicrowGlobal, "Pay");
+
+      expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(900);
+      expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(0);
+      expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(100);
+
+      // fail to take taken job
+      await expect(
+        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+      ).to.be.revertedWith("not open");
 
       const job = await marketplace.jobs(jobId);
-      expect(job.roles.worker).to.equal(await user1.getAddress());
+      expect(job.roles.worker).to.equal(await user2.getAddress());
+      expect(job.state).to.equal(JobState.TAKEN);
+      expect(job.escrowId).to.equal(escrowId);
+    });
+
+    it("take job multiple", async () => {
+      const { marketplace, fakeToken, user1, user2, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(true);
+
+      const revision = await marketplace.eventsLength(jobId);
+      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+
+      expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(900);
+      expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(100);
+      expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(0);
+
+      await expect(
+        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+        expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
+
+        expect(jobEventData.type_).to.equal(JobEventType.JOB_SIGNED);
+
+        const event: JobSignedEvent = decodeJobSignedEvent(jobEventData.data_);
+        expect(event.revision).to.equal(revision);
+        expect(event.signatire).to.equal(signature.serialized);
+
+        return true;
+      }).and.not.to.emit(unicrowGlobal, "Pay");
+
+      expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(900);
+      expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(100);
+      expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(0);
+
+      const job = await marketplace.jobs(jobId);
+      expect(job.roles.worker).to.equal(ethers.ZeroAddress);
+      expect(job.state).to.equal(JobState.OPEN);
+      expect(job.escrowId).to.equal(0n);
     });
   });
 
-  // describe("messaging", () => {
-  //   it("send message prior to accepting job", async () => {
-  //     const { marketplace, fakeToken, user1, user2, jobId } = await deployMarketplaceWithUsersAndJob();
+  describe("pay start job", () => {
+    it("sanity checks", async () => {
+      const randomWallet = ethers.Wallet.createRandom();
+      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
-  //     const message = "I am interested in this job";
-  //     const messageBytes = ethers.getBytes(Buffer.from(message, "utf-8"));
-  //     await expect(
-  //       marketplace.connect(user2).postThreadMessage(jobId, messageBytes)
-  //     ).to.emit(marketplace, 'NotificationBroadcast').withArgs(await user1.getAddress(), 1);
+      await expect(
+        marketplace.connect(user2).payStartJob(jobId, randomWallet.address)
+      ).to.be.revertedWith("not creator");
 
-  //     const threadId = await marketplace.getThreadKey(jobId, await user2.getAddress());
-  //     const threadObject = await marketplace.threads(threadId, 0);
+      await expect(
+        marketplace.connect(user1).payStartJob(jobId, randomWallet.address)
+      ).to.be.revertedWith("not registered");
 
-  //     await expect(await marketplace.threadLength(jobId, await user2.getAddress())).to.equal(1);
+      await expect(
+        marketplace.connect(user1).closeJob(jobId)
+      ).to.be.not.reverted;
 
-  //     await expect(threadObject.t).to.equal(1); // worker message
-  //     await expect(threadObject.blob_idx).to.equal(1); // first blob
+      await expect(
+        marketplace.connect(user1).payStartJob(jobId, wallet2.address)
+      ).to.be.revertedWith("not open");
+    });
 
-  //     const blob = await marketplace.blobs(1);
-  //     const blobCid = await marketplace.generateIPFSCID(messageBytes);
-  //     await expect(blob).to.equal(blobCid);
-  //   });
-  // });
+    it("pay start job", async () => {
+      const { marketplace, fakeToken, user1, user2, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+
+      let escrowId: bigint = 0n;
+
+      await expect(
+        marketplace.connect(user1).payStartJob(jobId, wallet2.address)
+      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+        expect(jobEventData.type_).to.equal(JobEventType.JOB_PAID);
+        expect(jobEventData.address_).to.equal(wallet2.address.toLowerCase());
+
+        escrowId = toBigInt(jobEventData.data_);
+        expect(escrowId).to.not.equal(0n);
+
+        return true;
+      }).to.emit(unicrowGlobal, "Pay");
+
+      const job = await marketplace.jobs(jobId);
+      expect(job.roles.worker).to.equal(await user2.getAddress());
+      expect(job.state).to.equal(JobState.TAKEN);
+      expect(job.escrowId).to.equal(escrowId);
+
+      // can not reassign taken job
+      await expect(
+        marketplace.connect(user1).payStartJob(jobId, wallet1.address)
+      ).to.be.revertedWith("not open");
+    });
+  });
+
+  describe("post thread message", () => {
+    it("sanity checks", async () => {
+      const randomWallet = ethers.Wallet.createRandom();
+      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+
+      const message = "I am interested in this job";
+      const messageBytes = ethers.getBytes(Buffer.from(message, "utf-8"));
+
+      await expect(
+        marketplace.connect(arbitrator).postThreadMessage(jobId, messageBytes)
+      ).to.be.revertedWith("not whitelisted");
+
+      await expect(
+        marketplace.connect(user1).updateJobWhitelist(jobId, [arbitrator.address], [])
+      ).to.be.not.reverted;
+
+      await expect(
+        marketplace.connect(arbitrator).postThreadMessage(jobId, messageBytes)
+      ).to.be.not.reverted;
+
+      {
+        const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, false);
+        await expect(
+          marketplace.connect(arbitrator).postThreadMessage(jobId, messageBytes)
+        ).to.be.not.revertedWith("not whitelisted");
+      }
+
+      await expect(
+        marketplace.connect(user1).closeJob(jobId)
+      ).to.be.not.reverted;
+
+      await expect(
+        marketplace.connect(user1).postThreadMessage(jobId, messageBytes)
+      ).to.be.revertedWith("job closed");
+
+      await expect(
+        marketplace.connect(user1).reopenJob(jobId)
+      ).to.be.not.reverted;
+
+      const revision = await marketplace.eventsLength(jobId);
+      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+
+      await expect(
+        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+      ).to.be.not.reverted;
+
+      await expect(
+        marketplace.connect(user1).postThreadMessage(jobId, messageBytes)
+      ).to.be.not.revertedWith("taken/not worker");
+
+      await expect(
+        marketplace.connect(user2).postThreadMessage(jobId, messageBytes)
+      ).to.be.not.revertedWith("taken/not worker");
+
+      await expect(
+        marketplace.connect(arbitrator).postThreadMessage(jobId, messageBytes)
+      ).to.be.revertedWith("taken/not worker");
+    });
+
+    it("post thread message", async () => {
+      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+
+      const message = "I am interested in this job";
+      const messageBytes = ethers.getBytes(Buffer.from(message, "utf-8"));
+      const contentHash = await marketplace.getIPFSHash(messageBytes);
+
+      await expect(
+        marketplace.connect(user1).postThreadMessage(jobId, messageBytes)
+      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+        expect(jobEventData.type_).to.equal(JobEventType.OWNER_MESSAGE);
+        expect(jobEventData.address_).to.equal(user1.address.toLowerCase());
+        expect(jobEventData.data_).to.equal(contentHash);
+
+        return true;
+      });
+
+      await expect(
+        marketplace.connect(user2).postThreadMessage(jobId, messageBytes)
+      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+        expect(jobEventData.type_).to.equal(JobEventType.WORKER_MESSAGE);
+        expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
+        expect(jobEventData.data_).to.equal(contentHash);
+
+        return true;
+      });
+    });
+  });
+
+  describe("deliver result", () => {
+    it("sanity checks", async () => {
+      const randomWallet = ethers.Wallet.createRandom();
+      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+
+      const message = "Delivered";
+      const messageBytes = ethers.getBytes(Buffer.from(message, "utf-8"));
+
+      const revision = await marketplace.eventsLength(jobId);
+      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+
+      await expect(
+        marketplace.connect(user2).deliverResult(jobId, messageBytes)
+      ).to.be.revertedWith("not worker");
+
+      await expect(
+        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+      ).not.to.be.reverted;
+
+      await expect(
+        marketplace.connect(user1).deliverResult(jobId, messageBytes)
+      ).to.be.revertedWith("not worker");
+
+      await expect(
+        marketplace.connect(user2).deliverResult(jobId, messageBytes)
+      ).not.to.be.reverted;
+    });
+
+    it("deliver result", async () => {
+      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+
+      const message = "Delivered";
+      const messageBytes = ethers.getBytes(Buffer.from(message, "utf-8"));
+      const contentHash = await marketplace.getIPFSHash(messageBytes);
+
+      const revision = await marketplace.eventsLength(jobId);
+      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+
+      await expect(
+        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+      ).not.to.be.reverted;
+
+      await expect(
+        marketplace.connect(user2).deliverResult(jobId, messageBytes)
+      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+        expect(jobEventData.type_).to.equal(JobEventType.JOB_DELIVERED);
+        expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
+        expect(jobEventData.data_).to.equal(contentHash);
+
+        return true;
+      });
+    });
+  });
+
+  describe("approve result and review", () => {
+    it("sanity checks", async () => {
+      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+
+      const message = "Nice job!";
+      const messageBytes = ethers.getBytes(Buffer.from(message, "utf-8"));
+
+      const revision = await marketplace.eventsLength(jobId);
+      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+
+      await expect(
+        marketplace.connect(user1).approveResult(jobId, 5, message)
+      ).to.be.revertedWith("job in invalid state");
+
+      await expect(
+        marketplace.connect(user2).approveResult(jobId, 5, message)
+      ).to.be.revertedWith("not creator");
+
+      await expect(
+        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+      ).not.to.be.reverted;
+
+      await expect(
+        marketplace.connect(user2).deliverResult(jobId, messageBytes)
+      ).not.to.be.reverted;
+
+      await expect(
+        marketplace.connect(user1).approveResult(jobId, 6, message)
+      ).to.be.revertedWith("Invalid review score");
+
+      await expect(
+        marketplace.connect(user1).approveResult(jobId, 5, "a".repeat(150))
+      ).to.be.revertedWith("Review text too long");
+
+      await expect(
+        marketplace.connect(user1).approveResult(jobId, 5, message)
+      ).not.to.be.reverted;
+
+      await expect(
+        marketplace.connect(user1).reopenJob(jobId)
+      ).to.be.revertedWith("result already delivered");
+
+      await expect(
+        marketplace.connect(user2).review(jobId, 5, message)
+      ).to.be.revertedWith("not creator");
+
+      await expect(
+        marketplace.connect(user1).review(jobId, 0, message)
+      ).to.be.revertedWith("already rated");
+
+      // postponed review
+      {
+        const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+
+        await expect(
+          marketplace.connect(user1).review(jobId, 5, message)
+        ).to.be.revertedWith("Job doesn't exist or not closed");
+
+        await expect(
+          marketplace.connect(user2).takeJob(jobId, signature.serialized)
+        ).not.to.be.reverted;
+
+        await expect(
+          marketplace.connect(user2).deliverResult(jobId, messageBytes)
+        ).not.to.be.reverted;
+
+        await expect(
+          marketplace.connect(user1).approveResult(jobId, 0, "")
+        ).not.to.be.reverted;
+
+        await expect(
+          marketplace.connect(user2).review(jobId, 5, message)
+        ).to.be.revertedWith("not creator");
+
+        await expect(
+          marketplace.connect(user1).review(jobId, 0, message)
+        ).to.be.revertedWith("Invalid review score");
+
+        await expect(
+          marketplace.connect(user1).review(jobId, 6, message)
+        ).to.be.revertedWith("Invalid review score");
+
+        await expect(
+          marketplace.connect(user1).review(jobId, 5, "a".repeat(150))
+        ).to.be.revertedWith("Review text too long");
+
+        await expect(
+          marketplace.connect(user1).review(jobId, 5, message)
+        ).to.be.not.reverted;
+
+        await expect(
+          marketplace.connect(user1).review(jobId, 5, message)
+        ).to.be.revertedWith("already rated");
+      }
+    });
+
+    it("approve result", async () => {
+      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+
+      const message = "Delivered";
+      const messageBytes = ethers.getBytes(Buffer.from(message, "utf-8"));
+      const reviewText = "Nice Job!";
+
+      const revision = await marketplace.eventsLength(jobId);
+      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+
+      await expect(
+        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+      ).not.to.be.reverted;
+
+      await expect(
+        marketplace.connect(user2).deliverResult(jobId, messageBytes)
+      ).not.to.be.reverted;
+
+      expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(900);
+      expect(await fakeToken.balanceOf(await user2.getAddress())).to.equal(1000);
+      expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(0);
+      expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(100);
+
+      await expect(
+        marketplace.connect(user1).approveResult(jobId, 5, reviewText)
+      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+        expect(jobEventData.type_).to.equal(JobEventType.JOB_RATED);
+        expect(jobEventData.address_).to.equal("0x");
+
+        const event: JobRatedEvent = decodeJobRatedEvent(jobEventData.data_);
+        expect(event.rating).to.equal(5);
+        expect(event.review).to.equal(reviewText);
+
+        return true;
+      }).and.to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+        expect(jobEventData.type_).to.equal(JobEventType.JOB_CLOSED);
+        expect(jobEventData.address_).to.equal("0x");
+        expect(jobEventData.data_).to.equal("0x");
+
+        return true;
+      }).and.to.emit(unicrowGlobal, "Release");
+
+      expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(900);
+      expect(await fakeToken.balanceOf(await user2.getAddress())).to.equal(1078);
+      expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(0);
+      expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(0);
+      expect(await fakeToken.balanceOf(await marketplace.unicrowMarketplaceAddress())).to.equal(20);
+    });
+  });
+
+  describe("refund", () => {
+    it("sanity checks", async () => {
+      const randomWallet = ethers.Wallet.createRandom();
+      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+
+      const revision = await marketplace.eventsLength(jobId);
+      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+
+      await expect(
+        marketplace.connect(user1).refund(jobId)
+      ).to.be.revertedWith("not worker");
+
+      await expect(
+        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+      ).not.to.be.reverted;
+
+      await expect(
+        marketplace.connect(user2).refund(jobId)
+      ).to.not.be.reverted;
+
+      await expect(
+        marketplace.connect(user1).updateJobWhitelist(jobId, [user2.address], [])
+      ).to.be.not.reverted;
+
+      {
+        const revision = await marketplace.eventsLength(jobId);
+        const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+
+        await expect(
+          marketplace.connect(user2).takeJob(jobId, signature.serialized)
+        ).not.to.be.reverted;
+      }
+
+      await expect(
+        marketplace.connect(user2).deliverResult(jobId, "0x")
+      ).not.to.be.reverted;
+
+      // close by approving
+      await expect(
+        marketplace.connect(user1).approveResult(jobId, 0, "")
+      ).not.to.be.reverted;
+
+      await expect(
+        marketplace.connect(user2).refund(jobId)
+      ).to.be.revertedWith("job in invalid state");
+    });
+
+    it("refund", async () => {
+      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+
+      const revision = await marketplace.eventsLength(jobId);
+      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+
+      expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(900);
+      expect(await fakeToken.balanceOf(await user2.getAddress())).to.equal(1000);
+      expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(100);
+      expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(0);
+
+      await expect(
+        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+      ).not.to.be.reverted;
+
+      expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(900);
+      expect(await fakeToken.balanceOf(await user2.getAddress())).to.equal(1000);
+      expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(0);
+      expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(100);
+
+      expect(await marketplace
+        .connect(user1)
+        .whitelistWorkers(jobId, user2.address)).to.be.true;
+
+      await expect(
+        marketplace.connect(user2).refund(jobId)
+      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+        expect(jobEventData.type_).to.equal(JobEventType.JOB_REFUNDED);
+        expect(jobEventData.address_).to.equal("0x");
+        expect(jobEventData.data_).to.equal("0x");
+
+        return true;
+      })
+      .and.to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+        expect(jobEventData.type_).to.equal(JobEventType.JOB_REMOVE_WHITELISTED_WORKER);
+        expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
+        expect(jobEventData.data_).to.equal("0x");
+
+        return true;
+      });
+
+      expect(await marketplace
+        .connect(user1)
+        .whitelistWorkers(jobId, user2.address)).to.be.false;
+
+      expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(900);
+      expect(await fakeToken.balanceOf(await user2.getAddress())).to.equal(1000);
+      expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(100);
+      expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(0);
+    });
+  });
+
+  describe("dispute", () => {
+    it("sanity checks no arbitrator", async () => {
+      const randomWallet = ethers.Wallet.createRandom();
+      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, false);
+
+      const revision = await marketplace.eventsLength(jobId);
+      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+
+      const content = "Objection!";
+      const sessionKey = "0x" + "00".repeat(32);
+
+      await expect(
+        marketplace.connect(randomWallet.connect(user1.provider)).dispute(jobId, sessionKey, content)
+      ).to.be.revertedWith("not worker or creator");
+
+      await expect(
+        marketplace.connect(user1).dispute(jobId, sessionKey, content)
+      ).to.be.revertedWith("job in invalid state");
+
+      await expect(
+        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+      ).not.to.be.reverted;
+
+      await expect(
+        marketplace.connect(user2).dispute(jobId, sessionKey, content)
+      ).to.be.revertedWith("no arbitrator");
+    });
+
+    it("sanity checks with arbitrator", async () => {
+      const randomWallet = ethers.Wallet.createRandom();
+      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+
+      const revision = await marketplace.eventsLength(jobId);
+      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+
+      const content = "Objection!";
+      const sessionKey = "0x" + "00".repeat(32);
+
+      await expect(
+        marketplace.connect(randomWallet.connect(user1.provider)).dispute(jobId, sessionKey, content)
+      ).to.be.revertedWith("not worker or creator");
+
+      await expect(
+        marketplace.connect(user1).dispute(jobId, sessionKey, content)
+      ).to.be.revertedWith("job in invalid state");
+
+      await expect(
+        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+      ).not.to.be.reverted;
+
+      await expect(
+        marketplace.connect(user1).dispute(jobId, sessionKey, content)
+      ).to.be.not.reverted;
+
+      // can not dispute twice
+      await expect(
+        marketplace.connect(user2).dispute(jobId, sessionKey, content)
+      ).to.be.revertedWith("already disputed");
+
+      await expect(
+        marketplace.connect(user1).dispute(jobId, sessionKey, content)
+      ).to.be.revertedWith("already disputed");
+    });
+
+    it("sanity checks closed job", async () => {
+      const randomWallet = ethers.Wallet.createRandom();
+      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+
+      const content = "Objection!";
+      const sessionKey = "0x" + "00".repeat(32);
+
+      await expect(
+        marketplace.connect(user1).closeJob(jobId)
+      ).not.to.be.reverted;
+
+      await expect(
+        marketplace.connect(user1).dispute(jobId, sessionKey, content)
+      ).to.be.revertedWith("job in invalid state");
+    });
+
+    it("dispute creator", async () => {
+      const randomWallet = ethers.Wallet.createRandom();
+      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
+
+      const revision = await marketplace.eventsLength(jobId);
+      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+
+      const content = "Objection!";
+      const sessionKey = "0x" + "00".repeat(32);
+
+      await expect(
+        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+      ).not.to.be.reverted;
+
+      await expect(
+        marketplace.connect(user1).dispute(jobId, sessionKey, content)
+      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+        expect(jobEventData.type_).to.equal(JobEventType.JOB_DISPUTED);
+        expect(jobEventData.address_).to.equal(user1.address.toLowerCase());
+
+        const event: JobDisputedEvent = decodeJobDisputedEvent(jobEventData.data_);
+        expect(event.sessionKey).to.equal(sessionKey);
+        expect(event.content).to.equal(hexlify(utf8ToBytes(content)));
+
+        return true;
+      }).and.to.emit(unicrowDisputeGlobal, "Challenge");
+    });
+
+    it("dispute worker", async () => {
+      const randomWallet = ethers.Wallet.createRandom();
+      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
+
+      const revision = await marketplace.eventsLength(jobId);
+      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+
+      const content = "Objection!";
+      const sessionKey = "0x" + "00".repeat(32);
+
+      await expect(
+        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+      ).not.to.be.reverted;
+
+      await expect(
+        marketplace.connect(user2).dispute(jobId, sessionKey, content)
+      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+        expect(jobEventData.type_).to.equal(JobEventType.JOB_DISPUTED);
+        expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
+
+        const event: JobDisputedEvent = decodeJobDisputedEvent(jobEventData.data_);
+        expect(event.sessionKey).to.equal(sessionKey);
+        expect(event.content).to.equal(hexlify(utf8ToBytes(content)));
+
+        return true;
+      }).and.not.to.emit(unicrowDisputeGlobal, "Challenge");
+    });
+  });
+
+  describe("arbitrate", () => {
+    it("sanity checks", async () => {
+      const randomWallet = ethers.Wallet.createRandom();
+      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
+
+      const revision = await marketplace.eventsLength(jobId);
+      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+
+      const content = "Objection!";
+      const sessionKey = "0x" + "00".repeat(32);
+
+      const creatorShare = 0.8 * 100 * 100;
+      const workerShare = 0.2 * 100 * 100;
+      const reason = "Worker delivered mediocre results";
+
+      await expect(
+        marketplace.connect(user1).arbitrate(jobId, creatorShare, workerShare, reason)
+      ).to.be.revertedWith("not arbitrator");
+
+      await expect(
+        marketplace.connect(arbitrator).arbitrate(jobId, creatorShare, workerShare, "a".repeat(150))
+      ).to.be.revertedWith("reason too long");
+
+      await expect(
+        marketplace.connect(arbitrator).arbitrate(jobId, creatorShare, workerShare, reason)
+      ).to.be.revertedWith("job in invalid state");
+
+      await expect(
+        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+      ).not.to.be.reverted;
+
+      await expect(
+        marketplace.connect(arbitrator).arbitrate(jobId, creatorShare, workerShare, reason)
+      ).to.be.revertedWith("not disputed");
+
+      await expect(
+        marketplace.connect(user1).dispute(jobId, sessionKey, content)
+      ).to.be.not.reverted;
+
+      await expect(
+        marketplace.connect(arbitrator).arbitrate(jobId, creatorShare, workerShare, reason)
+      ).to.be.not.reverted;
+    });
+
+    it("arbitrate", async () => {
+      const randomWallet = ethers.Wallet.createRandom();
+      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
+
+      const revision = await marketplace.eventsLength(jobId);
+      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+
+      const content = "Objection!";
+      const sessionKey = "0x" + "00".repeat(32);
+
+      const creatorShare = 0.8 * 100 * 100;
+      const workerShare = 0.2 * 100 * 100;
+      const reason = "Worker delivered mediocre results";
+
+      expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(900);
+      expect(await fakeToken.balanceOf(await user2.getAddress())).to.equal(1000);
+      expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(100);
+      expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(0);
+
+      await expect(
+        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+      ).not.to.be.reverted;
+
+      expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(900);
+      expect(await fakeToken.balanceOf(await user2.getAddress())).to.equal(1000);
+      expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(0);
+      expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(100);
+
+      await expect(
+        marketplace.connect(user1).dispute(jobId, sessionKey, content)
+      ).to.be.not.reverted;
+
+      expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(900);
+      expect(await fakeToken.balanceOf(await user2.getAddress())).to.equal(1000);
+      expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(0);
+      expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(100);
+
+      await expect(
+        marketplace.connect(arbitrator).arbitrate(jobId, creatorShare, workerShare, reason)
+      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+        expect(jobEventData.type_).to.equal(JobEventType.JOB_ARBITRATED);
+        expect(jobEventData.address_).to.equal(arbitrator.address.toLowerCase());
+
+        const event: JobArbitratedEvent = decodeJobArbitratedEvent(jobEventData.data_);
+        expect(event.creatorShare).to.equal(creatorShare);
+        expect(event.workerShare).to.equal(workerShare);
+        expect(event.reason).to.equal(hexlify(utf8ToBytes(reason)));
+
+        return true;
+      }).and.to.emit(unicrowArbitratorGlobal, "Arbitrated");
+
+      expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(900);
+      expect(await fakeToken.balanceOf(await user2.getAddress())).to.equal(1015);
+      expect(await fakeToken.balanceOf(await arbitrator.getAddress())).to.equal(1);
+      expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(79);
+      expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(0);
+      expect(await fakeToken.balanceOf(await marketplace.unicrowMarketplaceAddress())).to.equal(4);
+
+      const job = await marketplace.jobs(jobId);
+
+      expect(job.state).to.equal(JobState.CLOSED);
+      expect(job.disputed).to.be.true;
+
+      const arbitratorData = await marketplace.arbitrators(arbitrator.address);
+      expect(arbitratorData.settledCount).to.equal(1);
+      expect(arbitratorData.refusedCount).to.equal(0);
+    });
+  });
+
+  describe("refuse arbitration", () => {
+    it("job closed", async () => {
+      const randomWallet = ethers.Wallet.createRandom();
+      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
+
+      await expect(
+        marketplace.connect(user1).closeJob(jobId)
+      ).to.not.be.reverted;
+
+      await expect(
+        marketplace.connect(arbitrator).refuseArbitration(jobId)
+      ).to.be.revertedWith("job in invalid state");
+    });
+
+    it("job not taken", async () => {
+      const randomWallet = ethers.Wallet.createRandom();
+      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
+
+      expect((await marketplace.jobs(jobId)).roles.arbitrator).to.equal(arbitrator.address);
+
+      {
+        const arbitratorData = await marketplace.arbitrators(arbitrator.address);
+        expect(arbitratorData.settledCount).to.equal(0);
+        expect(arbitratorData.refusedCount).to.equal(0);
+      }
+
+      await expect(
+        marketplace.connect(user1).refuseArbitration(jobId)
+      ).to.be.revertedWith("not arbitrator");
+
+      await expect(
+        marketplace.connect(arbitrator).refuseArbitration(jobId)
+      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+        expect(jobEventData.type_).to.equal(JobEventType.JOB_ARBITRATION_REFUSED);
+        expect(jobEventData.address_).to.equal("0x");
+        expect(jobEventData.data_).to.equal("0x");
+
+        return true;
+      });
+
+      expect((await marketplace.jobs(jobId)).roles.arbitrator).to.equal(ethers.ZeroAddress);
+
+      {
+        const arbitratorData = await marketplace.arbitrators(arbitrator.address);
+        expect(arbitratorData.settledCount).to.equal(0);
+        expect(arbitratorData.refusedCount).to.equal(1);
+      }
+    });
+
+    it("job taken", async () => {
+      const randomWallet = ethers.Wallet.createRandom();
+      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
+
+      expect((await marketplace.jobs(jobId)).roles.arbitrator).to.equal(arbitrator.address);
+
+      {
+        const arbitratorData = await marketplace.arbitrators(arbitrator.address);
+        expect(arbitratorData.settledCount).to.equal(0);
+        expect(arbitratorData.refusedCount).to.equal(0);
+      }
+
+      const revision = await marketplace.eventsLength(jobId);
+      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+
+      await expect(
+        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+      ).to.not.be.reverted;
+
+      await expect(
+        marketplace.connect(user1).refuseArbitration(jobId)
+      ).to.be.revertedWith("not arbitrator");
+
+      await expect(
+        marketplace.connect(arbitrator).refuseArbitration(jobId)
+      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+        expect(jobEventData.type_).to.equal(JobEventType.JOB_ARBITRATION_REFUSED);
+        expect(jobEventData.address_).to.equal("0x");
+        expect(jobEventData.data_).to.equal("0x");
+
+        return true;
+      }).and.to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+        expect(jobEventData.type_).to.equal(JobEventType.JOB_REFUNDED);
+        expect(jobEventData.address_).to.equal("0x");
+        expect(jobEventData.data_).to.equal("0x");
+
+        return true;
+      });
+
+      expect((await marketplace.jobs(jobId)).roles.arbitrator).to.equal(ethers.ZeroAddress);
+
+      {
+        const arbitratorData = await marketplace.arbitrators(arbitrator.address);
+        expect(arbitratorData.settledCount).to.equal(0);
+        expect(arbitratorData.refusedCount).to.equal(1);
+      }
+    });
+  });
 });
