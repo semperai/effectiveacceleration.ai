@@ -386,7 +386,6 @@ describe("Marketplace Unit Tests", () => {
         100,
         120,
         "digital",
-        arbitratorRequired,
         arbitratorRequired ? arbitrator.address : ethers.ZeroAddress,
         whitelisted ? [user2.address] : []
       )).wait();
@@ -520,7 +519,6 @@ describe("Marketplace Unit Tests", () => {
           100,
           120,
           "digital",
-          false,
           ethers.ZeroAddress,
           []
         )
@@ -537,7 +535,6 @@ describe("Marketplace Unit Tests", () => {
         expect(event.amount).to.equal(100);
         expect(event.maxTime).to.equal(120);
         expect(event.deliveryMethod).to.equal("digital");
-        expect(event.arbitratorRequired).to.equal(false);
         expect(event.arbitrator).to.equal(ethers.ZeroAddress);
 
         return true;
@@ -546,16 +543,16 @@ describe("Marketplace Unit Tests", () => {
       const job = await marketplace.jobs(0);
 
       expect(job.state).to.equal(JobState.Open);
-      expect(job.whitelist_workers).to.equal(false);
+      expect(job.whitelistWorkers).to.equal(false);
       expect(job.roles.creator).to.equal(await user1.getAddress());
       expect(job.title).to.equal(title);
-      expect(job.content_hash).to.equal("0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5");
+      expect(job.contentHash).to.equal("0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5");
       expect(job.token).to.equal(await fakeToken.getAddress());
       expect(job.amount).to.equal(100);
       expect(job.maxTime).to.equal(120);
       expect(job.roles.worker).to.equal(ethers.ZeroAddress);
 
-      expect(contentHash).to.equal(job.content_hash);
+      expect(contentHash).to.equal(job.contentHash);
     });
 
     it("post job with whitelist", async () => {
@@ -581,7 +578,6 @@ describe("Marketplace Unit Tests", () => {
           100,
           120,
           "digital",
-          false,
           ethers.ZeroAddress,
           [user2.address]
         )
@@ -603,17 +599,17 @@ describe("Marketplace Unit Tests", () => {
       const job = await marketplace.jobs(jobId);
 
       expect(job.state).to.equal(JobState.Open);
-      expect(job.whitelist_workers).to.equal(true);
+      expect(job.whitelistWorkers).to.equal(true);
       expect(job.roles.creator).to.equal(await user1.getAddress());
       expect(job.title).to.equal(title);
-      expect(job.content_hash).to.equal("0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5");
+      expect(job.contentHash).to.equal("0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5");
       expect(job.token).to.equal(await fakeToken.getAddress());
       expect(job.amount).to.equal(100);
       expect(job.maxTime).to.equal(120);
       expect(job.roles.worker).to.equal(ethers.ZeroAddress);
 
       const contentHash = await marketplace.getIPFSHash(contentBytes);
-      expect(contentHash).to.equal(job.content_hash);
+      expect(contentHash).to.equal(job.contentHash);
 
       expect(await marketplace
         .connect(user1)
@@ -655,7 +651,6 @@ describe("Marketplace Unit Tests", () => {
           100,
           120,
           "digital",
-          false,
           ethers.ZeroAddress,
           [user2.address]
         )
@@ -684,7 +679,6 @@ describe("Marketplace Unit Tests", () => {
           1500,
           120,
           "digital",
-          false,
           ethers.ZeroAddress,
           [user2.address]
         )).to.be.revertedWithCustomError({interface: IERC20Errors__factory.createInterface()}, "ERC20InsufficientBalance");
@@ -700,7 +694,6 @@ describe("Marketplace Unit Tests", () => {
           2500,
           120,
           "digital",
-          false,
           ethers.ZeroAddress,
           [user2.address]
         )).to.be.revertedWithCustomError({interface: IERC20Errors__factory.createInterface()}, "ERC20InsufficientAllowance");
@@ -716,7 +709,6 @@ describe("Marketplace Unit Tests", () => {
           0,
           120,
           "digital",
-          false,
           ethers.ZeroAddress,
           [user2.address]
         )).to.be.revertedWith("amount must be greater than 0");
@@ -743,7 +735,6 @@ describe("Marketplace Unit Tests", () => {
           1500,
           2**32 + 1,
           "digital",
-          false,
           ethers.ZeroAddress,
           [user2.address]
         )).rejectedWith("value out-of-bounds");
@@ -769,7 +760,6 @@ describe("Marketplace Unit Tests", () => {
           100,
           120,
           "digital",
-          false,
           ethers.ZeroAddress,
           [user2.address]
         )).to.be.revertedWith("title too short or long");
@@ -785,7 +775,6 @@ describe("Marketplace Unit Tests", () => {
           100,
           120,
           "digital",
-          false,
           ethers.ZeroAddress,
           [user2.address]
         )).to.be.revertedWith("title too short or long");
@@ -813,7 +802,6 @@ describe("Marketplace Unit Tests", () => {
           100,
           120,
           "",
-          false,
           ethers.ZeroAddress,
           [user2.address]
         )).to.be.revertedWith("delivery method too short or long");
@@ -829,7 +817,6 @@ describe("Marketplace Unit Tests", () => {
           100,
           120,
           "a".repeat(256),
-          false,
           ethers.ZeroAddress,
           [user2.address]
         )).to.be.revertedWith("delivery method too short or long");
@@ -855,7 +842,6 @@ describe("Marketplace Unit Tests", () => {
           100,
           120,
           "digital",
-          false,
           ethers.ZeroAddress,
           [user2.address]
         )).to.be.revertedWith("not registered");
@@ -882,7 +868,6 @@ describe("Marketplace Unit Tests", () => {
           100,
           120,
           "digital",
-          false,
           ethers.ZeroAddress,
           [user2.address]
         )).to.be.revertedWith("At least one tag is required");
@@ -898,7 +883,6 @@ describe("Marketplace Unit Tests", () => {
           100,
           120,
           "digital",
-          false,
           ethers.ZeroAddress,
           [user2.address]
         )).to.be.revertedWith("Only one MECE tag is allowed");
@@ -914,7 +898,6 @@ describe("Marketplace Unit Tests", () => {
           100,
           120,
           "digital",
-          false,
           ethers.ZeroAddress,
           [user2.address]
         )).to.be.not.reverted;
@@ -944,7 +927,6 @@ describe("Marketplace Unit Tests", () => {
           100,
           120,
           "digital",
-          true,
           wallet2.address,
           [user2.address]
         )
@@ -963,7 +945,6 @@ describe("Marketplace Unit Tests", () => {
           100,
           120,
           "digital",
-          true,
           arbitrator.address,
           [user2.address]
         )
@@ -1117,13 +1098,13 @@ describe("Marketplace Unit Tests", () => {
 
       expect(job.state).to.equal(JobState.Open);
       expect(job.title).to.equal(title);
-      expect(job.content_hash).to.equal(contentHash);
+      expect(job.contentHash).to.equal(contentHash);
       expect(job.roles.creator).to.equal(await user1.getAddress());
       expect(job.token).to.equal(await fakeToken.getAddress());
       expect(job.amount).to.equal(amount);
       expect(job.maxTime).to.equal(maxTime);
       expect(job.roles.arbitrator).to.equal(arbitrator);
-      expect(job.whitelist_workers).to.equal(whitelistWorkers);
+      expect(job.whitelistWorkers).to.equal(whitelistWorkers);
 
       await expect(marketplace.connect(user2).closeJob(jobId)).to.be.revertedWith("not creator");
       await marketplace.connect(user1).closeJob(jobId);

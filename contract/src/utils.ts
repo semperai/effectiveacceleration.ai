@@ -37,7 +37,6 @@ export type JobPostEvent = {
   amount: bigint;
   maxTime: number;
   deliveryMethod: string;
-  arbitratorRequired: boolean;
   arbitrator: string;
   allowedWorkers: string[];
 };
@@ -73,7 +72,7 @@ export type JobArbitratedEvent = {
 }
 
 export const decodeJobPostEvent = (rawData: BytesLike): JobPostEvent => {
-  const decoded = AbiCoder.defaultAbiCoder().decode(["string", "bytes32", "bool", "string[]", "address", "uint256", "uint32", "string", "bool", "address", "address[]"], rawData);
+  const decoded = AbiCoder.defaultAbiCoder().decode(["string", "bytes32", "bool", "string[]", "address", "uint256", "uint32", "string", "address", "address[]"], rawData);
   return {
     title: decoded[0],
     contentHash: decoded[1],
@@ -83,9 +82,8 @@ export const decodeJobPostEvent = (rawData: BytesLike): JobPostEvent => {
     amount: decoded[5],
     maxTime: Number(decoded[6]),
     deliveryMethod: decoded[7],
-    arbitratorRequired: decoded[8],
-    arbitrator: decoded[9],
-    allowedWorkers: decoded[10].toArray(),
+    arbitrator: decoded[8],
+    allowedWorkers: decoded[9].toArray(),
   };
 };
 
