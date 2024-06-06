@@ -318,7 +318,7 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, arbitrator } = await loadFixture(deployContractsFixture);
       const { wallet3 } = await loadFixture(getWalletsFixture);
 
-      await expect(marketplace.connect(arbitrator).registerPublicKey("0x00")).to.be.revertedWith("invalid pubkey length, must be compressed, 33 bytes");
+      await expect(marketplace.connect(arbitrator).registerArbitrator("0x00", "Test", 100)).to.be.revertedWith("invalid pubkey length, must be compressed, 33 bytes");
 
       await expect(marketplace
         .connect(arbitrator)
