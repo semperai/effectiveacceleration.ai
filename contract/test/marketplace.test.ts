@@ -6,7 +6,7 @@ import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 import { expect } from "chai";
 import { JobEventDataStructOutput, MarketplaceV1 as Marketplace } from "../typechain-types/contracts/MarketplaceV1";
 import { FakeToken } from "../typechain-types/contracts/unicrow/FakeToken";
-import { Signer, HDNodeWallet, EventLog, getCreateAddress, toBigInt, hexlify, ZeroAddress }  from "ethers";
+import { Signer, HDNodeWallet, EventLog, getCreateAddress, toBigInt, hexlify, ZeroAddress, ZeroHash }  from "ethers";
 import { Unicrow, UnicrowDispute, UnicrowArbitrator, UnicrowClaim, IERC20Errors__factory, ECDSA__factory, OwnableUpgradeable__factory, Initializable__factory } from "../typechain-types";
 import { HardhatNetworkHDAccountsConfig } from "hardhat/types";
 import { decodeJobArbitratedEvent, decodeJobDisputedEvent, decodeJobPostEvent, decodeJobRatedEvent, decodeJobSignedEvent, decodeJobUpdatedEvent, JobArbitratedEvent, JobDisputedEvent, JobEventType, JobPostEvent, JobRatedEvent, JobSignedEvent, JobState, JobUpdateEvent } from "../src/utils";
@@ -1425,6 +1425,8 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
+      expect((await marketplace.connect(user1).jobs(jobId)).resultHash).to.be.equal(ZeroHash);
+
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(900);
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(100);
       expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(0);
@@ -1830,6 +1832,8 @@ describe("Marketplace Unit Tests", () => {
 
         return true;
       });
+
+      expect((await marketplace.connect(user1).jobs(jobId)).resultHash).to.be.equal(contentHash);
     });
   });
 
@@ -1870,10 +1874,6 @@ describe("Marketplace Unit Tests", () => {
       await expect(
         marketplace.connect(user1).approveResult(jobId, 5, message)
       ).not.to.be.reverted;
-
-      await expect(
-        marketplace.connect(user1).reopenJob(jobId)
-      ).to.be.revertedWith("result already delivered");
 
       await expect(
         marketplace.connect(user2).review(jobId, 5, message)
@@ -1976,6 +1976,8 @@ describe("Marketplace Unit Tests", () => {
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(0);
       expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(0);
       expect(await fakeToken.balanceOf(await marketplace.unicrowMarketplaceAddress())).to.equal(20);
+
+      expect((await marketplace.connect(user1).jobs(jobId)).state).to.be.equal(JobState.CLOSED);
     });
   });
 
@@ -2050,6 +2052,14 @@ describe("Marketplace Unit Tests", () => {
         .connect(user1)
         .whitelistWorkers(jobId, user2.address)).to.be.true;
 
+
+      const message = "Delivered";
+      const messageBytes = ethers.getBytes(Buffer.from(message, "utf-8"));
+
+      await expect(
+        marketplace.connect(user2).deliverResult(jobId, messageBytes)
+      ).not.to.be.reverted;
+
       await expect(
         marketplace.connect(user2).refund(jobId)
       ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
@@ -2067,6 +2077,9 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
+      expect((await marketplace.connect(user1).jobs(jobId)).state).to.be.equal(JobState.OPEN);
+      expect((await marketplace.connect(user1).jobs(jobId)).resultHash).to.not.be.equal(ZeroHash);
+
       expect(await marketplace
         .connect(user1)
         .whitelistWorkers(jobId, user2.address)).to.be.false;
@@ -2075,6 +2088,12 @@ describe("Marketplace Unit Tests", () => {
       expect(await fakeToken.balanceOf(await user2.getAddress())).to.equal(1000);
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(100);
       expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(0);
+
+      expect(await marketplace.connect(user1).closeJob(jobId)).to.not.be.reverted;
+
+      expect(await marketplace.connect(user1).reopenJob(jobId)).to.not.be.reverted;
+
+      expect((await marketplace.connect(user1).jobs(jobId)).resultHash).to.be.equal(ZeroHash);
     });
   });
 

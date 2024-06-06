@@ -594,7 +594,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         }
     }
 
-
     /**
      * @notice Close the job that hasn't been started. 
      * @notice If it's been more than 24 hrs since the job was posted, the collateral will be automatically returned.
@@ -650,7 +649,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         JobPost storage job = jobs[job_id_];
 
         require(job.state == JOB_STATE_CLOSED, "not closed");
-        require(job.resultHash == 0, "result already delivered");
+
+        job.resultHash = 0;
 
         if (job.collateralOwed < job.amount) {
             SafeERC20.safeTransferFrom(IERC20(job.token), msg.sender, address(this), job.amount - job.collateralOwed);
