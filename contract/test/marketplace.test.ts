@@ -906,7 +906,7 @@ describe("Marketplace Unit Tests", () => {
           title,
           contentBytes,
           false,
-          ["test"],
+          ["DV", "test"],
           await fakeToken.getAddress(),
           100,
           120,
@@ -914,7 +914,7 @@ describe("Marketplace Unit Tests", () => {
           false,
           ethers.ZeroAddress,
           [user2.address]
-        )).to.be.revertedWith("Unknown MECE tag");
+        )).to.be.not.reverted;
     });
 
     it("post job with unregistered arbitrator", async () => {

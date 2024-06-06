@@ -430,10 +430,10 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
                     revert("Only one MECE tag is allowed");
                 }
                 meceShortForm = tags_[i]; // Save the short form
-            } else {
-                revert("Unknown MECE tag");
             }
         }
+
+        require(meceCount == 1, "Exactly one MECE tag is required");
 
         if (arbitrator_ != address(0)) {
             require(arbitrators[arbitrator_].publicKey.length > 0, "arbitrator not registered");
