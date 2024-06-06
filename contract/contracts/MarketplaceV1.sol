@@ -208,6 +208,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
     event PublicKeyRegistered(address indexed addr, bytes pubkey);
 
+    event ArbitratorRegistered(address indexed addr, bytes pubkey, string name, uint16 fee);
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         //NOTE: do not put any state initialization here
@@ -309,7 +311,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     // this is used to allow others to message you securely
     // we do not do verification here because we want to allow contracts to register
     function registerPublicKey(bytes calldata pubkey) public {
-        // we can allow users to update their public key
+        // presently we do not allow to update the public keys otherwise the decryption of old messages will become impossible
         require(publicKeys[msg.sender].length == 0, "already registered");
         require(pubkey.length == 33, "invalid pubkey length, must be compressed, 33 bytes");
         publicKeys[msg.sender] = pubkey;
@@ -317,6 +319,9 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     }
 
     function registerArbitrator(bytes calldata pubkey, string calldata name, uint16 fee) public {
+        // presently we do not allow to update the public keys otherwise the decryption of old messages will become impossible
+        require(arbitrators[msg.sender].publicKey.length == 0, "already registered");
+        require(pubkey.length == 33, "invalid pubkey length, must be compressed, 33 bytes");
         arbitrators[msg.sender] = JobArbitrator(
             pubkey,
             name,
@@ -324,6 +329,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             0,
             0
         );
+
+        emit ArbitratorRegistered(msg.sender, pubkey, name, fee);
     }
 
     function eventsLength(uint256 job_id_) public view returns (uint256) {

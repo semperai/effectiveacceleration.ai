@@ -295,7 +295,7 @@ describe("Marketplace Unit Tests", () => {
     });
   });
 
-  describe("pubkey register", () => {
+  describe("register pubkey", () => {
     it("register pubkey", async () => {
       const { marketplace, user1 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
@@ -310,6 +310,29 @@ describe("Marketplace Unit Tests", () => {
       expect(await marketplace.publicKeys(await user1.getAddress())).to.equal(wallet1.publicKey);
 
       await expect(marketplace.connect(user1).registerPublicKey(wallet1.publicKey)).to.be.revertedWith("already registered");
+    });
+  });
+
+  describe("register arbitrator", () => {
+    it("register arbitrator", async () => {
+      const { marketplace, arbitrator } = await loadFixture(deployContractsFixture);
+      const { wallet3 } = await loadFixture(getWalletsFixture);
+
+      await expect(marketplace.connect(arbitrator).registerPublicKey("0x00")).to.be.revertedWith("invalid pubkey length, must be compressed, 33 bytes");
+
+      await expect(marketplace
+        .connect(arbitrator)
+        .registerArbitrator(wallet3.publicKey, "Test", 100)
+      ).to.emit(marketplace, 'ArbitratorRegistered').withArgs(await arbitrator.getAddress(), wallet3.publicKey, "Test", 100);
+
+      const arbitratorData = await marketplace.arbitrators(arbitrator.address);
+      expect(arbitratorData.publicKey).to.equal(wallet3.publicKey);
+      expect(arbitratorData.name).to.equal("Test");
+      expect(arbitratorData.fee).to.equal(100);
+      expect(arbitratorData.settledCount).to.equal(0);
+      expect(arbitratorData.refusedCount).to.equal(0);
+
+      await expect(marketplace.connect(arbitrator).registerArbitrator(wallet3.publicKey, "Test", 100)).to.be.revertedWith("already registered");
     });
   });
 
