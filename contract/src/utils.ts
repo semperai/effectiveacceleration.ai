@@ -1,9 +1,9 @@
 import { BytesLike, getBytes, AbiCoder, hexlify, toUtf8String } from "ethers";
 
 export enum JobState {
-  OPEN = 0,
-  TAKEN = 1,
-  CLOSED = 2,
+  Open = 0,
+  Taken = 1,
+  Closed = 2,
 }
 
 export enum JobEventType {
