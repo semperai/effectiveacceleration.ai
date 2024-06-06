@@ -108,6 +108,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     mapping(address => bytes) public publicKeys;
 
     mapping(address => JobArbitrator) public arbitrators;
+    address[] arbitratorAddresses;
 
     JobPost[] public jobs;
 
@@ -299,7 +300,24 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             0
         );
 
+        arbitratorAddresses.push(msg.sender);
+
         emit ArbitratorRegistered(msg.sender, pubkey, name, fee);
+    }
+
+    function getArbitrators(uint256 index_, uint256 limit_) public view returns (JobArbitrator[] memory) {
+        require(index_ < arbitratorAddresses.length, "index out of bounds");
+
+        uint length = arbitratorAddresses.length - index_;
+        if (limit_ == 0) {
+            limit_ = length;
+        }
+        length = length > limit_ ? limit_ : length;
+        JobArbitrator[] memory result = new JobArbitrator[](length);
+        for (uint i = 0; i < length; i++) {
+            result[i] = arbitrators[arbitratorAddresses[i + index_]];
+        }
+        return result;
     }
 
     function eventsLength(uint256 jobId_) public view returns (uint256) {
@@ -315,12 +333,12 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             limit_ = length;
         }
         length = length > limit_ ? limit_ : length;
-        JobEventData[] memory jobEventsToReturn = new JobEventData[](length);
+        JobEventData[] memory result = new JobEventData[](length);
         for (uint i = 0; i < length; i++) {
-            jobEventsToReturn[i] = jobEvents[jobId_][i + index_];
+            result[i] = jobEvents[jobId_][i + index_];
         }
 
-        return jobEventsToReturn;
+        return result;
     }
 
     function publishJobEvent(uint256 jobId_, JobEventData memory event_) internal {

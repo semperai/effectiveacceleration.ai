@@ -6,7 +6,7 @@ import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 import { expect } from "chai";
 import { JobEventDataStructOutput, MarketplaceV1 as Marketplace } from "../typechain-types/contracts/MarketplaceV1";
 import { FakeToken } from "../typechain-types/contracts/unicrow/FakeToken";
-import { Signer, HDNodeWallet, EventLog, getCreateAddress, toBigInt, hexlify, ZeroAddress, ZeroHash }  from "ethers";
+import { Signer, HDNodeWallet, EventLog, getCreateAddress, toBigInt, hexlify, ZeroAddress, ZeroHash, Result }  from "ethers";
 import { Unicrow, UnicrowDispute, UnicrowArbitrator, UnicrowClaim, IERC20Errors__factory, ECDSA__factory, OwnableUpgradeable__factory, Initializable__factory } from "../typechain-types";
 import { HardhatNetworkHDAccountsConfig } from "hardhat/types";
 import { decodeJobArbitratedEvent, decodeJobDisputedEvent, decodeJobPostEvent, decodeJobRatedEvent, decodeJobSignedEvent, decodeJobUpdatedEvent, JobArbitratedEvent, JobDisputedEvent, JobEventType, JobPostEvent, JobRatedEvent, JobSignedEvent, JobState, JobUpdateEvent } from "../src/utils";
@@ -315,8 +315,8 @@ describe("Marketplace Unit Tests", () => {
 
   describe("register arbitrator", () => {
     it("register arbitrator", async () => {
-      const { marketplace, arbitrator } = await loadFixture(deployContractsFixture);
-      const { wallet3 } = await loadFixture(getWalletsFixture);
+      const { marketplace, arbitrator, user2 } = await loadFixture(deployContractsFixture);
+      const { wallet2, wallet3 } = await loadFixture(getWalletsFixture);
 
       await expect(marketplace.connect(arbitrator).registerArbitrator("0x00", "Test", 100)).to.be.revertedWith("invalid pubkey length, must be compressed, 33 bytes");
 
@@ -333,6 +333,37 @@ describe("Marketplace Unit Tests", () => {
       expect(arbitratorData.refusedCount).to.equal(0);
 
       await expect(marketplace.connect(arbitrator).registerArbitrator(wallet3.publicKey, "Test", 100)).to.be.revertedWith("already registered");
+
+      expect((await marketplace.connect(arbitrator).getArbitrators(0, 0)).map((val: any) => val.toObject())).to.be.deep.equal([{
+        publicKey: wallet3.publicKey,
+        name: "Test",
+        fee: 100,
+        settledCount: 0,
+        refusedCount: 0,
+      }]);
+
+      expect((await marketplace.connect(arbitrator).getArbitrators(0, 5)).map((val: any) => val.toObject())).to.be.deep.equal([{
+        publicKey: wallet3.publicKey,
+        name: "Test",
+        fee: 100,
+        settledCount: 0,
+        refusedCount: 0,
+      }]);
+
+      await expect(marketplace.connect(arbitrator).getArbitrators(5, 5)).to.be.revertedWith("index out of bounds");
+
+      await expect(marketplace
+        .connect(user2)
+        .registerArbitrator(wallet2.publicKey, "Test", 100)
+      ).to.emit(marketplace, 'ArbitratorRegistered').withArgs(await user2.getAddress(), wallet2.publicKey, "Test", 100);
+
+      expect((await marketplace.connect(arbitrator).getArbitrators(0, 1)).map((val: any) => val.toObject())).to.be.deep.equal([{
+        publicKey: wallet3.publicKey,
+        name: "Test",
+        fee: 100,
+        settledCount: 0,
+        refusedCount: 0,
+      }]);
     });
   });
 
