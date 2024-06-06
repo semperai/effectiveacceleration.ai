@@ -525,7 +525,7 @@ describe("Marketplace Unit Tests", () => {
           []
         )
       ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        expect(jobEventData.type_).to.equal(JobEventType.JOB_CREATED);
+        expect(jobEventData.type_).to.equal(JobEventType.Created);
 
         const event: JobPostEvent = decodeJobPostEvent(jobEventData.data_);
         expect(event.title).to.equal(title);
@@ -585,13 +585,13 @@ describe("Marketplace Unit Tests", () => {
           [user2.address]
         )
       ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        expect(jobEventData.type_).to.equal(JobEventType.JOB_CREATED);
+        expect(jobEventData.type_).to.equal(JobEventType.Created);
 
         return true;
       })
       .and
       .to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        expect(jobEventData.type_).to.equal(JobEventType.JOB_ADD_WHITELISTED_WORKER);
+        expect(jobEventData.type_).to.equal(JobEventType.WhitelistedWorkerAdded);
         expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
 
         return true;
@@ -979,7 +979,7 @@ describe("Marketplace Unit Tests", () => {
         .whitelistWorkers(jobId, user1.address)).to.be.false;
 
       await expect(marketplace.connect(user1).updateJobWhitelist(jobId, [await user1.getAddress()], [])).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        expect(jobEventData.type_).to.equal(JobEventType.JOB_ADD_WHITELISTED_WORKER);
+        expect(jobEventData.type_).to.equal(JobEventType.WhitelistedWorkerAdded);
         expect(jobEventData.address_).to.equal(user1.address.toLowerCase());
         expect(jobEventData.data_).to.equal("0x");
 
@@ -991,7 +991,7 @@ describe("Marketplace Unit Tests", () => {
         .whitelistWorkers(jobId, user1.address)).to.be.true;
 
       await expect(marketplace.connect(user1).updateJobWhitelist(jobId, [], [await user1.getAddress()])).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        expect(jobEventData.type_).to.equal(JobEventType.JOB_REMOVE_WHITELISTED_WORKER);
+        expect(jobEventData.type_).to.equal(JobEventType.WhitelistedWorkerRemoved);
         expect(jobEventData.address_).to.equal(user1.address.toLowerCase());
         expect(jobEventData.data_).to.equal("0x");
 
@@ -1094,7 +1094,7 @@ describe("Marketplace Unit Tests", () => {
         whitelistWorkers,
       )).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.address_).to.equal("0x");
-        expect(jobEventData.type_).to.equal(JobEventType.JOB_UPDATED);
+        expect(jobEventData.type_).to.equal(JobEventType.Updated);
 
         const event: JobUpdateEvent = decodeJobUpdatedEvent(jobEventData.data_);
         expect(event.title).to.equal(title);
@@ -1310,7 +1310,7 @@ describe("Marketplace Unit Tests", () => {
           whitelistWorkers,
         )).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
           expect(jobEventData.address_).to.equal("0x");
-          expect(jobEventData.type_).to.equal(JobEventType.JOB_UPDATED);
+          expect(jobEventData.type_).to.equal(JobEventType.Updated);
 
           return true;
         });
@@ -1349,7 +1349,7 @@ describe("Marketplace Unit Tests", () => {
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(100);
 
       await expect(marketplace.connect(user1).closeJob(jobId)).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        expect(jobEventData.type_).to.equal(JobEventType.JOB_CLOSED);
+        expect(jobEventData.type_).to.equal(JobEventType.Closed);
         expect(jobEventData.address_).to.equal("0x");
         expect(jobEventData.data_).to.equal("0x");
 
@@ -1378,7 +1378,7 @@ describe("Marketplace Unit Tests", () => {
       await user1.provider.send("evm_mine", []);
 
       await expect(marketplace.connect(user1).closeJob(jobId)).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        expect(jobEventData.type_).to.equal(JobEventType.JOB_CLOSED);
+        expect(jobEventData.type_).to.equal(JobEventType.Closed);
         expect(jobEventData.address_).to.equal("0x");
         expect(jobEventData.data_).to.equal("0x");
 
@@ -1406,7 +1406,7 @@ describe("Marketplace Unit Tests", () => {
       expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(0);
 
       await expect(marketplace.connect(user1).closeJob(jobId)).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        expect(jobEventData.type_).to.equal(JobEventType.JOB_CLOSED);
+        expect(jobEventData.type_).to.equal(JobEventType.Closed);
         expect(jobEventData.address_).to.equal("0x");
         expect(jobEventData.data_).to.equal("0x");
 
@@ -1418,7 +1418,7 @@ describe("Marketplace Unit Tests", () => {
       expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(100);
 
       await expect(marketplace.connect(user1).reopenJob(jobId)).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        expect(jobEventData.type_).to.equal(JobEventType.JOB_REOPENED);
+        expect(jobEventData.type_).to.equal(JobEventType.Reopened);
         expect(jobEventData.address_).to.equal("0x");
         expect(jobEventData.data_).to.equal("0x");
 
@@ -1445,7 +1445,7 @@ describe("Marketplace Unit Tests", () => {
       await user1.provider.send("evm_mine", []);
 
       await expect(marketplace.connect(user1).closeJob(jobId)).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        expect(jobEventData.type_).to.equal(JobEventType.JOB_CLOSED);
+        expect(jobEventData.type_).to.equal(JobEventType.Closed);
         expect(jobEventData.address_).to.equal("0x");
         expect(jobEventData.data_).to.equal("0x");
 
@@ -1457,7 +1457,7 @@ describe("Marketplace Unit Tests", () => {
       expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(0);
 
       await expect(marketplace.connect(user1).reopenJob(jobId)).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        expect(jobEventData.type_).to.equal(JobEventType.JOB_REOPENED);
+        expect(jobEventData.type_).to.equal(JobEventType.Reopened);
         expect(jobEventData.address_).to.equal("0x");
         expect(jobEventData.data_).to.equal("0x");
 
@@ -1481,7 +1481,7 @@ describe("Marketplace Unit Tests", () => {
       expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(0);
 
       await expect(marketplace.connect(user1).closeJob(jobId)).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        expect(jobEventData.type_).to.equal(JobEventType.JOB_CLOSED);
+        expect(jobEventData.type_).to.equal(JobEventType.Closed);
         expect(jobEventData.address_).to.equal("0x");
         expect(jobEventData.data_).to.equal("0x");
 
@@ -1498,7 +1498,7 @@ describe("Marketplace Unit Tests", () => {
       await user1.provider.send("evm_mine", []);
 
       await expect(marketplace.connect(user1).withdrawCollateral(jobId, fakeToken)).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        expect(jobEventData.type_).to.equal(JobEventType.COLLATERAL_WITHDRAWN);
+        expect(jobEventData.type_).to.equal(JobEventType.CollateralWithdrawn);
         expect(jobEventData.address_).to.equal("0x");
         expect(jobEventData.data_).to.equal("0x");
         return true;
@@ -1574,7 +1574,7 @@ describe("Marketplace Unit Tests", () => {
       await expect(
         marketplace.connect(user2).takeJob(jobId, signature.serialized)
       ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        expect(jobEventData.type_).to.equal(JobEventType.JOB_SIGNED);
+        expect(jobEventData.type_).to.equal(JobEventType.Signed);
         expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
 
         const event: JobSignedEvent = decodeJobSignedEvent(jobEventData.data_);
@@ -1583,7 +1583,7 @@ describe("Marketplace Unit Tests", () => {
 
         return true;
       }).and.to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        expect(jobEventData.type_).to.equal(JobEventType.JOB_TAKEN);
+        expect(jobEventData.type_).to.equal(JobEventType.Taken);
         expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
 
         escrowId = toBigInt(jobEventData.data_);
@@ -1622,7 +1622,7 @@ describe("Marketplace Unit Tests", () => {
       ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
 
-        expect(jobEventData.type_).to.equal(JobEventType.JOB_SIGNED);
+        expect(jobEventData.type_).to.equal(JobEventType.Signed);
 
         const event: JobSignedEvent = decodeJobSignedEvent(jobEventData.data_);
         expect(event.revision).to.equal(revision);
@@ -1672,7 +1672,7 @@ describe("Marketplace Unit Tests", () => {
       await expect(
         marketplace.connect(user1).payStartJob(jobId, wallet2.address)
       ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        expect(jobEventData.type_).to.equal(JobEventType.JOB_PAID);
+        expect(jobEventData.type_).to.equal(JobEventType.Paid);
         expect(jobEventData.address_).to.equal(wallet2.address.toLowerCase());
 
         escrowId = toBigInt(jobEventData.data_);
@@ -1762,7 +1762,7 @@ describe("Marketplace Unit Tests", () => {
       await expect(
         marketplace.connect(user1).postThreadMessage(jobId, messageBytes)
       ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        expect(jobEventData.type_).to.equal(JobEventType.OWNER_MESSAGE);
+        expect(jobEventData.type_).to.equal(JobEventType.OwnerMessage);
         expect(jobEventData.address_).to.equal(user1.address.toLowerCase());
         expect(jobEventData.data_).to.equal(contentHash);
 
@@ -1772,7 +1772,7 @@ describe("Marketplace Unit Tests", () => {
       await expect(
         marketplace.connect(user2).postThreadMessage(jobId, messageBytes)
       ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        expect(jobEventData.type_).to.equal(JobEventType.WORKER_MESSAGE);
+        expect(jobEventData.type_).to.equal(JobEventType.WorkerMessage);
         expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
         expect(jobEventData.data_).to.equal(contentHash);
 
@@ -1826,7 +1826,7 @@ describe("Marketplace Unit Tests", () => {
       await expect(
         marketplace.connect(user2).deliverResult(jobId, messageBytes)
       ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        expect(jobEventData.type_).to.equal(JobEventType.JOB_DELIVERED);
+        expect(jobEventData.type_).to.equal(JobEventType.Delivered);
         expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
         expect(jobEventData.data_).to.equal(contentHash);
 
@@ -1955,7 +1955,7 @@ describe("Marketplace Unit Tests", () => {
       await expect(
         marketplace.connect(user1).approveResult(jobId, 5, reviewText)
       ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        expect(jobEventData.type_).to.equal(JobEventType.JOB_RATED);
+        expect(jobEventData.type_).to.equal(JobEventType.Rated);
         expect(jobEventData.address_).to.equal("0x");
 
         const event: JobRatedEvent = decodeJobRatedEvent(jobEventData.data_);
@@ -1964,7 +1964,7 @@ describe("Marketplace Unit Tests", () => {
 
         return true;
       }).and.to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        expect(jobEventData.type_).to.equal(JobEventType.JOB_CLOSED);
+        expect(jobEventData.type_).to.equal(JobEventType.Closed);
         expect(jobEventData.address_).to.equal("0x");
         expect(jobEventData.data_).to.equal("0x");
 
@@ -2063,14 +2063,14 @@ describe("Marketplace Unit Tests", () => {
       await expect(
         marketplace.connect(user2).refund(jobId)
       ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        expect(jobEventData.type_).to.equal(JobEventType.JOB_REFUNDED);
+        expect(jobEventData.type_).to.equal(JobEventType.Refunded);
         expect(jobEventData.address_).to.equal("0x");
         expect(jobEventData.data_).to.equal("0x");
 
         return true;
       })
       .and.to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        expect(jobEventData.type_).to.equal(JobEventType.JOB_REMOVE_WHITELISTED_WORKER);
+        expect(jobEventData.type_).to.equal(JobEventType.WhitelistedWorkerRemoved);
         expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
         expect(jobEventData.data_).to.equal("0x");
 
@@ -2194,7 +2194,7 @@ describe("Marketplace Unit Tests", () => {
       await expect(
         marketplace.connect(user1).dispute(jobId, sessionKey, content)
       ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        expect(jobEventData.type_).to.equal(JobEventType.JOB_DISPUTED);
+        expect(jobEventData.type_).to.equal(JobEventType.Disputed);
         expect(jobEventData.address_).to.equal(user1.address.toLowerCase());
 
         const event: JobDisputedEvent = decodeJobDisputedEvent(jobEventData.data_);
@@ -2222,7 +2222,7 @@ describe("Marketplace Unit Tests", () => {
       await expect(
         marketplace.connect(user2).dispute(jobId, sessionKey, content)
       ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        expect(jobEventData.type_).to.equal(JobEventType.JOB_DISPUTED);
+        expect(jobEventData.type_).to.equal(JobEventType.Disputed);
         expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
 
         const event: JobDisputedEvent = decodeJobDisputedEvent(jobEventData.data_);
@@ -2318,7 +2318,7 @@ describe("Marketplace Unit Tests", () => {
       await expect(
         marketplace.connect(arbitrator).arbitrate(jobId, creatorShare, workerShare, reason)
       ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        expect(jobEventData.type_).to.equal(JobEventType.JOB_ARBITRATED);
+        expect(jobEventData.type_).to.equal(JobEventType.Arbitrated);
         expect(jobEventData.address_).to.equal(arbitrator.address.toLowerCase());
 
         const event: JobArbitratedEvent = decodeJobArbitratedEvent(jobEventData.data_);
@@ -2380,7 +2380,7 @@ describe("Marketplace Unit Tests", () => {
       await expect(
         marketplace.connect(arbitrator).refuseArbitration(jobId)
       ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        expect(jobEventData.type_).to.equal(JobEventType.JOB_ARBITRATION_REFUSED);
+        expect(jobEventData.type_).to.equal(JobEventType.ArbitrationRefused);
         expect(jobEventData.address_).to.equal("0x");
         expect(jobEventData.data_).to.equal("0x");
 
@@ -2422,13 +2422,13 @@ describe("Marketplace Unit Tests", () => {
       await expect(
         marketplace.connect(arbitrator).refuseArbitration(jobId)
       ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        expect(jobEventData.type_).to.equal(JobEventType.JOB_ARBITRATION_REFUSED);
+        expect(jobEventData.type_).to.equal(JobEventType.ArbitrationRefused);
         expect(jobEventData.address_).to.equal("0x");
         expect(jobEventData.data_).to.equal("0x");
 
         return true;
       }).and.to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        expect(jobEventData.type_).to.equal(JobEventType.JOB_REFUNDED);
+        expect(jobEventData.type_).to.equal(JobEventType.Refunded);
         expect(jobEventData.address_).to.equal("0x");
         expect(jobEventData.data_).to.equal("0x");
 

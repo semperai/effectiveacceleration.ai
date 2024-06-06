@@ -43,9 +43,9 @@ import "./unicrow/UnicrowTypes.sol";
 // a discussion thread looks like this:
 // object (type jobpost (1 byte), address(20 bytes), index_ of cid of input text(8 bytes),
 
-uint8 constant JOB_STATE_OPEN = 0;
-uint8 constant JOB_STATE_TAKEN = 1;
-uint8 constant JOB_STATE_CLOSED = 2;
+uint8 constant STATE_OPEN = 0;
+uint8 constant STATE_TAKEN = 1;
+uint8 constant STATE_CLOSED = 2;
 
 uint32 constant _24_HRS = 60 * 60 * 24;
 
@@ -84,27 +84,27 @@ struct JobPost {
     bool disputed;
 }
 
-uint8 constant JOB_EVENT_JOB_CREATED = 1;
-uint8 constant JOB_EVENT_JOB_TAKEN = 2;
-uint8 constant JOB_EVENT_JOB_PAID = 3;
-uint8 constant JOB_EVENT_JOB_UPDATED = 4;
-uint8 constant JOB_EVENT_JOB_SIGNED = 5;
-uint8 constant JOB_EVENT_JOB_COMPLETED = 6;
-uint8 constant JOB_EVENT_JOB_DELIVERED = 7;
-uint8 constant JOB_EVENT_JOB_CLOSED = 8;
-uint8 constant JOB_EVENT_JOB_REOPENED = 9;
-uint8 constant JOB_EVENT_JOB_RATED = 10;
-uint8 constant JOB_EVENT_JOB_REFUNDED = 11;
-uint8 constant JOB_EVENT_JOB_DISPUTED = 12;
-uint8 constant JOB_EVENT_JOB_ARBITRATED = 13;
-uint8 constant JOB_EVENT_JOB_ARBITRATOR_CHANGED = 14;
-uint8 constant JOB_EVENT_JOB_ARBITRATION_REFUSED = 15;
-uint8 constant JOB_EVENT_JOB_ADD_WHITELISTED_WORKER = 16;
-uint8 constant JOB_EVENT_JOB_REMOVE_WHITELISTED_WORKER = 17;
-uint8 constant JOB_EVENT_COLLATERAL_WITHDRAWN = 18;
-// gap
-uint8 constant JOB_EVENT_WORKER_MESSAGE = 21;
-uint8 constant JOB_EVENT_OWNER_MESSAGE = 22;
+enum JobEventType {
+    Created,
+    Taken,
+    Paid,
+    Updated,
+    Signed,
+    Completed,
+    Delivered,
+    Closed,
+    Reopened,
+    Rated,
+    Refunded,
+    Disputed,
+    Arbitrated,
+    ArbitrationRefused,
+    WhitelistedWorkerAdded,
+    WhitelistedWorkerRemoved,
+    CollateralWithdrawn,
+    WorkerMessage,
+    OwnerMessage
+}
 
 struct JobEventData {
     uint8 type_;      // 1 byte / type of object
@@ -449,7 +449,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         bytes32 content_hash_ = getIPFSHash(content_);
 
-        // jobPost.state = JOB_STATE_OPEN; // will be zero anyway
+        // jobPost.state = STATE_OPEN; // will be zero anyway
         jobPost.whitelist_workers = allowed_workers_.length > 0;
         jobPost.roles.creator = msg.sender;
         jobPost.title = title_;
@@ -467,7 +467,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         publishJobEvent(jobid,
             JobEventData({
-                type_: JOB_EVENT_JOB_CREATED,
+                type_: uint8(JobEventType.Created),
                 address_: abi.encodePacked(msg.sender),
                 data_: abi.encode(title_, content_hash_, multiple_applicants_, tags_, token_, amount_, max_time_, delivery_method_, arbitrator_required_, arbitrator_, allowed_workers_)
             })
@@ -492,7 +492,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         address arbitrator_,
         bool whitelist_workers_
     ) public onlyJobCreator(job_id_) {
-        require(jobs[job_id_].state == JOB_STATE_OPEN, "not open");
+        require(jobs[job_id_].state == STATE_OPEN, "not open");
 
         uint256 titleLength = bytes(title_).length;
         require(titleLength > 0 && titleLength < 255, "title too short or long");
@@ -540,7 +540,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         publishJobEvent(job_id_,
             JobEventData({
-                type_: JOB_EVENT_JOB_UPDATED,
+                type_: uint8(JobEventType.Updated),
                 address_: bytes(""),
                 data_: abi.encode(
                     title_,
@@ -567,14 +567,14 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         address[] memory allowed_workers_,
         address[] memory disallowed_workers_
     ) internal {
-        require(jobs[job_id_].state == JOB_STATE_OPEN, "not open");
+        require(jobs[job_id_].state == STATE_OPEN, "not open");
 
         for (uint256 i = 0; i < allowed_workers_.length; i++) {
             whitelistWorkers[job_id_][allowed_workers_[i]] = true;
 
             publishJobEvent(job_id_,
                 JobEventData({
-                    type_: JOB_EVENT_JOB_ADD_WHITELISTED_WORKER,
+                    type_: uint8(JobEventType.WhitelistedWorkerAdded),
                     address_: abi.encodePacked(allowed_workers_[i]),
                     data_: bytes("")
                 })
@@ -586,7 +586,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
             publishJobEvent(job_id_,
                 JobEventData({
-                    type_: JOB_EVENT_JOB_REMOVE_WHITELISTED_WORKER,
+                    type_: uint8(JobEventType.WhitelistedWorkerRemoved),
                     address_: abi.encodePacked(disallowed_workers_[i]),
                     data_: bytes("")
                 })
@@ -600,9 +600,9 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      * @notice Otherwise the buyer must withdraw the collateral separately.
      */
     function closeJob(uint256 job_id_) public onlyJobCreator(job_id_) {
-        require(jobs[job_id_].state == JOB_STATE_OPEN, "not open");
+        require(jobs[job_id_].state == STATE_OPEN, "not open");
         JobPost storage job = jobs[job_id_];
-        job.state = JOB_STATE_CLOSED;
+        job.state = STATE_CLOSED;
 
         if (block.timestamp >= job.timestamp + _24_HRS) {
             uint256 amount = job.amount + job.collateralOwed;
@@ -614,7 +614,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         publishJobEvent(job_id_,
             JobEventData({
-                type_: JOB_EVENT_JOB_CLOSED,
+                type_: uint8(JobEventType.Closed),
                 address_: bytes(""),
                 data_: bytes("")
             })
@@ -626,7 +626,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      */
     function withdrawCollateral(uint256 job_id_, address token_) public {
         // check if the job is closed
-        require(jobs[job_id_].state == JOB_STATE_CLOSED, "not closed");
+        require(jobs[job_id_].state == STATE_CLOSED, "not closed");
 
         JobPost storage job = jobs[job_id_];
         require(block.timestamp >= job.timestamp + _24_HRS, "24 hours have not passed yet");
@@ -638,7 +638,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         publishJobEvent(job_id_,
             JobEventData({
-                type_: JOB_EVENT_COLLATERAL_WITHDRAWN,
+                type_: uint8(JobEventType.CollateralWithdrawn),
                 address_: bytes(""),
                 data_: bytes("")
             })
@@ -648,7 +648,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     function reopenJob(uint256 job_id_) public onlyJobCreator(job_id_) {
         JobPost storage job = jobs[job_id_];
 
-        require(job.state == JOB_STATE_CLOSED, "not closed");
+        require(job.state == STATE_CLOSED, "not closed");
 
         job.resultHash = 0;
 
@@ -659,12 +659,12 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             job.collateralOwed -= job.amount;
         }
 
-        job.state = JOB_STATE_OPEN;
+        job.state = STATE_OPEN;
         job.timestamp = block.timestamp;
 
         publishJobEvent(job_id_,
             JobEventData({
-                type_: JOB_EVENT_JOB_REOPENED,
+                type_: uint8(JobEventType.Reopened),
                 address_: bytes(""),
                 data_: bytes("")
             })
@@ -676,11 +676,11 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         uint256 job_id_,
         bytes calldata content_
     ) public {
-        require(jobs[job_id_].state != JOB_STATE_CLOSED, "job closed");
+        require(jobs[job_id_].state != STATE_CLOSED, "job closed");
 
         bool isOwner = jobs[job_id_].roles.creator == msg.sender;
         if (!isOwner) {
-            if (jobs[job_id_].state == JOB_STATE_TAKEN) {
+            if (jobs[job_id_].state == STATE_TAKEN) {
                 // only assigned workers can message on the job if it is taken
                 require(jobs[job_id_].roles.worker == msg.sender, "taken/not worker");
             } else {
@@ -697,7 +697,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         publishJobEvent(job_id_,
             JobEventData({
-                type_: isOwner ? JOB_EVENT_OWNER_MESSAGE : JOB_EVENT_WORKER_MESSAGE,
+                type_: uint8(isOwner ? JobEventType.OwnerMessage : JobEventType.WorkerMessage),
                 address_: abi.encodePacked(msg.sender),
                 data_: abi.encodePacked(content_hash)
             })
@@ -716,7 +716,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         JobPost storage job = jobs[job_id_];
 
-        require(job.state == JOB_STATE_OPEN, "not open");
+        require(job.state == STATE_OPEN, "not open");
         require(
             job.whitelist_workers == false ||
                 whitelistWorkers[job_id_][msg.sender],
@@ -728,14 +728,14 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         publishJobEvent(job_id_,
             JobEventData({
-                type_: JOB_EVENT_JOB_SIGNED,
+                type_: uint8(JobEventType.Signed),
                 address_: abi.encodePacked(msg.sender),
                 data_: bytes.concat(abi.encodePacked(uint16(jobEvents[job_id_].length), abi.encodePacked(signature_)))
             })
         );
 
         if (!job.multipleApplicants) {
-            job.state = JOB_STATE_TAKEN;
+            job.state = STATE_TAKEN;
             job.roles.worker = msg.sender;
 
             Unicrow unicrow = Unicrow(unicrowAddress);
@@ -764,7 +764,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
             publishJobEvent(job_id_,
                 JobEventData({
-                    type_: JOB_EVENT_JOB_TAKEN,
+                    type_: uint8(JobEventType.Taken),
                     address_: abi.encodePacked(msg.sender),
                     data_: abi.encodePacked(job.escrowId)
                 })
@@ -780,10 +780,10 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      */
     function payStartJob(uint256 job_id_, address worker_) public payable onlyJobCreator(job_id_) {
         JobPost storage job = jobs[job_id_];
-        require(job.state == JOB_STATE_OPEN, "not open");
+        require(job.state == STATE_OPEN, "not open");
         require(publicKeys[worker_].length > 0, "not registered");
 
-        job.state = JOB_STATE_TAKEN;
+        job.state = STATE_TAKEN;
         job.roles.worker = worker_;
 
         Unicrow unicrow = Unicrow(unicrowAddress);
@@ -804,7 +804,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         publishJobEvent(job_id_,
             JobEventData({
-                type_: JOB_EVENT_JOB_PAID,
+                type_: uint8(JobEventType.Paid),
                 address_: abi.encodePacked(worker_),
                 data_: abi.encodePacked(job.escrowId)
             })
@@ -824,7 +824,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         publishJobEvent(job_id_,
             JobEventData({
-                type_: JOB_EVENT_JOB_DELIVERED,
+                type_: uint8(JobEventType.Delivered),
                 address_: abi.encodePacked(msg.sender),
                 data_: abi.encodePacked(job.resultHash)
             })
@@ -840,13 +840,13 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     function approveResult(uint256 job_id_, uint8 review_rating_, string calldata review_text_) public onlyJobCreator(job_id_) {
         JobPost storage job = jobs[job_id_];
 
-        require(job.state == JOB_STATE_TAKEN, "job in invalid state");
+        require(job.state == STATE_TAKEN, "job in invalid state");
 
         Unicrow unicrow = Unicrow(unicrowAddress);
 
         unicrow.release(job.escrowId);
 
-        job.state = JOB_STATE_CLOSED;
+        job.state = STATE_CLOSED;
 
         if (review_rating_ > 0) {
             review(job_id_, review_rating_, review_text_);
@@ -854,7 +854,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         publishJobEvent(job_id_,
             JobEventData({
-                type_: JOB_EVENT_JOB_CLOSED,
+                type_: uint8(JobEventType.Closed),
                 address_: bytes(""),
                 data_: bytes("")
             })
@@ -863,7 +863,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
     function review(uint256 job_id_, uint8 review_rating_, string calldata review_text_) public onlyJobCreator(job_id_) {
         require(jobs[job_id_].rating == 0, "already rated");
-        require(jobs[job_id_].state == JOB_STATE_CLOSED, "Job doesn't exist or not closed");
+        require(jobs[job_id_].state == STATE_CLOSED, "Job doesn't exist or not closed");
         require(review_rating_ >= RATING_MIN && review_rating_ <= RATING_MAX, "Invalid review score");
         require(bytes(review_text_).length <= 100, "Review text too long");
 
@@ -875,7 +875,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         publishJobEvent(job_id_,
             JobEventData({
-                type_: JOB_EVENT_JOB_RATED,
+                type_: uint8(JobEventType.Rated),
                 address_: bytes(""),
                 data_: bytes.concat(abi.encodePacked(review_rating_), bytes(review_text_))
             })
@@ -887,13 +887,13 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      */
     function _refund(uint256 job_id_, bool byWorker) internal {
         JobPost storage job = jobs[job_id_];
-        require(job.state == JOB_STATE_TAKEN, "job in invalid state");
+        require(job.state == STATE_TAKEN, "job in invalid state");
 
         Unicrow unicrow = Unicrow(unicrowAddress);
 
         unicrow.refund(job.escrowId);
 
-        job.state = JOB_STATE_OPEN;
+        job.state = STATE_OPEN;
 
         // remove the worker from the whitelist
         if (byWorker) {
@@ -906,7 +906,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         publishJobEvent(job_id_,
             JobEventData({
-                type_: JOB_EVENT_JOB_REFUNDED,
+                type_: uint8(JobEventType.Refunded),
                 address_: bytes(""),
                 data_: bytes("")
             })
@@ -928,7 +928,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      */
     function dispute(uint256 job_id_, bytes32 sessionKey_, string calldata content_) public onlyCreatorOrWorker(job_id_) {
         JobPost storage job = jobs[job_id_];
-        require(job.state == JOB_STATE_TAKEN, "job in invalid state");
+        require(job.state == STATE_TAKEN, "job in invalid state");
         require(job.roles.arbitrator != address(0), "no arbitrator");
 
         require(job.disputed == false, "already disputed");
@@ -942,7 +942,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         publishJobEvent(job_id_,
             JobEventData({
-                type_: JOB_EVENT_JOB_DISPUTED,
+                type_: uint8(JobEventType.Disputed),
                 address_: abi.encodePacked(msg.sender),
                 data_: abi.encodePacked(sessionKey_, content_)
             })
@@ -961,9 +961,9 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         require(bytes(reason_).length <= 100, "reason too long");
 
         JobPost storage job = jobs[job_id_];
-        require(job.state == JOB_STATE_TAKEN, "job in invalid state");
+        require(job.state == STATE_TAKEN, "job in invalid state");
         require(job.disputed, "not disputed");
-        job.state = JOB_STATE_CLOSED;
+        job.state = STATE_CLOSED;
 
         UnicrowArbitrator unicrowArbitrator = UnicrowArbitrator(unicrowArbitratorAddress);
 
@@ -973,7 +973,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         publishJobEvent(job_id_,
             JobEventData({
-                type_: JOB_EVENT_JOB_ARBITRATED,
+                type_: uint8(JobEventType.Arbitrated),
                 address_: abi.encodePacked(msg.sender),
                 data_: abi.encodePacked(buyer_share_, worker_share_, reason_)
             })
@@ -989,20 +989,20 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      */
     function refuseArbitration(uint256 job_id_) public onlyArbitrator(job_id_) {
         JobPost storage job = jobs[job_id_];
-        require(job.state != JOB_STATE_CLOSED, "job in invalid state");
+        require(job.state != STATE_CLOSED, "job in invalid state");
         job.roles.arbitrator = address(0);
 
         arbitrators[msg.sender].refusedCount += 1;
 
         publishJobEvent(job_id_,
             JobEventData({
-                type_: JOB_EVENT_JOB_ARBITRATION_REFUSED,
+                type_: uint8(JobEventType.ArbitrationRefused),
                 address_: bytes(""),
                 data_: bytes("")
             })
         );
 
-        if (job.state == JOB_STATE_TAKEN) {
+        if (job.state == STATE_TAKEN) {
             _refund(job_id_, false);
         }
     }
