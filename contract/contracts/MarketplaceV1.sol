@@ -158,8 +158,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         _;
     }
 
-    //TODO: add marketplace fee governance
-    
     event PauserTransferred(
         address indexed previousPauser,
         address indexed newPauser
@@ -172,9 +170,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
     event NotificationBroadcast(address indexed addr, uint256 indexed id);
     event JobEvent(uint256 indexed jobId, JobEventData eventData);
-
-    //TODO: double check if this is always sufficient (might be if other details are emitted in the respective functions that caused the update)
-    // event JobUpdated(uint256 indexed jobId);
 
     event PublicKeyRegistered(address indexed addr, bytes pubkey);
 
@@ -361,7 +356,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     }
 
     // Governance function to add or update MECE tags
-    //TODO: not sure if this should be onlyOwner or we should have a separate governance role and modifier
     function updateMeceTag(string memory shortForm, string memory longForm) public onlyOwner {
         require(bytes(shortForm).length > 0 && bytes(longForm).length > 0, "Invalid tag data");
         meceTags[shortForm] = longForm;
@@ -372,8 +366,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         delete meceTags[shortForm];
     }
 
-    //TODO: handle worker whitelists 
-    //TODO: potentially add review filter sperate from whitelists
     /**
      * @notice Publish a new job post
      * @notice To assign the job to a specific worker, set multipleApplicants_ to false and add the worker to the allowedWorkers_. In such a case, title and description can be encrypted for the worker
@@ -473,9 +465,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         return jobId;
     }
 
-    //TODO: update to reflect the job structure defined in publishJobPost()
-    //TODO: if token or amount changes, collateral needs to be updated (deposit requested from or partial refund given to the buyer)
-    //QUESTION: to minimize data manipulation and gas costs, should we make it so that if a parameter has empty value (e.g. "" in title or 0 for maxTime_) than we wouldn't overwrite the data? 
     function updateJobPost(
         uint256 jobId_,
         string calldata title_,
@@ -670,7 +659,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         );
     }
 
-    //TODO: update to reflect the agreement about threads being related to elements of the job structure
     function postThreadMessage(
         uint256 jobId_,
         bytes calldata content_
@@ -741,8 +729,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
             Unicrow unicrow = Unicrow(unicrowAddress);
 
-            //TODO: Unicrow needs to be updated to allow custom "buyer" and that needs to be reflected here. 
-            //      For now working without this option
             IERC20 token = IERC20(job.token);
             token.approve(unicrowAddress, type(uint256).max);
             EscrowInput memory escrowInput = EscrowInput(
@@ -755,12 +741,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
                 job.amount
             );
 
-            //TODO: Currently, default (and the only) Unicrow's pay function simply sets msg.sender as the buyer and
-            //      asks them to send the money. 
-            //      We need a function that will
-            //          - allow us to pay from this contract (from the collateral) rather than from the user's wallet 
-            //          - will check whether a buyer was defined and if yes use it
-            //      For now calling the function as is
             job.escrowId = unicrow.pay(escrowInput, job.roles.arbitrator, arbitrators[job.roles.arbitrator].fee);
 
             publishJobEvent(jobId_,
@@ -774,7 +754,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         }
     }
 
-    //TODO: add a check that the worker has been registered
     /**
      * @notice Pay for a job so that the it gets started.
      * @param jobId_ ID of the job
