@@ -65,7 +65,7 @@ describe("Marketplace Unit Tests", () => {
 
     console.log(`UnicrowClaim: ${UnicrowClaimAddress}`);
 
-    const UNICROW_FEE = 100; // 1%
+    const UNICROW_FEE = 69; // 0.69%
     const unicrow = await Unicrow.deploy(
       UnicrowClaimAddress,
       UnicrowArbitratorAddress,
@@ -139,7 +139,7 @@ describe("Marketplace Unit Tests", () => {
       await unicrowDispute.getAddress(),
       await unicrowArbitrator.getAddress(),
       marketplaceFeeAddress,
-      100,
+      1931, // 19.31 % fee
     ])) as unknown as Marketplace;
     await marketplace.waitForDeployment();
     console.log("Marketplace deployed to:", await marketplace.getAddress(), "\n");
@@ -2012,10 +2012,11 @@ describe("Marketplace Unit Tests", () => {
       }).and.to.emit(unicrowGlobal, "Release");
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
-      expect(await fakeToken.balanceOf(await user2.getAddress())).to.equal(BigInt(1097e18));
+      expect(await fakeToken.balanceOf(await user2.getAddress())).to.equal(BigInt(1079e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(0);
       expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(0);
-      expect(await fakeToken.balanceOf(await marketplace.unicrowMarketplaceAddress())).to.equal(BigInt(1e18));
+      expect(await fakeToken.balanceOf(await marketplace.unicrowMarketplaceAddress())).to.equal(BigInt(19.31e18));
+      expect(await fakeToken.balanceOf(unicrowProtocolFeeAddress)).to.equal(BigInt(0.69e18));
 
       expect((await marketplace.connect(user1).jobs(jobId)).state).to.be.equal(JobState.Closed);
     });
@@ -2370,19 +2371,19 @@ describe("Marketplace Unit Tests", () => {
         expect(event.creatorShare).to.equal(creatorShare);
         expect(event.creatorAmount).to.equal(BigInt(79.2e18));
         expect(event.workerShare).to.equal(workerShare);
-        expect(event.workerAmount).to.equal(BigInt(19.4e18));
+        expect(event.workerAmount).to.equal(BigInt(15.81e18));
         expect(event.reason).to.equal(hexlify(utf8ToBytes(reason)));
 
         return true;
       }).and.to.emit(unicrowArbitratorGlobal, "Arbitrated");
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
-      expect(await fakeToken.balanceOf(await user2.getAddress())).to.equal(BigInt(1019.4e18));
+      expect(await fakeToken.balanceOf(await user2.getAddress())).to.equal(1015810000000000000000n);
       expect(await fakeToken.balanceOf(await arbitrator.getAddress())).to.equal(BigInt(1e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(79.2e18));
       expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(0);
-      expect(await fakeToken.balanceOf(await marketplace.unicrowMarketplaceAddress())).to.equal(BigInt(0.2e18));
-      expect(await fakeToken.balanceOf(unicrowProtocolFeeAddress)).to.equal(BigInt(0.2e18));
+      expect(await fakeToken.balanceOf(await marketplace.unicrowMarketplaceAddress())).to.equal(BigInt(3.86e18));
+      expect(await fakeToken.balanceOf(unicrowProtocolFeeAddress)).to.equal(BigInt(0.13e18));
 
       const job = await marketplace.jobs(jobId);
 
@@ -2442,20 +2443,20 @@ describe("Marketplace Unit Tests", () => {
         expect(event.creatorShare).to.equal(creatorShare);
         expect(event.creatorAmount).to.equal(BigInt(0e18));
         expect(event.workerShare).to.equal(workerShare);
-        expect(event.workerAmount).to.equal(BigInt(97e18));
+        expect(event.workerAmount).to.equal(BigInt(79e18));
         expect(event.reason).to.equal(hexlify(utf8ToBytes(reason)));
 
         return true;
       }).and.to.emit(unicrowArbitratorGlobal, "Arbitrated");
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
-      expect(await fakeToken.balanceOf(await user2.getAddress())).to.equal(BigInt(1097e18));
+      expect(await fakeToken.balanceOf(await user2.getAddress())).to.equal(BigInt(1079e18));
       expect(await fakeToken.balanceOf(await arbitrator.getAddress())).to.equal(BigInt(1e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(0e18));
       expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(BigInt(0e18));
       expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(0);
-      expect(await fakeToken.balanceOf(await marketplace.unicrowMarketplaceAddress())).to.equal(BigInt(1e18));
-      expect(await fakeToken.balanceOf(unicrowProtocolFeeAddress)).to.equal(BigInt(1e18));
+      expect(await fakeToken.balanceOf(await marketplace.unicrowMarketplaceAddress())).to.equal(BigInt(19.31e18));
+      expect(await fakeToken.balanceOf(unicrowProtocolFeeAddress)).to.equal(BigInt(0.69e18));
 
       const job = await marketplace.jobs(jobId);
 
