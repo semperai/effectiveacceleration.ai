@@ -529,7 +529,7 @@ describe("Marketplace Unit Tests", () => {
   });
 
   describe("job posting", () => {
-    it("post job", async () => {
+    it("post job 1", async () => {
       const { marketplace, fakeToken, user1 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 

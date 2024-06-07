@@ -1,4 +1,4 @@
-import { BytesLike, getBytes, AbiCoder, hexlify, toUtf8String, toBigInt } from "ethers";
+import { BytesLike, getBytes, AbiCoder, hexlify, toUtf8String, toBigInt, getAddress } from "ethers";
 
 export enum JobState {
   Open = 0,
@@ -39,6 +39,7 @@ export type JobPostEvent = {
   deliveryMethod: string;
   arbitrator: string;
   allowedWorkers: string[];
+  whitelistWorkers: boolean;
 };
 
 export type JobUpdateEvent = {
@@ -74,31 +75,37 @@ export type JobArbitratedEvent = {
 }
 
 export const decodeJobPostEvent = (rawData: BytesLike): JobPostEvent => {
-  const decoded = AbiCoder.defaultAbiCoder().decode(["string", "bytes32", "bool", "string[]", "address", "uint256", "uint32", "string", "address", "address[]"], rawData);
-  return {
-    title: decoded[0],
-    contentHash: decoded[1],
-    multipleApplicants: decoded[2],
-    tags: decoded[3].toArray(),
-    token: decoded[4],
-    amount: decoded[5],
-    maxTime: Number(decoded[6]),
-    deliveryMethod: decoded[7],
-    arbitrator: decoded[8],
-    allowedWorkers: decoded[9].toArray(),
-  };
+  const bytes = getBytes(rawData);
+  let ptr = {bytes, index: 0};
+
+  const result = {} as JobPostEvent;
+  result.title = decodeString(ptr);
+  result.contentHash = decodeBytes32(ptr);
+  result.multipleApplicants = decodeBool(ptr);
+  result.tags = decodeStringArray(ptr);
+  result.token = decodeAddress(ptr);
+  result.amount = decodeUint256(ptr);
+  result.maxTime = decodeUint32(ptr);
+  result.deliveryMethod = decodeString(ptr);
+  result.arbitrator = decodeAddress(ptr);
+  result.allowedWorkers = decodeAddressArray(ptr);
+  result.whitelistWorkers = result.allowedWorkers.length > 0;
+  return result;
 };
 
 export const decodeJobUpdatedEvent = (rawData: BytesLike): JobUpdateEvent => {
-  const decoded = AbiCoder.defaultAbiCoder().decode(["string", "bytes32", "uint256", "uint32", "address", "bool"], rawData);
-  return {
-    title: decoded[0],
-    contentHash: decoded[1],
-    amount: decoded[2],
-    maxTime: Number(decoded[3]),
-    arbitrator: decoded[4],
-    whitelistWorkers: decoded[5],
-  };
+  const bytes = getBytes(rawData);
+  let ptr = {bytes, index: 0};
+
+  const result = {} as JobUpdateEvent;
+  result.title = decodeString(ptr);
+  result.contentHash = decodeBytes32(ptr);
+  result.amount = decodeUint256(ptr);
+  result.maxTime = decodeUint32(ptr);
+  result.arbitrator = decodeAddress(ptr);
+  result.whitelistWorkers = decodeBool(ptr);
+
+  return result;
 };
 
 export const decodeJobSignedEvent = (rawData: BytesLike): JobSignedEvent => {
@@ -136,4 +143,74 @@ export const decodeJobArbitratedEvent = (rawData: BytesLike): JobArbitratedEvent
     workerAmount: toBigInt(bytes.slice(36, 68)),
     reason: hexlify(bytes.slice(68)),
   };
+}
+
+// local decode utils
+const decodeString = (ptr: {bytes: Uint8Array, index: number}): string => {
+  const length = ptr.bytes[ptr.index];
+  ptr.index++;
+  const result = toUtf8String(ptr.bytes.slice(ptr.index, ptr.index + length));
+  ptr.index += length;
+
+  return result;
+}
+
+const decodeStringArray = (ptr: {bytes: Uint8Array, index: number}): string[] => {
+  const length = ptr.bytes[ptr.index];
+  ptr.index++;
+  const result: string[] = [];
+  for (let i = 0; i < length; i++) {
+    const str = decodeString(ptr);
+    result.push(str);
+  }
+
+  return result;
+}
+
+const decodeAddressArray = (ptr: {bytes: Uint8Array, index: number}): string[] => {
+  const length = ptr.bytes[ptr.index];
+  ptr.index++;
+  const result: string[] = [];
+  for (let i = 0; i < length; i++) {
+    const address = getAddress(hexlify(ptr.bytes.slice(ptr.index, ptr.index + 20)));
+    ptr.index += 20;
+    result.push(address);
+  }
+
+  return result;
+}
+
+const decodeBytes32 = (ptr: {bytes: Uint8Array, index: number}): string => {
+  const result = hexlify(ptr.bytes.slice(ptr.index, ptr.index + 32));
+  ptr.index += 32;
+
+  return result;
+}
+
+const decodeBool = (ptr: {bytes: Uint8Array, index: number}): boolean => {
+  const result = ptr.bytes[ptr.index] === 1;
+  ptr.index++;
+
+  return result;
+}
+
+const decodeAddress = (ptr: {bytes: Uint8Array, index: number}): string => {
+  const result = getAddress(hexlify(ptr.bytes.slice(ptr.index, ptr.index + 20)));
+  ptr.index += 20;
+
+  return result;
+}
+
+const decodeUint256 = (ptr: {bytes: Uint8Array, index: number}): bigint => {
+  const result = toBigInt(ptr.bytes.slice(ptr.index, ptr.index + 32));
+  ptr.index += 32;
+
+  return result;
+}
+
+const decodeUint32 = (ptr: {bytes: Uint8Array, index: number}): number => {
+  const result = new DataView(ptr.bytes.buffer, ptr.index).getUint32(0);
+  ptr.index += 4;
+
+  return result;
 }

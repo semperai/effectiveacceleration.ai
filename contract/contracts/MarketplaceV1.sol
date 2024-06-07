@@ -6,6 +6,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import { getIPFSHash } from "./libraries/IPFS.sol";
+import { encodeString, encodeStringArray, encodeAddressArray } from "./libraries/Encoding.sol";
 
 import "./unicrow/Unicrow.sol";
 import "./unicrow/UnicrowDispute.sol";
@@ -449,11 +450,23 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         jobPost.roles.arbitrator = arbitrator_;
         // jobPost.roles.worker = address(0); // will be zero anyway
 
+        bytes memory allowedWorkerData = encodeAddressArray(allowedWorkers_);
         publishJobEvent(jobId,
             JobEventData({
                 type_: uint8(JobEventType.Created),
                 address_: abi.encodePacked(msg.sender),
-                data_: abi.encode(title_, contentHash_, multipleApplicants_, tags_, token_, amount_, maxTime_, deliveryMethod_, arbitrator_, allowedWorkers_),
+                data_: bytes.concat(
+                    encodeString(title_),
+                    abi.encodePacked(contentHash_),
+                    abi.encodePacked(multipleApplicants_),
+                    encodeStringArray(tags_),
+                    abi.encodePacked(uint160(token_)),
+                    abi.encodePacked(amount_),
+                    abi.encodePacked(uint32(maxTime_)),
+                    encodeString(deliveryMethod_),
+                    abi.encodePacked(uint160(arbitrator_)),
+                    allowedWorkerData
+                ),
                 timestamp_: 0
             })
         );
@@ -524,13 +537,13 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             JobEventData({
                 type_: uint8(JobEventType.Updated),
                 address_: bytes(""),
-                data_: abi.encode(
-                    title_,
-                    jobs[jobId_].contentHash,
-                    amount_,
-                    maxTime_,
-                    arbitrator_,
-                    whitelistWorkers_
+                data_: bytes.concat(
+                    encodeString(title_),
+                    abi.encodePacked(jobs[jobId_].contentHash),
+                    abi.encodePacked(amount_),
+                    abi.encodePacked(uint32(maxTime_)),
+                    abi.encodePacked(uint160(arbitrator_)),
+                    abi.encodePacked(whitelistWorkers_)
                 ),
                 timestamp_: 0
             })
