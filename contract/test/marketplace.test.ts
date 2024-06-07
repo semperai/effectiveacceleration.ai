@@ -2137,6 +2137,12 @@ describe("Marketplace Unit Tests", () => {
       expect(await marketplace.connect(user1).reopenJob(jobId)).to.not.be.reverted;
 
       expect((await marketplace.connect(user1).jobs(jobId)).resultHash).to.be.equal(ZeroHash);
+
+      await expect(
+        marketplace.connect(user1).closeJob(jobId)
+      ).not.to.be.reverted;
+
+      expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(BigInt(100e18));
     });
   });
 
