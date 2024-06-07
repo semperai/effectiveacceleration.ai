@@ -47,8 +47,9 @@ interface IUnicrowArbitrator {
      * Arbitrate an payment - to be called only by an escrow's arbitrator
      * @param escrowId Id of an escrow
      * @param newSplit How the payment should be split between buyer [0] and seller [1]. [100, 0] will refund the payment to the buyer, [0, 100] will release it to the seller, anything in between will
+     * @return amounts payed out.
      */
-    function arbitrate(uint256 escrowId, uint16[2] memory newSplit) external;
+    function arbitrate(uint256 escrowId, uint16[2] memory newSplit) external returns (uint256[5] memory);
 
     /**
      * Get information about proposed or assigned arbitrator.

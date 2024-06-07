@@ -20,6 +20,8 @@ describe("Encrypted communication tests", async () => {
       ethers.ZeroAddress,
       ethers.ZeroAddress,
       ethers.ZeroAddress,
+      ethers.ZeroAddress,
+      0,
     ])) as unknown as MarketplaceV1;
     await marketplace.waitForDeployment();
   });

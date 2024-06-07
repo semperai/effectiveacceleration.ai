@@ -189,11 +189,18 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     /// @notice Initialize contract
     /// @dev For upgradeable contracts this function necessary
     /// @param treasury_ Address of treasury
+    /// @param unicrowAddress_ Address of Unicrow contract
+    /// @param unicrowDisputeAddress_ Address of UnicrowDispute contract
+    /// @param unicrowArbitratorAddress_ Address of UnicrowArbitrator contract
+    /// @param unicrowMarketplaceAddress_ Address which will collect this marketplace fees, better not to set it to address(this) to not mess up with collateral values
+    /// @param unicrowMarketplaceFee_ Fee for this marketplace in bips
     function initialize(
             address treasury_,
             address unicrowAddress_,
             address unicrowDisputeAddress_,
-            address unicrowArbitratorAddress_
+            address unicrowArbitratorAddress_,
+            address unicrowMarketplaceAddress_,
+            uint16 unicrowMarketplaceFee_
         ) public initializer {
         __Ownable_init(msg.sender);
         __Pausable_init();
@@ -204,8 +211,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         unicrowDisputeAddress = unicrowDisputeAddress_;
         unicrowArbitratorAddress = unicrowArbitratorAddress_;
 
-        unicrowMarketplaceAddress = address(100);
-        unicrowMarketplaceFee = 2000;
+        unicrowMarketplaceAddress = unicrowMarketplaceAddress_;
+        unicrowMarketplaceFee = unicrowMarketplaceFee_;
 
         meceTags["DA"] = "DIGITAL_AUDIO";
         meceTags["DV"] = "DIGIAL_VIDEO";
@@ -970,7 +977,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         // the arbitrate function checks that the shares equal 100%, otherwise throws an error
         // also it sends the shares to all the parties
-        unicrowArbitrator.arbitrate(job.escrowId, [buyerShare_, workerShare_]);
+        uint256[5] memory amounts = unicrowArbitrator.arbitrate(job.escrowId, [buyerShare_, workerShare_]);
+        job.collateralOwed += amounts[0];
 
         publishJobEvent(jobId_,
             JobEventData({
