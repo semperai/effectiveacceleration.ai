@@ -1,4 +1,4 @@
-import { BytesLike, getBytes, AbiCoder, hexlify, toUtf8String } from "ethers";
+import { BytesLike, getBytes, AbiCoder, hexlify, toUtf8String, toBigInt } from "ethers";
 
 export enum JobState {
   Open = 0,
@@ -67,7 +67,9 @@ export type JobDisputedEvent = {
 
 export type JobArbitratedEvent = {
   creatorShare: number;
+  creatorAmount: bigint;
   workerShare: number;
+  workerAmount: bigint;
   reason: string;
 }
 
@@ -126,9 +128,12 @@ export const decodeJobDisputedEvent = (rawData: BytesLike): JobDisputedEvent => 
 
 export const decodeJobArbitratedEvent = (rawData: BytesLike): JobArbitratedEvent => {
   const bytes = getBytes(rawData);
+  const dataView = new DataView(bytes.buffer, 0);
   return {
-    creatorShare: new DataView(bytes.buffer, 0).getUint16(0),
-    workerShare: new DataView(bytes.buffer, 0).getUint16(2),
-    reason: hexlify(bytes.slice(4)),
+    creatorShare: dataView.getUint16(0),
+    creatorAmount: toBigInt(bytes.slice(2, 34)),
+    workerShare: dataView.getUint16(34),
+    workerAmount: toBigInt(bytes.slice(36, 68)),
+    reason: hexlify(bytes.slice(68)),
   };
 }

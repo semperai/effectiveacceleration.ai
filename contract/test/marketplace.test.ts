@@ -2368,7 +2368,9 @@ describe("Marketplace Unit Tests", () => {
 
         const event: JobArbitratedEvent = decodeJobArbitratedEvent(jobEventData.data_);
         expect(event.creatorShare).to.equal(creatorShare);
+        expect(event.creatorAmount).to.equal(BigInt(79.2e18));
         expect(event.workerShare).to.equal(workerShare);
+        expect(event.workerAmount).to.equal(BigInt(19.4e18));
         expect(event.reason).to.equal(hexlify(utf8ToBytes(reason)));
 
         return true;
@@ -2438,7 +2440,9 @@ describe("Marketplace Unit Tests", () => {
 
         const event: JobArbitratedEvent = decodeJobArbitratedEvent(jobEventData.data_);
         expect(event.creatorShare).to.equal(creatorShare);
+        expect(event.creatorAmount).to.equal(BigInt(0e18));
         expect(event.workerShare).to.equal(workerShare);
+        expect(event.workerAmount).to.equal(BigInt(97e18));
         expect(event.reason).to.equal(hexlify(utf8ToBytes(reason)));
 
         return true;
@@ -2509,7 +2513,9 @@ describe("Marketplace Unit Tests", () => {
 
         const event: JobArbitratedEvent = decodeJobArbitratedEvent(jobEventData.data_);
         expect(event.creatorShare).to.equal(creatorShare);
+        expect(event.creatorAmount).to.equal(BigInt(99e18));
         expect(event.workerShare).to.equal(workerShare);
+        expect(event.workerAmount).to.equal(BigInt(0e18));
         expect(event.reason).to.equal(hexlify(utf8ToBytes(reason)));
 
         return true;
