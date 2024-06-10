@@ -6,7 +6,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import { getIPFSHash } from "./libraries/IPFS.sol";
-import { encodeString, encodeStringArray, encodeAddressArray } from "./libraries/Encoding.sol";
+import { encodeString, encodeBytes, encodeStringArray, encodeAddressArray } from "./libraries/Encoding.sol";
 
 import "./unicrow/Unicrow.sol";
 import "./unicrow/UnicrowDispute.sol";
@@ -280,7 +280,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         return getIPFSHash(content_);
     }
 
-    // allow users to register their public key
+    // allow users to register their *message encryption* public key
     // this is used to allow others to message you securely
     // we do not do verification here because we want to allow contracts to register
     function registerPublicKey(bytes calldata pubkey) public {
@@ -291,6 +291,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         emit PublicKeyRegistered(msg.sender, pubkey);
     }
 
+    // registers an arbitrator with their *message encryption* public key, name and fee they charge
     function registerArbitrator(bytes calldata pubkey, string calldata name, uint16 fee) public {
         // presently we do not allow to update the public keys otherwise the decryption of old messages will become impossible
         require(arbitrators[msg.sender].publicKey.length == 0, "already registered");
@@ -922,10 +923,10 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     /**
      * @notice Raise a dispute with the arbitrator.
      * @notice If the buyer is calling the dispute, the function will challenge the payment on Unicrow.
-     * @param content_ Encrypted short description for the arbitrator
      * @param sessionKey_ Encrypted session key for the arbitrator to decrypt owner's and worker's messages
+     * @param content_ Encrypted short description for the arbitrator
      */
-    function dispute(uint256 jobId_, bytes32 sessionKey_, string calldata content_) public onlyCreatorOrWorker(jobId_) {
+    function dispute(uint256 jobId_, bytes calldata sessionKey_, bytes calldata content_) public onlyCreatorOrWorker(jobId_) {
         JobPost storage job = jobs[jobId_];
         require(job.state == uint8(JobState.Taken), "job in invalid state");
         require(job.roles.arbitrator != address(0), "no arbitrator");
@@ -943,7 +944,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             JobEventData({
                 type_: uint8(JobEventType.Disputed),
                 address_: abi.encodePacked(msg.sender),
-                data_: abi.encodePacked(sessionKey_, content_),
+                data_: bytes.concat(encodeBytes(sessionKey_), encodeBytes(content_)),
                 timestamp_: 0
             })
         );
