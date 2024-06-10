@@ -6,10 +6,10 @@ import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 import { expect } from "chai";
 import { JobEventDataStructOutput, MarketplaceV1 as Marketplace } from "../typechain-types/contracts/MarketplaceV1";
 import { FakeToken } from "../typechain-types/contracts/unicrow/FakeToken";
-import { Signer, HDNodeWallet, EventLog, getCreateAddress, toBigInt, hexlify, ZeroAddress, ZeroHash, Result }  from "ethers";
+import { Signer, HDNodeWallet, EventLog, getCreateAddress, toBigInt, hexlify, ZeroAddress, ZeroHash, Result, getBytes, toUtf8Bytes, encodeBase64 }  from "ethers";
 import { Unicrow, UnicrowDispute, UnicrowArbitrator, UnicrowClaim, IERC20Errors__factory, ECDSA__factory, OwnableUpgradeable__factory, Initializable__factory } from "../typechain-types";
 import { HardhatNetworkHDAccountsConfig } from "hardhat/types";
-import { decodeJobArbitratedEvent, decodeJobDisputedEvent, decodeJobPostEvent, decodeJobRatedEvent, decodeJobSignedEvent, decodeJobUpdatedEvent, JobArbitratedEvent, JobDisputedEvent, JobEventType, JobPostEvent, JobRatedEvent, JobSignedEvent, JobState, JobUpdateEvent } from "../src/utils";
+import { decodeJobArbitratedEvent, decodeJobDisputedEvent, decodeJobDisputedEventRaw, decodeJobPostEvent, decodeJobRatedEvent, decodeJobSignedEvent, decodeJobUpdatedEvent, encryptBinaryData, encryptUtf8Data, getEncryptionSigningKey, getFromIpfs, getSessionKey, JobArbitratedEvent, JobDisputedEvent, JobDisputedEventRaw, JobEventType, JobPostEvent, JobRatedEvent, JobSignedEvent, JobState, JobUpdateEvent, publishToIpfs } from "../src/utils";
 import { utf8ToBytes } from "@noble/ciphers/utils";
 
 let unicrowGlobal: Unicrow;
@@ -381,6 +381,15 @@ describe("Marketplace Unit Tests", () => {
       .registerPublicKey(wallet.publicKey);
   }
 
+  async function registerEncryptionPublicKey(
+    marketplace: Marketplace,
+    user: Signer,
+  ) {
+    await marketplace
+      .connect(user)
+      .registerPublicKey((await getEncryptionSigningKey(user)).compressedPublicKey);
+  }
+
   async function registerArbitrator(
     marketplace: Marketplace,
     user: Signer,
@@ -389,6 +398,15 @@ describe("Marketplace Unit Tests", () => {
     await marketplace
       .connect(user)
       .registerArbitrator(wallet.publicKey, "TestArbitrator", 100);
+  }
+
+  async function registerArbitratorWithEncryptionPublicKey(
+    marketplace: Marketplace,
+    user: Signer,
+  ) {
+    await marketplace
+      .connect(user)
+      .registerArbitrator((await getEncryptionSigningKey(user)).compressedPublicKey, "TestArbitrator", 100);
   }
 
   async function deployMarketplaceWithUsersAndJob(multipleApplicants: boolean = false, whitelisted: boolean = true, arbitratorRequired: boolean = true) {
@@ -408,13 +426,13 @@ describe("Marketplace Unit Tests", () => {
 
     const title = "Create a marketplace in solidity";
     const content = "Please create a marketplace in solidity";
-    const contentBytes = ethers.getBytes(Buffer.from(content, "utf-8"));
+    const contentHash = "0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5";
 
     const jobIdResponse = await (await marketplace
       .connect(user1)
       .publishJobPost(
         title,
-        contentBytes,
+        contentHash,
         multipleApplicants,
         ["DV"],
         await fakeToken.getAddress(),
@@ -537,17 +555,16 @@ describe("Marketplace Unit Tests", () => {
 
       const title = "Create a marketplace in solidity";
       const content = "Please create a marketplace in solidity";
-      const contentBytes = ethers.getBytes(Buffer.from(content, "utf-8"));
+      const contentHash = "0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5";
 
       const jobId = 0;
       const fakeTokenAddres = await fakeToken.getAddress();
-      const contentHash = await marketplace.getIPFSHash(contentBytes);
 
       await expect(marketplace
         .connect(user1)
         .publishJobPost(
           title,
-          contentBytes,
+          contentHash,
           false,
           ["DV"],
           await fakeToken.getAddress(),
@@ -598,7 +615,7 @@ describe("Marketplace Unit Tests", () => {
 
       const title = "Create a marketplace in solidity!";
       const content = "Please create a marketplace in solidity";
-      const contentBytes = ethers.getBytes(Buffer.from(content, "utf-8"));
+      const contentHash = "0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5";
 
       const jobId = 0;
 
@@ -606,7 +623,7 @@ describe("Marketplace Unit Tests", () => {
         .connect(user1)
         .publishJobPost(
           title,
-          contentBytes,
+          contentHash,
           false,
           ["DV"],
           await fakeToken.getAddress(),
@@ -637,14 +654,11 @@ describe("Marketplace Unit Tests", () => {
       expect(job.whitelistWorkers).to.equal(true);
       expect(job.roles.creator).to.equal(await user1.getAddress());
       expect(job.title).to.equal(title);
-      expect(job.contentHash).to.equal("0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5");
+      expect(job.contentHash).to.equal(contentHash);
       expect(job.token).to.equal(await fakeToken.getAddress());
       expect(job.amount).to.equal(BigInt(100e18));
       expect(job.maxTime).to.equal(120);
       expect(job.roles.worker).to.equal(ethers.ZeroAddress);
-
-      const contentHash = await marketplace.getIPFSHash(contentBytes);
-      expect(contentHash).to.equal(job.contentHash);
 
       expect(await marketplace
         .connect(user1)
@@ -673,13 +687,13 @@ describe("Marketplace Unit Tests", () => {
 
       const title = "Create a marketplace in solidity!";
       const content = "Please create a marketplace in solidity";
-      const contentBytes = ethers.getBytes(Buffer.from(content, "utf-8"));
+      const contentHash = "0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5";
 
       await expect(marketplace
         .connect(user1)
         .publishJobPost(
           title,
-          contentBytes,
+          contentHash,
           false,
           ["DV"],
           ethers.ZeroAddress,
@@ -701,13 +715,13 @@ describe("Marketplace Unit Tests", () => {
 
       const title = "Create a marketplace in solidity!";
       const content = "Please create a marketplace in solidity";
-      const contentBytes = ethers.getBytes(Buffer.from(content, "utf-8"));
+      const contentHash = "0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5";
 
       await expect(marketplace
         .connect(user1)
         .publishJobPost(
           title,
-          contentBytes,
+          contentHash,
           false,
           ["DV"],
           await fakeToken.getAddress(),
@@ -722,7 +736,7 @@ describe("Marketplace Unit Tests", () => {
         .connect(user1)
         .publishJobPost(
           title,
-          contentBytes,
+          contentHash,
           false,
           ["DV"],
           await fakeToken.getAddress(),
@@ -737,7 +751,7 @@ describe("Marketplace Unit Tests", () => {
         .connect(user1)
         .publishJobPost(
           title,
-          contentBytes,
+          contentHash,
           false,
           ["DV"],
           await fakeToken.getAddress(),
@@ -757,13 +771,13 @@ describe("Marketplace Unit Tests", () => {
 
       const title = "Create a marketplace in solidity!";
       const content = "Please create a marketplace in solidity";
-      const contentBytes = ethers.getBytes(Buffer.from(content, "utf-8"));
+      const contentHash = "0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5";
 
       await expect(marketplace
         .connect(user1)
         .publishJobPost(
           title,
-          contentBytes,
+          contentHash,
           false,
           ["DV"],
           await fakeToken.getAddress(),
@@ -782,13 +796,13 @@ describe("Marketplace Unit Tests", () => {
       await registerPublicKey(marketplace, user1, wallet1);
 
       const content = "Please create a marketplace in solidity";
-      const contentBytes = ethers.getBytes(Buffer.from(content, "utf-8"));
+      const contentHash = "0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5";
 
       await expect(marketplace
         .connect(user1)
         .publishJobPost(
           "",
-          contentBytes,
+          contentHash,
           false,
           ["DV"],
           await fakeToken.getAddress(),
@@ -803,7 +817,7 @@ describe("Marketplace Unit Tests", () => {
         .connect(user1)
         .publishJobPost(
           "a".repeat(256),
-          contentBytes,
+          contentHash,
           false,
           ["DV"],
           await fakeToken.getAddress(),
@@ -824,13 +838,13 @@ describe("Marketplace Unit Tests", () => {
 
       const title = "Create a marketplace in solidity!";
       const content = "Please create a marketplace in solidity";
-      const contentBytes = ethers.getBytes(Buffer.from(content, "utf-8"));
+      const contentHash = "0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5";
 
       await expect(marketplace
         .connect(user1)
         .publishJobPost(
           title,
-          contentBytes,
+          contentHash,
           false,
           ["DV"],
           await fakeToken.getAddress(),
@@ -845,7 +859,7 @@ describe("Marketplace Unit Tests", () => {
         .connect(user1)
         .publishJobPost(
           title,
-          contentBytes,
+          contentHash,
           false,
           ["DV"],
           await fakeToken.getAddress(),
@@ -864,13 +878,13 @@ describe("Marketplace Unit Tests", () => {
 
       const title = "Create a marketplace in solidity!";
       const content = "Please create a marketplace in solidity";
-      const contentBytes = ethers.getBytes(Buffer.from(content, "utf-8"));
+      const contentHash = "0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5";
 
       await expect(marketplace
         .connect(user1)
         .publishJobPost(
           title,
-          contentBytes,
+          contentHash,
           false,
           ["DV"],
           await fakeToken.getAddress(),
@@ -890,13 +904,13 @@ describe("Marketplace Unit Tests", () => {
 
       const title = "Create a marketplace in solidity!";
       const content = "Please create a marketplace in solidity";
-      const contentBytes = ethers.getBytes(Buffer.from(content, "utf-8"));
+      const contentHash = "0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5";
 
       await expect(marketplace
         .connect(user1)
         .publishJobPost(
           title,
-          contentBytes,
+          contentHash,
           false,
           [],
           await fakeToken.getAddress(),
@@ -911,7 +925,7 @@ describe("Marketplace Unit Tests", () => {
         .connect(user1)
         .publishJobPost(
           title,
-          contentBytes,
+          contentHash,
           false,
           ["DV", "DA"],
           await fakeToken.getAddress(),
@@ -926,7 +940,7 @@ describe("Marketplace Unit Tests", () => {
         .connect(user1)
         .publishJobPost(
           title,
-          contentBytes,
+          contentHash,
           false,
           ["DV", "test"],
           await fakeToken.getAddress(),
@@ -947,7 +961,7 @@ describe("Marketplace Unit Tests", () => {
 
       const title = "Create a marketplace in solidity!";
       const content = "Please create a marketplace in solidity";
-      const contentBytes = ethers.getBytes(Buffer.from(content, "utf-8"));
+      const contentHash = "0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5";
 
       const jobId = 0;
 
@@ -955,7 +969,7 @@ describe("Marketplace Unit Tests", () => {
         .connect(user1)
         .publishJobPost(
           title,
-          contentBytes,
+          contentHash,
           false,
           ["DV"],
           await fakeToken.getAddress(),
@@ -973,7 +987,7 @@ describe("Marketplace Unit Tests", () => {
         .connect(user1)
         .publishJobPost(
           title,
-          contentBytes,
+          contentHash,
           false,
           ["DV"],
           await fakeToken.getAddress(),
@@ -1037,8 +1051,7 @@ describe("Marketplace Unit Tests", () => {
 
       const title = "New title";
       const content = "Please create a marketplace in solidity";
-      const contentBytes = ethers.getBytes(Buffer.from(content, "utf-8"));
-      const contentHash = await marketplace.getIPFSHash(contentBytes);
+      const contentHash = "0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5";
       const amount = 200;
       const maxTime = 240;
       const arbitrator = await wallet3.getAddress();
@@ -1047,7 +1060,7 @@ describe("Marketplace Unit Tests", () => {
       await expect(marketplace.connect(user2).updateJobPost(
         jobId,
         title,
-        contentBytes,
+        contentHash,
         amount,
         maxTime,
         arbitrator,
@@ -1057,7 +1070,7 @@ describe("Marketplace Unit Tests", () => {
       await expect(marketplace.connect(user1).updateJobPost(
         jobId,
         "",
-        contentBytes,
+        contentHash,
         amount,
         maxTime,
         arbitrator,
@@ -1067,7 +1080,7 @@ describe("Marketplace Unit Tests", () => {
       await expect(marketplace.connect(user1).updateJobPost(
         jobId,
         "0".repeat(256),
-        contentBytes,
+        contentHash,
         amount,
         maxTime,
         arbitrator,
@@ -1082,12 +1095,12 @@ describe("Marketplace Unit Tests", () => {
         maxTime,
         arbitrator,
         whitelistWorkers,
-      )).to.be.revertedWith("Max content size is 65536 bytes");
+      )).to.be.rejectedWith("incorrect data length");
 
       await expect(marketplace.connect(user1).updateJobPost(
         jobId,
         title,
-        ethers.getBytes(Buffer.from("0".repeat(99999), "utf-8")),
+        contentHash,
         0,
         maxTime,
         arbitrator,
@@ -1098,7 +1111,7 @@ describe("Marketplace Unit Tests", () => {
       await expect(marketplace.connect(user1).updateJobPost(
         jobId,
         title,
-        contentBytes,
+        contentHash,
         amount,
         2**32 + 1,
         arbitrator,
@@ -1108,7 +1121,7 @@ describe("Marketplace Unit Tests", () => {
       await expect(marketplace.connect(user1).updateJobPost(
         jobId,
         title,
-        contentBytes,
+        contentHash,
         amount,
         maxTime,
         arbitrator,
@@ -1147,7 +1160,7 @@ describe("Marketplace Unit Tests", () => {
       await expect(marketplace.connect(user1).updateJobPost(
         jobId,
         title,
-        contentBytes,
+        contentHash,
         amount,
         maxTime,
         arbitrator,
@@ -1160,8 +1173,7 @@ describe("Marketplace Unit Tests", () => {
 
       const title = "New title";
       const content = "Please create a marketplace in solidity";
-      const contentBytes = ethers.getBytes(Buffer.from(content, "utf-8"));
-      const contentHash = await marketplace.getIPFSHash(contentBytes);
+      const contentHash = "0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5";
       const amount = 200;
       const maxTime = 240;
       const whitelistWorkers = true;
@@ -1169,7 +1181,7 @@ describe("Marketplace Unit Tests", () => {
       await expect(marketplace.connect(user1).updateJobPost(
         jobId,
         title,
-        contentBytes,
+        contentHash,
         amount,
         maxTime,
         ethers.ZeroAddress,
@@ -1179,7 +1191,7 @@ describe("Marketplace Unit Tests", () => {
       await expect(marketplace.connect(user1).updateJobPost(
         jobId,
         title,
-        contentBytes,
+        contentHash,
         amount,
         maxTime,
         wallet2.address,
@@ -1191,7 +1203,7 @@ describe("Marketplace Unit Tests", () => {
       await expect(marketplace.connect(user1).updateJobPost(
         jobId,
         title,
-        contentBytes,
+        contentHash,
         amount,
         maxTime,
         arbitrator.address,
@@ -1204,7 +1216,7 @@ describe("Marketplace Unit Tests", () => {
 
       const title = "New title";
       const content = "Please create a marketplace in solidity";
-      const contentBytes = ethers.getBytes(Buffer.from(content, "utf-8"));
+      const contentHash = "0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5";
       const amount = BigInt(200e18);
       const maxTime = 240;
       const arbitrator = await wallet3.getAddress();
@@ -1218,7 +1230,7 @@ describe("Marketplace Unit Tests", () => {
       await expect(marketplace.connect(user1).updateJobPost(
         jobId,
         title,
-        contentBytes,
+        contentHash,
         amount,
         maxTime,
         arbitrator,
@@ -1238,7 +1250,7 @@ describe("Marketplace Unit Tests", () => {
       await expect(marketplace.connect(user1).updateJobPost(
         jobId,
         title,
-        contentBytes,
+        contentHash,
         BigInt(100e18),
         maxTime,
         arbitrator,
@@ -1258,7 +1270,7 @@ describe("Marketplace Unit Tests", () => {
       await expect(marketplace.connect(user1).updateJobPost(
         jobId,
         title,
-        contentBytes,
+        contentHash,
         BigInt(300e18),
         maxTime,
         arbitrator,
@@ -1282,7 +1294,7 @@ describe("Marketplace Unit Tests", () => {
       await expect(marketplace.connect(user1).updateJobPost(
         jobId,
         title,
-        contentBytes,
+        contentHash,
         BigInt(100e18),
         maxTime,
         arbitrator,
@@ -1304,8 +1316,7 @@ describe("Marketplace Unit Tests", () => {
 
       const title = "New title";
       const content = "Please create a marketplace in solidity";
-      const contentBytes = ethers.getBytes(Buffer.from(content, "utf-8"));
-      const contentHash = await marketplace.getIPFSHash(contentBytes);
+      const contentHash = "0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5";
       const amount = 200;
       const maxTime = 240;
       const arbitrator = await wallet3.getAddress();
@@ -1325,7 +1336,7 @@ describe("Marketplace Unit Tests", () => {
         await expect(marketplace.connect(user1).updateJobPost(
           jobId,
           title,
-          contentBytes,
+          contentHash,
           amount,
           maxTime,
           arbitrator,
@@ -1565,7 +1576,7 @@ describe("Marketplace Unit Tests", () => {
       ).to.be.revertedWith("not registered");
 
       const revision = await marketplace.eventsLength(jobId);
-      const wrongSignature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId+1n])));
+      const wrongSignature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId+1n]))));
       const invalidSignature = "0x" + "00".repeat(65);
 
       await expect(
@@ -1573,7 +1584,7 @@ describe("Marketplace Unit Tests", () => {
       ).to.be.revertedWithCustomError({interface: ECDSA__factory.createInterface()}, "ECDSAInvalidSignatureLength").withArgs(0);
 
       await expect(
-        marketplace.connect(user2).takeJob(jobId, wrongSignature.serialized)
+        marketplace.connect(user2).takeJob(jobId, wrongSignature)
       ).to.be.revertedWith("invalid signature");
 
       await expect(
@@ -1594,7 +1605,7 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
       const revision = await marketplace.eventsLength(jobId);
-      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+      const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
       let escrowId: bigint = 0n;
 
@@ -1603,7 +1614,7 @@ describe("Marketplace Unit Tests", () => {
       expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(0);
 
       await expect(
-        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+        marketplace.connect(user2).takeJob(jobId, signature)
       ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Signed);
@@ -1611,7 +1622,7 @@ describe("Marketplace Unit Tests", () => {
 
         const event: JobSignedEvent = decodeJobSignedEvent(jobEventData.data_);
         expect(event.revision).to.equal(revision);
-        expect(event.signatire).to.equal(signature.serialized);
+        expect(event.signatire).to.equal(signature);
 
         return true;
       }).and.to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
@@ -1631,7 +1642,7 @@ describe("Marketplace Unit Tests", () => {
 
       // fail to take taken job
       await expect(
-        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+        marketplace.connect(user2).takeJob(jobId, signature)
       ).to.be.revertedWith("not open");
 
       const job = await marketplace.jobs(jobId);
@@ -1644,14 +1655,14 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, fakeToken, user1, user2, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(true);
 
       const revision = await marketplace.eventsLength(jobId);
-      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+      const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(100e18));
       expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(0);
 
       await expect(
-        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+        marketplace.connect(user2).takeJob(jobId, signature)
       ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
 
@@ -1660,7 +1671,7 @@ describe("Marketplace Unit Tests", () => {
 
         const event: JobSignedEvent = decodeJobSignedEvent(jobEventData.data_);
         expect(event.revision).to.equal(revision);
-        expect(event.signatire).to.equal(signature.serialized);
+        expect(event.signatire).to.equal(signature);
 
         return true;
       }).and.not.to.emit(unicrowGlobal, "Pay");
@@ -1734,10 +1745,10 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
       const message = "I am interested in this job";
-      const messageBytes = ethers.getBytes(Buffer.from(message, "utf-8"));
+      const { hash: messageHash } = await publishToIpfs(message);
 
       await expect(
-        marketplace.connect(arbitrator).postThreadMessage(jobId, messageBytes)
+        marketplace.connect(arbitrator).postThreadMessage(jobId, messageHash)
       ).to.be.revertedWith("not whitelisted");
 
       await expect(
@@ -1745,13 +1756,13 @@ describe("Marketplace Unit Tests", () => {
       ).to.be.not.reverted;
 
       await expect(
-        marketplace.connect(arbitrator).postThreadMessage(jobId, messageBytes)
+        marketplace.connect(arbitrator).postThreadMessage(jobId, messageHash)
       ).to.be.not.reverted;
 
       {
         const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, false);
         await expect(
-          marketplace.connect(arbitrator).postThreadMessage(jobId, messageBytes)
+          marketplace.connect(arbitrator).postThreadMessage(jobId, messageHash)
         ).to.be.not.revertedWith("not whitelisted");
       }
 
@@ -1760,7 +1771,7 @@ describe("Marketplace Unit Tests", () => {
       ).to.be.not.reverted;
 
       await expect(
-        marketplace.connect(user1).postThreadMessage(jobId, messageBytes)
+        marketplace.connect(user1).postThreadMessage(jobId, messageHash)
       ).to.be.revertedWith("job closed");
 
       await expect(
@@ -1768,22 +1779,22 @@ describe("Marketplace Unit Tests", () => {
       ).to.be.not.reverted;
 
       const revision = await marketplace.eventsLength(jobId);
-      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+      const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
       await expect(
-        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+        marketplace.connect(user2).takeJob(jobId, signature)
       ).to.be.not.reverted;
 
       await expect(
-        marketplace.connect(user1).postThreadMessage(jobId, messageBytes)
+        marketplace.connect(user1).postThreadMessage(jobId, messageHash)
       ).to.be.not.revertedWith("taken/not worker");
 
       await expect(
-        marketplace.connect(user2).postThreadMessage(jobId, messageBytes)
+        marketplace.connect(user2).postThreadMessage(jobId, messageHash)
       ).to.be.not.revertedWith("taken/not worker");
 
       await expect(
-        marketplace.connect(arbitrator).postThreadMessage(jobId, messageBytes)
+        marketplace.connect(arbitrator).postThreadMessage(jobId, messageHash)
       ).to.be.revertedWith("taken/not worker");
     });
 
@@ -1791,27 +1802,26 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
       const message = "I am interested in this job";
-      const messageBytes = ethers.getBytes(Buffer.from(message, "utf-8"));
-      const contentHash = await marketplace.getIPFSHash(messageBytes);
+      const { hash: messageHash } = await publishToIpfs(message);
 
       await expect(
-        marketplace.connect(user1).postThreadMessage(jobId, messageBytes)
+        marketplace.connect(user1).postThreadMessage(jobId, messageHash)
       ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.OwnerMessage);
         expect(jobEventData.address_).to.equal(user1.address.toLowerCase());
-        expect(jobEventData.data_).to.equal(contentHash);
+        expect(jobEventData.data_).to.equal(messageHash);
 
         return true;
       });
 
       await expect(
-        marketplace.connect(user2).postThreadMessage(jobId, messageBytes)
+        marketplace.connect(user2).postThreadMessage(jobId, messageHash)
       ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.WorkerMessage);
         expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
-        expect(jobEventData.data_).to.equal(contentHash);
+        expect(jobEventData.data_).to.equal(messageHash);
 
         return true;
       });
@@ -1824,25 +1834,25 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
       const message = "Delivered";
-      const messageBytes = ethers.getBytes(Buffer.from(message, "utf-8"));
+      const { hash: messageHash } = await publishToIpfs(message)
 
       const revision = await marketplace.eventsLength(jobId);
-      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+      const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
       await expect(
-        marketplace.connect(user2).deliverResult(jobId, messageBytes)
+        marketplace.connect(user2).deliverResult(jobId, messageHash)
       ).to.be.revertedWith("not worker");
 
       await expect(
-        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+        marketplace.connect(user2).takeJob(jobId, signature)
       ).not.to.be.reverted;
 
       await expect(
-        marketplace.connect(user1).deliverResult(jobId, messageBytes)
+        marketplace.connect(user1).deliverResult(jobId, messageHash)
       ).to.be.revertedWith("not worker");
 
       await expect(
-        marketplace.connect(user2).deliverResult(jobId, messageBytes)
+        marketplace.connect(user2).deliverResult(jobId, messageHash)
       ).not.to.be.reverted;
     });
 
@@ -1850,18 +1860,18 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
       const message = "Delivered";
-      const messageBytes = ethers.getBytes(Buffer.from(message, "utf-8"));
-      const contentHash = await marketplace.getIPFSHash(messageBytes);
+      const { hash: messageHash } = await publishToIpfs(message)
+      const contentHash = ZeroHash;
 
       const revision = await marketplace.eventsLength(jobId);
-      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+      const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
       await expect(
-        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+        marketplace.connect(user2).takeJob(jobId, signature)
       ).not.to.be.reverted;
 
       await expect(
-        marketplace.connect(user2).deliverResult(jobId, messageBytes)
+        marketplace.connect(user2).deliverResult(jobId, contentHash)
       ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Delivered);
@@ -1880,10 +1890,10 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
       const message = "Nice job!";
-      const messageBytes = ethers.getBytes(Buffer.from(message, "utf-8"));
+      const { hash: messageHash } = await publishToIpfs(message);
 
       const revision = await marketplace.eventsLength(jobId);
-      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+      const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
       await expect(
         marketplace.connect(user1).approveResult(jobId, 5, message)
@@ -1894,11 +1904,11 @@ describe("Marketplace Unit Tests", () => {
       ).to.be.revertedWith("not creator");
 
       await expect(
-        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+        marketplace.connect(user2).takeJob(jobId, signature)
       ).not.to.be.reverted;
 
       await expect(
-        marketplace.connect(user2).deliverResult(jobId, messageBytes)
+        marketplace.connect(user2).deliverResult(jobId, messageHash)
       ).not.to.be.reverted;
 
       await expect(
@@ -1930,11 +1940,11 @@ describe("Marketplace Unit Tests", () => {
         ).to.be.revertedWith("Job doesn't exist or not closed");
 
         await expect(
-          marketplace.connect(user2).takeJob(jobId, signature.serialized)
+          marketplace.connect(user2).takeJob(jobId, signature)
         ).not.to.be.reverted;
 
         await expect(
-          marketplace.connect(user2).deliverResult(jobId, messageBytes)
+          marketplace.connect(user2).deliverResult(jobId, messageHash)
         ).not.to.be.reverted;
 
         await expect(
@@ -1971,18 +1981,18 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
       const message = "Delivered";
-      const messageBytes = ethers.getBytes(Buffer.from(message, "utf-8"));
+      const { hash: messageHash } = await publishToIpfs(message)
       const reviewText = "Nice Job!";
 
       const revision = await marketplace.eventsLength(jobId);
-      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+      const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
       await expect(
-        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+        marketplace.connect(user2).takeJob(jobId, signature)
       ).not.to.be.reverted;
 
       await expect(
-        marketplace.connect(user2).deliverResult(jobId, messageBytes)
+        marketplace.connect(user2).deliverResult(jobId, messageHash)
       ).not.to.be.reverted;
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
@@ -2027,15 +2037,17 @@ describe("Marketplace Unit Tests", () => {
       const randomWallet = ethers.Wallet.createRandom();
       const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
+      const { hash: resultHash } = await publishToIpfs("Result");
+
       const revision = await marketplace.eventsLength(jobId);
-      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+      const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
       await expect(
         marketplace.connect(user1).refund(jobId)
       ).to.be.revertedWith("not worker");
 
       await expect(
-        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+        marketplace.connect(user2).takeJob(jobId, signature)
       ).not.to.be.reverted;
 
       await expect(
@@ -2048,15 +2060,15 @@ describe("Marketplace Unit Tests", () => {
 
       {
         const revision = await marketplace.eventsLength(jobId);
-        const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+        const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
         await expect(
-          marketplace.connect(user2).takeJob(jobId, signature.serialized)
+          marketplace.connect(user2).takeJob(jobId, signature)
         ).not.to.be.reverted;
       }
 
       await expect(
-        marketplace.connect(user2).deliverResult(jobId, "0x")
+        marketplace.connect(user2).deliverResult(jobId, resultHash)
       ).not.to.be.reverted;
 
       // close by approving
@@ -2073,7 +2085,7 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
       const revision = await marketplace.eventsLength(jobId);
-      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+      const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
       expect(await fakeToken.balanceOf(await user2.getAddress())).to.equal(BigInt(1000e18));
@@ -2081,7 +2093,7 @@ describe("Marketplace Unit Tests", () => {
       expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(0);
 
       await expect(
-        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+        marketplace.connect(user2).takeJob(jobId, signature)
       ).not.to.be.reverted;
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
@@ -2095,10 +2107,10 @@ describe("Marketplace Unit Tests", () => {
 
 
       const message = "Delivered";
-      const messageBytes = ethers.getBytes(Buffer.from(message, "utf-8"));
+      const { hash: messageHash } = await publishToIpfs(message)
 
       await expect(
-        marketplace.connect(user2).deliverResult(jobId, messageBytes)
+        marketplace.connect(user2).deliverResult(jobId, messageHash)
       ).not.to.be.reverted;
 
       await expect(
@@ -2152,9 +2164,9 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, false);
 
       const revision = await marketplace.eventsLength(jobId);
-      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+      const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
-      const content = "Objection!";
+      const content = toUtf8Bytes("Objection!");
       const sessionKey = "0x" + "00".repeat(32);
 
       await expect(
@@ -2166,7 +2178,7 @@ describe("Marketplace Unit Tests", () => {
       ).to.be.revertedWith("job in invalid state");
 
       await expect(
-        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+        marketplace.connect(user2).takeJob(jobId, signature)
       ).not.to.be.reverted;
 
       await expect(
@@ -2179,9 +2191,9 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
       const revision = await marketplace.eventsLength(jobId);
-      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+      const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
-      const content = "Objection!";
+      const content = toUtf8Bytes("Objection!");
       const sessionKey = "0x" + "00".repeat(32);
 
       await expect(
@@ -2193,7 +2205,7 @@ describe("Marketplace Unit Tests", () => {
       ).to.be.revertedWith("job in invalid state");
 
       await expect(
-        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+        marketplace.connect(user2).takeJob(jobId, signature)
       ).not.to.be.reverted;
 
       await expect(
@@ -2214,7 +2226,7 @@ describe("Marketplace Unit Tests", () => {
       const randomWallet = ethers.Wallet.createRandom();
       const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
-      const content = "Objection!";
+      const content = toUtf8Bytes("Objection!");
       const sessionKey = "0x" + "00".repeat(32);
 
       await expect(
@@ -2231,25 +2243,31 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
 
       const revision = await marketplace.eventsLength(jobId);
-      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+      const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
-      const content = "Objection!";
-      const sessionKey = "0x" + "00".repeat(32);
+      const sessionKeyOA = await getSessionKey(user1, (await marketplace.connect(user1).arbitrators(arbitrator.address)).publicKey);
+
+      const content = hexlify(encryptUtf8Data("Objection!", sessionKeyOA));
+      const sessionKeyOW = hexlify(encryptBinaryData(getBytes("0x" + "00".repeat(32)), sessionKeyOA));
 
       await expect(
-        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+        marketplace.connect(user2).takeJob(jobId, signature)
       ).not.to.be.reverted;
 
       await expect(
-        marketplace.connect(user1).dispute(jobId, sessionKey, content)
+        marketplace.connect(user1).dispute(jobId, sessionKeyOW, content)
       ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Disputed);
         expect(jobEventData.address_).to.equal(user1.address.toLowerCase());
 
-        const event: JobDisputedEvent = decodeJobDisputedEvent(jobEventData.data_);
-        expect(event.sessionKey).to.equal(sessionKey);
-        expect(event.content).to.equal(hexlify(utf8ToBytes(content)));
+        const eventRaw: JobDisputedEventRaw = decodeJobDisputedEventRaw(jobEventData.data_);
+        expect(eventRaw.sessionKey).to.equal(sessionKeyOW);
+        expect(eventRaw.content).to.equal(content);
+
+        const event: JobDisputedEvent = decodeJobDisputedEvent(jobEventData.data_, sessionKeyOA);
+        expect(event.sessionKey).to.equal("0x" + "00".repeat(32));
+        expect(event.content).to.equal("Objection!");
 
         return true;
       }).and.to.emit(unicrowDisputeGlobal, "Challenge");
@@ -2260,13 +2278,13 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
 
       const revision = await marketplace.eventsLength(jobId);
-      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+      const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
-      const content = "Objection!";
+      const content = toUtf8Bytes("Objection!");
       const sessionKey = "0x" + "00".repeat(32);
 
       await expect(
-        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+        marketplace.connect(user2).takeJob(jobId, signature)
       ).not.to.be.reverted;
 
       await expect(
@@ -2276,9 +2294,9 @@ describe("Marketplace Unit Tests", () => {
         expect(jobEventData.type_).to.equal(JobEventType.Disputed);
         expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
 
-        const event: JobDisputedEvent = decodeJobDisputedEvent(jobEventData.data_);
+        const event: JobDisputedEventRaw = decodeJobDisputedEventRaw(jobEventData.data_);
         expect(event.sessionKey).to.equal(sessionKey);
-        expect(event.content).to.equal(hexlify(utf8ToBytes(content)));
+        expect(event.content).to.equal(hexlify(content));
 
         return true;
       }).and.not.to.emit(unicrowDisputeGlobal, "Challenge");
@@ -2291,33 +2309,34 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
 
       const revision = await marketplace.eventsLength(jobId);
-      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+      const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
-      const content = "Objection!";
+      const content = toUtf8Bytes("Objection!");
       const sessionKey = "0x" + "00".repeat(32);
 
       const creatorShare = 0.8 * 100 * 100;
       const workerShare = 0.2 * 100 * 100;
       const reason = "Worker delivered mediocre results";
+      const { hash: reasonHash } = await publishToIpfs(reason);
 
       await expect(
-        marketplace.connect(user1).arbitrate(jobId, creatorShare, workerShare, reason)
+        marketplace.connect(user1).arbitrate(jobId, creatorShare, workerShare, reasonHash)
       ).to.be.revertedWith("not arbitrator");
 
       await expect(
-        marketplace.connect(arbitrator).arbitrate(jobId, creatorShare, workerShare, "a".repeat(150))
-      ).to.be.revertedWith("reason too long");
+        marketplace.connect(arbitrator).arbitrate(jobId, creatorShare, workerShare, "0x")
+      ).to.be.rejected;
 
       await expect(
-        marketplace.connect(arbitrator).arbitrate(jobId, creatorShare, workerShare, reason)
+        marketplace.connect(arbitrator).arbitrate(jobId, creatorShare, workerShare, reasonHash)
       ).to.be.revertedWith("job in invalid state");
 
       await expect(
-        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+        marketplace.connect(user2).takeJob(jobId, signature)
       ).not.to.be.reverted;
 
       await expect(
-        marketplace.connect(arbitrator).arbitrate(jobId, creatorShare, workerShare, reason)
+        marketplace.connect(arbitrator).arbitrate(jobId, creatorShare, workerShare, reasonHash)
       ).to.be.revertedWith("not disputed");
 
       await expect(
@@ -2325,7 +2344,7 @@ describe("Marketplace Unit Tests", () => {
       ).to.be.not.reverted;
 
       await expect(
-        marketplace.connect(arbitrator).arbitrate(jobId, creatorShare, workerShare, reason)
+        marketplace.connect(arbitrator).arbitrate(jobId, creatorShare, workerShare, reasonHash)
       ).to.be.not.reverted;
     });
 
@@ -2334,14 +2353,15 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
 
       const revision = await marketplace.eventsLength(jobId);
-      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+      const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
-      const content = "Objection!";
+      const content = toUtf8Bytes("Objection!");
       const sessionKey = "0x" + "00".repeat(32);
 
       const creatorShare = 0.8 * 100 * 100;
       const workerShare = 0.2 * 100 * 100;
       const reason = "Worker delivered mediocre results";
+      const { hash: reasonHash } = await publishToIpfs(reason);
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
       expect(await fakeToken.balanceOf(await user2.getAddress())).to.equal(BigInt(1000e18));
@@ -2349,7 +2369,7 @@ describe("Marketplace Unit Tests", () => {
       expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(0);
 
       await expect(
-        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+        marketplace.connect(user2).takeJob(jobId, signature)
       ).not.to.be.reverted;
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
@@ -2366,8 +2386,9 @@ describe("Marketplace Unit Tests", () => {
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(0);
       expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(BigInt(100e18));
 
+      const reasonRead = await getFromIpfs(reasonHash);
       await expect(
-        marketplace.connect(arbitrator).arbitrate(jobId, creatorShare, workerShare, reason)
+        marketplace.connect(arbitrator).arbitrate(jobId, creatorShare, workerShare, reasonHash)
       ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Arbitrated);
@@ -2378,7 +2399,8 @@ describe("Marketplace Unit Tests", () => {
         expect(event.creatorAmount).to.equal(BigInt(79.2e18));
         expect(event.workerShare).to.equal(workerShare);
         expect(event.workerAmount).to.equal(BigInt(15.81e18));
-        expect(event.reason).to.equal(hexlify(utf8ToBytes(reason)));
+        expect(event.reasonHash).to.equal(reasonHash);
+        expect(reasonRead).to.equal(reason);
 
         return true;
       }).and.to.emit(unicrowArbitratorGlobal, "Arbitrated");
@@ -2406,14 +2428,15 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
 
       const revision = await marketplace.eventsLength(jobId);
-      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+      const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
-      const content = "Objection!";
+      const content = toUtf8Bytes("Objection!");
       const sessionKey = "0x" + "00".repeat(32);
 
       const creatorShare = 0.0 * 100 * 100;
       const workerShare = 1.0 * 100 * 100;
       const reason = "Worker delivered mediocre results";
+      const { hash: reasonHash } = await publishToIpfs(reason);
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
       expect(await fakeToken.balanceOf(await user2.getAddress())).to.equal(BigInt(1000e18));
@@ -2421,7 +2444,7 @@ describe("Marketplace Unit Tests", () => {
       expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(0);
 
       await expect(
-        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+        marketplace.connect(user2).takeJob(jobId, signature)
       ).not.to.be.reverted;
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
@@ -2438,8 +2461,9 @@ describe("Marketplace Unit Tests", () => {
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(0);
       expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(BigInt(100e18));
 
+      const reasonRead = await getFromIpfs(reasonHash);
       await expect(
-        marketplace.connect(arbitrator).arbitrate(jobId, creatorShare, workerShare, reason)
+        marketplace.connect(arbitrator).arbitrate(jobId, creatorShare, workerShare, reasonHash)
       ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Arbitrated);
@@ -2450,7 +2474,8 @@ describe("Marketplace Unit Tests", () => {
         expect(event.creatorAmount).to.equal(BigInt(0e18));
         expect(event.workerShare).to.equal(workerShare);
         expect(event.workerAmount).to.equal(BigInt(79e18));
-        expect(event.reason).to.equal(hexlify(utf8ToBytes(reason)));
+        expect(event.reasonHash).to.equal(reasonHash);
+        expect(reasonRead).to.equal(reason);
 
         return true;
       }).and.to.emit(unicrowArbitratorGlobal, "Arbitrated");
@@ -2479,14 +2504,15 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
 
       const revision = await marketplace.eventsLength(jobId);
-      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+      const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
-      const content = "Objection!";
+      const content = toUtf8Bytes("Objection!");
       const sessionKey = "0x" + "00".repeat(32);
 
       const creatorShare = 1.0 * 100 * 100;
       const workerShare = 0.0 * 100 * 100;
       const reason = "Worker delivered mediocre results";
+      const { hash: reasonHash } = await publishToIpfs(reason);
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
       expect(await fakeToken.balanceOf(await user2.getAddress())).to.equal(BigInt(1000e18));
@@ -2494,7 +2520,7 @@ describe("Marketplace Unit Tests", () => {
       expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(0);
 
       await expect(
-        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+        marketplace.connect(user2).takeJob(jobId, signature)
       ).not.to.be.reverted;
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
@@ -2511,8 +2537,9 @@ describe("Marketplace Unit Tests", () => {
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(0);
       expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(BigInt(100e18));
 
+      const reasonRead = await getFromIpfs(reasonHash);
       await expect(
-        marketplace.connect(arbitrator).arbitrate(jobId, creatorShare, workerShare, reason)
+        marketplace.connect(arbitrator).arbitrate(jobId, creatorShare, workerShare, reasonHash)
       ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Arbitrated);
@@ -2523,7 +2550,8 @@ describe("Marketplace Unit Tests", () => {
         expect(event.creatorAmount).to.equal(BigInt(99e18));
         expect(event.workerShare).to.equal(workerShare);
         expect(event.workerAmount).to.equal(BigInt(0e18));
-        expect(event.reason).to.equal(hexlify(utf8ToBytes(reason)));
+        expect(event.reasonHash).to.equal(reasonHash);
+        expect(reasonRead).to.equal(reason);
 
         return true;
       }).and.to.emit(unicrowArbitratorGlobal, "Arbitrated");
@@ -2611,10 +2639,10 @@ describe("Marketplace Unit Tests", () => {
       }
 
       const revision = await marketplace.eventsLength(jobId);
-      const signature = wallet2.signingKey.sign(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId])));
+      const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
       await expect(
-        marketplace.connect(user2).takeJob(jobId, signature.serialized)
+        marketplace.connect(user2).takeJob(jobId, signature)
       ).to.not.be.reverted;
 
       await expect(
@@ -2648,4 +2676,162 @@ describe("Marketplace Unit Tests", () => {
       }
     });
   });
+
+  describe("integration test", async () => {
+    //NOTE: requires ipfs service running
+    it("integration test", async () => {
+      const {
+        marketplace,
+        fakeToken,
+        user1,
+        user2,
+        arbitrator,
+      } = await loadFixture(deployContractsFixture);
+      const { wallet1, wallet2, wallet3 } = await loadFixture(getWalletsFixture);
+      await registerEncryptionPublicKey(marketplace, user1);
+      await registerEncryptionPublicKey(marketplace, user2);
+      await registerArbitratorWithEncryptionPublicKey(marketplace, arbitrator);
+
+      const title = "Create a marketplace in solidity";
+      const content = "Please create a marketplace in solidity";
+      const { hash: contentHash } = await publishToIpfs(content);
+
+      const jobIdResponse = await (await marketplace
+        .connect(user1)
+        .publishJobPost(
+          title,
+          contentHash,
+          false,
+          ["DV"],
+          await fakeToken.getAddress(),
+          BigInt(100e18),
+          120,
+          "digital",
+          arbitrator.address,
+          [user2.address],
+        )).wait();
+
+      const jobId = (jobIdResponse?.logs.at(-1) as EventLog).args.jobId as bigint;
+
+      //#region utils
+      const readWorkerMessage = new Promise<string>(async (resolve) => {
+        const listener = async (jobId_: bigint, jobEventData: JobEventDataStructOutput) => {
+          if (jobId_ === jobId && Number(jobEventData.type_) === JobEventType.WorkerMessage) {
+            const otherCompressedPublicKey = await marketplace.connect(user1).publicKeys(user2.address);
+            const sessionKey = await getSessionKey(user1, otherCompressedPublicKey);
+            const hash = jobEventData.data_;
+
+            const message = await getFromIpfs(hash, sessionKey);
+
+            await marketplace.removeListener("JobEvent", listener);
+
+            resolve(message);
+          }
+        };
+
+        await marketplace.connect(user1).addListener("JobEvent", listener);
+      });
+
+      const readOwnerMessage = new Promise<string>(async (resolve) => {
+        const listener = async (jobId_: bigint, jobEventData: JobEventDataStructOutput) => {
+          if (jobId_ === jobId && Number(jobEventData.type_) === JobEventType.OwnerMessage) {
+            const otherCompressedPublicKey = await marketplace.connect(user2).publicKeys(user1.address);
+            const sessionKey = await getSessionKey(user2, otherCompressedPublicKey);
+            const hash = jobEventData.data_;
+
+            const message = await getFromIpfs(hash, sessionKey);
+
+            await marketplace.removeListener("JobEvent", listener);
+
+            resolve(message);
+          }
+        };
+
+        await marketplace.connect(user1).addListener("JobEvent", listener);
+      });
+
+      const withDelay = async <T>(promise: Promise<T>): Promise<T> => {
+        return new Promise<T>((resolve) => {
+          setTimeout(() => {
+            promise.then((result) => resolve(result));
+          }, 1000);
+      })};
+      //#endregion utils
+
+      // worker reads the post data
+      const workerSessionKey = await getSessionKey(user2, await marketplace.connect(user2).publicKeys(user1.address));
+      const postContent = await getFromIpfs((await marketplace.connect(user2).jobs(jobId)).contentHash, workerSessionKey);
+      expect(postContent).to.equal(content);
+
+      // worker posts a thread message
+      const workerMessage = "I can do it!";
+      const { hash: workerMessageHash } = await publishToIpfs(workerMessage);
+
+      const [workerMessageRead] = await Promise.all([readWorkerMessage, withDelay(marketplace.connect(user2).postThreadMessage(jobId, workerMessageHash))]);
+      expect(workerMessageRead).to.equal(workerMessage);
+
+      const ownerMessage = "Go ahead!";
+      const { hash: ownerMessageHash } = await publishToIpfs(ownerMessage);
+
+      const [ownerMessageRead] = await Promise.all([readOwnerMessage, withDelay(marketplace.connect(user1).postThreadMessage(jobId, ownerMessageHash))]);
+      expect(ownerMessageRead).to.equal(ownerMessage);
+
+      // worker takes the job
+      const revision = await marketplace.eventsLength(jobId);
+      const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
+
+      await marketplace.connect(user2).takeJob(jobId, signature);
+
+      // worker delivers the result
+      const result = "I did not really manage to create a marketplace in solidity, but take a look for my partial solution";
+      const { hash: resultHash } = await publishToIpfs(result);
+
+      await marketplace.connect(user2).deliverResult(jobId, resultHash);
+
+      const pastEvents = await marketplace.connect(user1).getEvents(jobId, revision, 0);
+      const lastEvent = pastEvents[pastEvents.length - 1];
+      const resultRead = await getFromIpfs(lastEvent.data_);
+      expect(resultRead).to.equal(result);
+
+      // owner raises a dispute
+      const disputeContent = "I am not satisfied with the result";
+      const sessionKeyOW = await getSessionKey(user1, await marketplace.connect(user1).publicKeys(user2.address));
+      const sessionKeyWO = await getSessionKey(user2, await marketplace.connect(user2).publicKeys(user1.address));
+      expect(sessionKeyOW).to.equal(sessionKeyWO);
+      const sessionKeyOA = await getSessionKey(user1, (await marketplace.connect(user1).arbitrators(arbitrator.address)).publicKey);
+
+      const encryptedContent = hexlify(encryptUtf8Data(disputeContent, sessionKeyOA));
+      const encrypedSessionKey = hexlify(encryptBinaryData(getBytes(sessionKeyOW), sessionKeyOA));
+
+      await marketplace.connect(user1).dispute(jobId, encrypedSessionKey, encryptedContent);
+
+      // arbitrator observes the dispute
+      const pastEventsArbitrator = await marketplace.connect(user1).getEvents(jobId, revision, 0);
+      const lastEventArbitrator = pastEventsArbitrator[pastEventsArbitrator.length - 1];
+      const arbitratorSessionKey = await getSessionKey(arbitrator, await marketplace.connect(arbitrator).publicKeys(user1.address));
+      const disputeEvent = decodeJobDisputedEvent(lastEventArbitrator.data_, arbitratorSessionKey);
+      expect(disputeEvent.content).to.equal(disputeContent);
+      expect(disputeEvent.sessionKey).to.equal(sessionKeyOW);
+
+      // arbitrator decrypts an OW encrypted message
+      const workerMessageDecryptedByArbitrator = await getFromIpfs(workerMessageHash, sessionKeyOA);
+      expect(workerMessageDecryptedByArbitrator).to.equal(workerMessage);
+
+      // arbitrator arbitrates
+      const creatorShare = 0.8 * 100 * 100;
+      const workerShare = 0.2 * 100 * 100;
+      const reason = "Worker delivered mediocre results";
+      const { hash: reasonHash } = await publishToIpfs(reason, sessionKeyOW);
+
+      await marketplace.connect(arbitrator).arbitrate(jobId, creatorShare, workerShare, reasonHash);
+
+      // owner reads the arbitration result
+      const pastEventsOwner = await marketplace.connect(user1).getEvents(jobId, revision, 0);
+      const lastEventOwner = pastEventsOwner[pastEventsOwner.length - 1];
+      const arbitrationEvent = decodeJobArbitratedEvent(lastEventOwner.data_);
+
+      const reasonRead = await getFromIpfs(arbitrationEvent.reasonHash, sessionKeyOW);
+      expect(reasonRead).to.equal(reason);
+    });
+  })
 });
