@@ -260,8 +260,13 @@ contract Unicrow is ReentrancyGuard, IUnicrow, Context {
         );
 
         // Only seller/arbitrator or a contract acting on behalf of seller/arbitrator can refund
-        require(sender == escrow.seller || tx.origin == escrow.seller ||
-                sender == arbitrator.arbitrator || tx.origin == arbitrator.arbitrator, "1-011");
+        require(
+            sender == escrow.seller ||
+                tx.origin == escrow.seller ||
+                sender == arbitrator.arbitrator ||
+                tx.origin == arbitrator.arbitrator,
+            "1-011"
+        );
 
         // Check that the escrow is not claimed yet
         require(escrow.claimed == 0, "0-005");
