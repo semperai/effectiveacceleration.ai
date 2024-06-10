@@ -8,6 +8,7 @@ import { MarketplaceV1 } from "../typechain-types";
 
 let marketplace: MarketplaceV1;
 
+describe("EOA, private key available", () => {
 describe("Encrypted communication tests", async () => {
   beforeEach(async () => {
     const [deployer] = await ethers.getSigners();
@@ -227,4 +228,123 @@ describe("Encrypted communication tests", async () => {
       expect(decryptedData).to.deep.equal(data);
     }
   });
+});
+});
+
+describe("Web3, private key not available", () => {
+describe("Encrypted communication tests", async () => {
+  beforeEach(async () => {
+    const [deployer] = await ethers.getSigners();
+
+    const Marketplace = await ethers.getContractFactory(
+      "MarketplaceV1"
+    );
+    marketplace = (await upgrades.deployProxy(Marketplace, [
+      await deployer.getAddress(),
+      ethers.ZeroAddress,
+      ethers.ZeroAddress,
+      ethers.ZeroAddress,
+      ethers.ZeroAddress,
+      0,
+    ])) as unknown as MarketplaceV1;
+    await marketplace.waitForDeployment();
+  });
+
+  it("Should be able to send an encrypted message, contract workflow", async () => {
+    const [deployer, alice, bob, arbitrator] = await ethers.getSigners();
+
+    const accounts = config.networks.hardhat.accounts as HardhatNetworkHDAccountsConfig;
+    const index = 1;
+
+    // alice and bob generate their deterministic encryption keys based on signatures
+    const aliceSignature = await alice.signMessage("MarketplaceV1");
+    const aliceEncryptionSigningKey = new ethers.SigningKey(ethers.keccak256(ethers.keccak256(aliceSignature)));
+
+    const bobSignature = await bob.signMessage("MarketplaceV1");
+    const bobEncryptionSigningKey = new ethers.SigningKey(ethers.keccak256(ethers.keccak256(bobSignature)));
+
+    const arbitratorSignature = await arbitrator.signMessage("MarketplaceV1");
+    const arbitratorEncryptionSigningKey = new ethers.SigningKey(ethers.keccak256(ethers.keccak256(arbitratorSignature)));
+
+    // everyone registers their public keys some time in the past
+    await marketplace.connect(alice).registerPublicKey(aliceEncryptionSigningKey.compressedPublicKey);
+    await marketplace.connect(bob).registerPublicKey(bobEncryptionSigningKey.compressedPublicKey);
+    await marketplace.connect(arbitrator).registerPublicKey(arbitratorEncryptionSigningKey.compressedPublicKey);
+
+    // everyone retreives their public keys from blockchain
+    const alicePublicKeyCompressed = await marketplace.publicKeys(alice.address);
+    expect(alicePublicKeyCompressed).to.equal(aliceEncryptionSigningKey.compressedPublicKey);
+
+    const bobPublicKeyCompressed = await marketplace.publicKeys(bob.address);
+    expect(bobPublicKeyCompressed).to.equal(bobEncryptionSigningKey.compressedPublicKey);
+
+    // bob and alice compute the ECDH shared secret
+    const sharedAB = aliceEncryptionSigningKey.computeSharedSecret(bobPublicKeyCompressed);
+    const sharedBA = bobEncryptionSigningKey.computeSharedSecret(alicePublicKeyCompressed);
+    expect(sharedAB).to.equal(sharedBA);
+
+    const hashedSharedSecret = ethers.keccak256(sharedAB);
+    const threadId = ethers.randomBytes(32);
+    const sessionKey = ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["bytes32", "bytes32"], [hashedSharedSecret, threadId]));
+
+    // start encrypted message exchange
+    const key = ethers.getBytes(sessionKey);
+
+    // get random nonce for every message
+    const nonce = randomBytes(24);
+    // instantiate the cipher engine
+    const chacha = xchacha20poly1305(key, nonce);
+    const data = utf8ToBytes('hello, noble');
+
+    // prepend the nonce to the ciphertext for counterparty to use it
+    const ciphertext = Uint8Array.from([...nonce, ...chacha.encrypt(data)]);
+    let decryptedData;
+    {
+      // bob reuses the agreed session key to decrypt messages
+      const key = ethers.getBytes(sessionKey);
+      // nonce is obtained from the ciphertext
+      const nonce = ciphertext.slice(0, 24);
+      // instantiate the cipher engine
+      const chacha = xchacha20poly1305(key, nonce);
+      // decrypt the message
+      decryptedData = chacha.decrypt(ciphertext.slice(24));
+    }
+    expect(decryptedData).to.deep.equal(data);
+
+
+    // alice starts the escrow dispute and leaks the session key to the arbitrator
+
+    const arbitratorPublicKeyCompressed = await marketplace.publicKeys(arbitrator.address);
+    expect(arbitratorPublicKeyCompressed).to.equal(arbitratorEncryptionSigningKey.compressedPublicKey);
+
+    // alice computes the shared key with arbitrator
+    const sharedAA = aliceEncryptionSigningKey.computeSharedSecret(arbitratorPublicKeyCompressed);
+    const hashedArbtiratorSharedSecret = ethers.keccak256(sharedAA);
+    const arbitrationSessionKey = ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["bytes32", "bytes32"], [hashedArbtiratorSharedSecret, threadId]));
+
+    const key_ = ethers.getBytes(arbitrationSessionKey);
+    const nonce_ = randomBytes(24);
+    const chacha_ = xchacha20poly1305(key_, nonce_);
+    const data_ = ethers.getBytes(sessionKey);
+    const ciphertext_ = Uint8Array.from([...nonce_, ...chacha_.encrypt(data_)]);
+    let decryptedSessionKey;
+    {
+      // arbitrator uses the leaked session key to decrypt alice and bob's session key
+      const key_ = ethers.getBytes(arbitrationSessionKey);
+      const nonce_ = ciphertext_.slice(0, 24);
+      const chacha_ = xchacha20poly1305(key_, nonce_);
+      decryptedSessionKey = chacha_.decrypt(ciphertext_.slice(24));
+    }
+    expect(decryptedSessionKey).to.deep.equal(data_);
+
+    {
+      // arbitrator is able to decrypt alice's and bob's messages
+      const key_ = ethers.getBytes(decryptedSessionKey);
+      const nonce_ = ciphertext.slice(0, 24);
+      const chacha_ = xchacha20poly1305(key_, nonce_);
+      decryptedData = chacha_.decrypt(ciphertext.slice(24));
+      expect(decryptedData).to.deep.equal(data);
+    }
+  });
+});
 });
