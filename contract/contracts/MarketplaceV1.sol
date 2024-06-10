@@ -5,7 +5,6 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import { getIPFSHash } from "./libraries/IPFS.sol";
 import { encodeString, encodeBytes, encodeStringArray, encodeAddressArray } from "./libraries/Encoding.sol";
 
 import "./unicrow/Unicrow.sol";
@@ -270,16 +269,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         unicrowArbitratorAddress = unicrowArbitratorAddress_;
     }
 
-    /// @notice Get IPFS hash
-    /// @dev use this for testing
-    /// @param content_ Content to get IPFS hash of
-    /// @return
-    function getIPFSHash(
-        bytes calldata content_
-    ) external pure returns (bytes32) {
-        return getIPFSHash(content_);
-    }
-
     // allow users to register their *message encryption* public key
     // this is used to allow others to message you securely
     // we do not do verification here because we want to allow contracts to register
@@ -373,7 +362,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      * @notice To assign the job to a specific worker, set multipleApplicants_ to false and add the worker to the allowedWorkers_. In such a case, title and description can be encrypted for the worker
      * @notice The function will request a collateral deposit in the amount_ and token_ from the caller.
      * @param title_ job title - must be not null
-     * @param content_ short job description
+     * @param contentHash_ short job description published on IPFS
      * @param multipleApplicants_ do you want to select from multiple applicants or let the first one take the job?
      * @param tags_ labels to help the workers search for the job. Each job must have exactly one of the labels listed above, and any number of other labels
      * @param token_ token in which you prefer to pay the job with - must be a valid ERC20 token or 0x00..00 for ETH
@@ -385,7 +374,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      */
     function publishJobPost(
         string calldata title_,
-        bytes calldata content_,
+        bytes32 contentHash_,
         bool multipleApplicants_,
         string[] calldata tags_,
         address token_,
@@ -434,8 +423,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         JobPost storage jobPost = jobs[jobId];
 
-        bytes32 contentHash_ = getIPFSHash(content_);
-
         // jobPost.state = uint8(JobState.Open); // will be zero anyway
         jobPost.whitelistWorkers = allowedWorkers_.length > 0;
         jobPost.roles.creator = msg.sender;
@@ -482,7 +469,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     function updateJobPost(
         uint256 jobId_,
         string calldata title_,
-        bytes calldata content_,
+        bytes32 contentHash_,
         uint256 amount_,
         uint32 maxTime_,
         address arbitrator_,
@@ -519,8 +506,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             jobs[jobId_].title = title_;
         }
         {
-            bytes32 hash_ = getIPFSHash(content_);
-            jobs[jobId_].contentHash = hash_;
+            jobs[jobId_].contentHash = contentHash_;
         }
         {
             jobs[jobId_].whitelistWorkers = whitelistWorkers_;
@@ -675,7 +661,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
     function postThreadMessage(
         uint256 jobId_,
-        bytes calldata content_
+        bytes32 contentHash_
     ) public {
         require(jobs[jobId_].state != uint8(JobState.Closed), "job closed");
 
@@ -694,13 +680,11 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             }
         }
 
-        bytes32 contentHash = getIPFSHash(content_);
-
         publishJobEvent(jobId_,
             JobEventData({
                 type_: uint8(isOwner ? JobEventType.OwnerMessage : JobEventType.WorkerMessage),
                 address_: abi.encodePacked(msg.sender),
-                data_: abi.encodePacked(contentHash),
+                data_: abi.encodePacked(contentHash_),
                 timestamp_: 0
             })
         );
@@ -725,7 +709,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             "not whitelisted"
         );
 
-        bytes32 digest = keccak256(abi.encode(jobEvents[jobId_].length, jobId_));
+        bytes32 digest = keccak256(bytes.concat("\x19Ethereum Signed Message:\n32", keccak256(abi.encode(jobEvents[jobId_].length, jobId_))));
         require(ECDSA.recover(digest, signature_) == msg.sender, "invalid signature");
 
         publishJobEvent(jobId_,
@@ -811,18 +795,18 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     /** 
      * @notice Information about the job delivery
      * @param jobId_ Id of the job
-     * @param result_ e.g. IPFS url or a tracking no.
+     * @param resultHash_ e.g. IPFS url or a tracking no.
     */
-    function deliverResult(uint256 jobId_, bytes calldata result_) public onlyWorker(jobId_) {
+    function deliverResult(uint256 jobId_, bytes32 resultHash_) public onlyWorker(jobId_) {
         JobPost storage job = jobs[jobId_];
 
-        job.resultHash = getIPFSHash(result_);
+        job.resultHash = resultHash_;
 
         publishJobEvent(jobId_,
             JobEventData({
                 type_: uint8(JobEventType.Delivered),
                 address_: abi.encodePacked(msg.sender),
-                data_: abi.encodePacked(job.resultHash),
+                data_: abi.encodePacked(resultHash_),
                 timestamp_: 0
             })
         );
@@ -954,12 +938,10 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      * @notice decide on a dispute about the job.
      * @param buyerShare_ how much of the payment should be refunded back to the buyer (in BPS)
      * @param workerShare_ how much of the payment should be released to the worker (in BPS)
-     * @param reason_ reason for arbitrator's decision (encrypted for all three parties)
+     * @param reasonHash_ reason for arbitrator's decision (encrypted for all three parties)
      */
-    function arbitrate(uint256 jobId_, uint16 buyerShare_, uint16 workerShare_, string calldata reason_) public onlyArbitrator(jobId_) {
+    function arbitrate(uint256 jobId_, uint16 buyerShare_, uint16 workerShare_, bytes32 reasonHash_) public onlyArbitrator(jobId_) {
         arbitrators[msg.sender].settledCount += 1;
-
-        require(bytes(reason_).length <= 100, "reason too long");
 
         JobPost storage job = jobs[jobId_];
         require(job.state == uint8(JobState.Taken), "job in invalid state");
@@ -977,7 +959,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             JobEventData({
                 type_: uint8(JobEventType.Arbitrated),
                 address_: abi.encodePacked(msg.sender),
-                data_: abi.encodePacked(buyerShare_, amounts[0], workerShare_, amounts[1], reason_),
+                data_: abi.encodePacked(buyerShare_, amounts[0], workerShare_, amounts[1], reasonHash_),
                 timestamp_: 0
             })
         );
