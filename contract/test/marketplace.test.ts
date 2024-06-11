@@ -1128,6 +1128,7 @@ describe("Marketplace Unit Tests", () => {
       const title = "New title";
       const content = "Please create a marketplace in solidity";
       const contentHash = "0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5";
+      const tags = ["DA"];
       const amount = 200;
       const maxTime = 240;
       const arbitrator = await wallet3.getAddress();
@@ -1137,6 +1138,7 @@ describe("Marketplace Unit Tests", () => {
         jobId,
         title,
         contentHash,
+        tags,
         amount,
         maxTime,
         arbitrator,
@@ -1147,6 +1149,7 @@ describe("Marketplace Unit Tests", () => {
         jobId,
         "",
         contentHash,
+        tags,
         amount,
         maxTime,
         arbitrator,
@@ -1157,6 +1160,7 @@ describe("Marketplace Unit Tests", () => {
         jobId,
         "0".repeat(256),
         contentHash,
+        tags,
         amount,
         maxTime,
         arbitrator,
@@ -1167,6 +1171,7 @@ describe("Marketplace Unit Tests", () => {
         jobId,
         title,
         ethers.getBytes(Buffer.from("0".repeat(99999), "utf-8")),
+        tags,
         amount,
         maxTime,
         arbitrator,
@@ -1177,6 +1182,29 @@ describe("Marketplace Unit Tests", () => {
         jobId,
         title,
         contentHash,
+        [],
+        amount,
+        maxTime,
+        arbitrator,
+        whitelistWorkers,
+      )).to.be.rejectedWith("At least one tag is required");
+
+      await expect(marketplace.connect(user1).updateJobPost(
+        jobId,
+        title,
+        contentHash,
+        ["DA", "DV"],
+        amount,
+        maxTime,
+        arbitrator,
+        whitelistWorkers,
+      )).to.be.rejectedWith("Only one MECE tag is allowed");
+
+      await expect(marketplace.connect(user1).updateJobPost(
+        jobId,
+        title,
+        contentHash,
+        tags,
         0,
         maxTime,
         arbitrator,
@@ -1188,6 +1216,7 @@ describe("Marketplace Unit Tests", () => {
         jobId,
         title,
         contentHash,
+        tags,
         amount,
         2**32 + 1,
         arbitrator,
@@ -1198,6 +1227,7 @@ describe("Marketplace Unit Tests", () => {
         jobId,
         title,
         contentHash,
+        tags,
         amount,
         maxTime,
         arbitrator,
@@ -1210,6 +1240,7 @@ describe("Marketplace Unit Tests", () => {
         const event: JobUpdateEvent = decodeJobUpdatedEvent(jobEventData.data_);
         expect(event.title).to.equal(title);
         expect(event.contentHash).to.equal(contentHash);
+        expect(event.tags).to.equal(tags);
         expect(event.amount).to.equal(amount);
         expect(event.maxTime).to.equal(maxTime);
         expect(event.arbitrator).to.equal(arbitrator);
@@ -1237,6 +1268,7 @@ describe("Marketplace Unit Tests", () => {
         jobId,
         title,
         contentHash,
+        tags,
         amount,
         maxTime,
         arbitrator,
@@ -1250,6 +1282,7 @@ describe("Marketplace Unit Tests", () => {
       const title = "New title";
       const content = "Please create a marketplace in solidity";
       const contentHash = "0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5";
+      const tags = ["DA"];
       const amount = 200;
       const maxTime = 240;
       const whitelistWorkers = true;
@@ -1258,6 +1291,7 @@ describe("Marketplace Unit Tests", () => {
         jobId,
         title,
         contentHash,
+        tags,
         amount,
         maxTime,
         ethers.ZeroAddress,
@@ -1268,6 +1302,7 @@ describe("Marketplace Unit Tests", () => {
         jobId,
         title,
         contentHash,
+        tags,
         amount,
         maxTime,
         wallet2.address,
@@ -1280,11 +1315,44 @@ describe("Marketplace Unit Tests", () => {
         jobId,
         title,
         contentHash,
+        tags,
         amount,
         maxTime,
         arbitrator.address,
         whitelistWorkers,
       )).to.be.not.revertedWith("arbitrator not registered");
+    });
+
+    it("update job tags", async () => {
+      const { marketplace, user1, user2, arbitrator, fakeToken, wallet2, wallet3, jobId } = await deployMarketplaceWithUsersAndJob();
+
+      const title = "New title";
+      const content = "Please create a marketplace in solidity";
+      const contentHash = "0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5";
+      const tags = ["DA", "Bug"];
+      const amount = 200;
+      const maxTime = 240;
+      const whitelistWorkers = true;
+
+      await expect(marketplace.connect(user1).updateJobPost(
+        jobId,
+        title,
+        contentHash,
+        tags,
+        amount,
+        maxTime,
+        arbitrator.address,
+        whitelistWorkers,
+      )).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+        expect(jobEventData.address_).to.equal("0x");
+        expect(jobEventData.timestamp_).to.be.greaterThan(0);
+        expect(jobEventData.type_).to.equal(JobEventType.Updated);
+
+        const event: JobUpdateEvent = decodeJobUpdatedEvent(jobEventData.data_);
+        expect(event.tags).to.equal(tags);
+
+        return true;
+      });
     });
 
     it("update job amounts", async () => {
@@ -1293,6 +1361,7 @@ describe("Marketplace Unit Tests", () => {
       const title = "New title";
       const content = "Please create a marketplace in solidity";
       const contentHash = "0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5";
+      const tags = ["DA"];
       const amount = BigInt(200e18);
       const maxTime = 240;
       const arbitrator = await wallet3.getAddress();
@@ -1307,6 +1376,7 @@ describe("Marketplace Unit Tests", () => {
         jobId,
         title,
         contentHash,
+        tags,
         amount,
         maxTime,
         arbitrator,
@@ -1327,6 +1397,7 @@ describe("Marketplace Unit Tests", () => {
         jobId,
         title,
         contentHash,
+        tags,
         BigInt(100e18),
         maxTime,
         arbitrator,
@@ -1347,6 +1418,7 @@ describe("Marketplace Unit Tests", () => {
         jobId,
         title,
         contentHash,
+        tags,
         BigInt(300e18),
         maxTime,
         arbitrator,
@@ -1371,6 +1443,7 @@ describe("Marketplace Unit Tests", () => {
         jobId,
         title,
         contentHash,
+        tags,
         BigInt(100e18),
         maxTime,
         arbitrator,
@@ -1393,6 +1466,7 @@ describe("Marketplace Unit Tests", () => {
       const title = "New title";
       const content = "Please create a marketplace in solidity";
       const contentHash = "0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5";
+      const tags = ["DA"];
       const amount = 200;
       const maxTime = 240;
       const arbitrator = await wallet3.getAddress();
@@ -1413,6 +1487,7 @@ describe("Marketplace Unit Tests", () => {
           jobId,
           title,
           contentHash,
+          tags,
           amount,
           maxTime,
           arbitrator,

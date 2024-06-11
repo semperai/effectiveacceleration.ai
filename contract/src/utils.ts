@@ -163,6 +163,7 @@ export type JobPostEvent = {
 export type JobUpdateEvent = {
   title: string;
   contentHash: string;
+  tags: string[];
   amount: bigint;
   maxTime: number;
   arbitrator: string;
@@ -224,6 +225,7 @@ export const decodeJobUpdatedEvent = (rawData: BytesLike): JobUpdateEvent => {
   const result = {} as JobUpdateEvent;
   result.title = decodeString(ptr);
   result.contentHash = decodeBytes32(ptr);
+  result.tags = decodeStringArray(ptr);
   result.amount = decodeUint256(ptr);
   result.maxTime = decodeUint32(ptr);
   result.arbitrator = decodeAddress(ptr);

@@ -369,6 +369,37 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         delete meceTags[shortForm];
     }
 
+    function checkParams(
+        string memory title_,
+        string[] memory tags_,
+        uint256 amount_,
+        address arbitrator_
+    ) internal {
+        uint256 titleLength = bytes(title_).length;
+        require(titleLength > 0 && titleLength < 255, "title too short or long");
+        require(amount_ > 0, "amount must be greater than 0");
+        require(tags_.length > 0, "At least one tag is required");
+        if (arbitrator_ != address(0)) {
+            require(arbitrators[arbitrator_].publicKey.length > 0, "arbitrator not registered");
+        }
+
+        uint meceCount = 0;
+        string memory meceShortForm = "";
+
+        // Check for exactly one MECE tag
+        for (uint8 i = 0; i < tags_.length; i++) {
+            if (bytes(meceTags[tags_[i]]).length != 0) {
+                meceCount++;
+                if (meceCount > 1) {
+                    revert("Only one MECE tag is allowed");
+                }
+                meceShortForm = tags_[i]; // Save the short form
+            }
+        }
+
+        require(meceCount == 1, "Exactly one MECE tag is required");
+    }
+
     /**
      * @notice Publish a new job post
      * @notice To assign the job to a specific worker, set multipleApplicants_ to false and add the worker to the allowedWorkers_. In such a case, title and description can be encrypted for the worker
@@ -396,36 +427,38 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         address arbitrator_,
         address[] calldata allowedWorkers_
     ) public returns (uint256) {
-        uint256 titleLength = bytes(title_).length;
-        require(titleLength > 0 && titleLength < 255, "title too short or long");
+        checkParams(title_, tags_, amount_, arbitrator_);
+
+        // uint256 titleLength = bytes(title_).length;
+        // require(titleLength > 0 && titleLength < 255, "title too short or long");
         require(token_.code.length > 0 && IERC20(token_).balanceOf(msg.sender) > 0, "invalid token");
         IERC20(token_).approve(address(this), type(uint256).max);
-        require(amount_ > 0, "amount must be greater than 0");
+        // require(amount_ > 0, "amount must be greater than 0");
 
         uint256 deliveyMethodLength = bytes(deliveryMethod_).length;
         require(deliveyMethodLength > 0 && deliveyMethodLength < 255, "delivery method too short or long");
         require(publicKeys[msg.sender].length > 0, "not registered");
-        require(tags_.length > 0, "At least one tag is required");
+        // require(tags_.length > 0, "At least one tag is required");
 
-        uint meceCount = 0;
-        string memory meceShortForm = "";
+        // uint meceCount = 0;
+        // string memory meceShortForm = "";
 
-        // Check for exactly one MECE tag
-        for (uint8 i = 0; i < tags_.length; i++) {
-            if (bytes(meceTags[tags_[i]]).length != 0) {
-                meceCount++;
-                if (meceCount > 1) {
-                    revert("Only one MECE tag is allowed");
-                }
-                meceShortForm = tags_[i]; // Save the short form
-            }
-        }
+        // // Check for exactly one MECE tag
+        // for (uint8 i = 0; i < tags_.length; i++) {
+        //     if (bytes(meceTags[tags_[i]]).length != 0) {
+        //         meceCount++;
+        //         if (meceCount > 1) {
+        //             revert("Only one MECE tag is allowed");
+        //         }
+        //         meceShortForm = tags_[i]; // Save the short form
+        //     }
+        // }
 
-        require(meceCount == 1, "Exactly one MECE tag is required");
+        // require(meceCount == 1, "Exactly one MECE tag is required");
 
-        if (arbitrator_ != address(0)) {
-            require(arbitrators[arbitrator_].publicKey.length > 0, "arbitrator not registered");
-        }
+        // if (arbitrator_ != address(0)) {
+        //     require(arbitrators[arbitrator_].publicKey.length > 0, "arbitrator not registered");
+        // }
 
         SafeERC20.safeTransferFrom(IERC20(token_), msg.sender, address(this), amount_);
 
@@ -482,6 +515,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         uint256 jobId_,
         string calldata title_,
         bytes32 contentHash_,
+        string[] calldata tags_,
         uint256 amount_,
         uint32 maxTime_,
         address arbitrator_,
@@ -489,10 +523,14 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     ) public onlyJobCreator(jobId_) {
         require(jobs[jobId_].state == uint8(JobState.Open), "not open");
 
-        uint256 titleLength = bytes(title_).length;
-        require(titleLength > 0 && titleLength < 255, "title too short or long");
-        require(amount_ > 0, "amount must be greater than 0");
+        checkParams(title_, tags_, amount_, arbitrator_);
 
+        // uint256 titleLength = bytes(title_).length;
+        // require(titleLength > 0 && titleLength < 255, "title too short or long");
+        // require(amount_ > 0, "amount must be greater than 0");
+        // if (arbitrator_ != address(0)) {
+        //     require(arbitrators[arbitrator_].publicKey.length > 0, "arbitrator not registered");
+        // }
         JobPost storage job = jobs[jobId_];
 
         if (job.amount != amount_ ) {
@@ -526,9 +564,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         }
 
         {
-            if (arbitrator_ != address(0)) {
-                require(arbitrators[arbitrator_].publicKey.length > 0, "arbitrator not registered");
-            }
             jobs[jobId_].roles.arbitrator = arbitrator_;
         }
 
@@ -539,6 +574,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
                 data_: bytes.concat(
                     encodeString(title_),
                     abi.encodePacked(jobs[jobId_].contentHash),
+                    encodeStringArray(tags_),
                     abi.encodePacked(amount_),
                     abi.encodePacked(uint32(maxTime_)),
                     abi.encodePacked(uint160(arbitrator_)),
