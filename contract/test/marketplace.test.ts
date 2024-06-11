@@ -6,11 +6,10 @@ import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 import { expect } from "chai";
 import { JobEventDataStructOutput, MarketplaceV1 as Marketplace } from "../typechain-types/contracts/MarketplaceV1";
 import { FakeToken } from "../typechain-types/contracts/unicrow/FakeToken";
-import { Signer, HDNodeWallet, EventLog, getCreateAddress, toBigInt, hexlify, ZeroAddress, ZeroHash, Result, getBytes, toUtf8Bytes, encodeBase64 }  from "ethers";
+import { Signer, HDNodeWallet, EventLog, getCreateAddress, toBigInt, hexlify, ZeroAddress, ZeroHash, getBytes, toUtf8Bytes }  from "ethers";
 import { Unicrow, UnicrowDispute, UnicrowArbitrator, UnicrowClaim, IERC20Errors__factory, ECDSA__factory, OwnableUpgradeable__factory, Initializable__factory } from "../typechain-types";
 import { HardhatNetworkHDAccountsConfig } from "hardhat/types";
 import { decodeJobArbitratedEvent, decodeJobDisputedEvent, decodeJobDisputedEventRaw, decodeJobPostEvent, decodeJobRatedEvent, decodeJobSignedEvent, decodeJobUpdatedEvent, encryptBinaryData, encryptUtf8Data, getEncryptionSigningKey, getFromIpfs, getSessionKey, JobArbitratedEvent, JobDisputedEvent, JobDisputedEventRaw, JobEventType, JobPostEvent, JobRatedEvent, JobSignedEvent, JobState, JobUpdateEvent, publishToIpfs } from "../src/utils";
-import { utf8ToBytes } from "@noble/ciphers/utils";
 
 let unicrowGlobal: Unicrow;
 let unicrowDisputeGlobal: UnicrowDispute;
@@ -142,15 +141,14 @@ describe("Marketplace Unit Tests", () => {
       1931, // 19.31 % fee
     ])) as unknown as Marketplace;
     await marketplace.waitForDeployment();
-    console.log("Marketplace deployed to:", await marketplace.getAddress(), "\n");
+    console.log("Marketplace deployed to:", await marketplace.getAddress());
 
     const FakeToken = await ethers.getContractFactory(
       "FakeToken"
     );
     const fakeToken = await FakeToken.deploy("Test", "TST");
     await fakeToken.waitForDeployment();
-    // console.log("FakeToken deployed to:", await fakeToken.getAddress());
-      //
+    console.log("FakeToken deployed to:", await fakeToken.getAddress(), "\n");
 
     await fakeToken.connect(deployer).transfer(await user1.getAddress(), BigInt(1000e18));
     await fakeToken.connect(user1).approve(await marketplace.getAddress(), BigInt(2000e18));

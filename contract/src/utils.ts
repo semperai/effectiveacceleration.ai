@@ -81,7 +81,7 @@ export const getFromIpfs = async (cidOrHash: string, sessionKey: string | undefi
     cidOrHash = hashToCid(cidOrHash);
   }
 
-  const host = process.env.IPFS_GW_URL || "http://localhost:8080";
+  const host = process.env.IPFS_GATEWAY_URL || "http://localhost:8080";
   const respose = await fetch(`${host}/ipfs/${cidOrHash}`);
   if (respose.status !== 200) {
     throw new Error(`Failed to fetch data from IPFS\n${respose.statusText}\n${await respose.text()}`);
