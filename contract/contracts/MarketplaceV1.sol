@@ -108,7 +108,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     mapping(address => bytes) public publicKeys;
 
     mapping(address => JobArbitrator) public arbitrators;
-    address[] arbitratorAddresses;
+    address[] public arbitratorAddresses;
 
     JobPost[] public jobs;
 
@@ -298,40 +298,52 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         emit ArbitratorRegistered(msg.sender, pubkey, name, fee);
     }
 
-    function getArbitrators(uint256 index_, uint256 limit_) public view returns (JobArbitrator[] memory) {
-        require(index_ < arbitratorAddresses.length, "index out of bounds");
-
-        uint length = arbitratorAddresses.length - index_;
-        if (limit_ == 0) {
-            limit_ = length;
-        }
-        length = length > limit_ ? limit_ : length;
-        JobArbitrator[] memory result = new JobArbitrator[](length);
-        for (uint i = 0; i < length; i++) {
-            result[i] = arbitrators[arbitratorAddresses[i + index_]];
-        }
-        return result;
+    function arbitratorsLength() public view returns (uint256) {
+        return arbitratorAddresses.length;
     }
+
+    // function getArbitrators(uint256 index_, uint256 limit_) public view returns (JobArbitrator[] memory) {
+    //     require(index_ < arbitratorAddresses.length, "index out of bounds");
+
+    //     uint length = arbitratorAddresses.length - index_;
+    //     if (limit_ == 0) {
+    //         limit_ = length;
+    //     }
+    //     length = length > limit_ ? limit_ : length;
+    //     JobArbitrator[] memory result = new JobArbitrator[](length);
+    //     for (uint i = 0; i < length; i++) {
+    //         result[i] = arbitrators[arbitratorAddresses[i + index_]];
+    //     }
+    //     return result;
+    // }
 
     function eventsLength(uint256 jobId_) public view returns (uint256) {
         return jobEvents[jobId_].length;
     }
 
-    // Function to get past job events starting from a specific index
-    function getEvents(uint256 jobId_, uint256 index_, uint256 limit_) public view returns (JobEventData[] memory) {
-        require(index_ < jobEvents[jobId_].length, "index out of bounds");
+    // // Function to get past job events starting from a specific index
+    // function getEvents(uint256 jobId_, uint256 index_, uint256 limit_) public view returns (JobEventData[] memory) {
+    //     require(index_ < jobEvents[jobId_].length, "index out of bounds");
 
-        uint length = jobEvents[jobId_].length - index_;
-        if (limit_ == 0) {
-            limit_ = length;
-        }
-        length = length > limit_ ? limit_ : length;
-        JobEventData[] memory result = new JobEventData[](length);
-        for (uint i = 0; i < length; i++) {
-            result[i] = jobEvents[jobId_][i + index_];
-        }
+    //     uint length = jobEvents[jobId_].length - index_;
+    //     if (limit_ == 0) {
+    //         limit_ = length;
+    //     }
+    //     length = length > limit_ ? limit_ : length;
+    //     JobEventData[] memory result = new JobEventData[](length);
+    //     for (uint i = 0; i < length; i++) {
+    //         result[i] = jobEvents[jobId_][i + index_];
+    //     }
 
-        return result;
+    //     return result;
+    // }
+
+    function jobsLength() public view returns (uint256) {
+        return jobs.length;
+    }
+
+    function getJob(uint256 jobId_) public view returns (JobPost memory) {
+        return jobs[jobId_];
     }
 
     function publishJobEvent(uint256 jobId_, JobEventData memory event_) internal {

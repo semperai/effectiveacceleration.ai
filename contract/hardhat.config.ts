@@ -27,7 +27,7 @@ const config: HardhatUserConfig = {
     disambiguatePaths: false,
     runOnCompile: true,
     strict: true,
-    only: ['contracts/MarketplaceV1.sol'],
+    only: ['contracts/MarketplaceV1.sol', 'contracts/MarketplaceDataViewV1.sol'],
   }
 };
 
