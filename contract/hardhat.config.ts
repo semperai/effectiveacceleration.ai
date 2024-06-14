@@ -3,7 +3,7 @@ import "@nomicfoundation/hardhat-toolbox";
 import "@nomicfoundation/hardhat-verify";
 import "@openzeppelin/hardhat-upgrades";
 import "hardhat-contract-sizer";
-
+import "hardhat-ts-plugin-abi-extractor";
 import "./tasks/index";
 
 const config: HardhatUserConfig = {
@@ -28,7 +28,11 @@ const config: HardhatUserConfig = {
     runOnCompile: true,
     strict: true,
     only: ['contracts/MarketplaceV1.sol', 'contracts/MarketplaceDataViewV1.sol'],
-  }
+  },
+  contractsToExtractAbi: ['MarketplaceV1', 'MarketplaceDataViewV1', 'FakeToken', 'Unicrow', 'UnicrowDispute', 'UnicrowArbitrator', 'UnicrowClaim'],
+  paths: {
+    abi: "wagmi",
+  },
 };
 
 export default config;

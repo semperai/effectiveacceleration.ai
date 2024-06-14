@@ -3,9 +3,10 @@ import {
 } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { ethers, config, upgrades } from "hardhat";
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
-import { expect } from "chai";
 import chai from "chai";
+import chaiAsPromised from 'chai-as-promised';
 import chaiSubset from "chai-subset";
+import { expect } from "chai";
 import { JobEventDataStructOutput, MarketplaceV1 as Marketplace } from "../typechain-types/contracts/MarketplaceV1";
 import { MarketplaceDataViewV1 as MarketplaceDataView } from "../typechain-types/contracts/MarketplaceDataViewV1";
 import { FakeToken } from "../typechain-types/contracts/unicrow/FakeToken";
@@ -15,6 +16,7 @@ import { HardhatNetworkHDAccountsConfig } from "hardhat/types";
 import { decodeJobArbitratedEvent, decodeJobDisputedEvent, decodeJobDisputedEventRaw, decodeJobPostEvent, decodeJobRatedEvent, decodeJobSignedEvent, decodeJobUpdatedEvent, encryptBinaryData, encryptUtf8Data, getEncryptionSigningKey, getFromIpfs, getSessionKey, JobArbitratedEvent, JobDisputedEvent, JobDisputedEventRaw, JobEventType, JobPostEvent, JobRatedEvent, JobSignedEvent, JobState, JobUpdateEvent, publishToIpfs } from "../src/utils";
 
 chai.use(chaiSubset);
+chai.use(chaiAsPromised);
 
 let unicrowGlobal: Unicrow;
 let unicrowDisputeGlobal: UnicrowDispute;
@@ -76,7 +78,7 @@ describe("Marketplace Unit Tests", () => {
       UnicrowDisputeAddress,
       deployer.address,
       UNICROW_FEE
-    );
+    ) as unknown as Unicrow;
 
     await unicrow.waitForDeployment();
 
@@ -86,7 +88,7 @@ describe("Marketplace Unit Tests", () => {
       UnicrowContractAddress,
       UnicrowClaimAddress,
       UnicrowArbitratorAddress
-    );
+    ) as unknown as UnicrowDispute;
 
     await unicrowDispute.waitForDeployment();
 
@@ -95,7 +97,7 @@ describe("Marketplace Unit Tests", () => {
     const unicrowArbitrator = await UnicrowArbitrator.deploy(
       UnicrowContractAddress,
       UnicrowClaimAddress
-    );
+    ) as unknown as UnicrowArbitrator;
 
     await unicrowArbitrator.waitForDeployment();
 
@@ -105,7 +107,7 @@ describe("Marketplace Unit Tests", () => {
       UnicrowContractAddress,
       UnicrowArbitratorAddress,
       unicrowProtocolFeeAddress
-    );
+    ) as unknown as UnicrowClaim;
 
     await unicrowClaim.waitForDeployment();
     console.log(`UnicrowClaim deployed to: ${await unicrowClaim.getAddress()}`);
@@ -161,7 +163,7 @@ describe("Marketplace Unit Tests", () => {
     const FakeToken = await ethers.getContractFactory(
       "FakeToken"
     );
-    const fakeToken = await FakeToken.deploy("Test", "TST");
+    const fakeToken = await FakeToken.deploy("Test", "TST") as unknown as FakeToken;
     await fakeToken.waitForDeployment();
     console.log("FakeToken deployed to:", await fakeToken.getAddress(), "\n");
 
@@ -1240,7 +1242,7 @@ describe("Marketplace Unit Tests", () => {
         const event: JobUpdateEvent = decodeJobUpdatedEvent(jobEventData.data_);
         expect(event.title).to.equal(title);
         expect(event.contentHash).to.equal(contentHash);
-        expect(event.tags).to.equal(tags);
+        expect(event.tags).to.deep.equal(tags);
         expect(event.amount).to.equal(amount);
         expect(event.maxTime).to.equal(maxTime);
         expect(event.arbitrator).to.equal(arbitrator);
@@ -1349,7 +1351,7 @@ describe("Marketplace Unit Tests", () => {
         expect(jobEventData.type_).to.equal(JobEventType.Updated);
 
         const event: JobUpdateEvent = decodeJobUpdatedEvent(jobEventData.data_);
-        expect(event.tags).to.equal(tags);
+        expect(event.tags).to.deep.equal(tags);
 
         return true;
       });

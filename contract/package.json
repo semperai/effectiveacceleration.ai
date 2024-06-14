@@ -5,6 +5,7 @@
   "description": "arbius",
   "author": "Kasumi Null <kasumi.null@yandex.com>",
   "license": "MIT",
+  "main": "dist/index.js",
   "scripts": {
     "clean:contracts": "npx hardhat clean",
     "compile": "npx hardhat compile",
@@ -18,7 +19,8 @@
     "deploy_local": "npx hardhat --network localhost run scripts/000-deploy-marketplace.ts",
     "seed_local": "npx hardhat --network localhost marketplace:seed",
     "deploy_seed": "sleep 5 && npx run-s deploy_local seed_local",
-    "local": "npx run-p node deploy_seed"
+    "local": "npx run-p node deploy_seed",
+    "wagmi": "npx hardhat extract-abi --ts"
   },
   "devDependencies": {
     "@arbitrum/nitro-contracts": "^1.2.1",
@@ -41,6 +43,7 @@
     "hardhat": "^2.22.4",
     "hardhat-contract-sizer": "^2.10.0",
     "hardhat-gas-reporter": "^1.0.8",
+    "hardhat-ts-plugin-abi-extractor": "^0.0.6",
     "npm-run-all": "^4.1.5",
     "prettier-plugin-solidity": "^1.3.1",
     "solidity-coverage": "^0.8.12",

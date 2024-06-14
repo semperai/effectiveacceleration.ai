@@ -127,10 +127,10 @@ task("timetravel", "go into the future")
 task("marketplace:seed", "Seed local marketplace instance")
 .setAction(async ({ }, hre) => {
   const Marketplace = await hre.ethers.getContractFactory("MarketplaceV1");
-  const marketplace = await Marketplace.attach(Config.marketplaceAddress) as Marketplace;
+  const marketplace = await Marketplace.attach(Config.marketplaceAddress) as unknown as Marketplace;
 
   const FakeToken = await hre.ethers.getContractFactory("FakeToken");
-  const fakeToken = await FakeToken.attach(Config.fakeTokenAddress) as FakeToken;
+  const fakeToken = FakeToken.attach(Config.fakeTokenAddress) as unknown as FakeToken;
 
   const [deployer, user1, user2] = await hre.ethers.getSigners();
 

@@ -121,7 +121,7 @@ async function deployUnicrowSuite(): Promise<{
     UnicrowDisputeAddress,
     deployer.address,
     UNICROW_FEE
-  );
+  ) as unknown as Unicrow;
 
   await unicrow.waitForDeployment();
 
@@ -131,7 +131,7 @@ async function deployUnicrowSuite(): Promise<{
     UnicrowContractAddress,
     UnicrowClaimAddress,
     UnicrowArbitratorAddress
-  );
+  ) as unknown as UnicrowDispute;
 
   await unicrowDispute.waitForDeployment();
 
@@ -140,7 +140,7 @@ async function deployUnicrowSuite(): Promise<{
   const unicrowArbitrator = await UnicrowArbitrator.deploy(
     UnicrowContractAddress,
     UnicrowClaimAddress
-  );
+  ) as unknown as UnicrowArbitrator;
 
   await unicrowArbitrator.waitForDeployment();
 
@@ -150,7 +150,7 @@ async function deployUnicrowSuite(): Promise<{
     UnicrowContractAddress,
     UnicrowArbitratorAddress,
     unicrowProtocolFeeAddress
-  );
+  ) as unknown as UnicrowClaim;
 
   await unicrowClaim.waitForDeployment();
   console.log(`UnicrowClaim deployed to: ${await unicrowClaim.getAddress()}`);
