@@ -302,41 +302,9 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         return arbitratorAddresses.length;
     }
 
-    // function getArbitrators(uint256 index_, uint256 limit_) public view returns (JobArbitrator[] memory) {
-    //     require(index_ < arbitratorAddresses.length, "index out of bounds");
-
-    //     uint length = arbitratorAddresses.length - index_;
-    //     if (limit_ == 0) {
-    //         limit_ = length;
-    //     }
-    //     length = length > limit_ ? limit_ : length;
-    //     JobArbitrator[] memory result = new JobArbitrator[](length);
-    //     for (uint i = 0; i < length; i++) {
-    //         result[i] = arbitrators[arbitratorAddresses[i + index_]];
-    //     }
-    //     return result;
-    // }
-
     function eventsLength(uint256 jobId_) public view returns (uint256) {
         return jobEvents[jobId_].length;
     }
-
-    // // Function to get past job events starting from a specific index
-    // function getEvents(uint256 jobId_, uint256 index_, uint256 limit_) public view returns (JobEventData[] memory) {
-    //     require(index_ < jobEvents[jobId_].length, "index out of bounds");
-
-    //     uint length = jobEvents[jobId_].length - index_;
-    //     if (limit_ == 0) {
-    //         limit_ = length;
-    //     }
-    //     length = length > limit_ ? limit_ : length;
-    //     JobEventData[] memory result = new JobEventData[](length);
-    //     for (uint i = 0; i < length; i++) {
-    //         result[i] = jobEvents[jobId_][i + index_];
-    //     }
-
-    //     return result;
-    // }
 
     function jobsLength() public view returns (uint256) {
         return jobs.length;
@@ -429,36 +397,12 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     ) public returns (uint256) {
         checkParams(title_, tags_, amount_, arbitrator_);
 
-        // uint256 titleLength = bytes(title_).length;
-        // require(titleLength > 0 && titleLength < 255, "title too short or long");
         require(token_.code.length > 0 && IERC20(token_).balanceOf(msg.sender) > 0, "invalid token");
         IERC20(token_).approve(address(this), type(uint256).max);
-        // require(amount_ > 0, "amount must be greater than 0");
 
         uint256 deliveyMethodLength = bytes(deliveryMethod_).length;
         require(deliveyMethodLength > 0 && deliveyMethodLength < 255, "delivery method too short or long");
         require(publicKeys[msg.sender].length > 0, "not registered");
-        // require(tags_.length > 0, "At least one tag is required");
-
-        // uint meceCount = 0;
-        // string memory meceShortForm = "";
-
-        // // Check for exactly one MECE tag
-        // for (uint8 i = 0; i < tags_.length; i++) {
-        //     if (bytes(meceTags[tags_[i]]).length != 0) {
-        //         meceCount++;
-        //         if (meceCount > 1) {
-        //             revert("Only one MECE tag is allowed");
-        //         }
-        //         meceShortForm = tags_[i]; // Save the short form
-        //     }
-        // }
-
-        // require(meceCount == 1, "Exactly one MECE tag is required");
-
-        // if (arbitrator_ != address(0)) {
-        //     require(arbitrators[arbitrator_].publicKey.length > 0, "arbitrator not registered");
-        // }
 
         SafeERC20.safeTransferFrom(IERC20(token_), msg.sender, address(this), amount_);
 
@@ -525,12 +469,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         checkParams(title_, tags_, amount_, arbitrator_);
 
-        // uint256 titleLength = bytes(title_).length;
-        // require(titleLength > 0 && titleLength < 255, "title too short or long");
-        // require(amount_ > 0, "amount must be greater than 0");
-        // if (arbitrator_ != address(0)) {
-        //     require(arbitrators[arbitrator_].publicKey.length > 0, "arbitrator not registered");
-        // }
         JobPost storage job = jobs[jobId_];
 
         if (job.amount != amount_ ) {
@@ -1006,8 +944,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         publishJobEvent(jobId_,
             JobEventData({
                 type_: uint8(JobEventType.Arbitrated),
-                address_: abi.encodePacked(msg.sender),
-                data_: abi.encodePacked(buyerShare_, amounts[0], workerShare_, amounts[1], reasonHash_),
+                address_: bytes(""),
+                data_: abi.encodePacked(buyerShare_, amounts[0], workerShare_, amounts[1], reasonHash_, job.roles.worker),
                 timestamp_: 0
             })
         );

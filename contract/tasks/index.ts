@@ -5,9 +5,9 @@ import { FakeToken } from '../typechain-types/contracts/unicrow/FakeToken';
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { task } from "hardhat/config";
 import Config from '../scripts/config.json';
-import { getEncryptionSigningKey, publishToIpfs } from '../src/utils';
-import { ZeroAddress } from 'ethers';
-
+import { encryptBinaryData, encryptUtf8Data, getEncryptionSigningKey, getFromIpfs, getSessionKey, publishToIpfs } from '../src/utils';
+import { AbiCoder, getBytes, hexlify, keccak256, ZeroAddress } from 'ethers';
+import "@nomicfoundation/hardhat-ethers";;
 
 async function getMinerAddress(hre: HardhatRuntimeEnvironment) {
   const accounts = await hre.ethers.getSigners();
@@ -132,7 +132,7 @@ task("marketplace:seed", "Seed local marketplace instance")
   const FakeToken = await hre.ethers.getContractFactory("FakeToken");
   const fakeToken = FakeToken.attach(Config.fakeTokenAddress) as unknown as FakeToken;
 
-  const [deployer, user1, user2] = await hre.ethers.getSigners();
+  const [deployer, owner, worker, arbitrator] = await hre.ethers.getSigners();
 
   console.log('Seeding marketplace with test data');
 
@@ -140,29 +140,32 @@ task("marketplace:seed", "Seed local marketplace instance")
   await fakeToken.connect(deployer).transfer(await deployer.getAddress(), BigInt(1000e18));
   await fakeToken.connect(deployer).approve(await marketplace.getAddress(), BigInt(2000e18));
 
-  await fakeToken.connect(deployer).transfer(await user1.getAddress(), BigInt(1000e18));
-  await fakeToken.connect(user1).approve(await marketplace.getAddress(), BigInt(2000e18));
+  await fakeToken.connect(deployer).transfer(await owner.getAddress(), BigInt(1000e18));
+  await fakeToken.connect(owner).approve(await marketplace.getAddress(), BigInt(2000e18));
 
-  await fakeToken.connect(deployer).transfer(await user2.getAddress(), BigInt(1000e18));
-  await fakeToken.connect(user2).approve(await marketplace.getAddress(), BigInt(2000e18));
+  await fakeToken.connect(deployer).transfer(await worker.getAddress(), BigInt(1000e18));
+  await fakeToken.connect(worker).approve(await marketplace.getAddress(), BigInt(2000e18));
+
+  await fakeToken.connect(deployer).transfer(await arbitrator.getAddress(), BigInt(1000e18));
+  await fakeToken.connect(arbitrator).approve(await marketplace.getAddress(), BigInt(2000e18));
 
   console.log("Registering users");
-  await marketplace.connect(deployer).registerPublicKey((await getEncryptionSigningKey(deployer)).compressedPublicKey);
-  await marketplace.connect(user1).registerPublicKey((await getEncryptionSigningKey(user1)).compressedPublicKey);
-  await marketplace.connect(user2).registerPublicKey((await getEncryptionSigningKey(user2)).compressedPublicKey);
+  await marketplace.connect(owner).registerPublicKey((await getEncryptionSigningKey(owner)).compressedPublicKey);
+  await marketplace.connect(worker).registerPublicKey((await getEncryptionSigningKey(worker)).compressedPublicKey);
+  await marketplace.connect(arbitrator).registerArbitrator((await getEncryptionSigningKey(arbitrator)).compressedPublicKey, "Arbitrator", 100);
 
   console.log('Creating jobs');
   {
     const content = 'I am looking for someone to write a story book about Bitcoin and the blockchain. The book should be at least 20 pages long and include a brief history of Bitcoin, the technology behind it, and the potential impact it could have on the world. I am looking for someone who can write in a way that is easy to understand and engaging for a general audience. It should have illustrations and be suitable for children.';
     const { hash: contentHash } = await publishToIpfs(content);
-    await marketplace.connect(deployer).publishJobPost(
+    await marketplace.connect(owner).publishJobPost(
       'Create a story book about Bitcoin',
       contentHash,
       true,
       ["DT"],
       await fakeToken.getAddress(),
       BigInt(100e18),
-      BigInt(60 * 60 * 24 * 7),
+      BigInt(60 * 60 * 24 * 3),
       "Digital",
       ZeroAddress,
       []
@@ -172,7 +175,7 @@ task("marketplace:seed", "Seed local marketplace instance")
   {
     const content = 'I am looking to compose a song about Bitcoin. The song should be catchy and easy to remember. It should include lyrics that explain what Bitcoin is, how it works, and why it is important. The song should be suitable for all ages and should be fun to listen to. I am looking for someone who can write lyrics and compose music.';
     const { hash: contentHash } = await publishToIpfs(content);
-    await marketplace.connect(deployer).publishJobPost(
+    await marketplace.connect(owner).publishJobPost(
       'Create a music track about Bitcoin',
       contentHash,
       true,
@@ -189,18 +192,64 @@ task("marketplace:seed", "Seed local marketplace instance")
   {
     const content = 'I am looking for someone to design a landing page for a new token. The landing page should be visually appealing and easy to navigate. It should include information about the token, its use cases, and how to purchase it. I am looking for someone who can create a design that is modern and professional.';
     const { hash: contentHash } = await publishToIpfs(content);
-    await marketplace.connect(deployer).publishJobPost(
+    await marketplace.connect(owner).publishJobPost(
       'Design a landing page for a new token',
       contentHash,
-      true,
+      false,
       ["DA"],
       await fakeToken.getAddress(),
       BigInt(100e18),
-      BigInt(60 * 60 * 24 * 7),
+      BigInt(60 * 60 * 24 * 5),
       "Digital",
-      ZeroAddress,
+      arbitrator.address,
       []
     );
+    const jobId = 2;
+
+    // worker reads the post data
+    const workerSessionKey = await getSessionKey(worker, await marketplace.connect(worker).publicKeys(owner.address));
+
+    // worker posts a thread message
+    const workerMessage = "I can do it!";
+    const { hash: workerMessageHash } = await publishToIpfs(workerMessage, workerSessionKey);
+
+    await marketplace.connect(worker).postThreadMessage(jobId, workerMessageHash);
+
+    const ownerSessionKey = await getSessionKey(owner, await marketplace.connect(owner).publicKeys(worker.address));
+    const ownerMessage = "Go ahead!";
+    const { hash: ownerMessageHash } = await publishToIpfs(ownerMessage, ownerSessionKey);
+
+    await marketplace.connect(owner).postThreadMessage(jobId, ownerMessageHash);
+
+    // worker takes the job
+    const revision = await marketplace.eventsLength(jobId);
+    const signature = await worker.signMessage(getBytes(keccak256(AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
+
+    await marketplace.connect(worker).takeJob(jobId, signature);
+
+    // worker delivers the result
+    const result = "I did not really manage to create a marketplace in solidity, but take a look for my partial solution";
+    const { hash: resultHash } = await publishToIpfs(result);
+
+    await marketplace.connect(worker).deliverResult(jobId, resultHash);
+
+    // owner raises a dispute
+    const disputeContent = "I am not satisfied with the result";
+    const sessionKeyOW = await getSessionKey(owner, await marketplace.connect(owner).publicKeys(worker.address));
+    const sessionKeyOA = await getSessionKey(owner, (await marketplace.connect(owner).arbitrators(arbitrator.address)).publicKey);
+
+    const encryptedContent = hexlify(encryptUtf8Data(disputeContent, sessionKeyOA));
+    const encrypedSessionKey = hexlify(encryptBinaryData(getBytes(sessionKeyOW), sessionKeyOA));
+
+    await marketplace.connect(owner).dispute(jobId, encrypedSessionKey, encryptedContent);
+
+    // arbitrator arbitrates
+    const creatorShare = 0.8 * 100 * 100;
+    const workerShare = 0.2 * 100 * 100;
+    const reason = "Worker delivered mediocre results";
+    const { hash: reasonHash } = await publishToIpfs(reason, sessionKeyOW);
+
+    await marketplace.connect(arbitrator).arbitrate(jobId, creatorShare, workerShare, reasonHash);
   }
 
   console.log("Done seeding marketplace");

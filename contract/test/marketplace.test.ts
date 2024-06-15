@@ -1,6 +1,9 @@
 import {
   loadFixture,
 } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import "@nomicfoundation/hardhat-ethers";
+import "@openzeppelin/hardhat-upgrades";
+import "@nomicfoundation/hardhat-chai-matchers";
 import { ethers, config, upgrades } from "hardhat";
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 import chai from "chai";
@@ -2545,7 +2548,7 @@ describe("Marketplace Unit Tests", () => {
       ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Arbitrated);
-        expect(jobEventData.address_).to.equal(arbitrator.address.toLowerCase());
+        expect(jobEventData.address_).to.equal("0x");
 
         const event: JobArbitratedEvent = decodeJobArbitratedEvent(jobEventData.data_);
         expect(event.creatorShare).to.equal(creatorShare);
@@ -2554,6 +2557,7 @@ describe("Marketplace Unit Tests", () => {
         expect(event.workerAmount).to.equal(BigInt(15.81e18));
         expect(event.reasonHash).to.equal(reasonHash);
         expect(reasonRead).to.equal(reason);
+        expect(event.workerAddress).to.equal(user2.address);
 
         return true;
       }).and.to.emit(unicrowArbitratorGlobal, "Arbitrated");
@@ -2620,7 +2624,7 @@ describe("Marketplace Unit Tests", () => {
       ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Arbitrated);
-        expect(jobEventData.address_).to.equal(arbitrator.address.toLowerCase());
+        expect(jobEventData.address_).to.equal("0x");
 
         const event: JobArbitratedEvent = decodeJobArbitratedEvent(jobEventData.data_);
         expect(event.creatorShare).to.equal(creatorShare);
@@ -2629,6 +2633,7 @@ describe("Marketplace Unit Tests", () => {
         expect(event.workerAmount).to.equal(BigInt(79e18));
         expect(event.reasonHash).to.equal(reasonHash);
         expect(reasonRead).to.equal(reason);
+        expect(event.workerAddress).to.equal(user2.address);
 
         return true;
       }).and.to.emit(unicrowArbitratorGlobal, "Arbitrated");
@@ -2696,7 +2701,7 @@ describe("Marketplace Unit Tests", () => {
       ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Arbitrated);
-        expect(jobEventData.address_).to.equal(arbitrator.address.toLowerCase());
+        expect(jobEventData.address_).to.equal("0x");
 
         const event: JobArbitratedEvent = decodeJobArbitratedEvent(jobEventData.data_);
         expect(event.creatorShare).to.equal(creatorShare);
@@ -2705,6 +2710,7 @@ describe("Marketplace Unit Tests", () => {
         expect(event.workerAmount).to.equal(BigInt(0e18));
         expect(event.reasonHash).to.equal(reasonHash);
         expect(reasonRead).to.equal(reason);
+        expect(event.workerAddress).to.equal(user2.address);
 
         return true;
       }).and.to.emit(unicrowArbitratorGlobal, "Arbitrated");

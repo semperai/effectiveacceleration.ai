@@ -105,4 +105,15 @@ contract MarketplaceDataViewV1 is OwnableUpgradeable {
         }
         return result;
     }
+
+    function getArbitrator(address arbitratorAddress_) public view returns (JobArbitrator memory) {
+        (bytes memory publicKey, string memory name, uint16 fee, uint16 settledCount, uint16 refusedCount) = marketplace.arbitrators(arbitratorAddress_);
+        return JobArbitrator({
+            publicKey: publicKey,
+            name: name,
+            fee: fee,
+            settledCount: settledCount,
+            refusedCount: refusedCount
+        });
+    }
 }

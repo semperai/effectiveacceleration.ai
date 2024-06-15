@@ -20,7 +20,8 @@
     "seed_local": "npx hardhat --network localhost marketplace:seed",
     "deploy_seed": "sleep 5 && npx run-s deploy_local seed_local",
     "local": "npx run-p node deploy_seed",
-    "wagmi": "npx hardhat extract-abi --ts"
+    "wagmi": "npx hardhat extract-abi --ts",
+    "tsc": "npx tsc"
   },
   "devDependencies": {
     "@arbitrum/nitro-contracts": "^1.2.1",

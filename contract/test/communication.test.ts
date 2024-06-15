@@ -257,13 +257,13 @@ describe("Encrypted communication tests", async () => {
     const index = 1;
 
     // alice and bob generate their deterministic encryption keys based on signatures
-    const aliceSignature = await alice.signMessage("MarketplaceV1");
+    const aliceSignature = await alice.signMessage("Arbius Marketplace: Please sign this message to allow for encrypted message exchange.");
     const aliceEncryptionSigningKey = new ethers.SigningKey(ethers.keccak256(ethers.keccak256(aliceSignature)));
 
-    const bobSignature = await bob.signMessage("MarketplaceV1");
+    const bobSignature = await bob.signMessage("Arbius Marketplace: Please sign this message to allow for encrypted message exchange.");
     const bobEncryptionSigningKey = new ethers.SigningKey(ethers.keccak256(ethers.keccak256(bobSignature)));
 
-    const arbitratorSignature = await arbitrator.signMessage("MarketplaceV1");
+    const arbitratorSignature = await arbitrator.signMessage("Arbius Marketplace: Please sign this message to allow for encrypted message exchange.");
     const arbitratorEncryptionSigningKey = new ethers.SigningKey(ethers.keccak256(ethers.keccak256(arbitratorSignature)));
 
     // everyone registers their public keys some time in the past

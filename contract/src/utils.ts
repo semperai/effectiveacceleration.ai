@@ -1,7 +1,7 @@
 import { xchacha20poly1305 } from "@noble/ciphers/chacha";
 import { randomBytes } from "@noble/ciphers/crypto";
 import { utf8ToBytes } from "@noble/ciphers/utils";
-import { BytesLike, getBytes, AbiCoder, hexlify, toUtf8String, toBigInt, getAddress, decodeBase58, encodeBase58, toBeArray, encodeBase64, decodeBase64, Signer, SigningKey, keccak256 } from "ethers";
+import { BytesLike, getBytes, AbiCoder, hexlify, toUtf8String, toBigInt, getAddress, decodeBase58, encodeBase58, toBeArray, encodeBase64, decodeBase64, SigningKey, keccak256, Signer, JsonRpcSigner } from "ethers";
 
 export const cidToHash = (cid: string): string => {
   if (cid.length !== 46 || !cid.match(/^Qm/)) {
@@ -75,10 +75,18 @@ const decryptUtf8Data = (data: Uint8Array, sessionKey: string | undefined): stri
   return toUtf8String(decryptBinaryData(data, sessionKey));
 }
 
-export const getFromIpfs = async (cidOrHash: string, sessionKey: string | undefined = undefined): Promise<string> => {
+// fetches raw encrypted contents from IPFS
+export const getFromIpfsRaw = async (cidOrHash: string): Promise<string> => {
   const isCid = cidOrHash.indexOf("Qm") === 0;
   if (!isCid) {
     cidOrHash = hashToCid(cidOrHash);
+  }
+
+  const key = `IpfsContent-${cidOrHash}`;
+
+  let content = globalThis.localStorage?.getItem(key);
+  if (content) {
+    return content;
   }
 
   const host = process.env.IPFS_GATEWAY_URL || "http://localhost:8080";
@@ -87,12 +95,28 @@ export const getFromIpfs = async (cidOrHash: string, sessionKey: string | undefi
     throw new Error(`Failed to fetch data from IPFS\n${respose.statusText}\n${await respose.text()}`);
   }
   const dataB64 = await respose.text();
+  globalThis.localStorage?.setItem(key, dataB64);
 
-  const decodedData = decodeBase64(dataB64);
+  return dataB64;
+}
+
+// fetches data and decrypts it
+export const getFromIpfs = async (cidOrHash: string, sessionKey: string | undefined = undefined): Promise<string> => {
+  const decodedData = decodeBase64(await getFromIpfsRaw(cidOrHash));
   return decryptUtf8Data(decodedData, sessionKey);
 }
 
-export const getEncryptionSigningKey = async (signer: Signer): Promise<SigningKey> => {
+// fetches the encrypted data and attempt to decrypt it, bails with readable error message if decryption fails
+export const safeGetFromIpfs = async (cidOrHash: string, sessionKey: string | undefined = undefined): Promise<string> => {
+  try {
+    const decodedData = decodeBase64(await getFromIpfsRaw(cidOrHash));
+    return decryptUtf8Data(decodedData, sessionKey);
+  } catch (error: any) {
+    return `Encrypted message`;
+  }
+}
+
+export const getEncryptionSigningKey = async (signer: Signer | JsonRpcSigner): Promise<SigningKey> => {
   const key = `HashedSignature-${await signer.getAddress()}`;
 
   let hashedSignature = globalThis.localStorage?.getItem(key);
@@ -100,13 +124,13 @@ export const getEncryptionSigningKey = async (signer: Signer): Promise<SigningKe
     return new SigningKey(hashedSignature);
   }
 
-  const signature = await signer.signMessage("MarketplaceV1");
+  const signature = await signer.signMessage("Please sign this message to allow for encrypted message exchange.");
   hashedSignature = keccak256(keccak256(signature));
   globalThis.localStorage?.setItem(key, hashedSignature);
   return new SigningKey(hashedSignature);
 }
 
-export const getSessionKey = async (signer: Signer, otherCompressedPublicKey: string): Promise<string> => {
+export const getSessionKey = async (signer: Signer | JsonRpcSigner, otherCompressedPublicKey: string): Promise<string> => {
   if (getBytes(otherCompressedPublicKey).length !== 33) {
     throw new Error("Invalid public key, must be compressed");
   }
@@ -197,7 +221,16 @@ export type JobArbitratedEvent = {
   workerShare: number;
   workerAmount: bigint;
   reasonHash: string;
+  workerAddress: string;
+  reason?: string;
 }
+
+export type JobMessageEvent = {
+  contentHash: string;
+  content?: string;
+}
+
+export type CustomJobEvent = JobPostEvent | JobUpdateEvent | JobSignedEvent | JobRatedEvent | JobDisputedEventRaw | JobDisputedEvent | JobArbitratedEvent | JobMessageEvent;
 
 export const decodeJobPostEvent = (rawData: BytesLike): JobPostEvent => {
   const bytes = getBytes(rawData);
@@ -281,8 +314,41 @@ export const decodeJobArbitratedEvent = (rawData: BytesLike): JobArbitratedEvent
     creatorAmount: toBigInt(bytes.slice(2, 34)),
     workerShare: dataView.getUint16(34),
     workerAmount: toBigInt(bytes.slice(36, 68)),
-    reasonHash: hexlify(bytes.slice(68)),
+    reasonHash: hexlify(bytes.slice(68, 100)),
+    workerAddress: getAddress(hexlify(bytes.slice(100))),
   };
+}
+
+export const decodeJobMessageEvent = (rawData: BytesLike): JobMessageEvent => {
+  return {
+    contentHash: hexlify(rawData),
+  };
+}
+
+export const decodeCustomJobEvent = (eventType: JobEventType, rawData: BytesLike, sessionKey: string | undefined = undefined): CustomJobEvent | undefined => {
+  switch (eventType) {
+    case JobEventType.Created:
+      return decodeJobPostEvent(rawData);
+    case JobEventType.Updated:
+      return decodeJobUpdatedEvent(rawData);
+    case JobEventType.Signed:
+      return decodeJobSignedEvent(rawData);
+    case JobEventType.Rated:
+      return decodeJobRatedEvent(rawData);
+    case JobEventType.Disputed:
+      if (sessionKey) {
+        return decodeJobDisputedEvent(rawData, sessionKey);
+      } else {
+        return decodeJobDisputedEventRaw(rawData);
+      }
+    case JobEventType.Arbitrated:
+      return decodeJobArbitratedEvent(rawData);
+    case JobEventType.WorkerMessage:
+    case JobEventType.OwnerMessage:
+      return decodeJobMessageEvent(rawData);
+    default:
+      return undefined;
+  }
 }
 
 // local decode utils
