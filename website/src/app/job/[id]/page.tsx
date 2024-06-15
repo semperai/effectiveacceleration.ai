@@ -1,4 +1,9 @@
+"use client";
+
 import { clsx } from 'clsx'
+import {
+  useAccount,
+} from 'wagmi'
 import { Fragment } from 'react'
 import { Layout } from '@/components/Layout'
 import { Link } from '@/components/Link'
@@ -20,6 +25,10 @@ import {
   UserCircleIcon,
 } from '@heroicons/react/20/solid'
 import { Menu, Transition } from '@headlessui/react'
+import useJobEvents from '@/hooks/useJobEvents';
+import { useParams } from 'next/navigation';
+import { JobEventType, JobMessageEvent } from 'effectiveacceleration-contracts';
+import moment from 'moment';
 
 
 type NotificationComment = {
@@ -142,46 +151,92 @@ function TagsActivityItem(activityItem: NotificationTags) {
   
 
 export default function JobPage() {
-  const jobId = '0x3f4...c3a'
-  const activity: Notification[] = [
-    {
-      id: 1,
-      type: 'comment',
-      person: { name: 'Eduardo Benz', href: '#' },
-      imageUrl:
-        'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
-      comment:
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Tincidunt nunc ipsum tempor purus vitae id. Morbi in vestibulum nec varius. Et diam cursus quis sed purus nam. ',
-      date: '6d ago',
-    },
-    {
-      id: 2,
-      type: 'assignment',
-      person: { name: 'Hilary Mahy', href: '#' },
-      assigned: { name: 'Kristin Watson', href: '#' },
-      date: '2d ago',
-    },
-    {
-      id: 3,
-      type: 'tags',
-      person: { name: 'Hilary Mahy', href: '#' },
-      tags: [
-        { name: 'Bug', href: '#', color: 'fill-red-500' },
-        { name: 'Accessibility', href: '#', color: 'fill-indigo-500' },
-      ],
-      date: '6h ago',
-    },
-    {
-      id: 4,
-      type: 'comment',
-      person: { name: 'Jason Meyers', href: '#' },
-      imageUrl:
-        'https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
-      comment:
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Tincidunt nunc ipsum tempor purus vitae id. Morbi in vestibulum nec varius. Et diam cursus quis sed purus nam. Scelerisque amet elit non sit ut tincidunt condimentum. Nisl ultrices eu venenatis diam.',
-      date: '2h ago',
-    },
-  ]
+  const id = useParams().id as string;
+  const { address } = useAccount();
+  const jobId = BigInt(id);
+  // const activity: Notification[] = [
+  //   {
+  //     id: 1,
+  //     type: 'comment',
+  //     person: { name: 'Eduardo Benz', href: '#' },
+  //     imageUrl:
+  //       'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
+  //     comment:
+  //       'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Tincidunt nunc ipsum tempor purus vitae id. Morbi in vestibulum nec varius. Et diam cursus quis sed purus nam. ',
+  //     date: '6d ago',
+  //   },
+  //   {
+  //     id: 2,
+  //     type: 'assignment',
+  //     person: { name: 'Hilary Mahy', href: '#' },
+  //     assigned: { name: 'Kristin Watson', href: '#' },
+  //     date: '2d ago',
+  //   },
+  //   {
+  //     id: 3,
+  //     type: 'tags',
+  //     person: { name: 'Hilary Mahy', href: '#' },
+  //     tags: [
+  //       { name: 'Bug', href: '#', color: 'fill-red-500' },
+  //       { name: 'Accessibility', href: '#', color: 'fill-indigo-500' },
+  //     ],
+  //     date: '6h ago',
+  //   },
+  //   {
+  //     id: 4,
+  //     type: 'comment',
+  //     person: { name: 'Jason Meyers', href: '#' },
+  //     imageUrl:
+  //       'https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
+  //     comment:
+  //       'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Tincidunt nunc ipsum tempor purus vitae id. Morbi in vestibulum nec varius. Et diam cursus quis sed purus nam. Scelerisque amet elit non sit ut tincidunt condimentum. Nisl ultrices eu venenatis diam.',
+  //     date: '2h ago',
+  //   },
+  // ]
+  const events = useJobEvents(jobId);
+  // console.log(events);
+  const activity = events.data.map((event, idx) => {
+    if ([JobEventType.OwnerMessage, JobEventType.WorkerMessage].includes(event.type_)) {
+      return {
+        id: event.id,
+        type: 'comment',
+        person: { name: event.address_, href: '#' },
+        imageUrl:
+          'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
+        comment: (event.details as JobMessageEvent).content || "",
+        date: moment(event.timestamp_ * 1000).fromNow(),
+      }
+    } else if (event.type_ === 1) {
+      return {
+        id: idx,
+        type: 'assignment',
+        person: { name: event.address_, href: '#' },
+        assigned: { name: event.data_, href: '#' },
+        date: '2d ago',
+      }
+    } else if (event.type_ === 2) {
+      return {
+        id: idx,
+        type: 'tags',
+        person: { name: event.address_, href: '#' },
+        tags: [
+          { name: 'Bug', href: '#', color: 'fill-red-500' },
+          { name: 'Accessibility', href: '#', color: 'fill-indigo-500' },
+        ],
+        date: '6h ago',
+      }
+    } else {
+      return {
+        id: idx,
+        type: 'comment',
+        person: { name: event.address_, href: '#' },
+        imageUrl:
+          'https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80',
+        comment: event.data_,
+        date: '6d ago',
+      }
+    }
+  });
 
   return (
     <Layout>

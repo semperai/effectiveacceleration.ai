@@ -1,4 +1,4 @@
-import Config from '@/config.json';
+import Config from 'effectiveacceleration-contracts/scripts/config.json'
 
 export interface Token {
   id: string;
@@ -27,3 +27,8 @@ export const tokens: Token[] = [
     icon: 'https://assets.coingecko.com/coins/images/35246/standard/arbius-200x-logo.png',
   },
 ]
+
+export const tokensMap: Record<string, Token> = tokens.reduce((acc, token) => {
+  acc[token.id] = token;
+  return acc;
+}, {} as Record<string, Token>);

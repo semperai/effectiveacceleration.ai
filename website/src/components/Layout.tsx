@@ -4,8 +4,9 @@ import {
   useAccount,
   useReadContract,
 } from 'wagmi'
-import MarketplaceArtifact from '@/artifacts/contracts/MarketplaceV1.sol/MarketplaceV1.json'
-import Config from '@/config.json'
+import { type UseReadContractReturnType } from 'wagmi'
+import MarketplaceArtifact from 'effectiveacceleration-contracts/artifacts/contracts/MarketplaceV1.sol/MarketplaceV1.json';
+import Config from 'effectiveacceleration-contracts/scripts/config.json'
 import { clsx } from 'clsx'
 import { Fragment, useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
@@ -41,12 +42,12 @@ const navigationIconOffPageClasses = 'text-slate-800 dark:text-slate-100';
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const { address } = useAccount();
-  const { data: notificationsLengthData } = useReadContract({
+  const { data: notificationsLengthData, error, isSuccess, status } = useReadContract({
     account:      address,
     abi:          MarketplaceArtifact.abi,
     address:      Config.marketplaceAddress as `0x${string}`,
-    functionName: 'notificationsLength',
-    args:         [address],
+    functionName: 'eventsLength',
+    args:         [0],
   });
 
   useEffect(() => {
@@ -54,7 +55,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       setNotificationsCount(notificationsLengthData as bigint)
     }
   }, [notificationsLengthData])
-  console.log('notifications', notificationsLengthData)
+  // console.log('notifications', notificationsLengthData, error, isSuccess, status)
 
   const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)

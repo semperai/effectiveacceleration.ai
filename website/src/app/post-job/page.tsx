@@ -10,8 +10,8 @@ import {
   useWriteContract,
 } from 'wagmi'
 import ERC20Abi from '@/abis/ERC20.json'
-import MarketplaceArtifact from '@/artifacts/contracts/MarketplaceV1.sol/MarketplaceV1.json'
-import Config from '@/config.json'
+import MarketplaceArtifact from 'effectiveacceleration-contracts/artifacts/contracts/MarketplaceV1.sol/MarketplaceV1.json';
+import Config from 'effectiveacceleration-contracts/scripts/config.json'
 import { useEffect, useState } from 'react'
 import { Layout } from '@/components/Layout'
 import { Button } from '@/components/Button'

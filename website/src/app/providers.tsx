@@ -20,6 +20,12 @@ import {
   QueryClient,
 } from "@tanstack/react-query";
 
+declare module 'wagmi' {
+  interface Register {
+    config: typeof config
+  }
+}
+
 const config = getDefaultConfig({
   appName: 'Effective Acceleration',
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!,

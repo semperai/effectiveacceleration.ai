@@ -1,8 +1,10 @@
+"use client";
+
 import { clsx } from 'clsx'
 import { Layout } from '@/components/Layout'
 import { Link } from '@/components/Link'
 import { ChevronRightIcon } from '@heroicons/react/20/solid'
-import { Token, tokens } from '@/tokens'
+import { Token, tokens, tokensMap } from '@/tokens'
 import {
   Pagination,
   PaginationGap,
@@ -11,7 +13,8 @@ import {
   PaginationPage,
   PaginationPrevious,
 } from '@/components/Pagination'
-
+import useJobs from '@/hooks/useJobs';
+import moment from 'moment'
 
 const environments: Record<string, string> = {
   Preview: 'text-gray-400 bg-gray-400/10 ring-gray-400/20',
@@ -19,48 +22,49 @@ const environments: Record<string, string> = {
 }
 
 export default function OpenJobsPage() {
-  const jobs = [
-    {
-      id: 1,
-      paymentAmount: '0.003',
-      token: tokens[0],
-      title: 'Create a story book about Bitcoin',
-      timeAllowed: '1h',
-      reputationPositive: '17',
-      reputationNegative: '3',
-      creator: '0xc4b3...',
-    },
-    {
-      id: 2,
-      paymentAmount: '0.5',
-      token: tokens[1],
-      title: 'Write a blog post about Ethereum',
-      timeAllowed: '5m 30s',
-      reputationPositive: '2122',
-      reputationNegative: '8',
-      creator: 'vitalik.eth',
-    },
-    {
-      id: 3,
-      paymentAmount: '0.25',
-      token: tokens[0],
-      title: 'Design a landing page for a new token',
-      timeAllowed: '1d 12h',
-      reputationPositive: '3',
-      reputationNegative: '4',
-      creator: '0xdef...',
-    },
-    {
-      id: 4,
-      paymentAmount: '0.4',
-      token: tokens[1],
-      title: 'Assist me in writing a whitepaper',
-      timeAllowed: '3h',
-      reputationPositive: '5',
-      reputationNegative: '0',
-      creator: '0x3f3f...',
-    },
-  ];
+  const { data: jobs } = useJobs();
+  // const jobs = [
+  //   {
+  //     id: 1,
+  //     paymentAmount: '0.003',
+  //     token: tokens[0],
+  //     title: 'Create a story book about Bitcoin',
+  //     timeAllowed: '1h',
+  //     reputationPositive: '17',
+  //     reputationNegative: '3',
+  //     creator: '0xc4b3...',
+  //   },
+  //   {
+  //     id: 2,
+  //     paymentAmount: '0.5',
+  //     token: tokens[1],
+  //     title: 'Write a blog post about Ethereum',
+  //     timeAllowed: '5m 30s',
+  //     reputationPositive: '2122',
+  //     reputationNegative: '8',
+  //     creator: 'vitalik.eth',
+  //   },
+  //   {
+  //     id: 3,
+  //     paymentAmount: '0.25',
+  //     token: tokens[0],
+  //     title: 'Design a landing page for a new token',
+  //     timeAllowed: '1d 12h',
+  //     reputationPositive: '3',
+  //     reputationNegative: '4',
+  //     creator: '0xdef...',
+  //   },
+  //   {
+  //     id: 4,
+  //     paymentAmount: '0.4',
+  //     token: tokens[1],
+  //     title: 'Assist me in writing a whitepaper',
+  //     timeAllowed: '3h',
+  //     reputationPositive: '5',
+  //     reputationNegative: '0',
+  //     creator: '0x3f3f...',
+  //   },
+  // ];
 
   return (
     <Layout>
@@ -69,19 +73,19 @@ export default function OpenJobsPage() {
         <li key={idx} className="relative flex items-center space-x-4 px-2 py-4 hover:bg-zinc-50 dark:hover:bg-zinc-950 transition ease-in-out rounded-md">
           <div className="min-w-0 flex-auto">
             <div className="flex items-center gap-x-3">
-              <img src={job.token.icon} alt="" className="h-6 w-6 flex-none rounded-full bg-gray-100 dark:bg-gray-800" />
+              <img src={tokensMap[job.token]?.icon} alt="" className="h-6 w-6 flex-none rounded-full bg-gray-100 dark:bg-gray-800" />
 
               <h2 className="min-w-0 text-sm font-semibold leading-6 text-black dark:text-white">
                 <Link href={`/job/${job.id}`} className="flex gap-x-2">
                   <span className="truncate">{job.title}</span>
                   <span className="text-gray-600 dark:text-gray-400">/</span>
-                  <span className="whitespace-nowrap text-gray-500 dark:text-gray-500">{job.timeAllowed}</span>
+                  <span className="whitespace-nowrap text-gray-500 dark:text-gray-500">{moment.duration(job.maxTime, "seconds").humanize()}</span>
                   <span className="absolute inset-0" />
                 </Link>
               </h2>
             </div>
             <div className="mt-3 flex items-center gap-x-2.5 text-xs leading-5 text-gray-600 dark:text-gray-400">
-              <p className="truncate">{job.creator}</p>
+              <p className="truncate">{job.roles.creator}</p>
               <svg viewBox="0 0 2 2" className="h-0.5 w-0.5 flex-none fill-gray-300">
                 <circle cx={1} cy={1} r={1} />
               </svg>
