@@ -187,6 +187,19 @@ task("marketplace:seed", "Seed local marketplace instance")
       ZeroAddress,
       []
     );
+
+    const jobId = 1;
+
+    // worker reads the post data
+    const workerSessionKey = await getSessionKey(worker, await marketplace.connect(worker).publicKeys(owner.address));
+
+    // worker posts a thread message
+    const workerMessage = "I can do it!";
+    const { hash: workerMessageHash } = await publishToIpfs(workerMessage, workerSessionKey);
+
+    await marketplace.connect(worker).postThreadMessage(jobId, workerMessageHash);
+
+    await marketplace.connect(owner).payStartJob(jobId, worker.address);
   }
 
   {
