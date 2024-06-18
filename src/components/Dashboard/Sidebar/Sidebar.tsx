@@ -13,11 +13,11 @@ import SidebarMobile from './SidebarMobile'
 import SidebarDesktopView from './SidebarDesktop'
 
 const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: <PiHouseSimple /> },
-    { name: 'Jobs', href: '/dashboard/open-jobs', icon: <PiJoystick /> },
-    { name: 'About', href: '/dashboard/post-job', icon: <PiCube /> },
-    { name: 'FAQs', href: '/dashboard/settings', icon: <BsList /> },
-    { name: 'Help', href: '/dashboard/changelog', icon: <PiMegaphoneSimple /> },
+    { name: 'Dashboard', href: '/dashboard', icon: <PiHouseSimple className='text-2xl' /> },
+    { name: 'Jobs', href: '/dashboard/jobs', icon: <PiJoystick className='text-2xl' /> },
+    { name: 'About', href: '/dashboard/post-job', icon: <PiCube className='text-2xl' /> },
+    { name: 'FAQs', href: '/dashboard/settings', icon: <BsList className='text-2xl' /> },
+    { name: 'Help', href: '/dashboard/changelog', icon: <PiMegaphoneSimple className='text-2xl' /> },
   ]
 
 const navigationLinkOnPageClasses = 'bg-opacity-40  bg-indigo-200 dark:bg-fuchsia-200  dark:text-slate-100';

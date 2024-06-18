@@ -19,7 +19,10 @@ export default {
         15: '0.15',
       },
       colors:{
-        'primary': '#432AAE'
+        'primary': '#432AAE',
+        'lightPurple': '#4F46E5',
+        'softBlue': '#f1f4f9',
+        'darkBlueFont': '#475569'
       },
     },
   },

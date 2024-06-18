@@ -45,11 +45,11 @@ const navigation = [
 export function Layout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   return (
-    <div>
+    <div className=''>
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}></Sidebar>
       <div className="lg:pl-72">
         <Navbar setSidebarOpen={setSidebarOpen}></Navbar>
-        <main className="py-10">
+        <main className="py-7 bg-softBlue min-h-screen">
           <div className="px-4 sm:px-6 lg:px-8">
             {children}
           </div>

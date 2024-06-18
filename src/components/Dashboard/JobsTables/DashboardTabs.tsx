@@ -1,100 +1,44 @@
 'use client'
-import Link from 'next/link'
 import React from 'react'
-import { withRouter } from "next/router"
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
-import {
-    createColumnHelper,
-    flexRender,
-    getCoreRowModel,
-    useReactTable,
-  } from '@tanstack/react-table'
-import JobsTable from './JobsTable';
-import { TJobTable } from '@/service/JobsService';
-
-  const defaultData: TJobTable[] = [
-    {
-      jobName: 'tanner',
-      description: 'linsley',
-      tag: 'Audio',
-      actions: 'View Applicants',
-    },
-    {
-      jobName: 'tanner',
-      description: 'linsley',
-      tag: 'Audio',
-      actions: 'View Applicants',
-    },
-    {
-      jobName: 'tanner',
-      description: 'linsley',
-      tag: 'Audio',
-      actions: 'View Applicants',
-    },
-  ]
-  
-  const columnHelper = createColumnHelper<TJobTable>()
-  
-  const columns = [
-    columnHelper.accessor(row => row.jobName, {
-        id: 'jobName',
-        cell: info => <i>{info.getValue()}</i>,
-        header: () => <span>Job Name</span>,
-    }),
-    columnHelper.accessor(row => row.description, {
-      id: 'description',
-      cell: info => <i>{info.getValue()}</i>,
-      header: () => <span>Description</span>,
-    }),
-    columnHelper.accessor(row => row.tag, {
-        id: 'tag',
-        cell: info => <i>{info.getValue()}</i>,
-        header: () => <span>Tag</span>,
-    }),
-    columnHelper.accessor(row => row.actions, {
-        id: 'actions',
-        cell: info => <i>{info.getValue()}</i>,
-        header: () => <span>Actions</span>,
-    }),
-  ]
-  
-
+import OpenJobs from './JobsTablesData/OpenJobs';
+import JobProgress from './JobsTablesData/JobProgress';
+import CompletedJobs from './JobsTablesData/CompletedJobs';
+import DisputedJobs from './JobsTablesData/DisputedJobs';
+import ArchivedJobs from './JobsTablesData/ArchivedJobs';
 
 const DashboardTabs = () => {
-    const [data, _setData] = React.useState(() => [...defaultData])
-    const rerender = React.useReducer(() => ({}), {})[1]
-    const table = useReactTable({
-        data,
-        columns,
-        getCoreRowModel: getCoreRowModel(),
-      })
   return (
     <div className=''>
     <Tabs>
-        <TabList>
-            <Tab>
+        <TabList className='flex border-b-2 borde-gray-100 mb-7'>
+            <Tab selectedClassName='!border-lightPurple  border-b-2  !text-lightPurple'  className='px-8 py-2 font-medium relative cursor-pointer top-[2px] outline-none text-darkBlueFont'>
                 Open Jobs
             </Tab>
-            <Tab>In Progress</Tab>
-            <Tab>Completed</Tab>
-            <Tab>Disputed</Tab>
-            <Tab>Archived</Tab>
+            <Tab selectedClassName='!border-lightPurple  border-b-2 !text-lightPurple'  className='px-8 py-2 font-medium relative cursor-pointer top-[2px] outline-none text-darkBlueFont'>
+              In Progress</Tab>
+            <Tab selectedClassName='!border-lightPurple  border-b-2 !text-lightPurple'  className='px-8 py-2 font-medium relative cursor-pointer top-[2px] outline-none text-darkBlueFont'>
+              Completed</Tab>
+            <Tab selectedClassName='!border-lightPurple  border-b-2 !text-lightPurple'  className='px-8 py-2 font-medium relative cursor-pointer top-[2px] outline-none text-darkBlueFont'>
+              Disputed</Tab>
+            <Tab selectedClassName='!border-lightPurple  border-b-2 !text-lightPurple'  className='px-8 py-2 font-medium relative cursor-pointer top-[2px] outline-none text-darkBlueFont'>
+              Archived</Tab>
         </TabList>
         <TabPanel>
-          <JobsTable table={table}></JobsTable>
+          <OpenJobs/>
         </TabPanel>
         <TabPanel>
-          <JobsTable table={table}></JobsTable>
+          <JobProgress/>
         </TabPanel>
         <TabPanel>
-          <JobsTable table={table}></JobsTable>
+          <CompletedJobs/>
         </TabPanel>
         <TabPanel>
-          <JobsTable table={table}></JobsTable>
+          <DisputedJobs/>
         </TabPanel>        
         <TabPanel>
-          <JobsTable table={table}></JobsTable>
+          <ArchivedJobs/>
         </TabPanel>
     </Tabs>
   </div>
