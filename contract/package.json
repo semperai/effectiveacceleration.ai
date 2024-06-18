@@ -53,6 +53,7 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@noble/ciphers": "^0.5.3"
+    "@noble/ciphers": "^0.5.3",
+    "viem": "^2.15.1"
   }
 }
