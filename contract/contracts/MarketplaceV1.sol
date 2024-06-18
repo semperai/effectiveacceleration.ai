@@ -42,7 +42,7 @@ struct JobPost {
     bool multipleApplicants;
     uint256 amount; // wei
     address token;
-    uint256 timestamp; // Timestamp of the latest update on the job (posted, started, closed)
+    uint32 timestamp; // Timestamp of the latest update on the job (posted, started, closed)
     uint32 maxTime; // 4 bytes
     string deliveryMethod;
     uint256 collateralOwed; // amount locked until 24 hours after the job is created or reopened
@@ -421,7 +421,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         jobPost.multipleApplicants = multipleApplicants_;
         jobPost.token = token_;
         jobPost.amount = amount_;
-        jobPost.timestamp = block.timestamp;
+        jobPost.timestamp = uint32(block.timestamp);
         jobPost.maxTime = maxTime_;
         jobPost.deliveryMethod = deliveryMethod_;
         jobPost.roles.arbitrator = arbitrator_;
@@ -495,6 +495,9 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         }
         {
             jobs[jobId_].contentHash = contentHash_;
+        }
+        {
+            jobs[jobId_].tags = tags_;
         }
         {
             jobs[jobId_].whitelistWorkers = whitelistWorkers_;
@@ -623,8 +626,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         require(job.state == uint8(JobState.Closed), "not closed");
 
-        job.resultHash = 0;
-
         if (job.collateralOwed < job.amount) {
             SafeERC20.safeTransferFrom(IERC20(job.token), msg.sender, address(this), job.amount - job.collateralOwed);
             job.collateralOwed = 0;
@@ -633,7 +634,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         }
 
         job.state = uint8(JobState.Open);
-        job.timestamp = block.timestamp;
+        job.resultHash = 0;
+        job.timestamp = uint32(block.timestamp);
 
         publishJobEvent(jobId_,
             JobEventData({
@@ -821,7 +823,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         publishJobEvent(jobId_,
             JobEventData({
-                type_: uint8(JobEventType.Closed),
+                type_: uint8(JobEventType.Completed),
                 address_: bytes(""),
                 data_: bytes(""),
                 timestamp_: 0
@@ -863,6 +865,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         unicrow.refund(job.escrowId);
 
         job.state = uint8(JobState.Open);
+        job.escrowId = 0;
 
         // remove the worker from the whitelist
         if (byWorker) {
