@@ -16,7 +16,10 @@ import { FakeToken } from "../typechain-types/contracts/unicrow/FakeToken";
 import { Signer, HDNodeWallet, EventLog, getCreateAddress, toBigInt, hexlify, ZeroAddress, ZeroHash, getBytes, toUtf8Bytes }  from "ethers";
 import { Unicrow, UnicrowDispute, UnicrowArbitrator, UnicrowClaim, IERC20Errors__factory, ECDSA__factory, OwnableUpgradeable__factory, Initializable__factory } from "../typechain-types";
 import { HardhatNetworkHDAccountsConfig } from "hardhat/types";
-import { decodeJobArbitratedEvent, decodeJobDisputedEvent, decodeJobDisputedEventRaw, decodeJobPostEvent, decodeJobRatedEvent, decodeJobSignedEvent, decodeJobUpdatedEvent, encryptBinaryData, encryptUtf8Data, getEncryptionSigningKey, getFromIpfs, getSessionKey, JobArbitratedEvent, JobDisputedEvent, JobDisputedEventRaw, JobEventType, JobPostEvent, JobRatedEvent, JobSignedEvent, JobState, JobUpdateEvent, publishToIpfs } from "../src/utils";
+import { decodeJobArbitratedEvent, decodeJobDisputedEvent, decodeJobDisputedEventRaw, decodeJobCreatedEvent, decodeJobRatedEvent, decodeJobSignedEvent, decodeJobUpdatedEvent, encryptBinaryData, encryptUtf8Data, getEncryptionSigningKey, getFromIpfs, getSessionKey, JobArbitratedEvent, JobDisputedEvent, JobDisputedEventRaw, JobEventType, JobCreatedEvent, JobRatedEvent, JobSignedEvent, JobState, JobUpdateEvent, publishToIpfs, computeJobStateDiffs } from "../src/utils";
+
+import { inspect } from 'util';
+inspect.defaultOptions.depth = 10;
 
 chai.use(chaiSubset);
 chai.use(chaiAsPromised);
@@ -195,6 +198,41 @@ describe("Marketplace Unit Tests", () => {
     return { wallet1, wallet2, wallet3 };
   }
 
+  const checkJobFromStateDiffs = async (marketplace: Marketplace, dataView: MarketplaceDataView, jobId: bigint, eventId: number | undefined = undefined) => {
+    const events = await dataView.getEvents(jobId, 0n, 0n);
+
+    if (eventId === undefined) {
+      eventId = events.length - 1;
+    }
+
+    const diffs = computeJobStateDiffs(events.map((val: any) => val.toObject()), 0n);
+    const recreatedJob = diffs[eventId].job;
+    const job = await dataView.getJob(jobId);
+
+    expect(recreatedJob.id).to.equal(jobId);
+    expect(recreatedJob.state).to.equal(job.state);
+    expect(recreatedJob.whitelistWorkers).to.equal(job.whitelistWorkers);
+    expect(recreatedJob.roles).to.deep.equal((job.roles as any).toObject());
+    expect(recreatedJob.title).to.equal(job.title);
+    expect(recreatedJob.tags).to.deep.equal((job.tags as any).toArray());
+    expect(recreatedJob.contentHash).to.equal(job.contentHash);
+    expect(recreatedJob.multipleApplicants).to.equal(job.multipleApplicants);
+    expect(recreatedJob.amount).to.equal(job.amount);
+    expect(recreatedJob.token).to.equal(job.token);
+    expect(recreatedJob.timestamp).to.equal(job.timestamp);
+    expect(recreatedJob.maxTime).to.equal(job.maxTime);
+    expect(recreatedJob.deliveryMethod).to.equal(job.deliveryMethod);
+    expect(recreatedJob.collateralOwed).to.equal(job.collateralOwed);
+    expect(recreatedJob.escrowId).to.equal(job.escrowId);
+    expect(recreatedJob.resultHash).to.equal(job.resultHash);
+    expect(recreatedJob.rating).to.equal(job.rating);
+    expect(recreatedJob.disputed).to.equal(job.disputed);
+
+    for (const allowedWorker of recreatedJob.allowedWorkers ?? []) {
+      expect(await marketplace.whitelistWorkers(jobId, allowedWorker)).to.equal(true);
+    }
+  }
+
   describe("admin", () => {
     it("transfer owner", async () => {
       const { marketplace, deployer, user1 } = await loadFixture(deployContractsFixture);
@@ -208,7 +246,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("non owner cannot transfer owner", async () => {
-      const { marketplace, user1 } = await loadFixture(deployContractsFixture);
+      const { marketplace, dataView, user1 } = await loadFixture(deployContractsFixture);
       await expect(marketplace
         .connect(user1)
         .transferOwnership(await user1.getAddress())
@@ -227,7 +265,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("non owner cannot transfer pauser", async () => {
-      const { marketplace, user1 } = await loadFixture(deployContractsFixture);
+      const { marketplace, dataView, user1 } = await loadFixture(deployContractsFixture);
       await expect(marketplace
         .connect(user1)
         .transferPauser(await user1.getAddress())
@@ -246,7 +284,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("non owner cannot transfer treasury", async () => {
-      const { marketplace, user1 } = await loadFixture(deployContractsFixture);
+      const { marketplace, dataView, user1 } = await loadFixture(deployContractsFixture);
       await expect(marketplace
         .connect(user1)
         .transferTreasury(await user1.getAddress())
@@ -273,7 +311,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("non pauser cannot pause", async () => {
-      const { marketplace, user1 } = await loadFixture(deployContractsFixture);
+      const { marketplace, dataView, user1 } = await loadFixture(deployContractsFixture);
       await expect(marketplace
         .connect(user1)
         .pause()
@@ -302,7 +340,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("non owner cannot set version", async () => {
-      const { marketplace, user1 } = await loadFixture(deployContractsFixture);
+      const { marketplace, dataView, user1 } = await loadFixture(deployContractsFixture);
       await expect(marketplace
         .connect(user1)
         .setVersion(25)
@@ -319,7 +357,7 @@ describe("Marketplace Unit Tests", () => {
 
   describe("register pubkey", () => {
     it("register pubkey", async () => {
-      const { marketplace, user1 } = await loadFixture(deployContractsFixture);
+      const { marketplace, dataView, user1 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
       await expect(marketplace.connect(user1).registerPublicKey("0x00")).to.be.revertedWith("invalid pubkey length, must be compressed, 33 bytes");
@@ -567,7 +605,7 @@ describe("Marketplace Unit Tests", () => {
 
   describe("job posting", () => {
     it("post job 1", async () => {
-      const { marketplace, fakeToken, user1 } = await loadFixture(deployContractsFixture);
+      const { marketplace, dataView, fakeToken, user1 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
       await registerPublicKey(marketplace, user1, wallet1);
@@ -597,7 +635,7 @@ describe("Marketplace Unit Tests", () => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Created);
 
-        const event: JobPostEvent = decodeJobPostEvent(jobEventData.data_);
+        const event: JobCreatedEvent = decodeJobCreatedEvent(jobEventData.data_);
         expect(event.title).to.equal(title);
         expect(event.contentHash).to.equal(contentHash);
         expect(event.multipleApplicants).to.equal(false);
@@ -624,6 +662,8 @@ describe("Marketplace Unit Tests", () => {
       expect(job.roles.worker).to.equal(ethers.ZeroAddress);
 
       expect(contentHash).to.equal(job.contentHash);
+
+      await checkJobFromStateDiffs(marketplace, dataView, 0n);
     });
 
     it("post two jobs", async () => {
@@ -689,7 +729,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("post job with whitelist", async () => {
-      const { marketplace, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
+      const { marketplace, dataView, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
       await registerPublicKey(marketplace, user1, wallet1);
@@ -761,7 +801,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("post job with invalid token", async () => {
-      const { marketplace, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
+      const { marketplace, dataView, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
       await registerPublicKey(marketplace, user1, wallet1);
@@ -789,7 +829,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("post job with invalid amount", async () => {
-      const { marketplace, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
+      const { marketplace, dataView, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
       await registerPublicKey(marketplace, user1, wallet1);
@@ -845,7 +885,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("post job with invalid deadline", async () => {
-      const { marketplace, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
+      const { marketplace, dataView, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
       await registerPublicKey(marketplace, user1, wallet1);
@@ -871,7 +911,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("post job with invalid title", async () => {
-      const { marketplace, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
+      const { marketplace, dataView, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
       await registerPublicKey(marketplace, user1, wallet1);
@@ -912,7 +952,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("post job with invalid delivery method", async () => {
-      const { marketplace, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
+      const { marketplace, dataView, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
       await registerPublicKey(marketplace, user1, wallet1);
@@ -954,7 +994,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("post job from unregistered user", async () => {
-      const { marketplace, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
+      const { marketplace, dataView, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
       const title = "Create a marketplace in solidity!";
@@ -978,7 +1018,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("post job with invalid mece tags", async () => {
-      const { marketplace, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
+      const { marketplace, dataView, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
       await registerPublicKey(marketplace, user1, wallet1);
@@ -1034,7 +1074,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("post job with unregistered arbitrator", async () => {
-      const { marketplace, fakeToken, user1, user2, arbitrator } = await loadFixture(deployContractsFixture);
+      const { marketplace, dataView, fakeToken, user1, user2, arbitrator } = await loadFixture(deployContractsFixture);
       const { wallet1, wallet2, wallet3 } = await loadFixture(getWalletsFixture);
 
       await registerPublicKey(marketplace, user1, wallet1);
@@ -1084,7 +1124,7 @@ describe("Marketplace Unit Tests", () => {
 
   describe("job worker whitelisting", () => {
     it("should whitelist worker", async () => {
-      const { marketplace, fakeToken, user1, user2, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+      const { marketplace, dataView, fakeToken, user1, user2, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
       await expect(marketplace.connect(user2).updateJobWhitelist(jobId, [await user2.getAddress()], [])).to.be.revertedWith("not creator");
 
@@ -1105,6 +1145,8 @@ describe("Marketplace Unit Tests", () => {
         .connect(user1)
         .whitelistWorkers(jobId, user1.address)).to.be.true;
 
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
+
       await expect(marketplace.connect(user1).updateJobWhitelist(jobId, [], [await user1.getAddress()])).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.WhitelistedWorkerRemoved);
@@ -1118,6 +1160,8 @@ describe("Marketplace Unit Tests", () => {
         .connect(user1)
         .whitelistWorkers(jobId, user1.address)).to.be.false;
 
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
+
       await marketplace
         .connect(user1)
         .closeJob(jobId);
@@ -1128,13 +1172,13 @@ describe("Marketplace Unit Tests", () => {
 
   describe("job updates", () => {
     it("update job", async () => {
-      const { marketplace, user1, user2, fakeToken, wallet2, wallet3, jobId } = await deployMarketplaceWithUsersAndJob();
+      const { marketplace, dataView, user1, user2, fakeToken, wallet2, wallet3, jobId } = await deployMarketplaceWithUsersAndJob();
 
       const title = "New title";
       const content = "Please create a marketplace in solidity";
       const contentHash = "0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5";
       const tags = ["DA"];
-      const amount = 200;
+      const amount = BigInt(200e18);
       const maxTime = 240;
       const arbitrator = await wallet3.getAddress();
       const whitelistWorkers = true;
@@ -1266,6 +1310,8 @@ describe("Marketplace Unit Tests", () => {
       expect(job.roles.arbitrator).to.equal(arbitrator);
       expect(job.whitelistWorkers).to.equal(whitelistWorkers);
 
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
+
       await expect(marketplace.connect(user2).closeJob(jobId)).to.be.revertedWith("not creator");
       await marketplace.connect(user1).closeJob(jobId);
 
@@ -1282,13 +1328,13 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("update job arbitrator", async () => {
-      const { marketplace, user1, user2, arbitrator, fakeToken, wallet2, wallet3, jobId } = await deployMarketplaceWithUsersAndJob();
+      const { marketplace, dataView, user1, user2, arbitrator, fakeToken, wallet2, wallet3, jobId } = await deployMarketplaceWithUsersAndJob();
 
       const title = "New title";
       const content = "Please create a marketplace in solidity";
       const contentHash = "0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5";
       const tags = ["DA"];
-      const amount = 200;
+      const amount = BigInt(200e18);
       const maxTime = 240;
       const whitelistWorkers = true;
 
@@ -1326,16 +1372,18 @@ describe("Marketplace Unit Tests", () => {
         arbitrator.address,
         whitelistWorkers,
       )).to.be.not.revertedWith("arbitrator not registered");
+
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
     });
 
     it("update job tags", async () => {
-      const { marketplace, user1, user2, arbitrator, fakeToken, wallet2, wallet3, jobId } = await deployMarketplaceWithUsersAndJob();
+      const { marketplace, dataView, user1, user2, arbitrator, fakeToken, wallet2, wallet3, jobId } = await deployMarketplaceWithUsersAndJob();
 
       const title = "New title";
       const content = "Please create a marketplace in solidity";
       const contentHash = "0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5";
       const tags = ["DA", "Bug"];
-      const amount = 200;
+      const amount = BigInt(200e18);
       const maxTime = 240;
       const whitelistWorkers = true;
 
@@ -1358,10 +1406,12 @@ describe("Marketplace Unit Tests", () => {
 
         return true;
       });
+
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
     });
 
     it("update job amounts", async () => {
-      const { marketplace, user1, user2, fakeToken, wallet2, wallet3, jobId } = await deployMarketplaceWithUsersAndJob();
+      const { marketplace, dataView, user1, user2, fakeToken, wallet2, wallet3, jobId } = await deployMarketplaceWithUsersAndJob();
 
       const title = "New title";
       const content = "Please create a marketplace in solidity";
@@ -1393,6 +1443,8 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
+
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(800e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(200e18));
       expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(0);
@@ -1414,6 +1466,8 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
+
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(800e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(200e18));
       expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(BigInt(100e18));
@@ -1434,6 +1488,8 @@ describe("Marketplace Unit Tests", () => {
 
         return true;
       });
+
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
 
       // collateral will be updated
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(700e18));
@@ -1460,6 +1516,8 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
+
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(100e18));
       expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(0);
@@ -1472,7 +1530,7 @@ describe("Marketplace Unit Tests", () => {
       const content = "Please create a marketplace in solidity";
       const contentHash = "0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5";
       const tags = ["DA"];
-      const amount = 200;
+      const amount = BigInt(200e18);
       const maxTime = 240;
       const arbitrator = await wallet3.getAddress();
       const whitelistWorkers = true;
@@ -1531,7 +1589,7 @@ describe("Marketplace Unit Tests", () => {
 
   describe("close job", () => {
     it("close job before timeout", async () => {
-      const { marketplace, fakeToken, user1, user2, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+      const { marketplace, dataView, fakeToken, user1, user2, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
       await expect(marketplace.connect(user2).closeJob(jobId)).to.be.revertedWith("not creator");
 
@@ -1547,6 +1605,8 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
+
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(100e18));
 
@@ -1558,7 +1618,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("close job after timeout", async () => {
-      const { marketplace, fakeToken, user1, user2, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+      const { marketplace, dataView, fakeToken, user1, user2, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
       await expect(marketplace.connect(user2).closeJob(jobId)).to.be.revertedWith("not creator");
 
@@ -1577,6 +1637,8 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
+
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(1000e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(0);
 
@@ -1588,7 +1650,7 @@ describe("Marketplace Unit Tests", () => {
 
   describe("reopen job", () => {
     it("reopen job before timeout", async () => {
-      const { marketplace, fakeToken, user1, user2, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+      const { marketplace, dataView, fakeToken, user1, user2, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
       await expect(marketplace.connect(user2).reopenJob(jobId)).to.be.revertedWith("not creator");
       await expect(marketplace.connect(user1).reopenJob(jobId)).to.be.revertedWith("not closed");
@@ -1606,6 +1668,8 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
+
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(100e18));
       expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(BigInt(100e18));
@@ -1619,6 +1683,8 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
+
       expect((await marketplace.connect(user1).jobs(jobId)).resultHash).to.be.equal(ZeroHash);
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
@@ -1627,7 +1693,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("reopen job after timeout", async () => {
-      const { marketplace, fakeToken, user1, user2, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+      const { marketplace, dataView, fakeToken, user1, user2, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
       await expect(marketplace.connect(user1).reopenJob(jobId)).to.be.revertedWith("not closed");
 
@@ -1647,6 +1713,8 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
+
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(1000e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(0);
       expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(0);
@@ -1660,6 +1728,8 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
+
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(100e18));
       expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(0);
@@ -1668,7 +1738,7 @@ describe("Marketplace Unit Tests", () => {
 
   describe("withdraw collateral", () => {
     it("withdraw collateral", async () => {
-      const { marketplace, fakeToken, user1, user2, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+      const { marketplace, dataView, fakeToken, user1, user2, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
       await expect(marketplace.connect(user1).withdrawCollateral(jobId, fakeToken)).to.be.revertedWith("not closed");
 
@@ -1684,6 +1754,8 @@ describe("Marketplace Unit Tests", () => {
 
         return true;
       });
+
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(100e18));
@@ -1702,6 +1774,8 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
+
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(1000e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(0);
       expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(0);
@@ -1713,14 +1787,14 @@ describe("Marketplace Unit Tests", () => {
   describe("take job", () => {
     it("sanity checks", async () => {
       const randomWallet = ethers.Wallet.createRandom();
-      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+      const { marketplace, dataView, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
       await expect(
         marketplace.connect(user1).takeJob(jobId, "0x")
       ).to.be.revertedWith("not whitelisted");
 
       {
-        const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(true, false);
+        const { marketplace, dataView, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(true, false);
 
         await expect(
           marketplace.connect(user2).takeJob(jobId, "0x")
@@ -1758,7 +1832,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("take job", async () => {
-      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+      const { marketplace, dataView, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
       const revision = await marketplace.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
@@ -1792,6 +1866,8 @@ describe("Marketplace Unit Tests", () => {
         return true;
       }).and.to.emit(unicrowGlobal, "Pay");
 
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
+
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(0);
       expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(BigInt(100e18));
@@ -1808,7 +1884,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("take job multiple", async () => {
-      const { marketplace, fakeToken, user1, user2, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(true);
+      const { marketplace, dataView, fakeToken, user1, user2, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(true);
 
       const revision = await marketplace.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
@@ -1832,6 +1908,8 @@ describe("Marketplace Unit Tests", () => {
         return true;
       }).and.not.to.emit(unicrowGlobal, "Pay");
 
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
+
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(100e18));
       expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(0);
@@ -1846,7 +1924,7 @@ describe("Marketplace Unit Tests", () => {
   describe("pay start job", () => {
     it("sanity checks", async () => {
       const randomWallet = ethers.Wallet.createRandom();
-      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+      const { marketplace, dataView, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
       await expect(
         marketplace.connect(user2).payStartJob(jobId, randomWallet.address)
@@ -1866,7 +1944,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("pay start job", async () => {
-      const { marketplace, fakeToken, user1, user2, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+      const { marketplace, dataView, fakeToken, user1, user2, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
       let escrowId: bigint = 0n;
 
@@ -1883,6 +1961,8 @@ describe("Marketplace Unit Tests", () => {
         return true;
       }).to.emit(unicrowGlobal, "Pay");
 
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
+
       const job = await marketplace.jobs(jobId);
       expect(job.roles.worker).to.equal(await user2.getAddress());
       expect(job.state).to.equal(JobState.Taken);
@@ -1898,7 +1978,7 @@ describe("Marketplace Unit Tests", () => {
   describe("post thread message", () => {
     it("sanity checks", async () => {
       const randomWallet = ethers.Wallet.createRandom();
-      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+      const { marketplace, dataView, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
       const message = "I am interested in this job";
       const { hash: messageHash } = await publishToIpfs(message);
@@ -1916,7 +1996,7 @@ describe("Marketplace Unit Tests", () => {
       ).to.be.not.reverted;
 
       {
-        const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, false);
+        const { marketplace, dataView, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, false);
         await expect(
           marketplace.connect(arbitrator).postThreadMessage(jobId, messageHash)
         ).to.be.not.revertedWith("not whitelisted");
@@ -1955,7 +2035,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("post thread message", async () => {
-      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+      const { marketplace, dataView, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
       const message = "I am interested in this job";
       const { hash: messageHash } = await publishToIpfs(message);
@@ -1971,6 +2051,8 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
+
       await expect(
         marketplace.connect(user2).postThreadMessage(jobId, messageHash)
       ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
@@ -1981,13 +2063,15 @@ describe("Marketplace Unit Tests", () => {
 
         return true;
       });
+
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
     });
   });
 
   describe("deliver result", () => {
     it("sanity checks", async () => {
       const randomWallet = ethers.Wallet.createRandom();
-      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+      const { marketplace, dataView, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
       const message = "Delivered";
       const { hash: messageHash } = await publishToIpfs(message)
@@ -2013,7 +2097,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("deliver result", async () => {
-      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+      const { marketplace, dataView, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
       const message = "Delivered";
       const { hash: messageHash } = await publishToIpfs(message)
@@ -2037,13 +2121,15 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
+
       expect((await marketplace.connect(user1).jobs(jobId)).resultHash).to.be.equal(contentHash);
     });
   });
 
   describe("approve result and review", () => {
     it("sanity checks", async () => {
-      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+      const { marketplace, dataView, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
       const message = "Nice job!";
       const { hash: messageHash } = await publishToIpfs(message);
@@ -2089,7 +2175,7 @@ describe("Marketplace Unit Tests", () => {
 
       // postponed review
       {
-        const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+        const { marketplace, dataView, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
         await expect(
           marketplace.connect(user1).review(jobId, 5, message)
@@ -2134,7 +2220,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("approve result", async () => {
-      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+      const { marketplace, dataView, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
       const message = "Delivered";
       const { hash: messageHash } = await publishToIpfs(message)
@@ -2170,12 +2256,14 @@ describe("Marketplace Unit Tests", () => {
         return true;
       }).and.to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
-        expect(jobEventData.type_).to.equal(JobEventType.Closed);
+        expect(jobEventData.type_).to.equal(JobEventType.Completed);
         expect(jobEventData.address_).to.equal("0x");
         expect(jobEventData.data_).to.equal("0x");
 
         return true;
       }).and.to.emit(unicrowGlobal, "Release");
+
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
       expect(await fakeToken.balanceOf(await user2.getAddress())).to.equal(BigInt(1079e18));
@@ -2191,7 +2279,7 @@ describe("Marketplace Unit Tests", () => {
   describe("refund", () => {
     it("sanity checks", async () => {
       const randomWallet = ethers.Wallet.createRandom();
-      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+      const { marketplace, dataView, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
       const { hash: resultHash } = await publishToIpfs("Result");
 
@@ -2238,7 +2326,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("refund", async () => {
-      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+      const { marketplace, dataView, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
       const revision = await marketplace.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
@@ -2288,6 +2376,8 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
+
       expect((await marketplace.connect(user1).jobs(jobId)).state).to.be.equal(JobState.Open);
       expect((await marketplace.connect(user1).jobs(jobId)).resultHash).to.not.be.equal(ZeroHash);
 
@@ -2317,7 +2407,7 @@ describe("Marketplace Unit Tests", () => {
   describe("dispute", () => {
     it("sanity checks no arbitrator", async () => {
       const randomWallet = ethers.Wallet.createRandom();
-      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, false);
+      const { marketplace, dataView, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, false);
 
       const revision = await marketplace.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
@@ -2344,7 +2434,7 @@ describe("Marketplace Unit Tests", () => {
 
     it("sanity checks with arbitrator", async () => {
       const randomWallet = ethers.Wallet.createRandom();
-      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+      const { marketplace, dataView, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
       const revision = await marketplace.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
@@ -2380,7 +2470,7 @@ describe("Marketplace Unit Tests", () => {
 
     it("sanity checks closed job", async () => {
       const randomWallet = ethers.Wallet.createRandom();
-      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+      const { marketplace, dataView, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
       const content = toUtf8Bytes("Objection!");
       const sessionKey = "0x" + "00".repeat(32);
@@ -2396,7 +2486,7 @@ describe("Marketplace Unit Tests", () => {
 
     it("dispute creator", async () => {
       const randomWallet = ethers.Wallet.createRandom();
-      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
+      const { marketplace, dataView, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
 
       const revision = await marketplace.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
@@ -2427,11 +2517,13 @@ describe("Marketplace Unit Tests", () => {
 
         return true;
       }).and.to.emit(unicrowDisputeGlobal, "Challenge");
+
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
     });
 
     it("dispute worker", async () => {
       const randomWallet = ethers.Wallet.createRandom();
-      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
+      const { marketplace, dataView, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
 
       const revision = await marketplace.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
@@ -2456,13 +2548,15 @@ describe("Marketplace Unit Tests", () => {
 
         return true;
       }).and.not.to.emit(unicrowDisputeGlobal, "Challenge");
+
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
     });
   });
 
   describe("arbitrate", () => {
     it("sanity checks", async () => {
       const randomWallet = ethers.Wallet.createRandom();
-      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
+      const { marketplace, dataView, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
 
       const revision = await marketplace.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
@@ -2506,7 +2600,7 @@ describe("Marketplace Unit Tests", () => {
 
     it("arbitrate 80-20", async () => {
       const randomWallet = ethers.Wallet.createRandom();
-      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
+      const { marketplace, dataView, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
 
       const revision = await marketplace.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
@@ -2562,6 +2656,8 @@ describe("Marketplace Unit Tests", () => {
         return true;
       }).and.to.emit(unicrowArbitratorGlobal, "Arbitrated");
 
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
+
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
       expect(await fakeToken.balanceOf(await user2.getAddress())).to.equal(1015810000000000000000n);
       expect(await fakeToken.balanceOf(await arbitrator.getAddress())).to.equal(BigInt(1e18));
@@ -2582,7 +2678,7 @@ describe("Marketplace Unit Tests", () => {
 
     it("arbitrate 0-100", async () => {
       const randomWallet = ethers.Wallet.createRandom();
-      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
+      const { marketplace, dataView, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
 
       const revision = await marketplace.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
@@ -2638,6 +2734,8 @@ describe("Marketplace Unit Tests", () => {
         return true;
       }).and.to.emit(unicrowArbitratorGlobal, "Arbitrated");
 
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
+
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
       expect(await fakeToken.balanceOf(await user2.getAddress())).to.equal(BigInt(1079e18));
       expect(await fakeToken.balanceOf(await arbitrator.getAddress())).to.equal(BigInt(1e18));
@@ -2659,7 +2757,7 @@ describe("Marketplace Unit Tests", () => {
 
     it("arbitrate 100-0", async () => {
       const randomWallet = ethers.Wallet.createRandom();
-      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
+      const { marketplace, dataView, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
 
       const revision = await marketplace.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
@@ -2715,6 +2813,8 @@ describe("Marketplace Unit Tests", () => {
         return true;
       }).and.to.emit(unicrowArbitratorGlobal, "Arbitrated");
 
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
+
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
       expect(await fakeToken.balanceOf(await user2.getAddress())).to.equal(BigInt(1000e18));
       expect(await fakeToken.balanceOf(await arbitrator.getAddress())).to.equal(BigInt(1e18));
@@ -2738,7 +2838,7 @@ describe("Marketplace Unit Tests", () => {
   describe("refuse arbitration", () => {
     it("job closed", async () => {
       const randomWallet = ethers.Wallet.createRandom();
-      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
+      const { marketplace, dataView, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
 
       await expect(
         marketplace.connect(user1).closeJob(jobId)
@@ -2751,7 +2851,7 @@ describe("Marketplace Unit Tests", () => {
 
     it("job not taken", async () => {
       const randomWallet = ethers.Wallet.createRandom();
-      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
+      const { marketplace, dataView, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
 
       expect((await marketplace.jobs(jobId)).roles.arbitrator).to.equal(arbitrator.address);
 
@@ -2776,6 +2876,8 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
+
       expect((await marketplace.jobs(jobId)).roles.arbitrator).to.equal(ethers.ZeroAddress);
 
       {
@@ -2787,7 +2889,7 @@ describe("Marketplace Unit Tests", () => {
 
     it("job taken", async () => {
       const randomWallet = ethers.Wallet.createRandom();
-      const { marketplace, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
+      const { marketplace, dataView, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
 
       expect((await marketplace.jobs(jobId)).roles.arbitrator).to.equal(arbitrator.address);
 
@@ -2825,6 +2927,8 @@ describe("Marketplace Unit Tests", () => {
 
         return true;
       });
+
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
 
       expect((await marketplace.jobs(jobId)).roles.arbitrator).to.equal(ethers.ZeroAddress);
 
@@ -2992,6 +3096,8 @@ describe("Marketplace Unit Tests", () => {
 
       const reasonRead = await getFromIpfs(arbitrationEvent.reasonHash, sessionKeyOW);
       expect(reasonRead).to.equal(reason);
+
+      await checkJobFromStateDiffs(marketplace, dataView, jobId);
     });
   })
 });

@@ -1,7 +1,9 @@
 import { xchacha20poly1305 } from "@noble/ciphers/chacha";
 import { randomBytes } from "@noble/ciphers/crypto";
 import { utf8ToBytes } from "@noble/ciphers/utils";
-import { BytesLike, getBytes, AbiCoder, hexlify, toUtf8String, toBigInt, getAddress, decodeBase58, encodeBase58, toBeArray, encodeBase64, decodeBase64, SigningKey, keccak256, Signer, JsonRpcSigner } from "ethers";
+import { BytesLike, getBytes, AbiCoder, hexlify, toUtf8String, toBigInt, getAddress, decodeBase58, encodeBase58, toBeArray, encodeBase64, decodeBase64, SigningKey, keccak256, Signer, JsonRpcSigner, Result, ZeroAddress, ZeroHash } from "ethers";
+import { JobEventDataStructOutput, JobPostStructOutput } from "../typechain-types/contracts/MarketplaceV1";
+import { Job, JobEvent, JobEventWithDiffs } from "./interfaces";
 
 export const cidToHash = (cid: string): string => {
   if (cid.length !== 46 || !cid.match(/^Qm/)) {
@@ -170,7 +172,7 @@ export enum JobEventType {
   OwnerMessage = 18,
 }
 
-export type JobPostEvent = {
+export type JobCreatedEvent = {
   title: string;
   contentHash: string;
   multipleApplicants: boolean;
@@ -182,6 +184,10 @@ export type JobPostEvent = {
   arbitrator: string;
   allowedWorkers: string[];
   whitelistWorkers: boolean;
+};
+
+export type JobPaidEvent = {
+  owner?: string;
 };
 
 export type JobUpdateEvent = {
@@ -230,13 +236,13 @@ export type JobMessageEvent = {
   content?: string;
 }
 
-export type CustomJobEvent = JobPostEvent | JobUpdateEvent | JobSignedEvent | JobRatedEvent | JobDisputedEventRaw | JobDisputedEvent | JobArbitratedEvent | JobMessageEvent;
+export type CustomJobEvent = JobCreatedEvent | JobPaidEvent | JobUpdateEvent | JobSignedEvent | JobRatedEvent | JobDisputedEventRaw | JobDisputedEvent | JobArbitratedEvent | JobMessageEvent;
 
-export const decodeJobPostEvent = (rawData: BytesLike): JobPostEvent => {
+export const decodeJobCreatedEvent = (rawData: BytesLike): JobCreatedEvent => {
   const bytes = getBytes(rawData);
   let ptr = {bytes, index: 0};
 
-  const result = {} as JobPostEvent;
+  const result = {} as JobCreatedEvent;
   result.title = decodeString(ptr);
   result.contentHash = decodeBytes32(ptr);
   result.multipleApplicants = decodeBool(ptr);
@@ -328,7 +334,7 @@ export const decodeJobMessageEvent = (rawData: BytesLike): JobMessageEvent => {
 export const decodeCustomJobEvent = (eventType: JobEventType, rawData: BytesLike, sessionKey: string | undefined = undefined): CustomJobEvent | undefined => {
   switch (eventType) {
     case JobEventType.Created:
-      return decodeJobPostEvent(rawData);
+      return decodeJobCreatedEvent(rawData);
     case JobEventType.Updated:
       return decodeJobUpdatedEvent(rawData);
     case JobEventType.Signed:
@@ -349,6 +355,480 @@ export const decodeCustomJobEvent = (eventType: JobEventType, rawData: BytesLike
     default:
       return undefined;
   }
+}
+
+export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?: Job): JobEventWithDiffs[] => {
+  const result: JobEventWithDiffs[] = [];
+
+  let previousJobState: Job | undefined = job;
+
+  for (const event of jobEvents) {
+    switch (Number(event.type_)) {
+      case JobEventType.Created: {
+        const jobCreated = decodeJobCreatedEvent(event.data_);
+
+        if (!job) {
+          job = {roles:{}} as Job;
+          job.id = jobId;
+          job.title = jobCreated.title;
+          job.contentHash = jobCreated.contentHash as `0x${string}`;
+          job.multipleApplicants = jobCreated.multipleApplicants;
+          job.tags = jobCreated.tags;
+          job.token = jobCreated.token as `0x${string}`;
+          job.amount = jobCreated.amount;
+          job.maxTime = jobCreated.maxTime;
+          job.deliveryMethod = jobCreated.deliveryMethod;
+          job.roles.arbitrator = jobCreated.arbitrator as `0x${string}`;
+          job.allowedWorkers = jobCreated.allowedWorkers;
+          job.whitelistWorkers = jobCreated.whitelistWorkers;
+
+          // defaults
+          job.collateralOwed = 0n;
+          job.disputed = false;
+          job.state = JobState.Open;
+          job.escrowId = 0n;
+          job.rating = 0;
+          job.roles.creator = event.address_;
+          job.roles.worker = ZeroAddress as `0x${string}`;
+          job.timestamp = event.timestamp_;
+          job.resultHash = ZeroHash as `0x${string}`;
+        }
+
+        event.details = jobCreated;
+
+        result.push({
+          ...event,
+          job: {...job},
+          diffs: [
+            { field: "title", oldValue: undefined, newValue: job.title },
+            { field: "contentHash", oldValue: undefined, newValue: job.contentHash },
+            { field: "multipleApplicants", oldValue: undefined, newValue: job.multipleApplicants },
+            { field: "tags", oldValue: undefined, newValue: job.tags },
+            { field: "token", oldValue: undefined, newValue: job.token },
+            { field: "amount", oldValue: undefined, newValue: job.amount },
+            { field: "maxTime", oldValue: undefined, newValue: job.maxTime },
+            { field: "deliveryMethod", oldValue: undefined, newValue: job.deliveryMethod },
+            { field: "arbitrator", oldValue: undefined, newValue: job.roles.arbitrator },
+            { field: "allowedWorkers", oldValue: undefined, newValue: job.allowedWorkers },
+            { field: "whitelistWorkers", oldValue: undefined, newValue: job.whitelistWorkers },
+
+            // defaults
+            { field: "collateralOwed", oldValue: undefined, newValue: job.collateralOwed },
+            { field: "disputed", oldValue: undefined, newValue: job.disputed },
+            { field: "state", oldValue: undefined, newValue: job.state },
+            { field: "escrowId", oldValue: undefined, newValue: job.escrowId },
+            { field: "rating", oldValue: undefined, newValue: job.rating },
+            { field: "roles.creator", oldValue: undefined, newValue: job.roles.creator },
+            { field: "roles.worker", oldValue: undefined, newValue: job.roles.worker },
+            { field: "timestamp", oldValue: undefined, newValue: job.timestamp },
+            { field: "resultHash", oldValue: undefined, newValue: job.resultHash },
+          ],
+        });
+
+        previousJobState = {...job};
+
+        break;
+      }
+      case JobEventType.Taken: {
+        if (!job) {
+          throw new Error("Job must be created before it can be taken");
+        }
+
+        job.roles.worker = event.address_;
+        job.state = JobState.Taken;
+        job.escrowId = toBigInt(event.data_);
+
+        result.push({
+          ...event,
+          job: {...job},
+          diffs: [
+            { field: "state", oldValue: previousJobState?.state, newValue: job.state },
+            { field: "roles.worker", oldValue: previousJobState?.roles.worker, newValue: job.roles.worker },
+            { field: "escrowId", oldValue: previousJobState?.escrowId, newValue: job.escrowId },
+          ],
+        });
+
+        previousJobState = {...job};
+
+        break;
+      }
+      case JobEventType.Paid: {
+        if (!job) {
+          throw new Error("Job must be created before it can be paid");
+        }
+
+        job.roles.worker = event.address_;
+        job.state = JobState.Taken;
+        job.escrowId = toBigInt(event.data_);
+
+        result.push({
+          ...event,
+          job: {...job},
+          diffs: [
+            { field: "state", oldValue: previousJobState?.state, newValue: job.state },
+            { field: "roles.worker", oldValue: previousJobState?.roles.worker, newValue: job.roles.worker },
+            { field: "escrowId", oldValue: previousJobState?.escrowId, newValue: job.escrowId },
+          ],
+        });
+
+        previousJobState = {...job};
+
+        break;
+      }
+      case JobEventType.Updated: {
+        if (!job) {
+          throw new Error("Job must be created before it can be updated");
+        }
+
+        const jobUpdated = decodeJobUpdatedEvent(event.data_);
+        job.title = jobUpdated.title;
+        job.contentHash = jobUpdated.contentHash as `0x${string}`;
+        job.tags = jobUpdated.tags;
+        job.maxTime = jobUpdated.maxTime;
+        job.roles.arbitrator = jobUpdated.arbitrator as `0x${string}`;
+        job.whitelistWorkers = jobUpdated.whitelistWorkers;
+
+        event.details = jobUpdated;
+
+        if (job.amount !== jobUpdated.amount) {
+          if (jobUpdated.amount > job.amount) {
+            job.collateralOwed = 0n; // Clear the collateral record
+          } else {
+            const difference = job.amount - jobUpdated.amount;
+
+            if (Number(event.timestamp_) >= Number(job.timestamp) + 60 * 60 * 24) {
+              job.collateralOwed = 0n; // Clear the collateral record
+            } else {
+              job.collateralOwed += difference; // Record to owe later
+            }
+          }
+
+          job.amount = jobUpdated.amount;
+        }
+
+        result.push({
+          ...event,
+          job: {...job},
+          diffs: [
+            ...(previousJobState?.title !== job.title ? [{ field: "title", oldValue: previousJobState?.title, newValue: job.title }] : []),
+            ...(previousJobState?.contentHash !== job.contentHash ? [{ field: "contentHash", oldValue: previousJobState?.contentHash, newValue: job.contentHash }] : []),
+            ...(previousJobState?.tags !== job.tags ? [{ field: "tags", oldValue: previousJobState?.tags, newValue: job.tags }] : []),
+            ...(previousJobState?.amount !== job.amount ? [{ field: "amount", oldValue: previousJobState?.amount, newValue: job.amount }] : []),
+            ...(previousJobState?.maxTime !== job.maxTime ? [{ field: "maxTime", oldValue: previousJobState?.maxTime, newValue: job.maxTime }] : []),
+            ...(previousJobState?.roles.arbitrator !== job.roles.arbitrator ? [{ field: "roles.arbitrator", oldValue: previousJobState?.roles.arbitrator, newValue: job.roles.arbitrator }] : []),
+            ...(previousJobState?.whitelistWorkers !== job.whitelistWorkers ? [{ field: "whitelistWorkers", oldValue: previousJobState?.whitelistWorkers, newValue: job.whitelistWorkers }] : []),
+          ],
+        });
+
+        previousJobState = {...job};
+
+        break;
+      }
+      case JobEventType.Signed: {
+        if (!job) {
+          throw new Error("Job must be created before it can be signed");
+        }
+
+        const jobSigned = decodeJobSignedEvent(event.data_);
+        event.details = jobSigned;
+
+        result.push({
+          ...event,
+          job: {...job},
+          diffs: [
+          ],
+        });
+
+        previousJobState = {...job};
+
+        break;
+      }
+      case JobEventType.Completed: {
+        if (!job) {
+          throw new Error("Job must be created before it can be completed");
+        }
+
+        job.state = JobState.Closed;
+
+        result.push({
+          ...event,
+          job: {...job},
+          diffs: [
+            { field: "state", oldValue: previousJobState?.state, newValue: job.state },
+          ],
+        });
+
+        previousJobState = {...job};
+
+        break;
+      }
+      case JobEventType.Delivered: {
+        if (!job) {
+          throw new Error("Job must be created before it can be delivered");
+        }
+
+        job.resultHash = event.data_;
+
+        result.push({
+          ...event,
+          job: {...job},
+          diffs: [
+            { field: "resultHash", oldValue: previousJobState?.resultHash, newValue: job.resultHash },
+          ],
+        });
+
+        previousJobState = {...job};
+
+        break;
+      }
+      case JobEventType.Closed: {
+        if (!job) {
+          throw new Error("Job must be created before it can be closed");
+        }
+
+        job.state = JobState.Closed;
+        if (Number(event.timestamp_) >= Number(job.timestamp) + 60 * 60 * 24) {
+          job.collateralOwed = 0n; // Clear the collateral record
+        } else {
+          job.collateralOwed += job.amount;
+        }
+
+        result.push({
+          ...event,
+          job: {...job},
+          diffs: [
+            { field: "state", oldValue: previousJobState?.state, newValue: job.state },
+            ...(previousJobState?.collateralOwed !== job.collateralOwed ? [{ field: "collateralOwed", oldValue: previousJobState?.collateralOwed, newValue: job.collateralOwed }] : []),
+          ],
+        });
+
+        previousJobState = {...job};
+
+        break;
+      }
+      case JobEventType.Reopened: {
+        if (!job) {
+          throw new Error("Job must be created before it can be reopened");
+        }
+
+        job.state = JobState.Open;
+        job.resultHash = ZeroHash as `0x${string}`;
+        job.timestamp  = event.timestamp_;
+
+        if (job.collateralOwed < job.amount) {
+            job.collateralOwed = 0n;
+        } else {
+            job.collateralOwed -= job.amount;
+        }
+
+
+        result.push({
+          ...event,
+          job: {...job},
+          diffs: [
+            { field: "state", oldValue: previousJobState?.state, newValue: job.state },
+            ...(previousJobState?.resultHash !== job.resultHash ? [{ field: "resultHash", oldValue: previousJobState?.resultHash, newValue: job.resultHash }] : []),
+            ...(previousJobState?.collateralOwed !== job.collateralOwed ? [{ field: "collateralOwed", oldValue: previousJobState?.collateralOwed, newValue: job.collateralOwed }] : []),
+            { field: "timestamp", oldValue: previousJobState?.timestamp, newValue: job.timestamp },
+          ],
+        });
+
+        previousJobState = {...job};
+
+        break;
+      }
+      case JobEventType.Rated: {
+        if (!job) {
+          throw new Error("Job must be created before it can be rated");
+        }
+
+        const jobRated = decodeJobRatedEvent(event.data_);
+        event.details = jobRated;
+        job.rating = jobRated.rating;
+
+        result.push({
+          ...event,
+          job: {...job},
+          diffs: [
+            { field: "rating", oldValue: previousJobState?.rating, newValue: jobRated.rating },
+          ],
+        });
+
+        previousJobState = {...job};
+
+        break;
+      }
+      case JobEventType.Refunded: {
+        if (!job) {
+          throw new Error("Job must be created before it can be refunded");
+        }
+
+        job.state = JobState.Open;
+        job.escrowId = 0n;
+        job.allowedWorkers = job.allowedWorkers?.filter(address => address.toLowerCase() !== job!.roles.worker.toLowerCase());
+        job.roles.worker = ZeroAddress as `0x${string}`;
+
+        result.push({
+          ...event,
+          job: {...job},
+          diffs: [
+            { field: "state", oldValue: previousJobState?.state, newValue: job.state },
+            ...(previousJobState?.escrowId !== job.escrowId ? [{ field: "escrowId", oldValue: previousJobState?.escrowId, newValue: job.escrowId }] : []),
+            { field: "roles.worker", oldValue: previousJobState?.roles.worker, newValue: job.roles.worker },
+          ],
+        });
+
+        previousJobState = {...job};
+
+        break;
+      }
+      case JobEventType.Disputed: {
+        if (!job) {
+          throw new Error("Job must be created before it can be disputed");
+        }
+
+        const jobDisputed = decodeJobDisputedEventRaw(event.data_);
+        event.details = jobDisputed;
+        job.disputed = true;
+
+        result.push({
+          ...event,
+          job: {...job},
+          diffs: [
+            { field: "disputed", oldValue: previousJobState?.disputed, newValue: job.disputed },
+          ],
+        });
+
+        previousJobState = {...job};
+
+        break;
+      }
+      case JobEventType.Arbitrated: {
+        if (!job) {
+          throw new Error("Job must be created before it can be arbitrated");
+        }
+
+        const jobArbitrated = decodeJobArbitratedEvent(event.data_);
+        event.details = jobArbitrated;
+        job.state = JobState.Closed;
+        job.collateralOwed = job.collateralOwed += jobArbitrated.creatorAmount;
+
+        result.push({
+          ...event,
+          job: {...job},
+          diffs: [
+            { field: "state", oldValue: previousJobState?.state, newValue: job.state },
+            ...(previousJobState?.collateralOwed !== job.collateralOwed ? [{ field: "collateralOwed", oldValue: previousJobState?.collateralOwed, newValue: job.collateralOwed }] : []),
+          ],
+        });
+
+        previousJobState = {...job};
+
+        break;
+      }
+      case JobEventType.ArbitrationRefused: {
+        if (!job) {
+          throw new Error("Job must be created before it can be refused arbitration");
+        }
+
+        job.roles.arbitrator = ZeroAddress as `0x${string}`;
+
+        result.push({
+          ...event,
+          job: {...job},
+          diffs: [
+            { field: "roles.arbitrator", oldValue: previousJobState?.roles.arbitrator, newValue: job.roles.arbitrator },
+          ],
+        });
+
+        previousJobState = {...job};
+
+        break;
+      }
+      case JobEventType.WhitelistedWorkerAdded: {
+        if (!job) {
+          throw new Error("Job must be created before workers can be whitelisted");
+        }
+
+        job.allowedWorkers?.push(event.address_);
+
+        result.push({
+          ...event,
+          job: {...job},
+          diffs: [
+            { field: "allowedWorkers", oldValue: previousJobState?.allowedWorkers, newValue: job.allowedWorkers },
+          ],
+        });
+
+        previousJobState = {...job};
+
+        break;
+      }
+      case JobEventType.WhitelistedWorkerRemoved: {
+        if (!job) {
+          throw new Error("Job must be created before workers can be whitelisted");
+        }
+
+        job.allowedWorkers = job.allowedWorkers?.filter(address => address.toLowerCase() !== event.address_.toLowerCase());
+
+        result.push({
+          ...event,
+          job: {...job},
+          diffs: [
+            { field: "allowedWorkers", oldValue: previousJobState?.allowedWorkers, newValue: job.allowedWorkers },
+          ],
+        });
+
+        previousJobState = {...job};
+
+        break;
+      }
+      case JobEventType.CollateralWithdrawn: {
+        if (!job) {
+          throw new Error("Job must be created before collateral can be withdrawn");
+        }
+
+        job.collateralOwed = 0n;
+
+        result.push({
+          ...event,
+          job: {...job},
+          diffs: [
+            { field: "collateralOwed", oldValue: previousJobState?.collateralOwed, newValue: job.collateralOwed },
+          ],
+        });
+
+        previousJobState = {...job};
+
+        break;
+      }
+      case JobEventType.OwnerMessage:
+      case JobEventType.WorkerMessage: {
+        if (!job) {
+          throw new Error("Job must be created before messages can be exchanged");
+        }
+
+        const jobMessage = decodeJobMessageEvent(event.data_);
+        event.details = jobMessage;
+
+        result.push({
+          ...event,
+          job: {...job},
+          diffs: [
+          ],
+        });
+
+        previousJobState = {...job};
+
+        break;
+      }
+      default:
+        break;
+    }
+  }
+
+  return result;
+
 }
 
 // local decode utils
