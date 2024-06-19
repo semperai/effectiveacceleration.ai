@@ -3,6 +3,7 @@ import { randomBytes } from "@noble/ciphers/crypto";
 import { utf8ToBytes } from "@noble/ciphers/utils";
 import { BytesLike, getBytes, hexlify, toUtf8String, toBigInt, getAddress, decodeBase58, encodeBase58, toBeArray, encodeBase64, decodeBase64, SigningKey, keccak256, Signer, JsonRpcSigner, ZeroAddress, ZeroHash } from "ethers";
 import { Job, JobEvent, JobEventWithDiffs } from "./interfaces";
+import { decodeString, decodeBytes32, decodeBool, decodeStringArray, decodeAddress, decodeUint256, decodeUint32, decodeBytes } from "./decode";
 
 export const cidToHash = (cid: string): string => {
   if (cid.length !== 46 || !cid.match(/^Qm/)) {
@@ -882,83 +883,4 @@ export const fetchEventContents = async (events: JobEventWithDiffs[], sessionKey
   }
 
   return events;
-}
-
-// local decode utils
-const decodeString = (ptr: {bytes: Uint8Array, index: number}): string => {
-  const length = ptr.bytes[ptr.index];
-  ptr.index++;
-  const result = toUtf8String(ptr.bytes.slice(ptr.index, ptr.index + length));
-  ptr.index += length;
-
-  return result;
-}
-
-const decodeBytes = (ptr: {bytes: Uint8Array, index: number}): string => {
-  const length = ptr.bytes[ptr.index];
-  ptr.index++;
-  const result = hexlify(ptr.bytes.slice(ptr.index, ptr.index + length));
-  ptr.index += length;
-
-  return result;
-}
-
-const decodeStringArray = (ptr: {bytes: Uint8Array, index: number}): string[] => {
-  const length = ptr.bytes[ptr.index];
-  ptr.index++;
-  const result: string[] = [];
-  for (let i = 0; i < length; i++) {
-    const str = decodeString(ptr);
-    result.push(str);
-  }
-
-  return result;
-}
-
-const decodeAddressArray = (ptr: {bytes: Uint8Array, index: number}): string[] => {
-  const length = ptr.bytes[ptr.index];
-  ptr.index++;
-  const result: string[] = [];
-  for (let i = 0; i < length; i++) {
-    const address = getAddress(hexlify(ptr.bytes.slice(ptr.index, ptr.index + 20)));
-    ptr.index += 20;
-    result.push(address);
-  }
-
-  return result;
-}
-
-const decodeBytes32 = (ptr: {bytes: Uint8Array, index: number}): string => {
-  const result = hexlify(ptr.bytes.slice(ptr.index, ptr.index + 32));
-  ptr.index += 32;
-
-  return result;
-}
-
-const decodeBool = (ptr: {bytes: Uint8Array, index: number}): boolean => {
-  const result = ptr.bytes[ptr.index] === 1;
-  ptr.index++;
-
-  return result;
-}
-
-const decodeAddress = (ptr: {bytes: Uint8Array, index: number}): string => {
-  const result = getAddress(hexlify(ptr.bytes.slice(ptr.index, ptr.index + 20)));
-  ptr.index += 20;
-
-  return result;
-}
-
-const decodeUint256 = (ptr: {bytes: Uint8Array, index: number}): bigint => {
-  const result = toBigInt(ptr.bytes.slice(ptr.index, ptr.index + 32));
-  ptr.index += 32;
-
-  return result;
-}
-
-const decodeUint32 = (ptr: {bytes: Uint8Array, index: number}): number => {
-  const result = new DataView(ptr.bytes.buffer, ptr.index).getUint32(0);
-  ptr.index += 4;
-
-  return result;
 }
