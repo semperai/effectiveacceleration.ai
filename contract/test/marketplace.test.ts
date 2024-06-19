@@ -16,7 +16,7 @@ import { FakeToken } from "../typechain-types/contracts/unicrow/FakeToken";
 import { Signer, HDNodeWallet, EventLog, getCreateAddress, toBigInt, hexlify, ZeroAddress, ZeroHash, getBytes, toUtf8Bytes }  from "ethers";
 import { Unicrow, UnicrowDispute, UnicrowArbitrator, UnicrowClaim, IERC20Errors__factory, ECDSA__factory, OwnableUpgradeable__factory, Initializable__factory } from "../typechain-types";
 import { HardhatNetworkHDAccountsConfig } from "hardhat/types";
-import { decodeJobArbitratedEvent, decodeJobDisputedEvent, decodeJobDisputedEventRaw, decodeJobCreatedEvent, decodeJobRatedEvent, decodeJobSignedEvent, decodeJobUpdatedEvent, encryptBinaryData, encryptUtf8Data, getEncryptionSigningKey, getFromIpfs, getSessionKey, JobArbitratedEvent, JobDisputedEvent, JobDisputedEventRaw, JobEventType, JobCreatedEvent, JobRatedEvent, JobSignedEvent, JobState, JobUpdateEvent, publishToIpfs, computeJobStateDiffs } from "../src/utils";
+import { decodeJobArbitratedEvent, decodeJobDisputedEvent, decodeJobDisputedEventRaw, decodeJobCreatedEvent, decodeJobRatedEvent, decodeJobSignedEvent, decodeJobUpdatedEvent, encryptBinaryData, encryptUtf8Data, getEncryptionSigningKey, getFromIpfs, getSessionKey, JobArbitratedEvent, JobDisputedEvent, JobDisputedEventRaw, JobEventType, JobCreatedEvent, JobRatedEvent, JobSignedEvent, JobState, JobUpdateEvent, publishToIpfs, computeJobStateDiffs, fetchEventContents } from "../src/utils";
 
 import { inspect } from 'util';
 inspect.defaultOptions.depth = 10;
@@ -3023,19 +3023,21 @@ describe("Marketplace Unit Tests", () => {
       //#endregion utils
 
       // worker reads the post data
+      const ownerSessionKey = await getSessionKey(user1, await marketplace.connect(user1).publicKeys(user2.address));
       const workerSessionKey = await getSessionKey(user2, await marketplace.connect(user2).publicKeys(user1.address));
+      expect(ownerSessionKey).to.equal(workerSessionKey);
       const postContent = await getFromIpfs((await marketplace.connect(user2).jobs(jobId)).contentHash, workerSessionKey);
       expect(postContent).to.equal(content);
 
       // worker posts a thread message
       const workerMessage = "I can do it!";
-      const { hash: workerMessageHash } = await publishToIpfs(workerMessage);
+      const { hash: workerMessageHash } = await publishToIpfs(workerMessage, workerSessionKey);
 
       const [workerMessageRead] = await Promise.all([readWorkerMessage, withDelay(marketplace.connect(user2).postThreadMessage(jobId, workerMessageHash))]);
       expect(workerMessageRead).to.equal(workerMessage);
 
       const ownerMessage = "Go ahead!";
-      const { hash: ownerMessageHash } = await publishToIpfs(ownerMessage);
+      const { hash: ownerMessageHash } = await publishToIpfs(ownerMessage, ownerSessionKey);
 
       const [ownerMessageRead] = await Promise.all([readOwnerMessage, withDelay(marketplace.connect(user1).postThreadMessage(jobId, ownerMessageHash))]);
       expect(ownerMessageRead).to.equal(ownerMessage);
@@ -3048,13 +3050,13 @@ describe("Marketplace Unit Tests", () => {
 
       // worker delivers the result
       const result = "I did not really manage to create a marketplace in solidity, but take a look for my partial solution";
-      const { hash: resultHash } = await publishToIpfs(result);
+      const { hash: resultHash } = await publishToIpfs(result, workerSessionKey);
 
       await marketplace.connect(user2).deliverResult(jobId, resultHash);
 
       const pastEvents = await dataView.connect(user1).getEvents(jobId, revision, 0);
       const lastEvent = pastEvents[pastEvents.length - 1];
-      const resultRead = await getFromIpfs(lastEvent.data_);
+      const resultRead = await getFromIpfs(lastEvent.data_, ownerSessionKey);
       expect(resultRead).to.equal(result);
 
       // owner raises a dispute
@@ -3078,7 +3080,7 @@ describe("Marketplace Unit Tests", () => {
       expect(disputeEvent.sessionKey).to.equal(sessionKeyOW);
 
       // arbitrator decrypts an OW encrypted message
-      const workerMessageDecryptedByArbitrator = await getFromIpfs(workerMessageHash, sessionKeyOA);
+      const workerMessageDecryptedByArbitrator = await getFromIpfs(workerMessageHash, disputeEvent.sessionKey);
       expect(workerMessageDecryptedByArbitrator).to.equal(workerMessage);
 
       // arbitrator arbitrates
@@ -3098,6 +3100,14 @@ describe("Marketplace Unit Tests", () => {
       expect(reasonRead).to.equal(reason);
 
       await checkJobFromStateDiffs(marketplace, dataView, jobId);
+
+      const events = await dataView.getEvents(jobId, 0n, 0n);
+      const diffs = computeJobStateDiffs(events.map((val: any) => val.toObject()), 0n);
+      await fetchEventContents(diffs, {
+        [`${user2.address}-${user1.address}`]: workerSessionKey,
+        [`${user1.address}-${user2.address}`]: ownerSessionKey,
+        [`${user1.address}-${arbitrator.address}`]: ownerSessionKey,
+      });
     });
   })
 });

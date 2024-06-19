@@ -5,7 +5,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import { encodeString, encodeBytes, encodeStringArray, encodeAddressArray } from "./libraries/Encoding.sol";
+import { encodeString, encodeBytes, encodeStringArray } from "./libraries/Encoding.sol";
 
 import "./unicrow/Unicrow.sol";
 import "./unicrow/UnicrowDispute.sol";
@@ -427,7 +427,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         jobPost.roles.arbitrator = arbitrator_;
         // jobPost.roles.worker = address(0); // will be zero anyway
 
-        bytes memory allowedWorkerData = encodeAddressArray(allowedWorkers_);
         publishJobEvent(jobId,
             JobEventData({
                 type_: uint8(JobEventType.Created),
@@ -442,7 +441,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
                     abi.encodePacked(uint32(maxTime_)),
                     encodeString(deliveryMethod_),
                     abi.encodePacked(uint160(arbitrator_)),
-                    allowedWorkerData
+                    abi.encodePacked(jobPost.whitelistWorkers) // whitelisted addresses will come in following notifications
                 ),
                 timestamp_: 0
             })

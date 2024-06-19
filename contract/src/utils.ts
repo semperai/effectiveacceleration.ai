@@ -182,7 +182,6 @@ export type JobCreatedEvent = {
   maxTime: number;
   deliveryMethod: string;
   arbitrator: string;
-  allowedWorkers: string[];
   whitelistWorkers: boolean;
 };
 
@@ -236,6 +235,7 @@ export type JobMessageEvent = {
   content?: string;
 }
 
+// TODO:rename JobUpdateEvent to JobUpdatedEvent
 export type CustomJobEvent = JobCreatedEvent | JobPaidEvent | JobUpdateEvent | JobSignedEvent | JobRatedEvent | JobDisputedEventRaw | JobDisputedEvent | JobArbitratedEvent | JobMessageEvent;
 
 export const decodeJobCreatedEvent = (rawData: BytesLike): JobCreatedEvent => {
@@ -252,8 +252,7 @@ export const decodeJobCreatedEvent = (rawData: BytesLike): JobCreatedEvent => {
   result.maxTime = decodeUint32(ptr);
   result.deliveryMethod = decodeString(ptr);
   result.arbitrator = decodeAddress(ptr);
-  result.allowedWorkers = decodeAddressArray(ptr);
-  result.whitelistWorkers = result.allowedWorkers.length > 0;
+  result.whitelistWorkers = decodeBool(ptr);
   return result;
 };
 
@@ -361,8 +360,9 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
   const result: JobEventWithDiffs[] = [];
 
   let previousJobState: Job | undefined = job;
-
+  let id = 0n;
   for (const event of jobEvents) {
+    event.id = id++;
     switch (Number(event.type_)) {
       case JobEventType.Created: {
         const jobCreated = decodeJobCreatedEvent(event.data_);
@@ -379,7 +379,6 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
           job.maxTime = jobCreated.maxTime;
           job.deliveryMethod = jobCreated.deliveryMethod;
           job.roles.arbitrator = jobCreated.arbitrator as `0x${string}`;
-          job.allowedWorkers = jobCreated.allowedWorkers;
           job.whitelistWorkers = jobCreated.whitelistWorkers;
 
           // defaults
@@ -388,17 +387,18 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
           job.state = JobState.Open;
           job.escrowId = 0n;
           job.rating = 0;
-          job.roles.creator = event.address_;
+          job.roles.creator = getAddress(event.address_) as `0x${string}`;
           job.roles.worker = ZeroAddress as `0x${string}`;
           job.timestamp = event.timestamp_;
           job.resultHash = ZeroHash as `0x${string}`;
+          job.allowedWorkers = [];
         }
 
         event.details = jobCreated;
 
         result.push({
           ...event,
-          job: {...job},
+          job: structuredClone(job),
           diffs: [
             { field: "title", oldValue: undefined, newValue: job.title },
             { field: "contentHash", oldValue: undefined, newValue: job.contentHash },
@@ -425,7 +425,7 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
           ],
         });
 
-        previousJobState = {...job};
+        previousJobState = structuredClone(job);
 
         break;
       }
@@ -434,13 +434,13 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
           throw new Error("Job must be created before it can be taken");
         }
 
-        job.roles.worker = event.address_;
+        job.roles.worker = getAddress(event.address_) as `0x${string}`;
         job.state = JobState.Taken;
         job.escrowId = toBigInt(event.data_);
 
         result.push({
           ...event,
-          job: {...job},
+          job: structuredClone(job),
           diffs: [
             { field: "state", oldValue: previousJobState?.state, newValue: job.state },
             { field: "roles.worker", oldValue: previousJobState?.roles.worker, newValue: job.roles.worker },
@@ -448,7 +448,7 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
           ],
         });
 
-        previousJobState = {...job};
+        previousJobState = structuredClone(job);
 
         break;
       }
@@ -457,13 +457,13 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
           throw new Error("Job must be created before it can be paid");
         }
 
-        job.roles.worker = event.address_;
+        job.roles.worker = getAddress(event.address_) as `0x${string}`;
         job.state = JobState.Taken;
         job.escrowId = toBigInt(event.data_);
 
         result.push({
           ...event,
-          job: {...job},
+          job: structuredClone(job),
           diffs: [
             { field: "state", oldValue: previousJobState?.state, newValue: job.state },
             { field: "roles.worker", oldValue: previousJobState?.roles.worker, newValue: job.roles.worker },
@@ -471,7 +471,7 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
           ],
         });
 
-        previousJobState = {...job};
+        previousJobState = structuredClone(job);
 
         break;
       }
@@ -508,7 +508,7 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
 
         result.push({
           ...event,
-          job: {...job},
+          job: structuredClone(job),
           diffs: [
             ...(previousJobState?.title !== job.title ? [{ field: "title", oldValue: previousJobState?.title, newValue: job.title }] : []),
             ...(previousJobState?.contentHash !== job.contentHash ? [{ field: "contentHash", oldValue: previousJobState?.contentHash, newValue: job.contentHash }] : []),
@@ -520,7 +520,7 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
           ],
         });
 
-        previousJobState = {...job};
+        previousJobState = structuredClone(job);
 
         break;
       }
@@ -534,12 +534,12 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
 
         result.push({
           ...event,
-          job: {...job},
+          job: structuredClone(job),
           diffs: [
           ],
         });
 
-        previousJobState = {...job};
+        previousJobState = structuredClone(job);
 
         break;
       }
@@ -552,13 +552,13 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
 
         result.push({
           ...event,
-          job: {...job},
+          job: structuredClone(job),
           diffs: [
             { field: "state", oldValue: previousJobState?.state, newValue: job.state },
           ],
         });
 
-        previousJobState = {...job};
+        previousJobState = structuredClone(job);
 
         break;
       }
@@ -571,13 +571,13 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
 
         result.push({
           ...event,
-          job: {...job},
+          job: structuredClone(job),
           diffs: [
             { field: "resultHash", oldValue: previousJobState?.resultHash, newValue: job.resultHash },
           ],
         });
 
-        previousJobState = {...job};
+        previousJobState = structuredClone(job);
 
         break;
       }
@@ -595,14 +595,14 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
 
         result.push({
           ...event,
-          job: {...job},
+          job: structuredClone(job),
           diffs: [
             { field: "state", oldValue: previousJobState?.state, newValue: job.state },
             ...(previousJobState?.collateralOwed !== job.collateralOwed ? [{ field: "collateralOwed", oldValue: previousJobState?.collateralOwed, newValue: job.collateralOwed }] : []),
           ],
         });
 
-        previousJobState = {...job};
+        previousJobState = structuredClone(job);
 
         break;
       }
@@ -624,7 +624,7 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
 
         result.push({
           ...event,
-          job: {...job},
+          job: structuredClone(job),
           diffs: [
             { field: "state", oldValue: previousJobState?.state, newValue: job.state },
             ...(previousJobState?.resultHash !== job.resultHash ? [{ field: "resultHash", oldValue: previousJobState?.resultHash, newValue: job.resultHash }] : []),
@@ -633,7 +633,7 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
           ],
         });
 
-        previousJobState = {...job};
+        previousJobState = structuredClone(job);
 
         break;
       }
@@ -648,13 +648,13 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
 
         result.push({
           ...event,
-          job: {...job},
+          job: structuredClone(job),
           diffs: [
             { field: "rating", oldValue: previousJobState?.rating, newValue: jobRated.rating },
           ],
         });
 
-        previousJobState = {...job};
+        previousJobState = structuredClone(job);
 
         break;
       }
@@ -665,12 +665,12 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
 
         job.state = JobState.Open;
         job.escrowId = 0n;
-        job.allowedWorkers = job.allowedWorkers?.filter(address => address.toLowerCase() !== job!.roles.worker.toLowerCase());
+        job.allowedWorkers = job.allowedWorkers?.filter(address => address !== job!.roles.worker);
         job.roles.worker = ZeroAddress as `0x${string}`;
 
         result.push({
           ...event,
-          job: {...job},
+          job: structuredClone(job),
           diffs: [
             { field: "state", oldValue: previousJobState?.state, newValue: job.state },
             ...(previousJobState?.escrowId !== job.escrowId ? [{ field: "escrowId", oldValue: previousJobState?.escrowId, newValue: job.escrowId }] : []),
@@ -678,7 +678,7 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
           ],
         });
 
-        previousJobState = {...job};
+        previousJobState = structuredClone(job);
 
         break;
       }
@@ -693,13 +693,13 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
 
         result.push({
           ...event,
-          job: {...job},
+          job: structuredClone(job),
           diffs: [
             { field: "disputed", oldValue: previousJobState?.disputed, newValue: job.disputed },
           ],
         });
 
-        previousJobState = {...job};
+        previousJobState = structuredClone(job);
 
         break;
       }
@@ -715,14 +715,14 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
 
         result.push({
           ...event,
-          job: {...job},
+          job: structuredClone(job),
           diffs: [
             { field: "state", oldValue: previousJobState?.state, newValue: job.state },
             ...(previousJobState?.collateralOwed !== job.collateralOwed ? [{ field: "collateralOwed", oldValue: previousJobState?.collateralOwed, newValue: job.collateralOwed }] : []),
           ],
         });
 
-        previousJobState = {...job};
+        previousJobState = structuredClone(job);
 
         break;
       }
@@ -735,13 +735,13 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
 
         result.push({
           ...event,
-          job: {...job},
+          job: structuredClone(job),
           diffs: [
             { field: "roles.arbitrator", oldValue: previousJobState?.roles.arbitrator, newValue: job.roles.arbitrator },
           ],
         });
 
-        previousJobState = {...job};
+        previousJobState = structuredClone(job);
 
         break;
       }
@@ -750,17 +750,17 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
           throw new Error("Job must be created before workers can be whitelisted");
         }
 
-        job.allowedWorkers?.push(event.address_);
+        job.allowedWorkers?.push(getAddress(event.address_));
 
         result.push({
           ...event,
-          job: {...job},
+          job: structuredClone(job),
           diffs: [
             { field: "allowedWorkers", oldValue: previousJobState?.allowedWorkers, newValue: job.allowedWorkers },
           ],
         });
 
-        previousJobState = {...job};
+        previousJobState = structuredClone(job);
 
         break;
       }
@@ -769,17 +769,17 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
           throw new Error("Job must be created before workers can be whitelisted");
         }
 
-        job.allowedWorkers = job.allowedWorkers?.filter(address => address.toLowerCase() !== event.address_.toLowerCase());
+        job.allowedWorkers = job.allowedWorkers?.filter(address => address !== getAddress(event.address_) as `0x${string}`);
 
         result.push({
           ...event,
-          job: {...job},
+          job: structuredClone(job),
           diffs: [
             { field: "allowedWorkers", oldValue: previousJobState?.allowedWorkers, newValue: job.allowedWorkers },
           ],
         });
 
-        previousJobState = {...job};
+        previousJobState = structuredClone(job);
 
         break;
       }
@@ -792,13 +792,13 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
 
         result.push({
           ...event,
-          job: {...job},
+          job: structuredClone(job),
           diffs: [
             { field: "collateralOwed", oldValue: previousJobState?.collateralOwed, newValue: job.collateralOwed },
           ],
         });
 
-        previousJobState = {...job};
+        previousJobState = structuredClone(job);
 
         break;
       }
@@ -813,12 +813,12 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
 
         result.push({
           ...event,
-          job: {...job},
+          job: structuredClone(job),
           diffs: [
           ],
         });
 
-        previousJobState = {...job};
+        previousJobState = structuredClone(job);
 
         break;
       }
@@ -828,7 +828,62 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
   }
 
   return result;
+}
 
+export const fetchEventContents = async (events: JobEventWithDiffs[], sessionKeys: Record<string, string>): Promise<JobEventWithDiffs[]> => {
+  const contents: Record<string, string> = {};
+
+  await Promise.allSettled(events.filter((jobEvent) => [JobEventType.OwnerMessage, JobEventType.WorkerMessage, JobEventType.Arbitrated, JobEventType.Delivered, JobEventType.Created].includes(Number(jobEvent.type_))).map((jobEvent) => {
+    if (Number(jobEvent.type_) === JobEventType.Created) {
+      return [(jobEvent.details as JobCreatedEvent).contentHash, undefined];
+    } else if (Number(jobEvent.type_) === JobEventType.Arbitrated) {
+      const details = jobEvent.details as JobArbitratedEvent;
+      const key = `${jobEvent.job.roles.creator}-${jobEvent.job.roles.arbitrator}`;
+      return [details.reasonHash, sessionKeys[key]];
+    } else if (Number(jobEvent.type_) === JobEventType.Delivered) {
+      const key = `${jobEvent.job.roles.worker}-${jobEvent.job.roles.creator}`;
+      return [jobEvent.data_, sessionKeys[key]];
+    }
+
+    const details = jobEvent.details as JobMessageEvent;
+    const ownerMessage = getAddress(jobEvent.address_) === jobEvent.job.roles.creator;
+    const key = ownerMessage ? `${jobEvent.job.roles.creator}-${jobEvent.job.roles.worker}` : `${jobEvent.job.roles.worker}-${jobEvent.job.roles.creator}`;
+    return [details.contentHash, sessionKeys[key]];
+  }).filter((element, index, array) => array.findIndex(val => val[0] === element[0]) === index).map(async ([hash, key]) => {
+    contents[hash!] = await safeGetFromIpfs(hash!, key!);
+  }));
+
+  let previousState: JobEventWithDiffs | undefined = undefined;
+  for (const event of events) {
+    if (Number(event.type_) === JobEventType.Arbitrated) {
+      (event.details as JobArbitratedEvent).reason = contents[(event.details as JobArbitratedEvent).reasonHash]
+    } else if ([JobEventType.OwnerMessage, JobEventType.WorkerMessage].includes(Number(event.type_))) {
+      (event.details as JobMessageEvent).content = contents[(event.details as JobMessageEvent).contentHash];
+    } else if (Number(event.type_) === JobEventType.Delivered) {
+      event.diffs.push({
+        field: "result", oldValue: event.job.result, newValue: contents[event.job.resultHash]
+      });
+    } else if (Number(event.type_) === JobEventType.Updated && event.job.contentHash !== (previousState?.job.contentHash ?? ZeroHash)) {
+      event.diffs.push({
+        field: "content", oldValue: event.job.content, newValue: contents[event.job.contentHash]
+      });
+    }
+
+    if (event.job.contentHash !== (previousState?.job.contentHash ?? ZeroHash)) {
+      event.job.content = contents[event.job.contentHash];
+    } else {
+      event.job.content = previousState?.job.content;
+    }
+    if (event.job.resultHash !== (previousState?.job.resultHash ?? ZeroHash)) {
+      event.job.result = contents[event.job.resultHash];
+    } else {
+      event.job.result = previousState?.job.result;
+    }
+
+    previousState = {...event};
+  }
+
+  return events;
 }
 
 // local decode utils
