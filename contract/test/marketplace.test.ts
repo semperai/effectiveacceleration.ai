@@ -16,7 +16,7 @@ import { FakeToken } from "../typechain-types/contracts/unicrow/FakeToken";
 import { Signer, HDNodeWallet, EventLog, getCreateAddress, toBigInt, hexlify, ZeroAddress, ZeroHash, getBytes, toUtf8Bytes }  from "ethers";
 import { Unicrow, UnicrowDispute, UnicrowArbitrator, UnicrowClaim, IERC20Errors__factory, ECDSA__factory, OwnableUpgradeable__factory, Initializable__factory } from "../typechain-types";
 import { HardhatNetworkHDAccountsConfig } from "hardhat/types";
-import { decodeJobArbitratedEvent, decodeJobDisputedEvent, decodeJobDisputedEventRaw, decodeJobCreatedEvent, decodeJobRatedEvent, decodeJobSignedEvent, decodeJobUpdatedEvent, encryptBinaryData, encryptUtf8Data, getEncryptionSigningKey, getFromIpfs, getSessionKey, JobArbitratedEvent, JobDisputedEvent, JobDisputedEventRaw, JobEventType, JobCreatedEvent, JobRatedEvent, JobSignedEvent, JobState, JobUpdateEvent, publishToIpfs, computeJobStateDiffs, fetchEventContents } from "../src/utils";
+import { decodeJobArbitratedEvent, decodeJobDisputedEvent, decodeJobDisputedEventRaw, decodeJobCreatedEvent, decodeJobRatedEvent, decodeJobSignedEvent, decodeJobUpdatedEvent, encryptBinaryData, encryptUtf8Data, getEncryptionSigningKey, getFromIpfs, getSessionKey, JobArbitratedEvent, JobDisputedEvent, JobDisputedEventRaw, JobEventType, JobCreatedEvent, JobRatedEvent, JobSignedEvent, JobState, JobUpdatedEvent, publishToIpfs, computeJobStateDiffs, fetchEventContents } from "../src/utils";
 
 import { inspect } from 'util';
 inspect.defaultOptions.depth = 10;
@@ -1286,7 +1286,7 @@ describe("Marketplace Unit Tests", () => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Updated);
 
-        const event: JobUpdateEvent = decodeJobUpdatedEvent(jobEventData.data_);
+        const event: JobUpdatedEvent = decodeJobUpdatedEvent(jobEventData.data_);
         expect(event.title).to.equal(title);
         expect(event.contentHash).to.equal(contentHash);
         expect(event.tags).to.deep.equal(tags);
@@ -1401,7 +1401,7 @@ describe("Marketplace Unit Tests", () => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Updated);
 
-        const event: JobUpdateEvent = decodeJobUpdatedEvent(jobEventData.data_);
+        const event: JobUpdatedEvent = decodeJobUpdatedEvent(jobEventData.data_);
         expect(event.tags).to.deep.equal(tags);
 
         return true;
@@ -1437,7 +1437,7 @@ describe("Marketplace Unit Tests", () => {
         arbitrator,
         whitelistWorkers,
       )).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        const event: JobUpdateEvent = decodeJobUpdatedEvent(jobEventData.data_);
+        const event: JobUpdatedEvent = decodeJobUpdatedEvent(jobEventData.data_);
         expect(event.amount).to.equal(amount);
 
         return true;
@@ -1460,7 +1460,7 @@ describe("Marketplace Unit Tests", () => {
         arbitrator,
         whitelistWorkers,
       )).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        const event: JobUpdateEvent = decodeJobUpdatedEvent(jobEventData.data_);
+        const event: JobUpdatedEvent = decodeJobUpdatedEvent(jobEventData.data_);
         expect(event.amount).to.equal(BigInt(100e18));
 
         return true;
@@ -1483,7 +1483,7 @@ describe("Marketplace Unit Tests", () => {
         arbitrator,
         whitelistWorkers,
       )).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        const event: JobUpdateEvent = decodeJobUpdatedEvent(jobEventData.data_);
+        const event: JobUpdatedEvent = decodeJobUpdatedEvent(jobEventData.data_);
         expect(event.amount).to.equal(BigInt(300e18));
 
         return true;
@@ -1510,7 +1510,7 @@ describe("Marketplace Unit Tests", () => {
         arbitrator,
         whitelistWorkers,
       )).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
-        const event: JobUpdateEvent = decodeJobUpdatedEvent(jobEventData.data_);
+        const event: JobUpdatedEvent = decodeJobUpdatedEvent(jobEventData.data_);
         expect(event.amount).to.equal(BigInt(100e18));
 
         return true;

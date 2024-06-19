@@ -1,8 +1,7 @@
 import { xchacha20poly1305 } from "@noble/ciphers/chacha";
 import { randomBytes } from "@noble/ciphers/crypto";
 import { utf8ToBytes } from "@noble/ciphers/utils";
-import { BytesLike, getBytes, AbiCoder, hexlify, toUtf8String, toBigInt, getAddress, decodeBase58, encodeBase58, toBeArray, encodeBase64, decodeBase64, SigningKey, keccak256, Signer, JsonRpcSigner, Result, ZeroAddress, ZeroHash } from "ethers";
-import { JobEventDataStructOutput, JobPostStructOutput } from "../typechain-types/contracts/MarketplaceV1";
+import { BytesLike, getBytes, hexlify, toUtf8String, toBigInt, getAddress, decodeBase58, encodeBase58, toBeArray, encodeBase64, decodeBase64, SigningKey, keccak256, Signer, JsonRpcSigner, ZeroAddress, ZeroHash } from "ethers";
 import { Job, JobEvent, JobEventWithDiffs } from "./interfaces";
 
 export const cidToHash = (cid: string): string => {
@@ -189,7 +188,7 @@ export type JobPaidEvent = {
   owner?: string;
 };
 
-export type JobUpdateEvent = {
+export type JobUpdatedEvent = {
   title: string;
   contentHash: string;
   tags: string[];
@@ -235,8 +234,7 @@ export type JobMessageEvent = {
   content?: string;
 }
 
-// TODO:rename JobUpdateEvent to JobUpdatedEvent
-export type CustomJobEvent = JobCreatedEvent | JobPaidEvent | JobUpdateEvent | JobSignedEvent | JobRatedEvent | JobDisputedEventRaw | JobDisputedEvent | JobArbitratedEvent | JobMessageEvent;
+export type CustomJobEvent = JobCreatedEvent | JobPaidEvent | JobUpdatedEvent | JobSignedEvent | JobRatedEvent | JobDisputedEventRaw | JobDisputedEvent | JobArbitratedEvent | JobMessageEvent;
 
 export const decodeJobCreatedEvent = (rawData: BytesLike): JobCreatedEvent => {
   const bytes = getBytes(rawData);
@@ -256,11 +254,11 @@ export const decodeJobCreatedEvent = (rawData: BytesLike): JobCreatedEvent => {
   return result;
 };
 
-export const decodeJobUpdatedEvent = (rawData: BytesLike): JobUpdateEvent => {
+export const decodeJobUpdatedEvent = (rawData: BytesLike): JobUpdatedEvent => {
   const bytes = getBytes(rawData);
   let ptr = {bytes, index: 0};
 
-  const result = {} as JobUpdateEvent;
+  const result = {} as JobUpdatedEvent;
   result.title = decodeString(ptr);
   result.contentHash = decodeBytes32(ptr);
   result.tags = decodeStringArray(ptr);
