@@ -16,7 +16,10 @@ import { FakeToken } from "../typechain-types/contracts/unicrow/FakeToken";
 import { Signer, HDNodeWallet, EventLog, getCreateAddress, toBigInt, hexlify, ZeroAddress, ZeroHash, getBytes, toUtf8Bytes }  from "ethers";
 import { Unicrow, UnicrowDispute, UnicrowArbitrator, UnicrowClaim, IERC20Errors__factory, ECDSA__factory, OwnableUpgradeable__factory, Initializable__factory } from "../typechain-types";
 import { HardhatNetworkHDAccountsConfig } from "hardhat/types";
-import { decodeJobArbitratedEvent, decodeJobDisputedEvent, decodeJobDisputedEventRaw, decodeJobCreatedEvent, decodeJobRatedEvent, decodeJobSignedEvent, decodeJobUpdatedEvent, encryptBinaryData, encryptUtf8Data, getEncryptionSigningKey, getFromIpfs, getSessionKey, JobArbitratedEvent, JobDisputedEvent, JobDisputedEventRaw, JobEventType, JobCreatedEvent, JobRatedEvent, JobSignedEvent, JobState, JobUpdatedEvent, publishToIpfs, computeJobStateDiffs, fetchEventContents } from "../src/utils";
+import { computeJobStateDiffs, fetchEventContents } from "../src/ui";
+import { decodeJobCreatedEvent, decodeJobUpdatedEvent, decodeJobSignedEvent, decodeJobRatedEvent, decodeJobDisputedEventRaw, decodeJobDisputedEvent, decodeJobArbitratedEvent } from "../src/decodeEvents";
+import { getEncryptionSigningKey, publishToIpfs, getSessionKey, encryptUtf8Data, encryptBinaryData, getFromIpfs } from "../src/encryption";
+import { JobEventType, JobCreatedEvent, JobState, JobUpdatedEvent, JobSignedEvent, JobRatedEvent, JobDisputedEventRaw, JobDisputedEvent, JobArbitratedEvent } from "../src/interfaces";
 
 import { inspect } from 'util';
 inspect.defaultOptions.depth = 10;

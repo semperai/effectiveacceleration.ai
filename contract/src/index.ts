@@ -1,2 +1,2 @@
-export * from "./utils.js";
+export * from "./ui.js";
 export * from "./interfaces.js";
