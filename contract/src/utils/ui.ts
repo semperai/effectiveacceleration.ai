@@ -1,5 +1,5 @@
 import { toBigInt, getAddress, ZeroAddress, ZeroHash } from "ethers";
-import { Job, JobArbitratedEvent, JobCreatedEvent, JobEvent, JobEventType, JobEventWithDiffs, JobMessageEvent, JobState } from "./interfaces";
+import { Job, JobArbitratedEvent, JobCreatedEvent, JobEvent, JobEventType, JobEventWithDiffs, JobMessageEvent, JobState } from "../interfaces";
 import { safeGetFromIpfs } from "./encryption";
 import { decodeJobCreatedEvent, decodeJobUpdatedEvent, decodeJobSignedEvent, decodeJobRatedEvent, decodeJobDisputedEventRaw, decodeJobArbitratedEvent, decodeJobMessageEvent } from "./decodeEvents";
 

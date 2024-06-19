@@ -5,9 +5,9 @@ import { FakeToken } from '../typechain-types/contracts/unicrow/FakeToken';
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { task } from "hardhat/config";
 import Config from '../scripts/config.json';
-import { encryptBinaryData, encryptUtf8Data, getEncryptionSigningKey, getFromIpfs, getSessionKey, publishToIpfs } from '../src/utils';
 import { AbiCoder, getBytes, hexlify, keccak256, ZeroAddress } from 'ethers';
-import "@nomicfoundation/hardhat-ethers";;
+import { getEncryptionSigningKey, publishToIpfs, getSessionKey, encryptUtf8Data, encryptBinaryData } from '../src/utils/encryption';
+import "@nomicfoundation/hardhat-ethers";
 
 async function getMinerAddress(hre: HardhatRuntimeEnvironment) {
   const accounts = await hre.ethers.getSigners();
