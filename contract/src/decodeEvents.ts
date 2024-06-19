@@ -1,7 +1,7 @@
 import { BytesLike, getBytes, hexlify, toUtf8String, toBigInt, getAddress } from "ethers";
 import { decodeString, decodeBytes32, decodeBool, decodeStringArray, decodeAddress, decodeUint256, decodeUint32, decodeBytes } from "./decode";
 import { decryptBinaryData, decryptUtf8Data } from "./encryption";
-import { JobCreatedEvent, JobUpdatedEvent, JobSignedEvent, JobRatedEvent, JobDisputedEventRaw, JobDisputedEvent, JobArbitratedEvent, JobMessageEvent, JobEventType, CustomJobEvent } from "./utils";
+import { JobCreatedEvent, JobUpdatedEvent, JobSignedEvent, JobRatedEvent, JobDisputedEventRaw, JobDisputedEvent, JobArbitratedEvent, JobMessageEvent, JobEventType, CustomJobEvent } from "./interfaces";
 
 export const decodeJobCreatedEvent = (rawData: BytesLike): JobCreatedEvent => {
   const bytes = getBytes(rawData);
