@@ -169,7 +169,7 @@ task("marketplace:seed", "Seed local marketplace instance")
       BigInt(60 * 60 * 24 * 3),
       "Digital",
       ZeroAddress,
-      []
+      [worker.address]
     );
 
     await marketplace.connect(owner).updateJobPost(
@@ -183,7 +183,22 @@ task("marketplace:seed", "Seed local marketplace instance")
       true
     );
 
+    await marketplace.connect(owner).payStartJob(0n, worker.address);
+    await marketplace.connect(worker).refund(0n);
+    await marketplace.connect(arbitrator).refuseArbitration(0n);
+
+    await marketplace.connect(owner).closeJob(0n);
+    await marketplace.connect(owner).reopenJob(0n);
+
     await marketplace.connect(owner).updateJobWhitelist(0n, [worker.address], []);
+    await marketplace.connect(owner).payStartJob(0n, worker.address);
+
+    // worker delivers the result
+    const result = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+    const { hash: resultHash } = await publishToIpfs(result);
+
+    await marketplace.connect(worker).deliverResult(0n, resultHash);
+    await marketplace.connect(owner).approveResult(0n, 5n, "Five out of five!");
   }
 
   {
@@ -277,6 +292,11 @@ task("marketplace:seed", "Seed local marketplace instance")
     const { hash: reasonHash } = await publishToIpfs(reason, sessionKeyOW);
 
     await marketplace.connect(arbitrator).arbitrate(jobId, creatorShare, workerShare, reasonHash);
+
+    await owner.provider.send("evm_increaseTime", [`0x${(60 * 60 * 24).toString(16)}`]);
+    await owner.provider.send("evm_mine", []);
+
+    await marketplace.connect(owner).withdrawCollateral(jobId, await fakeToken.getAddress());
   }
 
   console.log("Done seeding marketplace");
