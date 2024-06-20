@@ -480,24 +480,59 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
 export const fetchEventContents = async (events: JobEventWithDiffs[], sessionKeys: Record<string, string>): Promise<JobEventWithDiffs[]> => {
   const contents: Record<string, string> = {};
 
+  const workerCandidates: Set<string> = new Set<string>;
+
   await Promise.allSettled(events.filter((jobEvent) => [JobEventType.OwnerMessage, JobEventType.WorkerMessage, JobEventType.Arbitrated, JobEventType.Delivered, JobEventType.Created].includes(Number(jobEvent.type_))).map((jobEvent) => {
     if (Number(jobEvent.type_) === JobEventType.Created) {
-      return [(jobEvent.details as JobCreatedEvent).contentHash, undefined];
+      return {
+        contentHash: (jobEvent.details as JobCreatedEvent).contentHash,
+        sessionKey: undefined
+      };
     } else if (Number(jobEvent.type_) === JobEventType.Arbitrated) {
       const details = jobEvent.details as JobArbitratedEvent;
-      const key = `${jobEvent.job.roles.creator}-${jobEvent.job.roles.arbitrator}`;
-      return [details.reasonHash, sessionKeys[key]];
+      const key = `${jobEvent.job.roles.creator}-${jobEvent.job.roles.worker}`;
+      return {
+        contentHash: details.reasonHash,
+        sessionKey: sessionKeys[key]
+      };
     } else if (Number(jobEvent.type_) === JobEventType.Delivered) {
       const key = `${jobEvent.job.roles.worker}-${jobEvent.job.roles.creator}`;
-      return [jobEvent.data_, sessionKeys[key]];
+      return {
+        contentHash: jobEvent.data_,
+        sessionKey: sessionKeys[key]
+      };
     }
 
     const details = jobEvent.details as JobMessageEvent;
     const ownerMessage = getAddress(jobEvent.address_) === jobEvent.job.roles.creator;
-    const key = ownerMessage ? `${jobEvent.job.roles.creator}-${jobEvent.job.roles.worker}` : `${jobEvent.job.roles.worker}-${jobEvent.job.roles.creator}`;
-    return [details.contentHash, sessionKeys[key]];
-  }).filter((element, index, array) => array.findIndex(val => val[0] === element[0]) === index).map(async ([hash, key]) => {
-    contents[hash!] = await safeGetFromIpfs(hash!, key!);
+    if (!ownerMessage) {
+      workerCandidates.add(getAddress(jobEvent.address_));
+    }
+
+    if (jobEvent.job.roles.worker !== ZeroAddress) {
+      return {
+        contentHash: details.contentHash,
+        sessionKey: sessionKeys[`${jobEvent.job.roles.creator}-${jobEvent.job.roles.worker}`]
+      };
+    }
+
+    const pairs = [...workerCandidates].map(workerAddress => ({
+      contentHash: details.contentHash,
+      sessionKey: sessionKeys[`${workerAddress}-${jobEvent.job.roles.creator}`]
+    }));
+    return pairs;
+  }).flat(1).map(async ({contentHash, sessionKey}) => {
+    const badResponses = ["<encrypted message>"];
+    try {
+      const content = await safeGetFromIpfs(contentHash, sessionKey);
+      if (!badResponses.includes(content)) {
+        contents[contentHash] = content;
+      }
+    } catch {
+      contents[contentHash] = "Error: Failed to fetch data";
+    }
+
+    return contents[contentHash];
   }));
 
   let previousState: JobEventWithDiffs | undefined = undefined;

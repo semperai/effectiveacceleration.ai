@@ -5,7 +5,7 @@
   "description": "arbius",
   "author": "Kasumi Null <kasumi.null@yandex.com>",
   "license": "MIT",
-  "main": "dist/index.js",
+  "main": "dist/src/index.js",
   "scripts": {
     "clean:contracts": "npx hardhat clean",
     "compile": "npx hardhat compile",
