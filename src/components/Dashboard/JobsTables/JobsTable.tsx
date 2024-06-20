@@ -14,7 +14,7 @@ const JobsTable = ({table, title}:{table:any, title:string}) => {
             {table.getHeaderGroups().map(headerGroup => (
               <tr className='px-5 py-3 bg-gray-100 flex justify-between w-full' key={headerGroup.id}>
                 {headerGroup.headers.map(header => (
-                  <th className='text-left flex-1' key={header.id}>
+                  <th className={`text-left flex-1 ${title === 'Opens Jobs' ? 'max-w-6' : '' }`} key={header.id}>
                     {header.isPlaceholder
                       ? null
                       : flexRender(

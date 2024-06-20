@@ -12,7 +12,7 @@ import {
 import ERC20Abi from '@/abis/ERC20.json'
 // import MarketplaceArtifact from '@/artifacts/contracts/MarketplaceV1.sol/MarketplaceV1.json'
 // import Config from '@/config.json'
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { Layout } from '@/components/Dashboard/Layout'
 import { Button } from '@/components/Button'
 import { Description, Field, FieldGroup, Fieldset, Label, Legend } from '@/components/Fieldset'
@@ -22,6 +22,10 @@ import { Input } from '@/components/Input'
 import { Select } from '@/components/Select'
 import { TokenSelector } from '@/components/TokenSelector'
 import { Token } from '@/tokens'
+import { Radio, RadioGroup } from '@/components/Radio'
+import { ListboxOptions } from '@headlessui/react'
+import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/24/outline'
+import { Listbox, ListboxOption } from '@/components/Listbox'
 
 export default function PostJobPage() {
   const { address } = useAccount();
@@ -33,11 +37,25 @@ export default function PostJobPage() {
   } = useWriteContract();
 
   const [selectedToken, setSelectedToken] = useState<Token | undefined>(undefined)
+  const multipleApplicantsValues = ['Yes', 'No']
+  const arbitrator = ['Yes', 'No']
+  const category = [
+    { id: 1, name: 'Web' },
+    { id: 2, name: 'Design' },
+    { id: 3, name: 'Translation' },
+    { id: 4, name: 'Counting' },
+    { id: 5, name: 'Marketing' },
+  ]
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('0');
   const [deadline, setDeadline] = useState(0);
+  const [multipleApplicants, setMultipleApplicants] = useState(multipleApplicantsValues[1])
+  const [isArbitrator, setisArbitrator] = useState(arbitrator[1])
+  
+  const [selectedCategory, setselectedCategory] = useState(category[0])
+
 
   const [postButtonDisabled, setPostButtonDisabled] = useState(false);
   useEffect(() => {
@@ -101,75 +119,164 @@ export default function PostJobPage() {
   return (
     <Layout>
       <h1 className="text-xl font-medium mb-8">Create a Job Post</h1>
-      <Fieldset className="max-w-screen-sm">
-        <Text>Using this interface to post a job</Text>
-        <FieldGroup> 
-          <Field>
-            <Label>Title</Label>
-            <Input
-              name="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-          </Field>
-          <Field>
-            <Label>Description</Label>
-            <Textarea
-              name="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
-            <Description>
-              Please provide a detailed description of the project so agents can accurately estimate.
-            </Description>
-          </Field>
-          <Field>
-            <Label>Payment Token</Label>
-            <Input
-              name="token"
-              value={selectedToken?.id}
-            />
-            <Description></Description>
-
-            <div className="flex flex-col gap-4">
-              <TokenSelector
-                selectedToken={selectedToken}
-                onClick={(token: Token) => setSelectedToken(token)}
+      <Fieldset className="w-full">
+        <div className=' flex flex-row w-full gap-24'>
+          <FieldGroup className='flex-1'> 
+            <Field>
+              <Label>Job Title</Label>
+              <Input
+                name="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
               />
-            </div>
-            {selectedToken && !!balanceData && (
-              <Text>
-                {ethers.formatEther(balanceData as ethers.BigNumberish)}
-                {' '}
-                {selectedToken.symbol} available
-              </Text>
-            )}
-          </Field>
-          <Field>
-            <Label>Payment Amount</Label>
-            <Input
-              name="amount"
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-             />
-            <Description></Description>
-          </Field>
-          <Field>
-            <Label>Deadline</Label>
-            <Input
-              name="deadline"
-              type="number"
-              value={deadline}
-              onChange={(e) => {
-                const deadline = parseInt(e.target.value);
-                setDeadline(deadline);
-              }}
-            />
-            <Description>How many seconds does someone have to complete task?</Description>
-          </Field>
-        </FieldGroup>
+            </Field>
+            <Field>
+              <Label>Description</Label>
+              <Textarea
+              rows={10}
+                name="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </Field>
+            <Field className='flex flex-row justify-between items-center'>
+              <Label className='items-center'>Multiple Applicants</Label>
+              <RadioGroup className='flex !mt-0' value={multipleApplicants} onChange={setMultipleApplicants} aria-label="Server size">
+                {multipleApplicantsValues.map((option) => (
+                  <Field className='items-center flex !mt-0 ml-5' key={option}>
+                    <Radio className='mr-2' value={option}>
+                      <span>{option}</span>
+                    </Radio>
+                    <Label>{option}</Label>
+  
+                  </Field>
+                ))}
+              </RadioGroup>
+            </Field>
+            <Field>
+            <Label>Tags</Label>
+            <Listbox
+              value={selectedCategory} 
+              onChange={setselectedCategory}
+              className="border border-gray-300 rounded-md shadow-sm"
+              placeholder="Select an option"
+            >
+              {category.map((cat, catIndex) => (
+                  <ListboxOption key={catIndex} value={cat}>
+                    {cat.name}
+                  </ListboxOption>
+              ))}
+            </Listbox>
+            </Field>
+          </FieldGroup>
+          <FieldGroup className='flex-1'> 
+            <div className='flex flex-row justify-between gap-5'>
+             
+            <Field className='flex-1'>
+              <Label>Payment Amount</Label>
+              <Input
+                name="amount"
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
+              <Description></Description>
+            </Field>
+            <Field className='flex-1'>
+              <Label>Payment Token</Label>
+              <Input
+                name="token"
+                value={selectedToken?.id}
+              />
+              <div className="flex flex-col gap-4">
+                <TokenSelector
+                  selectedToken={selectedToken}
+                  onClick={(token: Token) => setSelectedToken(token)}
+                />
+              </div>
+              {selectedToken && !!balanceData && (
+                <Text>
+                  {ethers.formatEther(balanceData as ethers.BigNumberish)}
+                  {' '}
+                  {selectedToken.symbol} available
+                </Text>
+              )}
+            </Field>
+          </div>
+            <Field>
+              <Label>Delivery Method</Label>
+              <Input
+                name="title"
+                value={''}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+            </Field>
+            <Field className='flex flex-row justify-between items-center'>
+              <Label className='items-center'>Arbitrator</Label>
+              <RadioGroup className='flex !mt-0' value={isArbitrator} onChange={setisArbitrator} aria-label="Server size">
+                {arbitrator.map((option) => (
+                  <Field className='items-center flex !mt-0 ml-5' key={option}>
+                    <Radio className='mr-2' value={option}>
+                      <span>{option}</span>
+                    </Radio>
+                    <Label>{option}</Label>
+  
+                  </Field>
+                ))}
+              </RadioGroup>
+            </Field>
 
+          
+            <div className='flex flex-row justify-between gap-5'>
+             
+            <Field className='flex-1'>
+              <Label>Maximum delivery time</Label>
+              <Input
+                name="deadline"
+                type="number"
+                value={deadline}
+                onChange={(e) => {
+                  const deadline = parseInt(e.target.value);
+                  setDeadline(deadline);
+                }}
+              />
+            </Field>
+            <Field className='flex-1'>
+            <Label>Units</Label>
+            <Listbox
+              value={selectedCategory} 
+              onChange={setselectedCategory}
+              className="border border-gray-300 rounded-md shadow-sm"
+              placeholder="Select an option"
+            >
+              {category.map((cat, catIndex) => (
+                  <ListboxOption key={catIndex} value={cat}>
+                    {cat.name}
+                  </ListboxOption>
+              ))}
+            </Listbox>
+            </Field>
+          </div>
+            <Field>
+              <div className='flex justify-between'>
+                <Label>Worker Whitelist</Label>
+                <Label>+ Add Another</Label>
+              </div>
+              <Listbox
+              value={selectedCategory} 
+              onChange={setselectedCategory}
+              className="border border-gray-300 rounded-md shadow-sm"
+              placeholder="Select an option"
+            >
+              {category.map((cat, catIndex) => (
+                  <ListboxOption key={catIndex} value={cat}>
+                    {cat.name}
+                  </ListboxOption>
+              ))}
+            </Listbox>
+            </Field>
+          </FieldGroup>
+        </div>
         <Button
           disabled={postButtonDisabled || isPending}
           onClick={postJobClick}
