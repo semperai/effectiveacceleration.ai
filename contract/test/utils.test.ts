@@ -1,7 +1,7 @@
 import { ethers } from "hardhat";
-import {hashToCid, cidToHash, getFromIpfs, publishToIpfs, getEncryptionSigningKey, getSessionKey} from "../src/utils";
 import { expect } from "chai";
 import { ZeroHash } from "ethers";
+import { hashToCid, cidToHash, publishToIpfs, getFromIpfs, getEncryptionSigningKey, getSessionKey } from "../src/utils/encryption";
 
 describe("utils", () => {
   describe("hashToCid", () => {

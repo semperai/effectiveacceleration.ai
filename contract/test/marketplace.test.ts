@@ -17,9 +17,9 @@ import { Signer, HDNodeWallet, EventLog, getCreateAddress, toBigInt, hexlify, Ze
 import { Unicrow, UnicrowDispute, UnicrowArbitrator, UnicrowClaim, IERC20Errors__factory, ECDSA__factory, OwnableUpgradeable__factory, Initializable__factory } from "../typechain-types";
 import { HardhatNetworkHDAccountsConfig } from "hardhat/types";
 import { computeJobStateDiffs, fetchEventContents } from "../src/utils/ui";
-import { decodeJobCreatedEvent, decodeJobUpdatedEvent, decodeJobSignedEvent, decodeJobRatedEvent, decodeJobDisputedEventRaw, decodeJobDisputedEvent, decodeJobArbitratedEvent } from "../src/utils/decodeEvents";
+import { decodeJobCreatedEvent, decodeJobUpdatedEvent, decodeJobSignedEvent, decodeJobRatedEvent, decodeJobDisputedEvent, decodeJobArbitratedEvent, decryptJobDisputedEvent } from "../src/utils/decodeEvents";
 import { getEncryptionSigningKey, publishToIpfs, getSessionKey, encryptUtf8Data, encryptBinaryData, getFromIpfs } from "../src/utils/encryption";
-import { JobEventType, JobCreatedEvent, JobState, JobUpdatedEvent, JobSignedEvent, JobRatedEvent, JobDisputedEventRaw, JobDisputedEvent, JobArbitratedEvent } from "../src/interfaces";
+import { JobEventType, JobCreatedEvent, JobState, JobUpdatedEvent, JobSignedEvent, JobRatedEvent, JobDisputedEvent, JobArbitratedEvent } from "../src/interfaces";
 
 import { inspect } from 'util';
 inspect.defaultOptions.depth = 10;
@@ -2496,25 +2496,28 @@ describe("Marketplace Unit Tests", () => {
 
       const sessionKeyOA = await getSessionKey(user1, (await marketplace.connect(user1).arbitrators(arbitrator.address)).publicKey);
 
-      const content = hexlify(encryptUtf8Data("Objection!", sessionKeyOA));
-      const sessionKeyOW = hexlify(encryptBinaryData(getBytes("0x" + "00".repeat(32)), sessionKeyOA));
+      const encryptedContent = hexlify(encryptUtf8Data("Objection!", sessionKeyOA));
+      const encruptedSessionKeyOW = hexlify(encryptBinaryData(getBytes("0x" + "00".repeat(32)), sessionKeyOA));
 
       await expect(
         marketplace.connect(user2).takeJob(jobId, signature)
       ).not.to.be.reverted;
 
       await expect(
-        marketplace.connect(user1).dispute(jobId, sessionKeyOW, content)
+        marketplace.connect(user1).dispute(jobId, encruptedSessionKeyOW, encryptedContent)
       ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Disputed);
         expect(jobEventData.address_).to.equal(user1.address.toLowerCase());
 
-        const eventRaw: JobDisputedEventRaw = decodeJobDisputedEventRaw(jobEventData.data_);
-        expect(eventRaw.sessionKey).to.equal(sessionKeyOW);
-        expect(eventRaw.content).to.equal(content);
-
-        const event: JobDisputedEvent = decodeJobDisputedEvent(jobEventData.data_, sessionKeyOA);
+        const event: JobDisputedEvent = decodeJobDisputedEvent(jobEventData.data_);
+        expect(event.encryptedSessionKey).to.equal(encruptedSessionKeyOW);
+        expect(event.encryptedContent).to.equal(encryptedContent);
+        expect(event.sessionKey).to.equal(undefined);
+        expect(event.content).to.equal(undefined);
+        decryptJobDisputedEvent(event, sessionKeyOA);
+        expect(event.encryptedSessionKey).to.equal(encruptedSessionKeyOW);
+        expect(event.encryptedContent).to.equal(encryptedContent);
         expect(event.sessionKey).to.equal("0x" + "00".repeat(32));
         expect(event.content).to.equal("Objection!");
 
@@ -2545,9 +2548,11 @@ describe("Marketplace Unit Tests", () => {
         expect(jobEventData.type_).to.equal(JobEventType.Disputed);
         expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
 
-        const event: JobDisputedEventRaw = decodeJobDisputedEventRaw(jobEventData.data_);
-        expect(event.sessionKey).to.equal(sessionKey);
-        expect(event.content).to.equal(hexlify(content));
+        const event: JobDisputedEvent = decodeJobDisputedEvent(jobEventData.data_);
+        expect(event.encryptedSessionKey).to.equal(sessionKey);
+        expect(event.encryptedContent).to.equal(hexlify(content));
+        expect(event.sessionKey).to.equal(undefined);
+        expect(event.content).to.equal(undefined);
 
         return true;
       }).and.not.to.emit(unicrowDisputeGlobal, "Challenge");
@@ -3078,7 +3083,8 @@ describe("Marketplace Unit Tests", () => {
       const pastEventsArbitrator = await dataView.connect(user1).getEvents(jobId, revision, 0);
       const lastEventArbitrator = pastEventsArbitrator[pastEventsArbitrator.length - 1];
       const arbitratorSessionKey = await getSessionKey(arbitrator, await marketplace.connect(arbitrator).publicKeys(user1.address));
-      const disputeEvent = decodeJobDisputedEvent(lastEventArbitrator.data_, arbitratorSessionKey);
+      const disputeEvent = decodeJobDisputedEvent(lastEventArbitrator.data_);
+      decryptJobDisputedEvent(disputeEvent, arbitratorSessionKey)
       expect(disputeEvent.content).to.equal(disputeContent);
       expect(disputeEvent.sessionKey).to.equal(sessionKeyOW);
 
@@ -3109,7 +3115,7 @@ describe("Marketplace Unit Tests", () => {
       await fetchEventContents(diffs, {
         [`${user2.address}-${user1.address}`]: workerSessionKey,
         [`${user1.address}-${user2.address}`]: ownerSessionKey,
-        [`${user1.address}-${arbitrator.address}`]: ownerSessionKey,
+        [`${user1.address}-${arbitrator.address}`]: sessionKeyOA,
       });
     });
   })

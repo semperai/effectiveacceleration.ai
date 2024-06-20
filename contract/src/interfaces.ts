@@ -66,10 +66,6 @@ export type JobCreatedEvent = {
   whitelistWorkers: boolean;
 };
 
-export type JobPaidEvent = {
-  owner?: string;
-};
-
 export type JobUpdatedEvent = {
   title: string;
   contentHash: string;
@@ -90,15 +86,12 @@ export type JobRatedEvent = {
   review: string;
 }
 
-export type JobDisputedEventRaw = {
-  sessionKey: string; // Creator's and worker's session key, encrypted for arbitrator
-  content: string; // Dispute content encrypted by contender + arbitrator shared secret
-}
-
 // Same as JobDisputedEventRaw, but with values decrypted using the contender + arbitrator shared secret
 export type JobDisputedEvent = {
-  sessionKey: string; // Creator's and worker's session key
-  content: string; // Dispute content
+  encryptedSessionKey: string; // Creator's and worker's session key
+  encryptedContent: string; // Dispute content
+  sessionKey?: string;
+  content?: string;
 }
 
 export type JobArbitratedEvent = {
@@ -116,4 +109,4 @@ export type JobMessageEvent = {
   content?: string;
 }
 
-export type CustomJobEvent = JobCreatedEvent | JobPaidEvent | JobUpdatedEvent | JobSignedEvent | JobRatedEvent | JobDisputedEventRaw | JobDisputedEvent | JobArbitratedEvent | JobMessageEvent;
+export type CustomJobEvent = JobCreatedEvent | JobUpdatedEvent | JobSignedEvent | JobRatedEvent | JobDisputedEvent | JobArbitratedEvent | JobMessageEvent;

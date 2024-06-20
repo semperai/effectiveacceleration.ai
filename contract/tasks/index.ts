@@ -158,6 +158,7 @@ task("marketplace:seed", "Seed local marketplace instance")
   {
     const content = 'I am looking for someone to write a story book about Bitcoin and the blockchain. The book should be at least 20 pages long and include a brief history of Bitcoin, the technology behind it, and the potential impact it could have on the world. I am looking for someone who can write in a way that is easy to understand and engaging for a general audience. It should have illustrations and be suitable for children.';
     const { hash: contentHash } = await publishToIpfs(content);
+    const { hash: updatedHash } = await publishToIpfs('[Updated] ' + content);
     await marketplace.connect(owner).publishJobPost(
       'Create a story book about Bitcoin',
       contentHash,
@@ -170,6 +171,19 @@ task("marketplace:seed", "Seed local marketplace instance")
       ZeroAddress,
       []
     );
+
+    await marketplace.connect(owner).updateJobPost(
+      0n,
+      '[Updated] Create a story book about Bitcoin',
+      updatedHash,
+      ["DO", "Text"],
+      BigInt(200e18),
+      BigInt(60 * 60 * 24 * 4),
+      arbitrator.address,
+      true
+    );
+
+    await marketplace.connect(owner).updateJobWhitelist(0n, [worker.address], []);
   }
 
   {

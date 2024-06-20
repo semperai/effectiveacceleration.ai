@@ -1,7 +1,7 @@
 import { toBigInt, getAddress, ZeroAddress, ZeroHash } from "ethers";
-import { Job, JobArbitratedEvent, JobCreatedEvent, JobEvent, JobEventType, JobEventWithDiffs, JobMessageEvent, JobState } from "../interfaces";
+import { Job, JobArbitratedEvent, JobCreatedEvent, JobDisputedEvent, JobEvent, JobEventType, JobEventWithDiffs, JobMessageEvent, JobState, JobUpdatedEvent } from "../interfaces";
 import { safeGetFromIpfs } from "./encryption";
-import { decodeJobCreatedEvent, decodeJobUpdatedEvent, decodeJobSignedEvent, decodeJobRatedEvent, decodeJobDisputedEventRaw, decodeJobArbitratedEvent, decodeJobMessageEvent } from "./decodeEvents";
+import { decodeJobCreatedEvent, decodeJobUpdatedEvent, decodeJobSignedEvent, decodeJobRatedEvent, decodeJobArbitratedEvent, decodeJobMessageEvent, decodeJobDisputedEvent, decryptJobDisputedEvent } from "./decodeEvents";
 
 export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?: Job): JobEventWithDiffs[] => {
   const result: JobEventWithDiffs[] = [];
@@ -334,7 +334,7 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
           throw new Error("Job must be created before it can be disputed");
         }
 
-        const jobDisputed = decodeJobDisputedEventRaw(event.data_);
+        const jobDisputed = decodeJobDisputedEvent(event.data_);
         event.details = jobDisputed;
         job.disputed = true;
 
@@ -482,10 +482,15 @@ export const fetchEventContents = async (events: JobEventWithDiffs[], sessionKey
 
   const workerCandidates: Set<string> = new Set<string>;
 
-  await Promise.allSettled(events.filter((jobEvent) => [JobEventType.OwnerMessage, JobEventType.WorkerMessage, JobEventType.Arbitrated, JobEventType.Delivered, JobEventType.Created].includes(Number(jobEvent.type_))).map((jobEvent) => {
+  await Promise.allSettled(events.filter((jobEvent) => [JobEventType.OwnerMessage, JobEventType.WorkerMessage, JobEventType.Arbitrated, JobEventType.Delivered, JobEventType.Created, JobEventType.Updated].includes(Number(jobEvent.type_))).map((jobEvent) => {
     if (Number(jobEvent.type_) === JobEventType.Created) {
       return {
         contentHash: (jobEvent.details as JobCreatedEvent).contentHash,
+        sessionKey: undefined
+      };
+    } else if (Number(jobEvent.type_) === JobEventType.Updated) {
+      return {
+        contentHash: (jobEvent.details as JobUpdatedEvent).contentHash,
         sessionKey: undefined
       };
     } else if (Number(jobEvent.type_) === JobEventType.Arbitrated) {
@@ -543,12 +548,18 @@ export const fetchEventContents = async (events: JobEventWithDiffs[], sessionKey
       (event.details as JobMessageEvent).content = contents[(event.details as JobMessageEvent).contentHash];
     } else if (Number(event.type_) === JobEventType.Delivered) {
       event.diffs.push({
-        field: "result", oldValue: event.job.result, newValue: contents[event.job.resultHash]
+        field: "result", oldValue: previousState?.job.result, newValue: contents[event.job.resultHash]
       });
     } else if (Number(event.type_) === JobEventType.Updated && event.job.contentHash !== (previousState?.job.contentHash ?? ZeroHash)) {
       event.diffs.push({
-        field: "content", oldValue: event.job.content, newValue: contents[event.job.contentHash]
+        field: "content", oldValue: previousState?.job.content, newValue: contents[event.job.contentHash]
       });
+    } else if (Number(event.type_) === JobEventType.Disputed) {
+      const details = event.details as JobDisputedEvent;
+      const initiator = getAddress(event.address_);
+      const arbitrator = event.job.roles.arbitrator;
+      const key = `${initiator}-${arbitrator}`;
+      decryptJobDisputedEvent(details, sessionKeys[key]);
     }
 
     if (event.job.contentHash !== (previousState?.job.contentHash ?? ZeroHash)) {
@@ -562,7 +573,7 @@ export const fetchEventContents = async (events: JobEventWithDiffs[], sessionKey
       event.job.result = previousState?.job.result;
     }
 
-    previousState = {...event};
+    previousState = structuredClone(event);
   }
 
   return events;

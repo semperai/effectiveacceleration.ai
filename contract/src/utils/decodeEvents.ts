@@ -1,7 +1,7 @@
 import { BytesLike, getBytes, hexlify, toUtf8String, toBigInt, getAddress } from "ethers";
 import { decodeString, decodeBytes32, decodeBool, decodeStringArray, decodeAddress, decodeUint256, decodeUint32, decodeBytes } from "./decodeData";
 import { decryptBinaryData, decryptUtf8Data } from "./encryption";
-import { JobCreatedEvent, JobUpdatedEvent, JobSignedEvent, JobRatedEvent, JobDisputedEventRaw, JobDisputedEvent, JobArbitratedEvent, JobMessageEvent, JobEventType, CustomJobEvent } from "../interfaces";
+import { JobCreatedEvent, JobUpdatedEvent, JobSignedEvent, JobRatedEvent, JobDisputedEvent, JobArbitratedEvent, JobMessageEvent, JobEventType, CustomJobEvent } from "../interfaces";
 
 export const decodeJobCreatedEvent = (rawData: BytesLike): JobCreatedEvent => {
   const bytes = getBytes(rawData);
@@ -54,26 +54,20 @@ export const decodeJobRatedEvent = (rawData: BytesLike): JobRatedEvent => {
   };
 };
 
-export const decodeJobDisputedEventRaw = (rawData: BytesLike): JobDisputedEventRaw => {
+export const decodeJobDisputedEvent = (rawData: BytesLike): JobDisputedEvent => {
   const bytes = getBytes(rawData);
   let ptr = {bytes, index: 0};
 
   const result = {} as JobDisputedEvent;
-  result.sessionKey = decodeBytes(ptr);
-  result.content = decodeBytes(ptr);
+  result.encryptedSessionKey = decodeBytes(ptr);
+  result.encryptedContent = decodeBytes(ptr);
 
   return result;
 }
 
-export const decodeJobDisputedEvent = (rawData: BytesLike, arbitratorSessionKey: string): JobDisputedEvent => {
-  const bytes = getBytes(rawData);
-  let ptr = {bytes, index: 0};
-
-  const result = {} as JobDisputedEvent;
-  result.sessionKey = hexlify(decryptBinaryData(getBytes(decodeBytes(ptr)), arbitratorSessionKey));
-  result.content = decryptUtf8Data(getBytes(decodeBytes(ptr)), arbitratorSessionKey);
-
-  return result;
+export const decryptJobDisputedEvent = (event: JobDisputedEvent, sessionKey: string) => {
+  event.content = decryptUtf8Data(getBytes(event.encryptedContent), sessionKey);
+  event.sessionKey = hexlify(decryptBinaryData(getBytes(event.encryptedSessionKey), sessionKey));
 }
 
 export const decodeJobArbitratedEvent = (rawData: BytesLike): JobArbitratedEvent => {
@@ -95,7 +89,7 @@ export const decodeJobMessageEvent = (rawData: BytesLike): JobMessageEvent => {
   };
 }
 
-export const decodeCustomJobEvent = (eventType: JobEventType, rawData: BytesLike, sessionKey: string | undefined = undefined): CustomJobEvent | undefined => {
+export const decodeCustomJobEvent = (eventType: JobEventType, rawData: BytesLike): CustomJobEvent | undefined => {
   switch (eventType) {
     case JobEventType.Created:
       return decodeJobCreatedEvent(rawData);
@@ -106,11 +100,7 @@ export const decodeCustomJobEvent = (eventType: JobEventType, rawData: BytesLike
     case JobEventType.Rated:
       return decodeJobRatedEvent(rawData);
     case JobEventType.Disputed:
-      if (sessionKey) {
-        return decodeJobDisputedEvent(rawData, sessionKey);
-      } else {
-        return decodeJobDisputedEventRaw(rawData);
-      }
+      return decodeJobDisputedEvent(rawData);
     case JobEventType.Arbitrated:
       return decodeJobArbitratedEvent(rawData);
     case JobEventType.WorkerMessage:
