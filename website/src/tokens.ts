@@ -1,4 +1,4 @@
-import Config from '@/config.json';
+// import Config from '@/config.json';
 
 export interface Token {
   id: string;
@@ -8,12 +8,12 @@ export interface Token {
 }
 
 export const tokens: Token[] = [
-  {
-    id: Config.fakeTokenAddress,
-    name: 'Test',
-    symbol: 'TST',
-    icon: '',
-  },
+  // {
+  //   id: Config.fakeTokenAddress,
+  //   name: 'Test',
+  //   symbol: 'TST',
+  //   icon: '',
+  // },
   {
     id: '0x722e8bdd2ce80a4422e880164f2079488e115365',
     name: 'Ether',
