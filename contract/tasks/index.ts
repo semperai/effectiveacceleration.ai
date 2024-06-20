@@ -296,7 +296,7 @@ task("marketplace:seed", "Seed local marketplace instance")
     await owner.provider.send("evm_increaseTime", [`0x${(60 * 60 * 24).toString(16)}`]);
     await owner.provider.send("evm_mine", []);
 
-    await marketplace.connect(owner).withdrawCollateral(jobId, await fakeToken.getAddress());
+    await marketplace.connect(owner).withdrawCollateral(jobId);
   }
 
   console.log("Done seeding marketplace");

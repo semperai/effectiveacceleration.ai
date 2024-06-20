@@ -1743,7 +1743,7 @@ describe("Marketplace Unit Tests", () => {
     it("withdraw collateral", async () => {
       const { marketplace, dataView, fakeToken, user1, user2, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
-      await expect(marketplace.connect(user1).withdrawCollateral(jobId, fakeToken)).to.be.revertedWith("not closed");
+      await expect(marketplace.connect(user1).withdrawCollateral(jobId)).to.be.revertedWith("not closed");
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(100e18));
@@ -1764,12 +1764,12 @@ describe("Marketplace Unit Tests", () => {
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(100e18));
       expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(BigInt(100e18));
 
-      await expect(marketplace.connect(user1).withdrawCollateral(jobId, fakeToken)).to.be.revertedWith("24 hours have not passed yet");
+      await expect(marketplace.connect(user1).withdrawCollateral(jobId)).to.be.revertedWith("24 hours have not passed yet");
 
       await user1.provider.send("evm_increaseTime", [`0x${(60 * 60 * 24).toString(16)}`]);
       await user1.provider.send("evm_mine", []);
 
-      await expect(marketplace.connect(user1).withdrawCollateral(jobId, fakeToken)).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      await expect(marketplace.connect(user1).withdrawCollateral(jobId)).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.CollateralWithdrawn);
         expect(jobEventData.address_).to.equal("0x");
@@ -1783,7 +1783,7 @@ describe("Marketplace Unit Tests", () => {
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(0);
       expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(0);
 
-      await expect(marketplace.connect(user1).withdrawCollateral(jobId, fakeToken)).to.be.revertedWith("No collateral to withdraw");
+      await expect(marketplace.connect(user1).withdrawCollateral(jobId)).to.be.revertedWith("No collateral to withdraw");
     });
   });
 

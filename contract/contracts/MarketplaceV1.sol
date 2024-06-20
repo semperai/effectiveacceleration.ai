@@ -596,9 +596,9 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     }
 
     /**
-     * @notice Withdraw collateral from the closed job 
+     * @notice Withdraw collateral from the closed job
      */
-    function withdrawCollateral(uint256 jobId_, address token_) public {
+    function withdrawCollateral(uint256 jobId_) public {
         // check if the job is closed
         require(jobs[jobId_].state == uint8(JobState.Closed), "not closed");
 
@@ -607,7 +607,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         require(job.collateralOwed > 0, "No collateral to withdraw");
 
         uint256 amount = job.collateralOwed;
-        SafeERC20.safeTransferFrom(IERC20(token_), address(this), job.roles.creator, amount);
+        SafeERC20.safeTransferFrom(IERC20(job.token), address(this), job.roles.creator, amount);
         job.collateralOwed = 0; // Reset the owed amount
 
         publishJobEvent(jobId_,
