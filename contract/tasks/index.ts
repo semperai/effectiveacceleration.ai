@@ -198,7 +198,7 @@ task("marketplace:seed", "Seed local marketplace instance")
     const { hash: resultHash } = await publishToIpfs(result);
 
     await marketplace.connect(worker).deliverResult(0n, resultHash);
-    await marketplace.connect(owner).approveResult(0n, 5n, "Five out of five!");
+    await marketplace.connect(owner).approveResult(0n, 4n, "Nice, but could be better!");
   }
 
   {
