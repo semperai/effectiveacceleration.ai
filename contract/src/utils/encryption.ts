@@ -47,6 +47,7 @@ export const publishToIpfs = async (message: string, sessionKey: string | undefi
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "IPFS_UPLOAD_SECRET": process.env.IPFS_UPLOAD_SECRET ?? ""
     },
     body: JSON.stringify({
       dataB64: encodedData,

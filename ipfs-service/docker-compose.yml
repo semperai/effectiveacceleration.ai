@@ -12,3 +12,13 @@ services:
     environment:
       IPFS_PROFILE: test
     restart: always
+  ipfs-serivce:
+    depends_on:
+      - ipfs
+    build: .
+    ports:
+      - '127.0.0.1:8000:8000'
+    environment:
+      IPFS_UPLOAD_SECRET: "lovy4mnv9oeBbgl;a"
+      IPFS_API_URL: "http://ipfs:5001"
+    restart: always
