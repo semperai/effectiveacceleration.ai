@@ -5,7 +5,7 @@ import { useAccount, useReadContracts } from "wagmi";
 
 type CacheCheck = { targetAddress: string, checkedItem: string }
 
-export default function usePublicKeys(targetAddresses: string[]) {
+export default function useArbitratorPublicKeys(targetAddresses: string[]) {
   const [publicKeys, setPublicKeys] = useState<Record<string, string>>({});
   const { address } = useAccount();
   const [cachedItems, setCachedItems] = useState<{ targetAddress: string, checkedItem: string }[]>([]);
@@ -13,7 +13,7 @@ export default function usePublicKeys(targetAddresses: string[]) {
 
   useEffect(() => {
     const checkedItems = targetAddresses.map((targetAddress) => {
-      const checkedItem = localStorage.getItem(`publicKey-${targetAddress}`);
+      const checkedItem = localStorage.getItem(`arbitratorPublicKey-${targetAddress}`);
       return {targetAddress, checkedItem };
     });
 
@@ -29,25 +29,25 @@ export default function usePublicKeys(targetAddresses: string[]) {
         account:      address,
         abi:          MARKETPLACE_V1_ABI,
         address:      Config.marketplaceAddress as `0x${string}`,
-        functionName: 'publicKeys',
+        functionName: 'arbitrators',
         args:         [item.targetAddress],
       })
     ),
   });
 
-  const publicKeyData = result.data;
+  const arbitratorsData = result.data;
   const { data: _, ...rest } = result;
 
   useEffect(() => {
     // @ts-ignore
-    if ((publicKeyData && Object.key(publicKeyData).length) || cachedItems.length > 0) {
+    if ((arbitratorsData && Object.keys(arbitratorsData).length) || cachedItems.length > 0) {
       const resultMap: Record<string, string> = {};
-      publicKeyData?.forEach((data, index) => {
+      arbitratorsData?.forEach((data, index) => {
         if (data.result) {
           const targetAddress = missedItems[index].targetAddress;
-          resultMap[targetAddress] = data.result as string;
+          resultMap[targetAddress] = (data.result as any)[0] as string;
 
-          localStorage.setItem(`publicKey-${targetAddress}`, data.result as string);
+          localStorage.setItem(`arbitratorPublicKey-${targetAddress}`, (data.result as any)[0] as string);
         }
       });
 
@@ -57,7 +57,7 @@ export default function usePublicKeys(targetAddresses: string[]) {
       setPublicKeys(resultMap);
     }
   // @ts-ignore
-  }, [publicKeyData, cachedItems, missedItems]);
+  }, [arbitratorsData, cachedItems, missedItems]);
 
   return { data: publicKeys, ...rest };
 }

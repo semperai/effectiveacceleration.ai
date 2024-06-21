@@ -1,12 +1,12 @@
 import { MARKETPLACE_DATA_VIEW_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceDataViewV1";
+import { MARKETPLACE_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceV1";
 import Config from "effectiveacceleration-contracts/scripts/config.json";
 import { useState, useEffect } from "react";
 import { useAccount, useBlockNumber, useReadContract } from "wagmi";
-import { JobEvent } from "@/interfaces";
-import { decodeCustomJobEvent, getFromIpfs, getSessionKey, JobArbitratedEvent, JobEventType, JobMessageEvent, safeGetFromIpfs } from "effectiveacceleration-contracts";
+import { decodeCustomJobEvent, getSessionKey, JobArbitratedEvent, JobEvent, JobEventType, JobMessageEvent, safeGetFromIpfs } from "effectiveacceleration-contracts";
 import { useEthersSigner } from "./useEthersSigner";
 import usePublicKeys from "./usePublicKeys";
-
+import { useWatchContractEvent } from 'wagmi'
 
 export default function useJobEvents(jobId: bigint) {
   const [jobEvents, setJobEvents] = useState<JobEvent[]>([]);
@@ -26,8 +26,22 @@ export default function useJobEvents(jobId: bigint) {
     args:         [jobId, 0n, 0n],
   });
 
-  const jobEventsData = result.data as JobEvent[];
+  let jobEventsData = result.data as JobEvent[];
   const { data: _, ...rest } = result;
+
+  useWatchContractEvent({
+    abi: MARKETPLACE_V1_ABI,
+    address: Config.marketplaceDataViewAddress as `0x${string}`,
+    eventName: 'JobEvent',
+    onLogs: async (logs) => {
+      const filtered = logs.filter((log) => log.args.jobId === jobId);
+      if (filtered.length === 0) {
+        return;
+      }
+
+      jobEventsData = [...jobEventsData, ...filtered.map((log) => log.args.eventData! as JobEvent)];
+    },
+  });
 
   useEffect(() => {
     (async () => {
@@ -45,7 +59,12 @@ export default function useJobEvents(jobId: bigint) {
 
       const sessionKeys: Record<string, string> = {};
       let workerAddress: string | undefined;
+      let ownerAddress: string | undefined;
       for (const [id, jobEvent] of jobEventsData.entries()) {
+        if (jobEvent.type_ === JobEventType.Created) {
+          ownerAddress = jobEvent.address_;
+        }
+
         const messageEvent = [JobEventType.OwnerMessage, JobEventType.WorkerMessage].includes(jobEvent.type_);
         const workerMessage = jobEvent.address_.toLowerCase() !== address?.toLowerCase();
         workerAddress = workerMessage ? jobEvent.address_ : workerAddress;
@@ -63,7 +82,7 @@ export default function useJobEvents(jobId: bigint) {
         const messageEvent = jobEvent.details as JobMessageEvent;
         const content = await safeGetFromIpfs(messageEvent.contentHash, sessionKeys[jobEvent.address_]);
         messageEvent.content = content;
-        jobEventsData[Number(jobEvent.id)].details = messageEvent;;
+        jobEventsData[Number(jobEvent.id)].details = messageEvent;
       }));
 
       await Promise.allSettled(jobEventsData.filter((jobEvent) => [JobEventType.Arbitrated].includes(jobEvent.type_)).map(async (jobEvent) => {
