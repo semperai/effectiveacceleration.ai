@@ -2,7 +2,7 @@ import { MARKETPLACE_DATA_VIEW_V1_ABI } from "effectiveacceleration-contracts/wa
 import Config from "effectiveacceleration-contracts/scripts/config.json";
 import { useState, useEffect, useMemo } from "react";
 import { useAccount, useBlockNumber, useReadContract } from "wagmi";
-import { Arbitrator } from "@/interfaces";
+import { Arbitrator } from "effectiveacceleration-contracts";
 
 export default function useArbitrator(arbitratorAddress: `0x${string}`) {
   const [arbitrator, setArbitrator] = useState<Arbitrator | null>(null);

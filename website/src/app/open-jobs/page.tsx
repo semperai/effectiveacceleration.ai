@@ -90,8 +90,8 @@ export default function OpenJobsPage() {
                 <circle cx={1} cy={1} r={1} />
               </svg>
               <p className="whitespace-nowrap">
-                <span className="text-green-500 dark:text-green-400">+{job.reputationPositive}</span>
-                <span className="text-red-500 dark:text-red-400">-{job.reputationNegative}</span>
+                {/* <span className="text-green-500 dark:text-green-400">+{job.reputationPositive}</span>
+                <span className="text-red-500 dark:text-red-400">-{job.reputationNegative}</span> */}
                 {' '} reputation
               </p>
             </div>
@@ -101,7 +101,7 @@ export default function OpenJobsPage() {
               'rounded-full flex-none py-1 px-2 text-xs font-medium ring-1 ring-inset'
             )}
           >
-            {job.paymentAmount} {job.token.symbol}
+            {job.amount.toString()} {job.token}
           </div>
           <ChevronRightIcon className="h-5 w-5 flex-none text-gray-400" aria-hidden="true" />
         </li>

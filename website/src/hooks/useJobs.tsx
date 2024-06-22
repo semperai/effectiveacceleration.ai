@@ -2,8 +2,7 @@ import { useAccount, useReadContract } from "wagmi";
 import { MARKETPLACE_DATA_VIEW_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceDataViewV1";
 import Config from "effectiveacceleration-contracts/scripts/config.json";
 import { useEffect, useState } from "react";
-import { Job } from "@/interfaces";
-import { getFromIpfs } from "effectiveacceleration-contracts";
+import { Job, getFromIpfs } from "effectiveacceleration-contracts";
 
 export default function useJobs() {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -30,9 +29,6 @@ export default function useJobs() {
 
         jobsData.forEach((job: Job, id) => {
           job.id = BigInt(id);
-          job.isCreator = job.roles.creator === address;
-          job.isWorker = job.roles.worker === address;
-          job.isArbitrator = job.roles.arbitrator === address;
         });
         setJobs(jobsData as any);
       }

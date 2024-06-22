@@ -1,10 +1,10 @@
-import { Job } from "@/interfaces";
-import { getFromIpfs } from "effectiveacceleration-contracts";
+import { getFromIpfs, Job } from "effectiveacceleration-contracts";
 import { MARKETPLACE_DATA_VIEW_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceDataViewV1";
 import Config from "effectiveacceleration-contracts/scripts/config.json";
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useAccount, useReadContract } from "wagmi";
+
 
 export default function useJob(id: bigint) {
   const [job, setJob] = useState<Job | null>(null);
@@ -27,9 +27,6 @@ export default function useJob(id: bigint) {
         const content = await getFromIpfs(jobData.contentHash);
         jobData.content = content;
         jobData.id = BigInt(id);
-        jobData.isCreator = jobData.roles.creator === address;
-        jobData.isWorker = jobData.roles.worker === address;
-        jobData.isArbitrator = jobData.roles.arbitrator === address;
         setJob(jobData as any);
       }
     })();

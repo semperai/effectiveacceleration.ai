@@ -1,6 +1,5 @@
-import { Job } from "@/interfaces";
 import useJobs from "./useJobs";
-import { JobState } from "effectiveacceleration-contracts";
+import { Job, JobState } from "effectiveacceleration-contracts";
 
 
 export default function useOpenJobs() {
