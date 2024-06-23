@@ -11,6 +11,7 @@ import "./unicrow/Unicrow.sol";
 import "./unicrow/UnicrowDispute.sol";
 import "./unicrow/UnicrowArbitrator.sol";
 import "./unicrow/UnicrowTypes.sol";
+import "./MarketplaceDataV1.sol";
 
 // import "hardhat/console.sol";
 
@@ -98,6 +99,7 @@ struct UserRating {
 
 contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     address public treasury; // where treasury fees/rewards go
+    address public marketplaceDataAddress; // address of helper contract which stores the marketplace data which is not jobs
 
     address public pauser; // who can pause contract
 
@@ -184,6 +186,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     /// @notice Initialize contract
     /// @dev For upgradeable contracts this function necessary
     /// @param treasury_ Address of treasury
+    /// @param marketPlaceDataAddress_ Address of helper contract which stores the marketplace data which is not jobs
     /// @param unicrowAddress_ Address of Unicrow contract
     /// @param unicrowDisputeAddress_ Address of UnicrowDispute contract
     /// @param unicrowArbitratorAddress_ Address of UnicrowArbitrator contract
@@ -191,6 +194,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     /// @param unicrowMarketplaceFee_ Fee for this marketplace in bips
     function initialize(
             address treasury_,
+            address marketPlaceDataAddress_,
             address unicrowAddress_,
             address unicrowDisputeAddress_,
             address unicrowArbitratorAddress_,
@@ -201,6 +205,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         __Pausable_init();
         pauser = msg.sender;
         treasury = treasury_;
+
+        marketplaceDataAddress = marketPlaceDataAddress_;
 
         unicrowAddress = unicrowAddress_;
         unicrowDisputeAddress = unicrowDisputeAddress_;

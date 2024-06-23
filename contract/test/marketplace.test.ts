@@ -149,8 +149,26 @@ describe("Marketplace Unit Tests", () => {
     const Marketplace = await ethers.getContractFactory(
       "MarketplaceV1"
     );
+
+    const MarketplaceData = await ethers.getContractFactory(
+      "MarketplaceDataV1"
+    );
+
+    let transactionCount = await deployer.getNonce();
+
+    const MarketplaceAddress = getCreateAddress({
+      from: deployer.address,
+      nonce: transactionCount,
+    });
+
+    const MarketplaceDataAddress = getCreateAddress({
+      from: deployer.address,
+      nonce: transactionCount + 1,
+    });
+
     const marketplace = (await upgrades.deployProxy(Marketplace, [
       await deployer.getAddress(),
+      MarketplaceDataAddress,
       await unicrow.getAddress(),
       await unicrowDispute.getAddress(),
       await unicrowArbitrator.getAddress(),
@@ -160,11 +178,8 @@ describe("Marketplace Unit Tests", () => {
     await marketplace.waitForDeployment();
     console.log("Marketplace deployed to:", await marketplace.getAddress());
 
-    const MarketplaceData = await ethers.getContractFactory(
-      "MarketplaceDataV1"
-    );
     const marketplaceData = (await upgrades.deployProxy(MarketplaceData, [
-      await marketplace.getAddress(),
+      MarketplaceAddress,
     ])) as unknown as MarketplaceData;
     await marketplaceData.waitForDeployment();
     console.log("MarketplaceData deployed to:", await marketplaceData.getAddress());
@@ -353,7 +368,7 @@ describe("Marketplace Unit Tests", () => {
     it("can not call initializer", async () => {
       const { marketplace } = await loadFixture(deployContractsFixture);
       await expect(
-        marketplace.initialize(ZeroAddress, ZeroAddress, ZeroAddress, ZeroAddress, ZeroAddress, 0)
+        marketplace.initialize(ZeroAddress, ZeroAddress, ZeroAddress, ZeroAddress, ZeroAddress, ZeroAddress, 0)
       ).to.be.revertedWithCustomError({interface: Initializable__factory.createInterface()}, "InvalidInitialization");
     });
   });

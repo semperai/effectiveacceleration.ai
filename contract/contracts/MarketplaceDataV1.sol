@@ -6,8 +6,18 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
+// struct JobEventData {
+//     uint8 type_;      // 1 byte / type of object
+//     bytes address_;   // empty or context dependent address data, either who sent it or whom it targets
+//     bytes data_;      // extra event data, e.g. 34 bytes for CID
+//     uint32 timestamp_; // 4 bytes
+// }
+
 contract MarketplaceDataV1 is OwnableUpgradeable {
     MarketplaceV1 public marketplace;
+
+    // // jobId -> JobEvents
+    // mapping(uint256 => JobEventData[]) public jobEvents;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -25,6 +35,16 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
 
         marketplace = MarketplaceV1(marketplace_);
     }
+
+    // function publishJobEvent(uint256 jobId_, JobEventData memory event_) internal {
+    //     event_.timestamp_ = uint32(block.timestamp);
+    //     jobEvents[jobId_].push(event_);
+    //     emit JobEvent(jobId_, event_);
+    // }
+
+    // function eventsLength(uint256 jobId_) public view returns (uint256) {
+    //     return jobEvents[jobId_].length;
+    // }
 
     function jobsLength() public view returns (uint256) {
         return marketplace.jobsLength();
