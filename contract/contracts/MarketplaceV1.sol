@@ -53,35 +53,6 @@ struct JobPost {
     bool disputed;
 }
 
-enum JobEventType {
-    Created,
-    Taken,
-    Paid,
-    Updated,
-    Signed,
-    Completed,
-    Delivered,
-    Closed,
-    Reopened,
-    Rated,
-    Refunded,
-    Disputed,
-    Arbitrated,
-    ArbitrationRefused,
-    WhitelistedWorkerAdded,
-    WhitelistedWorkerRemoved,
-    CollateralWithdrawn,
-    WorkerMessage,
-    OwnerMessage
-}
-
-struct JobEventData {
-    uint8 type_;      // 1 byte / type of object
-    bytes address_;   // empty or context dependent address data, either who sent it or whom it targets
-    bytes data_;      // extra event data, e.g. 34 bytes for CID
-    uint32 timestamp_; // 4 bytes
-}
-
 struct JobArbitrator {
     bytes publicKey;
     string name;
@@ -118,9 +89,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
     // jobId -> address -> bool
     mapping(uint256 => mapping(address => bool)) public whitelistWorkers;
-
-    // jobId -> JobEvents
-    mapping(uint256 => JobEventData[]) public jobEvents;
 
     // Current average rating and number of ratings for each user
     mapping(address => UserRating) public userRatings;
@@ -171,7 +139,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     event VersionChanged(uint256 indexed version);
 
     event NotificationBroadcast(address indexed addr, uint256 indexed id);
-    event JobEvent(uint256 indexed jobId, JobEventData eventData);
 
     event PublicKeyRegistered(address indexed addr, bytes pubkey);
 
@@ -186,7 +153,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     /// @notice Initialize contract
     /// @dev For upgradeable contracts this function necessary
     /// @param treasury_ Address of treasury
-    /// @param marketPlaceDataAddress_ Address of helper contract which stores the marketplace data which is not jobs
+    /// @param marketplaceDataAddress_ Address of helper contract which stores the marketplace data which is not jobs
     /// @param unicrowAddress_ Address of Unicrow contract
     /// @param unicrowDisputeAddress_ Address of UnicrowDispute contract
     /// @param unicrowArbitratorAddress_ Address of UnicrowArbitrator contract
@@ -194,7 +161,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     /// @param unicrowMarketplaceFee_ Fee for this marketplace in bips
     function initialize(
             address treasury_,
-            address marketPlaceDataAddress_,
+            address marketplaceDataAddress_,
             address unicrowAddress_,
             address unicrowDisputeAddress_,
             address unicrowArbitratorAddress_,
@@ -206,7 +173,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         pauser = msg.sender;
         treasury = treasury_;
 
-        marketplaceDataAddress = marketPlaceDataAddress_;
+        marketplaceDataAddress = marketplaceDataAddress_;
 
         unicrowAddress = unicrowAddress_;
         unicrowDisputeAddress = unicrowDisputeAddress_;
@@ -308,10 +275,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         return arbitratorAddresses.length;
     }
 
-    function eventsLength(uint256 jobId_) public view returns (uint256) {
-        return jobEvents[jobId_].length;
-    }
-
     function jobsLength() public view returns (uint256) {
         return jobs.length;
     }
@@ -321,9 +284,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     }
 
     function publishJobEvent(uint256 jobId_, JobEventData memory event_) internal {
-        event_.timestamp_ = uint32(block.timestamp);
-        jobEvents[jobId_].push(event_);
-        emit JobEvent(jobId_, event_);
+        MarketplaceDataV1(marketplaceDataAddress).publishJobEvent(jobId_, event_);
     }
 
     // Function to read MECE tag's long form given the short form
@@ -692,6 +653,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      */
     function takeJob(uint256 jobId_, bytes calldata signature_) public {
         require(publicKeys[msg.sender].length > 0, "not registered");
+        uint256 eventsLength = MarketplaceDataV1(marketplaceDataAddress).eventsLength(jobId_);
 
         JobPost storage job = jobs[jobId_];
 
@@ -702,14 +664,14 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             "not whitelisted"
         );
 
-        bytes32 digest = keccak256(bytes.concat("\x19Ethereum Signed Message:\n32", keccak256(abi.encode(jobEvents[jobId_].length, jobId_))));
+        bytes32 digest = keccak256(bytes.concat("\x19Ethereum Signed Message:\n32", keccak256(abi.encode(eventsLength, jobId_))));
         require(ECDSA.recover(digest, signature_) == msg.sender, "invalid signature");
 
         publishJobEvent(jobId_,
             JobEventData({
                 type_: uint8(JobEventType.Signed),
                 address_: abi.encodePacked(msg.sender),
-                data_: bytes.concat(abi.encodePacked(uint16(jobEvents[jobId_].length), abi.encodePacked(signature_))),
+                data_: bytes.concat(abi.encodePacked(uint16(eventsLength), abi.encodePacked(signature_))),
                 timestamp_: 0
             })
         );

@@ -10,8 +10,8 @@ import chai from "chai";
 import chaiAsPromised from 'chai-as-promised';
 import chaiSubset from "chai-subset";
 import { expect } from "chai";
-import { JobEventDataStructOutput, MarketplaceV1 as Marketplace } from "../typechain-types/contracts/MarketplaceV1";
-import { MarketplaceDataV1 as MarketplaceData } from "../typechain-types/contracts/MarketplaceDataV1";
+import { MarketplaceV1 as Marketplace } from "../typechain-types/contracts/MarketplaceV1";
+import { JobEventDataStructOutput, MarketplaceDataV1 as MarketplaceData } from "../typechain-types/contracts/MarketplaceDataV1";
 import { FakeToken } from "../typechain-types/contracts/unicrow/FakeToken";
 import { Signer, HDNodeWallet, EventLog, getCreateAddress, toBigInt, hexlify, ZeroAddress, ZeroHash, getBytes, toUtf8Bytes }  from "ethers";
 import { Unicrow, UnicrowDispute, UnicrowArbitrator, UnicrowClaim, IERC20Errors__factory, ECDSA__factory, OwnableUpgradeable__factory, Initializable__factory } from "../typechain-types";
@@ -158,12 +158,12 @@ describe("Marketplace Unit Tests", () => {
 
     const MarketplaceAddress = getCreateAddress({
       from: deployer.address,
-      nonce: transactionCount,
+      nonce: transactionCount + 1,
     });
 
     const MarketplaceDataAddress = getCreateAddress({
       from: deployer.address,
-      nonce: transactionCount + 1,
+      nonce: transactionCount + 3,
     });
 
     const marketplace = (await upgrades.deployProxy(Marketplace, [
@@ -518,7 +518,7 @@ describe("Marketplace Unit Tests", () => {
         whitelisted ? [user2.address] : []
       )).wait();
 
-    const jobId = (jobIdResponse?.logs.at(-1) as EventLog).args.jobId as bigint;
+    const jobId = 0n;
     return { marketplace, marketplaceData, fakeToken, user1, user2, arbitrator, wallet1, wallet2, wallet3, jobId };
   }
 
@@ -649,7 +649,7 @@ describe("Marketplace Unit Tests", () => {
           ethers.ZeroAddress,
           []
         )
-      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      ).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Created);
 
@@ -772,14 +772,14 @@ describe("Marketplace Unit Tests", () => {
           ethers.ZeroAddress,
           [user2.address]
         )
-      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      ).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Created);
 
         return true;
       })
       .and
-      .to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      .to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.WhitelistedWorkerAdded);
         expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
@@ -1150,7 +1150,7 @@ describe("Marketplace Unit Tests", () => {
         .connect(user1)
         .whitelistWorkers(jobId, user1.address)).to.be.false;
 
-      await expect(marketplace.connect(user1).updateJobWhitelist(jobId, [await user1.getAddress()], [])).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      await expect(marketplace.connect(user1).updateJobWhitelist(jobId, [await user1.getAddress()], [])).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.WhitelistedWorkerAdded);
         expect(jobEventData.address_).to.equal(user1.address.toLowerCase());
@@ -1165,7 +1165,7 @@ describe("Marketplace Unit Tests", () => {
 
       await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
 
-      await expect(marketplace.connect(user1).updateJobWhitelist(jobId, [], [await user1.getAddress()])).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      await expect(marketplace.connect(user1).updateJobWhitelist(jobId, [], [await user1.getAddress()])).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.WhitelistedWorkerRemoved);
         expect(jobEventData.address_).to.equal(user1.address.toLowerCase());
@@ -1299,7 +1299,7 @@ describe("Marketplace Unit Tests", () => {
         maxTime,
         arbitrator,
         whitelistWorkers,
-      )).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      )).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.address_).to.equal("0x");
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Updated);
@@ -1414,7 +1414,7 @@ describe("Marketplace Unit Tests", () => {
         maxTime,
         arbitrator.address,
         whitelistWorkers,
-      )).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      )).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.address_).to.equal("0x");
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Updated);
@@ -1454,7 +1454,7 @@ describe("Marketplace Unit Tests", () => {
         maxTime,
         arbitrator,
         whitelistWorkers,
-      )).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      )).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         const event: JobUpdatedEvent = decodeJobUpdatedEvent(jobEventData.data_);
         expect(event.amount).to.equal(amount);
 
@@ -1477,7 +1477,7 @@ describe("Marketplace Unit Tests", () => {
         maxTime,
         arbitrator,
         whitelistWorkers,
-      )).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      )).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         const event: JobUpdatedEvent = decodeJobUpdatedEvent(jobEventData.data_);
         expect(event.amount).to.equal(BigInt(100e18));
 
@@ -1500,7 +1500,7 @@ describe("Marketplace Unit Tests", () => {
         maxTime,
         arbitrator,
         whitelistWorkers,
-      )).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      )).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         const event: JobUpdatedEvent = decodeJobUpdatedEvent(jobEventData.data_);
         expect(event.amount).to.equal(BigInt(300e18));
 
@@ -1527,7 +1527,7 @@ describe("Marketplace Unit Tests", () => {
         maxTime,
         arbitrator,
         whitelistWorkers,
-      )).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      )).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         const event: JobUpdatedEvent = decodeJobUpdatedEvent(jobEventData.data_);
         expect(event.amount).to.equal(BigInt(100e18));
 
@@ -1573,7 +1573,7 @@ describe("Marketplace Unit Tests", () => {
           maxTime,
           arbitrator,
           whitelistWorkers,
-        )).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+        )).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
           expect(jobEventData.address_).to.equal("0x");
           expect(jobEventData.timestamp_).to.be.greaterThan(0);
           expect(jobEventData.type_).to.equal(JobEventType.Updated);
@@ -1582,7 +1582,7 @@ describe("Marketplace Unit Tests", () => {
         });
       }
 
-      const eventsLength = await marketplace.eventsLength(jobId);
+      const eventsLength = await marketplaceData.eventsLength(jobId);
       expect(eventsLength).to.equal(N);
 
       // get limited
@@ -1614,7 +1614,7 @@ describe("Marketplace Unit Tests", () => {
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(100e18));
 
-      await expect(marketplace.connect(user1).closeJob(jobId)).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      await expect(marketplace.connect(user1).closeJob(jobId)).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Closed);
         expect(jobEventData.address_).to.equal("0x");
@@ -1646,7 +1646,7 @@ describe("Marketplace Unit Tests", () => {
       await user1.provider.send("evm_increaseTime", [`0x${(60 * 60 * 24).toString(16)}`]);
       await user1.provider.send("evm_mine", []);
 
-      await expect(marketplace.connect(user1).closeJob(jobId)).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      await expect(marketplace.connect(user1).closeJob(jobId)).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Closed);
         expect(jobEventData.address_).to.equal("0x");
@@ -1677,7 +1677,7 @@ describe("Marketplace Unit Tests", () => {
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(100e18));
       expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(0);
 
-      await expect(marketplace.connect(user1).closeJob(jobId)).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      await expect(marketplace.connect(user1).closeJob(jobId)).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Closed);
         expect(jobEventData.address_).to.equal("0x");
@@ -1692,7 +1692,7 @@ describe("Marketplace Unit Tests", () => {
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(100e18));
       expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(BigInt(100e18));
 
-      await expect(marketplace.connect(user1).reopenJob(jobId)).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      await expect(marketplace.connect(user1).reopenJob(jobId)).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Reopened);
         expect(jobEventData.address_).to.equal("0x");
@@ -1722,7 +1722,7 @@ describe("Marketplace Unit Tests", () => {
       await user1.provider.send("evm_increaseTime", [`0x${(60 * 60 * 24).toString(16)}`]);
       await user1.provider.send("evm_mine", []);
 
-      await expect(marketplace.connect(user1).closeJob(jobId)).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      await expect(marketplace.connect(user1).closeJob(jobId)).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Closed);
         expect(jobEventData.address_).to.equal("0x");
@@ -1737,7 +1737,7 @@ describe("Marketplace Unit Tests", () => {
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(0);
       expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(0);
 
-      await expect(marketplace.connect(user1).reopenJob(jobId)).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      await expect(marketplace.connect(user1).reopenJob(jobId)).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Reopened);
         expect(jobEventData.address_).to.equal("0x");
@@ -1764,7 +1764,7 @@ describe("Marketplace Unit Tests", () => {
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(100e18));
       expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(0);
 
-      await expect(marketplace.connect(user1).closeJob(jobId)).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      await expect(marketplace.connect(user1).closeJob(jobId)).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Closed);
         expect(jobEventData.address_).to.equal("0x");
@@ -1784,7 +1784,7 @@ describe("Marketplace Unit Tests", () => {
       await user1.provider.send("evm_increaseTime", [`0x${(60 * 60 * 24).toString(16)}`]);
       await user1.provider.send("evm_mine", []);
 
-      await expect(marketplace.connect(user1).withdrawCollateral(jobId)).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      await expect(marketplace.connect(user1).withdrawCollateral(jobId)).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.CollateralWithdrawn);
         expect(jobEventData.address_).to.equal("0x");
@@ -1823,7 +1823,7 @@ describe("Marketplace Unit Tests", () => {
         marketplace.connect(randomWallet.connect(user1.provider)).takeJob(jobId, "0x")
       ).to.be.revertedWith("not registered");
 
-      const revision = await marketplace.eventsLength(jobId);
+      const revision = await marketplaceData.eventsLength(jobId);
       const wrongSignature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId+1n]))));
       const invalidSignature = "0x" + "00".repeat(65);
 
@@ -1852,7 +1852,7 @@ describe("Marketplace Unit Tests", () => {
     it("take job", async () => {
       const { marketplace, marketplaceData, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
-      const revision = await marketplace.eventsLength(jobId);
+      const revision = await marketplaceData.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
       let escrowId: bigint = 0n;
@@ -1863,7 +1863,7 @@ describe("Marketplace Unit Tests", () => {
 
       await expect(
         marketplace.connect(user2).takeJob(jobId, signature)
-      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      ).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Signed);
         expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
@@ -1873,7 +1873,7 @@ describe("Marketplace Unit Tests", () => {
         expect(event.signatire).to.equal(signature);
 
         return true;
-      }).and.to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      }).and.to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Taken);
         expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
@@ -1904,7 +1904,7 @@ describe("Marketplace Unit Tests", () => {
     it("take job multiple", async () => {
       const { marketplace, marketplaceData, fakeToken, user1, user2, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(true);
 
-      const revision = await marketplace.eventsLength(jobId);
+      const revision = await marketplaceData.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
@@ -1913,7 +1913,7 @@ describe("Marketplace Unit Tests", () => {
 
       await expect(
         marketplace.connect(user2).takeJob(jobId, signature)
-      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      ).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
 
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
@@ -1968,7 +1968,7 @@ describe("Marketplace Unit Tests", () => {
 
       await expect(
         marketplace.connect(user1).payStartJob(jobId, wallet2.address)
-      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      ).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Paid);
         expect(jobEventData.address_).to.equal(wallet2.address.toLowerCase());
@@ -2032,7 +2032,7 @@ describe("Marketplace Unit Tests", () => {
         marketplace.connect(user1).reopenJob(jobId)
       ).to.be.not.reverted;
 
-      const revision = await marketplace.eventsLength(jobId);
+      const revision = await marketplaceData.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
       await expect(
@@ -2060,7 +2060,7 @@ describe("Marketplace Unit Tests", () => {
 
       await expect(
         marketplace.connect(user1).postThreadMessage(jobId, messageHash)
-      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      ).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.OwnerMessage);
         expect(jobEventData.address_).to.equal(user1.address.toLowerCase());
@@ -2073,7 +2073,7 @@ describe("Marketplace Unit Tests", () => {
 
       await expect(
         marketplace.connect(user2).postThreadMessage(jobId, messageHash)
-      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      ).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.WorkerMessage);
         expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
@@ -2094,7 +2094,7 @@ describe("Marketplace Unit Tests", () => {
       const message = "Delivered";
       const { hash: messageHash } = await publishToIpfs(message)
 
-      const revision = await marketplace.eventsLength(jobId);
+      const revision = await marketplaceData.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
       await expect(
@@ -2121,7 +2121,7 @@ describe("Marketplace Unit Tests", () => {
       const { hash: messageHash } = await publishToIpfs(message)
       const contentHash = ZeroHash;
 
-      const revision = await marketplace.eventsLength(jobId);
+      const revision = await marketplaceData.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
       await expect(
@@ -2130,7 +2130,7 @@ describe("Marketplace Unit Tests", () => {
 
       await expect(
         marketplace.connect(user2).deliverResult(jobId, contentHash)
-      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      ).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Delivered);
         expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
@@ -2152,7 +2152,7 @@ describe("Marketplace Unit Tests", () => {
       const message = "Nice job!";
       const { hash: messageHash } = await publishToIpfs(message);
 
-      const revision = await marketplace.eventsLength(jobId);
+      const revision = await marketplaceData.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
       await expect(
@@ -2244,7 +2244,7 @@ describe("Marketplace Unit Tests", () => {
       const { hash: messageHash } = await publishToIpfs(message)
       const reviewText = "Nice Job!";
 
-      const revision = await marketplace.eventsLength(jobId);
+      const revision = await marketplaceData.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
       await expect(
@@ -2262,7 +2262,7 @@ describe("Marketplace Unit Tests", () => {
 
       await expect(
         marketplace.connect(user1).approveResult(jobId, 5, reviewText)
-      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      ).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Rated);
         expect(jobEventData.address_).to.equal("0x");
@@ -2272,7 +2272,7 @@ describe("Marketplace Unit Tests", () => {
         expect(event.review).to.equal(reviewText);
 
         return true;
-      }).and.to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      }).and.to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Completed);
         expect(jobEventData.address_).to.equal("0x");
@@ -2301,7 +2301,7 @@ describe("Marketplace Unit Tests", () => {
 
       const { hash: resultHash } = await publishToIpfs("Result");
 
-      const revision = await marketplace.eventsLength(jobId);
+      const revision = await marketplaceData.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
       await expect(
@@ -2321,7 +2321,7 @@ describe("Marketplace Unit Tests", () => {
       ).to.be.not.reverted;
 
       {
-        const revision = await marketplace.eventsLength(jobId);
+        const revision = await marketplaceData.eventsLength(jobId);
         const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
         await expect(
@@ -2346,7 +2346,7 @@ describe("Marketplace Unit Tests", () => {
     it("refund", async () => {
       const { marketplace, marketplaceData, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
-      const revision = await marketplace.eventsLength(jobId);
+      const revision = await marketplaceData.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
@@ -2377,7 +2377,7 @@ describe("Marketplace Unit Tests", () => {
 
       await expect(
         marketplace.connect(user2).refund(jobId)
-      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      ).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Refunded);
         expect(jobEventData.address_).to.equal("0x");
@@ -2385,7 +2385,7 @@ describe("Marketplace Unit Tests", () => {
 
         return true;
       })
-      .and.to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      .and.to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.WhitelistedWorkerRemoved);
         expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
@@ -2427,7 +2427,7 @@ describe("Marketplace Unit Tests", () => {
       const randomWallet = ethers.Wallet.createRandom();
       const { marketplace, marketplaceData, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, false);
 
-      const revision = await marketplace.eventsLength(jobId);
+      const revision = await marketplaceData.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
       const content = toUtf8Bytes("Objection!");
@@ -2454,7 +2454,7 @@ describe("Marketplace Unit Tests", () => {
       const randomWallet = ethers.Wallet.createRandom();
       const { marketplace, marketplaceData, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 
-      const revision = await marketplace.eventsLength(jobId);
+      const revision = await marketplaceData.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
       const content = toUtf8Bytes("Objection!");
@@ -2506,7 +2506,7 @@ describe("Marketplace Unit Tests", () => {
       const randomWallet = ethers.Wallet.createRandom();
       const { marketplace, marketplaceData, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
 
-      const revision = await marketplace.eventsLength(jobId);
+      const revision = await marketplaceData.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
       const sessionKeyOA = await getSessionKey(user1, (await marketplace.connect(user1).arbitrators(arbitrator.address)).publicKey);
@@ -2520,7 +2520,7 @@ describe("Marketplace Unit Tests", () => {
 
       await expect(
         marketplace.connect(user1).dispute(jobId, encruptedSessionKeyOW, encryptedContent)
-      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      ).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Disputed);
         expect(jobEventData.address_).to.equal(user1.address.toLowerCase());
@@ -2546,7 +2546,7 @@ describe("Marketplace Unit Tests", () => {
       const randomWallet = ethers.Wallet.createRandom();
       const { marketplace, marketplaceData, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
 
-      const revision = await marketplace.eventsLength(jobId);
+      const revision = await marketplaceData.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
       const content = toUtf8Bytes("Objection!");
@@ -2558,7 +2558,7 @@ describe("Marketplace Unit Tests", () => {
 
       await expect(
         marketplace.connect(user2).dispute(jobId, sessionKey, content)
-      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      ).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Disputed);
         expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
@@ -2581,7 +2581,7 @@ describe("Marketplace Unit Tests", () => {
       const randomWallet = ethers.Wallet.createRandom();
       const { marketplace, marketplaceData, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
 
-      const revision = await marketplace.eventsLength(jobId);
+      const revision = await marketplaceData.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
       const content = toUtf8Bytes("Objection!");
@@ -2625,7 +2625,7 @@ describe("Marketplace Unit Tests", () => {
       const randomWallet = ethers.Wallet.createRandom();
       const { marketplace, marketplaceData, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
 
-      const revision = await marketplace.eventsLength(jobId);
+      const revision = await marketplaceData.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
       const content = toUtf8Bytes("Objection!");
@@ -2662,7 +2662,7 @@ describe("Marketplace Unit Tests", () => {
       const reasonRead = await getFromIpfs(reasonHash);
       await expect(
         marketplace.connect(arbitrator).arbitrate(jobId, creatorShare, workerShare, reasonHash)
-      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      ).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Arbitrated);
         expect(jobEventData.address_).to.equal("0x");
@@ -2703,7 +2703,7 @@ describe("Marketplace Unit Tests", () => {
       const randomWallet = ethers.Wallet.createRandom();
       const { marketplace, marketplaceData, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
 
-      const revision = await marketplace.eventsLength(jobId);
+      const revision = await marketplaceData.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
       const content = toUtf8Bytes("Objection!");
@@ -2740,7 +2740,7 @@ describe("Marketplace Unit Tests", () => {
       const reasonRead = await getFromIpfs(reasonHash);
       await expect(
         marketplace.connect(arbitrator).arbitrate(jobId, creatorShare, workerShare, reasonHash)
-      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      ).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Arbitrated);
         expect(jobEventData.address_).to.equal("0x");
@@ -2782,7 +2782,7 @@ describe("Marketplace Unit Tests", () => {
       const randomWallet = ethers.Wallet.createRandom();
       const { marketplace, marketplaceData, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, true, true);
 
-      const revision = await marketplace.eventsLength(jobId);
+      const revision = await marketplaceData.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
       const content = toUtf8Bytes("Objection!");
@@ -2819,7 +2819,7 @@ describe("Marketplace Unit Tests", () => {
       const reasonRead = await getFromIpfs(reasonHash);
       await expect(
         marketplace.connect(arbitrator).arbitrate(jobId, creatorShare, workerShare, reasonHash)
-      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      ).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Arbitrated);
         expect(jobEventData.address_).to.equal("0x");
@@ -2890,7 +2890,7 @@ describe("Marketplace Unit Tests", () => {
 
       await expect(
         marketplace.connect(arbitrator).refuseArbitration(jobId)
-      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      ).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.ArbitrationRefused);
         expect(jobEventData.address_).to.equal("0x");
@@ -2922,7 +2922,7 @@ describe("Marketplace Unit Tests", () => {
         expect(arbitratorData.refusedCount).to.equal(0);
       }
 
-      const revision = await marketplace.eventsLength(jobId);
+      const revision = await marketplaceData.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
       await expect(
@@ -2935,14 +2935,14 @@ describe("Marketplace Unit Tests", () => {
 
       await expect(
         marketplace.connect(arbitrator).refuseArbitration(jobId)
-      ).to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      ).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.ArbitrationRefused);
         expect(jobEventData.address_).to.equal("0x");
         expect(jobEventData.data_).to.equal("0x");
 
         return true;
-      }).and.to.emit(marketplace, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+      }).and.to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Refunded);
         expect(jobEventData.address_).to.equal("0x");
@@ -2998,7 +2998,7 @@ describe("Marketplace Unit Tests", () => {
           [user2.address],
         )).wait();
 
-      const jobId = (jobIdResponse?.logs.at(-1) as EventLog).args.jobId as bigint;
+      const jobId = 0n;
 
       //#region utils
       const readWorkerMessage = new Promise<string>(async (resolve) => {
@@ -3010,13 +3010,13 @@ describe("Marketplace Unit Tests", () => {
 
             const message = await getFromIpfs(hash, sessionKey);
 
-            await marketplace.removeListener("JobEvent", listener);
+            await marketplaceData.removeListener("JobEvent", listener);
 
             resolve(message);
           }
         };
 
-        await marketplace.connect(user1).addListener("JobEvent", listener);
+        await marketplaceData.connect(user1).addListener("JobEvent", listener);
       });
 
       const readOwnerMessage = new Promise<string>(async (resolve) => {
@@ -3028,13 +3028,13 @@ describe("Marketplace Unit Tests", () => {
 
             const message = await getFromIpfs(hash, sessionKey);
 
-            await marketplace.removeListener("JobEvent", listener);
+            await marketplaceData.removeListener("JobEvent", listener);
 
             resolve(message);
           }
         };
 
-        await marketplace.connect(user1).addListener("JobEvent", listener);
+        await marketplaceData.connect(user1).addListener("JobEvent", listener);
       });
 
       const withDelay = async <T>(promise: Promise<T>): Promise<T> => {
@@ -3066,7 +3066,7 @@ describe("Marketplace Unit Tests", () => {
       expect(ownerMessageRead).to.equal(ownerMessage);
 
       // worker takes the job
-      const revision = await marketplace.eventsLength(jobId);
+      const revision = await marketplaceData.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
       await marketplace.connect(user2).takeJob(jobId, signature);
