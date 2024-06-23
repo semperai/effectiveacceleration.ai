@@ -53,13 +53,6 @@ struct JobPost {
     bool disputed;
 }
 
-/// @dev Stores current average user's rating and number of reviews so it can be updated with every new review
-struct UserRating {
-    /// @dev Current rating multiplied by 10,000 to achieve sufficient granularity even with lots of existing reviews
-    uint16 averageRating;
-    uint256 numberOfReviews;
-}
-
 contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     address public treasury; // where treasury fees/rewards go
     MarketplaceDataV1 public marketplaceData; // address of helper contract which stores the marketplace data which is not jobs
@@ -78,9 +71,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
     // jobId -> address -> bool
     mapping(uint256 => mapping(address => bool)) public whitelistWorkers;
-
-    // Current average rating and number of ratings for each user
-    mapping(address => UserRating) public userRatings;
 
     address public unicrowAddress;
     address public unicrowDisputeAddress;
@@ -140,7 +130,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     /// @notice Initialize contract
     /// @dev For upgradeable contracts this function necessary
     /// @param treasury_ Address of treasury
-    /// @param marketplaceDataAddress_ Address of helper contract which stores the marketplace data which is not jobs
     /// @param unicrowAddress_ Address of Unicrow contract
     /// @param unicrowDisputeAddress_ Address of UnicrowDispute contract
     /// @param unicrowArbitratorAddress_ Address of UnicrowArbitrator contract
@@ -148,7 +137,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     /// @param unicrowMarketplaceFee_ Fee for this marketplace in bips
     function initialize(
             address treasury_,
-            address marketplaceDataAddress_,
             address unicrowAddress_,
             address unicrowDisputeAddress_,
             address unicrowArbitratorAddress_,
@@ -159,8 +147,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         __Pausable_init();
         pauser = msg.sender;
         treasury = treasury_;
-
-        marketplaceData = MarketplaceDataV1(marketplaceDataAddress_);
 
         unicrowAddress = unicrowAddress_;
         unicrowDisputeAddress = unicrowDisputeAddress_;
@@ -177,6 +163,10 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         meceTags["DG"] = "NON_DIGITAL_GOODS";
         meceTags["DS"] = "NON_DIGITAL_SERVICES";
         meceTags["DO"] = "NON_DIGITAL_OTHERS";
+    }
+
+    function setMarketplaceDataAddress(address marketplaceDataAddress_) public onlyOwner {
+        marketplaceData = MarketplaceDataV1(marketplaceDataAddress_);
     }
 
     /// @notice Transfer ownership
@@ -770,10 +760,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         require(bytes(reviewText_).length <= 100, "Review text too long");
 
         jobs[jobId_].rating = reviewRating_;
-        UserRating storage rating = userRatings[jobs[jobId_].roles.worker];
-
-        rating.averageRating = uint16((rating.averageRating * rating.numberOfReviews + reviewRating_ * 10000) / (rating.numberOfReviews + 1));
-        rating.numberOfReviews++;
+        marketplaceData.updateUserRating(jobs[jobId_].roles.worker, reviewRating_);
 
         publishJobEvent(jobId_,
             JobEventData({

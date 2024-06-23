@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import ProxyAdminArtifact from '@openzeppelin/upgrades-core/artifacts/@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol/ProxyAdmin.json';
 import { MarketplaceV1 as Marketplace } from '../typechain-types/contracts/MarketplaceV1';
+import { MarketplaceDataV1 as MarketplaceData } from '../typechain-types/contracts/MarketplaceDataV1';
 import { FakeToken } from '../typechain-types/contracts/unicrow/FakeToken';
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { task } from "hardhat/config";
@@ -129,6 +130,9 @@ task("marketplace:seed", "Seed local marketplace instance")
   const Marketplace = await hre.ethers.getContractFactory("MarketplaceV1");
   const marketplace = await Marketplace.attach(Config.marketplaceAddress) as unknown as Marketplace;
 
+  const MarketplaceData = await hre.ethers.getContractFactory("MarketplaceDataV1");
+  const marketplaceData = await Marketplace.attach(Config.marketplaceDataAddress) as unknown as MarketplaceData;
+
   const FakeToken = await hre.ethers.getContractFactory("FakeToken");
   const fakeToken = FakeToken.attach(Config.fakeTokenAddress) as unknown as FakeToken;
 
@@ -152,7 +156,7 @@ task("marketplace:seed", "Seed local marketplace instance")
   console.log("Registering users");
   await marketplace.connect(owner).registerPublicKey((await getEncryptionSigningKey(owner)).compressedPublicKey);
   await marketplace.connect(worker).registerPublicKey((await getEncryptionSigningKey(worker)).compressedPublicKey);
-  await marketplace.connect(arbitrator).registerArbitrator((await getEncryptionSigningKey(arbitrator)).compressedPublicKey, "Arbitrator", 100);
+  await marketplaceData.connect(arbitrator).registerArbitrator((await getEncryptionSigningKey(arbitrator)).compressedPublicKey, "Arbitrator", 100);
 
   console.log('Creating jobs');
   {
@@ -264,7 +268,7 @@ task("marketplace:seed", "Seed local marketplace instance")
     await marketplace.connect(owner).postThreadMessage(jobId, ownerMessageHash);
 
     // worker takes the job
-    const revision = await marketplace.eventsLength(jobId);
+    const revision = await marketplaceData.eventsLength(jobId);
     const signature = await worker.signMessage(getBytes(keccak256(AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
     await marketplace.connect(worker).takeJob(jobId, signature);
@@ -278,7 +282,7 @@ task("marketplace:seed", "Seed local marketplace instance")
     // owner raises a dispute
     const disputeContent = "I am not satisfied with the result";
     const sessionKeyOW = await getSessionKey(owner, await marketplace.connect(owner).publicKeys(worker.address));
-    const sessionKeyOA = await getSessionKey(owner, (await marketplace.connect(owner).arbitrators(arbitrator.address)).publicKey);
+    const sessionKeyOA = await getSessionKey(owner, (await marketplaceData.connect(owner).arbitrators(arbitrator.address)).publicKey);
 
     const encryptedContent = hexlify(encryptUtf8Data(disputeContent, sessionKeyOA));
     const encrypedSessionKey = hexlify(encryptBinaryData(getBytes(sessionKeyOW), sessionKeyOA));

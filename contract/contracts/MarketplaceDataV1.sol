@@ -43,6 +43,13 @@ struct JobArbitrator {
     uint16 refusedCount;
 }
 
+/// @dev Stores current average user's rating and number of reviews so it can be updated with every new review
+struct UserRating {
+    /// @dev Current rating multiplied by 10,000 to achieve sufficient granularity even with lots of existing reviews
+    uint16 averageRating;
+    uint256 numberOfReviews;
+}
+
 contract MarketplaceDataV1 is OwnableUpgradeable {
     event JobEvent(uint256 indexed jobId, JobEventData eventData);
     event ArbitratorRegistered(address indexed addr, bytes pubkey, string name, uint16 fee);
@@ -54,6 +61,9 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
 
     mapping(address => JobArbitrator) public arbitrators;
     address[] public arbitratorAddresses;
+
+    // Current average rating and number of ratings for each user
+    mapping(address => UserRating) public userRatings;
 
     modifier onlyMarketplace() {
         require(msg.sender == address(marketplace), "not marketplace");
@@ -186,5 +196,12 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
 
     function getArbitrator(address arbitratorAddress_) public view returns (JobArbitrator memory) {
         return arbitrators[arbitratorAddress_];
+    }
+
+    function updateUserRating(address userAddress_, uint8 reviewRating_) public onlyMarketplace() {
+        UserRating storage rating = userRatings[userAddress_];
+
+        rating.averageRating = uint16((rating.averageRating * rating.numberOfReviews + reviewRating_ * 10000) / (rating.numberOfReviews + 1));
+        rating.numberOfReviews++;
     }
 }
