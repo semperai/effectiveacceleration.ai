@@ -135,7 +135,7 @@ describe("Marketplace Unit Tests", () => {
 
   async function deployContractsFixture(): Promise<{
     marketplace: Marketplace;
-    marketplaceData: MarketplaceData;
+    marketplaceData;
     fakeToken: FakeToken;
     deployer: SignerWithAddress;
     user1: SignerWithAddress;
@@ -186,7 +186,7 @@ describe("Marketplace Unit Tests", () => {
     await fakeToken.connect(deployer).transfer(await user2.getAddress(), BigInt(1000e18));
     await fakeToken.connect(user2).approve(await marketplace.getAddress(), BigInt(2000e18));
 
-    return { marketplace, marketplaceData: marketplaceData, fakeToken, deployer, user1, user2, arbitrator };
+    return { marketplace, marketplaceData, fakeToken, deployer, user1, user2, arbitrator };
   }
 
   async function getWalletsFixture(): Promise<{
@@ -205,7 +205,7 @@ describe("Marketplace Unit Tests", () => {
     return { wallet1, wallet2, wallet3 };
   }
 
-  const checkJobFromStateDiffs = async (marketplace: Marketplace, marketplaceData: MarketplaceData, jobId: bigint, eventId: number | undefined = undefined) => {
+  const checkJobFromStateDiffs = async (marketplace: Marketplace, marketplaceData, jobId: bigint, eventId: number | undefined = undefined) => {
     const events = await marketplaceData.getEvents(jobId, 0n, 0n);
 
     if (eventId === undefined) {
@@ -253,7 +253,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("non owner cannot transfer owner", async () => {
-      const { marketplace, marketplaceData: marketplaceData, user1 } = await loadFixture(deployContractsFixture);
+      const { marketplace, marketplaceData, user1 } = await loadFixture(deployContractsFixture);
       await expect(marketplace
         .connect(user1)
         .transferOwnership(await user1.getAddress())
@@ -272,7 +272,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("non owner cannot transfer pauser", async () => {
-      const { marketplace, marketplaceData: marketplaceData, user1 } = await loadFixture(deployContractsFixture);
+      const { marketplace, marketplaceData, user1 } = await loadFixture(deployContractsFixture);
       await expect(marketplace
         .connect(user1)
         .transferPauser(await user1.getAddress())
@@ -291,7 +291,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("non owner cannot transfer treasury", async () => {
-      const { marketplace, marketplaceData: marketplaceData, user1 } = await loadFixture(deployContractsFixture);
+      const { marketplace, marketplaceData, user1 } = await loadFixture(deployContractsFixture);
       await expect(marketplace
         .connect(user1)
         .transferTreasury(await user1.getAddress())
@@ -318,7 +318,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("non pauser cannot pause", async () => {
-      const { marketplace, marketplaceData: marketplaceData, user1 } = await loadFixture(deployContractsFixture);
+      const { marketplace, marketplaceData, user1 } = await loadFixture(deployContractsFixture);
       await expect(marketplace
         .connect(user1)
         .pause()
@@ -347,7 +347,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("non owner cannot set version", async () => {
-      const { marketplace, marketplaceData: marketplaceData, user1 } = await loadFixture(deployContractsFixture);
+      const { marketplace, marketplaceData, user1 } = await loadFixture(deployContractsFixture);
       await expect(marketplace
         .connect(user1)
         .setVersion(25)
@@ -364,7 +364,7 @@ describe("Marketplace Unit Tests", () => {
 
   describe("register pubkey", () => {
     it("register pubkey", async () => {
-      const { marketplace, marketplaceData: marketplaceData, user1 } = await loadFixture(deployContractsFixture);
+      const { marketplace, marketplaceData, user1 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
       await expect(marketplaceData.connect(user1).registerPublicKey("0x00")).to.be.revertedWith("invalid pubkey length, must be compressed, 33 bytes");
@@ -382,7 +382,7 @@ describe("Marketplace Unit Tests", () => {
 
   describe("register arbitrator", () => {
     it("register arbitrator", async () => {
-      const { marketplace, marketplaceData: marketplaceData, arbitrator, user2 } = await loadFixture(deployContractsFixture);
+      const { marketplace, marketplaceData, arbitrator, user2 } = await loadFixture(deployContractsFixture);
       const { wallet2, wallet3 } = await loadFixture(getWalletsFixture);
 
       await expect(marketplaceData.connect(arbitrator).registerArbitrator("0x00", "Test", 100)).to.be.revertedWith("invalid pubkey length, must be compressed, 33 bytes");
@@ -435,7 +435,7 @@ describe("Marketplace Unit Tests", () => {
   });
 
   async function registerPublicKey(
-    marketplaceData: MarketplaceData,
+    marketplaceData,
     user: Signer,
     wallet: HDNodeWallet,
   ) {
@@ -445,7 +445,7 @@ describe("Marketplace Unit Tests", () => {
   }
 
   async function registerEncryptionPublicKey(
-    marketplaceData: MarketplaceData,
+    marketplaceData,
     user: Signer,
   ) {
     await marketplaceData
@@ -454,7 +454,7 @@ describe("Marketplace Unit Tests", () => {
   }
 
   async function registerArbitrator(
-    marketplaceData: MarketplaceData,
+    marketplaceData,
     user: Signer,
     wallet: HDNodeWallet,
   ) {
@@ -464,7 +464,7 @@ describe("Marketplace Unit Tests", () => {
   }
 
   async function registerArbitratorWithEncryptionPublicKey(
-    marketplaceData: MarketplaceData,
+    marketplaceData,
     user: Signer,
   ) {
     await marketplaceData
@@ -475,7 +475,7 @@ describe("Marketplace Unit Tests", () => {
   async function deployMarketplaceWithUsersAndJob(multipleApplicants: boolean = false, whitelisted: boolean = true, arbitratorRequired: boolean = true) {
     const {
       marketplace,
-      marketplaceData: marketplaceData,
+      marketplaceData,
       fakeToken,
       user1,
       user2,
@@ -612,7 +612,7 @@ describe("Marketplace Unit Tests", () => {
 
   describe("job posting", () => {
     it("post job 1", async () => {
-      const { marketplace, marketplaceData: marketplaceData, fakeToken, user1 } = await loadFixture(deployContractsFixture);
+      const { marketplace, marketplaceData, fakeToken, user1 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
       await registerPublicKey(marketplaceData, user1, wallet1);
@@ -676,7 +676,7 @@ describe("Marketplace Unit Tests", () => {
     it("post two jobs", async () => {
       const {
         marketplace,
-        marketplaceData: marketplaceData,
+        marketplaceData,
         fakeToken,
         user1,
         user2,
@@ -736,7 +736,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("post job with whitelist", async () => {
-      const { marketplace, marketplaceData: marketplaceData, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
+      const { marketplace, marketplaceData, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
       await registerPublicKey(marketplaceData, user1, wallet1);
@@ -808,7 +808,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("post job with invalid token", async () => {
-      const { marketplace, marketplaceData: marketplaceData, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
+      const { marketplace, marketplaceData, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
       await registerPublicKey(marketplaceData, user1, wallet1);
@@ -836,7 +836,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("post job with invalid amount", async () => {
-      const { marketplace, marketplaceData: marketplaceData, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
+      const { marketplace, marketplaceData, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
       await registerPublicKey(marketplaceData, user1, wallet1);
@@ -892,7 +892,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("post job with invalid deadline", async () => {
-      const { marketplace, marketplaceData: marketplaceData, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
+      const { marketplace, marketplaceData, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
       await registerPublicKey(marketplaceData, user1, wallet1);
@@ -918,7 +918,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("post job with invalid title", async () => {
-      const { marketplace, marketplaceData: marketplaceData, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
+      const { marketplace, marketplaceData, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
       await registerPublicKey(marketplaceData, user1, wallet1);
@@ -959,7 +959,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("post job with invalid delivery method", async () => {
-      const { marketplace, marketplaceData: marketplaceData, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
+      const { marketplace, marketplaceData, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
       await registerPublicKey(marketplaceData, user1, wallet1);
@@ -1001,7 +1001,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("post job from unregistered user", async () => {
-      const { marketplace, marketplaceData: marketplaceData, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
+      const { marketplace, marketplaceData, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
       const title = "Create a marketplace in solidity!";
@@ -1025,7 +1025,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("post job with invalid mece tags", async () => {
-      const { marketplace, marketplaceData: marketplaceData, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
+      const { marketplace, marketplaceData, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
       await registerPublicKey(marketplaceData, user1, wallet1);
@@ -1081,7 +1081,7 @@ describe("Marketplace Unit Tests", () => {
     });
 
     it("post job with unregistered arbitrator", async () => {
-      const { marketplace, marketplaceData: marketplaceData, fakeToken, user1, user2, arbitrator } = await loadFixture(deployContractsFixture);
+      const { marketplace, marketplaceData, fakeToken, user1, user2, arbitrator } = await loadFixture(deployContractsFixture);
       const { wallet1, wallet2, wallet3 } = await loadFixture(getWalletsFixture);
 
       await registerPublicKey(marketplaceData, user1, wallet1);
@@ -2957,7 +2957,7 @@ describe("Marketplace Unit Tests", () => {
     it("integration test", async () => {
       const {
         marketplace,
-        marketplaceData: marketplaceData,
+        marketplaceData,
         fakeToken,
         user1,
         user2,
