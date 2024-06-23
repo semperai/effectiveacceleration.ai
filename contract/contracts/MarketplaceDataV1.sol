@@ -70,6 +70,8 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
     // Current average rating and number of ratings for each user
     mapping(address => UserRating) public userRatings;
 
+    mapping(string => string) public meceTags;
+
     modifier onlyMarketplace() {
         require(msg.sender == address(marketplace), "not marketplace");
         _;
@@ -90,6 +92,15 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
         __Ownable_init(msg.sender);
 
         marketplace = MarketplaceV1(marketplace_);
+
+        meceTags["DA"] = "DIGITAL_AUDIO";
+        meceTags["DV"] = "DIGIAL_VIDEO";
+        meceTags["DT"] = "DIGITAL_TEXT";
+        meceTags["DS"] = "DIGITAL_SOFTWARE";
+        meceTags["DO"] = "DIGITAL_OTHERS";
+        meceTags["NDG"] = "NON_DIGITAL_GOODS";
+        meceTags["NDS"] = "NON_DIGITAL_SERVICES";
+        meceTags["NDO"] = "NON_DIGITAL_OTHERS";
     }
 
     function publishJobEvent(uint256 jobId_, JobEventData memory event_) public onlyMarketplace {
@@ -223,5 +234,22 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
 
         rating.averageRating = uint16((rating.averageRating * rating.numberOfReviews + reviewRating_ * 10000) / (rating.numberOfReviews + 1));
         rating.numberOfReviews++;
+    }
+
+    // Function to read MECE tag's long form given the short form
+    function readMeceTag(string memory shortForm) public view returns (string memory) {
+        require(bytes(meceTags[shortForm]).length != 0, "Invalid MECE tag");
+        return meceTags[shortForm];
+    }
+
+    // Governance function to add or update MECE tags
+    function updateMeceTag(string memory shortForm, string memory longForm) public onlyOwner {
+        require(bytes(shortForm).length > 0 && bytes(longForm).length > 0, "Invalid tag data");
+        meceTags[shortForm] = longForm;
+    }
+
+    function removeMeceTag(string memory shortForm) public onlyOwner {
+        require(bytes(meceTags[shortForm]).length != 0, "MECE tag does not exist");
+        delete meceTags[shortForm];
     }
 }

@@ -63,8 +63,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
     JobPost[] public jobs;
 
-    mapping(string => string) private meceTags;
-
     // jobId -> address -> bool
     mapping(uint256 => mapping(address => bool)) public whitelistWorkers;
 
@@ -148,15 +146,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         unicrowMarketplaceAddress = unicrowMarketplaceAddress_;
         unicrowMarketplaceFee = unicrowMarketplaceFee_;
-
-        meceTags["DA"] = "DIGITAL_AUDIO";
-        meceTags["DV"] = "DIGIAL_VIDEO";
-        meceTags["DT"] = "DIGITAL_TEXT";
-        meceTags["DS"] = "DIGITAL_SOFTWARE";
-        meceTags["DO"] = "DIGITAL_OTHERS";
-        meceTags["NDG"] = "NON_DIGITAL_GOODS";
-        meceTags["NDS"] = "NON_DIGITAL_SERVICES";
-        meceTags["NDO"] = "NON_DIGITAL_OTHERS";
     }
 
     function setMarketplaceDataAddress(address marketplaceDataAddress_) public onlyOwner {
@@ -225,23 +214,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         marketplaceData.publishJobEvent(jobId_, event_);
     }
 
-    // Function to read MECE tag's long form given the short form
-    function readMeceTag(string memory shortForm) public view returns (string memory) {
-        require(bytes(meceTags[shortForm]).length != 0, "Invalid MECE tag");
-        return meceTags[shortForm];
-    }
-
-    // Governance function to add or update MECE tags
-    function updateMeceTag(string memory shortForm, string memory longForm) public onlyOwner {
-        require(bytes(shortForm).length > 0 && bytes(longForm).length > 0, "Invalid tag data");
-        meceTags[shortForm] = longForm;
-    }
-
-    function removeMeceTag(string memory shortForm) public onlyOwner {
-        require(bytes(meceTags[shortForm]).length != 0, "MECE tag does not exist");
-        delete meceTags[shortForm];
-    }
-
     function checkParams(
         string memory title_,
         string[] memory tags_,
@@ -261,7 +233,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         // Check for exactly one MECE tag
         for (uint8 i = 0; i < tags_.length; i++) {
-            if (bytes(meceTags[tags_[i]]).length != 0) {
+            if (bytes(marketplaceData.meceTags(tags_[i])).length != 0) {
                 meceCount++;
                 if (meceCount > 1) {
                     revert("Only one MECE tag is allowed");

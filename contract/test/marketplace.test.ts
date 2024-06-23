@@ -547,63 +547,63 @@ describe("Marketplace Unit Tests", () => {
 
   describe("mece tags", () => {
     it("read mece tag", async () => {
-      const { marketplace } = await loadFixture(deployContractsFixture);
-      expect(await marketplace.readMeceTag("DV")).to.equal("DIGIAL_VIDEO");
+      const { marketplaceData } = await loadFixture(deployContractsFixture);
+      expect(await marketplaceData.readMeceTag("DV")).to.equal("DIGIAL_VIDEO");
 
-      await expect(marketplace.readMeceTag("")).to.be.revertedWith("Invalid MECE tag");
-      await expect(marketplace.readMeceTag("LOL")).to.be.revertedWith("Invalid MECE tag");
+      await expect(marketplaceData.readMeceTag("")).to.be.revertedWith("Invalid MECE tag");
+      await expect(marketplaceData.readMeceTag("LOL")).to.be.revertedWith("Invalid MECE tag");
     });
 
     it("update mece tag", async () => {
-      const { marketplace, deployer } = await loadFixture(deployContractsFixture);
-      await expect(marketplace
+      const { marketplaceData, deployer } = await loadFixture(deployContractsFixture);
+      await expect(marketplaceData
         .connect(deployer)
         .updateMeceTag("DV", "Digital Video2")
       ).to.be.not.reverted;
 
-      expect(await marketplace.readMeceTag("DV")).to.equal("Digital Video2");
+      expect(await marketplaceData.readMeceTag("DV")).to.equal("Digital Video2");
 
-      await expect(marketplace
+      await expect(marketplaceData
         .connect(deployer)
         .updateMeceTag("TST", "Test")
       ).to.be.not.reverted;
 
-      expect(await marketplace.readMeceTag("TST")).to.equal("Test");
+      expect(await marketplaceData.readMeceTag("TST")).to.equal("Test");
 
-      await expect(marketplace
+      await expect(marketplaceData
         .connect(deployer)
         .updateMeceTag("", "Test")
       ).to.be.revertedWith("Invalid tag data");
 
-      await expect(marketplace
+      await expect(marketplaceData
         .connect(deployer)
         .updateMeceTag("TST", "")
       ).to.be.revertedWith("Invalid tag data");
 
 
       const randomWallet = ethers.Wallet.createRandom();
-      await expect(marketplace
+      await expect(marketplaceData
         .connect(randomWallet.connect(deployer.provider))
         .updateMeceTag("TST", "")
       ).to.be.revertedWithCustomError({interface: OwnableUpgradeable__factory.createInterface()}, "OwnableUnauthorizedAccount");
     });
 
     it("remove mece tag", async () => {
-      const { marketplace, deployer } = await loadFixture(deployContractsFixture);
-      await expect(marketplace
+      const { marketplaceData, deployer } = await loadFixture(deployContractsFixture);
+      await expect(marketplaceData
         .connect(deployer)
         .removeMeceTag("DV")
       ).to.be.not.reverted;
 
-      await expect(marketplace.readMeceTag("")).to.be.revertedWith("Invalid MECE tag");
+      await expect(marketplaceData.readMeceTag("")).to.be.revertedWith("Invalid MECE tag");
 
-      await expect(marketplace
+      await expect(marketplaceData
         .connect(deployer)
         .removeMeceTag("TST")
       ).to.be.revertedWith("MECE tag does not exist");
 
       const randomWallet = ethers.Wallet.createRandom();
-      await expect(marketplace
+      await expect(marketplaceData
         .connect(randomWallet.connect(deployer.provider))
         .removeMeceTag("TST")
       ).to.be.revertedWithCustomError({interface: OwnableUpgradeable__factory.createInterface()}, "OwnableUnauthorizedAccount");
