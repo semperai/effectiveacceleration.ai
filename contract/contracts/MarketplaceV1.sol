@@ -154,9 +154,9 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         meceTags["DT"] = "DIGITAL_TEXT";
         meceTags["DS"] = "DIGITAL_SOFTWARE";
         meceTags["DO"] = "DIGITAL_OTHERS";
-        meceTags["DG"] = "NON_DIGITAL_GOODS";
-        meceTags["DS"] = "NON_DIGITAL_SERVICES";
-        meceTags["DO"] = "NON_DIGITAL_OTHERS";
+        meceTags["NDG"] = "NON_DIGITAL_GOODS";
+        meceTags["NDS"] = "NON_DIGITAL_SERVICES";
+        meceTags["NDO"] = "NON_DIGITAL_OTHERS";
     }
 
     function setMarketplaceDataAddress(address marketplaceDataAddress_) public onlyOwner {
