@@ -1,5 +1,5 @@
 import { getFromIpfs, Job } from "effectiveacceleration-contracts";
-import { MARKETPLACE_DATA_VIEW_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceDataViewV1";
+import { MARKETPLACE_DATA_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceDataV1";
 import Config from "effectiveacceleration-contracts/scripts/config.json";
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -12,8 +12,8 @@ export default function useJob(id: bigint) {
 
   const result = useReadContract({
     account:      address,
-    abi:          MARKETPLACE_DATA_VIEW_V1_ABI,
-    address:      Config.marketplaceDataViewAddress as `0x${string}`,
+    abi:          MARKETPLACE_DATA_V1_ABI,
+    address:      Config.marketplaceDataAddress as `0x${string}`,
     functionName: 'getJob',
     args:         [id],
   });

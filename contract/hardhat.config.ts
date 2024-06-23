@@ -28,9 +28,9 @@ const config: HardhatUserConfig = {
     disambiguatePaths: false,
     runOnCompile: true,
     strict: true,
-    only: ['contracts/MarketplaceV1.sol', 'contracts/MarketplaceDataViewV1.sol'],
+    only: ['contracts/MarketplaceV1.sol', 'contracts/MarketplaceDataV1.sol'],
   },
-  contractsToExtractAbi: ['MarketplaceV1', 'MarketplaceDataViewV1', 'FakeToken', 'Unicrow', 'UnicrowDispute', 'UnicrowArbitrator', 'UnicrowClaim'],
+  contractsToExtractAbi: ['MarketplaceV1', 'MarketplaceDataV1', 'FakeToken', 'Unicrow', 'UnicrowDispute', 'UnicrowArbitrator', 'UnicrowClaim'],
   paths: {
     abi: "wagmi",
   },

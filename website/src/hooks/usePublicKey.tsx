@@ -10,7 +10,7 @@ export default function usePublicKey(targetAddress: `0x${string}`) {
   const result = useReadContract({
     account:      address,
     abi:          MARKETPLACE_V1_ABI,
-    address:      Config.marketplaceDataViewAddress as `0x${string}`,
+    address:      Config.marketplaceDataAddress as `0x${string}`,
     functionName: 'publicKeys',
     args:         [targetAddress],
   });

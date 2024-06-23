@@ -1,5 +1,5 @@
 import { ReadContractReturnType } from "viem";
-import { MARKETPLACE_DATA_VIEW_V1_ABI } from "../wagmi/MarketplaceDataViewV1";
+import { MARKETPLACE_DATA_V1_ABI } from "../wagmi/MarketplaceDataV1";
 
 type GetElementType<T extends any[] | undefined> = T extends (infer U)[] ? U : never;
 type DeepWriteable<T> = { -readonly [P in keyof T]: DeepWriteable<T[P]> };
@@ -9,12 +9,12 @@ export type Job = {
   content?: string,
   result?: string,
   allowedWorkers?: string[],
-} & DeepWriteable<ReadContractReturnType<typeof MARKETPLACE_DATA_VIEW_V1_ABI, 'getJob'>>;
-export type Arbitrator = ReadContractReturnType<typeof MARKETPLACE_DATA_VIEW_V1_ABI, 'getArbitrator'>;
+} & DeepWriteable<ReadContractReturnType<typeof MARKETPLACE_DATA_V1_ABI, 'getJob'>>;
+export type Arbitrator = ReadContractReturnType<typeof MARKETPLACE_DATA_V1_ABI, 'getArbitrator'>;
 export type JobEvent = {
   id?: bigint,
   details?: CustomJobEvent,
-} & GetElementType<DeepWriteable<ReadContractReturnType<typeof MARKETPLACE_DATA_VIEW_V1_ABI, 'getEvents'>>>;
+} & GetElementType<DeepWriteable<ReadContractReturnType<typeof MARKETPLACE_DATA_V1_ABI, 'getEvents'>>>;
 
 export type JobEventWithDiffs = JobEvent & {
   job: Job,

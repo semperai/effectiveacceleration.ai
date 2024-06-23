@@ -1,6 +1,6 @@
 import { ethers, upgrades } from "hardhat";
 import { MarketplaceV1 as Marketplace } from '../typechain-types/contracts/MarketplaceV1';
-import { MarketplaceDataViewV1 as MarketplaceDataView } from "../typechain-types/contracts/MarketplaceDataViewV1";
+import { MarketplaceDataV1 as MarketplaceData } from "../typechain-types/contracts/MarketplaceDataV1";
 import * as fs from 'fs'
 import { getCreateAddress } from "ethers";
 import { Unicrow, UnicrowDispute, UnicrowArbitrator, UnicrowClaim } from "../typechain-types";
@@ -33,14 +33,14 @@ async function main() {
   await marketplace.waitForDeployment();
   console.log("Marketplace deployed to:", await marketplace.getAddress());
 
-  const MarketplaceDataView = await ethers.getContractFactory(
-    "MarketplaceDataViewV1"
+  const MarketplaceData = await ethers.getContractFactory(
+    "MarketplaceDataV1"
   );
-  const dataView = (await upgrades.deployProxy(MarketplaceDataView, [
+  const marketplaceData = (await upgrades.deployProxy(MarketplaceData, [
     await marketplace.getAddress(),
-  ])) as unknown as MarketplaceDataView;
-  await dataView.waitForDeployment();
-  console.log("MarketplaceDataView deployed to:", await dataView.getAddress());
+  ])) as unknown as MarketplaceData;
+  await marketplaceData.waitForDeployment();
+  console.log("MarketplaceData deployed to:", await marketplaceData.getAddress());
 
   const FakeToken = await ethers.getContractFactory(
     "FakeToken"
@@ -55,7 +55,7 @@ async function main() {
     ownerAddress: await deployer.getAddress(),
     marketplaceFeeAddress,
     marketplaceAddress: await marketplace.getAddress(),
-    marketplaceDataViewAddress: await dataView.getAddress(),
+    marketplaceDataAddress: await marketplaceData.getAddress(),
     fakeTokenAddress: await fakeToken.getAddress(),
     unicrowAddress: await unicrow.getAddress(),
     unicrowDisputeAddress: await unicrowDispute.getAddress(),

@@ -1,13 +1,13 @@
 import { CustomJobEvent } from "effectiveacceleration-contracts";
-import { MARKETPLACE_DATA_VIEW_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceDataViewV1";
+import { MARKETPLACE_DATA_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceDataV1";
 import { UseReadContractReturnType } from "wagmi";
 import { ReadContractReturnType } from "viem";
 
-// export type JobWagmiType = UseReadContractReturnType<typeof MARKETPLACE_DATA_VIEW_V1_ABI, 'getJobs', [bigint, bigint]>;
-// export type ArbitratorWagmiType = UseReadContractReturnType<typeof MARKETPLACE_DATA_VIEW_V1_ABI, 'getArbitrators', [bigint, bigint]>;
-// export type JobEventWagmiType = UseReadContractReturnType<typeof MARKETPLACE_DATA_VIEW_V1_ABI, 'getEvents', [bigint, bigint, bigint]>;
+// export type JobWagmiType = UseReadContractReturnType<typeof MARKETPLACE_DATA_V1_ABI, 'getJobs', [bigint, bigint]>;
+// export type ArbitratorWagmiType = UseReadContractReturnType<typeof MARKETPLACE_DATA_V1_ABI, 'getArbitrators', [bigint, bigint]>;
+// export type JobEventWagmiType = UseReadContractReturnType<typeof MARKETPLACE_DATA_V1_ABI, 'getEvents', [bigint, bigint, bigint]>;
 
-// type JobPost = ReadContractReturnType<typeof MARKETPLACE_DATA_VIEW_V1_ABI, 'getJob'>;
+// type JobPost = ReadContractReturnType<typeof MARKETPLACE_DATA_V1_ABI, 'getJob'>;
 // type GetElementType<T extends any[] | undefined> = T extends (infer U)[] ? U : never;
 // type DeepWriteable<T> = { -readonly [P in keyof T]: DeepWriteable<T[P]> };
 

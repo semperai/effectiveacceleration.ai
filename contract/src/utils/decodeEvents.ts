@@ -72,11 +72,11 @@ export const decryptJobDisputedEvent = (event: JobDisputedEvent, sessionKey: str
 
 export const decodeJobArbitratedEvent = (rawData: BytesLike): JobArbitratedEvent => {
   const bytes = getBytes(rawData);
-  const dataView = new DataView(bytes.buffer, 0);
+  const marketplaceData = new DataView(bytes.buffer, 0);
   return {
-    creatorShare: dataView.getUint16(0),
+    creatorShare: marketplaceData.getUint16(0),
     creatorAmount: toBigInt(bytes.slice(2, 34)),
-    workerShare: dataView.getUint16(34),
+    workerShare: marketplaceData.getUint16(34),
     workerAmount: toBigInt(bytes.slice(36, 68)),
     reasonHash: hexlify(bytes.slice(68, 100)),
     workerAddress: getAddress(hexlify(bytes.slice(100))),

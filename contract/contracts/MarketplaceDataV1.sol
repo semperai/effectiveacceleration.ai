@@ -6,7 +6,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
-contract MarketplaceDataViewV1 is OwnableUpgradeable {
+contract MarketplaceDataV1 is OwnableUpgradeable {
     MarketplaceV1 public marketplace;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
