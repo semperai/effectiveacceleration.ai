@@ -4,9 +4,10 @@ import { HardhatNetworkHDAccountsConfig } from "hardhat/types";
 import { xchacha20poly1305 } from '@noble/ciphers/chacha';
 import { utf8ToBytes } from '@noble/ciphers/utils';
 import { randomBytes } from '@noble/ciphers/webcrypto';
-import { MarketplaceV1 } from "../typechain-types";
+import { MarketplaceDataV1, MarketplaceV1 } from "../typechain-types";
 
 let marketplace: MarketplaceV1;
+let marketplaceData: MarketplaceDataV1;
 
 describe("EOA, private key available", () => {
 describe("Encrypted communication tests", async () => {
@@ -25,6 +26,14 @@ describe("Encrypted communication tests", async () => {
       0,
     ])) as unknown as MarketplaceV1;
     await marketplace.waitForDeployment();
+
+    const MarketplaceData = await ethers.getContractFactory(
+      "MarketplaceDataV1"
+    );
+    marketplaceData = (await upgrades.deployProxy(MarketplaceData, [
+      ethers.ZeroAddress,
+    ])) as unknown as MarketplaceDataV1;
+    await marketplaceData.waitForDeployment();
   });
 
   it("Should be able to send an encrypted message, signature workflow", async () => {
@@ -148,15 +157,15 @@ describe("Encrypted communication tests", async () => {
     const arbitrator = ethers.HDNodeWallet.fromMnemonic(ethers.Mnemonic.fromPhrase(accounts.mnemonic), accounts.path + `/${index + 2}`).connect(deployer.provider);
 
     // everyone registers their public keys some time in the past
-    await marketplace.connect(alice).registerPublicKey(alice.publicKey);
-    await marketplace.connect(bob).registerPublicKey(bob.publicKey);
-    await marketplace.connect(arbitrator).registerPublicKey(arbitrator.publicKey);
+    await marketplaceData.connect(alice).registerPublicKey(alice.publicKey);
+    await marketplaceData.connect(bob).registerPublicKey(bob.publicKey);
+    await marketplaceData.connect(arbitrator).registerPublicKey(arbitrator.publicKey);
 
     // everyone retreives their public keys from blockchain
-    const alicePublicKeyCompressed = await marketplace.publicKeys(alice.address);
+    const alicePublicKeyCompressed = await marketplaceData.publicKeys(alice.address);
     expect(alicePublicKeyCompressed).to.equal(alice.publicKey);
 
-    const bobPublicKeyCompressed = await marketplace.publicKeys(bob.address);
+    const bobPublicKeyCompressed = await marketplaceData.publicKeys(bob.address);
     expect(bobPublicKeyCompressed).to.equal(bob.publicKey);
 
     // bob and alice compute the ECDH shared secret
@@ -196,7 +205,7 @@ describe("Encrypted communication tests", async () => {
 
     // alice starts the escrow dispute and leaks the session key to the arbitrator
 
-    const arbitratorPublicKeyCompressed = await marketplace.publicKeys(arbitrator.address);
+    const arbitratorPublicKeyCompressed = await marketplaceData.publicKeys(arbitrator.address);
     expect(arbitratorPublicKeyCompressed).to.equal(arbitrator.publicKey);
 
     // alice computes the shared key with arbitrator
@@ -248,6 +257,14 @@ describe("Encrypted communication tests", async () => {
       0,
     ])) as unknown as MarketplaceV1;
     await marketplace.waitForDeployment();
+
+    const MarketplaceData = await ethers.getContractFactory(
+      "MarketplaceDataV1"
+    );
+    marketplaceData = (await upgrades.deployProxy(MarketplaceData, [
+      ethers.ZeroAddress,
+    ])) as unknown as MarketplaceDataV1;
+    await marketplaceData.waitForDeployment();
   });
 
   it("Should be able to send an encrypted message, contract workflow", async () => {
@@ -267,15 +284,15 @@ describe("Encrypted communication tests", async () => {
     const arbitratorEncryptionSigningKey = new ethers.SigningKey(ethers.keccak256(ethers.keccak256(arbitratorSignature)));
 
     // everyone registers their public keys some time in the past
-    await marketplace.connect(alice).registerPublicKey(aliceEncryptionSigningKey.compressedPublicKey);
-    await marketplace.connect(bob).registerPublicKey(bobEncryptionSigningKey.compressedPublicKey);
-    await marketplace.connect(arbitrator).registerPublicKey(arbitratorEncryptionSigningKey.compressedPublicKey);
+    await marketplaceData.connect(alice).registerPublicKey(aliceEncryptionSigningKey.compressedPublicKey);
+    await marketplaceData.connect(bob).registerPublicKey(bobEncryptionSigningKey.compressedPublicKey);
+    await marketplaceData.connect(arbitrator).registerPublicKey(arbitratorEncryptionSigningKey.compressedPublicKey);
 
     // everyone retreives their public keys from blockchain
-    const alicePublicKeyCompressed = await marketplace.publicKeys(alice.address);
+    const alicePublicKeyCompressed = await marketplaceData.publicKeys(alice.address);
     expect(alicePublicKeyCompressed).to.equal(aliceEncryptionSigningKey.compressedPublicKey);
 
-    const bobPublicKeyCompressed = await marketplace.publicKeys(bob.address);
+    const bobPublicKeyCompressed = await marketplaceData.publicKeys(bob.address);
     expect(bobPublicKeyCompressed).to.equal(bobEncryptionSigningKey.compressedPublicKey);
 
     // bob and alice compute the ECDH shared secret
@@ -314,7 +331,7 @@ describe("Encrypted communication tests", async () => {
 
     // alice starts the escrow dispute and leaks the session key to the arbitrator
 
-    const arbitratorPublicKeyCompressed = await marketplace.publicKeys(arbitrator.address);
+    const arbitratorPublicKeyCompressed = await marketplaceData.publicKeys(arbitrator.address);
     expect(arbitratorPublicKeyCompressed).to.equal(arbitratorEncryptionSigningKey.compressedPublicKey);
 
     // alice computes the shared key with arbitrator

@@ -52,12 +52,17 @@ struct UserRating {
 
 contract MarketplaceDataV1 is OwnableUpgradeable {
     event JobEvent(uint256 indexed jobId, JobEventData eventData);
+    event PublicKeyRegistered(address indexed addr, bytes pubkey);
     event ArbitratorRegistered(address indexed addr, bytes pubkey, string name, uint16 fee);
 
     MarketplaceV1 public marketplace;
 
     // jobId -> JobEvents
     mapping(uint256 => JobEventData[]) public jobEvents;
+
+    // users must register their public keys (compressed, 33 bytes)
+    // this allows others to guarantee they can message securely
+    mapping(address => bytes) public publicKeys;
 
     mapping(address => JobArbitrator) public arbitrators;
     address[] public arbitratorAddresses;
@@ -138,6 +143,21 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
         }
 
         return result;
+    }
+
+    // allow users to register their *message encryption* public key
+    // this is used to allow others to message you securely
+    // we do not do verification here because we want to allow contracts to register
+    function registerPublicKey(bytes calldata pubkey) public {
+        // presently we do not allow to update the public keys otherwise the decryption of old messages will become impossible
+        require(publicKeys[msg.sender].length == 0, "already registered");
+        require(pubkey.length == 33, "invalid pubkey length, must be compressed, 33 bytes");
+        publicKeys[msg.sender] = pubkey;
+        emit PublicKeyRegistered(msg.sender, pubkey);
+    }
+
+    function publicKeyRegistered(address address_) public view returns (bool) {
+        return publicKeys[address_].length > 0;
     }
 
     // registers an arbitrator with their *message encryption* public key, name and fee they charge

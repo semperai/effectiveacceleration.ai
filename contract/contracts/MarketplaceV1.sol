@@ -61,10 +61,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
     uint256 public version; // version (should be updated when performing updates)
 
-    // users must register their public keys (compressed, 33 bytes)
-    // this allows others to guarantee they can message securely
-    mapping(address => bytes) public publicKeys;
-
     JobPost[] public jobs;
 
     mapping(string => string) private meceTags;
@@ -118,8 +114,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     event VersionChanged(uint256 indexed version);
 
     event NotificationBroadcast(address indexed addr, uint256 indexed id);
-
-    event PublicKeyRegistered(address indexed addr, bytes pubkey);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -219,17 +213,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         unicrowArbitratorAddress = unicrowArbitratorAddress_;
     }
 
-    // allow users to register their *message encryption* public key
-    // this is used to allow others to message you securely
-    // we do not do verification here because we want to allow contracts to register
-    function registerPublicKey(bytes calldata pubkey) public {
-        // presently we do not allow to update the public keys otherwise the decryption of old messages will become impossible
-        require(publicKeys[msg.sender].length == 0, "already registered");
-        require(pubkey.length == 33, "invalid pubkey length, must be compressed, 33 bytes");
-        publicKeys[msg.sender] = pubkey;
-        emit PublicKeyRegistered(msg.sender, pubkey);
-    }
-
     function jobsLength() public view returns (uint256) {
         return jobs.length;
     }
@@ -324,7 +307,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         uint256 deliveyMethodLength = bytes(deliveryMethod_).length;
         require(deliveyMethodLength > 0 && deliveyMethodLength < 255, "delivery method too short or long");
-        require(publicKeys[msg.sender].length > 0, "not registered");
+        require(marketplaceData.publicKeyRegistered(msg.sender), "not registered");
 
         SafeERC20.safeTransferFrom(IERC20(token_), msg.sender, address(this), amount_);
 
@@ -607,7 +590,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      * @param signature_ worker's signature of all the job parameters
      */
     function takeJob(uint256 jobId_, bytes calldata signature_) public {
-        require(publicKeys[msg.sender].length > 0, "not registered");
+        require(marketplaceData.publicKeyRegistered(msg.sender), "not registered");
         uint256 eventsLength = marketplaceData.eventsLength(jobId_);
 
         JobPost storage job = jobs[jobId_];
@@ -670,7 +653,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     function payStartJob(uint256 jobId_, address worker_) public payable onlyJobCreator(jobId_) {
         JobPost storage job = jobs[jobId_];
         require(job.state == uint8(JobState.Open), "not open");
-        require(publicKeys[worker_].length > 0, "not registered");
+        require(marketplaceData.publicKeyRegistered(worker_), "not registered");
 
         job.state = uint8(JobState.Taken);
         job.roles.worker = worker_;

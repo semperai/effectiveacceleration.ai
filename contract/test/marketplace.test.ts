@@ -367,16 +367,16 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, marketplaceData: marketplaceData, user1 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
-      await expect(marketplace.connect(user1).registerPublicKey("0x00")).to.be.revertedWith("invalid pubkey length, must be compressed, 33 bytes");
+      await expect(marketplaceData.connect(user1).registerPublicKey("0x00")).to.be.revertedWith("invalid pubkey length, must be compressed, 33 bytes");
 
-      await expect(marketplace
+      await expect(marketplaceData
         .connect(user1)
         .registerPublicKey(wallet1.publicKey)
-      ).to.emit(marketplace, 'PublicKeyRegistered').withArgs(await user1.getAddress(), wallet1.publicKey);
+      ).to.emit(marketplaceData, 'PublicKeyRegistered').withArgs(await user1.getAddress(), wallet1.publicKey);
 
-      expect(await marketplace.publicKeys(await user1.getAddress())).to.equal(wallet1.publicKey);
+      expect(await marketplaceData.publicKeys(await user1.getAddress())).to.equal(wallet1.publicKey);
 
-      await expect(marketplace.connect(user1).registerPublicKey(wallet1.publicKey)).to.be.revertedWith("already registered");
+      await expect(marketplaceData.connect(user1).registerPublicKey(wallet1.publicKey)).to.be.revertedWith("already registered");
     });
   });
 
@@ -435,20 +435,20 @@ describe("Marketplace Unit Tests", () => {
   });
 
   async function registerPublicKey(
-    marketplace: Marketplace,
+    marketplaceData: MarketplaceData,
     user: Signer,
     wallet: HDNodeWallet,
   ) {
-    await marketplace
+    await marketplaceData
       .connect(user)
       .registerPublicKey(wallet.publicKey);
   }
 
   async function registerEncryptionPublicKey(
-    marketplace: Marketplace,
+    marketplaceData: MarketplaceData,
     user: Signer,
   ) {
-    await marketplace
+    await marketplaceData
       .connect(user)
       .registerPublicKey((await getEncryptionSigningKey(user)).compressedPublicKey);
   }
@@ -482,8 +482,8 @@ describe("Marketplace Unit Tests", () => {
       arbitrator,
     } = await loadFixture(deployContractsFixture);
     const { wallet1, wallet2, wallet3 } = await loadFixture(getWalletsFixture);
-    await registerPublicKey(marketplace, user1, wallet1);
-    await registerPublicKey(marketplace, user2, wallet2);
+    await registerPublicKey(marketplaceData, user1, wallet1);
+    await registerPublicKey(marketplaceData, user2, wallet2);
     if (arbitratorRequired) {
       await registerArbitrator(marketplaceData, arbitrator, wallet3);
     }
@@ -615,7 +615,7 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, marketplaceData: marketplaceData, fakeToken, user1 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
-      await registerPublicKey(marketplace, user1, wallet1);
+      await registerPublicKey(marketplaceData, user1, wallet1);
 
       const title = "Create a marketplace in solidity";
       const content = "Please create a marketplace in solidity";
@@ -683,8 +683,8 @@ describe("Marketplace Unit Tests", () => {
         arbitrator,
       } = await loadFixture(deployContractsFixture);
       const { wallet1, wallet2, wallet3 } = await loadFixture(getWalletsFixture);
-      await registerPublicKey(marketplace, user1, wallet1);
-      await registerPublicKey(marketplace, user2, wallet2);
+      await registerPublicKey(marketplaceData, user1, wallet1);
+      await registerPublicKey(marketplaceData, user2, wallet2);
 
       const title = "Create a marketplace in solidity";
       const content = "Please create a marketplace in solidity";
@@ -739,7 +739,7 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, marketplaceData: marketplaceData, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
-      await registerPublicKey(marketplace, user1, wallet1);
+      await registerPublicKey(marketplaceData, user1, wallet1);
 
       const title = "Create a marketplace in solidity!";
       const content = "Please create a marketplace in solidity";
@@ -811,7 +811,7 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, marketplaceData: marketplaceData, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
-      await registerPublicKey(marketplace, user1, wallet1);
+      await registerPublicKey(marketplaceData, user1, wallet1);
 
       const title = "Create a marketplace in solidity!";
       const content = "Please create a marketplace in solidity";
@@ -839,7 +839,7 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, marketplaceData: marketplaceData, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
-      await registerPublicKey(marketplace, user1, wallet1);
+      await registerPublicKey(marketplaceData, user1, wallet1);
 
       const title = "Create a marketplace in solidity!";
       const content = "Please create a marketplace in solidity";
@@ -895,7 +895,7 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, marketplaceData: marketplaceData, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
-      await registerPublicKey(marketplace, user1, wallet1);
+      await registerPublicKey(marketplaceData, user1, wallet1);
 
       const title = "Create a marketplace in solidity!";
       const content = "Please create a marketplace in solidity";
@@ -921,7 +921,7 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, marketplaceData: marketplaceData, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
-      await registerPublicKey(marketplace, user1, wallet1);
+      await registerPublicKey(marketplaceData, user1, wallet1);
 
       const content = "Please create a marketplace in solidity";
       const contentHash = "0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5";
@@ -962,7 +962,7 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, marketplaceData: marketplaceData, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
-      await registerPublicKey(marketplace, user1, wallet1);
+      await registerPublicKey(marketplaceData, user1, wallet1);
 
       const title = "Create a marketplace in solidity!";
       const content = "Please create a marketplace in solidity";
@@ -1028,7 +1028,7 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, marketplaceData: marketplaceData, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
-      await registerPublicKey(marketplace, user1, wallet1);
+      await registerPublicKey(marketplaceData, user1, wallet1);
 
       const title = "Create a marketplace in solidity!";
       const content = "Please create a marketplace in solidity";
@@ -1084,7 +1084,7 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, marketplaceData: marketplaceData, fakeToken, user1, user2, arbitrator } = await loadFixture(deployContractsFixture);
       const { wallet1, wallet2, wallet3 } = await loadFixture(getWalletsFixture);
 
-      await registerPublicKey(marketplace, user1, wallet1);
+      await registerPublicKey(marketplaceData, user1, wallet1);
       await registerArbitrator(marketplaceData, arbitrator, wallet3);
 
       const title = "Create a marketplace in solidity!";
@@ -1109,7 +1109,7 @@ describe("Marketplace Unit Tests", () => {
         )
       ).to.be.revertedWith("arbitrator not registered");
 
-      await registerPublicKey(marketplace, arbitrator, wallet3);
+      await registerPublicKey(marketplaceData, arbitrator, wallet3);
 
       await expect(marketplace
         .connect(user1)
@@ -1367,7 +1367,7 @@ describe("Marketplace Unit Tests", () => {
         whitelistWorkers,
       )).to.be.revertedWith("arbitrator not registered");
 
-      registerPublicKey(marketplace, arbitrator, wallet3);
+      registerPublicKey(marketplaceData, arbitrator, wallet3);
 
       await expect(marketplace.connect(user1).updateJobPost(
         jobId,
@@ -2964,8 +2964,8 @@ describe("Marketplace Unit Tests", () => {
         arbitrator,
       } = await loadFixture(deployContractsFixture);
       const { wallet1, wallet2, wallet3 } = await loadFixture(getWalletsFixture);
-      await registerEncryptionPublicKey(marketplace, user1);
-      await registerEncryptionPublicKey(marketplace, user2);
+      await registerEncryptionPublicKey(marketplaceData, user1);
+      await registerEncryptionPublicKey(marketplaceData, user2);
       await registerArbitratorWithEncryptionPublicKey(marketplaceData, arbitrator);
 
       const title = "Create a marketplace in solidity";
@@ -2993,7 +2993,7 @@ describe("Marketplace Unit Tests", () => {
       const readWorkerMessage = new Promise<string>(async (resolve) => {
         const listener = async (jobId_: bigint, jobEventData: JobEventDataStructOutput) => {
           if (jobId_ === jobId && Number(jobEventData.type_) === JobEventType.WorkerMessage) {
-            const otherCompressedPublicKey = await marketplace.connect(user1).publicKeys(user2.address);
+            const otherCompressedPublicKey = await marketplaceData.connect(user1).publicKeys(user2.address);
             const sessionKey = await getSessionKey(user1, otherCompressedPublicKey);
             const hash = jobEventData.data_;
 
@@ -3011,7 +3011,7 @@ describe("Marketplace Unit Tests", () => {
       const readOwnerMessage = new Promise<string>(async (resolve) => {
         const listener = async (jobId_: bigint, jobEventData: JobEventDataStructOutput) => {
           if (jobId_ === jobId && Number(jobEventData.type_) === JobEventType.OwnerMessage) {
-            const otherCompressedPublicKey = await marketplace.connect(user2).publicKeys(user1.address);
+            const otherCompressedPublicKey = await marketplaceData.connect(user2).publicKeys(user1.address);
             const sessionKey = await getSessionKey(user2, otherCompressedPublicKey);
             const hash = jobEventData.data_;
 
@@ -3035,8 +3035,8 @@ describe("Marketplace Unit Tests", () => {
       //#endregion utils
 
       // worker reads the post data
-      const ownerSessionKey = await getSessionKey(user1, await marketplace.connect(user1).publicKeys(user2.address));
-      const workerSessionKey = await getSessionKey(user2, await marketplace.connect(user2).publicKeys(user1.address));
+      const ownerSessionKey = await getSessionKey(user1, await marketplaceData.connect(user1).publicKeys(user2.address));
+      const workerSessionKey = await getSessionKey(user2, await marketplaceData.connect(user2).publicKeys(user1.address));
       expect(ownerSessionKey).to.equal(workerSessionKey);
       const postContent = await getFromIpfs((await marketplace.connect(user2).jobs(jobId)).contentHash, workerSessionKey);
       expect(postContent).to.equal(content);
@@ -3073,8 +3073,8 @@ describe("Marketplace Unit Tests", () => {
 
       // owner raises a dispute
       const disputeContent = "I am not satisfied with the result";
-      const sessionKeyOW = await getSessionKey(user1, await marketplace.connect(user1).publicKeys(user2.address));
-      const sessionKeyWO = await getSessionKey(user2, await marketplace.connect(user2).publicKeys(user1.address));
+      const sessionKeyOW = await getSessionKey(user1, await marketplaceData.connect(user1).publicKeys(user2.address));
+      const sessionKeyWO = await getSessionKey(user2, await marketplaceData.connect(user2).publicKeys(user1.address));
       expect(sessionKeyOW).to.equal(sessionKeyWO);
       const sessionKeyOA = await getSessionKey(user1, (await marketplaceData.connect(user1).arbitrators(arbitrator.address)).publicKey);
 
@@ -3086,7 +3086,7 @@ describe("Marketplace Unit Tests", () => {
       // arbitrator observes the dispute
       const pastEventsArbitrator = await marketplaceData.connect(user1).getEvents(jobId, revision, 0);
       const lastEventArbitrator = pastEventsArbitrator[pastEventsArbitrator.length - 1];
-      const arbitratorSessionKey = await getSessionKey(arbitrator, await marketplace.connect(arbitrator).publicKeys(user1.address));
+      const arbitratorSessionKey = await getSessionKey(arbitrator, await marketplaceData.connect(arbitrator).publicKeys(user1.address));
       const disputeEvent = decodeJobDisputedEvent(lastEventArbitrator.data_);
       decryptJobDisputedEvent(disputeEvent, arbitratorSessionKey)
       expect(disputeEvent.content).to.equal(disputeContent);
