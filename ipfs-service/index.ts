@@ -20,11 +20,13 @@ app.use(cors());
 
 app.post('/', async function(req, res) {
   if (req.header("IPFS_UPLOAD_SECRET") !== IPFS_UPLOAD_SECRET) {
+    console.log("Invalid upload secret");
     return res.status(400).send({error: "Invalid upload secret"});
   }
 
   const b64: string | undefined = req.body.dataB64;
   if (b64?.length === 0) {
+    console.log("empty data");
     return res.status(400).send({error: "empty data"});
   }
 

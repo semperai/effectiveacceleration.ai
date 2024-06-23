@@ -1,7 +1,12 @@
+import "@nomicfoundation/hardhat-ethers";
 import { ethers } from "hardhat";
 import { expect } from "chai";
+import chai from "chai";
+import chaiAsPromised from 'chai-as-promised';
 import { ZeroHash } from "ethers";
 import { hashToCid, cidToHash, publishToIpfs, getFromIpfs, getEncryptionSigningKey, getSessionKey } from "../src/utils/encryption";
+
+chai.use(chaiAsPromised);
 
 describe("utils", () => {
   describe("hashToCid", () => {
@@ -53,6 +58,13 @@ describe("utils", () => {
 
     it("should throw an error if message is empty", async () => {
       await expect(publishToIpfs("", undefined)).to.be.rejectedWith("empty data");
+    });
+
+    it("should throw an error if upload secret is not set", async () => {
+      const oldSecret = process.env.IPFS_UPLOAD_SECRET;
+      delete process.env.IPFS_UPLOAD_SECRET;
+      await expect(publishToIpfs("unencrypted", undefined)).to.be.rejectedWith(/Invalid upload secret/);
+      process.env.IPFS_UPLOAD_SECRET = oldSecret;
     });
   });
 

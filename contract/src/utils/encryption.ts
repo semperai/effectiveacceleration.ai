@@ -54,6 +54,10 @@ export const publishToIpfs = async (message: string, sessionKey: string | undefi
     }),
   });
 
+  if (response.status !== 200) {
+    throw await response.text();
+  }
+
   const { hash, cid } = await response.json();
   return { hash, cid };
 }
