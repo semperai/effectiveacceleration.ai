@@ -72,6 +72,8 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
 
     mapping(string => string) public meceTags;
 
+    uint256[43] __gap; // upgradeable gap
+
     modifier onlyMarketplace() {
         require(msg.sender == address(marketplace), "not marketplace");
         _;

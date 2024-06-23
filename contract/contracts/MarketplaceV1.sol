@@ -73,7 +73,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     address public unicrowMarketplaceAddress;
     uint16 public unicrowMarketplaceFee;
 
-    uint256[34] __gap; // upgradeable gap
+    uint256[39] __gap; // upgradeable gap
 
     /// @notice Modifier to restrict to only pauser
     modifier onlyPauser() {
