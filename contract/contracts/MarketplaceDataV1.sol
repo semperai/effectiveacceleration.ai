@@ -35,13 +35,30 @@ enum JobEventType {
     OwnerMessage
 }
 
+struct JobArbitrator {
+    bytes publicKey;
+    string name;
+    uint16 fee;
+    uint16 settledCount;
+    uint16 refusedCount;
+}
+
 contract MarketplaceDataV1 is OwnableUpgradeable {
     event JobEvent(uint256 indexed jobId, JobEventData eventData);
+    event ArbitratorRegistered(address indexed addr, bytes pubkey, string name, uint16 fee);
 
     MarketplaceV1 public marketplace;
 
     // jobId -> JobEvents
     mapping(uint256 => JobEventData[]) public jobEvents;
+
+    mapping(address => JobArbitrator) public arbitrators;
+    address[] public arbitratorAddresses;
+
+    modifier onlyMarketplace() {
+        require(msg.sender == address(marketplace), "not marketplace");
+        _;
+    }
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -60,7 +77,7 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
         marketplace = MarketplaceV1(marketplace_);
     }
 
-    function publishJobEvent(uint256 jobId_, JobEventData memory event_) public {
+    function publishJobEvent(uint256 jobId_, JobEventData memory event_) public onlyMarketplace {
         event_.timestamp_ = uint32(block.timestamp);
         jobEvents[jobId_].push(event_);
         emit JobEvent(jobId_, event_);
@@ -113,12 +130,46 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
         return result;
     }
 
+    // registers an arbitrator with their *message encryption* public key, name and fee they charge
+    function registerArbitrator(bytes calldata pubkey, string calldata name, uint16 fee) public {
+        // presently we do not allow to update the public keys otherwise the decryption of old messages will become impossible
+        require(arbitrators[msg.sender].publicKey.length == 0, "already registered");
+        require(pubkey.length == 33, "invalid pubkey length, must be compressed, 33 bytes");
+        arbitrators[msg.sender] = JobArbitrator(
+            pubkey,
+            name,
+            fee,
+            0,
+            0
+        );
+
+        arbitratorAddresses.push(msg.sender);
+
+        emit ArbitratorRegistered(msg.sender, pubkey, name, fee);
+    }
+
+    function arbitratorRefused(address address_) public onlyMarketplace() {
+        arbitrators[address_].refusedCount += 1;
+    }
+
+    function arbitratorSettled(address address_) public onlyMarketplace() {
+        arbitrators[address_].settledCount += 1;
+    }
+
+    function arbitratorRegistered(address address_) public view returns (bool) {
+        return arbitrators[address_].publicKey.length > 0;
+    }
+
+    function getArbitratorFee(address address_) public view returns (uint16) {
+        return arbitrators[address_].fee;
+    }
+
     function arbitratorsLength() public view returns (uint256) {
-        return marketplace.arbitratorsLength();
+        return arbitratorAddresses.length;
     }
 
     function getArbitrators(uint256 index_, uint256 limit_) public view returns (JobArbitrator[] memory) {
-        uint256 arbitratorsLength_ = marketplace.arbitratorsLength();
+        uint256 arbitratorsLength_ = arbitratorAddresses.length;
         require(index_ < arbitratorsLength_, "index out of bounds");
 
         uint length = arbitratorsLength_ - index_;
@@ -128,26 +179,12 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
         length = length > limit_ ? limit_ : length;
         JobArbitrator[] memory result = new JobArbitrator[](length);
         for (uint i = 0; i < length; i++) {
-            (bytes memory publicKey, string memory name, uint16 fee, uint16 settledCount, uint16 refusedCount) = marketplace.arbitrators(marketplace.arbitratorAddresses(i + index_));
-            result[i] = JobArbitrator({
-                publicKey: publicKey,
-                name: name,
-                fee: fee,
-                settledCount: settledCount,
-                refusedCount: refusedCount
-            });
+            result[i] = arbitrators[arbitratorAddresses[i + index_]];
         }
         return result;
     }
 
     function getArbitrator(address arbitratorAddress_) public view returns (JobArbitrator memory) {
-        (bytes memory publicKey, string memory name, uint16 fee, uint16 settledCount, uint16 refusedCount) = marketplace.arbitrators(arbitratorAddress_);
-        return JobArbitrator({
-            publicKey: publicKey,
-            name: name,
-            fee: fee,
-            settledCount: settledCount,
-            refusedCount: refusedCount
-        });
+        return arbitrators[arbitratorAddress_];
     }
 }

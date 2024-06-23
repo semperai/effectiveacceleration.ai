@@ -53,14 +53,6 @@ struct JobPost {
     bool disputed;
 }
 
-struct JobArbitrator {
-    bytes publicKey;
-    string name;
-    uint16 fee;
-    uint16 settledCount;
-    uint16 refusedCount;
-}
-
 /// @dev Stores current average user's rating and number of reviews so it can be updated with every new review
 struct UserRating {
     /// @dev Current rating multiplied by 10,000 to achieve sufficient granularity even with lots of existing reviews
@@ -70,7 +62,7 @@ struct UserRating {
 
 contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     address public treasury; // where treasury fees/rewards go
-    address public marketplaceDataAddress; // address of helper contract which stores the marketplace data which is not jobs
+    MarketplaceDataV1 public marketplaceData; // address of helper contract which stores the marketplace data which is not jobs
 
     address public pauser; // who can pause contract
 
@@ -79,9 +71,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     // users must register their public keys (compressed, 33 bytes)
     // this allows others to guarantee they can message securely
     mapping(address => bytes) public publicKeys;
-
-    mapping(address => JobArbitrator) public arbitrators;
-    address[] public arbitratorAddresses;
 
     JobPost[] public jobs;
 
@@ -142,8 +131,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
     event PublicKeyRegistered(address indexed addr, bytes pubkey);
 
-    event ArbitratorRegistered(address indexed addr, bytes pubkey, string name, uint16 fee);
-
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         //NOTE: do not put any state initialization here
@@ -173,7 +160,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         pauser = msg.sender;
         treasury = treasury_;
 
-        marketplaceDataAddress = marketplaceDataAddress_;
+        marketplaceData = MarketplaceDataV1(marketplaceDataAddress_);
 
         unicrowAddress = unicrowAddress_;
         unicrowDisputeAddress = unicrowDisputeAddress_;
@@ -253,28 +240,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         emit PublicKeyRegistered(msg.sender, pubkey);
     }
 
-    // registers an arbitrator with their *message encryption* public key, name and fee they charge
-    function registerArbitrator(bytes calldata pubkey, string calldata name, uint16 fee) public {
-        // presently we do not allow to update the public keys otherwise the decryption of old messages will become impossible
-        require(arbitrators[msg.sender].publicKey.length == 0, "already registered");
-        require(pubkey.length == 33, "invalid pubkey length, must be compressed, 33 bytes");
-        arbitrators[msg.sender] = JobArbitrator(
-            pubkey,
-            name,
-            fee,
-            0,
-            0
-        );
-
-        arbitratorAddresses.push(msg.sender);
-
-        emit ArbitratorRegistered(msg.sender, pubkey, name, fee);
-    }
-
-    function arbitratorsLength() public view returns (uint256) {
-        return arbitratorAddresses.length;
-    }
-
     function jobsLength() public view returns (uint256) {
         return jobs.length;
     }
@@ -284,7 +249,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     }
 
     function publishJobEvent(uint256 jobId_, JobEventData memory event_) internal {
-        MarketplaceDataV1(marketplaceDataAddress).publishJobEvent(jobId_, event_);
+        marketplaceData.publishJobEvent(jobId_, event_);
     }
 
     // Function to read MECE tag's long form given the short form
@@ -315,7 +280,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         require(amount_ > 0, "amount must be greater than 0");
         require(tags_.length > 0, "At least one tag is required");
         if (arbitrator_ != address(0)) {
-            require(arbitrators[arbitrator_].publicKey.length > 0, "arbitrator not registered");
+            require(marketplaceData.arbitratorRegistered(arbitrator_), "arbitrator not registered");
         }
 
         uint meceCount = 0;
@@ -653,7 +618,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      */
     function takeJob(uint256 jobId_, bytes calldata signature_) public {
         require(publicKeys[msg.sender].length > 0, "not registered");
-        uint256 eventsLength = MarketplaceDataV1(marketplaceDataAddress).eventsLength(jobId_);
+        uint256 eventsLength = marketplaceData.eventsLength(jobId_);
 
         JobPost storage job = jobs[jobId_];
 
@@ -694,7 +659,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
                 job.amount
             );
 
-            job.escrowId = unicrow.pay(escrowInput, job.roles.arbitrator, arbitrators[job.roles.arbitrator].fee);
+            job.escrowId = unicrow.pay(escrowInput, job.roles.arbitrator, marketplaceData.getArbitratorFee(job.roles.arbitrator));
 
             publishJobEvent(jobId_,
                 JobEventData({
@@ -734,7 +699,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             job.amount
         );
 
-        job.escrowId = unicrow.pay(escrowInput, job.roles.arbitrator, arbitrators[job.roles.arbitrator].fee);
+        job.escrowId = unicrow.pay(escrowInput, job.roles.arbitrator, marketplaceData.getArbitratorFee(job.roles.arbitrator));
 
         publishJobEvent(jobId_,
             JobEventData({
@@ -897,7 +862,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      * @param reasonHash_ reason for arbitrator's decision (encrypted for all three parties)
      */
     function arbitrate(uint256 jobId_, uint16 buyerShare_, uint16 workerShare_, bytes32 reasonHash_) public onlyArbitrator(jobId_) {
-        arbitrators[msg.sender].settledCount += 1;
+        marketplaceData.arbitratorSettled(msg.sender);
 
         JobPost storage job = jobs[jobId_];
         require(job.state == uint8(JobState.Taken), "job in invalid state");
@@ -933,7 +898,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         require(job.state != uint8(JobState.Closed), "job in invalid state");
         job.roles.arbitrator = address(0);
 
-        arbitrators[msg.sender].refusedCount += 1;
+        marketplaceData.arbitratorRefused(msg.sender);
 
         publishJobEvent(jobId_,
             JobEventData({

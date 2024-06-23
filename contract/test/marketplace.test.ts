@@ -396,21 +396,21 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, marketplaceData: marketplaceData, arbitrator, user2 } = await loadFixture(deployContractsFixture);
       const { wallet2, wallet3 } = await loadFixture(getWalletsFixture);
 
-      await expect(marketplace.connect(arbitrator).registerArbitrator("0x00", "Test", 100)).to.be.revertedWith("invalid pubkey length, must be compressed, 33 bytes");
+      await expect(marketplaceData.connect(arbitrator).registerArbitrator("0x00", "Test", 100)).to.be.revertedWith("invalid pubkey length, must be compressed, 33 bytes");
 
-      await expect(marketplace
+      await expect(marketplaceData
         .connect(arbitrator)
         .registerArbitrator(wallet3.publicKey, "Test", 100)
-      ).to.emit(marketplace, 'ArbitratorRegistered').withArgs(await arbitrator.getAddress(), wallet3.publicKey, "Test", 100);
+      ).to.emit(marketplaceData, 'ArbitratorRegistered').withArgs(await arbitrator.getAddress(), wallet3.publicKey, "Test", 100);
 
-      const arbitratorData = await marketplace.arbitrators(arbitrator.address);
+      const arbitratorData = await marketplaceData.arbitrators(arbitrator.address);
       expect(arbitratorData.publicKey).to.equal(wallet3.publicKey);
       expect(arbitratorData.name).to.equal("Test");
       expect(arbitratorData.fee).to.equal(100);
       expect(arbitratorData.settledCount).to.equal(0);
       expect(arbitratorData.refusedCount).to.equal(0);
 
-      await expect(marketplace.connect(arbitrator).registerArbitrator(wallet3.publicKey, "Test", 100)).to.be.revertedWith("already registered");
+      await expect(marketplaceData.connect(arbitrator).registerArbitrator(wallet3.publicKey, "Test", 100)).to.be.revertedWith("already registered");
 
       expect((await marketplaceData.connect(arbitrator).getArbitrators(0, 0)).map((val: any) => val.toObject())).to.be.deep.equal([{
         publicKey: wallet3.publicKey,
@@ -430,10 +430,10 @@ describe("Marketplace Unit Tests", () => {
 
       await expect(marketplaceData.connect(arbitrator).getArbitrators(5, 5)).to.be.revertedWith("index out of bounds");
 
-      await expect(marketplace
+      await expect(marketplaceData
         .connect(user2)
         .registerArbitrator(wallet2.publicKey, "Test", 100)
-      ).to.emit(marketplace, 'ArbitratorRegistered').withArgs(await user2.getAddress(), wallet2.publicKey, "Test", 100);
+      ).to.emit(marketplaceData, 'ArbitratorRegistered').withArgs(await user2.getAddress(), wallet2.publicKey, "Test", 100);
 
       expect((await marketplaceData.connect(arbitrator).getArbitrators(0, 1)).map((val: any) => val.toObject())).to.be.deep.equal([{
         publicKey: wallet3.publicKey,
@@ -465,20 +465,20 @@ describe("Marketplace Unit Tests", () => {
   }
 
   async function registerArbitrator(
-    marketplace: Marketplace,
+    marketplaceData: MarketplaceData,
     user: Signer,
     wallet: HDNodeWallet,
   ) {
-    await marketplace
+    await marketplaceData
       .connect(user)
       .registerArbitrator(wallet.publicKey, "TestArbitrator", 100);
   }
 
   async function registerArbitratorWithEncryptionPublicKey(
-    marketplace: Marketplace,
+    marketplaceData: MarketplaceData,
     user: Signer,
   ) {
-    await marketplace
+    await marketplaceData
       .connect(user)
       .registerArbitrator((await getEncryptionSigningKey(user)).compressedPublicKey, "TestArbitrator", 100);
   }
@@ -496,7 +496,7 @@ describe("Marketplace Unit Tests", () => {
     await registerPublicKey(marketplace, user1, wallet1);
     await registerPublicKey(marketplace, user2, wallet2);
     if (arbitratorRequired) {
-      await registerArbitrator(marketplace, arbitrator, wallet3);
+      await registerArbitrator(marketplaceData, arbitrator, wallet3);
     }
 
     const title = "Create a marketplace in solidity";
@@ -1096,7 +1096,7 @@ describe("Marketplace Unit Tests", () => {
       const { wallet1, wallet2, wallet3 } = await loadFixture(getWalletsFixture);
 
       await registerPublicKey(marketplace, user1, wallet1);
-      await registerArbitrator(marketplace, arbitrator, wallet3);
+      await registerArbitrator(marketplaceData, arbitrator, wallet3);
 
       const title = "Create a marketplace in solidity!";
       const content = "Please create a marketplace in solidity";
@@ -2509,7 +2509,7 @@ describe("Marketplace Unit Tests", () => {
       const revision = await marketplaceData.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
-      const sessionKeyOA = await getSessionKey(user1, (await marketplace.connect(user1).arbitrators(arbitrator.address)).publicKey);
+      const sessionKeyOA = await getSessionKey(user1, (await marketplaceData.connect(user1).arbitrators(arbitrator.address)).publicKey);
 
       const encryptedContent = hexlify(encryptUtf8Data("Objection!", sessionKeyOA));
       const encruptedSessionKeyOW = hexlify(encryptBinaryData(getBytes("0x" + "00".repeat(32)), sessionKeyOA));
@@ -2694,7 +2694,7 @@ describe("Marketplace Unit Tests", () => {
       expect(job.state).to.equal(JobState.Closed);
       expect(job.disputed).to.be.true;
 
-      const arbitratorData = await marketplace.arbitrators(arbitrator.address);
+      const arbitratorData = await marketplaceData.arbitrators(arbitrator.address);
       expect(arbitratorData.settledCount).to.equal(1);
       expect(arbitratorData.refusedCount).to.equal(0);
     });
@@ -2773,7 +2773,7 @@ describe("Marketplace Unit Tests", () => {
       expect(job.state).to.equal(JobState.Closed);
       expect(job.disputed).to.be.true;
 
-      const arbitratorData = await marketplace.arbitrators(arbitrator.address);
+      const arbitratorData = await marketplaceData.arbitrators(arbitrator.address);
       expect(arbitratorData.settledCount).to.equal(1);
       expect(arbitratorData.refusedCount).to.equal(0);
     });
@@ -2852,7 +2852,7 @@ describe("Marketplace Unit Tests", () => {
       expect(job.state).to.equal(JobState.Closed);
       expect(job.disputed).to.be.true;
 
-      const arbitratorData = await marketplace.arbitrators(arbitrator.address);
+      const arbitratorData = await marketplaceData.arbitrators(arbitrator.address);
       expect(arbitratorData.settledCount).to.equal(1);
       expect(arbitratorData.refusedCount).to.equal(0);
     });
@@ -2879,7 +2879,7 @@ describe("Marketplace Unit Tests", () => {
       expect((await marketplace.jobs(jobId)).roles.arbitrator).to.equal(arbitrator.address);
 
       {
-        const arbitratorData = await marketplace.arbitrators(arbitrator.address);
+        const arbitratorData = await marketplaceData.arbitrators(arbitrator.address);
         expect(arbitratorData.settledCount).to.equal(0);
         expect(arbitratorData.refusedCount).to.equal(0);
       }
@@ -2904,7 +2904,7 @@ describe("Marketplace Unit Tests", () => {
       expect((await marketplace.jobs(jobId)).roles.arbitrator).to.equal(ethers.ZeroAddress);
 
       {
-        const arbitratorData = await marketplace.arbitrators(arbitrator.address);
+        const arbitratorData = await marketplaceData.arbitrators(arbitrator.address);
         expect(arbitratorData.settledCount).to.equal(0);
         expect(arbitratorData.refusedCount).to.equal(1);
       }
@@ -2917,7 +2917,7 @@ describe("Marketplace Unit Tests", () => {
       expect((await marketplace.jobs(jobId)).roles.arbitrator).to.equal(arbitrator.address);
 
       {
-        const arbitratorData = await marketplace.arbitrators(arbitrator.address);
+        const arbitratorData = await marketplaceData.arbitrators(arbitrator.address);
         expect(arbitratorData.settledCount).to.equal(0);
         expect(arbitratorData.refusedCount).to.equal(0);
       }
@@ -2956,7 +2956,7 @@ describe("Marketplace Unit Tests", () => {
       expect((await marketplace.jobs(jobId)).roles.arbitrator).to.equal(ethers.ZeroAddress);
 
       {
-        const arbitratorData = await marketplace.arbitrators(arbitrator.address);
+        const arbitratorData = await marketplaceData.arbitrators(arbitrator.address);
         expect(arbitratorData.settledCount).to.equal(0);
         expect(arbitratorData.refusedCount).to.equal(1);
       }
@@ -2977,7 +2977,7 @@ describe("Marketplace Unit Tests", () => {
       const { wallet1, wallet2, wallet3 } = await loadFixture(getWalletsFixture);
       await registerEncryptionPublicKey(marketplace, user1);
       await registerEncryptionPublicKey(marketplace, user2);
-      await registerArbitratorWithEncryptionPublicKey(marketplace, arbitrator);
+      await registerArbitratorWithEncryptionPublicKey(marketplaceData, arbitrator);
 
       const title = "Create a marketplace in solidity";
       const content = "Please create a marketplace in solidity";
@@ -3087,7 +3087,7 @@ describe("Marketplace Unit Tests", () => {
       const sessionKeyOW = await getSessionKey(user1, await marketplace.connect(user1).publicKeys(user2.address));
       const sessionKeyWO = await getSessionKey(user2, await marketplace.connect(user2).publicKeys(user1.address));
       expect(sessionKeyOW).to.equal(sessionKeyWO);
-      const sessionKeyOA = await getSessionKey(user1, (await marketplace.connect(user1).arbitrators(arbitrator.address)).publicKey);
+      const sessionKeyOA = await getSessionKey(user1, (await marketplaceData.connect(user1).arbitrators(arbitrator.address)).publicKey);
 
       const encryptedContent = hexlify(encryptUtf8Data(disputeContent, sessionKeyOA));
       const encrypedSessionKey = hexlify(encryptBinaryData(getBytes(sessionKeyOW), sessionKeyOA));
