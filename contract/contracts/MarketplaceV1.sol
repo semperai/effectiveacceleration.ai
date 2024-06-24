@@ -725,6 +725,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         jobs[jobId_].rating = reviewRating_;
         marketplaceData.updateUserRating(jobs[jobId_].roles.worker, reviewRating_);
 
+        marketplaceData.addReview(jobs[jobId_].roles.worker, msg.sender, jobId_, reviewRating_, reviewText_);
+
         publishJobEvent(jobId_,
             JobEventData({
                 type_: uint8(JobEventType.Rated),

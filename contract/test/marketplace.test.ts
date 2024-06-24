@@ -22,6 +22,7 @@ import { getEncryptionSigningKey, publishToIpfs, getSessionKey, encryptUtf8Data,
 import { JobEventType, JobCreatedEvent, JobState, JobUpdatedEvent, JobSignedEvent, JobRatedEvent, JobDisputedEvent, JobArbitratedEvent } from "../src/interfaces";
 
 import { inspect } from 'util';
+import { timeStamp } from "console";
 inspect.defaultOptions.depth = 10;
 
 chai.use(chaiSubset);
@@ -2415,9 +2416,11 @@ describe("Marketplace Unit Tests", () => {
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(0);
       expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(BigInt(100e18));
 
+      let timestamp;
       await expect(
         marketplace.connect(user1).approveResult(jobId, 5, reviewText)
       ).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
+        timestamp = jobEventData.timestamp_;
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Rated);
         expect(jobEventData.address_).to.equal("0x");
@@ -2435,6 +2438,22 @@ describe("Marketplace Unit Tests", () => {
 
         return true;
       }).and.to.emit(unicrowGlobal, "Release");
+
+      expect((await marketplaceData.userReviews(user2.address, 0)).toObject()).to.deep.equal({
+        reviewer: user1.address,
+        jobId: jobId,
+        rating: 5n,
+        text: reviewText,
+        timestamp: timestamp
+      });
+
+      expect((await marketplaceData.getReviews(user2.address, 0, 0)).map((review: any) => review.toObject())).to.be.deep.equal([{
+        reviewer: user1.address,
+        jobId: jobId,
+        rating: 5,
+        text: reviewText,
+        timestamp: timestamp
+      }]);
 
       expect((await marketplaceData.users(user2.address)).reputationUp).to.equal(1);
       expect((await marketplaceData.users(user2.address)).reputationDown).to.equal(0);

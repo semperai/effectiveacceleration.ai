@@ -61,6 +61,14 @@ struct UserRating {
     uint256 numberOfReviews;
 }
 
+struct Review {
+    address reviewer;
+    uint256 jobId;
+    uint8 rating;
+    string text;
+    uint32 timestamp;
+}
+
 contract MarketplaceDataV1 is OwnableUpgradeable {
     event JobEvent(uint256 indexed jobId, JobEventData eventData);
     event PublicKeyRegistered(address indexed addr, bytes pubkey);
@@ -85,9 +93,11 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
     // Current average rating and number of ratings for each user
     mapping(address => UserRating) public userRatings;
 
+    mapping(address => Review[]) public userReviews;
+
     mapping(string => string) public meceTags;
 
-    uint256[43] __gap; // upgradeable gap
+    uint256[41] __gap; // upgradeable gap
 
     modifier onlyMarketplace() {
         require(msg.sender == address(marketplace), "not marketplace");
@@ -346,5 +356,32 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
     function removeMeceTag(string memory shortForm) public onlyOwner {
         require(bytes(meceTags[shortForm]).length != 0, "MECE tag does not exist");
         delete meceTags[shortForm];
+    }
+
+    function addReview(address target_, address reviewer_, uint256 jobId_, uint8 rating_, string memory text_) public onlyMarketplace {
+        userReviews[target_].push(Review({
+            reviewer: reviewer_,
+            jobId: jobId_,
+            rating: rating_,
+            text: text_,
+            timestamp: uint32(block.timestamp)
+        }));
+    }
+
+    function getReviews(address target_, uint256 index_, uint256 limit_) public view returns (Review[] memory) {
+        uint256 reviewsLength_ = userReviews[target_].length;
+        require(index_ < reviewsLength_, "index out of bounds");
+
+        uint length = reviewsLength_ - index_;
+        if (limit_ == 0) {
+            limit_ = length;
+        }
+        length = length > limit_ ? limit_ : length;
+        Review[] memory result = new Review[](length);
+        for (uint i = 0; i < length; i++) {
+            result[i] = userReviews[target_][i + index_];
+        }
+
+        return result;
     }
 }
