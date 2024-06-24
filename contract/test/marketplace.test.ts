@@ -141,8 +141,9 @@ describe("Marketplace Unit Tests", () => {
     user1: SignerWithAddress;
     user2: SignerWithAddress;
     arbitrator: SignerWithAddress;
+    user4: SignerWithAddress;
   }> {
-    const [deployer, user1, user2, arbitrator] = await ethers.getSigners();
+    const [deployer, user1, user2, arbitrator, user4] = await ethers.getSigners();
 
     const { unicrow, unicrowDispute, unicrowArbitrator } = await deployUnicrowSuite();
 
@@ -186,13 +187,14 @@ describe("Marketplace Unit Tests", () => {
     await fakeToken.connect(deployer).transfer(await user2.getAddress(), BigInt(1000e18));
     await fakeToken.connect(user2).approve(await marketplace.getAddress(), BigInt(2000e18));
 
-    return { marketplace, marketplaceData, fakeToken, deployer, user1, user2, arbitrator };
+    return { marketplace, marketplaceData, fakeToken, deployer, user1, user2, arbitrator, user4 };
   }
 
   async function getWalletsFixture(): Promise<{
     wallet1: HDNodeWallet;
     wallet2: HDNodeWallet;
     wallet3: HDNodeWallet;
+    wallet4: HDNodeWallet;
   }> {
     const [deployer] = await ethers.getSigners();
 
@@ -201,8 +203,9 @@ describe("Marketplace Unit Tests", () => {
     const wallet1 = ethers.HDNodeWallet.fromMnemonic(ethers.Mnemonic.fromPhrase(accounts.mnemonic), accounts.path + `/${index}`).connect(deployer.provider);
     const wallet2 = ethers.HDNodeWallet.fromMnemonic(ethers.Mnemonic.fromPhrase(accounts.mnemonic), accounts.path + `/${index + 1}`).connect(deployer.provider);
     const wallet3 = ethers.HDNodeWallet.fromMnemonic(ethers.Mnemonic.fromPhrase(accounts.mnemonic), accounts.path + `/${index + 2}`).connect(deployer.provider);
+    const wallet4 = ethers.HDNodeWallet.fromMnemonic(ethers.Mnemonic.fromPhrase(accounts.mnemonic), accounts.path + `/${index + 3}`).connect(deployer.provider);
 
-    return { wallet1, wallet2, wallet3 };
+    return { wallet1, wallet2, wallet3, wallet4 };
   }
 
   const checkJobFromStateDiffs = async (marketplace: Marketplace, marketplaceData, jobId: bigint, eventId: number | undefined = undefined) => {
@@ -536,8 +539,9 @@ describe("Marketplace Unit Tests", () => {
       user1,
       user2,
       arbitrator,
+      user4,
     } = await loadFixture(deployContractsFixture);
-    const { wallet1, wallet2, wallet3 } = await loadFixture(getWalletsFixture);
+    const { wallet1, wallet2, wallet3, wallet4 } = await loadFixture(getWalletsFixture);
     await registerPublicKey(marketplaceData, user1, wallet1);
     await registerPublicKey(marketplaceData, user2, wallet2);
     if (arbitratorRequired) {
@@ -564,7 +568,7 @@ describe("Marketplace Unit Tests", () => {
       )).wait();
 
     const jobId = 0n;
-    return { marketplace, marketplaceData, fakeToken, user1, user2, arbitrator, wallet1, wallet2, wallet3, jobId };
+    return { marketplace, marketplaceData, fakeToken, user1, user2, arbitrator, user4, wallet1, wallet2, wallet3, wallet4, jobId };
   }
 
   describe("unicrow params", () => {
@@ -853,14 +857,33 @@ describe("Marketplace Unit Tests", () => {
         .whitelistWorkers(jobId, user1.address)).to.be.false;
     });
 
-    it.skip("post job with workers", async () => {
-      // not supported
-      // TODO test workers
-    });
+    it("post job with arbitrator same as creator", async () => {
+      const { marketplace, marketplaceData, fakeToken, user1, user2 } = await loadFixture(deployContractsFixture);
+      const { wallet1 } = await loadFixture(getWalletsFixture);
 
-    it.skip("post job with both whitelist and workers", async () => {
-      // not supported
-      // TODO test whitelist and workers
+      await registerPublicKey(marketplaceData, user1, wallet1);
+
+      const title = "Create a marketplace in solidity!";
+      const content = "Please create a marketplace in solidity";
+      const contentHash = "0xa0b16ada95e7d6bd78efb91c368a3bd6d3b0f6b77cd3f27664475522ee138ae5";
+
+      await registerArbitrator(marketplaceData, user1, wallet1);
+      await expect(marketplace
+        .connect(user1)
+        .publishJobPost(
+          title,
+          contentHash,
+          false,
+          ["DV"],
+          await fakeToken.getAddress(),
+          BigInt(100e18),
+          120,
+          "digital",
+          user1.address,
+          [user1.address]
+        )
+      )
+      .to.be.revertedWith("arbitrator and job creator can not be the same person");
     });
 
     it("post job with invalid token", async () => {
@@ -1235,7 +1258,7 @@ describe("Marketplace Unit Tests", () => {
 
   describe("job updates", () => {
     it("update job", async () => {
-      const { marketplace, marketplaceData, user1, user2, fakeToken, wallet2, wallet3, jobId } = await deployMarketplaceWithUsersAndJob();
+      const { marketplace, marketplaceData, user1, user2, fakeToken, wallet1, wallet2, wallet3, jobId } = await deployMarketplaceWithUsersAndJob();
 
       const title = "New title";
       const content = "Please create a marketplace in solidity";
@@ -1245,6 +1268,18 @@ describe("Marketplace Unit Tests", () => {
       const maxTime = 240;
       const arbitrator = await wallet3.getAddress();
       const whitelistWorkers = true;
+
+      await registerArbitrator(marketplaceData, user1, wallet1);
+      await expect(marketplace.connect(user1).updateJobPost(
+        jobId,
+        title,
+        contentHash,
+        tags,
+        amount,
+        maxTime,
+        user1.address,
+        whitelistWorkers,
+      )).to.be.revertedWith("arbitrator and job creator can not be the same person");
 
       await expect(marketplace.connect(user2).updateJobPost(
         jobId,
@@ -1850,11 +1885,26 @@ describe("Marketplace Unit Tests", () => {
   describe("take job", () => {
     it("sanity checks", async () => {
       const randomWallet = ethers.Wallet.createRandom();
-      const { marketplace, marketplaceData, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+      const { marketplace, marketplaceData, fakeToken, user1, user2, arbitrator, user4, wallet1, wallet2, wallet3, wallet4, jobId } = await deployMarketplaceWithUsersAndJob();
+
+      await registerPublicKey(marketplaceData, user4, wallet4);
 
       await expect(
-        marketplace.connect(user1).takeJob(jobId, "0x")
+        marketplace.connect(user4).takeJob(jobId, "0x")
       ).to.be.revertedWith("not whitelisted");
+
+      {
+        const { marketplace, marketplaceData, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(true, false);
+
+        await registerPublicKey(marketplaceData, arbitrator, wallet3);
+
+        await expect(
+          marketplace.connect(user1).takeJob(jobId, "0x")
+        ).to.be.revertedWith("worker and job creator can not be the same person");
+        await expect(
+          marketplace.connect(arbitrator).takeJob(jobId, "0x")
+        ).to.be.revertedWith("worker and arbitrator can not be the same person");
+      }
 
       {
         const { marketplace, marketplaceData, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(true, false);
@@ -1986,6 +2036,19 @@ describe("Marketplace Unit Tests", () => {
 
   describe("pay start job", () => {
     it("sanity checks", async () => {
+      {
+        const { marketplace, marketplaceData, fakeToken, user1, user2, arbitrator, wallet1, wallet2, wallet3, jobId } = await deployMarketplaceWithUsersAndJob(true, false);
+
+        await registerPublicKey(marketplaceData, arbitrator, wallet3);
+
+        await expect(
+          marketplace.connect(user1).payStartJob(jobId, user1.address)
+        ).to.be.revertedWith("worker and job creator can not be the same person");
+        await expect(
+          marketplace.connect(arbitrator).takeJob(jobId, arbitrator.address)
+        ).to.be.revertedWith("worker and arbitrator can not be the same person");
+      }
+
       const randomWallet = ethers.Wallet.createRandom();
       const { marketplace, marketplaceData, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
 

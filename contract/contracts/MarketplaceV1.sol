@@ -218,7 +218,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         string memory title_,
         string[] memory tags_,
         uint256 amount_,
-        address arbitrator_
+        address arbitrator_,
+        address creator_
     ) internal {
         uint256 titleLength = bytes(title_).length;
         require(titleLength > 0 && titleLength < 255, "title too short or long");
@@ -226,6 +227,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         require(tags_.length > 0, "At least one tag is required");
         if (arbitrator_ != address(0)) {
             require(marketplaceData.arbitratorRegistered(arbitrator_), "arbitrator not registered");
+            require(arbitrator_ != creator_, "arbitrator and job creator can not be the same person");
         }
 
         uint meceCount = 0;
@@ -272,7 +274,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         address arbitrator_,
         address[] calldata allowedWorkers_
     ) public returns (uint256) {
-        checkParams(title_, tags_, amount_, arbitrator_);
+        checkParams(title_, tags_, amount_, arbitrator_, msg.sender);
 
         require(token_.code.length > 0 && IERC20(token_).balanceOf(msg.sender) > 0, "invalid token");
         IERC20(token_).approve(address(this), type(uint256).max);
@@ -343,7 +345,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     ) public onlyJobCreator(jobId_) {
         require(jobs[jobId_].state == uint8(JobState.Open), "not open");
 
-        checkParams(title_, tags_, amount_, arbitrator_);
+        checkParams(title_, tags_, amount_, arbitrator_, jobs[jobId_].roles.creator);
 
         JobPost storage job = jobs[jobId_];
 
@@ -563,6 +565,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      */
     function takeJob(uint256 jobId_, bytes calldata signature_) public {
         require(marketplaceData.publicKeyRegistered(msg.sender), "not registered");
+        require(msg.sender != jobs[jobId_].roles.creator, "worker and job creator can not be the same person");
+        require(msg.sender != jobs[jobId_].roles.arbitrator, "worker and arbitrator can not be the same person");
         uint256 eventsLength = marketplaceData.eventsLength(jobId_);
 
         JobPost storage job = jobs[jobId_];
@@ -626,6 +630,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         JobPost storage job = jobs[jobId_];
         require(job.state == uint8(JobState.Open), "not open");
         require(marketplaceData.publicKeyRegistered(worker_), "not registered");
+        require(worker_ != jobs[jobId_].roles.creator, "worker and job creator can not be the same person");
+        require(worker_ != jobs[jobId_].roles.arbitrator, "worker and arbitrator can not be the same person");
 
         job.state = uint8(JobState.Taken);
         job.roles.worker = worker_;
