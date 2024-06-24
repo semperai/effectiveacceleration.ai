@@ -385,25 +385,35 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, marketplaceData, arbitrator, user2 } = await loadFixture(deployContractsFixture);
       const { wallet2, wallet3 } = await loadFixture(getWalletsFixture);
 
-      await expect(marketplaceData.connect(arbitrator).registerArbitrator("0x00", "Test", 100)).to.be.revertedWith("invalid pubkey length, must be compressed, 33 bytes");
+      await expect(marketplaceData.connect(arbitrator).registerArbitrator("0x00", "Test", "Test", "Test", 100)).to.be.revertedWith("invalid pubkey length, must be compressed, 33 bytes");
+
+      await expect(marketplaceData.connect(arbitrator).registerArbitrator(wallet3.publicKey, "", "Test", "Test", 100)).to.be.revertedWith("name too short or long");
+      await expect(marketplaceData.connect(arbitrator).registerArbitrator(wallet3.publicKey, "Test".repeat(6), "Test", "Test", 100)).to.be.revertedWith("name too short or long");
+
+      await expect(marketplaceData.connect(arbitrator).registerArbitrator(wallet3.publicKey, "Test", "T".repeat(300), "Test", 100)).to.be.revertedWith("bio too long");
+      await expect(marketplaceData.connect(arbitrator).registerArbitrator(wallet3.publicKey, "Test", "Test", "T".repeat(200), 100)).to.be.revertedWith("avatar too long");
 
       await expect(marketplaceData
         .connect(arbitrator)
-        .registerArbitrator(wallet3.publicKey, "Test", 100)
-      ).to.emit(marketplaceData, 'ArbitratorRegistered').withArgs(await arbitrator.getAddress(), wallet3.publicKey, "Test", 100);
+        .registerArbitrator(wallet3.publicKey, "Test", "Test", "Test", 100)
+      ).to.emit(marketplaceData, 'ArbitratorRegistered').withArgs(await arbitrator.getAddress(), wallet3.publicKey, "Test", "Test", "Test", 100);
 
       const arbitratorData = await marketplaceData.arbitrators(arbitrator.address);
       expect(arbitratorData.publicKey).to.equal(wallet3.publicKey);
       expect(arbitratorData.name).to.equal("Test");
+      expect(arbitratorData.bio).to.equal("Test");
+      expect(arbitratorData.avatar).to.equal("Test");
       expect(arbitratorData.fee).to.equal(100);
       expect(arbitratorData.settledCount).to.equal(0);
       expect(arbitratorData.refusedCount).to.equal(0);
 
-      await expect(marketplaceData.connect(arbitrator).registerArbitrator(wallet3.publicKey, "Test", 100)).to.be.revertedWith("already registered");
+      await expect(marketplaceData.connect(arbitrator).registerArbitrator(wallet3.publicKey, "Test", "Test", "Test", 100)).to.be.revertedWith("already registered");
 
       expect((await marketplaceData.connect(arbitrator).getArbitrators(0, 0)).map((val: any) => val.toObject())).to.be.deep.equal([{
         publicKey: wallet3.publicKey,
         name: "Test",
+        bio: "Test",
+        avatar: "Test",
         fee: 100,
         settledCount: 0,
         refusedCount: 0,
@@ -412,6 +422,8 @@ describe("Marketplace Unit Tests", () => {
       expect((await marketplaceData.connect(arbitrator).getArbitrators(0, 5)).map((val: any) => val.toObject())).to.be.deep.equal([{
         publicKey: wallet3.publicKey,
         name: "Test",
+        bio: "Test",
+        avatar: "Test",
         fee: 100,
         settledCount: 0,
         refusedCount: 0,
@@ -421,12 +433,56 @@ describe("Marketplace Unit Tests", () => {
 
       await expect(marketplaceData
         .connect(user2)
-        .registerArbitrator(wallet2.publicKey, "Test", 100)
-      ).to.emit(marketplaceData, 'ArbitratorRegistered').withArgs(await user2.getAddress(), wallet2.publicKey, "Test", 100);
+        .registerArbitrator(wallet2.publicKey, "Test", "Test", "Test", 100)
+      ).to.emit(marketplaceData, 'ArbitratorRegistered').withArgs(await user2.getAddress(), wallet2.publicKey, "Test", "Test", "Test", 100);
 
       expect((await marketplaceData.connect(arbitrator).getArbitrators(0, 1)).map((val: any) => val.toObject())).to.be.deep.equal([{
         publicKey: wallet3.publicKey,
         name: "Test",
+        bio: "Test",
+        avatar: "Test",
+        fee: 100,
+        settledCount: 0,
+        refusedCount: 0,
+      }]);
+    });
+
+    it("update arbitrator", async () => {
+      const { marketplace, marketplaceData, arbitrator, user2 } = await loadFixture(deployContractsFixture);
+      const { wallet2, wallet3 } = await loadFixture(getWalletsFixture);
+
+      await expect(marketplaceData.connect(arbitrator).updateArbitrator("Test", "Test", "Test")).to.be.revertedWith("not registered");
+
+      await expect(marketplaceData
+        .connect(arbitrator)
+        .registerArbitrator(wallet3.publicKey, "Test", "Test", "Test", 100)
+      ).to.emit(marketplaceData, 'ArbitratorRegistered').withArgs(await arbitrator.getAddress(), wallet3.publicKey, "Test", "Test", "Test", 100);
+
+      await expect(marketplaceData.connect(arbitrator).updateArbitrator("", "Test", "Test")).to.be.revertedWith("name too short or long");
+      await expect(marketplaceData.connect(arbitrator).updateArbitrator("Test".repeat(6), "Test", "Test")).to.be.revertedWith("name too short or long");
+
+      await expect(marketplaceData.connect(arbitrator).updateArbitrator("Test", "T".repeat(300), "Test")).to.be.revertedWith("bio too long");
+      await expect(marketplaceData.connect(arbitrator).updateArbitrator("Test", "Test", "T".repeat(200))).to.be.revertedWith("avatar too long");
+
+      await expect(marketplaceData
+        .connect(arbitrator)
+        .updateArbitrator("Test2", "Test2", "Test2")
+      ).to.emit(marketplaceData, 'ArbitratorUpdated').withArgs(await arbitrator.getAddress(), "Test2", "Test2", "Test2");
+
+      const arbitratorData = await marketplaceData.arbitrators(arbitrator.address);
+      expect(arbitratorData.publicKey).to.equal(wallet3.publicKey);
+      expect(arbitratorData.name).to.equal("Test2");
+      expect(arbitratorData.bio).to.equal("Test2");
+      expect(arbitratorData.avatar).to.equal("Test2");
+      expect(arbitratorData.fee).to.equal(100);
+      expect(arbitratorData.settledCount).to.equal(0);
+      expect(arbitratorData.refusedCount).to.equal(0);
+
+      expect((await marketplaceData.connect(arbitrator).getArbitrators(0, 0)).map((val: any) => val.toObject())).to.be.deep.equal([{
+        publicKey: wallet3.publicKey,
+        name: "Test2",
+        bio: "Test2",
+        avatar: "Test2",
         fee: 100,
         settledCount: 0,
         refusedCount: 0,
@@ -460,7 +516,7 @@ describe("Marketplace Unit Tests", () => {
   ) {
     await marketplaceData
       .connect(user)
-      .registerArbitrator(wallet.publicKey, "TestArbitrator", 100);
+      .registerArbitrator(wallet.publicKey, "TestArbitrator", "TestBio", "https://example.com/avatar", 100);
   }
 
   async function registerArbitratorWithEncryptionPublicKey(
@@ -469,7 +525,7 @@ describe("Marketplace Unit Tests", () => {
   ) {
     await marketplaceData
       .connect(user)
-      .registerArbitrator((await getEncryptionSigningKey(user)).compressedPublicKey, "TestArbitrator", 100);
+      .registerArbitrator((await getEncryptionSigningKey(user)).compressedPublicKey,"TestArbitrator", "TestBio", "https://example.com/avatar", 100);
   }
 
   async function deployMarketplaceWithUsersAndJob(multipleApplicants: boolean = false, whitelisted: boolean = true, arbitratorRequired: boolean = true) {

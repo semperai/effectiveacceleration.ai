@@ -38,6 +38,8 @@ enum JobEventType {
 struct JobArbitrator {
     bytes publicKey;
     string name;
+    string bio;
+    string avatar;
     uint16 fee;
     uint16 settledCount;
     uint16 refusedCount;
@@ -53,7 +55,8 @@ struct UserRating {
 contract MarketplaceDataV1 is OwnableUpgradeable {
     event JobEvent(uint256 indexed jobId, JobEventData eventData);
     event PublicKeyRegistered(address indexed addr, bytes pubkey);
-    event ArbitratorRegistered(address indexed addr, bytes pubkey, string name, uint16 fee);
+    event ArbitratorRegistered(address indexed addr, bytes pubkey, string name, string bio, string avatar, uint16 fee);
+    event ArbitratorUpdated(address indexed addr, string name, string bio, string avatar);
 
     MarketplaceV1 public marketplace;
 
@@ -173,22 +176,42 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
         return publicKeys[address_].length > 0;
     }
 
+    function checkUserParams(string calldata name_, string calldata bio_, string calldata avatar_) internal {
+        require(bytes(name_).length > 0 && bytes(name_).length < 20, "name too short or long");
+        require(bytes(bio_).length < 255, "bio too long");
+        require(bytes(avatar_).length < 100, "avatar too long");
+    }
+
     // registers an arbitrator with their *message encryption* public key, name and fee they charge
-    function registerArbitrator(bytes calldata pubkey, string calldata name, uint16 fee) public {
+    function registerArbitrator(bytes calldata pubkey_, string calldata name_, string calldata bio_, string calldata avatar_, uint16 fee_) public {
         // presently we do not allow to update the public keys otherwise the decryption of old messages will become impossible
         require(arbitrators[msg.sender].publicKey.length == 0, "already registered");
-        require(pubkey.length == 33, "invalid pubkey length, must be compressed, 33 bytes");
+        require(pubkey_.length == 33, "invalid pubkey length, must be compressed, 33 bytes");
+        checkUserParams(name_, bio_, avatar_);
         arbitrators[msg.sender] = JobArbitrator(
-            pubkey,
-            name,
-            fee,
+            pubkey_,
+            name_,
+            bio_,
+            avatar_,
+            fee_,
             0,
             0
         );
 
         arbitratorAddresses.push(msg.sender);
 
-        emit ArbitratorRegistered(msg.sender, pubkey, name, fee);
+        emit ArbitratorRegistered(msg.sender, pubkey_, name_, bio_, avatar_, fee_);
+    }
+
+    function updateArbitrator(string calldata name_, string calldata bio_, string calldata avatar_) public {
+        require(arbitrators[msg.sender].publicKey.length > 0, "not registered");
+        checkUserParams(name_, bio_, avatar_);
+
+        arbitrators[msg.sender].name = name_;
+        arbitrators[msg.sender].bio = bio_;
+        arbitrators[msg.sender].avatar = avatar_;
+
+        emit ArbitratorUpdated(msg.sender, name_, bio_, avatar_);
     }
 
     function arbitratorRefused(address address_) public onlyMarketplace() {
