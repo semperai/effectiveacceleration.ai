@@ -1,4 +1,4 @@
-import { MARKETPLACE_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceV1";
+import { MARKETPLACE_DATA_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceDataV1";
 import Config from "effectiveacceleration-contracts/scripts/config.json";
 import { useState, useEffect } from "react";
 import { useAccount, useReadContract } from "wagmi";
@@ -9,7 +9,7 @@ export default function usePublicKey(targetAddress: `0x${string}`) {
 
   const result = useReadContract({
     account:      address,
-    abi:          MARKETPLACE_V1_ABI,
+    abi:          MARKETPLACE_DATA_V1_ABI,
     address:      Config.marketplaceDataAddress as `0x${string}`,
     functionName: 'publicKeys',
     args:         [targetAddress],

@@ -30,7 +30,7 @@ export default function useJobEvents(jobId: bigint) {
   const { data: _, ...rest } = result;
 
   useWatchContractEvent({
-    abi: MARKETPLACE_V1_ABI,
+    abi: MARKETPLACE_DATA_V1_ABI,
     address: Config.marketplaceDataAddress as `0x${string}`,
     eventName: 'JobEvent',
     onLogs: async (logs) => {
