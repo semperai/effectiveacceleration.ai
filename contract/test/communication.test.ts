@@ -157,9 +157,9 @@ describe("Encrypted communication tests", async () => {
     const arbitrator = ethers.HDNodeWallet.fromMnemonic(ethers.Mnemonic.fromPhrase(accounts.mnemonic), accounts.path + `/${index + 2}`).connect(deployer.provider);
 
     // everyone registers their public keys some time in the past
-    await marketplaceData.connect(alice).registerPublicKey(alice.publicKey);
-    await marketplaceData.connect(bob).registerPublicKey(bob.publicKey);
-    await marketplaceData.connect(arbitrator).registerPublicKey(arbitrator.publicKey);
+    await marketplaceData.connect(alice).registerUser(alice.publicKey, "name", "bio", "avatar");
+    await marketplaceData.connect(bob).registerUser(bob.publicKey, "name", "bio", "avatar");
+    await marketplaceData.connect(arbitrator).registerUser(arbitrator.publicKey, "name", "bio", "avatar");
 
     // everyone retreives their public keys from blockchain
     const alicePublicKeyCompressed = await marketplaceData.publicKeys(alice.address);
@@ -284,9 +284,9 @@ describe("Encrypted communication tests", async () => {
     const arbitratorEncryptionSigningKey = new ethers.SigningKey(ethers.keccak256(ethers.keccak256(arbitratorSignature)));
 
     // everyone registers their public keys some time in the past
-    await marketplaceData.connect(alice).registerPublicKey(aliceEncryptionSigningKey.compressedPublicKey);
-    await marketplaceData.connect(bob).registerPublicKey(bobEncryptionSigningKey.compressedPublicKey);
-    await marketplaceData.connect(arbitrator).registerPublicKey(arbitratorEncryptionSigningKey.compressedPublicKey);
+    await marketplaceData.connect(alice).registerUser(aliceEncryptionSigningKey.compressedPublicKey, "name", "bio", "avatar");
+    await marketplaceData.connect(bob).registerUser(bobEncryptionSigningKey.compressedPublicKey, "name", "bio", "avatar");
+    await marketplaceData.connect(arbitrator).registerUser(arbitratorEncryptionSigningKey.compressedPublicKey, "name", "bio", "avatar");
 
     // everyone retreives their public keys from blockchain
     const alicePublicKeyCompressed = await marketplaceData.publicKeys(alice.address);

@@ -365,21 +365,68 @@ describe("Marketplace Unit Tests", () => {
     });
   });
 
-  describe("register pubkey", () => {
-    it("register pubkey", async () => {
+  describe("register user", () => {
+    it("register user", async () => {
       const { marketplace, marketplaceData, user1 } = await loadFixture(deployContractsFixture);
       const { wallet1 } = await loadFixture(getWalletsFixture);
 
-      await expect(marketplaceData.connect(user1).registerPublicKey("0x00")).to.be.revertedWith("invalid pubkey length, must be compressed, 33 bytes");
+      await expect(marketplaceData.connect(user1).registerUser("0x00", "test", "test", "test")).to.be.revertedWith("invalid pubkey length, must be compressed, 33 bytes");
+
+      await expect(marketplaceData.connect(user1).registerUser(wallet1.publicKey, "", "Test", "Test")).to.be.revertedWith("name too short or long");
+      await expect(marketplaceData.connect(user1).registerUser(wallet1.publicKey, "Test".repeat(6), "Test", "Test")).to.be.revertedWith("name too short or long");
+
+      await expect(marketplaceData.connect(user1).registerUser(wallet1.publicKey, "Test", "T".repeat(300), "Test")).to.be.revertedWith("bio too long");
+      await expect(marketplaceData.connect(user1).registerUser(wallet1.publicKey, "Test", "Test", "T".repeat(200))).to.be.revertedWith("avatar too long");
+
 
       await expect(marketplaceData
         .connect(user1)
-        .registerPublicKey(wallet1.publicKey)
-      ).to.emit(marketplaceData, 'PublicKeyRegistered').withArgs(await user1.getAddress(), wallet1.publicKey);
+        .registerUser(wallet1.publicKey, "test", "test", "test")
+      ).to.emit(marketplaceData, 'UserRegistered').withArgs(await user1.getAddress(), wallet1.publicKey, "test", "test", "test");
 
       expect(await marketplaceData.publicKeys(await user1.getAddress())).to.equal(wallet1.publicKey);
 
-      await expect(marketplaceData.connect(user1).registerPublicKey(wallet1.publicKey)).to.be.revertedWith("already registered");
+      await expect(marketplaceData.connect(user1).registerUser(wallet1.publicKey, "test", "test", "test")).to.be.revertedWith("already registered");
+    });
+
+    it("update user", async () => {
+      const { marketplace, marketplaceData, arbitrator, user1, user2 } = await loadFixture(deployContractsFixture);
+      const { wallet1, wallet2, wallet3 } = await loadFixture(getWalletsFixture);
+
+      await expect(marketplaceData.connect(user1).updateUser("Test", "Test", "Test")).to.be.revertedWith("not registered");
+
+      await expect(marketplaceData
+        .connect(user1)
+        .registerUser(wallet1.publicKey, "Test", "Test", "Test")
+      ).to.emit(marketplaceData, 'UserRegistered').withArgs(await user1.getAddress(), wallet1.publicKey, "Test", "Test", "Test");
+
+      await expect(marketplaceData.connect(user1).updateUser("", "Test", "Test")).to.be.revertedWith("name too short or long");
+      await expect(marketplaceData.connect(user1).updateUser("Test".repeat(6), "Test", "Test")).to.be.revertedWith("name too short or long");
+
+      await expect(marketplaceData.connect(user1).updateUser("Test", "T".repeat(300), "Test")).to.be.revertedWith("bio too long");
+      await expect(marketplaceData.connect(user1).updateUser("Test", "Test", "T".repeat(200))).to.be.revertedWith("avatar too long");
+
+      await expect(marketplaceData
+        .connect(user1)
+        .updateUser("Test2", "Test2", "Test2")
+      ).to.emit(marketplaceData, 'UserUpdated').withArgs(await user1.getAddress(), "Test2", "Test2", "Test2");
+
+      const userData = await marketplaceData.users(user1.address);
+      expect(userData.publicKey).to.equal(wallet1.publicKey);
+      expect(userData.name).to.equal("Test2");
+      expect(userData.bio).to.equal("Test2");
+      expect(userData.avatar).to.equal("Test2");
+      expect(userData.reputationUp).to.equal(0);
+      expect(userData.reputationDown).to.equal(0);
+
+      expect((await marketplaceData.connect(user1).getUsers(0, 0)).map((val: any) => val.toObject())).to.be.deep.equal([{
+        publicKey: wallet1.publicKey,
+        name: "Test2",
+        bio: "Test2",
+        avatar: "Test2",
+        reputationUp: 0,
+        reputationDown: 0,
+      }]);
     });
   });
 
@@ -500,7 +547,7 @@ describe("Marketplace Unit Tests", () => {
   ) {
     await marketplaceData
       .connect(user)
-      .registerPublicKey(wallet.publicKey);
+      .registerUser(wallet.publicKey, "TestUser", "TestBio", "https://example.com/avatar");
   }
 
   async function registerEncryptionPublicKey(
@@ -509,7 +556,7 @@ describe("Marketplace Unit Tests", () => {
   ) {
     await marketplaceData
       .connect(user)
-      .registerPublicKey((await getEncryptionSigningKey(user)).compressedPublicKey);
+      .registerUser((await getEncryptionSigningKey(user)).compressedPublicKey, "TestUser", "TestBio", "https://example.com/avatar");
   }
 
   async function registerArbitrator(
@@ -528,7 +575,7 @@ describe("Marketplace Unit Tests", () => {
   ) {
     await marketplaceData
       .connect(user)
-      .registerArbitrator((await getEncryptionSigningKey(user)).compressedPublicKey,"TestArbitrator", "TestBio", "https://example.com/avatar", 100);
+      .registerArbitrator((await getEncryptionSigningKey(user)).compressedPublicKey, "TestArbitrator", "TestBio", "https://example.com/avatar", 100);
   }
 
   async function deployMarketplaceWithUsersAndJob(multipleApplicants: boolean = false, whitelisted: boolean = true, arbitratorRequired: boolean = true) {
@@ -2389,6 +2436,9 @@ describe("Marketplace Unit Tests", () => {
         return true;
       }).and.to.emit(unicrowGlobal, "Release");
 
+      expect((await marketplaceData.users(user2.address)).reputationUp).to.equal(1);
+      expect((await marketplaceData.users(user2.address)).reputationDown).to.equal(0);
+
       await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
@@ -2501,6 +2551,9 @@ describe("Marketplace Unit Tests", () => {
 
         return true;
       });
+
+      expect((await marketplaceData.users(user2.address)).reputationUp).to.equal(0);
+      expect((await marketplaceData.users(user2.address)).reputationDown).to.equal(1);
 
       await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
 
@@ -3016,6 +3069,9 @@ describe("Marketplace Unit Tests", () => {
         expect(arbitratorData.settledCount).to.equal(0);
         expect(arbitratorData.refusedCount).to.equal(1);
       }
+
+      expect((await marketplaceData.users(user2.address)).reputationUp).to.equal(0);
+      expect((await marketplaceData.users(user2.address)).reputationDown).to.equal(0);
     });
 
     it("job taken", async () => {

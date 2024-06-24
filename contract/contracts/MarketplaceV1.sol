@@ -281,7 +281,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         uint256 deliveyMethodLength = bytes(deliveryMethod_).length;
         require(deliveyMethodLength > 0 && deliveyMethodLength < 255, "delivery method too short or long");
-        require(marketplaceData.publicKeyRegistered(msg.sender), "not registered");
+        require(marketplaceData.userRegistered(msg.sender), "not registered");
 
         SafeERC20.safeTransferFrom(IERC20(token_), msg.sender, address(this), amount_);
 
@@ -564,7 +564,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      * @param signature_ worker's signature of all the job parameters
      */
     function takeJob(uint256 jobId_, bytes calldata signature_) public {
-        require(marketplaceData.publicKeyRegistered(msg.sender), "not registered");
+        require(marketplaceData.userRegistered(msg.sender), "not registered");
         require(msg.sender != jobs[jobId_].roles.creator, "worker and job creator can not be the same person");
         require(msg.sender != jobs[jobId_].roles.arbitrator, "worker and arbitrator can not be the same person");
         uint256 eventsLength = marketplaceData.eventsLength(jobId_);
@@ -629,7 +629,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     function payStartJob(uint256 jobId_, address worker_) public payable onlyJobCreator(jobId_) {
         JobPost storage job = jobs[jobId_];
         require(job.state == uint8(JobState.Open), "not open");
-        require(marketplaceData.publicKeyRegistered(worker_), "not registered");
+        require(marketplaceData.userRegistered(worker_), "not registered");
         require(worker_ != jobs[jobId_].roles.creator, "worker and job creator can not be the same person");
         require(worker_ != jobs[jobId_].roles.arbitrator, "worker and arbitrator can not be the same person");
 
@@ -704,6 +704,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             review(jobId_, reviewRating_, reviewText_);
         }
 
+        marketplaceData.userDelivered(job.roles.worker);
+
         publishJobEvent(jobId_,
             JobEventData({
                 type_: uint8(JobEventType.Completed),
@@ -749,6 +751,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         // remove the worker from the whitelist
         if (byWorker) {
+            marketplaceData.userRefunded(job.roles.worker);
+
             address[] memory disallowedWorkers_ = new address[](1);
             disallowedWorkers_[0] = job.roles.worker;
             _updateJobWhitelist(jobId_, new address[](0), disallowedWorkers_);

@@ -45,6 +45,15 @@ struct JobArbitrator {
     uint16 refusedCount;
 }
 
+struct User {
+    bytes publicKey;
+    string name;
+    string bio;
+    string avatar;
+    uint16 reputationUp;
+    uint16 reputationDown;
+}
+
 /// @dev Stores current average user's rating and number of reviews so it can be updated with every new review
 struct UserRating {
     /// @dev Current rating multiplied by 10,000 to achieve sufficient granularity even with lots of existing reviews
@@ -55,6 +64,8 @@ struct UserRating {
 contract MarketplaceDataV1 is OwnableUpgradeable {
     event JobEvent(uint256 indexed jobId, JobEventData eventData);
     event PublicKeyRegistered(address indexed addr, bytes pubkey);
+    event UserRegistered(address indexed addr, bytes pubkey, string name, string bio, string avatar);
+    event UserUpdated(address indexed addr, string name, string bio, string avatar);
     event ArbitratorRegistered(address indexed addr, bytes pubkey, string name, string bio, string avatar, uint16 fee);
     event ArbitratorUpdated(address indexed addr, string name, string bio, string avatar);
 
@@ -65,7 +76,8 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
 
     // users must register their public keys (compressed, 33 bytes)
     // this allows others to guarantee they can message securely
-    mapping(address => bytes) public publicKeys;
+    mapping(address => User) public users;
+    address[] public userAddresses;
 
     mapping(address => JobArbitrator) public arbitrators;
     address[] public arbitratorAddresses;
@@ -161,25 +173,83 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
         return result;
     }
 
-    // allow users to register their *message encryption* public key
-    // this is used to allow others to message you securely
-    // we do not do verification here because we want to allow contracts to register
-    function registerPublicKey(bytes calldata pubkey) public {
-        // presently we do not allow to update the public keys otherwise the decryption of old messages will become impossible
-        require(publicKeys[msg.sender].length == 0, "already registered");
-        require(pubkey.length == 33, "invalid pubkey length, must be compressed, 33 bytes");
-        publicKeys[msg.sender] = pubkey;
-        emit PublicKeyRegistered(msg.sender, pubkey);
-    }
-
-    function publicKeyRegistered(address address_) public view returns (bool) {
-        return publicKeys[address_].length > 0;
-    }
-
     function checkUserParams(string calldata name_, string calldata bio_, string calldata avatar_) internal {
         require(bytes(name_).length > 0 && bytes(name_).length < 20, "name too short or long");
         require(bytes(bio_).length < 255, "bio too long");
         require(bytes(avatar_).length < 100, "avatar too long");
+    }
+
+    // allow users to register their *message encryption* public key
+    // this is used to allow others to message you securely
+    // we do not do verification here because we want to allow contracts to register
+    function registerUser(bytes calldata pubkey_, string calldata name_, string calldata bio_, string calldata avatar_) public {
+        // presently we do not allow to update the public keys otherwise the decryption of old messages will become impossible
+        require(users[msg.sender].publicKey.length == 0, "already registered");
+        require(pubkey_.length == 33, "invalid pubkey length, must be compressed, 33 bytes");
+        checkUserParams(name_, bio_, avatar_);
+        users[msg.sender] = User(
+            pubkey_,
+            name_,
+            bio_,
+            avatar_,
+            0,
+            0
+        );
+
+        userAddresses.push(msg.sender);
+
+        emit UserRegistered(msg.sender, pubkey_, name_, bio_, avatar_);
+    }
+
+    function updateUser(string calldata name_, string calldata bio_, string calldata avatar_) public {
+        require(users[msg.sender].publicKey.length > 0, "not registered");
+        checkUserParams(name_, bio_, avatar_);
+
+        users[msg.sender].name = name_;
+        users[msg.sender].bio = bio_;
+        users[msg.sender].avatar = avatar_;
+
+        emit UserUpdated(msg.sender, name_, bio_, avatar_);
+    }
+
+    function userRegistered(address address_) public view returns (bool) {
+        return users[address_].publicKey.length > 0;
+    }
+
+    function userRefunded(address address_) public onlyMarketplace() {
+        users[address_].reputationDown += 1;
+    }
+
+    function userDelivered(address address_) public onlyMarketplace() {
+        users[address_].reputationUp += 1;
+    }
+
+    function usersLength() public view returns (uint256) {
+        return userAddresses.length;
+    }
+
+    function getUsers(uint256 index_, uint256 limit_) public view returns (User[] memory) {
+        uint256 usersLength_ = userAddresses.length;
+        require(index_ < usersLength_, "index out of bounds");
+
+        uint length = usersLength_ - index_;
+        if (limit_ == 0) {
+            limit_ = length;
+        }
+        length = length > limit_ ? limit_ : length;
+        User[] memory result = new User[](length);
+        for (uint i = 0; i < length; i++) {
+            result[i] = users[userAddresses[i + index_]];
+        }
+        return result;
+    }
+
+    function publicKeys(address userAddress_) public view returns (bytes memory) {
+        return users[userAddress_].publicKey;
+    }
+
+    function getUser(address userAddress_) public view returns (User memory) {
+        return users[userAddress_];
     }
 
     // registers an arbitrator with their *message encryption* public key, name and fee they charge
