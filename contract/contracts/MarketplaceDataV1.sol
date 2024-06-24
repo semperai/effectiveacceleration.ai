@@ -341,6 +341,10 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
         rating.numberOfReviews++;
     }
 
+    function getUserRating(address userAddress_) public view returns (UserRating memory) {
+        return userRatings[userAddress_];
+    }
+
     // Function to read MECE tag's long form given the short form
     function readMeceTag(string memory shortForm) public view returns (string memory) {
         require(bytes(meceTags[shortForm]).length != 0, "Invalid MECE tag");

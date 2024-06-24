@@ -4,13 +4,17 @@ import { MARKETPLACE_DATA_V1_ABI } from "../wagmi/MarketplaceDataV1";
 type GetElementType<T extends any[] | undefined> = T extends (infer U)[] ? U : never;
 type DeepWriteable<T> = { -readonly [P in keyof T]: DeepWriteable<T[P]> };
 
+export type Arbitrator = ReadContractReturnType<typeof MARKETPLACE_DATA_V1_ABI, 'getArbitrator'>;
+export type User = ReadContractReturnType<typeof MARKETPLACE_DATA_V1_ABI, 'getUser'>;
+export type UserRating = ReadContractReturnType<typeof MARKETPLACE_DATA_V1_ABI, 'getUserRating'>;
+export type Review = GetElementType<DeepWriteable<ReadContractReturnType<typeof MARKETPLACE_DATA_V1_ABI, 'getReviews'>>>;
+
 export type Job = {
   id?: bigint,
   content?: string,
   result?: string,
   allowedWorkers?: string[],
 } & DeepWriteable<ReadContractReturnType<typeof MARKETPLACE_DATA_V1_ABI, 'getJob'>>;
-export type Arbitrator = ReadContractReturnType<typeof MARKETPLACE_DATA_V1_ABI, 'getArbitrator'>;
 export type JobEvent = {
   id?: bigint,
   details?: CustomJobEvent,
