@@ -154,9 +154,9 @@ task("marketplace:seed", "Seed local marketplace instance")
   await fakeToken.connect(arbitrator).approve(await marketplace.getAddress(), BigInt(2000e18));
 
   console.log("Registering users");
-  await marketplace.connect(owner).registerPublicKey((await getEncryptionSigningKey(owner)).compressedPublicKey);
-  await marketplace.connect(worker).registerPublicKey((await getEncryptionSigningKey(worker)).compressedPublicKey);
-  await marketplaceData.connect(arbitrator).registerArbitrator((await getEncryptionSigningKey(arbitrator)).compressedPublicKey, "Arbitrator", 100);
+  await marketplaceData.connect(owner).registerUser((await getEncryptionSigningKey(owner)).compressedPublicKey, "Owner", "I am the coolest job creator", "https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80");
+  await marketplaceData.connect(worker).registerUser((await getEncryptionSigningKey(worker)).compressedPublicKey, "Worker", "Best worker around", "https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80");
+  await marketplaceData.connect(arbitrator).registerArbitrator((await getEncryptionSigningKey(arbitrator)).compressedPublicKey, "Arbitrator", "I can arbitrate anything", "https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80", 100);
 
   console.log('Creating jobs');
   {
@@ -224,7 +224,7 @@ task("marketplace:seed", "Seed local marketplace instance")
     const jobId = 1;
 
     // worker reads the post data
-    const workerSessionKey = await getSessionKey(worker, await marketplace.connect(worker).publicKeys(owner.address));
+    const workerSessionKey = await getSessionKey(worker, await marketplaceData.connect(worker).publicKeys(owner.address));
 
     // worker posts a thread message
     const workerMessage = "I can do it!";
@@ -253,7 +253,7 @@ task("marketplace:seed", "Seed local marketplace instance")
     const jobId = 2;
 
     // worker reads the post data
-    const workerSessionKey = await getSessionKey(worker, await marketplace.connect(worker).publicKeys(owner.address));
+    const workerSessionKey = await getSessionKey(worker, await marketplaceData.connect(worker).publicKeys(owner.address));
 
     // worker posts a thread message
     const workerMessage = "I can do it!";
@@ -261,7 +261,7 @@ task("marketplace:seed", "Seed local marketplace instance")
 
     await marketplace.connect(worker).postThreadMessage(jobId, workerMessageHash);
 
-    const ownerSessionKey = await getSessionKey(owner, await marketplace.connect(owner).publicKeys(worker.address));
+    const ownerSessionKey = await getSessionKey(owner, await marketplaceData.connect(owner).publicKeys(worker.address));
     const ownerMessage = "Go ahead!";
     const { hash: ownerMessageHash } = await publishToIpfs(ownerMessage, ownerSessionKey);
 
@@ -281,7 +281,7 @@ task("marketplace:seed", "Seed local marketplace instance")
 
     // owner raises a dispute
     const disputeContent = "I am not satisfied with the result";
-    const sessionKeyOW = await getSessionKey(owner, await marketplace.connect(owner).publicKeys(worker.address));
+    const sessionKeyOW = await getSessionKey(owner, await marketplaceData.connect(owner).publicKeys(worker.address));
     const sessionKeyOA = await getSessionKey(owner, (await marketplaceData.connect(owner).arbitrators(arbitrator.address)).publicKey);
 
     const encryptedContent = hexlify(encryptUtf8Data(disputeContent, sessionKeyOA));
