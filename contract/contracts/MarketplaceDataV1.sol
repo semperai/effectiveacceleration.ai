@@ -188,7 +188,7 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
     function checkUserParams(string calldata name_, string calldata bio_, string calldata avatar_) internal {
         require(bytes(name_).length > 0 && bytes(name_).length < 20, "name too short or long");
         require(bytes(bio_).length < 255, "bio too long");
-        require(bytes(avatar_).length < 100, "avatar too long");
+        require(bytes(avatar_).length < 150, "avatar too long");
     }
 
     // allow users to register their *message encryption* public key

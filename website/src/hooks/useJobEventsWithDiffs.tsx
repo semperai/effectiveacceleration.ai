@@ -69,8 +69,6 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
 
   useEffect(() => {
     (async () => {
-      console.log(!jobEventsWithDiffs.length || !Object.keys(publicKeys.data).length || !Object.keys(arbitratorPublicKeys.data).length, 
-      !jobEventsWithDiffs.length , !Object.keys(publicKeys.data).length , !Object.keys(arbitratorPublicKeys.data).length)
       if (!jobEventsWithDiffs.length || !Object.keys(publicKeys.data).length || !Object.keys(arbitratorPublicKeys.data).length) {
         return;
       }

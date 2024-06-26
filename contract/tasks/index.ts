@@ -131,12 +131,13 @@ task("marketplace:seed", "Seed local marketplace instance")
   const marketplace = await Marketplace.attach(Config.marketplaceAddress) as unknown as Marketplace;
 
   const MarketplaceData = await hre.ethers.getContractFactory("MarketplaceDataV1");
-  const marketplaceData = await Marketplace.attach(Config.marketplaceDataAddress) as unknown as MarketplaceData;
+  const marketplaceData = await MarketplaceData.attach(Config.marketplaceDataAddress) as unknown as MarketplaceData;
 
   const FakeToken = await hre.ethers.getContractFactory("FakeToken");
   const fakeToken = FakeToken.attach(Config.fakeTokenAddress) as unknown as FakeToken;
 
   const [deployer, owner, worker, arbitrator] = await hre.ethers.getSigners();
+  await marketplace.connect(deployer).setMarketplaceDataAddress(await marketplaceData.getAddress());
 
   console.log('Seeding marketplace with test data');
 
