@@ -14,7 +14,7 @@ export default function useUsersByAddresses(targetAddresses: string[]) {
 
   useEffect(() => {
     const checkedItems = targetAddresses.map((targetAddress) => {
-      const checkedItem = localStorage.getItem(`user-${targetAddress}`);
+      const checkedItem = sessionStorage.getItem(`user-${targetAddress}`);
       return {targetAddress, checkedItem };
     });
 
@@ -48,7 +48,7 @@ export default function useUsersByAddresses(targetAddresses: string[]) {
           const targetAddress = missedItems[index].targetAddress;
           resultMap[targetAddress] = data.result as unknown as User;
 
-          localStorage.setItem(`user-${targetAddress}`, JSON.stringify(data.result));
+          sessionStorage.setItem(`user-${targetAddress}`, JSON.stringify(data.result));
         }
       });
 
