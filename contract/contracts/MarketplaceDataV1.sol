@@ -36,6 +36,7 @@ enum JobEventType {
 }
 
 struct JobArbitrator {
+    address address_;
     bytes publicKey;
     string name;
     string bio;
@@ -46,6 +47,7 @@ struct JobArbitrator {
 }
 
 struct User {
+    address address_;
     bytes publicKey;
     string name;
     string bio;
@@ -198,6 +200,7 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
         require(pubkey_.length == 33, "invalid pubkey length, must be compressed, 33 bytes");
         checkUserParams(name_, bio_, avatar_);
         users[msg.sender] = User(
+            msg.sender,
             pubkey_,
             name_,
             bio_,
@@ -269,6 +272,7 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
         require(pubkey_.length == 33, "invalid pubkey length, must be compressed, 33 bytes");
         checkUserParams(name_, bio_, avatar_);
         arbitrators[msg.sender] = JobArbitrator(
+            msg.sender,
             pubkey_,
             name_,
             bio_,

@@ -413,6 +413,7 @@ describe("Marketplace Unit Tests", () => {
       ).to.emit(marketplaceData, 'UserUpdated').withArgs(await user1.getAddress(), "Test2", "Test2", "Test2");
 
       const userData = await marketplaceData.users(user1.address);
+      expect(userData.address_).to.equal(wallet1.address);
       expect(userData.publicKey).to.equal(wallet1.publicKey);
       expect(userData.name).to.equal("Test2");
       expect(userData.bio).to.equal("Test2");
@@ -421,6 +422,7 @@ describe("Marketplace Unit Tests", () => {
       expect(userData.reputationDown).to.equal(0);
 
       expect((await marketplaceData.connect(user1).getUsers(0, 0)).map((val: any) => val.toObject())).to.be.deep.equal([{
+        address_: user1.address,
         publicKey: wallet1.publicKey,
         name: "Test2",
         bio: "Test2",
@@ -461,6 +463,7 @@ describe("Marketplace Unit Tests", () => {
       await expect(marketplaceData.connect(arbitrator).registerArbitrator(wallet3.publicKey, "Test", "Test", "Test", 100)).to.be.revertedWith("already registered");
 
       expect((await marketplaceData.connect(arbitrator).getArbitrators(0, 0)).map((val: any) => val.toObject())).to.be.deep.equal([{
+        address_: arbitrator.address,
         publicKey: wallet3.publicKey,
         name: "Test",
         bio: "Test",
@@ -471,6 +474,7 @@ describe("Marketplace Unit Tests", () => {
       }]);
 
       expect((await marketplaceData.connect(arbitrator).getArbitrators(0, 5)).map((val: any) => val.toObject())).to.be.deep.equal([{
+        address_: arbitrator.address,
         publicKey: wallet3.publicKey,
         name: "Test",
         bio: "Test",
@@ -488,6 +492,7 @@ describe("Marketplace Unit Tests", () => {
       ).to.emit(marketplaceData, 'ArbitratorRegistered').withArgs(await user2.getAddress(), wallet2.publicKey, "Test", "Test", "Test", 100);
 
       expect((await marketplaceData.connect(arbitrator).getArbitrators(0, 1)).map((val: any) => val.toObject())).to.be.deep.equal([{
+        address_: arbitrator.address,
         publicKey: wallet3.publicKey,
         name: "Test",
         bio: "Test",
@@ -521,6 +526,7 @@ describe("Marketplace Unit Tests", () => {
       ).to.emit(marketplaceData, 'ArbitratorUpdated').withArgs(await arbitrator.getAddress(), "Test2", "Test2", "Test2");
 
       const arbitratorData = await marketplaceData.arbitrators(arbitrator.address);
+      expect(arbitratorData.address_).to.equal(arbitrator.address);
       expect(arbitratorData.publicKey).to.equal(wallet3.publicKey);
       expect(arbitratorData.name).to.equal("Test2");
       expect(arbitratorData.bio).to.equal("Test2");
@@ -530,6 +536,7 @@ describe("Marketplace Unit Tests", () => {
       expect(arbitratorData.refusedCount).to.equal(0);
 
       expect((await marketplaceData.connect(arbitrator).getArbitrators(0, 0)).map((val: any) => val.toObject())).to.be.deep.equal([{
+        address_: arbitrator.address,
         publicKey: wallet3.publicKey,
         name: "Test2",
         bio: "Test2",
