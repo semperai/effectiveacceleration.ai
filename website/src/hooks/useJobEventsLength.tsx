@@ -6,7 +6,6 @@ import { useAccount, useBlockNumber, useReadContract } from "wagmi";
 export default function useEventsLength(jobId: bigint) {
   const [eventsLength, setEventsLength] = useState<bigint>(0n);
   const { address } = useAccount();
-  const blockNumber = useBlockNumber();
 
   const result = useReadContract({
     account:      address,
@@ -25,5 +24,5 @@ export default function useEventsLength(jobId: bigint) {
     }
   }, [eventsLengthData, address]);
 
-  return useMemo(() => ({ data: eventsLength, ...rest }), [blockNumber, eventsLength]);
+  return useMemo(() => ({ data: eventsLength, ...rest }), [eventsLength, rest]);
 }

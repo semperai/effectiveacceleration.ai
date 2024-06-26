@@ -6,7 +6,6 @@ import { useAccount, useBlockNumber, useReadContract } from "wagmi";
 export default function useUsersLength() {
   const [usersLength, setUsersLength] = useState<bigint>(0n);
   const { address } = useAccount();
-  const blockNumber = useBlockNumber();
 
   const result = useReadContract({
     account:      address,
@@ -25,5 +24,5 @@ export default function useUsersLength() {
     }
   }, [usersLengthData]);
 
-  return useMemo(() => ({ data: usersLength, ...rest }), [blockNumber, usersLength]);
+  return useMemo(() => ({ data: usersLength, ...rest }), [usersLength, rest]);
 }

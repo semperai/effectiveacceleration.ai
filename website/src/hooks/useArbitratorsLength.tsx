@@ -6,7 +6,6 @@ import { useAccount, useBlockNumber, useReadContract } from "wagmi";
 export default function useArbitratorsLength() {
   const [arbitratorsLength, setArbitratorsLength] = useState<bigint>(0n);
   const { address } = useAccount();
-  const blockNumber = useBlockNumber();
 
   const result = useReadContract({
     account:      address,
@@ -25,5 +24,5 @@ export default function useArbitratorsLength() {
     }
   }, [arbitratorsLengthData]);
 
-  return useMemo(() => ({ data: arbitratorsLength, ...rest }), [blockNumber, arbitratorsLength]);
+  return useMemo(() => ({ data: arbitratorsLength, ...rest }), [arbitratorsLength, rest]);
 }
