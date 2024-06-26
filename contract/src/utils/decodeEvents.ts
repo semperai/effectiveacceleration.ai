@@ -66,8 +66,12 @@ export const decodeJobDisputedEvent = (rawData: BytesLike): JobDisputedEvent => 
 }
 
 export const decryptJobDisputedEvent = (event: JobDisputedEvent, sessionKey: string) => {
-  event.content = decryptUtf8Data(getBytes(event.encryptedContent), sessionKey);
-  event.sessionKey = hexlify(decryptBinaryData(getBytes(event.encryptedSessionKey), sessionKey));
+  try {
+    event.content = decryptUtf8Data(getBytes(event.encryptedContent), sessionKey);
+    event.sessionKey = hexlify(decryptBinaryData(getBytes(event.encryptedSessionKey), sessionKey));
+  } catch {
+    event.content = "<encrypted message>";
+  }
 }
 
 export const decodeJobArbitratedEvent = (rawData: BytesLike): JobArbitratedEvent => {

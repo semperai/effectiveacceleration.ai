@@ -1,7 +1,8 @@
-import { MARKETPLACE_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceV1";
 import Config from "effectiveacceleration-contracts/scripts/config.json";
 import { useState, useEffect } from "react";
 import { useAccount, useReadContracts } from "wagmi";
+import { MARKETPLACE_DATA_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceDataV1";
+import { Arbitrator } from "effectiveacceleration-contracts";
 
 type CacheCheck = { targetAddress: string, checkedItem: string }
 
@@ -27,9 +28,9 @@ export default function useArbitratorPublicKeys(targetAddresses: string[]) {
     contracts: missedItems.map(
       (item) => ({
         account:      address,
-        abi:          MARKETPLACE_V1_ABI,
-        address:      Config.marketplaceAddress as `0x${string}`,
-        functionName: 'arbitrators',
+        abi:          MARKETPLACE_DATA_V1_ABI,
+        address:      Config.marketplaceDataAddress as `0x${string}`,
+        functionName: 'getArbitrator',
         args:         [item.targetAddress],
       })
     ),
@@ -45,9 +46,10 @@ export default function useArbitratorPublicKeys(targetAddresses: string[]) {
       arbitratorsData?.forEach((data, index) => {
         if (data.result) {
           const targetAddress = missedItems[index].targetAddress;
-          resultMap[targetAddress] = (data.result as any)[0] as string;
+          const arbitrator = data.result as unknown as Arbitrator;
+          resultMap[targetAddress] = arbitrator.publicKey as string;
 
-          localStorage.setItem(`arbitratorPublicKey-${targetAddress}`, (data.result as any)[0] as string);
+          localStorage.setItem(`arbitratorPublicKey-${targetAddress}`, arbitrator.publicKey as string);
         }
       });
 

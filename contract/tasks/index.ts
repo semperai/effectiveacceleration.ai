@@ -200,7 +200,8 @@ task("marketplace:seed", "Seed local marketplace instance")
 
     // worker delivers the result
     const result = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
-    const { hash: resultHash } = await publishToIpfs(result);
+    const workerSessionKey = await getSessionKey(worker, await marketplaceData.connect(worker).publicKeys(owner.address));
+    const { hash: resultHash } = await publishToIpfs(result, workerSessionKey);
 
     await marketplace.connect(worker).deliverResult(0n, resultHash);
     await marketplace.connect(owner).approveResult(0n, 4n, "Nice, but could be better!");
@@ -276,7 +277,7 @@ task("marketplace:seed", "Seed local marketplace instance")
 
     // worker delivers the result
     const result = "I did not really manage to create a marketplace in solidity, but take a look for my partial solution";
-    const { hash: resultHash } = await publishToIpfs(result);
+    const { hash: resultHash } = await publishToIpfs(result, workerSessionKey);
 
     await marketplace.connect(worker).deliverResult(jobId, resultHash);
 

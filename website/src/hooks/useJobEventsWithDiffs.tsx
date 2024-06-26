@@ -34,6 +34,10 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
   let rawJobEventsData = result.data as JobEvent[];
   const { data: _, ...rest } = result;
 
+  useEffect(() => {
+    result.refetch();
+  }, [address, result]);
+
   useWatchContractEvent({
     abi: MARKETPLACE_DATA_V1_ABI,
     address: Config.marketplaceDataAddress as `0x${string}`,
@@ -60,21 +64,22 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
         setJobEventsWithDiffs(eventsWithDiffs);
       }
     })();
-  }, [rawJobEventsData, logEvents, address]);
+  }, [rawJobEventsData, logEvents, address, jobId]);
 
   useEffect(() => {
     (async () => {
-      if (rawJobEventsData) {
-        setAddresses([...new Set(jobEventsWithDiffs.filter(jobEvent => [JobEventType.OwnerMessage, JobEventType.WorkerMessage].includes(jobEvent.type_)).map((event) => getAddress(event.address_)))]);
+      if (jobEventsWithDiffs.length) {
+        const messageAddresses = jobEventsWithDiffs.filter(jobEvent => [JobEventType.OwnerMessage, JobEventType.WorkerMessage].includes(jobEvent.type_)).map((event) => getAddress(event.address_));
+        setAddresses([...new Set([...messageAddresses, jobEventsWithDiffs[0].job.roles.creator])]);
         setArbitratorAddresses([...new Set(jobEventsWithDiffs.map(jobEvent => jobEvent.job.roles.arbitrator))].filter(address => address !== ZeroAddress));
       }
     })();
-  }, [jobEventsWithDiffs, address]);
+  }, [jobEventsWithDiffs]);
 
 
   useEffect(() => {
     (async () => {
-      if (!jobEventsWithDiffs.length || !Object.keys(publicKeys.data).length || !Object.keys(arbitratorPublicKeys.data).length) {
+      if (!jobEventsWithDiffs.length || !Object.keys(publicKeys.data).length || (arbitratorAddresses.length > 0 && !Object.keys(arbitratorPublicKeys.data).length)) {
         return;
       }
 
@@ -84,15 +89,18 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
       const workerAddresses = [...new Set(jobEventsWithDiffs.map(event => event.job.roles.worker).filter(address => address !== ZeroAddress))];
       for (const workerAddress of workerAddresses) {
         if (signer && Object.keys(publicKeys.data).length) {
-          sessionKeys[`${ownerAddress}-${workerAddress}`] = await getSessionKey(signer as any, publicKeys.data[workerAddress]);
-          sessionKeys[`${workerAddress}-${ownerAddress}`] = await getSessionKey(signer as any, publicKeys.data[workerAddress]);
+          const otherPubkey = ownerAddress === address ? publicKeys.data[workerAddress] : publicKeys.data[ownerAddress];
+          sessionKeys[`${ownerAddress}-${workerAddress}`] = await getSessionKey(signer as any, otherPubkey);
+          sessionKeys[`${workerAddress}-${ownerAddress}`] = await getSessionKey(signer as any, otherPubkey);
         }
       }
 
       for (const arbitratorAddress of arbitratorAddresses) {
         if (signer && Object.keys(arbitratorPublicKeys.data).length) {
-          sessionKeys[`${ownerAddress}-${arbitratorAddress}`] = await getSessionKey(signer as any, arbitratorPublicKeys.data[arbitratorAddress]);
-          sessionKeys[`${arbitratorAddress}-${ownerAddress}`] = await getSessionKey(signer as any, arbitratorPublicKeys.data[arbitratorAddress]);
+          const otherPubkey = ownerAddress === address ? arbitratorPublicKeys.data[arbitratorAddress] : publicKeys.data[ownerAddress];
+
+          sessionKeys[`${ownerAddress}-${arbitratorAddress}`] = await getSessionKey(signer as any, otherPubkey);
+          sessionKeys[`${arbitratorAddress}-${ownerAddress}`] = await getSessionKey(signer as any, otherPubkey);
         }
       }
 
@@ -102,7 +110,7 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
 
       setJobEventsWithDiffs(await fetchEventContents(jobEventsWithDiffs, sessionKeys));
     })();
-  }, [publicKeys.data, arbitratorPublicKeys.data, signer]);
+  }, [publicKeys, arbitratorPublicKeys, signer, arbitratorAddresses, jobEventsWithDiffs, address]);
 
   return { data: jobEventsWithDiffs, ...rest };
 }
