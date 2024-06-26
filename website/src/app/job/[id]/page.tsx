@@ -16,13 +16,61 @@ import { useParams } from 'next/navigation';
 import moment from 'moment';
 import { renderEvent } from '@/components/Events';
 import useJobEventsWithDiffs from '@/hooks/useJobEventsWithDiffs';
-
+import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
+import Config from "effectiveacceleration-contracts/scripts/config.json";
+import { zeroHash } from 'viem';
+import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
+import { useEffect, useState } from 'react';
+import useJob from '@/hooks/useJob';
+import { tokensMap } from '@/tokens'
 
 export default function JobPage() {
   const id = useParams().id as string;
   const jobId = BigInt(id);
+  const { data: job } = useJob(jobId);
 
   const events = useJobEventsWithDiffs(jobId);
+  // console.log(events.data.at(-1));
+
+  const [postMessageDisabled, setPostMessageDisabled] = useState<boolean>(false);
+  const {
+    data: hash,
+    error,
+    isPending,
+    writeContract,
+  } = useWriteContract();
+
+  function postMessageClick() {
+    setPostMessageDisabled(true);
+
+    const contentHash = "0x13598f9e75cb2e516b01f5626c330d540a8309f94bebd55de66e750ff75637a3";
+    console.log('posting message', jobId, contentHash);
+
+    const w = writeContract({
+      abi: MARKETPLACE_V1_ABI,
+      address: Config.marketplaceAddress as `0x${string}`,
+      functionName: 'postThreadMessage',
+      args: [
+        jobId,
+        contentHash
+      ],
+    });
+
+    console.log('writeContract', w);
+  }
+
+  const {
+    isLoading: isConfirming,
+    isSuccess: isConfirmed,
+  } = useWaitForTransactionReceipt({
+    hash
+  });
+
+  useEffect(() => {
+    if (isConfirmed) {
+      setPostMessageDisabled(false);
+    }
+  }, [isConfirmed]);
 
   return (
     <Layout>
@@ -41,34 +89,34 @@ export default function JobPage() {
                 <div className="flex items-center">
                   <ChevronRightIcon className="h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-400" aria-hidden="true" />
                   <Link href={`/job/${jobId}`} className="ml-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
-                    0x3f4...c3a
+                    { jobId.toString() }
                   </Link>
                 </div>
               </li>
             </ol>
           </nav>
           <h2 className="mt-2 text-2xl font-bold leading-7 text-gray-900 dark:text-gray-100 sm:truncate sm:text-3xl sm:tracking-tight">
-            Create a story book about Bitcoin
+            { job?.title }
           </h2>
           <div className="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
             <div className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400">
               <CurrencyDollarIcon className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-300" aria-hidden="true" />
-              0.003 ETH
+              {job && (job.amount / 10n ** BigInt(tokensMap[job.token].decimals)).toString() } {tokensMap[job?.token!]?.symbol}
             </div>
             <div className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400">
               <CalendarIcon className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-300" aria-hidden="true" />
-              1h
+              { moment.duration(job?.maxTime, "seconds").humanize() }
             </div>
           </div>
         </div>
         <div className="mt-5">
           <Text>
-            I am looking for someone to write a story book about Bitcoin and the blockchain. The book should be at least 20 pages long and include a brief history of Bitcoin, the technology behind it, and the potential impact it could have on the world. I am looking for someone who can write in a way that is easy to understand and engaging for a general audience. It should have illustrations and be suitable for children.
+            { job?.content }
           </Text>
         </div>
         <div className="mt-5 flex">
           <span>
-            <Button>
+            <Button disabled={postMessageDisabled} onClick={postMessageClick}>
               <PencilIcon className="-ml-0.5 mr-1.5 h-5 w-5 text-gray-400" aria-hidden="true" />
               Message
             </Button>
@@ -94,7 +142,7 @@ export default function JobPage() {
 
       <div className="flow-root mt-20">
         <ul role="list" className="-mb-8">
-          {events.data?.map((event, index) => (
+          {events.data?.slice().reverse().map((event, index) => (
             <li key={index}>
               <div className="relative pb-8">
                 {index !== events.data.length - 1 ? (

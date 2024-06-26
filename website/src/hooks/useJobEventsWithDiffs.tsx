@@ -13,6 +13,7 @@ import useArbitratorPublicKeys from "./useArbitratorPublicKeys";
 
 export default function useJobEventsWithDiffs(jobId: bigint) {
   const [jobEventsWithDiffs, setJobEventsWithDiffs] = useState<JobEventWithDiffs[]>([]);
+  const [logEvents, setLogEvents] = useState<JobEvent[]>([]);
   const [addresses, setAddresses] = useState<string[]>([]);
   const [arbitratorAddresses, setArbitratorAddresses] = useState<string[]>([]);
 
@@ -38,12 +39,16 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
     address: Config.marketplaceDataAddress as `0x${string}`,
     eventName: 'JobEvent',
     onLogs: async (logs) => {
-      const filtered = logs.filter((log) => log.args.jobId === jobId);
+      const filtered = logs.filter(log => log.args.jobId === jobId &&
+        rawJobEventsData?.findIndex((other) => other.type_ === log.args.eventData?.type_ && other.timestamp_ === log.args.eventData?.timestamp_) === -1 &&
+        logEvents.findIndex((other) => other.type_ === log.args.eventData?.type_ && other.timestamp_ === log.args.eventData?.timestamp_) === -1
+      );
+
       if (filtered.length === 0) {
         return;
       }
 
-      rawJobEventsData = [...rawJobEventsData, ...filtered.map((log) => log.args.eventData! as JobEvent)];
+      setLogEvents([...logEvents, ...filtered.map((log) => log.args.eventData! as JobEvent)]);
     },
   });
 
@@ -51,11 +56,11 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
     (async () => {
       if (rawJobEventsData) {
         // decode and complete events
-        const eventsWithDiffs = computeJobStateDiffs(rawJobEventsData, jobId);
+        const eventsWithDiffs = computeJobStateDiffs([...rawJobEventsData, ...logEvents], jobId);
         setJobEventsWithDiffs(eventsWithDiffs);
       }
     })();
-  }, [rawJobEventsData, address]);
+  }, [rawJobEventsData, logEvents, address]);
 
   useEffect(() => {
     (async () => {
