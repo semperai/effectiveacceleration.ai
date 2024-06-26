@@ -16,6 +16,7 @@ import {
 import useJobs from '@/hooks/useJobs';
 import moment from 'moment'
 import useUsers from '@/hooks/useUsers';
+import useUserRatings from '@/hooks/useUserRatings';
 
 const environments: Record<string, string> = {
   Preview: 'text-gray-400 bg-gray-400/10 ring-gray-400/20',
@@ -24,6 +25,7 @@ const environments: Record<string, string> = {
 
 export default function OpenJobsPage() {
   const { data: users } = useUsers();
+  const { data: userRatings } = useUserRatings(users?.map(user => user.address_));
 
   return (
     <Layout>
@@ -51,6 +53,10 @@ export default function OpenJobsPage() {
                 <span className="text-green-500 dark:text-green-400">+{user.reputationUp}</span>
                 <span className="text-red-500 dark:text-red-400">-{user.reputationDown}</span>
                 {' '} reputation
+              </p>
+              <p className="whitespace-nowrap">
+                <span className="text-orange-500 dark:text-orange-400">{userRatings[user.address_]?.averageRating}</span>
+                {' '} average rating
               </p>
             </div>
           </div>
