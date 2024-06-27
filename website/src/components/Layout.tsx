@@ -25,6 +25,7 @@ import {
   XMarkIcon,
   SparklesIcon,
 } from '@heroicons/react/24/outline'
+import { MARKETPLACE_DATA_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceDataV1';
 
 const navigation = [
   { name: 'Home', href: '/', icon: HomeIcon },
@@ -44,10 +45,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const { address } = useAccount();
   const { data: notificationsLengthData, error, isSuccess, status } = useReadContract({
     account:      address,
-    abi:          MarketplaceArtifact.abi,
-    address:      Config.marketplaceAddress as `0x${string}`,
+    abi:          MARKETPLACE_DATA_V1_ABI,
+    address:      Config.marketplaceDataAddress as `0x${string}`,
     functionName: 'eventsLength',
-    args:         [0],
+    args:         [0n],
   });
 
   useEffect(() => {

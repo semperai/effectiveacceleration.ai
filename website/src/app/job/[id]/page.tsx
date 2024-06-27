@@ -55,8 +55,6 @@ export default function JobPage() {
         contentHash
       ],
     });
-
-    console.log('writeContract', w);
   }
 
   const {
@@ -67,10 +65,13 @@ export default function JobPage() {
   });
 
   useEffect(() => {
-    if (isConfirmed) {
+    if (isConfirmed || error) {
+      if (error) {
+        alert(error.message.match(`The contract function ".*" reverted with the following reason:\n(.*)\n.*`)?.[1])
+      }
       setPostMessageDisabled(false);
     }
-  }, [isConfirmed]);
+  }, [isConfirmed, error]);
 
   return (
     <Layout>

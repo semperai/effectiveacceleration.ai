@@ -31,12 +31,13 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
     args:         [jobId, 0n, 0n],
   });
 
-  let rawJobEventsData = result.data as JobEvent[];
+  const rawJobEventsData = result.data as JobEvent[];
+  const refetch = result.refetch;
   const { data: _, ...rest } = result;
 
   useEffect(() => {
-    result.refetch();
-  }, [address, result]);
+    refetch();
+  }, [address, refetch]);
 
   useWatchContractEvent({
     abi: MARKETPLACE_DATA_V1_ABI,
