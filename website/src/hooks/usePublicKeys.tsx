@@ -13,7 +13,7 @@ export default function usePublicKeys(targetAddresses: string[]) {
 
   useEffect(() => {
     const checkedItems = targetAddresses.map((targetAddress) => {
-      const checkedItem = localStorage.getItem(`publicKey-${targetAddress}`);
+      const checkedItem = localStorage.getItem(`userPublicKey-${targetAddress}`);
       return {targetAddress, checkedItem };
     });
 
@@ -47,7 +47,7 @@ export default function usePublicKeys(targetAddresses: string[]) {
           const targetAddress = missedItems[index].targetAddress;
           resultMap[targetAddress] = data.result as string;
 
-          localStorage.setItem(`publicKey-${targetAddress}`, data.result as string);
+          localStorage.setItem(`userPublicKey-${targetAddress}`, data.result as string);
         }
       });
 

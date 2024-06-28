@@ -3,6 +3,7 @@ import Config from "effectiveacceleration-contracts/scripts/config.json";
 import { useState, useEffect, useMemo } from "react";
 import { useAccount, useBlockNumber, useReadContract } from "wagmi";
 import { User } from "effectiveacceleration-contracts";
+import JSON5 from "@mainnet-pat/json5-bigint";
 
 export default function useUsers() {
   const [users, setUsers] = useState<User[]>([]);
@@ -21,6 +22,10 @@ export default function useUsers() {
 
   useEffect(() => {
     if (usersData) {
+      for (const user of usersData) {
+        localStorage.setItem(`userPublicKey-${user.address_}`, user.publicKey as string);
+        sessionStorage.setItem(`user-${user.address_}`, JSON5.stringify(user));
+      }
       setUsers(usersData);
     }
   }, [usersData]);

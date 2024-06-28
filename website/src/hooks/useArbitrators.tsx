@@ -3,6 +3,7 @@ import Config from "effectiveacceleration-contracts/scripts/config.json";
 import { useState, useEffect, useMemo } from "react";
 import { useAccount, useBlockNumber, useReadContract } from "wagmi";
 import { Arbitrator } from "effectiveacceleration-contracts";
+import JSON5 from "@mainnet-pat/json5-bigint";
 
 export default function useArbitrators() {
   const [arbitrators, setArbitrators] = useState<Arbitrator[]>([]);
@@ -21,6 +22,10 @@ export default function useArbitrators() {
 
   useEffect(() => {
     if (arbitratorsData) {
+      for (const arbitrator of arbitratorsData) {
+        localStorage.setItem(`arbitratorPublicKey-${arbitrator.address_}`, arbitrator.publicKey as string);
+        sessionStorage.setItem(`arbitrator-${arbitrator.address_}`, JSON5.stringify(arbitrator));
+      }
       setArbitrators(arbitratorsData);
     }
   }, [arbitratorsData]);
