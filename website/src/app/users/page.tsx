@@ -55,7 +55,7 @@ export default function OpenJobsPage() {
                 {' '} reputation
               </p>
               <p className="whitespace-nowrap">
-                <span className="text-orange-500 dark:text-orange-400">{userRatings[user.address_]?.averageRating}</span>
+                <span className="text-orange-500 dark:text-orange-400">{userRatings[user.address_]?.averageRating / 10000}</span>
                 {' '} average rating
               </p>
             </div>

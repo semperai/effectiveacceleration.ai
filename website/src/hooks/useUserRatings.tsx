@@ -3,6 +3,7 @@ import Config from "effectiveacceleration-contracts/scripts/config.json";
 import { useState, useEffect, useMemo } from "react";
 import { useAccount, useReadContracts } from "wagmi";
 import { User, UserRating } from "effectiveacceleration-contracts";
+import JSON5 from "@mainnet-pat/json5-bigint";
 
 type CacheCheck = { targetAddress: string, checkedItem: string }
 
@@ -46,17 +47,15 @@ export default function useUserRatings(targetAddresses: string[]) {
       userRatingsData?.forEach((data, index) => {
         if (data.result) {
           const rating = data.result as any;
-          rating.averageRating = Number(rating.averageRating) / 10000;
-          rating.numberOfReviews = Number(rating.numberOfReviews);
           const targetAddress = missedItems[index].targetAddress;
           resultMap[targetAddress] = data.result as unknown as UserRating;
 
-          sessionStorage.setItem(`userRating-${targetAddress}`, JSON.stringify(rating));
+          sessionStorage.setItem(`userRating-${targetAddress}`, JSON5.stringify(rating));
         }
       });
 
       cachedItems.forEach((item) => {
-        resultMap[item.targetAddress] = JSON.parse(item.checkedItem) as UserRating;
+        resultMap[item.targetAddress] = JSON5.parse(item.checkedItem) as UserRating;
       });
       setUserRatings(resultMap);
     }
