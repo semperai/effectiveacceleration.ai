@@ -11,6 +11,7 @@ import {
   CurrencyDollarIcon,
   LinkIcon,
   PencilIcon,
+  UserIcon
 } from '@heroicons/react/20/solid'
 import { useParams } from 'next/navigation';
 import moment from 'moment';
@@ -28,6 +29,7 @@ import { readContract } from 'wagmi/actions';
 import { Textarea } from '@/components/Textarea';
 import { Select } from '@/components/Select';
 import { useAccount } from 'wagmi';
+import useUsersByAddresses from '@/hooks/useUsersByAddresses';
 
 export default function JobPage() {
   const id = useParams().id as string;
@@ -36,6 +38,7 @@ export default function JobPage() {
   const { data: job } = useJob(jobId);
   const [recipient, setRecipient] = useState<string>(zeroAddress);
   const [recipients, setRecipients] = useState<string[]>([]);
+  const { data: users } = useUsersByAddresses(recipients);
   // const [sessionKey, setSessionKey] = useState<string>("");
   const [message, setMessage] = useState<string>("");
 
@@ -124,6 +127,10 @@ export default function JobPage() {
             <div className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400">
               <CalendarIcon className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-300" aria-hidden="true" />
               { moment.duration(job?.maxTime, "seconds").humanize() }
+            </div>
+            <div className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400">
+              <UserIcon className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-300" aria-hidden="true" />
+              last updated by { users[job?.roles.creator!]?.name } { moment(job?.timestamp! * 1000).fromNow() }
             </div>
           </div>
         </div>
