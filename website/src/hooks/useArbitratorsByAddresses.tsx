@@ -2,20 +2,20 @@ import { MARKETPLACE_DATA_V1_ABI } from "effectiveacceleration-contracts/wagmi/M
 import Config from "effectiveacceleration-contracts/scripts/config.json";
 import { useState, useEffect, useMemo } from "react";
 import { useAccount, useReadContracts } from "wagmi";
-import { User } from "effectiveacceleration-contracts";
+import { Arbitrator } from "effectiveacceleration-contracts";
 import JSON5 from "@mainnet-pat/json5-bigint";
 
 type CacheCheck = { targetAddress: string, checkedItem: string }
 
-export default function useUsersByAddresses(targetAddresses: string[]) {
-  const [users, setUsers] = useState<Record<string, User>>({});
+export default function useArbitratorsByAddresses(targetAddresses: string[]) {
+  const [arbitrators, setArbitrators] = useState<Record<string, Arbitrator>>({});
   const { address } = useAccount();
   const [cachedItems, setCachedItems] = useState<{ targetAddress: string, checkedItem: string }[]>([]);
   const [missedItems, setMissedItems] = useState<{ targetAddress: string, checkedItem: string }[]>([]);
 
   useEffect(() => {
     const checkedItems = targetAddresses.map((targetAddress) => {
-      const checkedItem = sessionStorage.getItem(`user-${targetAddress}`);
+      const checkedItem = sessionStorage.getItem(`arbitrator-${targetAddress}`);
       return {targetAddress, checkedItem };
     });
 
@@ -31,35 +31,35 @@ export default function useUsersByAddresses(targetAddresses: string[]) {
         account:      address,
         abi:          MARKETPLACE_DATA_V1_ABI,
         address:      Config.marketplaceDataAddress as `0x${string}`,
-        functionName: 'getUser',
+        functionName: 'getArbitrator',
         args:         [item.targetAddress],
       })
     ),
   });
 
-  const usersData = result.data;
+  const arbitratorsData = result.data;
   const { data: _, ...rest } = result;
 
   useEffect(() => {
     // @ts-ignore
-    if ((usersData && Object.keys(usersData).length) || cachedItems.length > 0) {
-      const resultMap: Record<string, User> = {};
-      usersData?.forEach((data, index) => {
+    if ((arbitratorsData && Object.keys(arbitratorsData).length) || cachedItems.length > 0) {
+      const resultMap: Record<string, Arbitrator> = {};
+      arbitratorsData?.forEach((data, index) => {
         if (data.result) {
           const targetAddress = missedItems[index].targetAddress;
-          resultMap[targetAddress] = data.result as unknown as User;
+          resultMap[targetAddress] = data.result as unknown as Arbitrator;
 
-          sessionStorage.setItem(`user-${targetAddress}`, JSON5.stringify(data.result));
+          sessionStorage.setItem(`arbitrator-${targetAddress}`, JSON5.stringify(data.result));
         }
       });
 
       cachedItems.forEach((item) => {
-        resultMap[item.targetAddress] = JSON5.parse(item.checkedItem) as User;
+        resultMap[item.targetAddress] = JSON5.parse(item.checkedItem) as Arbitrator;
       });
-      setUsers(resultMap);
+      setArbitrators(resultMap);
     }
   // @ts-ignore
-  }, [usersData, cachedItems, missedItems]);
+  }, [arbitratorsData, cachedItems, missedItems]);
 
-  return useMemo(() => ({ data: users, ...rest }), [rest, users]);
+  return useMemo(() => ({ data: arbitrators, ...rest }), [rest, arbitrators]);
 }

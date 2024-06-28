@@ -30,6 +30,7 @@ import { Textarea } from '@/components/Textarea';
 import { Select } from '@/components/Select';
 import { useAccount } from 'wagmi';
 import useUsersByAddresses from '@/hooks/useUsersByAddresses';
+import useArbitratorsByAddresses from '@/hooks/useArbitratorsByAddresses';
 
 export default function JobPage() {
   const id = useParams().id as string;
@@ -38,17 +39,20 @@ export default function JobPage() {
   const { data: job } = useJob(jobId);
   const [recipient, setRecipient] = useState<string>(zeroAddress);
   const [recipients, setRecipients] = useState<string[]>([]);
-  const { data: users } = useUsersByAddresses(recipients);
-  // const [sessionKey, setSessionKey] = useState<string>("");
+  const [recipientNames, setRecipientNames] = useState<string[]>([]);
   const [message, setMessage] = useState<string>("");
 
   const { data: events, addresses, arbitratorAddresses, sessionKeys } = useJobEventsWithDiffs(jobId);
+  const { data: users } = useUsersByAddresses(addresses);
+  const { data: arbitrators } = useArbitratorsByAddresses(arbitratorAddresses);
 
   useEffect(() => {
     if (events?.length && Object.keys(sessionKeys ?? {}).length) {
       const targets = [zeroAddress, ...[... new Set([...addresses, ...arbitratorAddresses])]];
       const targetsWithoutMe = targets.filter((target) => target !== address);
+      const targetNames = targetsWithoutMe.map((target) => users[target]?.name ?? arbitrators[target]?.name ?? target);
       setRecipients(targetsWithoutMe);
+      setRecipientNames(targetNames);
     }
   }, [events, addresses, arbitratorAddresses, sessionKeys]);
 
@@ -166,8 +170,8 @@ export default function JobPage() {
 
       <Textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Message" className="mt-5" />
       <Select about='select' onChange={(e) => setRecipient(e.target.value)}>
-        {recipients.map(recipient =>
-          <option key={recipient} value={recipient}>{recipient === zeroAddress ? "Unencrypted" : recipient}</option>
+        {recipients.map((recipient, index) =>
+          <option key={recipient} value={recipient}>{recipient === zeroAddress ? "Unencrypted" : recipientNames[index]}</option>
         )}
       </Select>
 
