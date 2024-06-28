@@ -1,7 +1,7 @@
 "use client";
 
 import { clsx } from 'clsx'
-import { Layout } from '@/components/Layout'
+import { Layout } from '@/components/Dashboard/Layout'
 import { Link } from '@/components/Link'
 import { ChevronRightIcon } from '@heroicons/react/20/solid'
 import { Token, tokens, tokensMap } from '@/tokens'
@@ -23,48 +23,6 @@ const environments: Record<string, string> = {
 
 export default function OpenJobsPage() {
   const { data: jobs } = useJobs();
-  // const jobs = [
-  //   {
-  //     id: 1,
-  //     paymentAmount: '0.003',
-  //     token: tokens[0],
-  //     title: 'Create a story book about Bitcoin',
-  //     timeAllowed: '1h',
-  //     reputationPositive: '17',
-  //     reputationNegative: '3',
-  //     creator: '0xc4b3...',
-  //   },
-  //   {
-  //     id: 2,
-  //     paymentAmount: '0.5',
-  //     token: tokens[1],
-  //     title: 'Write a blog post about Ethereum',
-  //     timeAllowed: '5m 30s',
-  //     reputationPositive: '2122',
-  //     reputationNegative: '8',
-  //     creator: 'vitalik.eth',
-  //   },
-  //   {
-  //     id: 3,
-  //     paymentAmount: '0.25',
-  //     token: tokens[0],
-  //     title: 'Design a landing page for a new token',
-  //     timeAllowed: '1d 12h',
-  //     reputationPositive: '3',
-  //     reputationNegative: '4',
-  //     creator: '0xdef...',
-  //   },
-  //   {
-  //     id: 4,
-  //     paymentAmount: '0.4',
-  //     token: tokens[1],
-  //     title: 'Assist me in writing a whitepaper',
-  //     timeAllowed: '3h',
-  //     reputationPositive: '5',
-  //     reputationNegative: '0',
-  //     creator: '0x3f3f...',
-  //   },
-  // ];
 
   return (
     <Layout>

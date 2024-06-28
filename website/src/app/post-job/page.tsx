@@ -13,7 +13,7 @@ import ERC20Abi from '@/abis/ERC20.json'
 import MarketplaceArtifact from 'effectiveacceleration-contracts/artifacts/contracts/MarketplaceV1.sol/MarketplaceV1.json';
 import Config from 'effectiveacceleration-contracts/scripts/config.json'
 import { useEffect, useState } from 'react'
-import { Layout } from '@/components/Layout'
+import { Layout } from '@/components/Dashboard/Layout'
 import { Button } from '@/components/Button'
 import { Description, Field, FieldGroup, Fieldset, Label, Legend } from '@/components/Fieldset'
 import { Text } from '@/components/Text'

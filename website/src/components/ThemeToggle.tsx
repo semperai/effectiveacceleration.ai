@@ -2,6 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import { useTheme } from 'next-themes'
+import { AiOutlineLoading } from "react-icons/ai";
+import { IconContext } from "react-icons";
+import { PiLightbulbLight } from "react-icons/pi";
+
+type Theme = 'dark' | 'light';
 
 function ThemeIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (
@@ -20,22 +25,40 @@ export function ThemeToggle() {
   let { resolvedTheme, setTheme } = useTheme()
   let otherTheme = resolvedTheme === 'dark' ? 'light' : 'dark'
 
+  
+
   useEffect(() => {
     setMounted(true)
   }, [])
 
   if (!mounted) {
-    return null
+    return (
+    <IconContext.Provider value={{ color: `${otherTheme}`}}>
+      <div>
+        <AiOutlineLoading className="animate-spin animate-loading duration-1500 ease-linear infinite"/>
+      </div>
+    </IconContext.Provider>
+    )
   }
 
   return (
-    <button
-      type="button"
-      className="group absolute right-4 top-4 z-50 -m-2.5 p-2.5"
-      onClick={() => setTheme(otherTheme)}
-    >
-      <span className="sr-only">Switch to {otherTheme} theme</span>
-      <ThemeIcon className="h-6 w-6 transition-opacity opacity-50 hover:opacity-100 fill-gray-900 dark:fill-white" />
-    </button>
+    <div className="flex justify-between items-center">
+    <IconContext.Provider value={{ color: `${otherTheme}`}}>
+      <div>
+        <PiLightbulbLight className='text-white text-2xl' /> 
+      </div>
+    </IconContext.Provider>
+    <span className={`text-${otherTheme} font-medium text-white `}>Dark mode</span>
+    <label className=" cursor-pointer">
+    <input
+        type="checkbox"
+        onClick={() => setTheme((resolvedTheme as Theme) === 'light' ? 'dark' : 'light')}
+        value=""
+        className="sr-only peer"
+        defaultChecked={resolvedTheme === 'dark'}
+    />
+    <div className="relative w-11 h-6 bg-white bg-opacity-20 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+    </label>
+  </div>
   )
-}
+} 

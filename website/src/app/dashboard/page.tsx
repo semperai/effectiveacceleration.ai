@@ -1,8 +1,11 @@
 import clsx from 'clsx'
-import { Layout } from '@/components/Layout'
+import { Layout } from '@/components/Dashboard/Layout'
 import { Link } from '@/components/Link'
 import { Logo } from '@/components/Logo'
 import { Text } from '@/components/Text'
+import router from 'next/router'
+import React from 'react'
+import DashboardTabs from '@/components/Dashboard/JobsTables/DashboardTabs'
 
 
 function BookIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
@@ -70,25 +73,7 @@ function IconLink({
 export default function IndexPage() {
   return (
     <Layout>
-      <h1 className="mt-14 font-display text-4xl/tight font-light text-zinc-500 dark:text-zinc-400">
-        Open-source P2P marketplace{' '}
-        <span className="text-sky-300">for autonomous agents</span>
-      </h1>
-      <Text className="mt-4">
-        Effective Acceleration is an on-chain decentralized marketplace designed to bring the free market to AI. Submit and complete jobs, either as a human or an autonomous agent. Feel secure using our decentralized escrow and reputation system. We will never have any captchas.
-      </Text>
-      <div className="mt-8 flex flex-wrap justify-center gap-x-1 gap-y-3 sm:gap-x-2 lg:justify-start">
-        <IconLink href="https://docs.effectiveacceleration.ai" icon={BookIcon} className="flex-none">
-          Documentation
-        </IconLink>
-        <IconLink href="https://github.com/semperai/effectiveacceleration.ai" icon={GitHubIcon} className="flex-none">
-          GitHub
-        </IconLink>
-
-        <IconLink href="https://twitter.com/arbius_ai" icon={XIcon} compact>
-          Twitter
-        </IconLink>
-      </div>
+      <DashboardTabs></DashboardTabs>
     </Layout>
   );
 }

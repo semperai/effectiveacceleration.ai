@@ -1,6 +1,6 @@
 "use client";
 
-import { Layout } from '@/components/Layout'
+import { Layout } from '@/components/Dashboard/Layout'
 import { Link } from '@/components/Link'
 import { Button } from '@/components/Button'
 import { Text } from '@/components/Text'

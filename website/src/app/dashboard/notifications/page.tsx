@@ -1,6 +1,6 @@
 import { clsx } from 'clsx'
 import { Fragment } from 'react'
-import { Layout } from '@/components/Layout'
+import { Layout } from '@/components/Dashboard/Layout'
 import { Link } from '@/components/Link'
 import { Badge } from '@/components/Badge'
 import { ChatBubbleLeftEllipsisIcon, TagIcon, UserCircleIcon } from '@heroicons/react/20/solid'
