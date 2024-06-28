@@ -36,7 +36,7 @@ export default function OpenJobsPage() {
             <div className="flex items-center gap-x-3">
 
               <h2 className="min-w-0 text-sm font-semibold leading-6 text-black dark:text-white">
-                <Link href={`/users/${user.address_}`} className="flex gap-x-2">
+                <Link href={`/dashboard/users/${user.address_}`} className="flex gap-x-2">
                   <span className="truncate">{user.name}</span>
                   <span className="text-gray-600 dark:text-gray-400">/</span>
                   {/* <span className="whitespace-nowrap text-gray-500 dark:text-gray-500">{moment.duration(user.maxTime, "seconds").humanize()}</span> */}

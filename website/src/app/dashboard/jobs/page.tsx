@@ -34,7 +34,7 @@ export default function OpenJobsPage() {
               <img src={tokensMap[job.token]?.icon} alt="" className="h-6 w-6 flex-none rounded-full bg-gray-100 dark:bg-gray-800" />
 
               <h2 className="min-w-0 text-sm font-semibold leading-6 text-black dark:text-white">
-                <Link href={`/job/${job.id}`} className="flex gap-x-2">
+                <Link href={`/dashboard/jobs/${job.id}`} className="flex gap-x-2">
                   <span className="truncate">{job.title}</span>
                   <span className="text-gray-600 dark:text-gray-400">/</span>
                   <span className="whitespace-nowrap text-gray-500 dark:text-gray-500">{moment.duration(job.maxTime, "seconds").humanize()}</span>

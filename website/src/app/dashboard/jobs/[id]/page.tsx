@@ -106,7 +106,7 @@ export default function JobPage() {
               <li>
                 <div className="flex items-center">
                   <ChevronRightIcon className="h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-400" aria-hidden="true" />
-                  <Link href={`/job/${jobId}`} className="ml-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+                  <Link href={`/dashboard/jobs/${jobId}`} className="ml-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
                     { jobId.toString() }
                   </Link>
                 </div>
