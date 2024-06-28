@@ -1,33 +1,35 @@
-import {
-  UserCircleIcon,
-} from '@heroicons/react/20/solid'
 import { type EventProps } from './index';
 import moment from 'moment';
-import { Fragment } from 'react'
-import { Badge } from '@/components/Badge'
-import { getAddress } from 'ethers';
+import { getAddress } from 'viem';
+import useUser from '@/hooks/useUser';
 
 export function WhitelistRemoveEvent({event, ...rest}: EventProps & React.ComponentPropsWithoutRef<'div'>) {
+  const ownerAddress = getAddress(event.job.roles.creator);
+  const ownerHref = `/dashboard/users/${ownerAddress}`;
+  const {data: owner} = useUser(ownerAddress);
+
+  const workerAddress = getAddress(event.address_);
+  const workerHref = `/dashboard/users/${workerAddress}`;
+  const {data: worker} = useUser(workerAddress);
+
   const date = moment(event.timestamp_ * 1000).fromNow()
-  const owner = { name: event.job.roles.creator, href: '#' };
-  const target = { name: getAddress(event.address_), href: '#' };
 
   return (
     <>
-      <div>
-        <div className="relative px-1">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 ring-8 ring-white">
-            <UserCircleIcon className="h-5 w-5 text-gray-500" aria-hidden="true" />
-          </div>
-        </div>
+      <div className="relative">
+        <img
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-400 ring-8 ring-white"
+          src={owner?.avatar}
+          alt=""
+        />
       </div>
       <div className="min-w-0 flex-1 py-1.5">
         <div className="text-sm text-gray-500 dark:text-gray-400">
-          <a href={owner.href} className="font-medium text-gray-900 dark:text-gray-100">
-            {owner.name}
+          <a href={ownerHref} className="font-medium text-gray-900 dark:text-gray-100">
+            {owner?.name}
           </a>{' '}
-          removed{' '}<a href={target.href} className="font-medium text-gray-900 dark:text-gray-100">
-            {target.name}
+          removed{' '}<a href={workerHref} className="font-medium text-gray-900 dark:text-gray-100">
+            {worker?.name}
           </a> from whitelist{' '}
           <span className="whitespace-nowrap">{date}</span>
         </div>

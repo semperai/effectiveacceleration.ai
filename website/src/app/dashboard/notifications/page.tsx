@@ -58,7 +58,7 @@ function CommentActivityItem(activityItem: NotificationComment) {
       <div className="min-w-0 flex-1">
         <div>
           <div className="text-sm">
-            <a href={activityItem.person.href} className="font-medium text-gray-900 dark:text-gray-100">
+            <a href={activityItem.`/dashboard/users/${event.job.roles.creator}`} className="font-medium text-gray-900 dark:text-gray-100">
               {activityItem.person.name}
             </a>
           </div>
@@ -84,7 +84,7 @@ function AssignmentActivityItem(activityItem: NotificationAssignment) {
       </div>
       <div className="min-w-0 flex-1 py-1.5">
         <div className="text-sm text-gray-500 dark:text-gray-400">
-          <a href={activityItem.person.href} className="font-medium text-gray-900 dark:text-gray-100">
+          <a href={activityItem.`/dashboard/users/${event.job.roles.creator}`} className="font-medium text-gray-900 dark:text-gray-100">
             {activityItem.person.name}
           </a>{' '}
           assigned{' '}
@@ -111,7 +111,7 @@ function TagsActivityItem(activityItem: NotificationTags) {
       <div className="min-w-0 flex-1 py-0">
         <div className="text-sm leading-8 text-gray-500 dark:text-gray-400">
           <span className="mr-0.5">
-            <a href={activityItem.person.href} className="font-medium text-gray-900 dark:text-gray-100">
+            <a href={activityItem.`/dashboard/users/${event.job.roles.creator}`} className="font-medium text-gray-900 dark:text-gray-100">
               {activityItem.person.name}
             </a>{' '}
             added tags

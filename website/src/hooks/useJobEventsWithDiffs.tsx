@@ -71,7 +71,7 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
   useEffect(() => {
     (async () => {
       if (jobEventsWithDiffs.length) {
-        const messageAddresses = jobEventsWithDiffs.filter(jobEvent => [JobEventType.OwnerMessage, JobEventType.WorkerMessage].includes(jobEvent.type_)).map((event) => getAddress(event.address_));
+        const messageAddresses = jobEventsWithDiffs.filter(jobEvent => [JobEventType.OwnerMessage, JobEventType.WorkerMessage, JobEventType.Paid, JobEventType.Taken].includes(jobEvent.type_)).map((event) => getAddress(event.address_));
         setAddresses([...new Set([...messageAddresses, jobEventsWithDiffs[0].job.roles.creator])]);
         setArbitratorAddresses([...new Set(jobEventsWithDiffs.map(jobEvent => jobEvent.job.roles.arbitrator))].filter(address => address !== ZeroAddress));
       }
@@ -88,8 +88,7 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
       // when all public keys are fetched, we are ready to fetch encrypted contents from IPFS and decrypt them
       const sessionKeys_: Record<string, string> = {};
       const ownerAddress = jobEventsWithDiffs[0].job.roles.creator;
-      const workerAddresses = [...new Set(jobEventsWithDiffs.map(event => event.job.roles.worker).filter(address => address !== ZeroAddress))];
-      for (const workerAddress of workerAddresses) {
+      for (const workerAddress of addresses) {
         if (signer && Object.keys(publicKeys.data).length) {
           const otherPubkey = ownerAddress === address ? publicKeys.data[workerAddress] : publicKeys.data[ownerAddress];
           sessionKeys_[`${ownerAddress}-${workerAddress}`] = await getSessionKey(signer as any, otherPubkey);
@@ -117,7 +116,7 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
         ...sessionKeys_,
       }));
     })();
-  }, [publicKeys.data, arbitratorPublicKeys.data, signer, arbitratorAddresses, jobEventsWithDiffs, address]);
+  }, [publicKeys.data, arbitratorPublicKeys.data, signer, addresses, arbitratorAddresses, jobEventsWithDiffs, address]);
 
   return useMemo(() => ({ data: finalEvents, addresses, arbitratorAddresses, sessionKeys, ...rest }), [finalEvents, addresses, arbitratorAddresses, sessionKeys, rest]);
 }

@@ -157,7 +157,7 @@ task("marketplace:seed", "Seed local marketplace instance")
   console.log("Registering users");
   await marketplaceData.connect(owner).registerUser((await getEncryptionSigningKey(owner)).compressedPublicKey, "Owner", "I am the coolest job creator", "https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80");
   await marketplaceData.connect(worker).registerUser((await getEncryptionSigningKey(worker)).compressedPublicKey, "Worker", "Best worker around", "https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80");
-  await marketplaceData.connect(arbitrator).registerArbitrator((await getEncryptionSigningKey(arbitrator)).compressedPublicKey, "Arbitrator", "I can arbitrate anything", "https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80", 100);
+  await marketplaceData.connect(arbitrator).registerArbitrator((await getEncryptionSigningKey(arbitrator)).compressedPublicKey, "Arbitrator", "I can arbitrate anything", "https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=0&w=256&h=256&q=80", 100);
 
   console.log('Creating jobs');
   {
