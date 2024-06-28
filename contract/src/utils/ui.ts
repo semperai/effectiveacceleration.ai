@@ -478,11 +478,13 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
 }
 
 export const fetchEventContents = async (events: JobEventWithDiffs[], sessionKeys: Record<string, string>): Promise<JobEventWithDiffs[]> => {
+  const result = structuredClone(events);
+
   const contents: Record<string, string> = {};
 
   const workerCandidates: Set<string> = new Set<string>;
 
-  await Promise.allSettled(events.filter((jobEvent) => [JobEventType.OwnerMessage, JobEventType.WorkerMessage, JobEventType.Arbitrated, JobEventType.Delivered, JobEventType.Created, JobEventType.Updated].includes(Number(jobEvent.type_))).map((jobEvent) => {
+  await Promise.allSettled(result.filter((jobEvent) => [JobEventType.OwnerMessage, JobEventType.WorkerMessage, JobEventType.Arbitrated, JobEventType.Delivered, JobEventType.Created, JobEventType.Updated].includes(Number(jobEvent.type_))).map((jobEvent) => {
     if (Number(jobEvent.type_) === JobEventType.Created) {
       return {
         contentHash: (jobEvent.details as JobCreatedEvent).contentHash,
@@ -541,7 +543,7 @@ export const fetchEventContents = async (events: JobEventWithDiffs[], sessionKey
   }));
 
   let previousState: JobEventWithDiffs | undefined = undefined;
-  for (const event of events) {
+  for (const event of result) {
     if (Number(event.type_) === JobEventType.Arbitrated) {
       (event.details as JobArbitratedEvent).reason = contents[(event.details as JobArbitratedEvent).reasonHash]
     } else if ([JobEventType.OwnerMessage, JobEventType.WorkerMessage].includes(Number(event.type_))) {
@@ -576,5 +578,5 @@ export const fetchEventContents = async (events: JobEventWithDiffs[], sessionKey
     previousState = structuredClone(event);
   }
 
-  return events;
+  return result;
 }

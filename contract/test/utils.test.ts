@@ -61,10 +61,10 @@ describe("utils", () => {
     });
 
     it("should throw an error if upload secret is not set", async () => {
-      const oldSecret = process.env.IPFS_UPLOAD_SECRET;
-      delete process.env.IPFS_UPLOAD_SECRET;
+      const oldSecret = process.env.IPFS_UPLOAD_SERVICE_SECRET;
+      delete process.env.IPFS_UPLOAD_SERVICE_SECRET;
       await expect(publishToIpfs("unencrypted", undefined)).to.be.rejectedWith(/Invalid upload secret/);
-      process.env.IPFS_UPLOAD_SECRET = oldSecret;
+      process.env.IPFS_UPLOAD_SERVICE_SECRET = oldSecret;
     });
   });
 

@@ -1,7 +1,6 @@
 import { MARKETPLACE_DATA_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceDataV1";
-import { MARKETPLACE_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceV1";
 import Config from "effectiveacceleration-contracts/scripts/config.json";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAccount, useReadContract } from "wagmi";
 import { getSessionKey, JobEventType, computeJobStateDiffs, fetchEventContents } from "effectiveacceleration-contracts";
 import { useEthersSigner } from "./useEthersSigner";
@@ -13,9 +12,11 @@ import useArbitratorPublicKeys from "./useArbitratorPublicKeys";
 
 export default function useJobEventsWithDiffs(jobId: bigint) {
   const [jobEventsWithDiffs, setJobEventsWithDiffs] = useState<JobEventWithDiffs[]>([]);
+  const [finalEvents, setFinalEvents] = useState<JobEventWithDiffs[]>([]);
   const [logEvents, setLogEvents] = useState<JobEvent[]>([]);
   const [addresses, setAddresses] = useState<string[]>([]);
   const [arbitratorAddresses, setArbitratorAddresses] = useState<string[]>([]);
+  const [sessionKeys, setSessionKeys] = useState<Record<string, string>>({});
 
   const { address } = useAccount();
   const signer = useEthersSigner();
@@ -85,14 +86,14 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
       }
 
       // when all public keys are fetched, we are ready to fetch encrypted contents from IPFS and decrypt them
-      const sessionKeys: Record<string, string> = {};
+      const sessionKeys_: Record<string, string> = {};
       const ownerAddress = jobEventsWithDiffs[0].job.roles.creator;
       const workerAddresses = [...new Set(jobEventsWithDiffs.map(event => event.job.roles.worker).filter(address => address !== ZeroAddress))];
       for (const workerAddress of workerAddresses) {
         if (signer && Object.keys(publicKeys.data).length) {
           const otherPubkey = ownerAddress === address ? publicKeys.data[workerAddress] : publicKeys.data[ownerAddress];
-          sessionKeys[`${ownerAddress}-${workerAddress}`] = await getSessionKey(signer as any, otherPubkey);
-          sessionKeys[`${workerAddress}-${ownerAddress}`] = await getSessionKey(signer as any, otherPubkey);
+          sessionKeys_[`${ownerAddress}-${workerAddress}`] = await getSessionKey(signer as any, otherPubkey);
+          sessionKeys_[`${workerAddress}-${ownerAddress}`] = await getSessionKey(signer as any, otherPubkey);
         }
       }
 
@@ -100,18 +101,23 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
         if (signer && Object.keys(arbitratorPublicKeys.data).length) {
           const otherPubkey = ownerAddress === address ? arbitratorPublicKeys.data[arbitratorAddress] : publicKeys.data[ownerAddress];
 
-          sessionKeys[`${ownerAddress}-${arbitratorAddress}`] = await getSessionKey(signer as any, otherPubkey);
-          sessionKeys[`${arbitratorAddress}-${ownerAddress}`] = await getSessionKey(signer as any, otherPubkey);
+          sessionKeys_[`${ownerAddress}-${arbitratorAddress}`] = await getSessionKey(signer as any, otherPubkey);
+          sessionKeys_[`${arbitratorAddress}-${ownerAddress}`] = await getSessionKey(signer as any, otherPubkey);
         }
       }
 
-      if (!Object.keys(sessionKeys).length) {
+      if (!Object.keys(sessionKeys_).length) {
         return;
       }
 
-      setJobEventsWithDiffs(await fetchEventContents(jobEventsWithDiffs, sessionKeys));
+      const eventContents = await fetchEventContents(jobEventsWithDiffs, sessionKeys_);
+      setFinalEvents(eventContents);
+      setSessionKeys(prev => ({
+        ...prev,
+        ...sessionKeys_,
+      }));
     })();
-  }, [publicKeys, arbitratorPublicKeys, signer, arbitratorAddresses, jobEventsWithDiffs, address]);
+  }, [publicKeys.data, arbitratorPublicKeys.data, signer, arbitratorAddresses, jobEventsWithDiffs, address]);
 
-  return { data: jobEventsWithDiffs, ...rest };
+  return useMemo(() => ({ data: finalEvents, addresses, arbitratorAddresses, sessionKeys, ...rest }), [finalEvents, addresses, arbitratorAddresses, sessionKeys, rest]);
 }

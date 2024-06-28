@@ -41,13 +41,13 @@ export const publishToIpfs = async (message: string, sessionKey: string | undefi
 }> => {
   const encodedData: string = encodeBase64(encryptUtf8Data(message, sessionKey));
 
-  const host = process.env.IPFS_API_URL || "http://localhost:8000";
+  const host = process.env.IPFS_UPLOAD_SERVICE_URL ?? process.env.NEXT_PUBLIC_IPFS_UPLOAD_SERVICE_URL ?? "http://localhost:8000";
 
   const response = await fetch(host, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "IPFS_UPLOAD_SECRET": process.env.IPFS_UPLOAD_SECRET ?? ""
+      "IPFS_UPLOAD_SERVICE_SECRET": process.env.IPFS_UPLOAD_SERVICE_SECRET ?? process.env.NEXT_PUBLIC_IPFS_UPLOAD_SERVICE_SECRET ?? ""
     },
     body: JSON.stringify({
       dataB64: encodedData,

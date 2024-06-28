@@ -4,10 +4,10 @@ import axios from "axios";
 import { decodeBase58, hexlify, toBeArray } from "ethers";
 
 const IPFS_API_URL = process.env.IPFS_API_URL || "http://127.0.0.1:5001";
-const IPFS_UPLOAD_SECRET = process.env.IPFS_UPLOAD_SECRET
+const IPFS_UPLOAD_SERVICE_SECRET = process.env.IPFS_UPLOAD_SERVICE_SECRET
 
-if (!IPFS_UPLOAD_SECRET) {
-  throw "Set IPFS_UPLOAD_SECRET environment variable";
+if (!IPFS_UPLOAD_SERVICE_SECRET) {
+  throw "Set IPFS_UPLOAD_SERVICE_SECRET environment variable";
 }
 
 const cidToHash = (cid: string): string => {
@@ -19,7 +19,7 @@ app.use(express.json());
 app.use(cors());
 
 app.post('/', async function(req, res) {
-  if (req.header("IPFS_UPLOAD_SECRET") !== IPFS_UPLOAD_SECRET) {
+  if (req.header("IPFS_UPLOAD_SERVICE_SECRET") !== IPFS_UPLOAD_SERVICE_SECRET) {
     console.log("Invalid upload secret");
     return res.status(400).send({error: "Invalid upload secret"});
   }

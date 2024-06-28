@@ -18,19 +18,36 @@ import { renderEvent } from '@/components/Events';
 import useJobEventsWithDiffs from '@/hooks/useJobEventsWithDiffs';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import Config from "effectiveacceleration-contracts/scripts/config.json";
-import { zeroHash } from 'viem';
+import { zeroAddress } from 'viem';
 import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
 import { useEffect, useState } from 'react';
 import useJob from '@/hooks/useJob';
 import { tokensMap } from '@/tokens'
+import { publishToIpfs } from 'effectiveacceleration-contracts';
+import { readContract } from 'wagmi/actions';
+import { Textarea } from '@/components/Textarea';
+import { Select } from '@/components/Select';
+import { useAccount } from 'wagmi';
 
 export default function JobPage() {
   const id = useParams().id as string;
   const jobId = BigInt(id);
+  const { address } = useAccount();
   const { data: job } = useJob(jobId);
+  const [recipient, setRecipient] = useState<string>(zeroAddress);
+  const [recipients, setRecipients] = useState<string[]>([]);
+  // const [sessionKey, setSessionKey] = useState<string>("");
+  const [message, setMessage] = useState<string>("");
 
-  const events = useJobEventsWithDiffs(jobId);
-  // console.log(events.data.at(-1));
+  const { data: events, addresses, arbitratorAddresses, sessionKeys } = useJobEventsWithDiffs(jobId);
+
+  useEffect(() => {
+    if (events?.length && Object.keys(sessionKeys ?? {}).length) {
+      const targets = [zeroAddress, ...[... new Set([...addresses, ...arbitratorAddresses])]];
+      const targetsWithoutMe = targets.filter((target) => target !== address);
+      setRecipients(targetsWithoutMe);
+    }
+  }, [events, addresses, arbitratorAddresses, sessionKeys]);
 
   const [postMessageDisabled, setPostMessageDisabled] = useState<boolean>(false);
   const {
@@ -40,11 +57,11 @@ export default function JobPage() {
     writeContract,
   } = useWriteContract();
 
-  function postMessageClick() {
+  async function postMessageClick() {
     setPostMessageDisabled(true);
 
-    const contentHash = "0x13598f9e75cb2e516b01f5626c330d540a8309f94bebd55de66e750ff75637a3";
-    console.log('posting message', jobId, contentHash);
+    const sessionKey = sessionKeys[`${address}-${recipient}`];
+    const { hash: contentHash } = await publishToIpfs(message, sessionKey);
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
@@ -52,7 +69,7 @@ export default function JobPage() {
       functionName: 'postThreadMessage',
       args: [
         jobId,
-        contentHash
+        contentHash as any
       ],
     });
   }
@@ -140,13 +157,19 @@ export default function JobPage() {
         </div>
       </div>
 
+      <Textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Message" className="mt-5" />
+      <Select about='select' onChange={(e) => setRecipient(e.target.value)}>
+        {recipients.map(recipient =>
+          <option key={recipient} value={recipient}>{recipient === zeroAddress ? "Unencrypted" : recipient}</option>
+        )}
+      </Select>
 
       <div className="flow-root mt-20">
         <ul role="list" className="-mb-8">
-          {events.data?.slice().reverse().map((event, index) => (
+          {events?.slice().reverse().map((event, index) => (
             <li key={index}>
               <div className="relative pb-8">
-                {index !== events.data.length - 1 ? (
+                {index !== events?.length - 1 ? (
                   <span className="absolute left-5 top-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true" />
                 ) : null}
                 <div className="relative flex items-start space-x-3">
