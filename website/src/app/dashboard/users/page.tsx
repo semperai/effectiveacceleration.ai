@@ -4,7 +4,6 @@ import { clsx } from 'clsx'
 import { Layout } from '@/components/Dashboard/Layout'
 import { Link } from '@/components/Link'
 import { ChevronRightIcon } from '@heroicons/react/20/solid'
-import { Token, tokens, tokensMap } from '@/tokens'
 import {
   Pagination,
   PaginationGap,
@@ -13,8 +12,6 @@ import {
   PaginationPage,
   PaginationPrevious,
 } from '@/components/Pagination'
-import useJobs from '@/hooks/useJobs';
-import moment from 'moment'
 import useUsers from '@/hooks/useUsers';
 import useUserRatings from '@/hooks/useUserRatings';
 
@@ -55,7 +52,7 @@ export default function OpenJobsPage() {
                 {' '} reputation
               </p>
               <p className="whitespace-nowrap">
-                <span className="text-orange-500 dark:text-orange-400">{userRatings[user.address_]?.averageRating / 10000}</span>
+                <span className="text-orange-500 dark:text-orange-400">{(userRatings[user.address_]?.averageRating ?? 0) / 10000}</span>
                 {' '} average rating
               </p>
             </div>
