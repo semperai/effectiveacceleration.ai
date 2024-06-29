@@ -21,12 +21,15 @@ import { Textarea } from '@/components/Textarea'
 import { Input } from '@/components/Input'
 import { Select } from '@/components/Select'
 import { TokenSelector } from '@/components/TokenSelector'
-import { Token } from '@/tokens'
+import { Token, tokens, tokensMap } from '@/tokens'
 import { Radio, RadioGroup } from '@/components/Radio'
 import { ListboxOptions } from '@headlessui/react'
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/24/outline'
 import { Listbox, ListboxOption } from '@/components/Listbox'
 import { publishToIpfs } from 'effectiveacceleration-contracts'
+import { zeroAddress } from 'viem'
+import useUsers from '@/hooks/useUsers'
+import useArbitrators from '@/hooks/useArbitrators'
 
 export default function PostJobPage() {
   const { address } = useAccount();
@@ -36,11 +39,19 @@ export default function PostJobPage() {
     isPending,
     writeContract,
   } = useWriteContract();
+  const { data: workers } = useUsers();
+  const workerAddresses = workers?.map((worker) => worker.address_) ?? [];
+  const workerNames = workers?.map((worker) => worker.name) ?? [];
 
-  const [selectedToken, setSelectedToken] = useState<Token | undefined>(undefined)
+  const { data: arbitrators } = useArbitrators();
+  const arbitratorAddresses = [zeroAddress, ...(arbitrators?.map((worker) => worker.address_) ?? [])];
+  const arbitratorNames = ["None", ...(arbitrators?.map((worker) => worker.name) ?? [])];
+
+  const [selectedToken, setSelectedToken] = useState<Token | undefined>(tokens[0]);
   const multipleApplicantsValues = ['Yes', 'No']
   const arbitrator = ['Yes', 'No']
   const category = [
+    { id: 0, name: 'None' },
     { id: 1, name: 'Web' },
     { id: 2, name: 'Design' },
     { id: 3, name: 'Translation' },
@@ -48,15 +59,29 @@ export default function PostJobPage() {
     { id: 5, name: 'Marketing' },
   ]
 
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [amount, setAmount] = useState('0');
-  const [deadline, setDeadline] = useState(0);
+  const meceTags = [
+    { id: "DA", name: "Digital Audio" },
+    { id: "DV", name: "Digital Video" },
+    { id: "DT", name: "Digital Text" },
+    { id: "DS", name: "Digital Software" },
+    { id: "DO", name: "Digital Others" },
+    { id: "NDG", name: "Non-Digital Goods" },
+    { id: "NDS", name: "Non-Digital Services" },
+    { id: "NDO", name: "Non-Digital Others" },
+  ]
+
+  const [title, setTitle] = useState('Title');
+  const [deliveryMethod, setDeliveryMethod] = useState('Digital');
+  const [description, setDescription] = useState('Body');
+  const [amount, setAmount] = useState(ethers.formatUnits(1, 0));
+  const [deadline, setDeadline] = useState(120);
   const [multipleApplicants, setMultipleApplicants] = useState(multipleApplicantsValues[1])
   const [isArbitrator, setisArbitrator] = useState(arbitrator[1])
 
-  const [selectedCategory, setselectedCategory] = useState(category[0])
-
+  const [selectedCategory, setselectedCategory] = useState(category[0]);
+  const [selectedMeceTag, setSelectedMeceTag] = useState(meceTags[0]);
+  const [selectedWorkerAddress, setsSelectedWorkerAddress] = useState<string | undefined>(undefined);
+  const [selectedArbitratorAddress, setsSelectedArbitratorAddress] = useState<string>(zeroAddress);
 
   const [postButtonDisabled, setPostButtonDisabled] = useState(false);
   useEffect(() => {
@@ -71,7 +96,7 @@ export default function PostJobPage() {
     } else {
       setPostButtonDisabled(false);
     }
-  }, [title, description, amount, deadline, selectedToken])
+  }, [title, description, amount, deadline, selectedToken, error])
 
   const {
     isLoading: isConfirming,
@@ -79,6 +104,15 @@ export default function PostJobPage() {
   } = useWaitForTransactionReceipt({
     hash, 
   });
+
+  useEffect(() => {
+    if (isConfirmed || error) {
+      if (error) {
+        console.log(error);
+        alert(error.message.match(`The contract function ".*" reverted with the following reason:\n(.*)\n.*`)?.[1])
+      }
+    }
+  }, [isConfirmed, error]);
 
   const { data: balanceData } = useReadContract({
     account:      address,
@@ -105,12 +139,15 @@ export default function PostJobPage() {
       functionName: 'publishJobPost',
       args: [
         title,
-        description,
-        selectedToken?.id,
-        ethers.parseEther(amount).toString(),
+        contentHash as `0x${string}`,
+        multipleApplicants === 'Yes',
+        [selectedMeceTag.id, ...(selectedCategory.id !== 0 ? [selectedCategory.name] : [])],
+        selectedToken?.id! as `0x${string}`,
+        ethers.parseUnits(amount, selectedToken?.decimals!),
         deadline,
-        [],
-        [],
+        deliveryMethod,
+        selectedArbitratorAddress as `0x${string}`,
+        selectedWorkerAddress ? [selectedWorkerAddress as `0x${string}`] : [],
       ],
     });
 
@@ -156,7 +193,22 @@ export default function PostJobPage() {
               </RadioGroup>
             </Field>
             <Field>
-            <Label>Tags</Label>
+            <Label>MECE Tags</Label>
+            <Listbox
+              value={selectedMeceTag} 
+              onChange={setSelectedMeceTag}
+              className="border border-gray-300 rounded-md shadow-sm"
+              placeholder="Select an option"
+            >
+              {meceTags.map((tag, index) => (
+                  <ListboxOption key={index} value={tag}>
+                    {tag.name}
+                  </ListboxOption>
+              ))}
+            </Listbox>
+            </Field>
+            <Field>
+            <Label>Extra Tags</Label>
             <Listbox
               value={selectedCategory} 
               onChange={setselectedCategory}
@@ -208,9 +260,9 @@ export default function PostJobPage() {
             <Field>
               <Label>Delivery Method</Label>
               <Input
-                name="title"
-                value={''}
-                onChange={(e) => setTitle(e.target.value)}
+                name="deliveryMethod"
+                value={deliveryMethod}
+                onChange={(e) => setDeliveryMethod(e.target.value)}
               />
             </Field>
             <Field className='flex flex-row justify-between items-center'>
@@ -226,6 +278,23 @@ export default function PostJobPage() {
                   </Field>
                 ))}
               </RadioGroup>
+            </Field>
+            <Field>
+              <div className='flex justify-between'>
+                <Label>Arbitrator</Label>
+              </div>
+              <Listbox
+              value={selectedArbitratorAddress}
+              onChange={(e) => setsSelectedArbitratorAddress(e)}
+              className="border border-gray-300 rounded-md shadow-sm"
+              placeholder="Select an option"
+            >
+              {arbitratorAddresses.map((arbitratorAddress, index) => (
+                  <ListboxOption key={index} value={arbitratorAddress}>
+                    {arbitratorNames[index]}
+                  </ListboxOption>
+              ))}
+            </Listbox>
             </Field>
 
           
@@ -265,14 +334,14 @@ export default function PostJobPage() {
                 <Label>+ Add Another</Label>
               </div>
               <Listbox
-              value={selectedCategory} 
-              onChange={setselectedCategory}
+              value={selectedWorkerAddress}
+              onChange={(e) => setsSelectedWorkerAddress(e)}
               className="border border-gray-300 rounded-md shadow-sm"
               placeholder="Select an option"
             >
-              {category.map((cat, catIndex) => (
-                  <ListboxOption key={catIndex} value={cat}>
-                    {cat.name}
+              {workerAddresses.map((workerAddress, index) => (
+                  <ListboxOption key={index} value={workerAddress}>
+                    {workerNames[index]}
                   </ListboxOption>
               ))}
             </Listbox>

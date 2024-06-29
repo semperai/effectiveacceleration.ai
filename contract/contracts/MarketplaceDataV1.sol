@@ -123,7 +123,7 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
         marketplace = MarketplaceV1(marketplace_);
 
         meceTags["DA"] = "DIGITAL_AUDIO";
-        meceTags["DV"] = "DIGIAL_VIDEO";
+        meceTags["DV"] = "DIGITAL_VIDEO";
         meceTags["DT"] = "DIGITAL_TEXT";
         meceTags["DS"] = "DIGITAL_SOFTWARE";
         meceTags["DO"] = "DIGITAL_OTHERS";
