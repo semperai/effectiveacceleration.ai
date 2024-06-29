@@ -23,7 +23,7 @@ import { zeroAddress } from 'viem';
 import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
 import { useEffect, useState } from 'react';
 import useJob from '@/hooks/useJob';
-import { tokensMap } from '@/tokens'
+import { formatTokenNameAndAmount, tokenIcon, tokensMap } from '@/tokens'
 import { publishToIpfs } from 'effectiveacceleration-contracts';
 import { readContract } from 'wagmi/actions';
 import { Textarea } from '@/components/Textarea';
@@ -126,7 +126,12 @@ export default function JobPage() {
           <div className="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
             <div className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400">
               <CurrencyDollarIcon className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-300" aria-hidden="true" />
-              {job && (job.amount / 10n ** BigInt(tokensMap[job.token].decimals)).toString() } {tokensMap[job?.token!]?.symbol}
+              {job && (
+                <div className='flex flex-row gap-2 items-center'>
+                  {formatTokenNameAndAmount(job.token, job.amount)}
+                  <img src={tokenIcon(job.token)} alt="" className="h-4 w-4 flex-none mr-1" />
+                </div>
+              )}
             </div>
             <div className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400">
               <CalendarIcon className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-300" aria-hidden="true" />

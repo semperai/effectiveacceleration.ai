@@ -1,7 +1,7 @@
 import { type EventProps } from './index';
 import moment from 'moment';
 import useUser from '@/hooks/useUser';
-import { formatTokenNameAndAmount } from '@/tokens';
+import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
 import { getAddress } from 'viem';
 
 export function CollateralWithdrawnEvent({event, ...rest}: EventProps & React.ComponentPropsWithoutRef<'div'>) {
@@ -31,7 +31,10 @@ export function CollateralWithdrawnEvent({event, ...rest}: EventProps & React.Co
           <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">withdrew collateral {date}</p>
         </div>
         <div className="mt-2 text-sm text-gray-700 dark:text-gray-500">
-          <p>{formatTokenNameAndAmount(token, amount)}</p>
+          <div className='flex flex-row gap-2 items-center'>
+            {formatTokenNameAndAmount(token, amount)}
+            <img src={tokenIcon(token)} alt="" className="h-4 w-4 flex-none mr-1" />
+          </div>
         </div>
       </div>
     </>

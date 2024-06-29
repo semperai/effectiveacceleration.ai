@@ -2,7 +2,7 @@ import { type EventProps } from './index';
 import moment from 'moment';
 import { JobArbitratedEvent } from 'effectiveacceleration-contracts';
 import useArbitrator from '@/hooks/useArbitrator';
-import { formatTokenNameAndAmount } from '@/tokens';
+import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
 import { getAddress } from 'viem';
 
 export function ArbitratedEvent({event, ...rest}: EventProps & React.ComponentPropsWithoutRef<'div'>) {
@@ -32,8 +32,14 @@ export function ArbitratedEvent({event, ...rest}: EventProps & React.ComponentPr
         </div>
         <div className="mt-2 text-sm text-gray-700 dark:text-gray-500">
           <p>{details.reason}</p>
-          <p>Creator share {details.creatorShare / 100}% ({formatTokenNameAndAmount(event.job.token, details.creatorAmount)})</p>
-          <p>Worker share {details.workerShare / 100}% ({formatTokenNameAndAmount(event.job.token, details.workerAmount)})</p>
+          <div className='flex flex-row items-center'>
+            Creator share {details.creatorShare / 100}% ({formatTokenNameAndAmount(event.job.token, details.creatorAmount)}
+            <img src={tokenIcon(event.job.token)} alt="" className="h-4 w-4 flex-none ml-1" />)
+          </div>
+          <div className='flex flex-row items-center'>
+            Worker share {details.workerShare / 100}% ({formatTokenNameAndAmount(event.job.token, details.workerAmount)}
+            <img src={tokenIcon(event.job.token)} alt="" className="h-4 w-4 flex-none ml-1" />)
+          </div>
         </div>
       </div>
     </>
