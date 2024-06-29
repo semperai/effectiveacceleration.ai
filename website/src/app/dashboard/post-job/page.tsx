@@ -26,6 +26,7 @@ import { Radio, RadioGroup } from '@/components/Radio'
 import { ListboxOptions } from '@headlessui/react'
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/24/outline'
 import { Listbox, ListboxOption } from '@/components/Listbox'
+import { publishToIpfs } from 'effectiveacceleration-contracts'
 
 export default function PostJobPage() {
   const { address } = useAccount();
@@ -53,7 +54,7 @@ export default function PostJobPage() {
   const [deadline, setDeadline] = useState(0);
   const [multipleApplicants, setMultipleApplicants] = useState(multipleApplicantsValues[1])
   const [isArbitrator, setisArbitrator] = useState(arbitrator[1])
-  
+
   const [selectedCategory, setselectedCategory] = useState(category[0])
 
 
@@ -91,27 +92,29 @@ export default function PostJobPage() {
     console.log('balance', balanceData.toString())
   }
 
-  function postJobClick() {
+  async function postJobClick() {
     setPostButtonDisabled(true);
 
     console.log('posting job', title, description, selectedToken?.id, amount, deadline);
 
-    // const w = writeContract({
-    //   abi: MARKETPLACE_V1_ABI,
-    //   address: Config.marketplaceAddress as `0x${string}`,
-    //   functionName: 'publishJobPost',
-    //   args: [
-    //     title,
-    //     description,
-    //     selectedToken?.id,
-    //     ethers.parseEther(amount).toString(),
-    //     deadline,
-    //     [],
-    //     [],
-    //   ],
-    // });
+    const { hash: contentHash } = await publishToIpfs(description);
 
-    // console.log('writeContract', w);
+    const w = writeContract({
+      abi: MARKETPLACE_V1_ABI,
+      address: Config.marketplaceAddress as `0x${string}`,
+      functionName: 'publishJobPost',
+      args: [
+        title,
+        description,
+        selectedToken?.id,
+        ethers.parseEther(amount).toString(),
+        deadline,
+        [],
+        [],
+      ],
+    });
+
+    console.log('writeContract', w);
   }
 
 
