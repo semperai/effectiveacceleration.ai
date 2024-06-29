@@ -11,7 +11,8 @@ import {
   CurrencyDollarIcon,
   LinkIcon,
   PencilIcon,
-  UserIcon
+  UserIcon,
+  UsersIcon,
 } from '@heroicons/react/20/solid'
 import { useParams } from 'next/navigation';
 import moment from 'moment';
@@ -45,6 +46,7 @@ export default function JobPage() {
   const { data: events, addresses, arbitratorAddresses, sessionKeys } = useJobEventsWithDiffs(jobId);
   const { data: users } = useUsersByAddresses(addresses);
   const { data: arbitrators } = useArbitratorsByAddresses(arbitratorAddresses);
+  const whitelistedWorkers = events.at(-1)?.job.allowedWorkers ?? [];
 
   useEffect(() => {
     if (events?.length && Object.keys(sessionKeys ?? {}).length) {
@@ -91,7 +93,13 @@ export default function JobPage() {
   useEffect(() => {
     if (isConfirmed || error) {
       if (error) {
-        alert(error.message.match(`The contract function ".*" reverted with the following reason:\n(.*)\n.*`)?.[1])
+        const reverReason = error.message.match(`The contract function ".*" reverted with the following reason:\n(.*)\n.*`)?.[1];
+        if (reverReason) {
+          alert(error.message.match(`The contract function ".*" reverted with the following reason:\n(.*)\n.*`)?.[1])
+        } else {
+          console.log(error, error.message);
+          alert("Unknown error occurred");
+        }
       }
       setPostMessageDisabled(false);
     }
@@ -100,7 +108,7 @@ export default function JobPage() {
   return (
     <Layout>
       <div className="">
-        <div className="min-w-0 flex-1">
+        <div className="flex-1 min-w-0">
           <nav className="flex" aria-label="Breadcrumb">
             <ol role="list" className="flex items-center space-x-4">
               <li>
@@ -112,7 +120,7 @@ export default function JobPage() {
               </li>
               <li>
                 <div className="flex items-center">
-                  <ChevronRightIcon className="h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-400" aria-hidden="true" />
+                  <ChevronRightIcon className="flex-shrink-0 w-5 h-5 text-gray-400 dark:text-gray-400" aria-hidden="true" />
                   <Link href={`/dashboard/jobs/${jobId}`} className="ml-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
                     { jobId.toString() }
                   </Link>
@@ -123,32 +131,46 @@ export default function JobPage() {
           <h2 className="mt-2 text-2xl font-bold leading-7 text-gray-900 dark:text-gray-100 sm:truncate sm:text-3xl sm:tracking-tight">
             { job?.title }
           </h2>
-          <div className="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
-            <div className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400">
+          <div className="flex flex-col mt-1 sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
+            <div className="flex items-center mt-2 text-sm text-gray-500 dark:text-gray-400">
               <CurrencyDollarIcon className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-300" aria-hidden="true" />
               {job && (
-                <div className='flex flex-row gap-2 items-center'>
+                <div className='flex flex-row items-center gap-2'>
                   {formatTokenNameAndAmount(job.token, job.amount)}
-                  <img src={tokenIcon(job.token)} alt="" className="h-4 w-4 flex-none mr-1" />
+                  <img src={tokenIcon(job.token)} alt="" className="flex-none w-4 h-4 mr-1" />
                 </div>
               )}
             </div>
-            <div className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400">
+            <div className="flex items-center mt-2 text-sm text-gray-500 dark:text-gray-400">
               <CalendarIcon className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-300" aria-hidden="true" />
               { moment.duration(job?.maxTime, "seconds").humanize() }
             </div>
-            <div className="mt-2 flex items-center text-sm text-gray-500 dark:text-gray-400">
+            <div className="flex items-center mt-2 text-sm text-gray-500 dark:text-gray-400">
               <UserIcon className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-300" aria-hidden="true" />
               last updated by { users[job?.roles.creator!]?.name } { moment(job?.timestamp! * 1000).fromNow() }
             </div>
+            {job?.multipleApplicants && <div className="flex items-center mt-2 text-sm text-gray-500 dark:text-gray-400">
+              <UsersIcon className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-300" aria-hidden="true" />
+              multiple applicants allowed
+            </div>}
           </div>
         </div>
+        {(whitelistedWorkers.length ?? 0) > 0 && <div className="mt-1">
+          <Text>
+            Whitelisted for {
+              whitelistedWorkers.map((address) => (<>
+                <a key={address} href={`/dashboard/users/${address}`} className="font-medium text-gray-900 dark:text-gray-100">
+                  {users[address]?.name ?? address}
+                </a>
+              </>))}
+          </Text>
+        </div>}
         <div className="mt-5">
           <Text>
             { job?.content }
           </Text>
         </div>
-        <div className="mt-5 flex">
+        <div className="flex mt-5">
           <span>
             <Button disabled={postMessageDisabled} onClick={postMessageClick}>
               <PencilIcon className="-ml-0.5 mr-1.5 h-5 w-5 text-gray-400" aria-hidden="true" />
