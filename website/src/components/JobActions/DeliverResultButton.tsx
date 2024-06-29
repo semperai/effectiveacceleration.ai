@@ -1,21 +1,21 @@
 import { Button } from '@/components/Button'
 import { CheckIcon } from "@heroicons/react/20/solid";
-import { Job, JobEventWithDiffs } from "effectiveacceleration-contracts";
+import { Job, JobEventWithDiffs, publishToIpfs } from "effectiveacceleration-contracts";
 import { MARKETPLACE_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceV1";
 import Config from "effectiveacceleration-contracts/scripts/config.json";
-import { ethers } from "ethers";
 import { useEffect, useState } from "react";
 import { zeroAddress } from "viem";
-import { useSignMessage, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 
-export type AcceptButtonProps = {
+export type DeliverResultButtonProps = {
   address: `0x${string}` | undefined,
   events: JobEventWithDiffs[],
+  sessionKeys: Record<string, string>,
   job: Job | undefined,
+  message: string,
 }
 
-export function AcceptButton({address, job, events, ...rest}: AcceptButtonProps & React.ComponentPropsWithoutRef<'div'>) {
-  const { signMessageAsync } = useSignMessage();
+export function DeliverResultButton({address, job, events, message, sessionKeys, ...rest}: DeliverResultButtonProps & React.ComponentPropsWithoutRef<'div'>) {
   const {
     data: hash,
     error,
@@ -47,30 +47,32 @@ export function AcceptButton({address, job, events, ...rest}: AcceptButtonProps 
   const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
 
   async function buttonClick() {
+    if (message.length === 0) {
+      alert("Empty result");
+      return;
+    }
+
     setButtonDisabled(true);
 
-    const revision = events.length;
-    const signature = await signMessageAsync({
-      account: address,
-      message: {raw: ethers.getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, job?.id!])))}
-    });
+    const sessionKey = sessionKeys[`${address}-${job?.roles.creator}`];
+    const { hash: contentHash } = await publishToIpfs(message, sessionKey);
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
       address: Config.marketplaceAddress as `0x${string}`,
-      functionName: 'takeJob',
+      functionName: 'deliverResult',
       args: [
         job?.id!,
-        signature,
+        contentHash as `0x${string}`,
       ],
     });
   }
 
-  return (address !== job?.roles.creator && job?.roles.worker === zeroAddress) ? (<>
+  return (job?.roles.worker === address) ? (<>
     <span className="ml-3">
       <Button disabled={buttonDisabled} onClick={buttonClick}>
         <CheckIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-        Accept
+        Deliver Result
       </Button>
     </span>
   </>) : <></>

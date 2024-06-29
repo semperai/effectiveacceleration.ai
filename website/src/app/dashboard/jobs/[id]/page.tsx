@@ -31,6 +31,7 @@ import { useAccount } from 'wagmi';
 import useUsersByAddresses from '@/hooks/useUsersByAddresses';
 import useArbitratorsByAddresses from '@/hooks/useArbitratorsByAddresses';
 import { AcceptButton } from '@/components/JobActions/AcceptButton';
+import { DeliverResultButton } from '@/components/JobActions/DeliverResultButton';
 
 export default function JobPage() {
   const id = useParams().id as string;
@@ -93,8 +94,8 @@ export default function JobPage() {
   useEffect(() => {
     if (isConfirmed || error) {
       if (error) {
-        const reverReason = error.message.match(`The contract function ".*" reverted with the following reason:\n(.*)\n.*`)?.[1];
-        if (reverReason) {
+        const revertReason = error.message.match(`The contract function ".*" reverted with the following reason:\n(.*)\n.*`)?.[1];
+        if (revertReason) {
           alert(error.message.match(`The contract function ".*" reverted with the following reason:\n(.*)\n.*`)?.[1])
         } else {
           console.log(error, error.message);
@@ -179,6 +180,7 @@ export default function JobPage() {
           </span>
 
           <AcceptButton address={address} job={job} events={events}></AcceptButton>
+          <DeliverResultButton address={address} job={job} events={events} sessionKeys={sessionKeys} message={message}></DeliverResultButton>
 
           <span className="ml-3">
             <Button>
