@@ -7,7 +7,7 @@ import { useAccount, useReadContract } from "wagmi";
 
 
 export default function useJob(id: bigint) {
-  const [job, setJob] = useState<Job | null>(null);
+  const [job, setJob] = useState<Job | undefined>(undefined);
   const { address } = useAccount();
 
   const result = useReadContract({

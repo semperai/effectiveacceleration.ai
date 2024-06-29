@@ -6,7 +6,6 @@ import { Button } from '@/components/Button'
 import { Text } from '@/components/Text'
 import {
   CalendarIcon,
-  CheckIcon,
   ChevronRightIcon,
   CurrencyDollarIcon,
   LinkIcon,
@@ -24,14 +23,14 @@ import { zeroAddress } from 'viem';
 import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
 import { useEffect, useState } from 'react';
 import useJob from '@/hooks/useJob';
-import { formatTokenNameAndAmount, tokenIcon, tokensMap } from '@/tokens'
+import { formatTokenNameAndAmount, tokenIcon } from '@/tokens'
 import { publishToIpfs } from 'effectiveacceleration-contracts';
-import { readContract } from 'wagmi/actions';
 import { Textarea } from '@/components/Textarea';
 import { Select } from '@/components/Select';
 import { useAccount } from 'wagmi';
 import useUsersByAddresses from '@/hooks/useUsersByAddresses';
 import useArbitratorsByAddresses from '@/hooks/useArbitratorsByAddresses';
+import { AcceptButton } from '@/components/JobActions/AcceptButton';
 
 export default function JobPage() {
   const id = useParams().id as string;
@@ -59,6 +58,7 @@ export default function JobPage() {
   }, [events, addresses, arbitratorAddresses, sessionKeys]);
 
   const [postMessageDisabled, setPostMessageDisabled] = useState<boolean>(false);
+
   const {
     data: hash,
     error,
@@ -178,12 +178,7 @@ export default function JobPage() {
             </Button>
           </span>
 
-          <span className="ml-3">
-            <Button>
-              <CheckIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-              Accept
-            </Button>
-          </span>
+          <AcceptButton address={address} job={job} events={events}></AcceptButton>
 
           <span className="ml-3">
             <Button>

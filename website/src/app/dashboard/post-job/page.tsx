@@ -108,7 +108,7 @@ export default function PostJobPage() {
   useEffect(() => {
     if (isConfirmed || error) {
       if (error) {
-        console.log(error);
+        console.log(error, error.message);
         alert(error.message.match(`The contract function ".*" reverted with the following reason:\n(.*)\n.*`)?.[1])
       }
     }
