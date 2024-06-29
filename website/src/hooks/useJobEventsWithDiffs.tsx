@@ -71,8 +71,14 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
   useEffect(() => {
     (async () => {
       if (jobEventsWithDiffs.length) {
-        const messageAddresses = jobEventsWithDiffs.filter(jobEvent => [JobEventType.OwnerMessage, JobEventType.WorkerMessage, JobEventType.Paid, JobEventType.Taken].includes(jobEvent.type_)).map((event) => getAddress(event.address_));
-        setAddresses([...new Set([...messageAddresses, jobEventsWithDiffs[0].job.roles.creator])]);
+        const eventAddresses = jobEventsWithDiffs.filter(jobEvent => [
+          JobEventType.OwnerMessage,
+          JobEventType.WorkerMessage,
+          JobEventType.Paid,
+          JobEventType.Taken,
+          JobEventType.Signed,
+        ].includes(jobEvent.type_)).map((event) => getAddress(event.address_));
+        setAddresses([...new Set([...eventAddresses, jobEventsWithDiffs[0].job.roles.creator])]);
         setArbitratorAddresses([...new Set(jobEventsWithDiffs.map(jobEvent => jobEvent.job.roles.arbitrator))].filter(address => address !== ZeroAddress));
       }
     })();

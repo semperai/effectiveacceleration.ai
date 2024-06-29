@@ -32,6 +32,7 @@ import useUsersByAddresses from '@/hooks/useUsersByAddresses';
 import useArbitratorsByAddresses from '@/hooks/useArbitratorsByAddresses';
 import { AcceptButton } from '@/components/JobActions/AcceptButton';
 import { DeliverResultButton } from '@/components/JobActions/DeliverResultButton';
+import { AssignWorkerButton } from '@/components/JobActions/AssignWorkerButton';
 
 export default function JobPage() {
   const id = useParams().id as string;
@@ -181,6 +182,7 @@ export default function JobPage() {
 
           <AcceptButton address={address} job={job} events={events}></AcceptButton>
           <DeliverResultButton address={address} job={job} events={events} sessionKeys={sessionKeys} message={message}></DeliverResultButton>
+          <AssignWorkerButton address={address} job={job} worker={recipient as any}></AssignWorkerButton>
 
           <span className="ml-3">
             <Button>
