@@ -13,7 +13,7 @@ export const tokens: Token[] = [
     id: Config.fakeTokenAddress,
     name: 'Test',
     symbol: 'TST',
-    icon: '',
+    icon: 'https://assets.coingecko.com/coins/images/31188/standard/IMG_6480.png',
     decimals: 18,
   },
   {
@@ -41,4 +41,8 @@ export const formatTokenNameAndAmount = (tokenId: string, amount: bigint | undef
   const amountBigint = (amount ?? 0n) * 10000n / 10n ** BigInt(tokensMap[tokenId]?.decimals ?? 0);
   const amountNumber = Number(amountBigint) / 10000;
   return `${amountNumber} ${tokensMap[tokenId]?.symbol ?? ""}`;
+}
+
+export const tokenIcon = (tokenId: string) => {
+  return tokensMap[tokenId]?.icon ?? "";
 }

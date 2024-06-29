@@ -4,7 +4,7 @@ import { clsx } from 'clsx'
 import { Layout } from '@/components/Dashboard/Layout'
 import { Link } from '@/components/Link'
 import { ChevronRightIcon } from '@heroicons/react/20/solid'
-import { Token, tokens, tokensMap } from '@/tokens'
+import { formatTokenNameAndAmount, Token, tokenIcon, tokens, tokensMap } from '@/tokens'
 import {
   Pagination,
   PaginationGap,
@@ -50,7 +50,7 @@ export default function OpenJobsPage() {
               <p className="whitespace-nowrap">
                 {/* <span className="text-green-500 dark:text-green-400">+{job.reputationPositive}</span>
                 <span className="text-red-500 dark:text-red-400">-{job.reputationNegative}</span> */}
-                {' '} reputation
+                {/* {' '} reputation */}
               </p>
             </div>
           </div>
@@ -59,7 +59,10 @@ export default function OpenJobsPage() {
               'rounded-full flex-none py-1 px-2 text-xs font-medium ring-1 ring-inset'
             )}
           >
-            {job.amount.toString()} {job.token}
+            <div className='flex flex-row gap-2'>
+              {formatTokenNameAndAmount(job.token, job.amount)}
+              <img src={tokenIcon(job.token)} alt="" className="h-4 w-4 flex-none mr-1" />
+            </div>
           </div>
           <ChevronRightIcon className="h-5 w-5 flex-none text-gray-400" aria-hidden="true" />
         </li>
