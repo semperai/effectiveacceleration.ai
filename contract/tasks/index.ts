@@ -160,10 +160,6 @@ task("marketplace:seed", "Seed local marketplace instance")
   await marketplaceData.connect(arbitrator).registerArbitrator((await getEncryptionSigningKey(arbitrator)).compressedPublicKey, "Arbitrator", "I can arbitrate anything", "https://images.unsplash.com/photo-1520785643438-5bf77931f493?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=0&w=256&h=256&q=80", 100);
 
   console.log('Creating jobs');
-  const now = Math.floor(Date.now() / 1000) + 30;
-  await owner.provider.send("evm_setNextBlockTimestamp", [now]);
-  await owner.provider.send("evm_mine", []);
-
   {
     const content = 'I am looking for someone to write a story book about Bitcoin and the blockchain. The book should be at least 20 pages long and include a brief history of Bitcoin, the technology behind it, and the potential impact it could have on the world. I am looking for someone who can write in a way that is easy to understand and engaging for a general audience. It should have illustrations and be suitable for children.';
     const { hash: contentHash } = await publishToIpfs(content);
@@ -303,7 +299,7 @@ task("marketplace:seed", "Seed local marketplace instance")
 
     await marketplace.connect(arbitrator).arbitrate(jobId, creatorShare, workerShare, reasonHash);
 
-    await owner.provider.send("evm_setNextBlockTimestamp", [now + 60 * 60 * 25]);
+    await owner.provider.send("evm_increaseTime", [60 * 60 * 24]);
     await owner.provider.send("evm_mine", []);
 
     await marketplace.connect(owner).withdrawCollateral(jobId);
