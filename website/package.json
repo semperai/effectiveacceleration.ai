@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "pushd ../contract/ && NODE_ENV=development yarn install && yarn compile && yarn tsc && popd && next build",
     "start": "next start",
     "lint": "next lint"
   },
