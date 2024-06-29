@@ -49,7 +49,6 @@ export default function PostJobPage() {
 
   const [selectedToken, setSelectedToken] = useState<Token | undefined>(tokens[0]);
   const multipleApplicantsValues = ['Yes', 'No']
-  const arbitrator = ['Yes', 'No']
   const category = [
     { id: 0, name: 'None' },
     { id: 1, name: 'Web' },
@@ -76,7 +75,6 @@ export default function PostJobPage() {
   const [amount, setAmount] = useState(ethers.formatUnits(1, 0));
   const [deadline, setDeadline] = useState(120);
   const [multipleApplicants, setMultipleApplicants] = useState(multipleApplicantsValues[1])
-  const [isArbitrator, setisArbitrator] = useState(arbitrator[1])
 
   const [selectedCategory, setselectedCategory] = useState(category[0]);
   const [selectedMeceTag, setSelectedMeceTag] = useState(meceTags[0]);
@@ -241,6 +239,7 @@ export default function PostJobPage() {
               <Input
                 name="token"
                 value={selectedToken?.id}
+                readOnly={true}
               />
               <div className="flex flex-col gap-4">
                 <TokenSelector
@@ -264,20 +263,6 @@ export default function PostJobPage() {
                 value={deliveryMethod}
                 onChange={(e) => setDeliveryMethod(e.target.value)}
               />
-            </Field>
-            <Field className='flex flex-row justify-between items-center'>
-              <Label className='items-center'>Arbitrator</Label>
-              <RadioGroup className='flex !mt-0' value={isArbitrator} onChange={setisArbitrator} aria-label="Server size">
-                {arbitrator.map((option) => (
-                  <Field className='items-center flex !mt-0 ml-5' key={option}>
-                    <Radio className='mr-2' value={option}>
-                      <span>{option}</span>
-                    </Radio>
-                    <Label>{option}</Label>
-  
-                  </Field>
-                ))}
-              </RadioGroup>
             </Field>
             <Field>
               <div className='flex justify-between'>
