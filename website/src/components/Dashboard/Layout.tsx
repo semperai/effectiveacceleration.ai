@@ -37,7 +37,7 @@ import Navbar from './Navbar/NavBar'
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: <PiHouseSimple /> },
   { name: 'Jobs', href: '/dashboard/open-jobs', icon: <PiJoystick /> },
-  { name: 'About', href: '/dashboard/post-job', icon: <PiCube /> },
+  { name: 'Post job', href: '/dashboard/post-job', icon: <PiCube /> },
   { name: 'FAQs', href: '/dashboard/settings', icon: <BsList /> },
   { name: 'Help', href: '/dashboard/changelog', icon: <PiMegaphoneSimple /> },
 ]
