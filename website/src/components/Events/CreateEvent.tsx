@@ -25,7 +25,7 @@ export function CreateEvent({event, ...rest}: EventProps & React.ComponentPropsW
           <a href={href} className="font-medium text-gray-900 dark:text-gray-100">
             {user?.name}
           </a>{' '}
-          created the job{' '}
+          created the job{' '}{' '}
           <span className="whitespace-nowrap">{date}</span>
         </div>
 

@@ -30,7 +30,7 @@ export function WhitelistAddEvent({event, ...rest}: EventProps & React.Component
           </a>{' '}
           added{' '}<a href={workerHref} className="font-medium text-gray-900 dark:text-gray-100">
             {worker?.name}
-          </a> to whitelist{' '}
+          </a> to whitelist{' '}{' '}
           <span className="whitespace-nowrap">{date}</span>
         </div>
       </div>

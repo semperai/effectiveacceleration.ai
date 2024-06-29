@@ -27,7 +27,7 @@ export function ArbitratedEvent({event, ...rest}: EventProps & React.ComponentPr
           <a href={href} className="font-medium text-gray-900 dark:text-gray-100">
             {arbitrator?.name}
           </a>{' '}
-          resolved the dispute{' '}
+          resolved the dispute{' '}{' '}
           <span className="whitespace-nowrap">{date}</span>
         </div>
         <div className="mt-2 text-sm text-gray-700 dark:text-gray-500">

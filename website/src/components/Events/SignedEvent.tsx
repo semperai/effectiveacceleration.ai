@@ -25,7 +25,7 @@ export function SignedEvent({event, ...rest}: EventProps & React.ComponentPropsW
           <a href={href} className="font-medium text-gray-900 dark:text-gray-100">
             {user?.name}
           </a>{' '}
-          signed the job at revision {details.revision}{' '}
+          signed the job at revision {details.revision}{' '}{' '}
           <span className="whitespace-nowrap">{date}</span>
         </div>
       </div>

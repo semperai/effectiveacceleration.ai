@@ -30,7 +30,7 @@ export function WhitelistRemoveEvent({event, ...rest}: EventProps & React.Compon
           </a>{' '}
           removed{' '}<a href={workerHref} className="font-medium text-gray-900 dark:text-gray-100">
             {worker?.name}
-          </a> from whitelist{' '}
+          </a> from whitelist{' '}{' '}
           <span className="whitespace-nowrap">{date}</span>
         </div>
       </div>

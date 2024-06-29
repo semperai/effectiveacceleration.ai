@@ -29,7 +29,7 @@ export function DeliveredEvent({event, ...rest}: EventProps & React.ComponentPro
           <a href={href} className="font-medium text-gray-900 dark:text-gray-100">
             {user?.name}
           </a>{' '}
-          delivered the results
+          delivered the results{' '}
           <span className="whitespace-nowrap">{date}</span>
         </div>
         <div className="mt-2 text-sm text-gray-700 dark:text-gray-500">

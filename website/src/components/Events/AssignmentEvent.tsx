@@ -31,7 +31,7 @@ export function AssignedEvent({event, ...rest}: EventProps & React.ComponentProp
           assigned{' '}
           <a href={workerHref} className="font-medium text-gray-900 dark:text-gray-100">
             {worker?.name}
-          </a>{' '}
+          </a>{' '}{' '}
           <span className="whitespace-nowrap">{date}</span>
         </div>
       </div>
