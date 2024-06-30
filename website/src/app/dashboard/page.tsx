@@ -71,7 +71,7 @@ function IconLink({
 }
 
 export default function IndexPage() {
-  return (
+return (
     <Layout>
       <DashboardTabs></DashboardTabs>
     </Layout>

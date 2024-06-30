@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
+
 import React from "react";
 import {
   Dialog,
@@ -166,10 +167,16 @@ const TokenDialog = ({
 
   // filters tokens by search input
   React.useEffect(() => {
+    // const list = [
+    //   ...(sortedTokensList?.length > 0 ? sortedTokensList : tokensList),
+    //   ...customTokens,
+    // ];
     const list = [
-      ...(sortedTokensList?.length > 0 ? sortedTokensList : tokensList),
-      ...customTokens,
+      ...(Array.isArray(sortedTokensList) && sortedTokensList.length > 0 ? sortedTokensList : Array.isArray(tokensList) ? tokensList : []),
+      ...(Array.isArray(customTokens) ? customTokens : []),
     ];
+    console.log(sortedTokensList, 'sortedTokensList')
+    console.log(tokensList, 'tokensList')
     const _value = `${searchValue}`.toLowerCase();
 
     if (_value !== "") {
@@ -183,8 +190,10 @@ const TokenDialog = ({
         }
       }
       setFilteredTokens(newList);
+      console.log('Newlist');
     } else {
-      setFilteredTokens(list);
+      console.log('default');
+      // setFilteredTokens(list);
     }
   }, [searchValue, tokensList, sortedTokensList]);
 
@@ -313,7 +322,7 @@ const TokenDialog = ({
           >
             <List>
               {noTokensFound ? (
-                <li>No results found.</li>
+                <li className="text-black">No results found.</li>
               ) : (
                 filteredTokens.map((token) => (
                   <TokenItem

@@ -63,11 +63,11 @@ const Navbar = ({setSidebarOpen} : {setSidebarOpen: (value: boolean) => void}) =
                   </span>
                 </Link>
 
-                <button className='flex text-white items-center justify-center p-2 rounded-full bg-primary gap-2 w-36'>
-                <GoPerson className='text-xl '/>
-                <span className='text-sm h-6 flex items-center'>Create Job</span>
-                <FaArrowRight className='text-lg ' />
-                </button>
+                <Link href={'/dashboard/post-job'} className='flex text-white items-center justify-center p-2 rounded-full bg-primary gap-2 w-36'>
+                    <GoPerson className='text-xl '/>
+                    <span className='text-sm h-6 flex items-center'>Create Job</span>
+                    <FaArrowRight className='text-lg ' />
+                </Link>
                 <button className='p-2 bg-gray-200 rounded-full'>
                 <PiBellSimple className='text-2xl ' />  
                 </button>

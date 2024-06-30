@@ -3,18 +3,18 @@ import { DialogContent } from "@mui/material";
 
 const InputFieldStyles = css`
   padding: 9px 12px;
-  border: 2px solid ${({ theme }) => theme.palette.neutral.light};
+  border: 2px solid black};
   border-radius: 8px;
 
   &.Mui-focused {
-    border-color: ${({ theme }) => theme.palette.primary.main};
+    border-color: black};
 
     .MuiIconButton-root svg {
-      color: ${({ theme }) => theme.palette.neutral.main};
+      color: black.neutral.main};
     }
 
     & > .MuiSvgIcon-root {
-      color: ${({ theme }) => theme.palette.primary.main};
+      color: black};
     }
   }
 
@@ -23,7 +23,7 @@ const InputFieldStyles = css`
   }
 
   .MuiSvgIcon-root {
-    color: ${({ theme }) => theme.palette.neutral.light};
+    color: black};
   }
 
   .MuiIconButton-root {
@@ -33,19 +33,19 @@ const InputFieldStyles = css`
     padding: 8px;
 
     &:hover svg {
-      color: ${({ theme }) => theme.palette.neutral.main};
+      color: black.neutral.main};
     }
 
     svg {
       width: 19px;
       height: 19px;
-      color: ${({ theme }) => theme.palette.neutral.light};
+      color: black};
     }
   }
 
   input {
     font-size: 16px;
-    font-family: ${({ theme }) => theme.typography.fontFamily};
+    font-family: "Poppins", sans-serif;
     padding: 0;
     margin-bottom: 2px;
     padding-right: 32px;
@@ -73,7 +73,7 @@ export const StyledDialogTitle = styled.div`
       margin: 0;
       font-size: 24px;
       font-weight: 700;
-      color: ${({ theme }) => theme.palette.neutral.main};
+      color: black;
     }
 
     .MuiIconButton-root {
@@ -108,7 +108,7 @@ export const ContainerListPreferredTokens = styled.div`
     border-radius: 12px;
 
     &.MuiChip-outlinedPrimary { // selected token
-      background: ${({ theme }) => theme.palette.primary.main};
+      background: black};
       color: white;
 
       svg {
@@ -120,7 +120,7 @@ export const ContainerListPreferredTokens = styled.div`
     &:hover {
       &:not(.MuiChip-outlinedPrimary) {
         background: #F5F3FF;
-        border-color: ${({ theme }) => theme.palette.primary.main};
+        border-color: black};
       }
 
       svg.MuiChip-deleteIcon {
@@ -134,7 +134,7 @@ export const ContainerListPreferredTokens = styled.div`
       pointer-events: none;
 
       &.MuiAvatar-colorDefault { // tokens with no image
-        background: ${({ theme }) => theme.palette.neutral.light};
+        background: black};
         font-size: 12px;
         font-weight: 100;
 
@@ -168,7 +168,7 @@ export const ContainerListPreferredTokens = styled.div`
     top: -10px;
     right: -10px;
     margin: 0;
-    color: ${({ theme }) => theme.palette.primary.main};
+    color: black};
     box-shadow: inset 0 0 0 2px #fdfcff;
     border-radius: 50%;
     background: #fdfcff;
@@ -239,7 +239,7 @@ export const StyledDialogContent = styled(DialogContent)<{
 
   ::-webkit-scrollbar-thumb:hover {
     border: 0;
-    background: ${({ theme }) => theme.palette.primary.main};
+    background: black};
   }
 
   ::-webkit-scrollbar-track {
@@ -261,7 +261,7 @@ export const StyledDialogContent = styled(DialogContent)<{
     gap: 8px; 
 
     > span {
-      color: ${({ theme }) => theme.palette.neutral.main};
+      color: black.neutral.main};
     }
 
     .MuiListItem-root {
@@ -282,10 +282,10 @@ export const StyledDialogContent = styled(DialogContent)<{
       }
 
       &.Mui-selected {
-        background: ${({ theme }) => theme.palette.primary.main};
+        background: black};
 
         &:hover {
-          background: ${({ theme }) => theme.palette.primary.main};
+          background: black};
         }
 
         &, & * {
@@ -295,7 +295,7 @@ export const StyledDialogContent = styled(DialogContent)<{
 
         .pin:hover, a:hover {
           svg path {
-            fill: ${({ theme }) => theme.palette.primary.main};
+            fill: black};
           }
         }
       }
@@ -315,7 +315,7 @@ export const StyledDialogContent = styled(DialogContent)<{
             font-size: 12px;
             color: #616161;
             font-weight: 100;
-            background: ${({ theme }) => theme.palette.neutral.light};
+            background: black};
           }
 
           svg.MuiAvatar-fallback path {
@@ -388,9 +388,9 @@ export const AddTokenWrapper = styled.div<{
   padding: 32px;
   text-align: center;
   font-size: 16px;
-  border-top: 1px solid ${({ theme }) => theme.palette.neutral.light};
+  border-top: 1px solid black};
   cursor: pointer;
-  color: ${({ theme }) => theme.palette.primary.main};
+  color: black};
   position: relative;
   height: ${(props) => (props.isAddCustomToken ? "unset" : "84px")};
 
