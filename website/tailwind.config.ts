@@ -24,6 +24,9 @@ export default {
         'softBlue': '#f1f4f9',
         'darkBlueFont': '#475569'
       },
+      margin: {
+        '1.1': '0.500rem',
+      },
     },
   },
   plugins: [

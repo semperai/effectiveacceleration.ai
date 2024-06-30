@@ -7,8 +7,33 @@ import JobProgress from './JobsTablesData/JobProgress';
 import CompletedJobs from './JobsTablesData/CompletedJobs';
 import DisputedJobs from './JobsTablesData/DisputedJobs';
 import ArchivedJobs from './JobsTablesData/ArchivedJobs';
+import { mockTokens } from '@/components/TokenDialog/Dependencies/mockTokens'
+import TokenDialog from '@/components/TokenDialog'
+
+interface IArbitrumToken {
+  logoURI?: string;
+  chainId: number;
+  address: string;
+  name: string;
+  symbol: string;
+  decimals: number;
+  extensions?: any;
+  l1Address?: string;
+  l2GatewayAddress?: string;
+  l1GatewayAddress?: string;
+}
 
 const DashboardTabs = () => {
+  const [selectedToken, setSelectedToken] = React.useState<IArbitrumToken>(
+    arbitrumTokens.tokens[0],
+  );
+  const [preferredTokens, setPreferredTokens] = React.useState<
+  IArbitrumToken[]
+>([]);
+
+const [tokenSelectionDialogOpen, setTokenSelectionDialogOpen] = React.useState(false);
+
+  const [selectableTokens, setSelectableTokens] = React.useState<any>();
   return (
     <div className=''>
     <Tabs>
@@ -41,6 +66,18 @@ const DashboardTabs = () => {
           <ArchivedJobs/>
         </TabPanel>
     </Tabs>
+    <TokenDialog
+            initiallySelectedToken={selectedToken}
+            preferredTokenList={mockTokens(preferredTokens)}
+            tokensList={selectableTokens?.tokens}
+            closeCallback={(dialogSelectedToken: IArbitrumToken) => {
+              if (dialogSelectedToken) {
+                setSelectedToken(dialogSelectedToken);
+              }
+              setTokenSelectionDialogOpen(false);
+              // getTokensFromLocalStorage();
+            }}
+        />
   </div>
   )
 }
