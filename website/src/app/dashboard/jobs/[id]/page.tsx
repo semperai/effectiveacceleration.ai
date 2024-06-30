@@ -182,7 +182,7 @@ export default function JobPage() {
 
           <AcceptButton address={address} job={job} events={events}></AcceptButton>
           <DeliverResultButton address={address} job={job} events={events} sessionKeys={sessionKeys} message={message}></DeliverResultButton>
-          <AssignWorkerButton address={address} job={job} worker={recipient as any}></AssignWorkerButton>
+          <AssignWorkerButton address={address} job={job} excludes={[address!]}></AssignWorkerButton>
 
           <span className="ml-3">
             <Button>
