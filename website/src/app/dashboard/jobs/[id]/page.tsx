@@ -9,7 +9,6 @@ import {
   ChevronRightIcon,
   CurrencyDollarIcon,
   LinkIcon,
-  PencilIcon,
   UserIcon,
   UsersIcon,
 } from '@heroicons/react/20/solid'
@@ -17,19 +16,12 @@ import { useParams } from 'next/navigation';
 import moment from 'moment';
 import { renderEvent } from '@/components/Events';
 import useJobEventsWithDiffs from '@/hooks/useJobEventsWithDiffs';
-import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
-import Config from "effectiveacceleration-contracts/scripts/config.json";
-import { zeroAddress, zeroHash } from 'viem';
-import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
-import { useEffect, useState } from 'react';
+import { zeroHash } from 'viem';
 import useJob from '@/hooks/useJob';
 import { formatTokenNameAndAmount, tokenIcon } from '@/tokens'
-import { JobState, publishToIpfs } from 'effectiveacceleration-contracts';
-import { Textarea } from '@/components/Textarea';
-import { Select } from '@/components/Select';
+import { JobState } from 'effectiveacceleration-contracts';
 import { useAccount } from 'wagmi';
 import useUsersByAddresses from '@/hooks/useUsersByAddresses';
-import useArbitratorsByAddresses from '@/hooks/useArbitratorsByAddresses';
 import { AcceptButton } from '@/components/JobActions/AcceptButton';
 import { DeliverResultButton } from '@/components/JobActions/DeliverResultButton';
 import { AssignWorkerButton } from '@/components/JobActions/AssignWorkerButton';
@@ -44,73 +36,10 @@ export default function JobPage() {
   const jobId = BigInt(id);
   const { address } = useAccount();
   const { data: job } = useJob(jobId);
-  const [recipient, setRecipient] = useState<string>(zeroAddress);
-  const [recipients, setRecipients] = useState<string[]>([]);
-  const [recipientNames, setRecipientNames] = useState<string[]>([]);
-  const [message, setMessage] = useState<string>("");
 
   const { data: events, addresses, arbitratorAddresses, sessionKeys } = useJobEventsWithDiffs(jobId);
   const { data: users } = useUsersByAddresses(addresses);
-  const { data: arbitrators } = useArbitratorsByAddresses(arbitratorAddresses);
   const whitelistedWorkers = events.at(-1)?.job.allowedWorkers ?? [];
-
-  useEffect(() => {
-    if (events?.length && Object.keys(sessionKeys ?? {}).length) {
-      const targets = [zeroAddress, ...[... new Set([...addresses, ...arbitratorAddresses])]];
-      const targetsWithoutMe = targets.filter((target) => target !== address);
-      const targetNames = targetsWithoutMe.map((target) => users[target]?.name ?? arbitrators[target]?.name ?? target);
-      setRecipients(targetsWithoutMe);
-      setRecipientNames(targetNames);
-    }
-  }, [events, addresses, arbitratorAddresses, sessionKeys]);
-
-  const [postMessageDisabled, setPostMessageDisabled] = useState<boolean>(false);
-
-  const {
-    data: hash,
-    error,
-    isPending,
-    writeContract,
-  } = useWriteContract();
-
-  async function postMessageClick() {
-    setPostMessageDisabled(true);
-
-    const sessionKey = sessionKeys[`${address}-${recipient}`];
-    const { hash: contentHash } = await publishToIpfs(message, sessionKey);
-
-    const w = writeContract({
-      abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress as `0x${string}`,
-      functionName: 'postThreadMessage',
-      args: [
-        jobId,
-        contentHash as any
-      ],
-    });
-  }
-
-  const {
-    isLoading: isConfirming,
-    isSuccess: isConfirmed,
-  } = useWaitForTransactionReceipt({
-    hash
-  });
-
-  useEffect(() => {
-    if (isConfirmed || error) {
-      if (error) {
-        const revertReason = error.message.match(`The contract function ".*" reverted with the following reason:\n(.*)\n.*`)?.[1];
-        if (revertReason) {
-          alert(error.message.match(`The contract function ".*" reverted with the following reason:\n(.*)\n.*`)?.[1])
-        } else {
-          console.log(error, error.message);
-          alert("Unknown error occurred");
-        }
-      }
-      setPostMessageDisabled(false);
-    }
-  }, [isConfirmed, error]);
 
   return (
     <Layout>
@@ -213,13 +142,6 @@ export default function JobPage() {
         </div>
         }
       </div>
-
-      <Textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Message" className="mt-5" />
-      <Select about='select' onChange={(e) => setRecipient(e.target.value)}>
-        {recipients.map((recipient, index) =>
-          <option key={recipient} value={recipient}>{recipient === zeroAddress ? "Unencrypted" : recipientNames[index]}</option>
-        )}
-      </Select>
 
       <div className="flow-root mt-20">
         <ul role="list" className="-mb-8">
