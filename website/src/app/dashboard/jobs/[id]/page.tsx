@@ -37,6 +37,7 @@ import { PostMessageButton } from '@/components/JobActions/PostMessageButton';
 import { ArbitrateButton } from '@/components/JobActions/ArbitrateButton';
 import { RefuseArbitrationButton } from '@/components/JobActions/RefuseArbitrationButton';
 import { ApproveButton } from '@/components/JobActions/ApproveButton';
+import { ReviewButton } from '@/components/JobActions/ReviewButton';
 
 export default function JobPage() {
   const id = useParams().id as string;
@@ -164,11 +165,11 @@ export default function JobPage() {
         {(whitelistedWorkers.length ?? 0) > 0 && <div className="mt-1">
           <Text>
             Whitelisted for {
-              whitelistedWorkers.map((address) => (<>
+              whitelistedWorkers.map((address) => (
                 <a key={address} href={`/dashboard/users/${address}`} className="font-medium text-gray-900 dark:text-gray-100">
                   {users[address]?.name ?? address}
                 </a>
-              </>))}
+              ))}
           </Text>
         </div>}
         <div className="mt-5">
@@ -176,27 +177,30 @@ export default function JobPage() {
             { job?.content }
           </Text>
         </div>
-        <div className="flex mt-5">
-          {job && job.state !== JobState.Closed && address && address === job.roles.arbitrator && addresses.length && Object.keys(sessionKeys).length > 0 &&
+        {job && <div className="flex mt-5">
+          {job.state !== JobState.Closed && address && address === job.roles.arbitrator && addresses.length && Object.keys(sessionKeys).length > 0 &&
             <PostMessageButton address={address} addresses={addresses as any} sessionKeys={sessionKeys} job={job}></PostMessageButton>
           }
-          {job && job.state === JobState.Open && events.length > 0 &&
+          {job.state === JobState.Open && events.length > 0 &&
             <AcceptButton address={address} job={job} events={events}></AcceptButton>
           }
-          {job && job.state === JobState.Taken && address === job.roles.worker && Object.keys(sessionKeys).length > 0 &&
+          {job.state === JobState.Taken && address === job.roles.worker && Object.keys(sessionKeys).length > 0 &&
             <DeliverResultButton address={address} job={job} sessionKeys={sessionKeys}></DeliverResultButton>
           }
-          {job && job.state === JobState.Open && address === job.roles.creator && events.length > 0 &&
+          {job.state === JobState.Open && address === job.roles.creator && events.length > 0 &&
             <AssignWorkerButton address={address} job={job}></AssignWorkerButton>
           }
-          {job && job.state === JobState.Taken && address === job.roles.arbitrator &&
+          {job.state === JobState.Taken && address === job.roles.arbitrator &&
             <ArbitrateButton address={address} job={job} sessionKeys={sessionKeys}></ArbitrateButton>
           }
-          {job && job.state !== JobState.Closed && address === job.roles.arbitrator &&
+          {job.state !== JobState.Closed && address === job.roles.arbitrator &&
             <RefuseArbitrationButton job={job}></RefuseArbitrationButton>
           }
-          {job && job.state === JobState.Taken && job.resultHash !== zeroHash && address && address === job.roles.creator &&
+          {job.state === JobState.Taken && job.resultHash !== zeroHash && address && address === job.roles.creator &&
             <ApproveButton address={address} job={job}></ApproveButton>
+          }
+          {job.state === JobState.Closed && job.rating === 0 && address && address === job.roles.creator &&
+            <ReviewButton address={address} job={job}></ReviewButton>
           }
 
           <span className="ml-3">
@@ -207,6 +211,7 @@ export default function JobPage() {
           </span>
 
         </div>
+        }
       </div>
 
       <Textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Message" className="mt-5" />
