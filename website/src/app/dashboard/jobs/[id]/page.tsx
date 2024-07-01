@@ -35,6 +35,7 @@ import { DeliverResultButton } from '@/components/JobActions/DeliverResultButton
 import { AssignWorkerButton } from '@/components/JobActions/AssignWorkerButton';
 import { PostMessageButton } from '@/components/JobActions/PostMessageButton';
 import { ArbitrateButton } from '@/components/JobActions/ArbitrateButton';
+import { RefuseArbitrationButton } from '@/components/JobActions/RefuseArbitrationButton';
 
 export default function JobPage() {
   const id = useParams().id as string;
@@ -175,7 +176,7 @@ export default function JobPage() {
           </Text>
         </div>
         <div className="flex mt-5">
-          {job && job.state !== JobState.Closed && address && addresses.length && Object.keys(sessionKeys).length > 0 &&
+          {job && job.state !== JobState.Closed && address && address === job.roles.arbitrator && addresses.length && Object.keys(sessionKeys).length > 0 &&
             <PostMessageButton address={address} addresses={addresses as any} sessionKeys={sessionKeys} job={job}></PostMessageButton>
           }
           {job && job.state === JobState.Open && address === job.roles.creator && events.length > 0 &&
@@ -187,8 +188,11 @@ export default function JobPage() {
           {job && job.state === JobState.Open && address === job.roles.creator && events.length > 0 &&
             <AssignWorkerButton address={address} job={job}></AssignWorkerButton>
           }
-          {job && job.state !== JobState.Taken && address === job.roles.arbitrator &&
+          {job && job.state === JobState.Taken && address === job.roles.arbitrator &&
             <ArbitrateButton address={address} job={job} sessionKeys={sessionKeys}></ArbitrateButton>
+          }
+          {job && job.state !== JobState.Closed && address === job.roles.arbitrator &&
+            <RefuseArbitrationButton job={job}></RefuseArbitrationButton>
           }
 
           <span className="ml-3">
