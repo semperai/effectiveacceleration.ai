@@ -97,6 +97,9 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
       for (const workerAddress of addresses) {
         if (signer && Object.keys(publicKeys.data).length) {
           const otherPubkey = ownerAddress === address ? publicKeys.data[workerAddress] : publicKeys.data[ownerAddress];
+          if (otherPubkey === "0x") {
+            continue;
+          }
           sessionKeys_[`${ownerAddress}-${workerAddress}`] = await getSessionKey(signer as any, otherPubkey);
           sessionKeys_[`${workerAddress}-${ownerAddress}`] = await getSessionKey(signer as any, otherPubkey);
         }
@@ -105,7 +108,9 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
       for (const arbitratorAddress of arbitratorAddresses) {
         if (signer && Object.keys(arbitratorPublicKeys.data).length) {
           const otherPubkey = ownerAddress === address ? arbitratorPublicKeys.data[arbitratorAddress] : publicKeys.data[ownerAddress];
-
+          if (otherPubkey === "0x") {
+            continue;
+          }
           sessionKeys_[`${ownerAddress}-${arbitratorAddress}`] = await getSessionKey(signer as any, otherPubkey);
           sessionKeys_[`${arbitratorAddress}-${ownerAddress}`] = await getSessionKey(signer as any, otherPubkey);
         }

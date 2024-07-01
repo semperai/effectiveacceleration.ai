@@ -19,7 +19,7 @@ import { renderEvent } from '@/components/Events';
 import useJobEventsWithDiffs from '@/hooks/useJobEventsWithDiffs';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import Config from "effectiveacceleration-contracts/scripts/config.json";
-import { zeroAddress } from 'viem';
+import { zeroAddress, zeroHash } from 'viem';
 import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
 import { useEffect, useState } from 'react';
 import useJob from '@/hooks/useJob';
@@ -36,6 +36,7 @@ import { AssignWorkerButton } from '@/components/JobActions/AssignWorkerButton';
 import { PostMessageButton } from '@/components/JobActions/PostMessageButton';
 import { ArbitrateButton } from '@/components/JobActions/ArbitrateButton';
 import { RefuseArbitrationButton } from '@/components/JobActions/RefuseArbitrationButton';
+import { ApproveButton } from '@/components/JobActions/ApproveButton';
 
 export default function JobPage() {
   const id = useParams().id as string;
@@ -179,7 +180,7 @@ export default function JobPage() {
           {job && job.state !== JobState.Closed && address && address === job.roles.arbitrator && addresses.length && Object.keys(sessionKeys).length > 0 &&
             <PostMessageButton address={address} addresses={addresses as any} sessionKeys={sessionKeys} job={job}></PostMessageButton>
           }
-          {job && job.state === JobState.Open && address === job.roles.creator && events.length > 0 &&
+          {job && job.state === JobState.Open && events.length > 0 &&
             <AcceptButton address={address} job={job} events={events}></AcceptButton>
           }
           {job && job.state === JobState.Taken && address === job.roles.worker && Object.keys(sessionKeys).length > 0 &&
@@ -193,6 +194,9 @@ export default function JobPage() {
           }
           {job && job.state !== JobState.Closed && address === job.roles.arbitrator &&
             <RefuseArbitrationButton job={job}></RefuseArbitrationButton>
+          }
+          {job && job.state === JobState.Taken && job.resultHash !== zeroHash && address && address === job.roles.creator &&
+            <ApproveButton address={address} job={job}></ApproveButton>
           }
 
           <span className="ml-3">
