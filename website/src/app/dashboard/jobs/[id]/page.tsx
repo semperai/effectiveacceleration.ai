@@ -33,6 +33,7 @@ import useArbitratorsByAddresses from '@/hooks/useArbitratorsByAddresses';
 import { AcceptButton } from '@/components/JobActions/AcceptButton';
 import { DeliverResultButton } from '@/components/JobActions/DeliverResultButton';
 import { AssignWorkerButton } from '@/components/JobActions/AssignWorkerButton';
+import { PostMessageButton } from '@/components/JobActions/PostMessageButton';
 
 export default function JobPage() {
   const id = useParams().id as string;
@@ -173,16 +174,18 @@ export default function JobPage() {
           </Text>
         </div>
         <div className="flex mt-5">
-          <span>
-            <Button disabled={postMessageDisabled} onClick={postMessageClick}>
-              <PencilIcon className="-ml-0.5 mr-1.5 h-5 w-5 text-gray-400" aria-hidden="true" />
-              Message
-            </Button>
-          </span>
-
-          <AcceptButton address={address} job={job} events={events}></AcceptButton>
-          <DeliverResultButton address={address} job={job} events={events} sessionKeys={sessionKeys} message={message}></DeliverResultButton>
-          <AssignWorkerButton address={address} job={job} excludes={[address!]}></AssignWorkerButton>
+          {address && addresses.length && Object.keys(sessionKeys).length > 0 &&
+            <PostMessageButton address={address} addresses={addresses as any} sessionKeys={sessionKeys} job={job}></PostMessageButton>
+          }
+          {job && address === job.roles.creator && events.length > 0 &&
+            <AcceptButton address={address} job={job} events={events}></AcceptButton>
+          }
+          {job && address === job.roles.worker && Object.keys(sessionKeys).length > 0 &&
+            <DeliverResultButton address={address} job={job} sessionKeys={sessionKeys}></DeliverResultButton>
+          }
+          {job && address === job.roles.creator && events.length > 0 &&
+            <AssignWorkerButton address={address} job={job}></AssignWorkerButton>
+          }
 
           <span className="ml-3">
             <Button>

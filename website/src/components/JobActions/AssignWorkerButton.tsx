@@ -15,11 +15,12 @@ export type AssignWorkerButtonProps = {
   address: `0x${string}` | undefined,
   job: Job | undefined,
   users?: Record<string, User>
-  excludes?: string[],
 }
 
-export function AssignWorkerButton({address, job, users, excludes, ...rest}: AssignWorkerButtonProps & React.ComponentPropsWithoutRef<'div'>) {
-  const userList = (users ? Object.values(users) : useUsers().data ?? []).filter(user => excludes ? !excludes.includes(user.address_) : true);
+export function AssignWorkerButton({address, job, users, ...rest}: AssignWorkerButtonProps & React.ComponentPropsWithoutRef<'div'>) {
+  const {data: allUsers} = useUsers();
+  const excludes = [address]
+  const userList = (users ? Object.values(users) : allUsers ?? []).filter(user => !excludes.includes(user.address_));
   const [selectedUserAddress, setSelectedUserAddress] = useState<`0x${string}` | undefined>(undefined);
   const {
     data: hash,
@@ -80,7 +81,7 @@ export function AssignWorkerButton({address, job, users, excludes, ...rest}: Ass
     <span className="ml-3">
       <Button disabled={buttonDisabled} onClick={() => openModal()}>
         <CheckIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-        Assign Worker Cool
+        Assign Worker
       </Button>
 
       <Transition appear show={isOpen} as={Fragment}>
