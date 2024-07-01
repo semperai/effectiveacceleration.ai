@@ -40,8 +40,8 @@ export default function PostJobPage() {
     writeContract,
   } = useWriteContract();
   const { data: workers } = useUsers();
-  const workerAddresses = workers?.map((worker) => worker.address_) ?? [];
-  const workerNames = workers?.map((worker) => worker.name) ?? [];
+  const workerAddresses = workers?.filter(worker => worker.address_ !== address).map((worker) => worker.address_) ?? [];
+  const workerNames = workers?.filter(worker => worker.address_ !== address).map((worker) => worker.name) ?? [];
 
   const { data: arbitrators } = useArbitrators();
   const arbitratorAddresses = [zeroAddress, ...(arbitrators?.map((worker) => worker.address_) ?? [])];
