@@ -24,7 +24,7 @@ import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/Market
 import { useEffect, useState } from 'react';
 import useJob from '@/hooks/useJob';
 import { formatTokenNameAndAmount, tokenIcon } from '@/tokens'
-import { publishToIpfs } from 'effectiveacceleration-contracts';
+import { JobState, publishToIpfs } from 'effectiveacceleration-contracts';
 import { Textarea } from '@/components/Textarea';
 import { Select } from '@/components/Select';
 import { useAccount } from 'wagmi';
@@ -34,6 +34,7 @@ import { AcceptButton } from '@/components/JobActions/AcceptButton';
 import { DeliverResultButton } from '@/components/JobActions/DeliverResultButton';
 import { AssignWorkerButton } from '@/components/JobActions/AssignWorkerButton';
 import { PostMessageButton } from '@/components/JobActions/PostMessageButton';
+import { ArbitrateButton } from '@/components/JobActions/ArbitrateButton';
 
 export default function JobPage() {
   const id = useParams().id as string;
@@ -174,17 +175,20 @@ export default function JobPage() {
           </Text>
         </div>
         <div className="flex mt-5">
-          {address && addresses.length && Object.keys(sessionKeys).length > 0 &&
+          {job && job.state !== JobState.Closed && address && addresses.length && Object.keys(sessionKeys).length > 0 &&
             <PostMessageButton address={address} addresses={addresses as any} sessionKeys={sessionKeys} job={job}></PostMessageButton>
           }
-          {job && address === job.roles.creator && events.length > 0 &&
+          {job && job.state === JobState.Open && address === job.roles.creator && events.length > 0 &&
             <AcceptButton address={address} job={job} events={events}></AcceptButton>
           }
-          {job && address === job.roles.worker && Object.keys(sessionKeys).length > 0 &&
+          {job && job.state === JobState.Taken && address === job.roles.worker && Object.keys(sessionKeys).length > 0 &&
             <DeliverResultButton address={address} job={job} sessionKeys={sessionKeys}></DeliverResultButton>
           }
-          {job && address === job.roles.creator && events.length > 0 &&
+          {job && job.state === JobState.Open && address === job.roles.creator && events.length > 0 &&
             <AssignWorkerButton address={address} job={job}></AssignWorkerButton>
+          }
+          {job && job.state !== JobState.Taken && address === job.roles.arbitrator &&
+            <ArbitrateButton address={address} job={job} sessionKeys={sessionKeys}></ArbitrateButton>
           }
 
           <span className="ml-3">
