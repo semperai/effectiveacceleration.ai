@@ -66,7 +66,7 @@ export function Combobox<T>({ options, value, onChange, className, ...props }: C
             anchor={{to: "bottom"}}
             style={{width: `${width}px`}}
             className={clsx(
-              'w-[var(--combobox-dropdown-width)] rounded-lg border border-white/5  p-1 [--anchor-gap:var(--spacing-1)] empty:invisible',
+              '!w-[var(--combobox-dropdown-width)] rounded-lg border border-white/5  p-1 [--anchor-gap:var(--spacing-1)] empty:invisible',
               'transition duration-100 ease-in bg-black',
               className
             )}
