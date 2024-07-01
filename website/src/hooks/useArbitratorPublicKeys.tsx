@@ -34,6 +34,7 @@ export default function useArbitratorPublicKeys(targetAddresses: string[]) {
         args:         [item.targetAddress],
       })
     ),
+    multicallAddress: Config.multicall3Address as `0x${string}`,
   });
 
   const arbitratorsData = result.data;

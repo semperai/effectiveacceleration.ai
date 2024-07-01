@@ -35,6 +35,7 @@ export default function useUsersByAddresses(targetAddresses: string[]) {
         args:         [item.targetAddress],
       })
     ),
+    multicallAddress: Config.multicall3Address as `0x${string}`,
   });
 
   const usersData = result.data;

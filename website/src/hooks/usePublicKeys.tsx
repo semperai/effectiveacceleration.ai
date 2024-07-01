@@ -33,6 +33,7 @@ export default function usePublicKeys(targetAddresses: string[]) {
         args:         [item.targetAddress],
       })
     ),
+    multicallAddress: Config.multicall3Address as `0x${string}`,
   });
 
   const publicKeyData = result.data;
