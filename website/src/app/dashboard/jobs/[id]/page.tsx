@@ -32,13 +32,13 @@ import { ApproveButton } from '@/components/JobActions/ApproveButton';
 import { ReviewButton } from '@/components/JobActions/ReviewButton';
 import { CloseButton } from '@/components/JobActions/CloseButton';
 import { ReopenButton } from '@/components/JobActions/ReopenButton';
+import { RefundButton } from '@/components/JobActions/RefundButton';
 
 export default function JobPage() {
   const id = useParams().id as string;
   const jobId = BigInt(id);
   const { address } = useAccount();
   const { data: job, isLoadingError, ...rest } = useJob(jobId);
-  console.log(rest)
 
   const { data: events, addresses, arbitratorAddresses, sessionKeys } = useJobEventsWithDiffs(jobId);
   const { data: users } = useUsersByAddresses(addresses);
@@ -114,23 +114,14 @@ export default function JobPage() {
           </Text>
         </div>
         {job && <div className="flex mt-5">
-          {job.state !== JobState.Closed && address === job.roles.arbitrator && addresses.length && Object.keys(sessionKeys).length > 0 &&
+          {/* owner & worker actions */}
+          {job.state !== JobState.Closed && address !== job.roles.arbitrator && addresses.length && Object.keys(sessionKeys).length > 0 &&
             <PostMessageButton address={address} addresses={addresses as any} sessionKeys={sessionKeys} job={job}></PostMessageButton>
           }
-          {job.state === JobState.Open && address === job.roles.worker && events.length > 0 &&
-            <AcceptButton address={address} job={job} events={events}></AcceptButton>
-          }
-          {job.state === JobState.Taken && address === job.roles.worker && Object.keys(sessionKeys).length > 0 &&
-            <DeliverResultButton address={address} job={job} sessionKeys={sessionKeys}></DeliverResultButton>
-          }
+
+          {/* owner actions */}
           {job.state === JobState.Open && address === job.roles.creator && events.length > 0 &&
             <AssignWorkerButton address={address} job={job}></AssignWorkerButton>
-          }
-          {job.state === JobState.Taken && address === job.roles.arbitrator &&
-            <ArbitrateButton address={address} job={job} sessionKeys={sessionKeys}></ArbitrateButton>
-          }
-          {job.state !== JobState.Closed && address === job.roles.arbitrator &&
-            <RefuseArbitrationButton job={job}></RefuseArbitrationButton>
           }
           {job.state === JobState.Taken && job.resultHash !== zeroHash && address === job.roles.creator &&
             <ApproveButton address={address} job={job}></ApproveButton>
@@ -143,6 +134,25 @@ export default function JobPage() {
           }
           {job.state === JobState.Closed && address === job.roles.creator && job.resultHash === zeroHash &&
             <ReopenButton address={address} job={job}></ReopenButton>
+          }
+
+          {/* worker actions */}
+          {job.state === JobState.Taken && address === job.roles.worker &&
+            <RefundButton address={address} job={job}></RefundButton>
+          }
+          {job.state === JobState.Open && address === job.roles.worker && events.length > 0 &&
+            <AcceptButton address={address} job={job} events={events}></AcceptButton>
+          }
+          {job.state === JobState.Taken && address === job.roles.worker && Object.keys(sessionKeys).length > 0 &&
+            <DeliverResultButton address={address} job={job} sessionKeys={sessionKeys}></DeliverResultButton>
+          }
+
+          {/* arbitrator actions */}
+          {job.state === JobState.Taken && address === job.roles.arbitrator &&
+            <ArbitrateButton address={address} job={job} sessionKeys={sessionKeys}></ArbitrateButton>
+          }
+          {job.state !== JobState.Closed && address === job.roles.arbitrator &&
+            <RefuseArbitrationButton job={job}></RefuseArbitrationButton>
           }
 
           <span className="ml-3">
