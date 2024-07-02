@@ -77,7 +77,7 @@ export function AssignWorkerButton({address, job, users, ...rest}: AssignWorkerB
     setIsOpen(true)
   }
 
-  return (job?.roles.creator === address) ? (<>
+  return <>
     <span className="ml-3">
       <Button disabled={buttonDisabled} onClick={() => openModal()}>
         <CheckIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
@@ -141,5 +141,5 @@ export function AssignWorkerButton({address, job, users, ...rest}: AssignWorkerB
         </Dialog>
       </Transition>
     </span>
-  </>) : <></>
+  </>
 }

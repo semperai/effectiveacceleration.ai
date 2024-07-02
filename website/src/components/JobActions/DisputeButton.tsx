@@ -1,6 +1,6 @@
 import { Button } from '@/components/Button'
 import { CheckIcon } from "@heroicons/react/20/solid";
-import { Job, publishToIpfs } from "effectiveacceleration-contracts";
+import { encryptBinaryData, encryptUtf8Data, Job, publishToIpfs } from "effectiveacceleration-contracts";
 import { MARKETPLACE_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceV1";
 import Config from "effectiveacceleration-contracts/scripts/config.json";
 import { useEffect, useState } from "react";
@@ -8,14 +8,15 @@ import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { Dialog, Transition } from '@headlessui/react'
 import { Fragment } from 'react'
 import { Textarea } from '../Textarea';
+import { getBytes, hexlify } from 'ethers';
 
-export type DeliverResultButtonProps = {
+export type DisputeButtonProps = {
   address: `0x${string}` | undefined,
   sessionKeys: Record<string, string>,
-  job: Job | undefined,
+  job: Job,
 }
 
-export function DeliverResultButton({address, job, sessionKeys, ...rest}: DeliverResultButtonProps & React.ComponentPropsWithoutRef<'div'>) {
+export function DisputeButton({address, job, sessionKeys, ...rest}: DisputeButtonProps & React.ComponentPropsWithoutRef<'div'>) {
   const [message, setMessage] = useState<string>("");
   const {
     data: hash,
@@ -56,16 +57,19 @@ export function DeliverResultButton({address, job, sessionKeys, ...rest}: Delive
 
     setButtonDisabled(true);
 
-    const sessionKey = sessionKeys[`${address}-${job?.roles.creator}`];
-    const { hash: contentHash } = await publishToIpfs(message, sessionKey);
+    const arbitratorSessionKey = sessionKeys[`${address}-${job?.roles.arbitrator}`];
+    const ownerWorkerSessionKey = address === job.roles.creator ? sessionKeys[`${job?.roles.creator}-${job?.roles.worker}`] : sessionKeys[`${job?.roles.worker}-${job?.roles.creator}`];
+    const encryptedContent = hexlify(encryptUtf8Data(message, arbitratorSessionKey));
+    const encryptedSessionKey = hexlify(encryptBinaryData(getBytes(ownerWorkerSessionKey), arbitratorSessionKey));
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
       address: Config.marketplaceAddress as `0x${string}`,
-      functionName: 'deliverResult',
+      functionName: 'dispute',
       args: [
         job?.id!,
-        contentHash as `0x${string}`,
+        encryptedSessionKey as `0x${string}`,
+        encryptedContent as `0x${string}`,
       ],
     });
   }
@@ -84,7 +88,7 @@ export function DeliverResultButton({address, job, sessionKeys, ...rest}: Delive
     <span className="ml-3">
       <Button disabled={buttonDisabled} onClick={() => openModal()}>
         <CheckIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-        Deliver Result
+        Dispute
       </Button>
 
       <Transition appear show={isOpen} as={Fragment}>
@@ -117,7 +121,7 @@ export function DeliverResultButton({address, job, sessionKeys, ...rest}: Delive
                     as="h3"
                     className="text-lg font-medium leading-6 text-gray-900"
                   >
-                    Deliver Result
+                    Dispute
                   </Dialog.Title>
                   <div className='mt-5 mb-3 flex flex-col gap-5'>
                     <Textarea rows={4} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Message" className="mt-5" />

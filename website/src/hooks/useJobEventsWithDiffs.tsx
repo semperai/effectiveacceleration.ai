@@ -77,6 +77,8 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
           JobEventType.Paid,
           JobEventType.Taken,
           JobEventType.Signed,
+          JobEventType.WhitelistedWorkerAdded,
+          JobEventType.WhitelistedWorkerRemoved,
         ].includes(jobEvent.type_)).map((event) => getAddress(event.address_));
         setAddresses([...new Set([...eventAddresses, jobEventsWithDiffs[0].job.roles.creator])]);
         setArbitratorAddresses([...new Set(jobEventsWithDiffs.map(jobEvent => jobEvent.job.roles.arbitrator))].filter(address => address !== ZeroAddress));
@@ -97,7 +99,7 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
       for (const workerAddress of addresses) {
         if (signer && Object.keys(publicKeys.data).length) {
           const otherPubkey = ownerAddress === address ? publicKeys.data[workerAddress] : publicKeys.data[ownerAddress];
-          if (otherPubkey === "0x") {
+          if (!otherPubkey || otherPubkey === "0x") {
             continue;
           }
           sessionKeys_[`${ownerAddress}-${workerAddress}`] = await getSessionKey(signer as any, otherPubkey);
@@ -108,7 +110,7 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
       for (const arbitratorAddress of arbitratorAddresses) {
         if (signer && Object.keys(arbitratorPublicKeys.data).length) {
           const otherPubkey = ownerAddress === address ? arbitratorPublicKeys.data[arbitratorAddress] : publicKeys.data[ownerAddress];
-          if (otherPubkey === "0x") {
+          if (!otherPubkey || otherPubkey === "0x") {
             continue;
           }
           sessionKeys_[`${ownerAddress}-${arbitratorAddress}`] = await getSessionKey(signer as any, otherPubkey);

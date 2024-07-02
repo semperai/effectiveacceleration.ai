@@ -9,6 +9,7 @@ import { Dialog, Transition } from '@headlessui/react'
 import { Fragment } from 'react'
 import { Textarea } from '../Textarea';
 import { Input } from '../Input';
+import { Field, Label } from '../Fieldset';
 
 export type ArbitrateButtonProps = {
   address: `0x${string}` | undefined,
@@ -53,7 +54,7 @@ export function ArbitrateButton({address, job, sessionKeys, ...rest}: ArbitrateB
 
   async function buttonClick() {
     if (message.length === 0) {
-      alert("Empty result");
+      alert("Empty message");
       return;
     }
     if (workerShare + ownerShare !== 100) {
@@ -129,8 +130,14 @@ export function ArbitrateButton({address, job, sessionKeys, ...rest}: ArbitrateB
                     Arbitrate
                   </Dialog.Title>
                   <div className='mt-5 mb-3 flex flex-col gap-5'>
-                    <Input value={ownerShare} onChange={(e) => setOwnerShare(Number(e.target.value))} placeholder="Owner Share %" />
-                    <Input value={workerShare} onChange={(e) => setWorkerShare(Number(e.target.value))}placeholder="Worker Share %" />
+                    <Field>
+                      <Label>Creator share</Label>
+                      <Input value={ownerShare} onChange={(e) => setOwnerShare(Number(e.target.value))} placeholder="Owner Share %" />
+                    </Field>
+                    <Field>
+                      <Label>Worker share</Label>
+                      <Input value={workerShare} onChange={(e) => setWorkerShare(Number(e.target.value))}placeholder="Worker Share %" />
+                    </Field>
                     <Textarea rows={4} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Message" className="mt-5" />
                     <Button disabled={buttonDisabled} onClick={buttonClick}>
                       <CheckIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />

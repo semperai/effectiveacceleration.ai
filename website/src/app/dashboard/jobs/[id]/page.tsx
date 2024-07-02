@@ -16,7 +16,7 @@ import { useParams } from 'next/navigation';
 import moment from 'moment';
 import { renderEvent } from '@/components/Events';
 import useJobEventsWithDiffs from '@/hooks/useJobEventsWithDiffs';
-import { zeroHash } from 'viem';
+import { zeroAddress, zeroHash } from 'viem';
 import useJob from '@/hooks/useJob';
 import { formatTokenNameAndAmount, tokenIcon } from '@/tokens'
 import { JobState } from 'effectiveacceleration-contracts';
@@ -33,6 +33,7 @@ import { ReviewButton } from '@/components/JobActions/ReviewButton';
 import { CloseButton } from '@/components/JobActions/CloseButton';
 import { ReopenButton } from '@/components/JobActions/ReopenButton';
 import { RefundButton } from '@/components/JobActions/RefundButton';
+import { DisputeButton } from '@/components/JobActions/DisputeButton';
 
 export default function JobPage() {
   const id = useParams().id as string;
@@ -117,6 +118,9 @@ export default function JobPage() {
           {/* owner & worker actions */}
           {job.state !== JobState.Closed && address !== job.roles.arbitrator && addresses.length && Object.keys(sessionKeys).length > 0 &&
             <PostMessageButton address={address} addresses={addresses as any} sessionKeys={sessionKeys} job={job}></PostMessageButton>
+          }
+          {job.state === JobState.Taken && job.resultHash !== zeroHash && job.roles.arbitrator !== zeroAddress && address !== job.roles.arbitrator && addresses.length && Object.keys(sessionKeys).length > 0 &&
+            <DisputeButton address={address} sessionKeys={sessionKeys} job={job}></DisputeButton>
           }
 
           {/* owner actions */}
