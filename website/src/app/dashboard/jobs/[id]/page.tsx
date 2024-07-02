@@ -30,18 +30,24 @@ import { ArbitrateButton } from '@/components/JobActions/ArbitrateButton';
 import { RefuseArbitrationButton } from '@/components/JobActions/RefuseArbitrationButton';
 import { ApproveButton } from '@/components/JobActions/ApproveButton';
 import { ReviewButton } from '@/components/JobActions/ReviewButton';
+import { CloseButton } from '@/components/JobActions/CloseButton';
 
 export default function JobPage() {
   const id = useParams().id as string;
   const jobId = BigInt(id);
   const { address } = useAccount();
-  const { data: job } = useJob(jobId);
+  const { data: job, isLoadingError, ...rest } = useJob(jobId);
+  console.log(rest)
 
   const { data: events, addresses, arbitratorAddresses, sessionKeys } = useJobEventsWithDiffs(jobId);
   const { data: users } = useUsersByAddresses(addresses);
   const whitelistedWorkers = events.at(-1)?.job.allowedWorkers ?? [];
 
-  return (
+  return isLoadingError ? <div className="mt-5">
+      <Text>
+        Job not found
+      </Text>
+    </div> :
     <Layout>
       <div className="">
         <div className="flex-1 min-w-0">
@@ -107,10 +113,10 @@ export default function JobPage() {
           </Text>
         </div>
         {job && <div className="flex mt-5">
-          {job.state !== JobState.Closed && address && address === job.roles.arbitrator && addresses.length && Object.keys(sessionKeys).length > 0 &&
+          {job.state !== JobState.Closed && address === job.roles.arbitrator && addresses.length && Object.keys(sessionKeys).length > 0 &&
             <PostMessageButton address={address} addresses={addresses as any} sessionKeys={sessionKeys} job={job}></PostMessageButton>
           }
-          {job.state === JobState.Open && events.length > 0 &&
+          {job.state === JobState.Open && address === job.roles.worker && events.length > 0 &&
             <AcceptButton address={address} job={job} events={events}></AcceptButton>
           }
           {job.state === JobState.Taken && address === job.roles.worker && Object.keys(sessionKeys).length > 0 &&
@@ -125,11 +131,14 @@ export default function JobPage() {
           {job.state !== JobState.Closed && address === job.roles.arbitrator &&
             <RefuseArbitrationButton job={job}></RefuseArbitrationButton>
           }
-          {job.state === JobState.Taken && job.resultHash !== zeroHash && address && address === job.roles.creator &&
+          {job.state === JobState.Taken && job.resultHash !== zeroHash && address === job.roles.creator &&
             <ApproveButton address={address} job={job}></ApproveButton>
           }
-          {job.state === JobState.Closed && job.rating === 0 && address && address === job.roles.creator &&
+          {job.state === JobState.Closed && job.rating === 0 && job.resultHash !== zeroHash && address === job.roles.creator &&
             <ReviewButton address={address} job={job}></ReviewButton>
+          }
+          {job.state === JobState.Open && address === job.roles.creator &&
+            <CloseButton address={address} job={job}></CloseButton>
           }
 
           <span className="ml-3">
@@ -160,5 +169,4 @@ export default function JobPage() {
         </ul>
       </div>
     </Layout>
-  );
 }

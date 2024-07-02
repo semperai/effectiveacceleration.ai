@@ -1,20 +1,17 @@
 import { Button } from '@/components/Button'
 import { CheckIcon } from "@heroicons/react/20/solid";
-import { Job, JobEventWithDiffs } from "effectiveacceleration-contracts";
+import { Job } from "effectiveacceleration-contracts";
 import { MARKETPLACE_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceV1";
 import Config from "effectiveacceleration-contracts/scripts/config.json";
-import { ethers } from "ethers";
 import { useEffect, useState } from "react";
-import { useSignMessage, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 
-export type AcceptButtonProps = {
+export type CloseButtonProps = {
   address: `0x${string}` | undefined,
-  events: JobEventWithDiffs[],
   job: Job | undefined,
 }
 
-export function AcceptButton({address, job, events, ...rest}: AcceptButtonProps & React.ComponentPropsWithoutRef<'div'>) {
-  const { signMessageAsync } = useSignMessage();
+export function CloseButton({address, job, ...rest}: CloseButtonProps & React.ComponentPropsWithoutRef<'div'>) {
   const {
     data: hash,
     error,
@@ -48,19 +45,12 @@ export function AcceptButton({address, job, events, ...rest}: AcceptButtonProps 
   async function buttonClick() {
     setButtonDisabled(true);
 
-    const revision = events.length;
-    const signature = await signMessageAsync({
-      account: address,
-      message: {raw: ethers.getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, job?.id!])))}
-    });
-
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
       address: Config.marketplaceAddress as `0x${string}`,
-      functionName: 'takeJob',
+      functionName: 'closeJob',
       args: [
         job?.id!,
-        signature,
       ],
     });
   }
@@ -69,7 +59,7 @@ export function AcceptButton({address, job, events, ...rest}: AcceptButtonProps 
     <span className="ml-3">
       <Button disabled={buttonDisabled} onClick={buttonClick}>
         <CheckIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-        Accept
+        Close
       </Button>
     </span>
   </>

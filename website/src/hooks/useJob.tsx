@@ -16,6 +16,9 @@ export default function useJob(id: bigint) {
     address:      Config.marketplaceDataAddress as `0x${string}`,
     functionName: 'getJob',
     args:         [id],
+    query: {
+      retry: false
+    }
   });
 
   const jobData = result.data as Job;
