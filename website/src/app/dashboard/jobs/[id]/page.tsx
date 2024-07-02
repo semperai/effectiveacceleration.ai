@@ -31,6 +31,7 @@ import { RefuseArbitrationButton } from '@/components/JobActions/RefuseArbitrati
 import { ApproveButton } from '@/components/JobActions/ApproveButton';
 import { ReviewButton } from '@/components/JobActions/ReviewButton';
 import { CloseButton } from '@/components/JobActions/CloseButton';
+import { ReopenButton } from '@/components/JobActions/ReopenButton';
 
 export default function JobPage() {
   const id = useParams().id as string;
@@ -139,6 +140,9 @@ export default function JobPage() {
           }
           {job.state === JobState.Open && address === job.roles.creator &&
             <CloseButton address={address} job={job}></CloseButton>
+          }
+          {job.state === JobState.Closed && address === job.roles.creator && job.resultHash === zeroHash &&
+            <ReopenButton address={address} job={job}></ReopenButton>
           }
 
           <span className="ml-3">
