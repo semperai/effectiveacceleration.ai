@@ -529,10 +529,10 @@ export const fetchEventContents = async (events: JobEventWithDiffs[], sessionKey
     }));
     return pairs;
   }).flat(1).map(async ({contentHash, sessionKey}) => {
-    const badResponses = ["<encrypted message>"];
+    const badResponses = ["<encrypted message>", "Error: Failed to fetch data"];
     try {
-      const content = await safeGetFromIpfs(contentHash, sessionKey);
-      if (!badResponses.includes(content)) {
+      if (!contents[contentHash] || badResponses.includes(contents[contentHash])) {
+        const content = await safeGetFromIpfs(contentHash, sessionKey);
         contents[contentHash] = content;
       }
     } catch {
