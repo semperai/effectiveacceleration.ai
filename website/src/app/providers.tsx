@@ -12,19 +12,32 @@ import {
 } from '@rainbow-me/rainbowkit';
 import { WagmiProvider } from 'wagmi';
 import {
-  hardhat,
   arbitrumNova,
 } from 'wagmi/chains';
 import {
   QueryClientProvider,
   QueryClient,
 } from "@tanstack/react-query";
+import { defineChain } from 'viem';
 
 declare module 'wagmi' {
   interface Register {
     config: typeof config
   }
 }
+
+export const hardhat = /*#__PURE__*/ defineChain({
+  id: 31_337,
+  name: 'Hardhat',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'Ether',
+    symbol: 'ETH',
+  },
+  rpcUrls: {
+    default: { http: [process.env.NEXT_PUBLIC_RPC_URL!] },
+  },
+})
 
 const config = getDefaultConfig({
   appName: 'Effective Acceleration',
