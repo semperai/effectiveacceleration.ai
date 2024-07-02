@@ -94,7 +94,7 @@ export const getFromIpfsRaw = async (cidOrHash: string): Promise<string> => {
     return content;
   }
 
-  const host = process.env.IPFS_GATEWAY_URL || "http://localhost:8080";
+  const host = process.env.IPFS_GATEWAY_URL ?? process.env.NEXT_PUBLIC_IPFS_GATEWAY_URL ?? "http://localhost:8080";
   const respose = await fetch(`${host}/ipfs/${cidOrHash}`);
   if (respose.status !== 200) {
     throw new Error(`Failed to fetch data from IPFS\n${respose.statusText}\n${await respose.text()}`);

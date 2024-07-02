@@ -4,7 +4,6 @@ import { MarketplaceDataV1 as MarketplaceData } from "../typechain-types/contrac
 import * as fs from 'fs'
 import { getCreateAddress } from "ethers";
 import { Unicrow, UnicrowDispute, UnicrowArbitrator, UnicrowClaim, IMulticall3 } from "../typechain-types";
-import { deploy } from "@openzeppelin/hardhat-upgrades/dist/utils";
 
 let marketplaceFeeAddress = "0x000000000000000000000000000000000000beef";
 let unicrowProtocolFeeAddress = "0x0000000000000000000000000000000000001337";
