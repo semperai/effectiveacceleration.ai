@@ -118,10 +118,6 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
         }
       }
 
-      if (!Object.keys(sessionKeys_).length) {
-        return;
-      }
-
       const eventContents = await fetchEventContents(jobEventsWithDiffs, sessionKeys_);
       setFinalEvents(eventContents);
       setSessionKeys(prev => ({

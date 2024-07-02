@@ -58,7 +58,7 @@ export default function JobPage() {
             <ol role="list" className="flex items-center space-x-4">
               <li>
                 <div className="flex">
-                  <Link href="/open-jobs" className="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+                  <Link href="#" className="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
                     Jobs
                   </Link>
                 </div>
