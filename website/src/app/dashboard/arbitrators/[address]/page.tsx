@@ -22,7 +22,7 @@ export default function ArbitratorPage() {
             <ol role="list" className="flex items-center space-x-4">
               <li>
                 <div className="flex">
-                  <Link href="/arbitrators" className="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+                  <Link href="/dashboard/arbitrators" className="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
                     Arbitrators
                   </Link>
                 </div>
@@ -30,7 +30,7 @@ export default function ArbitratorPage() {
               <li>
                 <div className="flex items-center">
                   <ChevronRightIcon className="h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-400" aria-hidden="true" />
-                  <Link href={`/arbitrators/${arbitrator?.address_}`} className="ml-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+                  <Link href={`/dashboard/arbitrators/${arbitrator?.address_}`} className="ml-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
                     { arbitrator?.address_ }
                   </Link>
                 </div>

@@ -51,7 +51,7 @@ const Navbar = ({setSidebarOpen} : {setSidebarOpen: (value: boolean) => void}) =
                 />
               </div>
               <div className="flex items-center gap-x-4 lg:gap-x-3">
-                <Link href="/notifications" className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500">
+                <Link href="#" className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500">
                   <span className="sr-only">View notifications</span>
                   <span className="relative">
                     {notificationsCount > 0 && (
