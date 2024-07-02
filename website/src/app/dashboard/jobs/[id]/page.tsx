@@ -34,6 +34,7 @@ import { CloseButton } from '@/components/JobActions/CloseButton';
 import { ReopenButton } from '@/components/JobActions/ReopenButton';
 import { RefundButton } from '@/components/JobActions/RefundButton';
 import { DisputeButton } from '@/components/JobActions/DisputeButton';
+import { WithdrawCollateralButton } from '@/components/JobActions/WithdrawCollateralButton';
 
 export default function JobPage() {
   const id = useParams().id as string;
@@ -138,6 +139,9 @@ export default function JobPage() {
           }
           {job.state === JobState.Closed && address === job.roles.creator && job.resultHash === zeroHash &&
             <ReopenButton address={address} job={job}></ReopenButton>
+          }
+          {job.state === JobState.Closed && address === job.roles.creator && job.collateralOwed > 0n &&
+            <WithdrawCollateralButton address={address} job={job}></WithdrawCollateralButton>
           }
 
           {/* worker actions */}
