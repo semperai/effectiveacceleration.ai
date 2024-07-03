@@ -12,7 +12,7 @@ import {
 import ERC20Abi from '@/abis/ERC20.json'
 // import MarketplaceArtifact from '@/artifacts/contracts/MarketplaceV1.sol/MarketplaceV1.json'
 // import Config from '@/config.json'
-import { Fragment, useEffect, useState } from 'react'
+import { FormEvent, Fragment, ReactNode, useEffect, useState } from 'react'
 import { Layout } from '@/components/Dashboard/Layout'
 import { Button } from '@/components/Button'
 import { Description, Field, FieldGroup, Fieldset, Label, Legend } from '@/components/Fieldset'
@@ -23,82 +23,16 @@ import { Select } from '@/components/Select'
 import { TokenSelector } from '@/components/TokenSelector'
 import { Token } from '@/tokens'
 import { Radio, RadioGroup } from '@/components/Radio'
-// import {Combobox, ComboboxInput, ComboboxOption, ComboboxOptions, ListboxOptions } from '@headlessui/react'
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/24/outline'
 import { Listbox, ListboxOption } from '@/components/Listbox'
 import { BsInfoCircle } from "react-icons/bs";
-import ComboboxType from '@/components/Combobox'
+import MultiComboBox from '@/components/MultiComboBox'
+import { ComboBox } from '@/components/ComboBox'
+import { ComboBoxOption } from '@/service/FormsTypes'
+import JobSummary from './JobSummary'
+import { JobFormInputData } from '@/service/FormsTypes'
 import Link from 'next/link'
-
-interface SummaryProps {
-  title: string;
-  description: string;
-  multipleApplicants: string;
-  selectedCategory: {id: number, name: string}  | undefined ;
-  selectedTag: {id: number, name: string}[]  | undefined ;
-  amount: string;
-  selectedToken: Token | undefined;
-  isArbitrator: string;
-  deadline: number;
-  selectedUnit: {id: number, name: string}  | undefined ;
-  selectedWhitelist: {id: number, name: string}  | undefined ;
-  postJobClick: () => void;
-}
-
-
-function Summary({
-  title,
-  description,
-  multipleApplicants,
-  selectedCategory,
-  selectedTag,
-  amount,
-  selectedToken,
-  isArbitrator,
-  deadline,
-  selectedUnit,
-  selectedWhitelist,
-  postJobClick,
-}: SummaryProps) {
-  
-  const sections = [
-    { label: 'Job Title', inputInfo: title },
-    { label: 'Description', inputInfo: description },
-    { label: 'Multiple Applicants', inputInfo: multipleApplicants ? 'Yes' : 'No' },
-    { label: 'Category', inputInfo: selectedCategory?.name },
-    { label: 'Tag', inputInfo: selectedTag?.map(tag => tag.name).join(', ') },
-    { label: 'Delivery Method', inputInfo: <span>{selectedUnit?.name}</span> },
-    { label: 'Price', inputInfo: `${amount} ${selectedToken}` },
-    { label: 'Arbitrator Required', inputInfo: isArbitrator ? 'Yes' : 'No' },
-    { label: 'Deadline', inputInfo: deadline },
-    { label: 'Whitelist', inputInfo: selectedWhitelist?.name},
-  ];
-
-  return (
-    <div>
-        <div className='mb-6'>
-          <h1 className="text-3xl font-bold mb-1">Summary</h1>
-          <span className='text-darkBlueFont'>Before you submit your form, check your answers.</span>
-        </div>
-        <div className='bg-white rounded-3xl p-8 shadow-md flex flex-col '>
-          {sections.map((section, index) => (
-            <div key={index} className='flex mb-8'>
-              <div className='flex grow md:min-w-[14rem] md:max-w-[14rem]'>
-                <span className='font-bold'>{section.label}</span>
-              </div>
-              <div className='flex grow-[2]'>
-                <span className=''>{section.inputInfo}</span>
-              </div>
-            </div>
-          )
-          )}
-        </div>
-        <div className='flex justify-end mt-5'>
-            <Button onClick={postJobClick}>Submit</Button>
-          </div>
-    </div>
-  );
-}
+import { dataCategories, dataTags, dataWhitelist, dataUnits, dataAddresses } from './postJobDummyData'
 
 
 export default function PostJobPage() {
@@ -113,68 +47,18 @@ export default function PostJobPage() {
   const [selectedToken, setSelectedToken] = useState<Token | undefined>(undefined)
   const multipleApplicantsValues = ['Yes', 'No']
   const arbitrator = ['Yes', 'No']
-  const categories = [
-    { id: 1, name: 'Web' },
-    { id: 2, name: 'Design' },
-    { id: 3, name: 'Translation' },
-    { id: 4, name: 'Counting' },
-    { id: 5, name: 'Marketing' },
-  ]
-
-  const tags = [
-    { id: 1, name: 'Web' },
-    { id: 2, name: 'Design' },
-    { id: 3, name: 'Translation' },
-    { id: 4, name: 'Counting' },
-    { id: 5, name: 'Marketing' },
-  ]
-
-  const workerwhitelist = [
-    { id: 1, name: 'Web' },
-    { id: 2, name: 'Design' },
-    { id: 3, name: 'Translation' },
-    { id: 4, name: 'Counting' },
-    { id: 5, name: 'Marketing' },
-  ]
-
-  const units = [
-    { id: 1, name: 'Web' },
-    { id: 2, name: 'Design' },
-    { id: 3, name: 'Translation' },
-    { id: 4, name: 'Counting' },
-    { id: 5, name: 'Marketing' },
-  ]
-
-  const people = [
-    { id: 1, name: 'Durward Reynolds' },
-    { id: 2, name: 'Kenton Towne' },
-    { id: 3, ename: 'Therese Wunsch' },
-    { id: 4, name: 'Benedict Kessler' },
-    { id: 5, name: 'Katelyn Rohan' },
-  ]
-
-  const [selectedPeople, setSelectedPeople] = useState([people[0], people[1]])
-
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('0');
   const [deadline, setDeadline] = useState(0);
   const [multipleApplicants, setMultipleApplicants] = useState(multipleApplicantsValues[1])
   const [isArbitrator, setisArbitrator] = useState(arbitrator[1])
-  
-  const [selectedCategory, setselectedCategory] = useState<{id: number, name: string } | undefined >()
-  const [selectedTag, setselectedTag] = useState<{ id: number; name: string; }[]>([])
-  const [selectedWhitelist, setselectedWhitelist] = useState<{id: number, name: string}  | undefined >()
-  const [selectedUnit, setselectedUnit] = useState<{id: number, name: string}  | undefined >()
-  console.log(selectedToken?.name)
+  const [selectedCategory, setselectedCategory] = useState<ComboBoxOption>()
+  const [selectedTag, setselectedTag] = useState<ComboBoxOption[] | []>([])
+  const [selectedAddresses, setselectedAddresses] = useState<ComboBoxOption>()
+  const [selectedWhitelist, setselectedWhitelist] = useState<ComboBoxOption>()
+  const [selectedUnit, setselectedUnit] = useState<ComboBoxOption>()
 
-  const peoples = [
-    { id: 1, name: 'Tom Cook' },
-    { id: 2, name: 'Wade Cooper' },
-    { id: 3, name: 'Tanya Fox' },
-    { id: 4, name: 'Arlene Mccoy' },
-    { id: 5, name: 'Devon Webb' },
-  ]
   const [postButtonDisabled, setPostButtonDisabled] = useState(false);
   useEffect(() => {
     if (
@@ -187,6 +71,7 @@ export default function PostJobPage() {
     ||selectedTag == undefined
     ||selectedWhitelist   == undefined
     ||selectedUnit == undefined
+    ||selectedAddresses == undefined
     ) {
       setPostButtonDisabled(true);
     } else {
@@ -237,10 +122,20 @@ export default function PostJobPage() {
         [],
       ],
     });
-
-    console.log('writeContract', w);
   }
 
+  const formInputs: JobFormInputData[] = [
+    { label: 'Job Title', inputInfo: title },
+    { label: 'Description', inputInfo: description },
+    { label: 'Multiple Applicants', inputInfo: multipleApplicants},
+    { label: 'Category', inputInfo: selectedCategory?.name },
+    { label: 'Tag', inputInfo: selectedTag?.map(tag => tag.name).join(', ') },
+    { label: 'Delivery Method', inputInfo: <span>{selectedUnit?.name}</span> },
+    { label: 'Price', inputInfo: `${amount} ${selectedToken}` },
+    { label: 'Arbitrator Required', inputInfo: isArbitrator ? 'Yes' : 'No' },
+    { label: 'Deadline', inputInfo: deadline },
+    { label: 'Whitelist', inputInfo: selectedWhitelist?.name},
+  ];
 
   return (
     <Layout>
@@ -287,25 +182,17 @@ export default function PostJobPage() {
               </Field>
               <Field>
                 <Label>Category</Label>
-                <Listbox
-                  value={selectedCategory} 
-                  onChange={setselectedCategory}
-                  className="border border-gray-300 rounded-md shadow-sm"
-                  placeholder="Search Category"
-                >
-                  {categories.map((cat, catIndex) => (
-                      <ListboxOption key={catIndex} value={cat}>
-                        {cat.name}
-                      </ListboxOption>
-                  ))}
-                </Listbox>
+                <ComboBox placeholder='Search Categories...' className="w-auto border border-gray-300 rounded-md shadow-sm bg-slate-600" 
+                options={dataCategories}  onChange={(option) => {
+                  setselectedCategory(option as ComboBoxOption)
+                }}></ComboBox>
               </Field>
-              <Field>'
+              <Field>
                 <Label>Tags</Label>
-                <ComboboxType
-                  data={tags}
+                <MultiComboBox
+                  data={dataTags}
                   selected={selectedTag}
-                  setSelected={(newValue) => setselectedTag(newValue)}
+                  setSelected={(newValue) => setselectedTag(newValue as ComboBoxOption[])}
                 />
               </Field>
             </FieldGroup>
@@ -367,69 +254,51 @@ export default function PostJobPage() {
                   ))}
                 </RadioGroup>
               </Field>
-              <Field >
-                <Listbox
-                    value={selectedWhitelist} 
-                    onChange={setselectedWhitelist}
-                    className="border border-gray-300 rounded-md shadow-sm"
-                    placeholder="Select Address"
-                >
-                  {workerwhitelist.map((whitelist, whitelistIndex) => (
-                      <ListboxOption key={whitelistIndex} value={whitelist}>
-                        {whitelist.name}
-                      </ListboxOption>
-                  ))}
-              </Listbox>
+              <Field>
+                <ComboBox className="w-auto border border-gray-300 rounded-md shadow-sm bg-slate-600" 
+                options={dataAddresses} placeholder='Select Address...' onChange={(option) => {
+                  setselectedAddresses(option as ComboBoxOption)
+                }}></ComboBox>
               </Field>
-
             
               <div className='flex flex-row justify-between gap-5'>
-              
+                <Field className='flex-1'>
+                  <Label>Maximum delivery time</Label>
+                  <Input
+                    name="deadline"
+                    type="number"
+                    value={deadline}
+                    onChange={(e) => {
+                      const deadline = parseInt(e.target.value);
+                      setDeadline(deadline);
+                    }}
+                  />
+                </Field>
+
+                <Field className='flex-1'>
+                  <Label>Units</Label>
+                  <ComboBox className="w-auto border border-gray-300 rounded-md shadow-sm bg-slate-600" 
+                  options={dataUnits} placeholder='Select Unit' onChange={(option) => {
+                    setselectedUnit(option as ComboBoxOption)
+                  }}></ComboBox>
+                </Field>
+              </div>
               <Field className='flex-1'>
-                <Label>Maximum delivery time</Label>
-                <Input
-                  name="deadline"
-                  type="number"
-                  value={deadline}
-                  onChange={(e) => {
-                    const deadline = parseInt(e.target.value);
-                    setDeadline(deadline);
-                  }}
-                />
+                <Label>Units</Label>
+                <ComboBox className="w-auto border border-gray-300 rounded-md shadow-sm bg-slate-600" 
+                options={dataUnits} placeholder='Select Unit' onChange={(option) => {
+                  setselectedUnit(option as ComboBoxOption)
+                }}></ComboBox>
               </Field>
-              <Field className='flex-1'>
-              <Label>Units</Label>
-              <Listbox
-                value={selectedUnit} 
-                onChange={setselectedUnit}
-                className="border border-gray-300 rounded-md shadow-sm"
-                placeholder="Select unit"
-              >
-                {units.map((unit, unitIndex) => (
-                    <ListboxOption key={unitIndex} value={unit}>
-                      {unit.name}
-                    </ListboxOption>
-                ))}
-              </Listbox>
-              </Field>
-            </div>
               <Field>
                 <div className='flex justify-between'>
                   <Label>Worker Whitelist</Label>
                   <Label className='font-light'>+ Add Another</Label>
                 </div>
-                <Listbox
-                  value={selectedWhitelist} 
-                  onChange={setselectedWhitelist}
-                  className="border border-gray-300 rounded-md shadow-sm"
-                  placeholder="Select Address"
-              >
-                {workerwhitelist.map((whitelist, whitelistIndex) => (
-                    <ListboxOption key={whitelistIndex} value={whitelist}>
-                      {whitelist.name}
-                    </ListboxOption>
-                ))}
-              </Listbox>
+                <ComboBox className="w-auto border border-gray-300 rounded-md shadow-sm bg-slate-600" 
+                  options={dataWhitelist} placeholder='Whitelist Wokers...' onChange={(option) => {
+                  setselectedWhitelist(option as ComboBoxOption)
+                }}></ComboBox>
               </Field>
               {!showSummary && (
                 <div className='justify-end flex'>
@@ -449,19 +318,9 @@ export default function PostJobPage() {
         </Fieldset>
       )}
       {showSummary && (
-              <Summary
-                title={title}
-                description={description}
-                multipleApplicants={multipleApplicants}
-                selectedCategory={selectedCategory}
-                selectedTag={selectedTag}
-                amount={amount}
-                selectedToken = {selectedToken}
-                isArbitrator={isArbitrator}
-                deadline={deadline}
-                selectedUnit={selectedUnit}
-                selectedWhitelist={selectedWhitelist}
-                postJobClick={postJobClick}
+              <JobSummary
+                formInputs={formInputs}
+                submitJob={postJobClick}
               />
       )}
     </Layout>
