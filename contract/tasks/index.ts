@@ -139,7 +139,7 @@ task("marketplace:seed", "Seed local marketplace instance")
   const [deployer, owner, worker, arbitrator] = await hre.ethers.getSigners();
   await marketplace.connect(deployer).setMarketplaceDataAddress(await marketplaceData.getAddress());
 
-  console.log('Seeding marketplace with test data');
+  console.log('Seeding marketplace with test data on chainId', (await deployer.provider.getNetwork()).chainId);
 
   console.log('Sending fake tokens to users');
   await fakeToken.connect(deployer).transfer(await deployer.getAddress(), BigInt(1000e18));
@@ -305,5 +305,12 @@ task("marketplace:seed", "Seed local marketplace instance")
     await marketplace.connect(owner).withdrawCollateral(jobId);
   }
 
-  console.log("Done seeding marketplace");
+  console.log("Done seeding marketplace on chainId", (await deployer.provider.getNetwork()).chainId);
+});
+
+
+task("chainId", "Seed local marketplace instance")
+.setAction(async ({ }, hre) => {
+  const [deployer] = await hre.ethers.getSigners();
+  console.log((await deployer.provider.getNetwork()).chainId);
 });

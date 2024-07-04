@@ -22,6 +22,12 @@ const config: HardhatUserConfig = {
       },
     ],
   },
+  networks: {
+    hardhat: {
+      // support running local node with custom chain id
+      chainId: process.env.CHAIN_ID ? Number(process.env.CHAIN_ID) : 31337,
+    },
+  },
   // limit is 24.576 KiB
   contractSizer: {
     alphaSort: true,

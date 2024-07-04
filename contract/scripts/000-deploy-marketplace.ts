@@ -53,7 +53,7 @@ async function main() {
   console.log("FakeToken deployed to:", await fakeToken.getAddress(), "\n");
 
   const multicall3 = await deployMulticall3();
-  console.log("Multicall3 deployed to:", await multicall3.getAddress(), "\n");
+  console.log("Multicall3 deployed to:", await multicall3.getAddress(), "at block height:", await deployer.provider.getBlockNumber(), "\n");
 
   // SAVE CONFIG
   const configPath = __dirname + '/config.json';

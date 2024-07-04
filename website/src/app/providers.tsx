@@ -12,7 +12,8 @@ import {
 } from '@rainbow-me/rainbowkit';
 import { WagmiProvider } from 'wagmi';
 import {
-  arbitrumNova,
+  hardhat,
+  arbitrum,
 } from 'wagmi/chains';
 import {
   QueryClientProvider,
@@ -26,23 +27,32 @@ declare module 'wagmi' {
   }
 }
 
-export const hardhat = /*#__PURE__*/ defineChain({
-  id: 31_337,
-  name: 'Hardhat',
+export const staging = /*#__PURE__*/ defineChain({
+  id: 31_338,
+  name: 'EACC Staging',
   nativeCurrency: {
     decimals: 18,
     name: 'Ether',
     symbol: 'ETH',
   },
+  testnet: true,
   rpcUrls: {
-    default: { http: [process.env.NEXT_PUBLIC_RPC_URL!] },
+    default: { http: ["https://eacc-staging.pat.mn/rpc"] },
   },
+  contracts: {
+    multicall3: {
+      address: '0xca11bde05977b3631167028862be2a173976ca11',
+      blockCreated: 12,
+    },
+  },
+  iconUrl: "https://coin-images.coingecko.com/coins/images/35246/large/arbius-200x-logo.png?1707987961",
+  iconBackground: '#fff',
 })
 
 const config = getDefaultConfig({
   appName: 'Effective Acceleration',
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!,
-  chains: [hardhat, arbitrumNova],
+  chains: [hardhat, staging, arbitrum],
   ssr: true, // If your dApp uses server side rendering (SSR)
 }) as any;
 
@@ -54,6 +64,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider
+          initialChain={process.env.NODE_ENV === 'development' ? staging : arbitrum}
           theme={{
             lightMode: lightTheme(),
             darkMode: darkTheme(),
