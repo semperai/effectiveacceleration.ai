@@ -12,7 +12,7 @@ import { Input } from '../Input';
 
 export type ApproveButtonProps = {
   address: `0x${string}` | undefined,
-  job: Job | undefined,
+  job: Job,
 }
 
 export function ApproveButton({address, job, ...rest}: ApproveButtonProps & React.ComponentPropsWithoutRef<'div'>) {
@@ -65,7 +65,7 @@ export function ApproveButton({address, job, ...rest}: ApproveButtonProps & Reac
       address: Config.marketplaceAddress as `0x${string}`,
       functionName: 'approveResult',
       args: [
-        job?.id!,
+        job.id!,
         rating,
         review,
       ],

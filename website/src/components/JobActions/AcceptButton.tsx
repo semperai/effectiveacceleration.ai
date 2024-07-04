@@ -10,7 +10,7 @@ import { useSignMessage, useWaitForTransactionReceipt, useWriteContract } from "
 export type AcceptButtonProps = {
   address: `0x${string}` | undefined,
   events: JobEventWithDiffs[],
-  job: Job | undefined,
+  job: Job,
 }
 
 export function AcceptButton({address, job, events, ...rest}: AcceptButtonProps & React.ComponentPropsWithoutRef<'div'>) {
@@ -51,7 +51,7 @@ export function AcceptButton({address, job, events, ...rest}: AcceptButtonProps 
     const revision = events.length;
     const signature = await signMessageAsync({
       account: address,
-      message: {raw: ethers.getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, job?.id!])))}
+      message: {raw: ethers.getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, job.id!])))}
     });
 
     const w = writeContract({
@@ -59,7 +59,7 @@ export function AcceptButton({address, job, events, ...rest}: AcceptButtonProps 
       address: Config.marketplaceAddress as `0x${string}`,
       functionName: 'takeJob',
       args: [
-        job?.id!,
+        job.id!,
         signature,
       ],
     });

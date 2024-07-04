@@ -14,7 +14,7 @@ import { Field, Label } from '../Fieldset';
 export type ArbitrateButtonProps = {
   address: `0x${string}` | undefined,
   sessionKeys: Record<string, string>,
-  job: Job | undefined,
+  job: Job,
 }
 
 export function ArbitrateButton({address, job, sessionKeys, ...rest}: ArbitrateButtonProps & React.ComponentPropsWithoutRef<'div'>) {
@@ -64,7 +64,7 @@ export function ArbitrateButton({address, job, sessionKeys, ...rest}: ArbitrateB
 
     setButtonDisabled(true);
 
-    const sessionKey = sessionKeys[`${address}-${job?.roles.creator}`];
+    const sessionKey = sessionKeys[`${address}-${job.roles.creator}`];
     const { hash: contentHash } = await publishToIpfs(message, sessionKey);
 
     const w = writeContract({
@@ -72,7 +72,7 @@ export function ArbitrateButton({address, job, sessionKeys, ...rest}: ArbitrateB
       address: Config.marketplaceAddress as `0x${string}`,
       functionName: 'arbitrate',
       args: [
-        job?.id!,
+        job.id!,
         ownerShare * 100,
         workerShare * 100,
         contentHash as `0x${string}`,

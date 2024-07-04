@@ -8,7 +8,7 @@ import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 
 export type WithdrawCollateralButtonProps = {
   address: `0x${string}` | undefined,
-  job: Job | undefined,
+  job: Job,
 }
 
 export function WithdrawCollateralButton({address, job, ...rest}: WithdrawCollateralButtonProps & React.ComponentPropsWithoutRef<'div'>) {
@@ -50,7 +50,7 @@ export function WithdrawCollateralButton({address, job, ...rest}: WithdrawCollat
       address: Config.marketplaceAddress as `0x${string}`,
       functionName: 'withdrawCollateral',
       args: [
-        job?.id!,
+        job.id!,
       ],
     });
   }

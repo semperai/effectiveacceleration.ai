@@ -8,7 +8,7 @@ import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 
 export type CloseButtonProps = {
   address: `0x${string}` | undefined,
-  job: Job | undefined,
+  job: Job,
 }
 
 export function CloseButton({address, job, ...rest}: CloseButtonProps & React.ComponentPropsWithoutRef<'div'>) {
@@ -50,7 +50,7 @@ export function CloseButton({address, job, ...rest}: CloseButtonProps & React.Co
       address: Config.marketplaceAddress as `0x${string}`,
       functionName: 'closeJob',
       args: [
-        job?.id!,
+        job.id!,
       ],
     });
   }

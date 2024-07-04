@@ -8,7 +8,7 @@ import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 
 export type ReopenButtonProps = {
   address: `0x${string}` | undefined,
-  job: Job | undefined,
+  job: Job,
 }
 
 export function ReopenButton({address, job, ...rest}: ReopenButtonProps & React.ComponentPropsWithoutRef<'div'>) {
@@ -50,7 +50,7 @@ export function ReopenButton({address, job, ...rest}: ReopenButtonProps & React.
       address: Config.marketplaceAddress as `0x${string}`,
       functionName: 'reopenJob',
       args: [
-        job?.id!,
+        job.id!,
       ],
     });
   }

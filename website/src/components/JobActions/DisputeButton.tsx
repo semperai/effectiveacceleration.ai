@@ -57,8 +57,8 @@ export function DisputeButton({address, job, sessionKeys, ...rest}: DisputeButto
 
     setButtonDisabled(true);
 
-    const arbitratorSessionKey = sessionKeys[`${address}-${job?.roles.arbitrator}`];
-    const ownerWorkerSessionKey = address === job.roles.creator ? sessionKeys[`${job?.roles.creator}-${job?.roles.worker}`] : sessionKeys[`${job?.roles.worker}-${job?.roles.creator}`];
+    const arbitratorSessionKey = sessionKeys[`${address}-${job.roles.arbitrator}`];
+    const ownerWorkerSessionKey = address === job.roles.creator ? sessionKeys[`${job.roles.creator}-${job.roles.worker}`] : sessionKeys[`${job.roles.worker}-${job.roles.creator}`];
     const encryptedContent = hexlify(encryptUtf8Data(message, arbitratorSessionKey));
     const encryptedSessionKey = hexlify(encryptBinaryData(getBytes(ownerWorkerSessionKey), arbitratorSessionKey));
 
@@ -67,7 +67,7 @@ export function DisputeButton({address, job, sessionKeys, ...rest}: DisputeButto
       address: Config.marketplaceAddress as `0x${string}`,
       functionName: 'dispute',
       args: [
-        job?.id!,
+        job.id!,
         encryptedSessionKey as `0x${string}`,
         encryptedContent as `0x${string}`,
       ],

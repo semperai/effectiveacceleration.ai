@@ -7,22 +7,20 @@ import { useEffect, useState } from "react";
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { Dialog, Transition } from '@headlessui/react'
 import { Fragment } from 'react'
-import useUsers from '@/hooks/useUsers';
 import { Listbox, ListboxOption } from '../Listbox';
 import useUsersByAddresses from '@/hooks/useUsersByAddresses';
 
 
 export type RemoveFromWhitelistButtonProps = {
   address: `0x${string}` | undefined,
-  job: Job | undefined,
-  users?: Record<string, User>
+  job: Job,
   whitelist: string[]
 }
 
-export function RemoveFromWhitelistButton({address, job, users, whitelist, ...rest}: RemoveFromWhitelistButtonProps & React.ComponentPropsWithoutRef<'div'>) {
-  const {data: allUsers} = useUsersByAddresses(whitelist);
+export function RemoveFromWhitelistButton({address, job, whitelist, ...rest}: RemoveFromWhitelistButtonProps & React.ComponentPropsWithoutRef<'div'>) {
+  const {data: users} = useUsersByAddresses(whitelist);
   const excludes = [address];
-  const userList = (users ? Object.values(users) : Object.values(allUsers)).filter(user => !excludes.includes(user.address_));
+  const userList = Object.values(users).filter(user => !excludes.includes(user.address_));
   const [selectedUserAddress, setSelectedUserAddress] = useState<`0x${string}` | undefined>(undefined);
   const {
     data: hash,
@@ -63,7 +61,7 @@ export function RemoveFromWhitelistButton({address, job, users, whitelist, ...re
       address: Config.marketplaceAddress as `0x${string}`,
       functionName: 'updateJobWhitelist',
       args: [
-        job?.id!,
+        job.id!,
         [],
         [selectedUserAddress!]
       ],

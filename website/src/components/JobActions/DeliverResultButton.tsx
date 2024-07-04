@@ -12,7 +12,7 @@ import { Textarea } from '../Textarea';
 export type DeliverResultButtonProps = {
   address: `0x${string}` | undefined,
   sessionKeys: Record<string, string>,
-  job: Job | undefined,
+  job: Job,
 }
 
 export function DeliverResultButton({address, job, sessionKeys, ...rest}: DeliverResultButtonProps & React.ComponentPropsWithoutRef<'div'>) {
@@ -56,7 +56,7 @@ export function DeliverResultButton({address, job, sessionKeys, ...rest}: Delive
 
     setButtonDisabled(true);
 
-    const sessionKey = sessionKeys[`${address}-${job?.roles.creator}`];
+    const sessionKey = sessionKeys[`${address}-${job.roles.creator}`];
     const { hash: contentHash } = await publishToIpfs(message, sessionKey);
 
     const w = writeContract({
@@ -64,7 +64,7 @@ export function DeliverResultButton({address, job, sessionKeys, ...rest}: Delive
       address: Config.marketplaceAddress as `0x${string}`,
       functionName: 'deliverResult',
       args: [
-        job?.id!,
+        job.id!,
         contentHash as `0x${string}`,
       ],
     });

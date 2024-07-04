@@ -12,7 +12,7 @@ import { Input } from '../Input';
 
 export type ReviewButtonProps = {
   address: `0x${string}` | undefined,
-  job: Job | undefined,
+  job: Job,
 }
 
 export function ReviewButton({address, job, ...rest}: ReviewButtonProps & React.ComponentPropsWithoutRef<'div'>) {
@@ -65,7 +65,7 @@ export function ReviewButton({address, job, ...rest}: ReviewButtonProps & React.
       address: Config.marketplaceAddress as `0x${string}`,
       functionName: 'review',
       args: [
-        job?.id!,
+        job.id!,
         rating,
         review,
       ],

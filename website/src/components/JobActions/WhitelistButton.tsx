@@ -13,15 +13,14 @@ import { Listbox, ListboxOption } from '../Listbox';
 
 export type WhitelistButtonProps = {
   address: `0x${string}` | undefined,
-  job: Job | undefined,
-  users?: Record<string, User>,
+  job: Job,
   whitelist: string[],
 }
 
-export function WhitelistButton({address, job, users, whitelist, ...rest}: WhitelistButtonProps & React.ComponentPropsWithoutRef<'div'>) {
-  const {data: allUsers} = useUsers();
+export function WhitelistButton({address, job, whitelist, ...rest}: WhitelistButtonProps & React.ComponentPropsWithoutRef<'div'>) {
+  const {data: users} = useUsers();
   const excludes = [address, ...whitelist];
-  const userList = (users ? Object.values(users) : allUsers ?? []).filter(user => !excludes.includes(user.address_));
+  const userList = users.filter(user => !excludes.includes(user.address_));
   const [selectedUserAddress, setSelectedUserAddress] = useState<`0x${string}` | undefined>(undefined);
   const {
     data: hash,
@@ -62,7 +61,7 @@ export function WhitelistButton({address, job, users, whitelist, ...rest}: White
       address: Config.marketplaceAddress as `0x${string}`,
       functionName: 'updateJobWhitelist',
       args: [
-        job?.id!,
+        job.id!,
         [selectedUserAddress!],
         []
       ],

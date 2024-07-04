@@ -8,7 +8,7 @@ import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 
 export type RefundButtonProps = {
   address: `0x${string}` | undefined,
-  job: Job | undefined,
+  job: Job,
 }
 
 export function RefundButton({address, job, ...rest}: RefundButtonProps & React.ComponentPropsWithoutRef<'div'>) {
@@ -50,7 +50,7 @@ export function RefundButton({address, job, ...rest}: RefundButtonProps & React.
       address: Config.marketplaceAddress as `0x${string}`,
       functionName: 'refund',
       args: [
-        job?.id!,
+        job.id!,
       ],
     });
   }

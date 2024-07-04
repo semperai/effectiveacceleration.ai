@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 
 export type RefuseArbitrationButtonProps = {
-  job: Job | undefined,
+  job: Job,
 }
 
 export function RefuseArbitrationButton({job, ...rest}: RefuseArbitrationButtonProps & React.ComponentPropsWithoutRef<'div'>) {
@@ -49,7 +49,7 @@ export function RefuseArbitrationButton({job, ...rest}: RefuseArbitrationButtonP
       address: Config.marketplaceAddress as `0x${string}`,
       functionName: 'refuseArbitration',
       args: [
-        job?.id!,
+        job.id!,
       ],
     });
   }

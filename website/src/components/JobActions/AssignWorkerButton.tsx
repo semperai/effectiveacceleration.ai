@@ -13,14 +13,13 @@ import { Listbox, ListboxOption } from '../Listbox';
 
 export type AssignWorkerButtonProps = {
   address: `0x${string}` | undefined,
-  job: Job | undefined,
-  users?: Record<string, User>
+  job: Job,
 }
 
-export function AssignWorkerButton({address, job, users, ...rest}: AssignWorkerButtonProps & React.ComponentPropsWithoutRef<'div'>) {
-  const {data: allUsers} = useUsers();
+export function AssignWorkerButton({address, job, ...rest}: AssignWorkerButtonProps & React.ComponentPropsWithoutRef<'div'>) {
+  const {data: users} = useUsers();
   const excludes = [address]
-  const userList = (users ? Object.values(users) : allUsers ?? []).filter(user => !excludes.includes(user.address_));
+  const userList = users.filter(user => !excludes.includes(user.address_));
   const [selectedUserAddress, setSelectedUserAddress] = useState<`0x${string}` | undefined>(undefined);
   const {
     data: hash,
@@ -61,7 +60,7 @@ export function AssignWorkerButton({address, job, users, ...rest}: AssignWorkerB
       address: Config.marketplaceAddress as `0x${string}`,
       functionName: 'payStartJob',
       args: [
-        job?.id!,
+        job.id!,
         selectedUserAddress!,
       ],
     });

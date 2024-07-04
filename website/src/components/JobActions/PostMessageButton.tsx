@@ -16,7 +16,7 @@ export type PostMessageButtonProps = {
   address: `0x${string}` | undefined,
   addresses: `0x${string}`[] | undefined,
   sessionKeys: Record<string, string>,
-  job: Job | undefined,
+  job: Job,
 }
 
 export function PostMessageButton({address, addresses, job, sessionKeys, ...rest}: PostMessageButtonProps & React.ComponentPropsWithoutRef<'div'>) {
@@ -73,7 +73,7 @@ export function PostMessageButton({address, addresses, job, sessionKeys, ...rest
       address: Config.marketplaceAddress as `0x${string}`,
       functionName: 'postThreadMessage',
       args: [
-        job?.id!,
+        job.id!,
         contentHash as any
       ],
     });
