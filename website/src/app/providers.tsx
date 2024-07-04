@@ -52,7 +52,7 @@ export const staging = /*#__PURE__*/ defineChain({
 const config = getDefaultConfig({
   appName: 'Effective Acceleration',
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!,
-  chains: [hardhat, staging, arbitrum],
+  chains: [staging, hardhat, arbitrum],
   ssr: true, // If your dApp uses server side rendering (SSR)
 }) as any;
 
