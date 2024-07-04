@@ -35,6 +35,8 @@ import { ReopenButton } from '@/components/JobActions/ReopenButton';
 import { RefundButton } from '@/components/JobActions/RefundButton';
 import { DisputeButton } from '@/components/JobActions/DisputeButton';
 import { WithdrawCollateralButton } from '@/components/JobActions/WithdrawCollateralButton';
+import { WhitelistButton } from '@/components/JobActions/WhitelistButton';
+import { RemoveFromWhitelistButton } from '@/components/JobActions/RemoveFromWhitelistButton';
 
 export default function JobPage() {
   const id = useParams().id as string;
@@ -142,6 +144,12 @@ export default function JobPage() {
           }
           {job.state === JobState.Closed && address === job.roles.creator && job.collateralOwed > 0n &&
             <WithdrawCollateralButton address={address} job={job}></WithdrawCollateralButton>
+          }
+          {job.state === JobState.Open && address === job.roles.creator && job.whitelistWorkers &&
+            <WhitelistButton address={address} job={job} whitelist={whitelistedWorkers}></WhitelistButton>
+          }
+          {job.state === JobState.Open && address === job.roles.creator && job.whitelistWorkers && events.length > 0 && events.at(-1)!.job.allowedWorkers!.length! > 0 &&
+            <RemoveFromWhitelistButton address={address} job={job} whitelist={whitelistedWorkers}></RemoveFromWhitelistButton>
           }
 
           {/* worker actions */}
