@@ -102,8 +102,8 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
           if (!otherPubkey || otherPubkey === "0x") {
             continue;
           }
-          sessionKeys_[`${ownerAddress}-${workerAddress}`] = await getSessionKey(signer as any, otherPubkey);
-          sessionKeys_[`${workerAddress}-${ownerAddress}`] = await getSessionKey(signer as any, otherPubkey);
+          sessionKeys_[`${ownerAddress}-${workerAddress}`] = await getSessionKey(signer as any, otherPubkey, jobId);
+          sessionKeys_[`${workerAddress}-${ownerAddress}`] = await getSessionKey(signer as any, otherPubkey, jobId);
         }
       }
 
@@ -113,8 +113,8 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
           if (!otherPubkey || otherPubkey === "0x") {
             continue;
           }
-          sessionKeys_[`${ownerAddress}-${arbitratorAddress}`] = await getSessionKey(signer as any, otherPubkey);
-          sessionKeys_[`${arbitratorAddress}-${ownerAddress}`] = await getSessionKey(signer as any, otherPubkey);
+          sessionKeys_[`${ownerAddress}-${arbitratorAddress}`] = await getSessionKey(signer as any, otherPubkey, jobId);
+          sessionKeys_[`${arbitratorAddress}-${ownerAddress}`] = await getSessionKey(signer as any, otherPubkey, jobId);
         }
       }
 

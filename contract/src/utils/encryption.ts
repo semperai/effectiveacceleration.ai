@@ -1,7 +1,7 @@
 import { xchacha20poly1305 } from "@noble/ciphers/chacha";
 import { randomBytes } from "@noble/ciphers/crypto";
 import { utf8ToBytes } from "@noble/ciphers/utils";
-import { getBytes, hexlify, toUtf8String, decodeBase58, encodeBase58, toBeArray, encodeBase64, decodeBase64, SigningKey, keccak256, Signer, JsonRpcSigner } from "ethers";
+import { getBytes, hexlify, toUtf8String, decodeBase58, encodeBase58, toBeArray, encodeBase64, decodeBase64, SigningKey, keccak256, Signer, JsonRpcSigner, AbiCoder } from "ethers";
 
 export const cidToHash = (cid: string): string => {
   if (cid.length !== 46 || !cid.match(/^Qm/)) {
@@ -135,7 +135,7 @@ export const getEncryptionSigningKey = async (signer: Signer | JsonRpcSigner): P
   return new SigningKey(hashedSignature);
 }
 
-export const getSessionKey = async (signer: Signer | JsonRpcSigner, otherCompressedPublicKey: string): Promise<string> => {
+export const getSessionKey = async (signer: Signer | JsonRpcSigner, otherCompressedPublicKey: string, jobId: number | bigint): Promise<string> => {
   if (getBytes(otherCompressedPublicKey).length !== 33) {
     throw new Error("Invalid public key, must be compressed");
   }
@@ -144,5 +144,7 @@ export const getSessionKey = async (signer: Signer | JsonRpcSigner, otherCompres
 
   const sharedSecret = aliceEncryptionSigningKey.computeSharedSecret(otherCompressedPublicKey);
 
-  return keccak256(keccak256(sharedSecret));
+  const saltedSecret = getBytes(keccak256(AbiCoder.defaultAbiCoder().encode(["bytes", "uint256"], [sharedSecret, jobId])));
+
+  return keccak256(keccak256(saltedSecret));
 }

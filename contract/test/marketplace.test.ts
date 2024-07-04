@@ -663,7 +663,7 @@ describe("Marketplace Unit Tests", () => {
   describe("mece tags", () => {
     it("read mece tag", async () => {
       const { marketplaceData } = await loadFixture(deployContractsFixture);
-      expect(await marketplaceData.readMeceTag("DV")).to.equal("DIGIAL_VIDEO");
+      expect(await marketplaceData.readMeceTag("DV")).to.equal("DIGITAL_VIDEO");
 
       await expect(marketplaceData.readMeceTag("")).to.be.revertedWith("Invalid MECE tag");
       await expect(marketplaceData.readMeceTag("LOL")).to.be.revertedWith("Invalid MECE tag");
@@ -2696,7 +2696,7 @@ describe("Marketplace Unit Tests", () => {
       const revision = await marketplaceData.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
-      const sessionKeyOA = await getSessionKey(user1, (await marketplaceData.connect(user1).arbitrators(arbitrator.address)).publicKey);
+      const sessionKeyOA = await getSessionKey(user1, (await marketplaceData.connect(user1).arbitrators(arbitrator.address)).publicKey, jobId);
 
       const encryptedContent = hexlify(encryptUtf8Data("Objection!", sessionKeyOA));
       const encruptedSessionKeyOW = hexlify(encryptBinaryData(getBytes("0x" + "00".repeat(32)), sessionKeyOA));
@@ -3195,7 +3195,7 @@ describe("Marketplace Unit Tests", () => {
         const listener = async (jobId_: bigint, jobEventData: JobEventDataStructOutput) => {
           if (jobId_ === jobId && Number(jobEventData.type_) === JobEventType.WorkerMessage) {
             const otherCompressedPublicKey = await marketplaceData.connect(user1).publicKeys(user2.address);
-            const sessionKey = await getSessionKey(user1, otherCompressedPublicKey);
+            const sessionKey = await getSessionKey(user1, otherCompressedPublicKey, jobId);
             const hash = jobEventData.data_;
 
             const message = await getFromIpfs(hash, sessionKey);
@@ -3213,7 +3213,7 @@ describe("Marketplace Unit Tests", () => {
         const listener = async (jobId_: bigint, jobEventData: JobEventDataStructOutput) => {
           if (jobId_ === jobId && Number(jobEventData.type_) === JobEventType.OwnerMessage) {
             const otherCompressedPublicKey = await marketplaceData.connect(user2).publicKeys(user1.address);
-            const sessionKey = await getSessionKey(user2, otherCompressedPublicKey);
+            const sessionKey = await getSessionKey(user2, otherCompressedPublicKey, jobId);
             const hash = jobEventData.data_;
 
             const message = await getFromIpfs(hash, sessionKey);
@@ -3236,8 +3236,8 @@ describe("Marketplace Unit Tests", () => {
       //#endregion utils
 
       // worker reads the post data
-      const ownerSessionKey = await getSessionKey(user1, await marketplaceData.connect(user1).publicKeys(user2.address));
-      const workerSessionKey = await getSessionKey(user2, await marketplaceData.connect(user2).publicKeys(user1.address));
+      const ownerSessionKey = await getSessionKey(user1, await marketplaceData.connect(user1).publicKeys(user2.address), jobId);
+      const workerSessionKey = await getSessionKey(user2, await marketplaceData.connect(user2).publicKeys(user1.address), jobId);
       expect(ownerSessionKey).to.equal(workerSessionKey);
       const postContent = await getFromIpfs((await marketplace.connect(user2).jobs(jobId)).contentHash, workerSessionKey);
       expect(postContent).to.equal(content);
@@ -3274,10 +3274,10 @@ describe("Marketplace Unit Tests", () => {
 
       // owner raises a dispute
       const disputeContent = "I am not satisfied with the result";
-      const sessionKeyOW = await getSessionKey(user1, await marketplaceData.connect(user1).publicKeys(user2.address));
-      const sessionKeyWO = await getSessionKey(user2, await marketplaceData.connect(user2).publicKeys(user1.address));
+      const sessionKeyOW = await getSessionKey(user1, await marketplaceData.connect(user1).publicKeys(user2.address), jobId);
+      const sessionKeyWO = await getSessionKey(user2, await marketplaceData.connect(user2).publicKeys(user1.address), jobId);
       expect(sessionKeyOW).to.equal(sessionKeyWO);
-      const sessionKeyOA = await getSessionKey(user1, (await marketplaceData.connect(user1).arbitrators(arbitrator.address)).publicKey);
+      const sessionKeyOA = await getSessionKey(user1, (await marketplaceData.connect(user1).arbitrators(arbitrator.address)).publicKey, jobId);
 
       const encryptedContent = hexlify(encryptUtf8Data(disputeContent, sessionKeyOA));
       const encrypedSessionKey = hexlify(encryptBinaryData(getBytes(sessionKeyOW), sessionKeyOA));
@@ -3287,7 +3287,7 @@ describe("Marketplace Unit Tests", () => {
       // arbitrator observes the dispute
       const pastEventsArbitrator = await marketplaceData.connect(user1).getEvents(jobId, revision, 0);
       const lastEventArbitrator = pastEventsArbitrator[pastEventsArbitrator.length - 1];
-      const arbitratorSessionKey = await getSessionKey(arbitrator, await marketplaceData.connect(arbitrator).publicKeys(user1.address));
+      const arbitratorSessionKey = await getSessionKey(arbitrator, await marketplaceData.connect(arbitrator).publicKeys(user1.address), jobId);
       const disputeEvent = decodeJobDisputedEvent(lastEventArbitrator.data_);
       decryptJobDisputedEvent(disputeEvent, arbitratorSessionKey)
       expect(disputeEvent.content).to.equal(disputeContent);

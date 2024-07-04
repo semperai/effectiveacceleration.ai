@@ -177,6 +177,8 @@ task("marketplace:seed", "Seed local marketplace instance")
       [worker.address]
     );
 
+    const jobId = 0;
+
     await marketplace.connect(owner).updateJobPost(
       0n,
       '[Updated] Create a story book about Bitcoin',
@@ -200,7 +202,7 @@ task("marketplace:seed", "Seed local marketplace instance")
 
     // worker delivers the result
     const result = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
-    const workerSessionKey = await getSessionKey(worker, await marketplaceData.connect(worker).publicKeys(owner.address));
+    const workerSessionKey = await getSessionKey(worker, await marketplaceData.connect(worker).publicKeys(owner.address), jobId);
     const { hash: resultHash } = await publishToIpfs(result, workerSessionKey);
 
     await marketplace.connect(worker).deliverResult(0n, resultHash);
@@ -226,7 +228,7 @@ task("marketplace:seed", "Seed local marketplace instance")
     const jobId = 1;
 
     // worker reads the post data
-    const workerSessionKey = await getSessionKey(worker, await marketplaceData.connect(worker).publicKeys(owner.address));
+    const workerSessionKey = await getSessionKey(worker, await marketplaceData.connect(worker).publicKeys(owner.address), jobId);
 
     // worker posts a thread message
     const workerMessage = "I can do it!";
@@ -255,7 +257,7 @@ task("marketplace:seed", "Seed local marketplace instance")
     const jobId = 2;
 
     // worker reads the post data
-    const workerSessionKey = await getSessionKey(worker, await marketplaceData.connect(worker).publicKeys(owner.address));
+    const workerSessionKey = await getSessionKey(worker, await marketplaceData.connect(worker).publicKeys(owner.address), jobId);
 
     // worker posts a thread message
     const workerMessage = "I can do it!";
@@ -263,7 +265,7 @@ task("marketplace:seed", "Seed local marketplace instance")
 
     await marketplace.connect(worker).postThreadMessage(jobId, workerMessageHash);
 
-    const ownerSessionKey = await getSessionKey(owner, await marketplaceData.connect(owner).publicKeys(worker.address));
+    const ownerSessionKey = await getSessionKey(owner, await marketplaceData.connect(owner).publicKeys(worker.address), jobId);
     const ownerMessage = "Go ahead!";
     const { hash: ownerMessageHash } = await publishToIpfs(ownerMessage, ownerSessionKey);
 
@@ -283,8 +285,8 @@ task("marketplace:seed", "Seed local marketplace instance")
 
     // owner raises a dispute
     const disputeContent = "I am not satisfied with the result";
-    const sessionKeyOW = await getSessionKey(owner, await marketplaceData.connect(owner).publicKeys(worker.address));
-    const sessionKeyOA = await getSessionKey(owner, (await marketplaceData.connect(owner).arbitrators(arbitrator.address)).publicKey);
+    const sessionKeyOW = await getSessionKey(owner, await marketplaceData.connect(owner).publicKeys(worker.address), jobId);
+    const sessionKeyOA = await getSessionKey(owner, (await marketplaceData.connect(owner).arbitrators(arbitrator.address)).publicKey, jobId);
 
     const encryptedContent = hexlify(encryptUtf8Data(disputeContent, sessionKeyOA));
     const encrypedSessionKey = hexlify(encryptBinaryData(getBytes(sessionKeyOW), sessionKeyOA));
