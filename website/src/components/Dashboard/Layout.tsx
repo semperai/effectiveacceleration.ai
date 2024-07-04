@@ -8,7 +8,6 @@ import {
 import { clsx } from 'clsx'
 import { Fragment, useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { Logo } from '@/components/Logo'
 import { Link } from '@/components/Link'

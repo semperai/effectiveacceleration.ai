@@ -9,6 +9,7 @@ import { GoPerson } from 'react-icons/go'
 import { MdOutlineArrowForwardIos } from 'react-icons/md'
 import { PiBellSimple } from 'react-icons/pi'
 import { useAccount, useReadContract } from 'wagmi'
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 const Navbar = ({setSidebarOpen} : {setSidebarOpen: (value: boolean) => void}) => {
     const { address } = useAccount();
@@ -31,7 +32,7 @@ const Navbar = ({setSidebarOpen} : {setSidebarOpen: (value: boolean) => void}) =
   return (
     <>
         {/* <div className='border-b border-gray-200 dark:border-gray-900'> */}
-          <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 bg-white/80 dark:bg-black/80 backdrop-blur-lg px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+          <div className="sticky top-0 z-40 flex h-20 sm:h-16 shrink-0 items-center gap-x-4 bg-white/80 dark:bg-black/80 backdrop-blur-lg px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
             <button type="button" className="-m-2.5 p-2.5 text-gray-700 lg:hidden" onClick={() => setSidebarOpen(true)}>
               <span className="sr-only">Open sidebar</span>
               <Bars3Icon className="h-6 w-6" aria-hidden="true" />
@@ -40,7 +41,7 @@ const Navbar = ({setSidebarOpen} : {setSidebarOpen: (value: boolean) => void}) =
             {/* Separator */}
             <div className="h-6 w-px bg-gray-900/10 lg:hidden" aria-hidden="true" />
 
-            <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
+            <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6 flex-wrap md:flex-nowrap">
               <div className="relative flex flex-1 items-center" >
                 <BreadCrumbs           
                   separator={<MdOutlineArrowForwardIos className='self-center text-gray-200'/>}
@@ -63,11 +64,8 @@ const Navbar = ({setSidebarOpen} : {setSidebarOpen: (value: boolean) => void}) =
                   </span>
                 </Link>
 
-                <button className='flex text-white items-center justify-center p-2 rounded-full bg-primary gap-2 w-36'>
-                <GoPerson className='text-xl '/>
-                <span className='text-sm h-6 flex items-center'>Create Job</span>
-                <FaArrowRight className='text-lg ' />
-                </button>
+                <ConnectButton />
+
                 <button className='p-2 bg-gray-200 rounded-full'>
                 <PiBellSimple className='text-2xl ' />  
                 </button>
