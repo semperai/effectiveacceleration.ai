@@ -64,7 +64,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider
-          initialChain={process.env.NODE_ENV === 'development' ? staging : arbitrum}
+          initialChain={staging}
           theme={{
             lightMode: lightTheme(),
             darkMode: darkTheme(),
