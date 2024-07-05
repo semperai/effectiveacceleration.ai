@@ -37,6 +37,7 @@ import { DisputeButton } from '@/components/JobActions/DisputeButton';
 import { WithdrawCollateralButton } from '@/components/JobActions/WithdrawCollateralButton';
 import { WhitelistButton } from '@/components/JobActions/WhitelistButton';
 import { RemoveFromWhitelistButton } from '@/components/JobActions/RemoveFromWhitelistButton';
+import { UpdateButton } from '@/components/JobActions/UpdateButton';
 
 export default function JobPage() {
   const id = useParams().id as string;
@@ -150,6 +151,9 @@ export default function JobPage() {
           }
           {job.state === JobState.Open && address === job.roles.creator && job.whitelistWorkers && events.length > 0 && events.at(-1)!.job.allowedWorkers!.length! > 0 &&
             <RemoveFromWhitelistButton address={address} job={job} whitelist={whitelistedWorkers}></RemoveFromWhitelistButton>
+          }
+          {job.state === JobState.Open && address === job.roles.creator &&
+            <UpdateButton address={address} job={job}></UpdateButton>
           }
 
           {/* worker actions */}
