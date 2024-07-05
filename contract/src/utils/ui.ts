@@ -159,7 +159,7 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
           diffs: [
             ...(previousJobState?.title !== job.title ? [{ field: "title", oldValue: previousJobState?.title, newValue: job.title }] : []),
             ...(previousJobState?.contentHash !== job.contentHash ? [{ field: "contentHash", oldValue: previousJobState?.contentHash, newValue: job.contentHash }] : []),
-            ...(previousJobState?.tags !== job.tags ? [{ field: "tags", oldValue: previousJobState?.tags, newValue: job.tags }] : []),
+            ...(JSON.stringify(previousJobState?.tags) !== JSON.stringify(job.tags) ? [{ field: "tags", oldValue: previousJobState?.tags, newValue: job.tags }] : []),
             ...(previousJobState?.amount !== job.amount ? [{ field: "amount", oldValue: previousJobState?.amount, newValue: job.amount }] : []),
             ...(previousJobState?.maxTime !== job.maxTime ? [{ field: "maxTime", oldValue: previousJobState?.maxTime, newValue: job.maxTime }] : []),
             ...(previousJobState?.roles.arbitrator !== job.roles.arbitrator ? [{ field: "roles.arbitrator", oldValue: previousJobState?.roles.arbitrator, newValue: job.roles.arbitrator }] : []),
