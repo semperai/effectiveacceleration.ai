@@ -10,7 +10,11 @@ import { MdOutlineArrowForwardIos } from 'react-icons/md'
 import { PiBellSimple } from 'react-icons/pi'
 import { useAccount, useReadContract } from 'wagmi'
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-
+import useUser from '@/hooks/useUser'
+import {
+  UserIcon,
+} from '@heroicons/react/20/solid'
+import { UserButton } from '@/components/UserActions/UserButton'
 const Navbar = ({setSidebarOpen} : {setSidebarOpen: (value: boolean) => void}) => {
     const { address } = useAccount();
     const [notificationsCount, setNotificationsCount] = useState(BigInt(0))
@@ -23,7 +27,7 @@ const Navbar = ({setSidebarOpen} : {setSidebarOpen: (value: boolean) => void}) =
         functionName: 'notificationsLength',
         args:         [address],
       });
-    
+
       useEffect(() => {
         if (notificationsLengthData) {
           setNotificationsCount(notificationsLengthData as bigint)
@@ -69,9 +73,7 @@ const Navbar = ({setSidebarOpen} : {setSidebarOpen: (value: boolean) => void}) =
                 <button className='p-2 bg-gray-200 rounded-full'>
                 <PiBellSimple className='text-2xl ' />  
                 </button>
-                <button className='p-2 bg-primary rounded-full'>
-                  <span className='text-white inline-block w-6 h-6'>R</span>
-                </button>
+                <UserButton></UserButton>
                 {/* <div className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-900/10" aria-hidden="true" /> */}
                 {/* <ConnectButton /> */}
               </div>

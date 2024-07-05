@@ -125,7 +125,7 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
         ...sessionKeys_,
       }));
     })();
-  }, [publicKeys.data, arbitratorPublicKeys.data, signer, addresses, arbitratorAddresses, jobEventsWithDiffs, address]);
+  }, [jobId, publicKeys.data, arbitratorPublicKeys.data, signer, addresses, arbitratorAddresses, jobEventsWithDiffs, address]);
 
   return useMemo(() => ({ data: finalEvents, addresses, arbitratorAddresses, sessionKeys, ...rest }), [finalEvents, addresses, arbitratorAddresses, sessionKeys, rest]);
 }

@@ -1,9 +1,11 @@
 import useUsersByAddresses from "@/hooks/useUsersByAddresses";
 import { User } from "effectiveacceleration-contracts";
 import { useMemo } from "react";
+import { zeroAddress } from "viem";
 
 export default function useUser(userAddress: `0x${string}`) {
   const { data, ...rest } = useUsersByAddresses([userAddress]);
+  const isEmpty = data[userAddress]?.address_ === zeroAddress;
 
-  return useMemo(() => ({ data: data[userAddress] as User, rest }), [userAddress, data, rest]);
+  return useMemo(() => ({ data: isEmpty ? undefined : data[userAddress] as User, rest }), [userAddress, isEmpty, data, rest]);
 }
