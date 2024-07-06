@@ -318,10 +318,10 @@ export default function PostJobPage() {
         </Fieldset>
       )}
       {showSummary && (
-              <JobSummary
-                formInputs={formInputs}
-                submitJob={postJobClick}
-              />
+        <JobSummary
+          formInputs={formInputs}
+          submitJob={postJobClick}
+        />
       )}
     </Layout>
   );

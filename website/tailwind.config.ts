@@ -22,11 +22,16 @@ export default {
         'primary': '#432AAE',
         'lightPurple': '#4F46E5',
         'softBlue': '#f1f4f9',
-        'darkBlueFont': '#475569'
+        'darkBlueFont': '#475569',
+        'red': '#FF0000',
+        'graybg': '#FAFAFA'
       },
       margin: {
         '1.1': '0.500rem',
       },
+      minHeight: {
+        customHeader: 'calc(100vh - 64px)', // min height viewPort minus header height (64px)
+      }
     },
   },
   plugins: [

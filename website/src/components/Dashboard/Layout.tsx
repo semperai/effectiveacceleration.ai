@@ -42,15 +42,15 @@ const navigation = [
   { name: 'Help', href: '/dashboard/changelog', icon: <PiMegaphoneSimple /> },
 ]
 
-export function Layout({ children }: { children: React.ReactNode }) {
+export function Layout({ children, borderless }: { children: React.ReactNode, borderless?: boolean}) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   return (
     <div className=''>
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}></Sidebar>
-      <div className="lg:pl-72">
+      <div className="lg:pl-72 ">
         <Navbar setSidebarOpen={setSidebarOpen}></Navbar>
-        <main className="py-7 bg-softBlue min-h-screen">
-          <div className="px-4 sm:px-6 lg:px-8">
+        <main className={`${borderless ? 'py-0 sm:px-0 lg:px-0' : 'py-7 px-4 sm:px-6 lg:px-8'} bg-softBlue min-h-customHeader`}>
+          <div className="">
             {children}
           </div>
         </main>

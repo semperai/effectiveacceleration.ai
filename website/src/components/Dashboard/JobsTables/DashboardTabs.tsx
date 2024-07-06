@@ -6,8 +6,7 @@ import OpenJobs from './JobsTablesData/OpenJobs';
 import JobProgress from './JobsTablesData/JobProgress';
 import CompletedJobs from './JobsTablesData/CompletedJobs';
 import DisputedJobs from './JobsTablesData/DisputedJobs';
-import ArchivedJobs from './JobsTablesData/ArchivedJobs';
-import TokenSelectModal from '@/components/TokenSelectModal';
+import CancelledJobs from './JobsTablesData/CancelledJobs';
 
 const DashboardTabs = () => {
   return (
@@ -24,7 +23,7 @@ const DashboardTabs = () => {
             <Tab selectedClassName='!border-lightPurple  border-b-2 !text-lightPurple'  className='px-8 py-2 font-medium relative cursor-pointer top-[2px] outline-none text-darkBlueFont'>
               Disputed</Tab>
             <Tab selectedClassName='!border-lightPurple  border-b-2 !text-lightPurple'  className='px-8 py-2 font-medium relative cursor-pointer top-[2px] outline-none text-darkBlueFont'>
-              Archived</Tab>
+              Cancelled</Tab>
         </TabList>
         <TabPanel>
           <OpenJobs/>
@@ -39,7 +38,7 @@ const DashboardTabs = () => {
           <DisputedJobs/>
         </TabPanel>        
         <TabPanel>
-          <ArchivedJobs/>
+          <CancelledJobs/>
         </TabPanel>
     </Tabs>
   </div>

@@ -27,7 +27,7 @@ export type TDisputedTable = {
     timeSpentDispute: string
 }
 
-export type TArchivedTable = {
+export type TCancelledTable = {
     jobName: string
     reason: string
     assignedTo: number

@@ -5,13 +5,13 @@ export type ComboBoxOption = {
     name: string,
   }
 
-export type JobSummaryProps {
-    formInputs: FormInputData[];
+export type JobSummaryProps = {
+    formInputs: JobFormInputData[];
     submitJob: () => void;
   }
 
 
-export type FormInputData = {
+export type JobFormInputData = {
     label: string, 
     inputInfo: ReactNode | string | undefined 
   }
