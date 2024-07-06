@@ -4,6 +4,7 @@ import { CheckIcon, ChevronDownIcon } from '@heroicons/react/20/solid'
 import clsx from 'clsx'
 import {useEffect, useRef, useState } from 'react'
 import useDimensions from '@/hooks/useDimensions'
+import { ComboBoxOption } from '@/service/FormsTypes'
 
 export type ComboboxProps<T> = {
   value?: T,
@@ -11,12 +12,6 @@ export type ComboboxProps<T> = {
   onChange: (value: T) => void,
   placeholder?: string, 
 }
-
-export type ComboBoxOption = {
-  id: number | string,
-  name: string,
-}
-
 
 export function ComboBox<T>({ options, value, onChange, className, placeholder, ...props }: ComboboxProps<T> & React.ComponentPropsWithoutRef<'div'>) {
   const inputRef = useRef(null)
@@ -57,7 +52,7 @@ export function ComboBox<T>({ options, value, onChange, className, placeholder, 
           <div className="relative">
             <ComboboxInput
               ref={inputRef}
-              placeholder={`${placeholder ?? "Select an option"}`}
+              placeholder={`${placeholder}`}
               className={clsx(
                 className,
 
@@ -67,19 +62,19 @@ export function ComboBox<T>({ options, value, onChange, className, placeholder, 
 
                 // Horizontal padding
                 'pl-[calc(theme(spacing[3.5])-1px)] pr-[calc(theme(spacing.7)-1px)] sm:pl-[calc(theme(spacing.3)-1px)]',
-
+    
                 // Typography
                 'text-left text-base/6 text-zinc-950 placeholder:text-zinc-500 sm:text-sm/6 dark:text-white forced-colors:text-[CanvasText]',
-
+    
                 // Border
                 'border border-zinc-950/20 group-active:border-zinc-950/30 group-hover:border-zinc-950/30 dark:border-white/10 dark:group-data-[active]:border-white/20 dark:group-data-[hover]:border-white/20',
-
+    
                 // Background color
                 'bg-transparent dark:bg-white/5',
-
+    
                 // Invalid state
                 'group-data-[invalid]:border-red-500 group-data-[invalid]:group-data-[hover]:border-red-500 group-data-[invalid]:dark:border-red-600 group-data-[invalid]:data-[hover]:dark:border-red-600',
-
+    
                 // Disabled state
                 'group-data-[disabled]:border-zinc-950/20 group-data-[disabled]:opacity-100 group-data-[disabled]:dark:border-white/15 group-data-[disabled]:dark:bg-white/[2.5%] dark:data-[hover]:group-data-[disabled]:border-white/15',
               )}

@@ -27,7 +27,7 @@ import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/24/outline'
 import { Listbox, ListboxOption } from '@/components/Listbox'
 import { BsInfoCircle } from "react-icons/bs";
 import MultiComboBox from '@/components/MultiComboBox'
-import { ComboBox } from '@/components/Combobox'
+import { ComboBox } from '@/components/ComboBox'
 import { ComboBoxOption } from '@/service/FormsTypes'
 import JobSummary from './JobSummary'
 import { JobFormInputData } from '@/service/FormsTypes'
