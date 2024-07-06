@@ -3,7 +3,6 @@ import { Inter } from 'next/font/google'
 import localFont from 'next/font/local'
 import clsx from 'clsx'
 import { Plus_Jakarta_Sans } from 'next/font/google'
-
 import { Providers } from '@/app/providers'
 
 import '@/styles/tailwind.css'

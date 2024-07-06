@@ -31,3 +31,7 @@ body {
     text-wrap: balance;
   }
 }
+
+[data-slot="label"] {
+  @apply font-bold;
+}

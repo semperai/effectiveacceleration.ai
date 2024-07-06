@@ -37,19 +37,19 @@ export function Listbox<T>({
           className,
 
           // Basic layout
-          'group relative block w-full',
+          'group relative block w-full !mt-1.1',
 
           // Background color + shadow applied to inset pseudo element, so shadow blends with border in light mode
-          'before:absolute before:inset-px before:rounded-[calc(theme(borderRadius.lg)-1px)] before:bg-white before:shadow',
+          'before:absolute before:inset-px before:rounded-[calc(theme(borderRadius.xl)-1px)] before:bg-white before:shadow',
 
           // Background color is moved to control and shadow is removed in dark mode so hide `before` pseudo
           'dark:before:hidden',
 
           // Hide default focus styles
-          'focus:outline-none',
+          'focus:outline-none border-0',
 
           // Focus ring
-          'after:pointer-events-none after:absolute after:inset-0 after:rounded-lg after:ring-inset after:ring-transparent sm:after:data-[focus]:ring-2 sm:after:data-[focus]:ring-blue-500',
+          'after:pointer-events-none after:absolute after:inset-0 after:rounded-xl after:ring-inset after:ring-transparent sm:after:data-[focus]:ring-2',
 
           // Disabled state
           'data-[disabled]:opacity-50 before:data-[disabled]:bg-zinc-950/5 before:data-[disabled]:shadow-none',
@@ -61,7 +61,7 @@ export function Listbox<T>({
           placeholder={placeholder && <span className="block truncate text-zinc-500">{placeholder}</span>}
           className={clsx([
             // Basic layout
-            'relative block w-full appearance-none rounded-lg py-[calc(theme(spacing[2.5])-1px)] sm:py-[calc(theme(spacing[1.5])-1px)]',
+            'relative block w-full appearance-none rounded-xl py-[calc(theme(spacing[2.5])-1px)] sm:py-[calc(theme(spacing[3])-1px)]',
 
             // Set minimum height for when no value is selected
             'min-h-11 sm:min-h-9',
@@ -167,13 +167,13 @@ export function ListboxOption<T>({
           <div
             className={clsx(
               // Basic layout
-              'group/option grid cursor-default grid-cols-[theme(spacing.5),1fr] items-baseline gap-x-1.5 rounded-lg py-2.5 pl-2.5 pr-3.5 sm:grid-cols-[theme(spacing.4),1fr] sm:py-1.5 sm:pl-2 sm:pr-3',
+              'group/option grid cursor-default grid-cols-[theme(spacing.5),1fr] items-baseline gap-x-1.5 rounded-xl py-2.5 pl-2.5 pr-3.5 sm:grid-cols-[theme(spacing.4),1fr] sm:py-1.5 sm:pl-2 sm:pr-3',
 
               // Typography
               'text-base/6 text-zinc-950 sm:text-sm/6 dark:text-white forced-colors:text-[CanvasText]',
 
               // Focus
-              'outline-none data-[focus]:bg-blue-500 data-[focus]:text-white',
+              'outline-none data-[focus]:bg-primary data-[focus]:text-white',
 
               // Forced colors mode
               'forced-color-adjust-none forced-colors:data-[focus]:bg-[Highlight] forced-colors:data-[focus]:text-[HighlightText]',

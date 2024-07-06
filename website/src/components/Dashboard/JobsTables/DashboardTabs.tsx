@@ -7,6 +7,7 @@ import JobProgress from './JobsTablesData/JobProgress';
 import CompletedJobs from './JobsTablesData/CompletedJobs';
 import DisputedJobs from './JobsTablesData/DisputedJobs';
 import ArchivedJobs from './JobsTablesData/ArchivedJobs';
+import TokenSelectModal from '@/components/TokenSelectModal';
 
 const DashboardTabs = () => {
   return (

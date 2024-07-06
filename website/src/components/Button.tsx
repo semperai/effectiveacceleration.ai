@@ -6,10 +6,10 @@ import { Link } from './Link'
 const styles = {
   base: [
     // Base
-    'relative isolate inline-flex items-center justify-center gap-x-2 rounded-lg border text-base/6 font-semibold cursor-pointer',
+    'relative isolate inline-flex items-center justify-center gap-x-2 border text-base/6  cursor-pointer rounded',
 
     // Sizing
-    'px-[calc(theme(spacing[3.5])-1px)] py-[calc(theme(spacing[2.5])-1px)] sm:px-[calc(theme(spacing.3)-1px)] sm:py-[calc(theme(spacing[1.5])-1px)] sm:text-sm/6',
+    'px-[calc(theme(spacing[3.5])-1px)] py-[calc(theme(spacing[2.5])-1px)] sm:px-[calc(theme(spacing.7)-1px)] sm:py-[calc(theme(spacing[2.5])-1px)] sm:text-sm/6',
 
     // Focus
     'focus:outline-none data-[focus]:outline data-[focus]:outline-2 data-[focus]:outline-offset-2 data-[focus]:outline-blue-500',
@@ -75,6 +75,9 @@ const styles = {
     '[--btn-icon:theme(colors.zinc.500)] data-[active]:[--btn-icon:theme(colors.zinc.700)] data-[hover]:[--btn-icon:theme(colors.zinc.700)] dark:[--btn-icon:theme(colors.zinc.500)] dark:data-[active]:[--btn-icon:theme(colors.zinc.400)] dark:data-[hover]:[--btn-icon:theme(colors.zinc.400)]',
   ],
   colors: {
+    'purplePrimary': ['bg-primary', 'text-white',
+      'dark:text-white dark:[--btn-bg:theme(colors.zinc.600)] dark:[--btn-hover-overlay:theme(colors.white/5%)]',
+      '[--btn-icon:theme(colors.zinc.400)] data-[active]:[--btn-icon:theme(colors.zinc.300)] data-[hover]:[--btn-icon:theme(colors.zinc.300)]'],
     'dark/zinc': [
       'text-white [--btn-bg:theme(colors.zinc.900)] [--btn-border:theme(colors.zinc.950/90%)] [--btn-hover-overlay:theme(colors.white/10%)]',
       'dark:text-white dark:[--btn-bg:theme(colors.zinc.600)] dark:[--btn-hover-overlay:theme(colors.white/5%)]',
@@ -189,7 +192,7 @@ export const Button = React.forwardRef(function Button(
   let classes = clsx(
     className,
     styles.base,
-    outline ? styles.outline : plain ? styles.plain : clsx(styles.solid, styles.colors[color ?? 'dark/zinc'])
+    outline ? styles.outline : plain ? styles.plain : clsx(styles.solid, styles.colors[color ?? 'purplePrimary'])
   )
 
   return 'href' in props ? (

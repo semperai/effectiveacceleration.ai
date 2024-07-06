@@ -70,8 +70,13 @@ const Navbar = ({setSidebarOpen} : {setSidebarOpen: (value: boolean) => void}) =
 
                 <ConnectButton />
 
+                <Link href={'/dashboard/post-job'} className='flex text-white items-center justify-center p-2 rounded-full bg-primary gap-2 w-36'>
+                  <GoPerson className='text-xl '/>
+                  <span className='text-sm h-6 flex items-center'>Create Job</span>
+                  <FaArrowRight className='text-lg ' />
+                </Link>
                 <button className='p-2 bg-gray-200 rounded-full'>
-                <PiBellSimple className='text-2xl ' />  
+                  <PiBellSimple className='text-2xl ' />  
                 </button>
                 <UserButton></UserButton>
                 {/* <div className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-900/10" aria-hidden="true" /> */}
