@@ -1,0 +1,38 @@
+# compose file to run all dependent services
+
+services:
+  ipfs:
+    image: ipfs/go-ipfs:v0.28.0
+    ports:
+      - '4001:4001'
+      - '127.0.0.1:5001:5001'
+      - '8080:8080'
+    volumes:
+      - ./ipfs-service/data/ipfs:/data/ipfs
+      - ./ipfs-service/ipfs-config.sh:/container-init.d/ipfs-config.sh
+    environment:
+      IPFS_PROFILE: test
+    restart: always
+  ipfs-service:
+    depends_on:
+      - ipfs
+    build: ipfs-service
+    ports:
+      - '8000:8000'
+    environment:
+      IPFS_UPLOAD_SERVICE_SECRET: "lovy4mnv9oeBbgl;a"
+      IPFS_API_URL: "http://ipfs:5001"
+    restart: always
+  node_public:
+    depends_on:
+      - ipfs-service
+    build: contract
+    ports:
+      - '8545:8545'
+    environment:
+      IPFS_API_URL: "http://ipfs:5001"
+      IPFS_GATEWAY_URL: "http://ipfs:8080"
+      IPFS_UPLOAD_SERVICE_SECRET: "lovy4mnv9oeBbgl;a"
+      IPFS_UPLOAD_SERVICE_URL: "http://ipfs-service:8000"
+      CHAIN_ID: 31338
+    restart: always

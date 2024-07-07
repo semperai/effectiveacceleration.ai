@@ -33,6 +33,7 @@ import JobSummary from './JobSummary'
 import { JobFormInputData } from '@/service/FormsTypes'
 import Link from 'next/link'
 import { dataCategories, dataTags, dataWhitelist, dataUnits, dataAddresses } from './postJobDummyData'
+import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1'
 
 
 export default function PostJobPage() {
@@ -107,21 +108,21 @@ export default function PostJobPage() {
 
     console.log('posting job', title, description, selectedToken?.id, amount, deadline);
 
-    const w = writeContract({
-      abi: MarketplaceArtifact.abi,
-      // address: Config.marketplaceAddress as `0x${string}`,
-      address: '0x6EAdb61bce217A9FBA5A1d91427ae2F7A8CCBac6',
-      functionName: 'publishJobPost',
-      args: [
-        title,
-        description,
-        selectedToken?.id,
-        ethers.parseEther(amount).toString(),
-        deadline,
-        [],
-        [],
-      ],
-    });
+    // const w = writeContract({
+    //   abi: MARKETPLACE_V1_ABI,
+    //   // address: Config.marketplaceAddress as `0x${string}`,
+    //   address: '0x6EAdb61bce217A9FBA5A1d91427ae2F7A8CCBac6',
+    //   functionName: 'publishJobPost',
+    //   args: [
+    //     title,
+    //     description,
+    //     selectedToken?.id,
+    //     ethers.parseEther(amount).toString(),
+    //     deadline,
+    //     [],
+    //     [],
+    //   ],
+    // });
   }
 
   const formInputs: JobFormInputData[] = [

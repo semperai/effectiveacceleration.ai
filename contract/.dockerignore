@@ -1,0 +1,10 @@
+*
+!contracts/
+!scripts/
+!src/
+!tasks/
+!wagmi/
+!hardhat.config.ts
+!package.json
+!tsconfig.json
+!yarn.lock

@@ -19,7 +19,7 @@ interface IUnicrow {
         EscrowInput memory input,
         address arbitrator,
         uint16 arbitratorFee
-    ) external payable;
+    ) external payable returns (uint256);
 
     /**
      * @notice Function called by UnicrowDispute to execute a challenge

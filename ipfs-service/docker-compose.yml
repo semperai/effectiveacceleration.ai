@@ -1,0 +1,24 @@
+services:
+  ipfs:
+    image: ipfs/go-ipfs:v0.28.0
+    ports:
+      - '4001:4001'
+      - '127.0.0.1:5001:5001'
+      - '127.0.0.1:8080:8080'
+    volumes:
+      - ./data/ipfs:/data/ipfs
+      # - ./ipfs.config:/data/ipfs/config
+      - ./ipfs-config.sh:/container-init.d/ipfs-config.sh
+    environment:
+      IPFS_PROFILE: test
+    restart: always
+  ipfs-serivce:
+    depends_on:
+      - ipfs
+    build: .
+    ports:
+      - '127.0.0.1:8000:8000'
+    environment:
+      IPFS_UPLOAD_SERVICE_SECRET: "lovy4mnv9oeBbgl;a"
+      IPFS_API_URL: "http://ipfs:5001"
+    restart: always

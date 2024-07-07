@@ -21,6 +21,17 @@ const nextConfig = {
     config.externals.push('pino-pretty', 'lokijs', 'encoding');
     return config;
   },
+  async redirects() {
+    return [
+      // Basic redirect
+      {
+        source: '/',
+        destination: '/dashboard',
+        permanent: false,
+      },
+    ]
+  },
+
 }
 
 export default withMDX(nextConfig)

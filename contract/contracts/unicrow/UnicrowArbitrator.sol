@@ -197,12 +197,16 @@ contract UnicrowArbitrator is IUnicrowArbitrator, Context, ReentrancyGuard {
     function arbitrate(
         uint256 escrowId,
         uint16[2] calldata newSplit
-    ) external override {
+    ) external override returns (uint256[5] memory) {
         Arbitrator memory arbitratorData = getArbitratorData(escrowId);
         Escrow memory escrow = unicrow.getEscrow(escrowId);
 
-        // Check that this is this escrow's arbitrator calling
-        require(_msgSender() == arbitratorData.arbitrator, "2-005");
+        // Check that this is this escrow's arbitrator or a contract acting on behalf of arbitrator calling directly
+        require(
+            _msgSender() == arbitratorData.arbitrator ||
+                tx.origin == arbitratorData.arbitrator,
+            "2-005"
+        );
 
         // Check that the arbitrator was set by mutual consensus
         require(
@@ -232,6 +236,8 @@ contract UnicrowArbitrator is IUnicrowArbitrator, Context, ReentrancyGuard {
         uint256[5] memory amounts = unicrowClaim.claim(escrowId);
 
         emit Arbitrated(escrowId, escrow, block.timestamp, amounts);
+
+        return amounts;
     }
 
     /**

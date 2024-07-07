@@ -8,7 +8,6 @@ import {
 import { clsx } from 'clsx'
 import { Fragment, useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { Logo } from '@/components/Logo'
 import { Link } from '@/components/Link'
@@ -37,8 +36,8 @@ import Navbar from './Navbar/NavBar'
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: <PiHouseSimple /> },
   { name: 'Jobs', href: '/dashboard/open-jobs', icon: <PiJoystick /> },
-  { name: 'About', href: '/dashboard/post-job', icon: <PiCube /> },
-  { name: 'FAQs', href: '/dashboard/settings', icon: <BsList /> },
+  { name: 'Post job', href: '/dashboard/post-job', icon: <PiCube /> },
+  { name: 'FAQs', href: '#', icon: <BsList /> },
   { name: 'Help', href: '/dashboard/changelog', icon: <PiMegaphoneSimple /> },
 ]
 

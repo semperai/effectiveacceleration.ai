@@ -1,9 +1,8 @@
 'use client'
 import { Table, flexRender } from '@tanstack/react-table'
 import React from 'react';
-import { TOpenJobTable, TInProgressTable, TCompletedTable, TDisputedTable, TArchivedTable } from '@/service/JobsService';
 
-const JobsTable = ({table, title}:{table:any, title:string}) => {
+function JobsTable<T>({table, title}:{table: Table<T>, title:string}) {
   return (
     <div className="[box-shadow:0px_0px_8px_lightgray] rounded-2xl bg-white">
         <div className='p-5'>

@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "dev_staging": "NODE_ENV=test yarn dev",
     "dev": "next dev",
-    "build": "next build",
+    "build": "pushd ../contract/ && NODE_ENV=development yarn install && yarn compile && yarn tsc && popd && next build",
     "start": "next start",
     "lint": "next lint"
   },
@@ -13,6 +14,7 @@
     "@emotion/styled": "^11.11.5",
     "@headlessui/react": "^2.0.0-alpha.4",
     "@heroicons/react": "^2.1.1",
+    "@mainnet-pat/json5-bigint": "^2.2.4",
     "@mui/icons-material": "^5.15.21",
     "@mui/material": "^5.15.20",
     "@rainbow-me/rainbowkit": "^2.0.1",
@@ -21,7 +23,9 @@
     "@tanstack/react-table": "^8.17.3",
     "@unicrowio/sdk": "^1.0.0-beta.12",
     "clsx": "^2.1.0",
+    "effectiveacceleration-contracts": "link:../contract",
     "ethers": "^6.11.1",
+    "moment": "^2.30.1",
     "next": "14.1.0",
     "react": "^18",
     "react-dom": "^18",
@@ -30,7 +34,7 @@
     "react-tabs": "^6.0.2",
     "styled-components": "^6.1.11",
     "viem": "^2.7.16",
-    "wagmi": "^2.5.7"
+    "wagmi": "^2.10.8"
   },
   "devDependencies": {
     "@mdx-js/loader": "^3.0.0",

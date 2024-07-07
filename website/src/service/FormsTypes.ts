@@ -6,12 +6,17 @@ export type ComboBoxOption = {
   }
 
 export type JobSummaryProps = {
-    formInputs: JobFormInputData[];
+    formInputs: FormInputData[];
     submitJob: () => void;
   }
 
 
-export type JobFormInputData = {
-    label: string, 
+export type FormInputData = {
+    label: string,
     inputInfo: ReactNode | string | undefined 
   }
+
+export type JobFormInputData = {
+  label: string,
+  inputInfo: ReactNode | string | undefined 
+}

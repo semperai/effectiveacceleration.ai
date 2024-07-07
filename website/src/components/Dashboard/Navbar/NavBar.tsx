@@ -9,7 +9,12 @@ import { GoPerson } from 'react-icons/go'
 import { MdOutlineArrowForwardIos } from 'react-icons/md'
 import { PiBellSimple } from 'react-icons/pi'
 import { useAccount, useReadContract } from 'wagmi'
-
+import { ConnectButton } from '@rainbow-me/rainbowkit';
+import useUser from '@/hooks/useUser'
+import {
+  UserIcon,
+} from '@heroicons/react/20/solid'
+import { UserButton } from '@/components/UserActions/UserButton'
 const Navbar = ({setSidebarOpen} : {setSidebarOpen: (value: boolean) => void}) => {
     const { address } = useAccount();
     const [notificationsCount, setNotificationsCount] = useState(BigInt(0))
@@ -22,7 +27,7 @@ const Navbar = ({setSidebarOpen} : {setSidebarOpen: (value: boolean) => void}) =
         functionName: 'notificationsLength',
         args:         [address],
       });
-    
+
       useEffect(() => {
         if (notificationsLengthData) {
           setNotificationsCount(notificationsLengthData as bigint)
@@ -31,7 +36,7 @@ const Navbar = ({setSidebarOpen} : {setSidebarOpen: (value: boolean) => void}) =
   return (
     <>
         {/* <div className='border-b border-gray-200 dark:border-gray-900'> */}
-          <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 bg-white/80 dark:bg-black/80 backdrop-blur-lg px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+          <div className="sticky top-0 z-40 flex h-20 sm:h-16 shrink-0 items-center gap-x-4 bg-white/80 dark:bg-black/80 backdrop-blur-lg px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
             <button type="button" className="-m-2.5 p-2.5 text-gray-700 lg:hidden" onClick={() => setSidebarOpen(true)}>
               <span className="sr-only">Open sidebar</span>
               <Bars3Icon className="h-6 w-6" aria-hidden="true" />
@@ -40,7 +45,7 @@ const Navbar = ({setSidebarOpen} : {setSidebarOpen: (value: boolean) => void}) =
             {/* Separator */}
             <div className="h-6 w-px bg-gray-900/10 lg:hidden" aria-hidden="true" />
 
-            <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
+            <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6 flex-wrap md:flex-nowrap">
               <div className="relative flex flex-1 items-center" >
                 <BreadCrumbs           
                   separator={<MdOutlineArrowForwardIos className='self-center text-gray-200'/>}
@@ -51,7 +56,7 @@ const Navbar = ({setSidebarOpen} : {setSidebarOpen: (value: boolean) => void}) =
                 />
               </div>
               <div className="flex items-center gap-x-4 lg:gap-x-3">
-                <Link href="/notifications" className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500">
+                <Link href="#" className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500">
                   <span className="sr-only">View notifications</span>
                   <span className="relative">
                     {notificationsCount > 0 && (
@@ -63,17 +68,17 @@ const Navbar = ({setSidebarOpen} : {setSidebarOpen: (value: boolean) => void}) =
                   </span>
                 </Link>
 
+                <ConnectButton />
+
                 <Link href={'/dashboard/post-job'} className='flex text-white items-center justify-center p-2 rounded-full bg-primary gap-2 w-36'>
-                    <GoPerson className='text-xl '/>
-                    <span className='text-sm h-6 flex items-center'>Create Job</span>
-                    <FaArrowRight className='text-lg ' />
+                  <GoPerson className='text-xl '/>
+                  <span className='text-sm h-6 flex items-center'>Create Job</span>
+                  <FaArrowRight className='text-lg ' />
                 </Link>
                 <button className='p-2 bg-gray-200 rounded-full'>
-                <PiBellSimple className='text-2xl ' />  
+                  <PiBellSimple className='text-2xl ' />  
                 </button>
-                <button className='p-2 bg-primary rounded-full'>
-                  <span className='text-white inline-block w-6 h-6'>R</span>
-                </button>
+                <UserButton></UserButton>
                 {/* <div className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-900/10" aria-hidden="true" /> */}
                 {/* <ConnectButton /> */}
               </div>

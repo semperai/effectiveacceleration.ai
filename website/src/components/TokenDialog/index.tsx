@@ -60,13 +60,13 @@ const TokenDialog = ({
   preferredTokenList: IArbitrumToken[];
   closeCallback: (arg0: IArbitrumToken) => void;
 }) => {
-  const [selectedToken, setSelectedToken] = React.useState<any>(
+  const [selectedToken, setSelectedToken] = React.useState<IArbitrumToken>(
     initiallySelectedToken,
   );
   const [favoriteTokens, setFavoriteTokens] =
-    React.useState<any[]>(preferredTokenList);
-  const [filteredTokens, setFilteredTokens] = React.useState<any[]>();
-  const [customTokens, setCustomTokens] = React.useState<any[]>(
+    React.useState<IArbitrumToken[]>(preferredTokenList);
+  const [filteredTokens, setFilteredTokens] = React.useState<IArbitrumToken[]>();
+  const [customTokens, setCustomTokens] = React.useState<IArbitrumToken[]>(
     lscacheModule.get("custom-tokens") || [],
   );
   const [searchValue, setSearchValue] = React.useState<string>("");
@@ -76,13 +76,13 @@ const TokenDialog = ({
   const [isAddCustomToken, setAddCustomToken] = React.useState(false);
   const noTokensFound = !filteredTokens || filteredTokens.length === 0;
 
-  const getBalance = async (token) => {
+  const getBalance = async (token: IArbitrumToken) => {
     const balance = await provider.getBalance(token.address);
     const balanceInEth = ethers.formatEther(balance);
     return balanceInEth;
   };
 
-  const handleSelectToken = (token, event: any) => {
+  const handleSelectToken = (token: IArbitrumToken, event: any) => {
     // DIV = preferred token (chip) or TokenItem, BUTTON = close button
     if (["DIV", "BUTTON"].includes(event.target.nodeName)) {
       setSelectedToken(token);
@@ -100,21 +100,21 @@ const TokenDialog = ({
       symbol: "UNK",
       name: `UNKNOWN (${reduceAddress(customTokenValue)})`,
       address: customTokenValue,
-    };
+    } as IArbitrumToken;
 
     const newList = Array.from(new Set([...customTokens, newToken]));
     lscacheModule.set("custom-tokens", newList, Infinity);
     setCustomTokens(newList);
-    setFilteredTokens([...filteredTokens, newToken]);
+    setFilteredTokens([...filteredTokens!, newToken]);
     setAddCustomToken(false);
   };
 
-  const addFavoriteTokens = (token) => {
+  const addFavoriteTokens = (token: IArbitrumToken) => {
     const newList = uniqueBy("address", [...favoriteTokens, token], "symbol");
     updateFavoriteTokens(newList);
   };
 
-  const deleteTokenFromFavorites = (token) => {
+  const deleteTokenFromFavorites = (token: IArbitrumToken) => {
     const newList = uniqueBy(
       "address",
       [...favoriteTokens.filter((t) => t.address !== token.address)],
@@ -124,13 +124,13 @@ const TokenDialog = ({
     updateFavoriteTokens(newList);
   };
 
-  const updateFavoriteTokens = (newList) => {
+  const updateFavoriteTokens = (newList: IArbitrumToken[]) => {
     setFavoriteTokens(newList);
     lscacheModule.remove("preferred-tokens");
     lscacheModule.set("preferred-tokens", newList, Infinity);
   };
 
-  const handleTokenListScroll = (e) => {
+  const handleTokenListScroll = (e: any) => {
     const t = e.target;
     const atTop = t.scrollTop === 0;
     const atBottom = t.scrollHeight - t.scrollTop === t.clientHeight;
@@ -222,7 +222,7 @@ const TokenDialog = ({
   }, [tokensList, sortedTokensList, provider]);
 
   const FavoriteTokens = React.useMemo(() => {
-    const AvatarNonEth = (token) =>
+    const AvatarNonEth = (token: any) =>
       token.logoURI ? (
         <Avatar src={token.logoURI} />
       ) : (
@@ -251,7 +251,7 @@ const TokenDialog = ({
     ) : null;
   }, [favoriteTokens, selectedToken]);
 
-  const InputResetButton = (value) =>
+  const InputResetButton = (value: any) =>
     value.length > 0 && (
       <IconButton
         onClick={() => {
@@ -374,6 +374,11 @@ const TokenItem = ({
   selectedToken,
   handleSelectToken,
   addFavoriteTokens,
+}: {
+  token: any;
+  selectedToken: any | null;
+  handleSelectToken: (token: any, event: React.MouseEvent) => void;
+  addFavoriteTokens: (token: any) => void;
 }) => {
   return (
     <Slide

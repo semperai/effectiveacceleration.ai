@@ -17,7 +17,7 @@ interface IArbitrumToken {
 export const mockTokens = (tokens: IArbitrumToken[]) => {
   if (tokens.length === 0) return tokens;
 
-  if (globalThis.defaultNetwork.name !== "development") return tokens;
+  if (process.env.NODE_ENV !== "development") return tokens;
 
   return tokens.map((token) => {
     if (token.symbol === "ETH") {
