@@ -31,6 +31,9 @@ export default {
       },
       minHeight: {
         customHeader: 'calc(100vh - 64px)', // min height viewPort minus header height (64px)
+      },
+      maxHeight: {
+        customHeader: 'calc(100vh - 64px)', // min height viewPort minus header height (64px)
       }
     },
   },
