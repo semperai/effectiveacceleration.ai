@@ -6,10 +6,15 @@ import { JobFormInputData } from '@/service/FormsTypes';
 
 interface JobSummaryProps {
   formInputs: JobFormInputData[];
+  isPending: boolean;
+  isConfirming: boolean;
+  isConfirmed: boolean;
+  postButtonDisabled: boolean;
   submitJob: () => void;
+  handleSummary: () => void;
 }
 
-const JobSummary: React.FC<JobSummaryProps>  = ({formInputs, submitJob}) => {
+const JobSummary: React.FC<JobSummaryProps>  = ({formInputs, submitJob, isPending, isConfirmed, isConfirming, postButtonDisabled, handleSummary}) => {
   return (
     <div>
         <div className='mb-6'>
@@ -30,7 +35,10 @@ const JobSummary: React.FC<JobSummaryProps>  = ({formInputs, submitJob}) => {
         )}
         </div>
         <div className='flex justify-end mt-5'>
-            <Button onClick={submitJob}>Submit</Button>
+            <Button color={'cancelBorder'} className={'mr-5'}  onClick={handleSummary}>Go back</Button>
+            <Button disabled={postButtonDisabled || isPending} onClick={submitJob}>{isPending ? 'Posting...' : 'Post Job'}</Button>
+            {isConfirming && <div>Waiting for confirmation...</div>}
+            {isConfirmed && <div>Transaction confirmed.</div>}
         </div>
     </div>
   )

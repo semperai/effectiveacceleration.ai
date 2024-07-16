@@ -56,11 +56,9 @@ export function ReopenButton({address, job, ...rest}: ReopenButtonProps & React.
   }
 
   return <>
-    <span className="ml-3">
-      <Button disabled={buttonDisabled} onClick={buttonClick}>
+      <Button disabled={buttonDisabled} onClick={buttonClick} color={'borderlessGray'} className={'w-full'}>
         <CheckIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
         Reopen
       </Button>
-    </span>
   </>
 }

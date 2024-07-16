@@ -85,12 +85,10 @@ export function DisputeButton({address, job, sessionKeys, ...rest}: DisputeButto
   }
 
   return <>
-    <span className="ml-3">
-      <Button disabled={buttonDisabled} onClick={() => openModal()}>
-        <CheckIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-        Dispute
-      </Button>
-
+    <Button disabled={buttonDisabled} onClick={() => openModal()} color={'borderlessGray'} className={'w-full'}>
+      <CheckIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
+      Dispute
+    </Button>
       <Transition appear show={isOpen} as={Fragment}>
         <Dialog as="div" className="relative z-10" onClose={closeModal}>
           <Transition.Child
@@ -136,6 +134,5 @@ export function DisputeButton({address, job, sessionKeys, ...rest}: DisputeButto
           </div>
         </Dialog>
       </Transition>
-    </span>
   </>
 }

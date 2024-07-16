@@ -79,8 +79,7 @@ export function WhitelistButton({address, job, whitelist, ...rest}: WhitelistBut
   }
 
   return <>
-    <span className="ml-3">
-      <Button disabled={buttonDisabled} onClick={() => openModal()}>
+      <Button disabled={buttonDisabled} onClick={() => openModal()} color={'borderlessGray'} className={'w-full'}>
         <CheckIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
         Whitelist User
       </Button>
@@ -141,6 +140,5 @@ export function WhitelistButton({address, job, whitelist, ...rest}: WhitelistBut
           </div>
         </Dialog>
       </Transition>
-    </span>
   </>
 }

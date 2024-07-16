@@ -81,8 +81,7 @@ export function DeliverResultButton({address, job, sessionKeys, ...rest}: Delive
   }
 
   return <>
-    <span className="ml-3">
-      <Button disabled={buttonDisabled} onClick={() => openModal()}>
+      <Button disabled={buttonDisabled} onClick={() => openModal()} color={'borderlessGray'} className={'w-full'}>
         <CheckIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
         Deliver Result
       </Button>
@@ -132,6 +131,5 @@ export function DeliverResultButton({address, job, sessionKeys, ...rest}: Delive
           </div>
         </Dialog>
       </Transition>
-    </span>
   </>
 }

@@ -105,12 +105,10 @@ export function UpdateButton({address, job, ...rest}: UpdateButtonProps & React.
   }
 
   return <>
-    <span className="ml-3">
-      <Button disabled={buttonDisabled} onClick={() => openModal()}>
+      <Button disabled={buttonDisabled} onClick={() => openModal()} color={'borderlessGray'} className={'w-full'}>
         <CheckIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
         Update
       </Button>
-
       <Transition appear show={isOpen} as={Fragment}>
         <Dialog as="div" className="relative z-10" onClose={closeModal}>
           <Transition.Child
@@ -210,6 +208,5 @@ export function UpdateButton({address, job, ...rest}: UpdateButtonProps & React.
           </div>
         </Dialog>
       </Transition>
-    </span>
   </>
 }

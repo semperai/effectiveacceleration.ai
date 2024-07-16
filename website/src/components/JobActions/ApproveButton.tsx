@@ -83,12 +83,10 @@ export function ApproveButton({address, job, ...rest}: ApproveButtonProps & Reac
   }
 
   return <>
-    <span className="ml-3">
-      <Button disabled={buttonDisabled} onClick={() => openModal()}>
+      <Button disabled={buttonDisabled} onClick={() => openModal()} color={'borderlessGray'} className={'w-full'}>
         <CheckIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
         Approve Result
       </Button>
-
       <Transition appear show={isOpen} as={Fragment}>
         <Dialog as="div" className="relative z-10" onClose={closeModal}>
           <Transition.Child
@@ -135,6 +133,5 @@ export function ApproveButton({address, job, ...rest}: ApproveButtonProps & Reac
           </div>
         </Dialog>
       </Transition>
-    </span>
   </>
 }
