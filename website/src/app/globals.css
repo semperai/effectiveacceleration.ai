@@ -17,13 +17,6 @@
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
 }
 
 @layer utilities {
@@ -34,4 +27,12 @@ body {
 
 [data-slot="label"] {
   @apply font-bold;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply text-blueGrayTitles
+}
+
+span {
+  @apply text-darkBlueFont
 }

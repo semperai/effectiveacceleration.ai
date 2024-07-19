@@ -85,7 +85,7 @@ export default function JobPage() {
           <JobChatsList users={users} job={job} setSelectedWorker={setSelectedWorker}/>
         </div>
         <div className='col-span-2 bg-white max-h-customHeader'>
-          <JobChat users={users} selectedWorker={selectedWorker} events={eventMessages} />
+          {job && <JobChat users={users} selectedWorker={selectedWorker} events={eventMessages} job={job} address={address} addresses={addresses} sessionKeys={sessionKeys}/>}
         </div>
         <div className='col-span-1 bg-white overflow-y-auto max-h-customHeader'>
           <JobChatDetails job={job} users={users} address={address} sessionKeys={sessionKeys} addresses={addresses} events={events} whitelistedWorkers={whitelistedWorkers}/>

@@ -2,12 +2,22 @@ import React from 'react'
 import Image from 'next/image'
 import { Button } from '@/components/Button'
 import { renderEvent } from '@/components/Events';
-import { JobEventWithDiffs, User } from 'effectiveacceleration-contracts/dist/src/interfaces';
+import { Job, JobEventWithDiffs, JobState, User } from 'effectiveacceleration-contracts/dist/src/interfaces';
+import { PostMessageButton } from '@/components/JobActions/PostMessageButton';
 
-const JobChat = ({users, selectedWorker, events} : {users: Record<string, User>, selectedWorker: string, events: JobEventWithDiffs[] }) => {
+const JobChat = ({users, selectedWorker, events, job, address, addresses, sessionKeys} : 
+{
+    users: Record<string, User>, 
+    selectedWorker: string, 
+    events: JobEventWithDiffs[],    
+    job: Job, 
+    address: `0x${string}` | undefined,
+    sessionKeys: Record<string, string>,
+    addresses: string[]  
+}) => {
   return (
     <>
-        <div className='h-fit'>
+        <div className='h-[8.5%]'>
             <div className='flex flex-1 border border-gray-100 p-4 justify-between align-center'>
                 <div className='flex  h-fit'>
                     <div className='flex flex-row'> 
@@ -34,7 +44,7 @@ const JobChat = ({users, selectedWorker, events} : {users: Record<string, User>,
             <p className='flex text-sm self-center text-darkBlueFont'>- Dismissing a candidate worker will hide the worker from the list and you will no longer be notified about new messages from them.</p>
             <p className='flex text-sm self-center text-darkBlueFont'>- Selecting the candidate will set only this worker in the whitelist, preventing other candidates from messaging you, so you can focus on hammering out the details with the selected worker Read Less...</p>
         </div> */}
-        <div className='flex flex-[6] border border-gray-100 bg-softBlue h-[90%] pl-5'>
+        <div className='flex flex-[6] border border-gray-100 bg-softBlue h-[82.5%] pl-5'>
             <div className="flow-root overflow-y-auto w-full">
             <ul role="list" className="-mb-8">
                 {events?.slice().map((event, index) => (
@@ -52,7 +62,14 @@ const JobChat = ({users, selectedWorker, events} : {users: Record<string, User>,
             </ul>
             </div>
         </div>
-        {/* <div className='flex flex-1 border border-gray-100 h-[10%]'>Chat Input</div> */}
+        {job && <>
+        {job.state !== JobState.Closed && address !== job.roles.arbitrator && addresses.length && Object.keys(sessionKeys).length > 0 &&
+            <div className='flex flex-1 border border-gray-100 h-[9%]'>
+                <PostMessageButton address={address} addresses={addresses as any} sessionKeys={sessionKeys} job={job}/>
+            </div>
+        }
+        </>
+        }
     </>
   )
 }

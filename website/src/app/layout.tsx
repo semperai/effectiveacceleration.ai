@@ -4,7 +4,7 @@ import localFont from 'next/font/local'
 import clsx from 'clsx'
 import { Plus_Jakarta_Sans } from 'next/font/google'
 import { Providers } from '@/app/providers'
-
+import '@/app/globals.css'
 import '@/styles/tailwind.css'
 
 const plusJakarta = Plus_Jakarta_Sans({
