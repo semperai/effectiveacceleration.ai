@@ -19,6 +19,7 @@ const JobChatDetails = ({job, users, address, sessionKeys, addresses, events, wh
     events: JobEventWithDiffs[],
     whitelistedWorkers: string[]
   }  ) => {
+    console.log(job)
   return (
     <>
         <div className='py-5 px-8  text-center bg-[#FF7B02] bg-opacity-10'>
@@ -26,7 +27,7 @@ const JobChatDetails = ({job, users, address, sessionKeys, addresses, events, wh
             </div>
             <div className='p-4 border border-gray-100'>
                 <div>
-                    <span className='font-bold'>{ job?.title }</span>    
+                    <span className='font-bold'>{ job?.title }</span>
                 </div>
                 <div className='my-2 mb-4'>
                     <span className='text-sm mb-2'>{ job?.content }</span>

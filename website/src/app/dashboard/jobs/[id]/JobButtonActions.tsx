@@ -23,9 +23,6 @@ const JobButtonActions = ({job, address, sessionKeys, addresses, events, whiteli
     <div className="">
     {job && <div className="flex flex-col gap-2">
       {/* owner & worker actions */}
-      {job.state !== JobState.Closed && address !== job.roles.arbitrator && addresses.length && Object.keys(sessionKeys).length > 0 &&
-        <PostMessageButton address={address} addresses={addresses as any} sessionKeys={sessionKeys} job={job}></PostMessageButton>
-      }
       {job.state === JobState.Taken && job.resultHash !== zeroHash && job.roles.arbitrator !== zeroAddress && address !== job.roles.arbitrator && addresses.length && Object.keys(sessionKeys).length > 0 &&
         <DisputeButton address={address} sessionKeys={sessionKeys} job={job}></DisputeButton>
       }

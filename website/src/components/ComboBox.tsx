@@ -1,6 +1,7 @@
 'use client'
 import { Combobox as HeadlessCombobox, ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions } from '@headlessui/react'
 import { CheckIcon, ChevronDownIcon } from '@heroicons/react/20/solid'
+import { GoChevronDown } from "react-icons/go";
 import clsx from 'clsx'
 import {useEffect, useRef, useState } from 'react'
 import useDimensions from '@/hooks/useDimensions'
@@ -82,7 +83,7 @@ export function ComboBox<T>({ options, value, onChange, className, placeholder, 
               onChange={(event) => setQuery(event.target.value)}
             />
             <ComboboxButton onClick={changeWidthDropdown} className="group absolute inset-y-0 right-0 px-2.5">
-              <ChevronDownIcon className="size-4 fill-black/60 group-data-[hover]:fill-black" />
+              <GoChevronDown className="size-6 fill-blueGrayTitles group-data-[hover]:fill-blueGrayTitles"  />
             </ComboboxButton>
           </div>
           <ComboboxOptions

@@ -11,6 +11,8 @@ import { Listbox, ListboxOption } from '../Listbox';
 import { Textarea } from '../Textarea';
 import { zeroAddress } from 'viem';
 import useUsersByAddresses from '@/hooks/useUsersByAddresses';
+import { PiPaperPlaneRight } from "react-icons/pi";
+
 
 export type PostMessageButtonProps = {
   address: `0x${string}` | undefined,
@@ -50,8 +52,6 @@ export function PostMessageButton({address, addresses, job, sessionKeys, ...rest
           alert("Unknown error occurred");
         }
       }
-      setButtonDisabled(false);
-      closeModal();
     }
   }, [isConfirmed, error]);
 
@@ -62,8 +62,6 @@ export function PostMessageButton({address, addresses, job, sessionKeys, ...rest
       alert("Empty result");
       return;
     }
-
-    setButtonDisabled(true);
 
     const sessionKey = sessionKeys[`${address}-${selectedUserAddress}`];
     const { hash: contentHash } = await publishToIpfs(message, sessionKey);
@@ -79,57 +77,12 @@ export function PostMessageButton({address, addresses, job, sessionKeys, ...rest
     });
 
   }
-
-  let [isOpen, setIsOpen] = useState(false)
-
-  function closeModal() {
-    setIsOpen(false)
-  }
-
-  function openModal() {
-    setIsOpen(true)
-  }
-
   return <>
-    <Button disabled={buttonDisabled} onClick={() => openModal()} color={'borderlessGray'} className={'w-full'}>
-      <PencilIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-      Post Message
-    </Button>
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-10" onClose={closeModal}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-black bg-opacity-25" />
-        </Transition.Child>
-
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
-            >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                <Dialog.Title
-                  as="h3"
-                  className="text-lg font-medium leading-6 text-gray-900"
-                >
-                  Select Recipient
-                </Dialog.Title>
-                <div className='mt-5 mb-3 flex flex-col gap-5'>
-                  <Textarea rows={4} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Message" className="mt-5" />
-                  <Listbox
+        <div className="w-full">
+          <div className="flex  items-center justify-center text-center">
+                <div className='flex flex-row w-full p-3 gap-x-5'>
+                  <Textarea rows={1} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Type new message" className="w-full !rounded" />
+                  {/* <Listbox
                     value={selectedUserAddress}
                     onChange={(e) => setSelectedUserAddress(e)}
                     className="border border-gray-300 rounded-md shadow-sm z-10"
@@ -140,17 +93,13 @@ export function PostMessageButton({address, addresses, job, sessionKeys, ...rest
                           {users[address]?.name ?? "Unencrypted"}
                         </ListboxOption>
                     ))}
-                  </Listbox>
-                  <Button disabled={buttonDisabled} onClick={buttonClick}>
-                    <CheckIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-                    Confirm
-                  </Button>
+                  </Listbox> */}
+                  
+                    <Button disabled={buttonDisabled} onClick={buttonClick} color='lightBlue'>
+                      <PiPaperPlaneRight className='text-white text-xl' />
+                    </Button>
                 </div>
-              </Dialog.Panel>
-            </Transition.Child>
           </div>
-        </div>
-      </Dialog>
-    </Transition>
+      </div>
   </>
 }

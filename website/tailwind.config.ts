@@ -19,9 +19,11 @@ export default {
         15: '0.15',
       },
       colors:{
-        'primary': '#432AAE',
+        'primary': '#4F46E5',
         'lightPurple': '#4F46E5',
         'softBlue': '#f1f4f9',
+        'softbluelight': '#E7EDF4',
+        'blueGrayTitles': '#28303F',
         'darkBlueFont': '#475569',
         'red': '#FF0000',
         'graybg': '#FAFAFA'

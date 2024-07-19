@@ -12,6 +12,7 @@ import {
 } from '@headlessui/react'
 import clsx from 'clsx'
 import { Fragment } from 'react'
+import { GoChevronDown } from 'react-icons/go'
 
 export function Listbox<T>({
   className,
@@ -86,15 +87,7 @@ export function Listbox<T>({
           ])}
         />
         <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-          <svg
-            className="size-5 stroke-zinc-500 group-data-[disabled]:stroke-zinc-600 sm:size-4 dark:stroke-zinc-400 forced-colors:stroke-[CanvasText]"
-            viewBox="0 0 16 16"
-            aria-hidden="true"
-            fill="none"
-          >
-            <path d="M5.75 10.75L8 13L10.25 10.75" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M10.25 5.25L8 3L5.75 5.25" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+          <GoChevronDown className="size-6 fill-blueGrayTitles group-data-[hover]:fill-blueGrayTitles"  />
         </span>
       </HeadlessListboxButton>
       <HeadlessTransition
@@ -167,7 +160,7 @@ export function ListboxOption<T>({
           <div
             className={clsx(
               // Basic layout
-              'group/option grid cursor-default grid-cols-[theme(spacing.5),1fr] items-baseline gap-x-1.5 rounded-xl py-2.5 pl-2.5 pr-3.5 sm:grid-cols-[theme(spacing.4),1fr] sm:py-1.5 sm:pl-2 sm:pr-3',
+              'group group/option grid cursor-default grid-cols-[theme(spacing.5),1fr] items-baseline gap-x-1.5 rounded-xl py-2.5 pl-2.5 pr-3.5 sm:grid-cols-[theme(spacing.4),1fr] sm:py-1.5 sm:pl-2 sm:pr-3',
 
               // Typography
               'text-base/6 text-zinc-950 sm:text-sm/6 dark:text-white forced-colors:text-[CanvasText]',
@@ -183,14 +176,14 @@ export function ListboxOption<T>({
             )}
           >
             <svg
-              className="relative hidden size-5 self-center stroke-current group-data-[selected]/option:inline sm:size-4"
+              className="text-darkBlueFont group-hover:text-white relative hidden size-5 self-center stroke-current group-data-[selected]/option:inline sm:size-4"
               viewBox="0 0 16 16"
               fill="none"
               aria-hidden="true"
             >
               <path d="M4 8.5l3 3L12 4" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <span className={clsx(className, sharedClasses, 'col-start-2')}>{children}</span>
+            <span className={clsx(className, sharedClasses, 'col-start-2', 'group-hover:text-white ')}>{children}</span>
           </div>
         )
       }}
@@ -211,7 +204,7 @@ export function ListboxDescription({ className, children, ...props }: React.Comp
       )}
       {...props}
     >
-      <span className="flex-1 truncate">{children}</span>
+      <span className="flex-1 truncate text-white">{children}</span>
     </span>
   )
 }
