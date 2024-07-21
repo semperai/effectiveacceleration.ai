@@ -26,6 +26,25 @@ const config: HardhatUserConfig = {
     hardhat: {
       // support running local node with custom chain id
       chainId: process.env.CHAIN_ID ? Number(process.env.CHAIN_ID) : 31337,
+      accounts: {
+        mnemonic: "rebuild always symbol rabbit sunset napkin laundry diary doll chalk valid train",
+        initialIndex: 0,
+        count: 20,
+        path: "m/44'/60'/0'/0",
+        accountsBalance: "1"+"0".repeat(24),
+        passphrase: undefined,
+      }
+    },
+    localhost: {
+      // support running local node with custom chain id
+      accounts: {
+        mnemonic: "rebuild always symbol rabbit sunset napkin laundry diary doll chalk valid train",
+        initialIndex: 0,
+        count: 20,
+        path: "m/44'/60'/0'/0",
+        accountsBalance: "1"+"0".repeat(24),
+        passphrase: undefined,
+      }
     },
   },
   // limit is 24.576 KiB
