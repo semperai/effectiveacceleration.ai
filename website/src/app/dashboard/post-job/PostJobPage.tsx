@@ -32,7 +32,19 @@ import Image from 'next/image'
 import moment from 'moment'
 import TagsInput from '@/components/TagsInput'
 import { BsInfoCircle } from 'react-icons/bs'
-import useShortenText from '@/hooks/useShortenText'
+
+function shortenText({text, maxLength} : {text: string | `0x${string}` | undefined, maxLength: number}) {
+  if (!text) return console.log("No text provided");
+  if (text.length <= maxLength) {
+    return text;
+  }
+
+  const partLength = Math.floor((maxLength - 3) / 2); // Subtract 3 for the ellipsis
+  const start = text.slice(0, partLength + 1);
+  const end = text.slice(-partLength + 1);
+
+  return `${start}...${end}`;
+}
 
 function PostJobPage() {
   const { address } = useAccount();
@@ -322,7 +334,7 @@ function PostJobPage() {
                 {arbitratorAddresses.map((arbitratorAddress, index) => (
                   index > 0 && 
                     <ListboxOption  key={index} value={arbitratorAddress}>
-                      {`${arbitratorNames[index]}  ${useShortenText({ text: arbitratorAddress, maxLength: 11 })} ${arbitratorFees[index]}%`}
+                      {`${arbitratorNames[index]}  ${shortenText({ text: arbitratorAddress, maxLength: 11 })} ${arbitratorFees[index]}%`}
                     </ListboxOption>
                 ))}
               </Listbox>
