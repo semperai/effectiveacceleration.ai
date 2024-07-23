@@ -23,14 +23,16 @@ const JobSummary: React.FC<JobSummaryProps>  = ({formInputs, submitJob, isPendin
         </div>
         <div className='bg-white rounded-3xl p-8 shadow-md flex flex-col '>
         {formInputs.map((inputData, index) => (
+          inputData.inputInfo && (
             <div key={index} className='flex mb-8'>
-            <div className='flex grow md:min-w-[14rem] md:max-w-[14rem]'>
-                <span className='font-bold'>{inputData.label}</span>
+              <div className='flex grow md:min-w-[14rem] md:max-w-[14rem]'>
+                  <span className='font-bold'>{inputData.label}</span>
+              </div>
+              <div className='flex grow-[2]'>
+                  <span className=''>{inputData.inputInfo}</span>
+              </div>
             </div>
-            <div className='flex grow-[2]'>
-                <span className=''>{inputData.inputInfo}</span>
-            </div>
-            </div>
+          )
         )
         )}
         </div>

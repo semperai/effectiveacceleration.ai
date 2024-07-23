@@ -68,7 +68,7 @@ export function AcceptButton({address, job, events, ...rest}: AcceptButtonProps 
   return <>
     <Button disabled={buttonDisabled} onClick={buttonClick} color={'borderlessGray'} className={'w-full'}>
       <CheckIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-      Accept
+      Sign Job Scope
     </Button>
   </>
 }
