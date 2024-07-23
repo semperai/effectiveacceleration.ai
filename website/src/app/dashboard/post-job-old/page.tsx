@@ -318,12 +318,12 @@ export default function PostJobPage() {
           {isConfirmed && <div>Transaction confirmed.</div>}
         </Fieldset>
       )}
-      {showSummary && (
-        // <JobSummary
-        //   formInputs={formInputs}
-        //   submitJob={postJobClick}
-        // />
-      )}
+      {/* {showSummary && (
+        <JobSummary
+          formInputs={formInputs}
+          submitJob={postJobClick}
+        />
+      )} */}
     </Layout>
   );
 }
