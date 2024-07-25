@@ -32,6 +32,17 @@ import Image from 'next/image'
 import moment from 'moment'
 import TagsInput from '@/components/TagsInput'
 import { BsInfoCircle } from 'react-icons/bs'
+import { usePathname, useSearchParams } from "next/navigation";
+
+interface PostJobParams {
+  title?: string;
+  content?: string;
+  token?: string;
+  maxTime?: string;
+  deliveryMethod?: string;
+  arbitrator?: string;
+  tags: string[];
+}
 
 function shortenText({text, maxLength} : {text: string | `0x${string}` | undefined, maxLength: number}) {
   if (!text) return console.log("No text provided");
@@ -70,6 +81,7 @@ const validateField = (value: string, validation: FieldValidation): string => {
 };
 
 function PostJobPage() {
+  const searchParams = useSearchParams();
   const { address } = useAccount();
   const {
     data: hash,
@@ -85,8 +97,6 @@ function PostJobPage() {
   const arbitratorAddresses = [zeroAddress, ...(arbitrators?.map((worker) => worker.address_) ?? [])];
   const arbitratorNames = ["None", ...(arbitrators?.map((worker) => worker.name) ?? [])];
   const arbitratorFees = ["0", ...(arbitrators?.map((worker) => worker.fee) ?? [])];
-  console.log(arbitrators, 'arbitrators')
-
   const [selectedToken, setSelectedToken] = useState<Token | undefined>(tokens[0]);
   const multipleApplicantsValues = ['Yes', 'No']
 
@@ -208,26 +218,28 @@ function PostJobPage() {
 
   const [titleError, setTitleError] = useState<string>('');
   const [descriptionError, setDescriptionError] = useState<string>('');
+  const [categoryError, setCategoryError] = useState<string>('');
 
-  const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>, errorSetter: React.Dispatch<React.SetStateAction<string>>, validation: FieldValidation) => (e: ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>, errorSetter: React.Dispatch<React.SetStateAction<string>>, validation: FieldValidation) => (e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     setter(value);
     const errorMessage = validateField(value, validation);
     errorSetter(errorMessage);
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = () => {
     // Validate all fields before submission
     const titleValidationMessage = validateField(title, { required: true, minLength: 3 });
     const descriptionValidationMessage = validateField(description, { required: true, minLength: 10 });
+    // const categoryValidationMessage = validateField(selectedCategory, { required: true, minLength: 10 });
 
     setTitleError(titleValidationMessage);
     setDescriptionError(descriptionValidationMessage);
-
+    // setCategoryError(categoryValidationMessage)
     if (!titleValidationMessage && !descriptionValidationMessage) {
       // Proceed with form submission
       console.log('Form is valid');
+      handleSummary();
     } else {
       console.log('Form has errors');
     }
@@ -246,6 +258,26 @@ function PostJobPage() {
     { label: 'Arbitrator Address', inputInfo: selectedArbitratorAddress },
     { label: 'Worker Address', inputInfo: selectedWorkerAddress },
   ];
+      
+  useEffect(() => {
+    const params = Object.fromEntries(searchParams.entries());
+    const extractedParams: PostJobParams = {
+      ...params,
+      tags: searchParams.getAll('tags')
+    };
+    setTitle(extractedParams.title || '');
+    setDescription(extractedParams.content || '');
+    setTags(extractedParams.tags.map((tag, index) => ({ id: index, name: tag })));
+    setDeliveryMethod(extractedParams.deliveryMethod || '');
+    if (extractedParams.arbitrator === '0x0000000000000000000000000000000000000000') {
+      setArbitratorRequired('No');
+    } else {
+      setsSelectedArbitratorAddress(extractedParams.arbitrator || '');
+    }
+    setDeadline(parseInt(extractedParams.maxTime || '0'));
+    console.log(selectedArbitratorAddress, 'arbitratorAddresses', extractedParams.arbitrator)
+  }, [searchParams])
+
 
   return (
     <div>
@@ -275,7 +307,7 @@ function PostJobPage() {
                 name="description"
                 placeholder='Job Description'
                 value={description}
-                onChange={handleInputChange(setDescription, setDescriptionError, { required: true, minLength: 10 }) as ChangeEventHandler<HTMLTextAreaElement>}
+                onChange={handleInputChange(setDescription, setDescriptionError, { required: true, minLength: 10 })}
               />
                 {descriptionError && <div className='text-xs' style={{ color: 'red' }}>{descriptionError}</div>}
             </Field>
@@ -299,6 +331,7 @@ function PostJobPage() {
               options={categories}  onChange={(option) => {
                 setSelectedCategory(option as {id: string, name: string})
               }}></ComboBox>
+              {categoryError && <div className='text-xs' style={{ color: 'red' }}>{descriptionError}</div>}
             </Field>
             <Field>
               <Label>Tags</Label>
@@ -419,7 +452,7 @@ function PostJobPage() {
                   <Button
                     // disabled={postButtonDisabled || isPending}
                     // onClick={postJobClick}
-                    onClick={handleSummary}
+                    onClick={handleSubmit}
                   >
                     {isPending ? 'Posting...' : 'Continue'}
                   </Button>

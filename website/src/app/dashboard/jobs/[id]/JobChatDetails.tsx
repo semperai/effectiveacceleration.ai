@@ -19,11 +19,12 @@ const JobChatDetails = ({job, users, address, sessionKeys, addresses, events, wh
     events: JobEventWithDiffs[],
     whitelistedWorkers: string[]
   }  ) => {
-    console.log(job)
   return (
     <>
-        <div className='py-5 px-8  text-center bg-[#FF7B02] bg-opacity-10'>
-            <span className='font-bold text-[#FF7A00]'>Awaiting Job Acceptance</span> 
+        <div className={`h-[74px] content-center py-5 px-8  text-center ${job?.state === 2 ? 'bg-[#70FF00]' : 'bg-[#FF7B02]'}  bg-opacity-10`}>
+            <span className={`font-bold ${job?.state === 2 ? 'text-[#42CD12]' : 'text-[#FF7A00]'}`}>
+              {job?.state === 2 ? 'Completed' : 'Awaiting Job Acceptance'}
+            </span> 
             </div>
             <div className='p-4 border border-gray-100'>
                 <div>

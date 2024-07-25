@@ -60,7 +60,7 @@ export default function JobPage() {
   const whitelistedWorkers = events.at(-1)?.job.allowedWorkers ?? [];
   const [selectedWorker, setSelectedWorker] = useState<string>('allEvents');
   const [eventMessages, setEventMessages] = useState(events);
-
+  console.log(job)
 
   useEffect(() => {
     if (selectedWorker === 'allEvents') {
@@ -81,10 +81,14 @@ export default function JobPage() {
     </div> :
     <Layout borderless> 
       <div className='grid grid-cols-4 min-h-customHeader'>
-        <div className='col-span-1 bg-white p-3 border border-gray-100 max-h-customHeader overflow-y-auto'>
-          <JobChatsList users={users} job={job} setSelectedWorker={setSelectedWorker}/>
-        </div>
-        <div className='col-span-2 bg-white max-h-customHeader'>
+        {job?.state === JobState.Open ? 
+          <div className='col-span-1 bg-white p-3 border border-gray-100 max-h-customHeader overflow-y-auto'>
+            <JobChatsList users={users} job={job} setSelectedWorker={setSelectedWorker}/>
+          </div> 
+          : 
+          ''
+        }
+        <div className={`${job?.state === JobState.Open ? 'col-span-2' : 'col-span-3' } bg-white max-h-customHeader`}>
           {job && <JobChat users={users} selectedWorker={selectedWorker} events={eventMessages} job={job} address={address} addresses={addresses} sessionKeys={sessionKeys}/>}
         </div>
         <div className='col-span-1 bg-white overflow-y-auto max-h-customHeader'>
