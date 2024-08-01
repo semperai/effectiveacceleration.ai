@@ -85,9 +85,8 @@ export function DisputeButton({address, job, sessionKeys, ...rest}: DisputeButto
   }
 
   return <>
-    <Button disabled={buttonDisabled} onClick={() => openModal()} color={'borderlessGray'} className={'w-full'}>
-      <CheckIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-      Dispute
+    <Button disabled={buttonDisabled} onClick={() => openModal()} color={'cancelBorder'} className={'w-full'}>
+      Raise a Dispute
     </Button>
       <Transition appear show={isOpen} as={Fragment}>
         <Dialog as="div" className="relative z-10" onClose={closeModal}>

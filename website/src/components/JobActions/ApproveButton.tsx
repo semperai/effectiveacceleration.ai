@@ -9,6 +9,8 @@ import { Dialog, Transition } from '@headlessui/react'
 import { Fragment } from 'react'
 import { Textarea } from '../Textarea';
 import { Input } from '../Input';
+import { Rating } from '@mui/material';
+import { skip } from 'node:test';
 
 export type ApproveButtonProps = {
   address: `0x${string}` | undefined,
@@ -18,6 +20,8 @@ export type ApproveButtonProps = {
 export function ApproveButton({address, job, ...rest}: ApproveButtonProps & React.ComponentPropsWithoutRef<'div'>) {
   const [review, setReview] = useState<string>("");
   const [rating, setRating] = useState<number>(0);
+  console.log(rating)
+
   const {
     data: hash,
     error,
@@ -49,25 +53,28 @@ export function ApproveButton({address, job, ...rest}: ApproveButtonProps & Reac
 
   const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
 
-  async function buttonClick() {
-    if (rating === 0 && review.length) {
-      alert("If you decide to leave a review, you must also leave a rating.");
-      return;
-    } else if (rating < 0 || rating > 5) {
-      alert("Rating must be between 1 and 5.");
-      return;
-    }
-
+  async function buttonClick(skipReview?: boolean) {
+      if (!skipReview && rating === 0 && review.length) {
+        alert("If you decide to leave a review, you must also leave a rating.");
+        return;
+      } else if (!skipReview && rating < 0 || rating > 5) {
+        alert("Rating must be between 1 and 5.");
+        return;
+      } else if (!skipReview && rating === 0) {
+        alert("Please leave a rating.");
+        return;
+      }
+    
     setButtonDisabled(true);
-
+    console.log(skipReview)
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
       address: Config.marketplaceAddress as `0x${string}`,
       functionName: 'approveResult',
       args: [
         job.id!,
-        rating,
-        review,
+        skipReview ? 0 : rating,
+        skipReview ? "" : review, 
       ],
     });
   }
@@ -83,9 +90,8 @@ export function ApproveButton({address, job, ...rest}: ApproveButtonProps & Reac
   }
 
   return <>
-      <Button disabled={buttonDisabled} onClick={() => openModal()} color={'borderlessGray'} className={'w-full'}>
-        <CheckIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-        Approve Result
+      <Button disabled={buttonDisabled} onClick={() => openModal()} color={'purplePrimary'} className={'w-full'}>
+        Accept result
       </Button>
       <Transition appear show={isOpen} as={Fragment}>
         <Dialog as="div" className="relative z-10" onClose={closeModal}>
@@ -115,16 +121,28 @@ export function ApproveButton({address, job, ...rest}: ApproveButtonProps & Reac
                 <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                   <Dialog.Title
                     as="h3"
-                    className="text-lg font-medium leading-6 text-gray-900"
+                    className="text-lg  leading-6 font-bold text-gray-900"
                   >
-                    Approve Result
+                    Leave a review
                   </Dialog.Title>
-                  <div className='mt-5 mb-3 flex flex-col gap-5'>
-                    <Textarea rows={4} value={review} onChange={(e) => setReview(e.target.value)} placeholder="Review (optional)" className="mt-5" />
-                    <Input value={rating} onChange={(e) => setRating(Number(e.target.value))} placeholder="Rating (optional)" className="mt-5" />
-                    <Button disabled={buttonDisabled} onClick={buttonClick}>
-                      <CheckIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-                      Confirm
+                  <span className='text-sm'>Let me know how I can improve my service for the future.</span>
+
+                  <div className='mt-5 mb-3 flex flex-col gap-2'>
+                  <span className='text-sm'>How did I do.</span>
+                  <Rating
+                    name="size-large"
+                    value={rating}
+                    onChange={(event, newValue = 0 as number | null) => {
+                      setRating(newValue || 0);
+                    }}
+                  />
+                    <span className='text-sm'>Can you explain in more detail.</span>
+                    <Textarea rows={4} value={review} onChange={(e) => setReview(e.target.value)} placeholder="Text (optional)" className="" />
+                    <Button disabled={buttonDisabled} onClick={() => buttonClick(true)} color='borderlessGray'>
+                      Skip for now
+                    </Button>
+                    <Button disabled={buttonDisabled} onClick={() => buttonClick(false)} color='purplePrimary'>
+                      Submit Review 
                     </Button>
                   </div>
                 </Dialog.Panel>

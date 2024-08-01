@@ -106,8 +106,7 @@ export function UpdateButton({address, job, ...rest}: UpdateButtonProps & React.
 
   return <>
       <Button disabled={buttonDisabled} onClick={() => openModal()} color={'borderlessGray'} className={'w-full'}>
-        <CheckIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-        Update
+        Edit Details
       </Button>
       <Transition appear show={isOpen} as={Fragment}>
         <Dialog as="div" className="relative z-10" onClose={closeModal}>

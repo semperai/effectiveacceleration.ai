@@ -6,6 +6,10 @@ import { Job, JobEventType, JobEventWithDiffs, JobState, User } from 'effectivea
 import { PostMessageButton } from '@/components/JobActions/PostMessageButton';
 import Link from 'next/link';
 import { title } from 'process';
+import { zeroAddress, zeroHash } from 'viem';
+import { DisputeButton } from '@/components/JobActions/DisputeButton';
+import { ApproveButton } from '@/components/JobActions/ApproveButton';
+import { AssignWorkerButton } from '@/components/JobActions/AssignWorkerButton';
 
 const JobChat = ({users, selectedWorker, events, job, address, addresses, sessionKeys} : 
 {
@@ -82,6 +86,43 @@ const JobChat = ({users, selectedWorker, events, job, address, addresses, sessio
             </div>
             }
 
+            {job.state === JobState.Taken && job.resultHash !== zeroHash && address === job.roles.creator && job &&// Delivered State
+            <div className="py-16 w-full content-center text-center">
+                <span className='text-primary justify-center block pb-2'>{users[selectedWorker]?.name || 'user'} has completed the job with a comment: 
+                    {events.filter(event => event.type_ === JobEventType.Delivered)[0]?.job.result}
+                </span>
+                <span className='block font-semibold'>To confirm the result or request a refund, click buttons below. </span>
+                <span className='block font-semibold'>To ask Rebecca for changes, simply send them a message</span>
+                <div className='pt-3'>
+                <div className='flex justify-center gap-x-4'>
+                    {job.state === JobState.Taken && job.resultHash !== zeroHash && address === job.roles.creator &&
+                    <div className='max-w-46'>
+                        <ApproveButton address={address} job={job}></ApproveButton>
+                    </div>
+                    }
+                </div>
+
+                </div>
+            </div>
+            }
+            {job.state === JobState.Open && address === job.roles.creator && events.length > 0 && //Start job state
+                <div className="py-16 w-full content-center flex flex-col justify-center items-center">
+                    <span className='block font-semibold mb-4'>You will have a chance to review the job parameters before confirming  </span>
+                    <div className='max-w-56 flex justify-center'>
+                        <AssignWorkerButton address={address} job={job}></AssignWorkerButton>
+                    </div>  
+                </div>
+            }
+
+            {job.state === JobState.Taken && job.resultHash === zeroHash && address === job.roles.creator && events.length > 0 && //Started job state
+            <div className='my-3'>
+            <div className='w-full h-[1px] bg-gray-200'></div>
+            <div className="py-6 w-full content-center text-center">
+                <span className='block font-medium text-primary'>You have accepted USER to start the job.</span>
+            </div>
+            <div className='w-full h-[1px] bg-gray-200'></div>
+            </div>
+            }
         </div>
         {job && <>
         {job.state !== JobState.Closed && address !== job.roles.arbitrator && addresses.length && Object.keys(sessionKeys).length > 0 &&
