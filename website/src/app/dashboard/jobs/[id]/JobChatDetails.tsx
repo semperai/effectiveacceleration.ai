@@ -9,6 +9,8 @@ import LinearProgress from '@mui/material/LinearProgress'
 import { Job, JobEventType, JobEventWithDiffs, JobState, User } from 'effectiveacceleration-contracts/dist/src/interfaces'
 import JobButtonActions from './JobButtonActions'
 import { zeroHash } from 'viem'
+import JobStatus from './JobStatus'
+import JobStatusWrapper from './JobStatusWrapper'
 
 const JobChatDetails = ({job, users, address, sessionKeys, addresses, events, whitelistedWorkers} : 
   {
@@ -29,163 +31,132 @@ const JobChatDetails = ({job, users, address, sessionKeys, addresses, events, wh
 
 
     console.log(job)
+    console.log(events)
   return (
     <>
-        {job?.state === JobState.Closed && job.resultHash === zeroHash &&    // Cancelled
-            <div className={`h-[74px] content-center py-5 px-8  text-center bg-[#DC143C]  bg-opacity-10`}>
-                <span className={`font-bold text-[#CD1242]`}>
-                  Cancelled
-                </span> 
-            </div>
-        }
-        {events[events.length - 1]?.type_ === JobEventType.Completed &&
-          <div className={`h-[74px] content-center py-5 px-8  text-center bg-[#70FF00] bg-opacity-10`}>
-              <span className={`font-bold text-[#42CD12]`}>
-                Completed
-              </span> 
+      {job && address && events &&
+        <JobStatusWrapper job={job} events={events} address={address} zeroHash={zeroHash} />
+      }
+      <div className='p-4 border border-gray-100'>
+          <div>
+              <span className='font-bold'>{ job?.title }</span>
           </div>
-        }
-        {job?.state === JobState.Open && address === job.roles.creator && events.length > 0 &&
-          <div className={`h-[74px] content-center py-5 px-8  text-center bg-[#FF7A00] bg-opacity-10`}>
-              <span className={`font-bold text-[#FF7A00]`}>
-                Awaiting Job Acceptance
-              </span> 
+          <div className='my-2 mb-4'>
+              <span className='text-sm mb-2'>{ job?.content }</span>
           </div>
-        }
-        {job?.state === JobState.Taken && job.resultHash === zeroHash && address === job.roles.creator && events.length > 0 && //Started job state
-          <div className={`h-[74px] content-center py-5 px-8  text-center bg-[#FF7A00] bg-opacity-10`}>
-            <span className={`font-bold text-[#FF7A00]`}>
-              Started
-            </span> 
-          </div>
-        }
-        {job?.state === JobState.Taken && job.resultHash !== zeroHash && job &&
-          <div className={`h-[74px] content-center py-5 px-8  text-center bg-[#FF7A00] bg-opacity-10`}>
-            <span className={`font-bold text-[#FF7A00]`}>
-              Delivered
-            </span> 
-          </div>
-        }
-            <div className='p-4 border border-gray-100'>
-                <div>
-                    <span className='font-bold'>{ job?.title }</span>
-                </div>
-                <div className='my-2 mb-4'>
-                    <span className='text-sm mb-2'>{ job?.content }</span>
-                </div>
-                <div>  
-                    <div className='flex-col justify-center'>
-                        <JobButtonActions job={job} addresses={addresses} sessionKeys={sessionKeys} events={events} whitelistedWorkers={whitelistedWorkers} address={address} timePassed={timePassed} />
-                        <div>
-                          <Button color={'borderlessGray'} className={'w-full mt-2'}>
-                            <LinkIcon className="-ml-0.5 mr-1.5 h-5 w-5 text-primary" aria-hidden="true" />
-                              Share
-                          </Button>
-                        </div>
-                    </div> 
-                </div>
-            </div>
-            <div className='p-4 border border-gray-100'>
-                <div>
-                    <span className='font-bold'>Project Details</span>    
-                </div>
-                <div className='flex justify-between my-2'>
-                    <span>Price</span>
-                    <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                      <CurrencyDollarIcon className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-300" aria-hidden="true" />
-                      {job && (
-                        <div className='flex flex-row items-center gap-2'>
-                          {formatTokenNameAndAmount(job.token, job.amount)}
-                          <img src={tokenIcon(job.token)} alt="" className="flex-none w-4 h-4 mr-1" />
-                        </div>
-                      )}
-                    </div>
-                </div>
-                <div className='flex justify-between my-2'>
-                    <span>Multiple Applicants</span>
-                    {job?.multipleApplicants ? 
-                    <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 ">
-                      allowed
-                    </div> : 
-                    <span>
-                    Not Allowed
-                    </span>}
+          <div>  
+              <div className='flex-col justify-center'>
+                  <JobButtonActions job={job} addresses={addresses} sessionKeys={sessionKeys} events={events} whitelistedWorkers={whitelistedWorkers} address={address} timePassed={timePassed} />
+                  <div>
+                    <Button color={'borderlessGray'} className={'w-full mt-2'}>
+                      <LinkIcon className="-ml-0.5 mr-1.5 h-5 w-5 text-primary" aria-hidden="true" />
+                        Share
+                    </Button>
                   </div>
-                <div className='flex justify-between my-2'>
-                    <span>Delivery Method</span>
-                    <span>{job?.deliveryMethod}</span>
-                </div>
-                <div className='flex justify-between my-2'>
-                  <UserIcon className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-300" aria-hidden="true" />
-                  last updated by { users[job?.roles.creator!]?.name } { moment(job?.timestamp! * 1000).fromNow() }
-                </div>
-            </div>
-            {job?.state === JobState.Closed && address === job.roles.creator && job.collateralOwed > 0n && // If collateral is owed
-              <div className='p-4 border border-gray-100'>
-                  <div className='flex justify-between my-2'>
-                      <span className='font-bold'>Time left to withraw collateral</span>  
-                      {/* { moment.duration(job?.maxTime, "seconds").humanize() }  */}
+              </div> 
+          </div>
+      </div>
+      <div className='p-4 border border-gray-100'>
+          <div>
+              <span className='font-bold'>Project Details</span>    
+          </div>
+          <div className='flex justify-between my-2'>
+              <span>Price</span>
+              <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                <CurrencyDollarIcon className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-300" aria-hidden="true" />
+                {job && (
+                  <div className='flex flex-row items-center gap-2'>
+                    {formatTokenNameAndAmount(job.token, job.amount)}
+                    <img src={tokenIcon(job.token)} alt="" className="flex-none w-4 h-4 mr-1" />
                   </div>
-                  <div className='my-2'>
-                    <LinearProgress
-                      value={timePassed ? 100 : adjustedProgressValue}
-                      variant="determinate"
-                    />
-                    <div className='flex justify-between my-2'>
-                      <span>Collateral</span>
-                      <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                        <CurrencyDollarIcon className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-300" aria-hidden="true" />
-                        {job && (
-                          <div className='flex flex-row items-center gap-2'>
-                            {formatTokenNameAndAmount(job.token, job.amount)}
-                            <img src={tokenIcon(job.token)} alt="" className="flex-none w-4 h-4 mr-1" />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div> 
+                )}
               </div>
-            }
-            {job?.state === JobState.Taken && job.resultHash === zeroHash && address === job.roles.creator && events.length > 0 && //Started job state // If Started
-              <div className='p-4 border border-gray-100'>
-                  <div className='flex justify-between my-2'>
-                      <span className='font-bold'>Delivery Time</span>  
-                      { moment.duration(job?.maxTime, "hours").humanize() } 
-                  </div>
-                  <div className='my-2'>
-                    <LinearProgress
-                      value={5}
-                      variant="determinate"
-                    />
-                  </div> 
-              </div>
-            }
-            <div className='p-4 border border-gray-100'>
-                <div>
-                    <span className='font-bold'>Addresses</span>    
-                </div>
-                <div className='flex justify-between my-2'>
-                    <span>Arbitrator Address</span>
-                    <span>{useShortenText({text: job?.roles.arbitrator ,maxLength: 12}) || ''}</span>
-                </div>
+          </div>
+          <div className='flex justify-between my-2'>
+              <span>Multiple Applicants</span>
+              {job?.multipleApplicants ? 
+              <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 ">
+                allowed
+              </div> : 
+              <span>
+              Not Allowed
+              </span>}
             </div>
-            <div className='p-4 border border-gray-100'>
-                <div>
-                    <span className='font-bold'>Tags</span>    
-                </div>
-                <div className='my-2'>
-                  {job?.tags.map((value) => (
-                    <div
-                      key={value}
-                      className={clsx("bg-softBlue text-white px-3 py-1 pb-2 m-1 rounded-full inline ")}
-                    >
-                      <span className='text-darkBlueFont text-md font-medium inline'>
-                        {value}
-                      </span>
+          <div className='flex justify-between my-2'>
+              <span>Delivery Method</span>
+              <span>{job?.deliveryMethod}</span>
+          </div>
+          <div className='flex justify-between my-2'>
+            <UserIcon className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-300" aria-hidden="true" />
+            last updated by { users[job?.roles.creator!]?.name } { moment(job?.timestamp! * 1000).fromNow() }
+          </div>
+      </div>
+      {job?.state === JobState.Closed && address === job.roles.creator && job.collateralOwed > 0n && // If collateral is owed
+        <div className='p-4 border border-gray-100'>
+            <div className='flex justify-between my-2'>
+                <span className='font-bold'>Time left to withraw collateral</span>  
+                {/* { moment.duration(job?.maxTime, "seconds").humanize() }  */}
+            </div>
+            <div className='my-2'>
+              <LinearProgress
+                value={timePassed ? 100 : adjustedProgressValue}
+                variant="determinate"
+              />
+              <div className='flex justify-between my-2'>
+                <span>Collateral</span>
+                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                  <CurrencyDollarIcon className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-300" aria-hidden="true" />
+                  {job && (
+                    <div className='flex flex-row items-center gap-2'>
+                      {formatTokenNameAndAmount(job.token, job.amount)}
+                      <img src={tokenIcon(job.token)} alt="" className="flex-none w-4 h-4 mr-1" />
                     </div>
-                  ))}
+                  )}
                 </div>
+              </div>
+            </div> 
+        </div>
+      }
+      {job?.state === JobState.Taken && job.resultHash === zeroHash && address === job.roles.creator && events.length > 0 && //Started job state // If Started
+        <div className='p-4 border border-gray-100'>
+            <div className='flex justify-between my-2'>
+                <span className='font-bold'>Delivery Time</span>  
+                { moment.duration(job?.maxTime, "hours").humanize() } 
             </div>
+            <div className='my-2'>
+              <LinearProgress
+                value={5}
+                variant="determinate"
+              />
+            </div> 
+        </div>
+      }
+      <div className='p-4 border border-gray-100'>
+          <div>
+              <span className='font-bold'>Addresses</span>    
+          </div>
+          <div className='flex justify-between my-2'>
+              <span>Arbitrator Address</span>
+              <span>{useShortenText({text: job?.roles.arbitrator ,maxLength: 12}) || ''}</span>
+          </div>
+      </div>
+      <div className='p-4 border border-gray-100'>
+          <div>
+              <span className='font-bold'>Tags</span>    
+          </div>
+          <div className='my-2'>
+            {job?.tags.map((value) => (
+              <div
+                key={value}
+                className={clsx("bg-softBlue text-white px-3 py-1 pb-2 m-1 rounded-full inline ")}
+              >
+                <span className='text-darkBlueFont text-md font-medium inline'>
+                  {value}
+                </span>
+              </div>
+            ))}
+          </div>
+      </div>
     </>
   )
 }

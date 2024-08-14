@@ -3,80 +3,28 @@ import JobsTable from '../JobsTable'
 import { TOpenJobTable} from '@/service/JobsService';
 import { useReactTable, getCoreRowModel, createColumnHelper } from '@tanstack/react-table';
 import { Checkbox } from '@/components/Checkbox';
-
-const defaultDataOpenJob: TOpenJobTable[] = [
-    {
-      jobName: 'tanner',
-      description: 'linsley',
-      tag: 'Audio',
-      actions: 'View Applicants',
-    },
-    {
-      jobName: 'tanner',
-      description: 'linsley',
-      tag: 'Audio',
-      actions: 'View Applicants',
-    },
-    {
-      jobName: 'tanner',
-      description: 'linsley',
-      tag: 'Audio',
-      actions: 'View Applicants',
-    },
-  ]
-  const columnHelperOpenJob = createColumnHelper<TOpenJobTable>()
-  const columnsOpenJob = [
-    columnHelperOpenJob.accessor(row => row.jobName, {
-      id: 'checkbox',
-      header: ({ table }) => (
-        <Checkbox
-          checked={table.getIsAllRowsSelected()}
-          indeterminate={table.getIsSomeRowsSelected()}
-          onChange={table.getToggleAllPageRowsSelectedHandler()} //or getToggleAllPageRowsSelectedHandler
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          disabled={!row.getCanSelect()}
-          onChange={row.getToggleSelectedHandler()}
-        />
-      ),
-    }),
-    columnHelperOpenJob.accessor(row => row.jobName, {
-        id: 'jobName',
-        cell: info => <i>{info.getValue()}</i>,
-        header: () => <span>Job Name</span>,
-    }),
-    columnHelperOpenJob.accessor(row => row.description, {
-      id: 'description',
-      cell: info => <i>{info.getValue()}</i>,
-      header: () => <span>Description</span>,
-    }),
-    columnHelperOpenJob.accessor(row => row.tag, {
-        id: 'tag',
-        cell: info => <i>{info.getValue()}</i>,
-        header: () => <span>Tag</span>,
-    }),
-    columnHelperOpenJob.accessor(row => row.actions, {
-        id: 'actions',
-        cell: info => <i>{info.getValue()}</i>,
-        header: () => <span>Actions</span>,
-    }),
-  ]
+import useJobs from '@/hooks/useJobs';
+import { Job } from 'effectiveacceleration-contracts/dist/src/interfaces';
 
 const OpenJobs = () => {
-    const [dataOpenJob, _setDataOpenJob] = React.useState(() => [...defaultDataOpenJob])
-    const tableOpenJob = useReactTable({
-        data: dataOpenJob,
-        columns: columnsOpenJob,
-        getCoreRowModel: getCoreRowModel(),
-    })
+
+  const { data: jobs } = useJobs();
 
   return (
-    <>
-        <JobsTable table={tableOpenJob} title='Open Jobs'></JobsTable>
-    </>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+      {jobs.map((job, index) => (
+        <div key={index} className="border rounded-lg p-4 shadow-md bg-white">
+          <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mb-4">{job.deliveryMethod}</span>
+          <h3 className="text-lg font-semibold mb-2">{job.title}</h3>
+          <p className="text-gray-700 text-sm mb-4 line-clamp-4">{job.content}</p>
+
+          <div className='flex border justify-around'>
+              <span>aaaa</span>
+              <span>bbbb</span>
+          </div>
+        </div>
+      ))}
+    </div>
   )
 }
 

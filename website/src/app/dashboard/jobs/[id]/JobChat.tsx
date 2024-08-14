@@ -41,16 +41,8 @@ const JobChat = ({users, selectedWorker, events, job, address, addresses, sessio
                         </div>
                     </div>
                 </div>
-                {/* <div className='flex'>
-                    <Button color={'cancelBorder'} className={'w-full'}>Reject</Button>
-                </div> */}
             </div>
         </div>
-        {/* <div className='flex flex-[2] border border-gray-100 flex-col text-center justify-evenly p-2 h-[20%]'>
-            <p className='flex text-sm self-center text-darkBlueFont'>You can dismiss {users[selectedWorker]?.name || 'worker'} or select them for the job.</p>
-            <p className='flex text-sm self-center text-darkBlueFont'>- Dismissing a candidate worker will hide the worker from the list and you will no longer be notified about new messages from them.</p>
-            <p className='flex text-sm self-center text-darkBlueFont'>- Selecting the candidate will set only this worker in the whitelist, preventing other candidates from messaging you, so you can focus on hammering out the details with the selected worker Read Less...</p>
-        </div> */}
         <div className='row-span-4 border border-gray-100 bg-softBlue pl-5 max-h-customHeader overflow-y-auto'>
             <div className="flow-root w-full">
             <ul role="list" className="-mb-8">

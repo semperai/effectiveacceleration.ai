@@ -7,8 +7,14 @@ import JobProgress from './JobsTablesData/JobProgress';
 import CompletedJobs from './JobsTablesData/CompletedJobs';
 import DisputedJobs from './JobsTablesData/DisputedJobs';
 import CancelledJobs from './JobsTablesData/CancelledJobs';
+import useJobs from '@/hooks/useJobs';
+import useUsersByAddresses from '@/hooks/useUsersByAddresses';
 
 const DashboardTabs = () => {
+  const { data: jobs } = useJobs();
+  const { data: users } = useUsersByAddresses(jobs.map(job => job.roles.creator));
+
+    console.log(jobs)
   return (
     <div className=''>
     <Tabs>

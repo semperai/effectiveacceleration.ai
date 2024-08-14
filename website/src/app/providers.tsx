@@ -49,7 +49,7 @@ export const staging = /*#__PURE__*/ defineChain({
   iconBackground: '#fff',
 })
 
-const config = getDefaultConfig({
+export const config = getDefaultConfig({
   appName: 'Effective Acceleration',
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!,
   chains: [staging, hardhat, arbitrum],
