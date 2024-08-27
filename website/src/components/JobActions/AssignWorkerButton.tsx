@@ -77,7 +77,7 @@ export function AssignWorkerButton({address, job, ...rest}: AssignWorkerButtonPr
   function openModal() {
     setIsOpen(true)
   }
-  console.log(job, 'job from button')
+  
   return <>
     <Button disabled={buttonDisabled} onClick={() => openModal()} color={'purplePrimary'} className={'w-full'}>
       Start Job with WORKER

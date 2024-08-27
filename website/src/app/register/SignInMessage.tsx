@@ -6,10 +6,11 @@ import { getWalletClient } from '@wagmi/core'
 import { ethers, hashMessage, JsonRpcProvider, JsonRpcSigner, recoverAddress, Signer, verifyMessage } from 'ethers'
 import { getEncryptionSigningKey } from 'effectiveacceleration-contracts/dist/src/utils/encryption';
 import { config } from '../providers';
+import { UserButton } from '@/components/UserActions/UserButton';
 
 
 
-const SignInMessage = ({setMessageSigned} : {setMessageSigned: Dispatch<any>}) => {
+const SignInMessage = ({setEncryptionPublicKey} : {setEncryptionPublicKey: Dispatch<any>}) => {
   const { signMessageAsync } = useSignMessage();
 
 
@@ -20,10 +21,11 @@ const SignInMessage = ({setMessageSigned} : {setMessageSigned: Dispatch<any>}) =
       const message = 'Effective Acceleration';
       const signature = await signMessageAsync({ message });
 
-      // setMessageSigned(recoveredPublicKey)
+      // setEncryptionPublicKey(recoveredPublicKey)
       const signer = await provider.getSigner();
-      const encryptionKey = await getEncryptionSigningKey(signer)
-      setMessageSigned(encryptionKey.compressedPublicKey)
+      const encryptionKey = (await getEncryptionSigningKey(signer as any)).compressedPublicKey
+      console.log(encryptionKey, 'encryptionKey')
+      setEncryptionPublicKey(encryptionKey)
     } catch (error) {
       console.error('Error signing message:', error);
     }

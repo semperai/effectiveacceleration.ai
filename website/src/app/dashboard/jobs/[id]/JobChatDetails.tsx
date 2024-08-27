@@ -28,14 +28,10 @@ const JobChatDetails = ({job, users, address, sessionKeys, addresses, events, wh
     const timePassed = Math.sign(hoursPassed) === (1 || 0) ? true : false // if 24h have passed
     const progressValue = (hoursPassed / 24) * 100;  // Calculate the progress value (0 to 100)
     const adjustedProgressValue = progressValue < 0 ? 100 + progressValue : 100 - progressValue;
-
-
-    console.log(job)
-    console.log(events)
   return (
     <>
       {job && address && events &&
-        <JobStatusWrapper job={job} events={events} address={address} zeroHash={zeroHash} />
+        <JobStatusWrapper job={job} events={events} address={address} zeroHash={zeroHash} addresses={addresses} sessionKeys={sessionKeys} />
       }
       <div className='p-4 border border-gray-100'>
           <div>

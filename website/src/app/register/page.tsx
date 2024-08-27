@@ -12,8 +12,8 @@ import Image from 'next/image'
 
 const page = () => {
   const { isConnected } = useAccount()
-  const [messageSigned, setMessageSigned] = React.useState<string>('')
-  console.log(messageSigned, 'messageSigned')
+  const [encryptionPublicKey, setEncryptionPublicKey] = React.useState<`0x${string}`>(`0x`)
+  console.log(encryptionPublicKey, 'encryptionPublicKey')
   console.log(isConnected)
   return (
     <>
@@ -22,12 +22,12 @@ const page = () => {
       <Image src={'/backgroundSignIn.webp'} fill className='absolute w-full h-full object-cover z-0' alt={'Background Sign In'}></Image>
       {isConnected ? (
           <>
-          {messageSigned ? (
+          {encryptionPublicKey !== `0x` ? (
               <>
-              <CreateProfile messageSigned={messageSigned}/>
+              <CreateProfile encryptionPublicKey={encryptionPublicKey}/>
               </>
             ) : (
-            <SignInMessage setMessageSigned={setMessageSigned}/>
+            <SignInMessage setEncryptionPublicKey={setEncryptionPublicKey}/>
             )
           }
           </>

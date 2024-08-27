@@ -10,6 +10,7 @@ import { zeroAddress, zeroHash } from 'viem';
 import { DisputeButton } from '@/components/JobActions/DisputeButton';
 import { ApproveButton } from '@/components/JobActions/ApproveButton';
 import { AssignWorkerButton } from '@/components/JobActions/AssignWorkerButton';
+import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
 
 const JobChat = ({users, selectedWorker, events, job, address, addresses, sessionKeys} : 
 {
@@ -21,7 +22,8 @@ const JobChat = ({users, selectedWorker, events, job, address, addresses, sessio
     sessionKeys: Record<string, string>,
     addresses: string[]  
 }) => {
-    console.log(events)
+    const lastEventType = events[events.length - 1]?.type_
+    console.log(events, 'events')
   return (
     <div className='grid grid-rows-[74px_70%_10%] max-h-customHeader'>
         <div className='min-h-[100px]'>
@@ -78,7 +80,7 @@ const JobChat = ({users, selectedWorker, events, job, address, addresses, sessio
             </div>
             }
 
-            {job.state === JobState.Taken && job.resultHash !== zeroHash && address === job.roles.creator && job &&// Delivered State
+            {job.state === JobState.Taken && job.resultHash !== zeroHash && address === job.roles.creator && job && job.disputed === false &&// Delivered State
             <div className="py-16 w-full content-center text-center">
                 <span className='text-primary justify-center block pb-2'>{users[selectedWorker]?.name || 'user'} has completed the job with a comment: 
                     {events.filter(event => event.type_ === JobEventType.Delivered)[0]?.job.result}
@@ -107,13 +109,49 @@ const JobChat = ({users, selectedWorker, events, job, address, addresses, sessio
             }
 
             {job.state === JobState.Taken && job.resultHash === zeroHash && address === job.roles.creator && events.length > 0 && //Started job state
-            <div className='my-3'>
-            <div className='w-full h-[1px] bg-gray-200'></div>
-            <div className="py-6 w-full content-center text-center">
-                <span className='block font-medium text-primary'>You have accepted USER to start the job.</span>
-            </div>
-            <div className='w-full h-[1px] bg-gray-200'></div>
-            </div>
+                <div className='my-3'>
+                    <div className='w-full h-[1px] bg-gray-200'></div>
+                    <div className="py-6 w-full content-center text-center">
+                        <span className='block font-medium text-primary'>You have accepted USER to start the job.</span>
+                    </div>
+                    <div className='w-full h-[1px] bg-gray-200'></div>
+                </div>
+            }
+            {job.state === JobState.Taken && job.disputed === true && //Waiting for arbitration
+                <div className='my-3'>
+                    <div className='w-full h-[1px] bg-gray-200'></div>
+                    <div className="py-6 w-full content-center text-center">
+                        <span>A dispute has started, the arbitrator has received all the information.</span>
+                        <span className='block font-medium text-primary'>Arbitrator has joined the chat.</span>
+                    </div>
+                    <div className='w-full h-[1px] bg-gray-200'></div>
+                </div>
+            }
+            {lastEventType === JobEventType.Arbitrated && job.state === JobState.Closed && //Waiting for arbitration
+                <div className='my-3'>
+                    <div className='w-full h-[1px] bg-gray-200'></div>
+                    <div className="flex flex-col py-6 w-full content-center text-center gap-y-2">
+                        <span className='justify-center block'>The arbitrator decided to release the funds to the worker with the following reasons:&nbsp;
+                            {events.filter(event => event.type_ === JobEventType.Disputed)[0]?.job.result}
+                        </span>
+                        {address === job.roles.creator &&
+                            <span className='block'>“The arbitrator refunded your payment. You received &nbsp;
+                                    {formatTokenNameAndAmount(job.token, events.filter(event => event.type_ === JobEventType.Arbitrated)[0]?.details?.creatorAmount)}
+                                    , arbitrator fee was x ”
+                            </span>
+                        }
+                        {address === job.roles.worker &&
+                            <span className='block'>The arbitrator refunded your payment. You received &nbsp;
+                                    {formatTokenNameAndAmount(job.token, events.filter(event => event.type_ === JobEventType.Arbitrated)[0]?.details?.workerAmount)}
+                                    , arbitrator fee was x.
+                            </span>
+                        }
+                        <span className='block text-primary'>
+                            Chat is now closed 
+                        </span>
+                    </div>
+                    <div className='w-full h-[1px] bg-gray-200'></div>
+                </div>
             }
         </div>
         {job && <>

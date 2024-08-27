@@ -60,7 +60,7 @@ export default function JobPage() {
   const whitelistedWorkers = events.at(-1)?.job.allowedWorkers ?? [];
   const [selectedWorker, setSelectedWorker] = useState<string>('allEvents');
   const [eventMessages, setEventMessages] = useState(events);
-
+  console.log(job, 'job');
   useEffect(() => {
     if (selectedWorker === 'allEvents') {
       setEventMessages(events) 

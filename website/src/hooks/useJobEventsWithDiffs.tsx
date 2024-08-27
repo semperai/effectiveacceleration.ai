@@ -33,6 +33,7 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
   });
 
   const rawJobEventsData = result.data as JobEvent[];
+  console.log(result, 'rawJobEventsDataaaa');
   const refetch = result.refetch;
   const { data: _, ...rest } = result;
 

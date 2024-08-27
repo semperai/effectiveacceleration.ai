@@ -6,28 +6,59 @@ import { Textarea } from '@/components/Textarea'
 import Image from 'next/image'
 import React, { useEffect, useRef, useState } from 'react'
 import { BsPersonPlus } from "react-icons/bs";
-import { useWriteContract } from "wagmi";
+import { useAccount, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { MARKETPLACE_DATA_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceDataV1";
 import Config from "effectiveacceleration-contracts/scripts/config.json";
 import { useSearchParams } from 'next/navigation'
 import { create } from 'ipfs-http-client'
+import { UserButton } from '@/components/UserActions/UserButton'
+import useUser from '@/hooks/useUser'
 
+const ipfsGatewayUrl = process.env.NEXT_PUBLIC_IPFS_GATEWAY_URL;
 
 const client = create({ url: 'http://localhost:5001' });
 
-const CreateProfile = ({messageSigned} : {messageSigned: `0x${string}`}) => {
+const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string}`}) => {
+  
     const searchParams = useSearchParams();
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [avatar, setAvatar] = useState<string>('')
     const [avatarCID, setAvatarCID] = useState<string>('')
     const [userName, setName] = useState<string>('') 
     const [userBio, setBio] = useState<string>('')
-
+    const { address } = useAccount();
+    const {data: user} = useUser(address!);
+    
     const {
       data: hash,
       error,
       writeContract,
     } = useWriteContract();
+
+    const {
+      isLoading: isConfirming,
+      isSuccess: isConfirmed,
+    } = useWaitForTransactionReceipt({
+      hash
+    });
+
+    useEffect(() => {
+      if (isConfirmed || error) {
+        if (error) {
+          const revertReason = error.message.match(`The contract function ".*" reverted with the following reason:\n(.*)\n.*`)?.[1];
+          if (revertReason) {
+            alert(error.message.match(`The contract function ".*" reverted with the following reason:\n(.*)\n.*`)?.[1])
+          } else {
+            console.log(error, error.message);
+            alert("Unknown error occurred");
+          }
+        }
+      }
+    }, [isConfirmed, error]);
+
+    useEffect(() => {
+      console.log(user, address, 'User and its Address')
+    }, [user]);
 
     const handleAvatarClick = () => {
       if (fileInputRef.current) {
@@ -47,7 +78,7 @@ const CreateProfile = ({messageSigned} : {messageSigned: `0x${string}`}) => {
         if (file) {
           try {
             const added = await client.add(file);
-            setAvatarCID((added.path).toString());
+            setAvatarCID(ipfsGatewayUrl + ((added.path).toString()));
             console.log('AVATAR CID', added.path.toString())
           } catch (error) {
             console.error('Error uploading file: ', error);
@@ -57,19 +88,27 @@ const CreateProfile = ({messageSigned} : {messageSigned: `0x${string}`}) => {
 
 
     const submit = () => {
-      console.log(messageSigned, userName, userBio, avatarCID)
-      const w = writeContract({
-        abi: MARKETPLACE_DATA_V1_ABI,
-        address: Config.marketplaceAddress as `0x${string}`,
-        functionName: 'registerUser',
-        args: [
-          messageSigned as `0x${string}`,
-          userName, 
-          userBio, 
-          avatarCID
-        ],
-      });
+      console.log(encryptionPublicKey, userName, userBio, avatarCID)
+      try {
+        const w = writeContract({
+          abi: MARKETPLACE_DATA_V1_ABI,
+          address: Config.marketplaceDataAddress as `0x${string}`,
+          functionName: 'registerUser',
+          args: [
+            encryptionPublicKey as `0x${string}`,
+            userName, 
+            userBio, 
+            avatarCID
+          ],
+          
+        });
+        console.log('successssssssssss', w)
+      } catch (error) {
+        console.error('Error writing contract: ', error);
+      }
+
     }
+  
 
   return (
     <div className='flex flex-row self-center shadow-xl'>
@@ -120,7 +159,7 @@ const CreateProfile = ({messageSigned} : {messageSigned: `0x${string}`}) => {
                 </Field>
             </FieldGroup> 
             <span className='text-sm text-primary'>* Name and avatar cannot be changed once your profile is created</span>
-            <Button onClick={submit}  >Create Profile</Button>
+            <Button onClick={submit}>Create Profile</Button>
         </div>
     </div>
   )

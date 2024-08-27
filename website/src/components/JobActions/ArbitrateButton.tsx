@@ -92,7 +92,6 @@ export function ArbitrateButton({address, job, sessionKeys, ...rest}: ArbitrateB
 
   return <>
       <Button disabled={buttonDisabled} onClick={() => openModal()} color={'borderlessGray'} className={'w-full'}>
-        <CheckIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
         Arbitrate
       </Button>
 
@@ -139,7 +138,6 @@ export function ArbitrateButton({address, job, sessionKeys, ...rest}: ArbitrateB
                     </Field>
                     <Textarea rows={4} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Message" className="mt-5" />
                     <Button disabled={buttonDisabled} onClick={buttonClick}>
-                      <CheckIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
                       Confirm
                     </Button>
                   </div>
