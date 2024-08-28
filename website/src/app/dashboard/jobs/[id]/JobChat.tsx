@@ -2,7 +2,7 @@ import React from 'react'
 import Image from 'next/image'
 import { Button } from '@/components/Button'
 import { renderEvent } from '@/components/Events';
-import { Job, JobEventType, JobEventWithDiffs, JobState, User } from 'effectiveacceleration-contracts/dist/src/interfaces';
+import { CustomJobEvent, Job, JobArbitratedEvent, JobEventType, JobEventWithDiffs, JobState, User } from 'effectiveacceleration-contracts/dist/src/interfaces';
 import { PostMessageButton } from '@/components/JobActions/PostMessageButton';
 import Link from 'next/link';
 import { title } from 'process';
@@ -11,6 +11,9 @@ import { DisputeButton } from '@/components/JobActions/DisputeButton';
 import { ApproveButton } from '@/components/JobActions/ApproveButton';
 import { AssignWorkerButton } from '@/components/JobActions/AssignWorkerButton';
 import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
+import JobChatStatus from './Components/JobChat/JobChatStatus';
+import ProfileUserHeader from './Components/JobChat/ProfileUserHeader';
+import JobChatEvents from './Components/JobChat/JobChat';
 
 const JobChat = ({users, selectedWorker, events, job, address, addresses, sessionKeys} : 
 {
@@ -26,140 +29,14 @@ const JobChat = ({users, selectedWorker, events, job, address, addresses, sessio
     console.log(events, 'events')
   return (
     <div className='grid grid-rows-[74px_70%_10%] max-h-customHeader'>
-        <div className='min-h-[100px]'>
-            <div className='border border-gray-100 p-4 justify-between align-center'>
-                <div className='h-fit'>
-                    <div className='flex flex-row'> 
-                        <div className='flex self-center pr-4'>
-                            <Image className='max-h-10 max-w-10 rounded-lg' src={users[selectedWorker]?.avatar || '/profilePicture.webp'} height={100} width={100} alt={'Profile picture'}/> 
-                        </div>
-                        <div className='self-center'>
-                                <span className='font-extrabold block'>
-                                    {users[selectedWorker]?.name}
-                                </span>
-                                {/* <span className='text-primary font-semibold text-sm block'>
-                                    Fixed rate: $45
-                                </span> */}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div className='row-span-4 border border-gray-100 bg-softBlue pl-5 max-h-customHeader overflow-y-auto'>
-            <div className="flow-root w-full">
-            <ul role="list" className="-mb-8">
-                {events?.slice().map((event, index) => (
-                <li key={index}>
-                    <div className="relative pb-8">
-                    {index !== events?.length - 1 ? (
-                        <span className="absolute left-5 top-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true" />
-                    ) : null}
-                    <div className="relative flex items-start space-x-3">
-                        {renderEvent({event})}
-                    </div>
-                    </div>
-                </li>
-                ))}
-            </ul>
-            </div>
-            {events[events.length - 1]?.type_ === JobEventType.Completed &&
-            <div className="py-16 w-full content-center text-center">
-                <span className='text-primary justify-center block pb-2'>{users[selectedWorker]?.name || 'user'} has completed the job with a comment: 
-                    {events.filter(event => event.type_ === JobEventType.Delivered)[0].job.result}
-                </span>
-                <span className='block'>You have accepted the result.</span>
-                <div className='pt-3'>
-                <Link href={{
-                        pathname: '/dashboard/post-job',
-                        query: { title: job.title, content: job.content, token: job.token, maxTime: job.maxTime, deliveryMethod: job.deliveryMethod, arbitrator: job.roles.arbitrator, tags: job.tags}
-                        }}>
-                        <Button color='purplePrimary'>Create a new job with {'user'}</Button>
-                </Link>
-
-                </div>
-            </div>
-            }
-
-            {job.state === JobState.Taken && job.resultHash !== zeroHash && address === job.roles.creator && job && job.disputed === false &&// Delivered State
-            <div className="py-16 w-full content-center text-center">
-                <span className='text-primary justify-center block pb-2'>{users[selectedWorker]?.name || 'user'} has completed the job with a comment: 
-                    {events.filter(event => event.type_ === JobEventType.Delivered)[0]?.job.result}
-                </span>
-                <span className='block font-semibold'>To confirm the result or request a refund, click buttons below. </span>
-                <span className='block font-semibold'>To ask Rebecca for changes, simply send them a message</span>
-                <div className='pt-3'>
-                <div className='flex justify-center gap-x-4'>
-                    {job.state === JobState.Taken && job.resultHash !== zeroHash && address === job.roles.creator &&
-                    <div className='max-w-46'>
-                        <ApproveButton address={address} job={job}></ApproveButton>
-                    </div>
-                    }
-                </div>
-
-                </div>
-            </div>
-            }
-            {job.state === JobState.Open && address === job.roles.creator && events.length > 0 && //Start job state
-                <div className="py-16 w-full content-center flex flex-col justify-center items-center">
-                    <span className='block font-semibold mb-4'>You will have a chance to review the job parameters before confirming  </span>
-                    <div className='max-w-56 flex justify-center'>
-                        <AssignWorkerButton address={address} job={job}></AssignWorkerButton>
-                    </div>  
-                </div>
-            }
-
-            {job.state === JobState.Taken && job.resultHash === zeroHash && address === job.roles.creator && events.length > 0 && //Started job state
-                <div className='my-3'>
-                    <div className='w-full h-[1px] bg-gray-200'></div>
-                    <div className="py-6 w-full content-center text-center">
-                        <span className='block font-medium text-primary'>You have accepted USER to start the job.</span>
-                    </div>
-                    <div className='w-full h-[1px] bg-gray-200'></div>
-                </div>
-            }
-            {job.state === JobState.Taken && job.disputed === true && //Waiting for arbitration
-                <div className='my-3'>
-                    <div className='w-full h-[1px] bg-gray-200'></div>
-                    <div className="py-6 w-full content-center text-center">
-                        <span>A dispute has started, the arbitrator has received all the information.</span>
-                        <span className='block font-medium text-primary'>Arbitrator has joined the chat.</span>
-                    </div>
-                    <div className='w-full h-[1px] bg-gray-200'></div>
-                </div>
-            }
-            {lastEventType === JobEventType.Arbitrated && job.state === JobState.Closed && //Waiting for arbitration
-                <div className='my-3'>
-                    <div className='w-full h-[1px] bg-gray-200'></div>
-                    <div className="flex flex-col py-6 w-full content-center text-center gap-y-2">
-                        <span className='justify-center block'>The arbitrator decided to release the funds to the worker with the following reasons:&nbsp;
-                            {events.filter(event => event.type_ === JobEventType.Disputed)[0]?.job.result}
-                        </span>
-                        {address === job.roles.creator &&
-                            <span className='block'>“The arbitrator refunded your payment. You received &nbsp;
-                                    {formatTokenNameAndAmount(job.token, events.filter(event => event.type_ === JobEventType.Arbitrated)[0]?.details?.creatorAmount)}
-                                    , arbitrator fee was x ”
-                            </span>
-                        }
-                        {address === job.roles.worker &&
-                            <span className='block'>The arbitrator refunded your payment. You received &nbsp;
-                                    {formatTokenNameAndAmount(job.token, events.filter(event => event.type_ === JobEventType.Arbitrated)[0]?.details?.workerAmount)}
-                                    , arbitrator fee was x.
-                            </span>
-                        }
-                        <span className='block text-primary'>
-                            Chat is now closed 
-                        </span>
-                    </div>
-                    <div className='w-full h-[1px] bg-gray-200'></div>
-                </div>
-            }
-        </div>
+        <ProfileUserHeader users={users} selectedWorker={selectedWorker}/>
+        <JobChatEvents users={users} selectedWorker={''} events={events} job={job} address={address} />
         {job && <>
-        {job.state !== JobState.Closed && address !== job.roles.arbitrator && addresses.length && Object.keys(sessionKeys).length > 0 &&
-            <div className='row-span-1 flex flex-1 border border-gray-100'>
-                <PostMessageButton address={address} addresses={addresses as any} sessionKeys={sessionKeys} job={job}/>
-            </div>
-        }
+            {job.state !== JobState.Closed && address !== job.roles.arbitrator && addresses.length && Object.keys(sessionKeys).length > 0 &&
+                <div className='row-span-1 flex flex-1 border border-gray-100'>
+                    <PostMessageButton address={address} addresses={addresses as any} sessionKeys={sessionKeys} job={job}/>
+                </div>
+            }
         </>
         }
     </div>

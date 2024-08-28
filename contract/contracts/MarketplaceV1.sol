@@ -834,7 +834,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             JobEventData({
                 type_: uint8(JobEventType.Arbitrated),
                 address_: bytes(""),
-                data_: abi.encodePacked(buyerShare_, amounts[0], workerShare_, amounts[1], reasonHash_, job.roles.worker),
+                data_: abi.encodePacked(buyerShare_, amounts[0], workerShare_, amounts[1], reasonHash_, job.roles.worker, amounts[4]),
                 timestamp_: 0
             })
         );
