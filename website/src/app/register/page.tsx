@@ -10,7 +10,7 @@ import { useAccount } from 'wagmi'
 import Image from 'next/image'
 
 
-const page = () => {
+export default function RegisterPage() {
   const { isConnected } = useAccount()
   const [encryptionPublicKey, setEncryptionPublicKey] = React.useState<`0x${string}`>(`0x`)
   console.log(encryptionPublicKey, 'encryptionPublicKey')
@@ -38,5 +38,3 @@ const page = () => {
     </>
   )
 }
-
-export default page
