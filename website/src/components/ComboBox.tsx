@@ -47,8 +47,10 @@ export function ComboBox<T>({ options, value, onChange, className, placeholder, 
     <>
       <div>
         <HeadlessCombobox value={selected} onChange={(value) => {
-            setSelected(value)
-            onChange(value)
+            setSelected(value ?? undefined)
+            if (value) {
+              onChange(value)
+            }
           }}>
           <div className="relative">
             <ComboboxInput
