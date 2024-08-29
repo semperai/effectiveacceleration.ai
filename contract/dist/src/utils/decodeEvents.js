@@ -80,8 +80,7 @@ const decodeJobArbitratedEvent = (rawData) => {
         workerShare: marketplaceData.getUint16(34),
         workerAmount: (0, ethers_1.toBigInt)(bytes.slice(36, 68)),
         reasonHash: (0, ethers_1.hexlify)(bytes.slice(68, 100)),
-        workerAddress: (0, ethers_1.getAddress)((0, ethers_1.hexlify)(bytes.slice(100, 120))),
-        arbitratorAmount: (0, ethers_1.toBigInt)(bytes.slice(120, 152)),
+        workerAddress: (0, ethers_1.getAddress)((0, ethers_1.hexlify)(bytes.slice(100))),
     };
 };
 exports.decodeJobArbitratedEvent = decodeJobArbitratedEvent;
