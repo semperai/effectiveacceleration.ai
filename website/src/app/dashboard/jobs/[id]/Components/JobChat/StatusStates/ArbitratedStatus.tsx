@@ -26,18 +26,18 @@ interface ResultAcceptedProps {
         {address === job.roles.creator &&
           <span className='block'>“The arbitrator refunded your payment. You received &nbsp;
             {formatTokenNameAndAmount(job.token, arbitratedEvent?.creatorAmount)}
-            , arbitrator fee was {formatTokenNameAndAmount(job.token, arbitratedEvent?.arbitratorAmount)}
+            , arbitrator fee was {formatTokenNameAndAmount(job.token, /* TODO */ BigInt(0))}
           </span>
         }
         {address === job.roles.worker &&
           <span className='block'>The arbitrator refunded your payment. You received &nbsp;
             {formatTokenNameAndAmount(job.token, arbitratedEvent?.workerAmount)}
-            , arbitrator fee was {formatTokenNameAndAmount(job.token, arbitratedEvent?.arbitratorAmount)}
+            , arbitrator fee was {formatTokenNameAndAmount(job.token, /* TODO */ BigInt(0))}
           </span>
         }
         {address === job.roles.arbitrator &&
           <span className='block'>Payment refunded. You received &nbsp;
-            {formatTokenNameAndAmount(job.token, arbitratedEvent?.arbitratorAmount)}
+            {formatTokenNameAndAmount(job.token, /* TODO */ BigInt(0))}
           </span>
         }
         <span className='block text-primary'>
