@@ -34,8 +34,6 @@ export function AssignWorkerButton({address, job, ...rest}: AssignWorkerButtonPr
     hash
   });
 
-
-
   useEffect(() => {
     if (isConfirmed || error) {
       if (error) {
