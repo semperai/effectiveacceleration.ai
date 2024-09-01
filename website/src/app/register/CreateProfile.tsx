@@ -10,13 +10,15 @@ import { useAccount, useWaitForTransactionReceipt, useWriteContract } from "wagm
 import { MARKETPLACE_DATA_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceDataV1";
 import Config from "effectiveacceleration-contracts/scripts/config.json";
 import { useSearchParams } from 'next/navigation'
-import { create } from 'ipfs-http-client'
 import { UserButton } from '@/components/UserActions/UserButton'
 import useUser from '@/hooks/useUser'
+import { createHelia } from 'helia'
+import { unixfs } from '@helia/unixfs';
+import { CID } from 'multiformats/cid';
 
 const ipfsGatewayUrl = process.env.NEXT_PUBLIC_IPFS_GATEWAY_URL;
 
-const client = create({ url: 'http://localhost:5001' });
+// const helia = await createHelia({ url: 'http://localhost:5001' })
 
 const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string}`}) => {
   
@@ -41,6 +43,33 @@ const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string
     } = useWaitForTransactionReceipt({
       hash
     });
+
+    const uploadToIPFS = async (file: File): Promise<string> => {
+      try {
+        // Initialize Helia
+        const helia = await createHelia();
+        const fs = unixfs(helia);
+    
+        // Read file content as Uint8Array
+        const fileContent = await file.arrayBuffer();
+        const content = new Uint8Array(fileContent);
+    
+        // Add file to IPFS
+        const added = await fs.addFile({
+          path: file.name,
+          content,
+        });
+    
+        // Get the CID
+        const cid = added.toString();
+        console.log('File uploaded to IPFS with CID:', cid);
+    
+        return cid;
+      } catch (error) {
+        console.error('Error uploading file to IPFS:', error);
+        throw error;
+      }
+    };
 
     useEffect(() => {
       if (isConfirmed || error) {
@@ -77,9 +106,9 @@ const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string
         }
         if (file) {
           try {
-            const added = await client.add(file);
-            setAvatarCID(ipfsGatewayUrl + ((added.path).toString()));
-            console.log('AVATAR CID', added.path.toString())
+            const cid = await uploadToIPFS(file);
+            setAvatarCID(ipfsGatewayUrl + cid);
+            console.log('AVATAR CID', cid);
           } catch (error) {
             console.error('Error uploading file: ', error);
           }
