@@ -12,25 +12,19 @@ import Config from "effectiveacceleration-contracts/scripts/config.json";
 import { useSearchParams } from 'next/navigation'
 import { UserButton } from '@/components/UserActions/UserButton'
 import useUser from '@/hooks/useUser'
-import { createHelia } from 'helia'
-import { unixfs } from '@helia/unixfs';
-import { CID } from 'multiformats/cid';
 
-const ipfsGatewayUrl = process.env.NEXT_PUBLIC_IPFS_GATEWAY_URL;
+const ipfsGatewayUrl = process.env.NEXT_PUBLIC_IPFS_GATEWAY_URL ?? '';
 
 // const helia = await createHelia({ url: 'http://localhost:5001' })
 
 const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string}`}) => {
-  
-    const searchParams = useSearchParams();
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [avatar, setAvatar] = useState<string>('')
-    const [avatarCID, setAvatarCID] = useState<string>('')
     const [userName, setName] = useState<string>('') 
     const [userBio, setBio] = useState<string>('')
     const { address } = useAccount();
     const {data: user} = useUser(address!);
-    
+    const [avatarFileUrl, setAvatarFileUrl] = useState<string>('');
     const {
       data: hash,
       error,
@@ -44,30 +38,26 @@ const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string
       hash
     });
 
-    const uploadToIPFS = async (file: File): Promise<string> => {
+    const uploadToIPFS = async (file: File): Promise<void> => {
       try {
-        // Initialize Helia
-        const helia = await createHelia();
-        const fs = unixfs(helia);
-    
-        // Read file content as Uint8Array
-        const fileContent = await file.arrayBuffer();
-        const content = new Uint8Array(fileContent);
-    
-        // Add file to IPFS
-        const added = await fs.addFile({
-          path: file.name,
-          content,
+        const formData = new FormData();
+        formData.append('file', file);
+  
+        const response = await fetch('http://localhost:5001/api/v0/add', {
+          method: 'POST',
+          body: formData,
         });
-    
-        // Get the CID
-        const cid = added.toString();
-        console.log('File uploaded to IPFS with CID:', cid);
-    
-        return cid;
+  
+        if (!response.ok) {
+          throw new Error('Failed to upload file to IPFS');
+        }
+  
+        const data = await response.json();
+        const url = `${ipfsGatewayUrl}/ipfs/${data.Hash}`;
+        setAvatarFileUrl(url);
+        console.log('File uploaded to IPFS:', url);
       } catch (error) {
         console.error('Error uploading file to IPFS:', error);
-        throw error;
       }
     };
 
@@ -103,21 +93,14 @@ const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string
             setAvatar(reader.result as string)
           }
           reader.readAsDataURL(file)
-        }
-        if (file) {
-          try {
-            const cid = await uploadToIPFS(file);
-            setAvatarCID(ipfsGatewayUrl + cid);
-            console.log('AVATAR CID', cid);
-          } catch (error) {
-            console.error('Error uploading file: ', error);
-          }
+
+          uploadToIPFS(file);
         }
     }
 
 
     const submit = () => {
-      console.log(encryptionPublicKey, userName, userBio, avatarCID)
+      console.log(encryptionPublicKey, userName, userBio, avatarFileUrl)
       try {
         const w = writeContract({
           abi: MARKETPLACE_DATA_V1_ABI,
@@ -127,15 +110,13 @@ const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string
             encryptionPublicKey as `0x${string}`,
             userName, 
             userBio, 
-            avatarCID
+            avatarFileUrl
           ],
           
         });
-        console.log('successssssssssss', w)
       } catch (error) {
         console.error('Error writing contract: ', error);
       }
-
     }
   
 
