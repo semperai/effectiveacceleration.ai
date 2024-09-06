@@ -1,5 +1,5 @@
 'use client'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
 import OpenJobs from './JobsTablesData/OpenJobs';
@@ -9,18 +9,35 @@ import DisputedJobs from './JobsTablesData/DisputedJobs';
 import CancelledJobs from './JobsTablesData/CancelledJobs';
 import useJobs from '@/hooks/useJobs';
 import useUsersByAddresses from '@/hooks/useUsersByAddresses';
+import DevelopAllJobs from './JobsTablesData/DevelopAllJobs';
+import { Job, JobState } from 'effectiveacceleration-contracts/dist/src/interfaces';
+import { LocalStorageJob } from '@/service/JobsService';
 
 const DashboardTabs = () => {
   const { data: jobs } = useJobs();
   const { data: users } = useUsersByAddresses(jobs.map(job => job.roles.creator));
+  const [localJobs, setLocalJobs] = useState<Job[]>([]);
+  const [jobIds, setJobIds] = useState<bigint[]>([]);
+  useEffect(() => {
+    const storedJobs = localStorage.getItem('createdJobs');
+    if (storedJobs) {
+      const parsedJobs = JSON.parse(storedJobs);
+      const jobIdsArray = Array.from(new Set(parsedJobs.map((job: LocalStorageJob) => BigInt(job.jobId))));
+      setLocalJobs(parsedJobs);
+      setJobIds(jobIdsArray as bigint[]);
+    }
+  }, []);
 
-    console.log(jobs)
+  const filteredJobs = jobs.filter(job => jobIds.includes(BigInt(job.id as bigint))  && job.state === JobState.Open);
+  const filteredJobsInProgress = jobs.filter(job => jobIds.includes(BigInt(job.id as bigint))  && job.state === JobState.Taken);
+  console.log(filteredJobs, jobs)
+
   return (
     <div className=''>
     <Tabs>
         <TabList className='flex border-b-2 borde-gray-100 mb-7'>
             <Tab selectedClassName='!border-lightPurple  border-b-2  !text-lightPurple'  className='px-8 py-2 font-medium relative cursor-pointer top-[2px] outline-none text-darkBlueFont'>
-                Open Jobs
+              Open Jobs
             </Tab>
             <Tab selectedClassName='!border-lightPurple  border-b-2 !text-lightPurple'  className='px-8 py-2 font-medium relative cursor-pointer top-[2px] outline-none text-darkBlueFont'>
               In Progress</Tab>
@@ -30,21 +47,26 @@ const DashboardTabs = () => {
               Disputed</Tab>
             <Tab selectedClassName='!border-lightPurple  border-b-2 !text-lightPurple'  className='px-8 py-2 font-medium relative cursor-pointer top-[2px] outline-none text-darkBlueFont'>
               Cancelled</Tab>
+            <Tab selectedClassName='!border-lightPurple  border-b-2 !text-lightPurple'  className='px-8 py-2 font-medium relative cursor-pointer top-[2px] outline-none text-darkBlueFont'>
+              Develop: All Jobs</Tab>
         </TabList>
         <TabPanel>
-          <OpenJobs/>
+          <OpenJobs jobs={filteredJobs}/>
         </TabPanel>
         <TabPanel>
-          <JobProgress/>
+          <JobProgress jobs={filteredJobsInProgress}/>
         </TabPanel>
         <TabPanel>
-          <CompletedJobs/>
+          <CompletedJobs jobs={jobs}/>
         </TabPanel>
         <TabPanel>
           <DisputedJobs/>
         </TabPanel>        
         <TabPanel>
           <CancelledJobs/>
+        </TabPanel>
+        <TabPanel>
+          <DevelopAllJobs jobs={jobs}/>
         </TabPanel>
     </Tabs>
   </div>

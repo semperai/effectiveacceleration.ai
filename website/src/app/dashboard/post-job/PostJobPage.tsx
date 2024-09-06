@@ -5,6 +5,7 @@ import {
   useAccount,
   useReadContract,
   useWaitForTransactionReceipt,
+  useWatchContractEvent,
   useWriteContract,
 } from 'wagmi'
 import ERC20Abi from '@/abis/ERC20.json'
@@ -33,6 +34,8 @@ import moment from 'moment'
 import TagsInput from '@/components/TagsInput'
 import { BsInfoCircle } from 'react-icons/bs'
 import { usePathname, useSearchParams } from "next/navigation";
+import { MARKETPLACE_DATA_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceDataV1";
+import { LocalStorageJob } from '@/service/JobsService'
 
 interface PostJobParams {
   title?: string;
@@ -80,50 +83,41 @@ const validateField = (value: string, validation: FieldValidation): string => {
   return '';
 };
 
+
+const unitsDeliveryTime = [
+  { id: 0, name: 'minutes' },
+  { id: 1, name: 'hours' },
+  { id: 2, name: 'days' },
+  { id: 3, name: 'weeks' },
+  { id: 4, name: 'months' },
+  { id: 5, name: 'years' },
+]
+
+const categories = [
+  { id: "DA", name: "Digital Audio" },
+  { id: "DV", name: "Digital Video" },
+  { id: "DT", name: "Digital Text" },
+  { id: "DS", name: "Digital Software" },
+  { id: "DO", name: "Digital Others" },
+  { id: "NDG", name: "Non-Digital Goods" },
+  { id: "NDS", name: "Non-Digital Services" },
+  { id: "NDO", name: "Non-Digital Others" },
+]
+
+
 function PostJobPage() {
   const searchParams = useSearchParams();
   const { address } = useAccount();
-  const {
-    data: hash,
-    error,
-    isPending,
-    writeContract,
-  } = useWriteContract();
   const { data: workers } = useUsers();
   const workerAddresses = workers?.filter(worker => worker.address_ !== address).map((worker) => worker.address_) ?? [];
   const workerNames = workers?.filter(worker => worker.address_ !== address).map((worker) => worker.name) ?? [];
-
   const { data: arbitrators } = useArbitrators();
   const arbitratorAddresses = [zeroAddress, ...(arbitrators?.map((worker) => worker.address_) ?? [])];
   const arbitratorNames = ["None", ...(arbitrators?.map((worker) => worker.name) ?? [])];
   const arbitratorFees = ["0", ...(arbitrators?.map((worker) => worker.fee) ?? [])];
   const [selectedToken, setSelectedToken] = useState<Token | undefined>(tokens[0]);
   const multipleApplicantsValues = ['Yes', 'No']
-
-  const unitsDeliveryTime = [
-    { id: 0, name: 'minutes' },
-    { id: 1, name: 'hours' },
-    { id: 2, name: 'days' },
-    { id: 3, name: 'weeks' },
-    { id: 4, name: 'months' },
-    { id: 5, name: 'years' },
-  ]
-
-  const categories = [
-    { id: "DA", name: "Digital Audio" },
-    { id: "DV", name: "Digital Video" },
-    { id: "DT", name: "Digital Text" },
-    { id: "DS", name: "Digital Software" },
-    { id: "DO", name: "Digital Others" },
-    { id: "NDG", name: "Non-Digital Goods" },
-    { id: "NDS", name: "Non-Digital Services" },
-    { id: "NDO", name: "Non-Digital Others" },
-  ]
-
-
   const [showSummary, setShowSummary] = useState(false);
-
-
   const [title, setTitle] = useState<string>('');
   const [deliveryMethod, setDeliveryMethod] = useState('');
   const [description, setDescription] = useState<string>('');
@@ -137,8 +131,25 @@ function PostJobPage() {
   const [selectedCategory, setSelectedCategory] = useState<{id: string, name: string}>();
   const [selectedWorkerAddress, setsSelectedWorkerAddress] = useState<string | undefined>(undefined);
   const [selectedArbitratorAddress, setsSelectedArbitratorAddress] = useState<string>();
-
+  const [titleError, setTitleError] = useState<string>('');
+  const [descriptionError, setDescriptionError] = useState<string>('');
+  const [categoryError, setCategoryError] = useState<string>('');
   const [postButtonDisabled, setPostButtonDisabled] = useState(false);
+
+  const {
+    data: hash,
+    error,
+    isPending,
+    writeContract,
+  } = useWriteContract();
+
+  const {
+    isLoading: isConfirming,
+    isSuccess: isConfirmed,
+  } = useWaitForTransactionReceipt({
+    hash, 
+  });
+
   useEffect(() => {
     if (
       title         == ''
@@ -153,22 +164,6 @@ function PostJobPage() {
     }
   }, [title, description, amount, deadline, selectedToken, error])
 
-  const {
-    isLoading: isConfirming,
-    isSuccess: isConfirmed,
-  } = useWaitForTransactionReceipt({
-    hash, 
-  });
-
-  useEffect(() => {
-    if (isConfirmed || error) {
-      if (error) {
-        console.log(error, error.message);
-        alert(error.message.match(`The contract function ".*" reverted with the following reason:\n(.*)\n.*`)?.[1])
-      }
-    }
-  }, [isConfirmed, error]);
-
   const handleSummary = () => {
     setShowSummary(!showSummary);
   };
@@ -180,10 +175,6 @@ function PostJobPage() {
     functionName: 'balanceOf',
     args:         [address!],
   });
-
-  if (balanceData) {
-    console.log('balance', balanceData.toString())
-  }
 
   async function postJobClick() {
     if (!deadline) return
@@ -212,13 +203,38 @@ function PostJobPage() {
         selectedWorkerAddress ? [selectedWorkerAddress as `0x${string}`] : [],
       ],
     });
-
-    console.log('writeContract', w);
   }
 
-  const [titleError, setTitleError] = useState<string>('');
-  const [descriptionError, setDescriptionError] = useState<string>('');
-  const [categoryError, setCategoryError] = useState<string>('');
+  const jobIdCache = (jobId: bigint) => {
+    const createdJobId = jobId.toString()
+    const createdJobs = JSON.parse(localStorage.getItem('createdJobs') || '[]');
+
+    const newJob: LocalStorageJob = {
+      jobId: createdJobId,
+      title: title,
+      description: description,
+      multipleApplicants: multipleApplicants === 'Yes',
+      categoriesAndTags: [selectedCategory?.id, ...tags.map(tag => tag.name)],
+      selectedTokenId: selectedToken ? `0x${selectedToken.id}` : null,
+      deadline,
+      deliveryMethod,
+      selectedArbitratorAddress: `0x${selectedArbitratorAddress}`,
+      selectedWorkerAddresses: selectedWorkerAddress ? [`0x${selectedWorkerAddress}`] : []
+    };
+
+    createdJobs.push(newJob);
+    localStorage.setItem('createdJobs', JSON.stringify(createdJobs));
+  }
+
+  useWatchContractEvent({
+    address: Config.marketplaceDataAddress as `0x${string}`,
+    abi: MARKETPLACE_DATA_V1_ABI,
+    eventName: 'JobEvent',
+    onLogs: async (jobEvent) => {
+        if (!isConfirmed) return
+        jobIdCache(jobEvent[0].args.jobId as bigint) 
+    },
+  });
 
   const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>, errorSetter: React.Dispatch<React.SetStateAction<string>>, validation: FieldValidation) => (e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
@@ -259,6 +275,16 @@ function PostJobPage() {
     { label: 'Worker Address', inputInfo: selectedWorkerAddress },
   ];
       
+  
+  useEffect(() => {
+    if (isConfirmed || error) {
+      if (error) {
+        console.log(error, error.message);
+        alert(error.message.match(`The contract function ".*" reverted with the following reason:\n(.*)\n.*`)?.[1])
+      }
+    }
+  }, [isConfirmed, error]);
+
   useEffect(() => {
     const params = Object.fromEntries(searchParams.entries());
     const extractedParams: PostJobParams = {

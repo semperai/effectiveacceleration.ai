@@ -2,30 +2,9 @@ import React from 'react'
 import JobsTable from '../JobsTable'
 import { TCompletedTable} from '@/service/JobsService';
 import { useReactTable, getCoreRowModel, createColumnHelper } from '@tanstack/react-table';
+import { Job } from 'effectiveacceleration-contracts/dist/src/interfaces';
 
-const defaultDataCompletedTable: TCompletedTable[] = [
-  {
-    jobName: 'test',
-    status: 'test',
-    timeTaken: 24,
-    completedBy: 'test',
-    actions: 'test',
-  },
-  {
-    jobName: 'test',
-    status: 'test',
-    timeTaken: 24,
-    completedBy: 'test',
-    actions: 'test',
-  },
-  {
-    jobName: 'test',
-    status: 'test',
-    timeTaken: 24,
-    completedBy: 'test',
-    actions: 'test',
-  },
-]
+
 const columnHelperCompletedTable = createColumnHelper<TCompletedTable>()
 
 const columnsCompletedTable = [
@@ -56,7 +35,14 @@ const columnsCompletedTable = [
   })
 ]
 
-const OpenJobs = () => {
+const OpenJobs = ({jobs}:{jobs:Job[]}) => {
+  const defaultDataCompletedTable: TCompletedTable[] = jobs.map(job => ({
+    jobName: job.title,
+    status: job.state,
+    timeTaken: job.maxTime,
+    completedBy: job.roles.worker,
+    actions: 'test', // Assuming 'actions' is a placeholder for now
+  }));
   const [dataCompletedTable, _setDataCompletedTable] = React.useState(() => [...defaultDataCompletedTable])
   const tableCompletedTable = useReactTable({
       data: dataCompletedTable,

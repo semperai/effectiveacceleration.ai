@@ -1,7 +1,7 @@
 export type TOpenJobTable = {
     jobName: string
     description: string
-    tag: string
+    tag: string[]
     actions: string
 }
 
@@ -14,7 +14,7 @@ export type TInProgressTable = {
 
 export type TCompletedTable = {
     jobName: string
-    status: string
+    status: number
     timeTaken: number
     completedBy: string
     actions: string
@@ -34,3 +34,15 @@ export type TCancelledTable = {
     actionsTaken: string
 }
 
+export type LocalStorageJob = {
+    jobId: string;
+    title: string;
+    description: string;
+    multipleApplicants: boolean;
+    categoriesAndTags: (string | undefined)[];
+    selectedTokenId: string | null;
+    deadline: number | undefined;
+    deliveryMethod: string;
+    selectedArbitratorAddress: string;
+    selectedWorkerAddresses: string[];
+  }
