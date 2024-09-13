@@ -52,16 +52,16 @@ export function AssignWorkerButton({address, job, ...rest}: AssignWorkerButtonPr
 
   const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
 
+
   async function buttonClick() {
     setButtonDisabled(true);
-
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
       address: Config.marketplaceAddress as `0x${string}`,
       functionName: 'payStartJob',
       args: [
         job.id!,
-        selectedUserAddress!,
+        userList[0].address_!,
       ],
     });
   }
@@ -75,11 +75,10 @@ export function AssignWorkerButton({address, job, ...rest}: AssignWorkerButtonPr
   function openModal() {
     setIsOpen(true)
   }
-
+  
   return <>
-    <Button disabled={buttonDisabled} onClick={() => openModal()} color={'borderlessGray'} className={'w-full'}>
-      <CheckIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-      Assign Worker
+    <Button disabled={buttonDisabled} onClick={() => openModal()} color={'purplePrimary'} className={'w-full'}>
+      Start Job with WORKER
     </Button>
       <Transition appear show={isOpen} as={Fragment}>
         <Dialog as="div" className="relative z-10" onClose={closeModal}>
@@ -109,25 +108,20 @@ export function AssignWorkerButton({address, job, ...rest}: AssignWorkerButtonPr
                 <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                   <Dialog.Title
                     as="h3"
-                    className="text-lg font-medium leading-6 text-gray-900"
+                    className="text-lg font-medium leading-6  mb-4"
                   >
-                    Select User
+                    Review job details
                   </Dialog.Title>
+                  <div className='flex flex-col'>
+                    <span><b>Title:</b> {job.title}</span>
+                    <span><b>Content:</b> {job.content}</span>
+                    <span><b>delivery Method:</b> {job.deliveryMethod}</span>
+                    <span><b>Max Time:</b> {job.maxTime}</span>
+                    <span><b>Amount:</b> {job.tags}</span>
+                    <span><b>Worker:</b> WORKER</span>
+                  </div>
                   <div className='mt-5 mb-3 flex flex-col gap-5'>
-                    <Listbox
-                      value={selectedUserAddress}
-                      onChange={(e) => setSelectedUserAddress(e)}
-                      className="border border-gray-300 rounded-md shadow-sm z-10"
-                      placeholder="Select an option"
-                    >
-                      {userList.map((user, index) => (
-                          <ListboxOption key={index} value={user.address_}>
-                            {user.name}
-                          </ListboxOption>
-                      ))}
-                    </Listbox>
                     <Button disabled={buttonDisabled} onClick={buttonClick}>
-                      <CheckIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
                       Confirm
                     </Button>
                   </div>

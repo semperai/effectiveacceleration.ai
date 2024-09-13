@@ -18,7 +18,7 @@ import { Job, JobEventWithDiffs, JobState } from 'effectiveacceleration-contract
 import React from 'react'
 import { zeroHash, zeroAddress } from 'viem'
 
-const JobButtonActions = ({job, address, sessionKeys, addresses, events, whitelistedWorkers} : {job: Job | undefined, address:`0x${string}` | undefined, sessionKeys:Record<string, string>, addresses: string[], events: JobEventWithDiffs[], whitelistedWorkers: string[]}) => {
+const JobButtonActions = ({job, address, sessionKeys, addresses, events, whitelistedWorkers, timePassed} : {job: Job | undefined, address:`0x${string}` | undefined, sessionKeys:Record<string, string>, addresses: string[], events: JobEventWithDiffs[], whitelistedWorkers: string[], timePassed?: boolean}) => {
   return (
     <div className="">
     {job && <div className="flex flex-col gap-2">
@@ -26,14 +26,19 @@ const JobButtonActions = ({job, address, sessionKeys, addresses, events, whiteli
       {job.state === JobState.Taken && job.resultHash !== zeroHash && job.roles.arbitrator !== zeroAddress && address !== job.roles.arbitrator && addresses.length && Object.keys(sessionKeys).length > 0 &&
         <DisputeButton address={address} sessionKeys={sessionKeys} job={job}></DisputeButton>
       }
+      {/* {job.state !== JobState.Closed && address !== job.roles.arbitrator && addresses.length && Object.keys(sessionKeys).length > 0 &&
+          <div className='row-span-1 flex flex-1 border border-gray-100'>
+              <PostMessageButton address={address} addresses={addresses as any} sessionKeys={sessionKeys} job={job}/>
+          </div>
+      } */}
 
       {/* owner actions */}
-      {job.state === JobState.Open && address === job.roles.creator && events.length > 0 &&
+      {/* {job.state === JobState.Open && address === job.roles.creator && events.length > 0 &&
         <AssignWorkerButton address={address} job={job}></AssignWorkerButton>
-      }
-      {job.state === JobState.Taken && job.resultHash !== zeroHash && address === job.roles.creator &&
+      } */}
+      {/* {job.state === JobState.Taken && job.resultHash !== zeroHash && address === job.roles.creator &&
         <ApproveButton address={address} job={job}></ApproveButton>
-      }
+      } */}
       {job.state === JobState.Closed && job.rating === 0 && job.resultHash !== zeroHash && address === job.roles.creator &&
         <ReviewButton address={address} job={job}></ReviewButton>
       }
@@ -43,7 +48,7 @@ const JobButtonActions = ({job, address, sessionKeys, addresses, events, whiteli
       {job.state === JobState.Closed && address === job.roles.creator && job.resultHash === zeroHash &&
         <ReopenButton address={address} job={job}></ReopenButton>
       }
-      {job.state === JobState.Closed && address === job.roles.creator && job.collateralOwed > 0n &&
+      {job.state === JobState.Closed && address === job.roles.creator && job.collateralOwed > 0n && timePassed &&
         <WithdrawCollateralButton address={address} job={job}></WithdrawCollateralButton>
       }
       {job.state === JobState.Open && address === job.roles.creator && job.whitelistWorkers &&
@@ -52,7 +57,7 @@ const JobButtonActions = ({job, address, sessionKeys, addresses, events, whiteli
       {job.state === JobState.Open && address === job.roles.creator && job.whitelistWorkers && events.length > 0 && events.at(-1)!.job.allowedWorkers!.length! > 0 &&
         <RemoveFromWhitelistButton address={address} job={job} whitelist={whitelistedWorkers}></RemoveFromWhitelistButton>
       }
-      {job.state === JobState.Open && address === job.roles.creator &&
+      {(job.state === JobState.Open && address === job.roles.creator || job.state === JobState.Closed && address === job.roles.creator && job.resultHash === zeroHash) &&
         <UpdateButton address={address} job={job}></UpdateButton>
       }
 

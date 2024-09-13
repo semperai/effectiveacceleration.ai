@@ -1,15 +1,10 @@
 import { Input } from '@/components/Input'
+import { Tag } from '@/service/FormsTypes';
 import clsx from 'clsx';
 import React, { useState, KeyboardEvent } from 'react';
 import { IoIosClose } from 'react-icons/io';
 
-interface Tag {
-  id: number;
-  name: string;
-}
-
-const TagsInput: React.FC = () => {
-  const [tags, setTags] = useState<Tag[]>([]);
+const TagsInput: React.FC<{tags: Tag[], setTags: (tags: Tag[]) => void}> = ({tags, setTags}) => {
   const [inputValue, setInputValue] = useState('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,7 +40,7 @@ const TagsInput: React.FC = () => {
         className={clsx([
             // Basic layout
             `${tags.length > 0 ? '!rounded-b-none' : '!rounded-xl'}`,
-            'relative block w-full !mt-0',
+            'relative block w-full !mt-0 !pr-[25%]',
             'w-full border-0  border-b border-gray-200 text-sm',
             // Background color + shadow applied to inset pseudo element, so shadow blends with border in light mode
             'before: rounded-xl',

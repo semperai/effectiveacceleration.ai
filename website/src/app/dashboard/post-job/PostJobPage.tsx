@@ -1,10 +1,11 @@
 'use client'
-import React from 'react'
+import React, { ChangeEvent, FormEvent } from 'react'
 import { ethers } from 'ethers'
 import {
   useAccount,
   useReadContract,
   useWaitForTransactionReceipt,
+  useWatchContractEvent,
   useWriteContract,
 } from 'wagmi'
 import ERC20Abi from '@/abis/ERC20.json'
@@ -26,12 +27,26 @@ import { zeroAddress } from 'viem'
 import useUsers from '@/hooks/useUsers'
 import useArbitrators from '@/hooks/useArbitrators'
 import { ComboBox } from '@/components/ComboBox'
-import { ComboBoxOption, JobFormInputData } from '@/service/FormsTypes'
+import { ComboBoxOption, JobFormInputData, Tag } from '@/service/FormsTypes'
 import JobSummary from './JobSummary'
 import Image from 'next/image'
 import moment from 'moment'
 import TagsInput from '@/components/TagsInput'
 import { BsInfoCircle } from 'react-icons/bs'
+import { usePathname, useSearchParams } from "next/navigation";
+import { MARKETPLACE_DATA_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceDataV1";
+import { LocalStorageJob } from '@/service/JobsService'
+import useUnsavedChangesWarning from '@/hooks/useUnsavedChangesWarning'
+
+interface PostJobParams {
+  title?: string;
+  content?: string;
+  token?: string;
+  maxTime?: string;
+  deliveryMethod?: string;
+  arbitrator?: string;
+  tags: string[];
+}
 
 function shortenText({text, maxLength} : {text: string | `0x${string}` | undefined, maxLength: number}) {
   if (!text) return console.log("No text provided");
@@ -46,74 +61,95 @@ function shortenText({text, maxLength} : {text: string | `0x${string}` | undefin
   return `${start}...${end}`;
 }
 
+interface FieldValidation {
+  required?: boolean;
+  minLength?: number;
+  pattern?: RegExp;
+  custom?: (value: string) => string;
+}
+
+const validateField = (value: string, validation: FieldValidation): string => {
+  if (validation.required && !value) {
+    return 'This field is required';
+  }
+  if (validation.minLength && value.length < validation.minLength) {
+    return `Must be at least ${validation.minLength} characters long`;
+  }
+  if (validation.pattern && !validation.pattern.test(value)) {
+    return 'Invalid format';
+  }
+  if (validation.custom) {
+    return validation.custom(value);
+  }
+  return '';
+};
+
+
+const unitsDeliveryTime = [
+  { id: 0, name: 'minutes' },
+  { id: 1, name: 'hours' },
+  { id: 2, name: 'days' },
+  { id: 3, name: 'weeks' },
+  { id: 4, name: 'months' },
+  { id: 5, name: 'years' },
+]
+
+const categories = [
+  { id: "DA", name: "Digital Audio" },
+  { id: "DV", name: "Digital Video" },
+  { id: "DT", name: "Digital Text" },
+  { id: "DS", name: "Digital Software" },
+  { id: "DO", name: "Digital Others" },
+  { id: "NDG", name: "Non-Digital Goods" },
+  { id: "NDS", name: "Non-Digital Services" },
+  { id: "NDO", name: "Non-Digital Others" },
+]
+
 function PostJobPage() {
+  const searchParams = useSearchParams();
   const { address } = useAccount();
-  const {
-    data: hash,
-    error,
-    isPending,
-    writeContract,
-  } = useWriteContract();
   const { data: workers } = useUsers();
   const workerAddresses = workers?.filter(worker => worker.address_ !== address).map((worker) => worker.address_) ?? [];
   const workerNames = workers?.filter(worker => worker.address_ !== address).map((worker) => worker.name) ?? [];
-
   const { data: arbitrators } = useArbitrators();
   const arbitratorAddresses = [zeroAddress, ...(arbitrators?.map((worker) => worker.address_) ?? [])];
   const arbitratorNames = ["None", ...(arbitrators?.map((worker) => worker.name) ?? [])];
   const arbitratorFees = ["0", ...(arbitrators?.map((worker) => worker.fee) ?? [])];
-  console.log(arbitrators)
-
   const [selectedToken, setSelectedToken] = useState<Token | undefined>(tokens[0]);
   const multipleApplicantsValues = ['Yes', 'No']
-
-
-  const tags = [
-    { id: 0, name: 'None' },
-    { id: 1, name: 'Web' },
-    { id: 2, name: 'Design' },
-    { id: 3, name: 'Translation' },
-    { id: 4, name: 'Counting' },
-    { id: 5, name: 'Marketing' },
-  ]
-
-  const unitsDeliveryTime = [
-    { id: 0, name: 'Minutes' },
-    { id: 1, name: 'Hours' },
-    { id: 2, name: 'Days' },
-    { id: 3, name: 'Weeks' },
-    { id: 4, name: 'Months' },
-  ]
-
-  const categories = [
-    { id: "DA", name: "Digital Audio" },
-    { id: "DV", name: "Digital Video" },
-    { id: "DT", name: "Digital Text" },
-    { id: "DS", name: "Digital Software" },
-    { id: "DO", name: "Digital Others" },
-    { id: "NDG", name: "Non-Digital Goods" },
-    { id: "NDS", name: "Non-Digital Services" },
-    { id: "NDO", name: "Non-Digital Others" },
-  ]
-
-
   const [showSummary, setShowSummary] = useState(false);
-
-  const [title, setTitle] = useState('');
+  const [title, setTitle] = useState<string>('');
   const [deliveryMethod, setDeliveryMethod] = useState('');
-  const [description, setDescription] = useState('');
+  const [description, setDescription] = useState<string>('');
   // const [amount, setAmount] = useState(ethers.formatUnits(0, 0));
   const [amount, setAmount] = useState('');
   const [deadline, setDeadline] = useState<number>();
   const [multipleApplicants, setMultipleApplicants] = useState(multipleApplicantsValues[1])
   const [arbitratorRequired, setArbitratorRequired] = useState(multipleApplicantsValues[0])
   const [selectedUnitTime, setselectedUnitTime] = useState<ComboBoxOption>()
-  const [selectedTag, setselectedTag] = useState<ComboBoxOption>(tags[0])
-  const [selectedCategory, setSelectedCategory] = useState<{id: string, name: string}>(categories[0]);
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<{id: string, name: string}>();
   const [selectedWorkerAddress, setsSelectedWorkerAddress] = useState<string | undefined>(undefined);
   const [selectedArbitratorAddress, setsSelectedArbitratorAddress] = useState<string>();
-
+  const [titleError, setTitleError] = useState<string>('');
+  const [descriptionError, setDescriptionError] = useState<string>('');
+  const [categoryError, setCategoryError] = useState<string>('');
   const [postButtonDisabled, setPostButtonDisabled] = useState(false);
+
+  const {
+    data: hash,
+    error,
+    isPending,
+    writeContract,
+  } = useWriteContract();
+
+  const {
+    isLoading: isConfirming,
+    isSuccess: isConfirmed,
+  } = useWaitForTransactionReceipt({
+    hash, 
+  });
+
   useEffect(() => {
     if (
       title         == ''
@@ -128,22 +164,6 @@ function PostJobPage() {
     }
   }, [title, description, amount, deadline, selectedToken, error])
 
-  const {
-    isLoading: isConfirming,
-    isSuccess: isConfirmed,
-  } = useWaitForTransactionReceipt({
-    hash, 
-  });
-
-  useEffect(() => {
-    if (isConfirmed || error) {
-      if (error) {
-        console.log(error, error.message);
-        alert(error.message.match(`The contract function ".*" reverted with the following reason:\n(.*)\n.*`)?.[1])
-      }
-    }
-  }, [isConfirmed, error]);
-
   const handleSummary = () => {
     setShowSummary(!showSummary);
   };
@@ -156,13 +176,10 @@ function PostJobPage() {
     args:         [address!],
   });
 
-  if (balanceData) {
-    console.log('balance', balanceData.toString())
-  }
-
   async function postJobClick() {
     if (!deadline) return
     if (!amount) return
+    if (!selectedCategory) return
     setPostButtonDisabled(true);
 
     console.log('posting job', title, description, selectedToken?.id, amount, deadline);
@@ -177,7 +194,7 @@ function PostJobPage() {
         title,
         contentHash as `0x${string}`,
         multipleApplicants === 'Yes',
-        [selectedCategory.id, ...(selectedTag.id !== 0 ? [selectedTag.name] : [])],
+        [selectedCategory.id, ...tags.map(tag => tag.name)],
         selectedToken?.id! as `0x${string}`,
         ethers.parseUnits(amount, selectedToken?.decimals!),
         deadline,
@@ -186,25 +203,106 @@ function PostJobPage() {
         selectedWorkerAddress ? [selectedWorkerAddress as `0x${string}`] : [],
       ],
     });
-
-    console.log('writeContract', w);
   }
 
+  const jobIdCache = (jobId: bigint) => {
+    const createdJobId = jobId.toString()
+    const createdJobs = JSON.parse(localStorage.getItem('createdJobs') || '[]');
+
+    const newJob: LocalStorageJob = {
+      jobId: createdJobId,
+      title: title,
+      description: description,
+      multipleApplicants: multipleApplicants === 'Yes',
+      categoriesAndTags: [selectedCategory?.id, ...tags.map(tag => tag.name)],
+      selectedTokenId: selectedToken ? `0x${selectedToken.id}` : null,
+      deadline,
+      deliveryMethod,
+      selectedArbitratorAddress: `0x${selectedArbitratorAddress}`,
+      selectedWorkerAddresses: selectedWorkerAddress ? [`0x${selectedWorkerAddress}`] : []
+    };
+
+    createdJobs.push(newJob);
+    localStorage.setItem('createdJobs', JSON.stringify(createdJobs));
+  }
+
+  useWatchContractEvent({
+    address: Config.marketplaceDataAddress as `0x${string}`,
+    abi: MARKETPLACE_DATA_V1_ABI,
+    eventName: 'JobEvent',
+    onLogs: async (jobEvent) => {
+        if (!isConfirmed) return
+        jobIdCache(jobEvent[0].args.jobId as bigint) 
+    },
+  });
+
+  const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>, errorSetter: React.Dispatch<React.SetStateAction<string>>, validation: FieldValidation) => (e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setter(value);
+    const errorMessage = validateField(value, validation);
+    errorSetter(errorMessage);
+  };
+
+  const handleSubmit = () => {
+    // Validate all fields before submission
+    const titleValidationMessage = validateField(title, { required: true, minLength: 3 });
+    const descriptionValidationMessage = validateField(description, { required: true, minLength: 10 });
+    // const categoryValidationMessage = validateField(selectedCategory, { required: true, minLength: 10 });
+
+    setTitleError(titleValidationMessage);
+    setDescriptionError(descriptionValidationMessage);
+    // setCategoryError(categoryValidationMessage)
+    if (!titleValidationMessage && !descriptionValidationMessage) {
+      // Proceed with form submission
+      console.log('Form is valid');
+      handleSummary();
+    } else {
+      console.log('Form has errors');
+    }
+  };
   const formInputs: JobFormInputData[] = [
     { label: 'Job Title', inputInfo: title },
     { label: 'Description', inputInfo: description },
     { label: 'Multiple Applicants', inputInfo: multipleApplicants},
-    { label: 'Category', inputInfo: selectedTag?.name },
     { label: 'Category', inputInfo: selectedCategory?.name },
+    { label: 'Tags', inputInfo: tags.map(tag => tag.name).join(', ') },
     { label: 'Token', inputInfo: <div className='flex items-center'><span className=' inline mr-1'>{selectedToken?.id}</span><span className='font-bold inline mr-1'>{selectedToken?.symbol}</span><img className='inline' alt='Chain Icon' height={30} width={30} src={selectedToken?.icon || ''}/></div> },
     { label: 'Price', inputInfo: <><span className='inline mr-1'>{amount}</span></> },
-    { label: 'Deadline', inputInfo:   moment.duration(deadline, "days").humanize() },
     { label: 'Delivery Method', inputInfo:  deliveryMethod },
+    { label: 'Deadline', inputInfo:   moment.duration(deadline, selectedUnitTime?.name as moment.unitOfTime.DurationConstructor).humanize() },
+    { label: 'Arbitrator Required', inputInfo: arbitratorRequired},
     { label: 'Arbitrator Address', inputInfo: selectedArbitratorAddress },
     { label: 'Worker Address', inputInfo: selectedWorkerAddress },
   ];
+  useEffect(() => {
+    if (isConfirmed || error) {
+      if (error) {
+        console.log(error, error.message);
+        alert(error.message.match(`The contract function ".*" reverted with the following reason:\n(.*)\n.*`)?.[1])
+      }
+    }
+  }, [isConfirmed, error]);
 
+  useEffect(() => {
+    const params = Object.fromEntries(searchParams.entries());
+    const extractedParams: PostJobParams = {
+      ...params,
+      tags: searchParams.getAll('tags')
+    };
+    setTitle(extractedParams.title || '');
+    setDescription(extractedParams.content || '');
+    setTags(extractedParams.tags.map((tag, index) => ({ id: index, name: tag })));
+    setDeliveryMethod(extractedParams.deliveryMethod || '');
+    if (extractedParams.arbitrator === '0x0000000000000000000000000000000000000000') {
+      setArbitratorRequired('No');
+    } else {
+      setsSelectedArbitratorAddress(extractedParams.arbitrator || '');
+    }
+    setDeadline(parseInt(extractedParams.maxTime || '0'));
+    console.log(selectedArbitratorAddress, 'arbitratorAddresses', extractedParams.arbitrator)
+  }, [searchParams])
 
+  useUnsavedChangesWarning(isConfirmed)
   return (
     <div>
       {!showSummary && (
@@ -222,25 +320,27 @@ function PostJobPage() {
                 name="title"
                 value={title}
                 placeholder='Title'
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={handleInputChange(setTitle, setTitleError, { required: true, minLength: 3 })}
               />
+              {titleError && <div className='text-xs' style={{ color: 'red' }}>{titleError}</div>}
             </Field>
             <Field>
               <Label>Description</Label>
               <Textarea
-              rows={10}
+                rows={10}
                 name="description"
                 placeholder='Job Description'
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={handleInputChange(setDescription, setDescriptionError, { required: true, minLength: 10 })}
               />
+                {descriptionError && <div className='text-xs' style={{ color: 'red' }}>{descriptionError}</div>}
             </Field>
             <Field className='flex flex-row justify-between items-center'>
               <Label className='items-center'>Multiple Applicants</Label>
               <RadioGroup className='flex !mt-0' value={multipleApplicants} onChange={setMultipleApplicants} aria-label="Server size">
                 {multipleApplicantsValues.map((option) => (
                   <Field className='items-center flex !mt-0 ml-5' key={option}>
-                    <Radio className='mr-2' value={option}>
+                    <Radio  className='mr-2' color='default'  value={option}>
                       <span>{option}</span>
                     </Radio>
                     <Label>{option}</Label>
@@ -251,14 +351,15 @@ function PostJobPage() {
             </Field>
             <Field>
               <Label>Category</Label>
-              <ComboBox placeholder='Search Category...' className="w-auto border border-gray-300 rounded-md shadow-sm bg-slate-600" 
+              <ComboBox placeholder='Search Category...' value={selectedCategory} className="w-auto border border-gray-300 rounded-md shadow-sm bg-slate-600" 
               options={categories}  onChange={(option) => {
                 setSelectedCategory(option as {id: string, name: string})
               }}></ComboBox>
+              {categoryError && <div className='text-xs' style={{ color: 'red' }}>{descriptionError}</div>}
             </Field>
             <Field>
               <Label>Tags</Label>
-              <TagsInput/>
+              <TagsInput tags={tags} setTags={setTags}/>
             </Field>
             <Field>
 
@@ -280,24 +381,26 @@ function PostJobPage() {
             </Field>
             <Field className='flex-1'>
               <Label>Payment Token</Label>
-              <Input
-                name="token"
-                value={selectedToken?.id}
-                readOnly={true}
-              />
-              <div className="flex flex-col gap-4">
-                <TokenSelector
-                  selectedToken={selectedToken}
-                  onClick={(token: Token) => setSelectedToken(token)}
+              <div className='flex items-center gap-x-2'>
+                <Input
+                  name="token"
+                  value={selectedToken?.id}
+                  readOnly={true}
                 />
+                <div className="flex flex-col gap-4">
+                  <TokenSelector
+                    selectedToken={selectedToken}
+                    onClick={(token: Token) => setSelectedToken(token)}
+                  />
+                </div>
+                {selectedToken && !!balanceData && (
+                  <Text>
+                    {ethers.formatEther(balanceData as ethers.BigNumberish)}
+                    {' '}
+                    {selectedToken.symbol} available
+                  </Text>
+                )}
               </div>
-              {selectedToken && !!balanceData && (
-                <Text>
-                  {ethers.formatEther(balanceData as ethers.BigNumberish)}
-                  {' '}
-                  {selectedToken.symbol} available
-                </Text>
-              )}
             </Field>
           </div>
             <Field>
@@ -314,7 +417,7 @@ function PostJobPage() {
               <RadioGroup className='flex !mt-0' value={arbitratorRequired} onChange={setArbitratorRequired} aria-label="Server size">
                 {multipleApplicantsValues.map((option) => (
                   <Field className='items-center flex !mt-0 ml-5' key={option}>
-                    <Radio color='orange' className='mr-2' value={option}>
+                    <Radio color='default' className='mr-2' value={option}>
                       <span>{option}</span>
                     </Radio>
                     <Label>{option}</Label>
@@ -340,14 +443,6 @@ function PostJobPage() {
               </Listbox>
               </Field>
             )}
-            <Field className='flex-1'>
-            <Label>Units</Label>
-            <ComboBox placeholder='Time Units' className="w-auto border border-gray-300 rounded-md shadow-sm bg-slate-600" 
-              options={unitsDeliveryTime}  onChange={(option) => {
-                setselectedUnitTime(option as ComboBoxOption)
-              }}>
-            </ComboBox>
-            </Field>
 
           
             <div className='flex flex-row justify-between gap-5'>
@@ -368,6 +463,7 @@ function PostJobPage() {
             <Field className='flex-1'>
             <Label>Units</Label>
             <ComboBox placeholder='Time Units' className="w-auto border border-gray-300 rounded-md shadow-sm bg-slate-600" 
+              value={selectedUnitTime}
               options={unitsDeliveryTime}  onChange={(option) => {
                 setselectedUnitTime(option as ComboBoxOption)
               }}></ComboBox>
@@ -380,7 +476,7 @@ function PostJobPage() {
                   <Button
                     // disabled={postButtonDisabled || isPending}
                     // onClick={postJobClick}
-                    onClick={handleSummary}
+                    onClick={handleSubmit}
                   >
                     {isPending ? 'Posting...' : 'Continue'}
                   </Button>

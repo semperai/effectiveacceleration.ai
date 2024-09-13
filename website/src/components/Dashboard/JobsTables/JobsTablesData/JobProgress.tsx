@@ -1,65 +1,53 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import JobsTable from '../JobsTable'
-import {TInProgressTable} from '@/service/JobsService';
-import { useReactTable, getCoreRowModel, createColumnHelper } from '@tanstack/react-table';
+import {LocalStorageJob, TInProgressTable, TOpenJobTable} from '@/service/JobsService';
+import { useReactTable, getCoreRowModel, createColumnHelper } from '@tanstack/react-table'
+import useJobs from '@/hooks/useJobs';
+import { Job, JobState } from 'effectiveacceleration-contracts/dist/src/interfaces';
+import Link from 'next/link';
 
-const defaultDataProgressTable: TInProgressTable[] = [
-  {
-    jobName: 'tanner',
-    assignedTo: 'linsley',
-    progress: 50,
-    actions: 'View Applicants',
-  },
-  {
-    jobName: 'tanner',
-    assignedTo: 'linsley',
-    progress: 50,
-    actions: 'View Applicants',
-  },
-  {
-    jobName: 'tanner',
-    assignedTo: 'linsley',
-    progress: 50,
-    actions: 'View Applicants',
-  },
-]
+const columnHelperCompletedTable = createColumnHelper<TOpenJobTable>()
 
-const columnHelperProgressTable = createColumnHelper<TInProgressTable>()
-
-const columnsProgressTable = [
-  columnHelperProgressTable.accessor(row => row.jobName, {
+const columnsCompletedTable = [
+  columnHelperCompletedTable.accessor(row => row.jobName, {
       id: 'jobName',
-      cell: info => <i>{info.getValue()}</i>,
-      header: () => <span>Job Name</span>,
+      cell: info => <div>{info.getValue()}</div>,
+      header: () => <span className='text-black'>Job Name</span>,
   }),
-  columnHelperProgressTable.accessor(row => row.assignedTo, {
-    id: 'assignedTo',
-    cell: info => <i>{info.getValue()}</i>,
-    header: () => <span>AssignedTo</span>,
+  columnHelperCompletedTable.accessor(row => row.description, {
+    id: 'description',
+    cell: info => <div>{info.getValue()}</div>,
+    header: () => <span className='text-black'>Assigned to</span>,
   }),
-  columnHelperProgressTable.accessor(row => row.progress, {
-      id: 'progress',
-      cell: info => <i>{info.getValue()}</i>,
-      header: () => <span>progress</span>,
+  columnHelperCompletedTable.accessor(row => row.tag, {
+      id: 'tag',
+      cell: info => <div>{info.getValue()}</div>,
+      header: () => <span className='text-black'>Progress</span>,
   }),
-  columnHelperProgressTable.accessor(row => row.actions, {
-      id: 'actions',
-      cell: info => <i>{info.getValue()}</i>,
-      header: () => <span>Actions</span>,
-  }),
+  columnHelperCompletedTable.accessor(row => row.actions, {
+    id: 'actions',
+    cell: info => <div>{info.getValue()}</div>,
+    header: () => <span className='text-black'>Actions</span>,
+  })
 ]
 
-
-const OpenJobs = () => {
-  const [dataProgressTable, _setDataProgressTable] = React.useState(() => [...defaultDataProgressTable])
-  const tableProgressTable = useReactTable({
-      data: dataProgressTable,
-      columns: columnsProgressTable,
+const OpenJobs = ({jobs}: {jobs: Job[]}) => {
+  const defaultDataCompletedTable: TOpenJobTable[] = jobs.map(job => ({
+    jobName: <span className='font-bold   '>{job.title}</span>,
+    description: <span className='font-md '>{job.roles.worker ?? ''}</span>,
+    tag: <span className='px-3 py-2 text-[#23B528] rounded-full bg-[#E1FFEF]'>{job.tags[1] ?? ''}</span>,
+    actions: <Link href={`dashboard/jobs/${job.id?.toString()}`}><span className='font-md  text-primary font-semibold underline'>View Details</span></Link>, // Assuming 'actions' is a placeholder for now
+  }));
+  const [dataCompletedTable, _setDataCompletedTable] = React.useState(() => [...defaultDataCompletedTable])
+  const tableCompletedTable = useReactTable({
+      data: dataCompletedTable,
+      columns: columnsCompletedTable,
       getCoreRowModel: getCoreRowModel(),
   })
+
   return (
     <>
-        <JobsTable table={tableProgressTable} title='Job Progress'></JobsTable>
+        <JobsTable table={tableCompletedTable} title='In Progress'></JobsTable>
     </>
   )
 }

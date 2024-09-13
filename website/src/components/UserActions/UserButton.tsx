@@ -23,6 +23,8 @@ import useArbitrator from '@/hooks/useArbitrator';
 import { MARKETPLACE_DATA_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceDataV1';
 import { useEthersSigner } from '@/hooks/useEthersSigner';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
+import Image from 'next/image';
+import { StaticImport } from 'next/dist/shared/lib/get-img-props';
 
 export function UserButton({...rest}: React.ComponentPropsWithoutRef<'div'>) {
   const viewAsValues = ['User', 'Arbitrator']
@@ -143,16 +145,21 @@ export function UserButton({...rest}: React.ComponentPropsWithoutRef<'div'>) {
   }
 
   return <>
-    <span className="ml-3">
+    <span className="">
       {/* <Button disabled={buttonDisabled} onClick={() => openModal()}>
         <CheckIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
         Update
       </Button> */}
-      <button onClick={() => openModal()} className='p-2 bg-primary rounded-full flex items-center align-middle'>
-        <span className='text-white inline-block w-6 h-6'>{name && name[0].toUpperCase()}
+      <button onClick={() => openModal()} className='p-2 bg-primary rounded-full flex items-center align-middle overflow-hidden relative w-10 h-10'>
+        {/* <span className='text-white inline-block w-6 h-6'>{name && name[0].toUpperCase()} */}
+        {avatar === '' || avatar === undefined || avatar === null ? <span className='text-white inline-block w-6 h-6'>{name && name[0].toUpperCase()}
         {
           !name && <UserIcon className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-300" aria-hidden="true" />
-        }</span>
+        }</span>  
+        : <Image className='object-cover w-full h-full'  fill src={avatar as string | StaticImport} alt={'Profile picture'}></Image>
+        }
+        
+
       </button>
 
       <Transition appear show={isOpen} as={Fragment}>

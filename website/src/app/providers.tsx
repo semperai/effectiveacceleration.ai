@@ -37,7 +37,7 @@ export const staging = /*#__PURE__*/ defineChain({
   },
   testnet: true,
   rpcUrls: {
-    default: { http: ["https://eacc-staging.pat.mn/rpc"] },
+    default: { http: ["http://localhost:8545/rpc"] },
   },
   contracts: {
     multicall3: {
@@ -49,7 +49,7 @@ export const staging = /*#__PURE__*/ defineChain({
   iconBackground: '#fff',
 })
 
-const config = getDefaultConfig({
+export const config = getDefaultConfig({
   appName: 'Effective Acceleration',
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!,
   chains: [staging, hardhat, arbitrum],

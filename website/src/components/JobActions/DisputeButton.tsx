@@ -85,9 +85,8 @@ export function DisputeButton({address, job, sessionKeys, ...rest}: DisputeButto
   }
 
   return <>
-    <Button disabled={buttonDisabled} onClick={() => openModal()} color={'borderlessGray'} className={'w-full'}>
-      <CheckIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-      Dispute
+    <Button disabled={buttonDisabled} onClick={() => openModal()} color={'cancelBorder'} className={'w-full'}>
+      Raise a Dispute
     </Button>
       <Transition appear show={isOpen} as={Fragment}>
         <Dialog as="div" className="relative z-10" onClose={closeModal}>
@@ -115,18 +114,28 @@ export function DisputeButton({address, job, sessionKeys, ...rest}: DisputeButto
                 leaveTo="opacity-0 scale-95"
               >
                 <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                  <Dialog.Title
-                    as="h3"
-                    className="text-lg font-medium leading-6 text-gray-900"
-                  >
-                    Dispute
-                  </Dialog.Title>
-                  <div className='mt-5 mb-3 flex flex-col gap-5'>
-                    <Textarea rows={4} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Message" className="mt-5" />
-                    <Button disabled={buttonDisabled} onClick={buttonClick}>
-                      <CheckIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-                      Confirm
-                    </Button>
+                  <div className='flex gap-7 flex-col'>
+                    <div>
+                        <Dialog.Title
+                          as="h3"
+                          className="text-lg leading-6 text-gray-900 font-bold"
+                        >
+                          Raising a dispute
+                        </Dialog.Title>
+                        <span className='text-sm'>Please fill in the form below for the arbitrator to review.</span>
+                    </div>
+                    <div>
+                      <span className='text-sm font-bold'>Add your comments</span>
+                      <Textarea rows={4} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Message" className="mt-2" />
+                    </div>
+                    <div className='flex flex-col lg:flex-row gap-x-2'>
+                      <Button color='borderlessGray' className={'w-full'} disabled={buttonDisabled} onClick={closeModal}>
+                        Cancel
+                      </Button>
+                      <Button className={'w-full'} disabled={buttonDisabled} onClick={buttonClick}>
+                        Confirm
+                      </Button>
+                    </div>
                   </div>
                 </Dialog.Panel>
               </Transition.Child>

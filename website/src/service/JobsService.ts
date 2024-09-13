@@ -1,8 +1,10 @@
+import { ReactNode } from "react"
+
 export type TOpenJobTable = {
-    jobName: string
-    description: string
-    tag: string
-    actions: string
+    jobName: ReactNode
+    description: ReactNode
+    tag: ReactNode
+    actions: ReactNode
 }
 
 export type TInProgressTable = {
@@ -13,11 +15,11 @@ export type TInProgressTable = {
 }
 
 export type TCompletedTable = {
-    jobName: string
-    status: string
-    timeTaken: number
-    completedBy: string
-    actions: string
+    jobName: ReactNode
+    status: ReactNode
+    timeTaken: ReactNode
+    completedBy: ReactNode
+    actions: ReactNode
 }
 
 export type TDisputedTable = {
@@ -34,3 +36,15 @@ export type TCancelledTable = {
     actionsTaken: string
 }
 
+export type LocalStorageJob = {
+    jobId: string;
+    title: string;
+    description: string;
+    multipleApplicants: boolean;
+    categoriesAndTags: (string | undefined)[];
+    selectedTokenId: string | null;
+    deadline: number | undefined;
+    deliveryMethod: string;
+    selectedArbitratorAddress: string;
+    selectedWorkerAddresses: string[];
+  }

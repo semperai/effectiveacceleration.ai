@@ -7,9 +7,9 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
 struct JobEventData {
-    uint8 type_;      // 1 byte / type of object
-    bytes address_;   // empty or context dependent address data, either who sent it or whom it targets
-    bytes data_;      // extra event data, e.g. 34 bytes for CID
+    uint8 type_; // 1 byte / type of object
+    bytes address_; // empty or context dependent address data, either who sent it or whom it targets
+    bytes data_; // extra event data, e.g. 34 bytes for CID
     uint32 timestamp_; // 4 bytes
 }
 
@@ -74,10 +74,33 @@ struct Review {
 contract MarketplaceDataV1 is OwnableUpgradeable {
     event JobEvent(uint256 indexed jobId, JobEventData eventData);
     event PublicKeyRegistered(address indexed addr, bytes pubkey);
-    event UserRegistered(address indexed addr, bytes pubkey, string name, string bio, string avatar);
-    event UserUpdated(address indexed addr, string name, string bio, string avatar);
-    event ArbitratorRegistered(address indexed addr, bytes pubkey, string name, string bio, string avatar, uint16 fee);
-    event ArbitratorUpdated(address indexed addr, string name, string bio, string avatar);
+    event UserRegistered(
+        address indexed addr,
+        bytes pubkey,
+        string name,
+        string bio,
+        string avatar
+    );
+    event UserUpdated(
+        address indexed addr,
+        string name,
+        string bio,
+        string avatar
+    );
+    event ArbitratorRegistered(
+        address indexed addr,
+        bytes pubkey,
+        string name,
+        string bio,
+        string avatar,
+        uint16 fee
+    );
+    event ArbitratorUpdated(
+        address indexed addr,
+        string name,
+        string bio,
+        string avatar
+    );
 
     MarketplaceV1 public marketplace;
 
@@ -115,9 +138,7 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
     /// @notice Initialize contract
     /// @dev For upgradeable contracts this function necessary
     /// @param marketplace_ Address of marketplace
-    function initialize(
-            address marketplace_
-        ) public initializer {
+    function initialize(address marketplace_) public initializer {
         __Ownable_init(msg.sender);
 
         marketplace = MarketplaceV1(marketplace_);
@@ -132,7 +153,10 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
         meceTags["NDO"] = "NON_DIGITAL_OTHERS";
     }
 
-    function publishJobEvent(uint256 jobId_, JobEventData memory event_) public onlyMarketplace {
+    function publishJobEvent(
+        uint256 jobId_,
+        JobEventData memory event_
+    ) public onlyMarketplace {
         event_.timestamp_ = uint32(block.timestamp);
         jobEvents[jobId_].push(event_);
         emit JobEvent(jobId_, event_);
@@ -146,7 +170,10 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
         return marketplace.jobsLength();
     }
 
-    function getJobs(uint256 index_, uint256 limit_) public view returns (JobPost[] memory) {
+    function getJobs(
+        uint256 index_,
+        uint256 limit_
+    ) public view returns (JobPost[] memory) {
         uint256 jobsLength_ = marketplace.jobsLength();
         require(index_ < jobsLength_, "index out of bounds");
 
@@ -168,7 +195,11 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
     }
 
     // Function to get past job events starting from a specific index
-    function getEvents(uint256 jobId_, uint256 index_, uint256 limit_) public view returns (JobEventData[] memory) {
+    function getEvents(
+        uint256 jobId_,
+        uint256 index_,
+        uint256 limit_
+    ) public view returns (JobEventData[] memory) {
         uint256 eventsLength_ = jobEvents[jobId_].length;
         require(index_ < eventsLength_, "index out of bounds");
 
@@ -185,8 +216,15 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
         return result;
     }
 
-    function checkUserParams(string calldata name_, string calldata bio_, string calldata avatar_) internal {
-        require(bytes(name_).length > 0 && bytes(name_).length < 20, "name too short or long");
+    function checkUserParams(
+        string calldata name_,
+        string calldata bio_,
+        string calldata avatar_
+    ) internal {
+        require(
+            bytes(name_).length > 0 && bytes(name_).length < 20,
+            "name too short or long"
+        );
         require(bytes(bio_).length < 255, "bio too long");
         require(bytes(avatar_).length < 150, "avatar too long");
     }
@@ -194,10 +232,18 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
     // allow users to register their *message encryption* public key
     // this is used to allow others to message you securely
     // we do not do verification here because we want to allow contracts to register
-    function registerUser(bytes calldata pubkey_, string calldata name_, string calldata bio_, string calldata avatar_) public {
+    function registerUser(
+        bytes calldata pubkey_,
+        string calldata name_,
+        string calldata bio_,
+        string calldata avatar_
+    ) public {
         // presently we do not allow to update the public keys otherwise the decryption of old messages will become impossible
         require(users[msg.sender].publicKey.length == 0, "already registered");
-        require(pubkey_.length == 33, "invalid pubkey length, must be compressed, 33 bytes");
+        require(
+            pubkey_.length == 33,
+            "invalid pubkey length, must be compressed, 33 bytes"
+        );
         checkUserParams(name_, bio_, avatar_);
         users[msg.sender] = User(
             msg.sender,
@@ -214,7 +260,11 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
         emit UserRegistered(msg.sender, pubkey_, name_, bio_, avatar_);
     }
 
-    function updateUser(string calldata name_, string calldata bio_, string calldata avatar_) public {
+    function updateUser(
+        string calldata name_,
+        string calldata bio_,
+        string calldata avatar_
+    ) public {
         require(users[msg.sender].publicKey.length > 0, "not registered");
         checkUserParams(name_, bio_, avatar_);
 
@@ -229,11 +279,11 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
         return users[address_].publicKey.length > 0;
     }
 
-    function userRefunded(address address_) public onlyMarketplace() {
+    function userRefunded(address address_) public onlyMarketplace {
         users[address_].reputationDown += 1;
     }
 
-    function userDelivered(address address_) public onlyMarketplace() {
+    function userDelivered(address address_) public onlyMarketplace {
         users[address_].reputationUp += 1;
     }
 
@@ -241,7 +291,10 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
         return userAddresses.length;
     }
 
-    function getUsers(uint256 index_, uint256 limit_) public view returns (User[] memory) {
+    function getUsers(
+        uint256 index_,
+        uint256 limit_
+    ) public view returns (User[] memory) {
         uint256 usersLength_ = userAddresses.length;
         require(index_ < usersLength_, "index out of bounds");
 
@@ -257,7 +310,9 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
         return result;
     }
 
-    function publicKeys(address userAddress_) public view returns (bytes memory) {
+    function publicKeys(
+        address userAddress_
+    ) public view returns (bytes memory) {
         return users[userAddress_].publicKey;
     }
 
@@ -266,10 +321,22 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
     }
 
     // registers an arbitrator with their *message encryption* public key, name and fee they charge
-    function registerArbitrator(bytes calldata pubkey_, string calldata name_, string calldata bio_, string calldata avatar_, uint16 fee_) public {
+    function registerArbitrator(
+        bytes calldata pubkey_,
+        string calldata name_,
+        string calldata bio_,
+        string calldata avatar_,
+        uint16 fee_
+    ) public {
         // presently we do not allow to update the public keys otherwise the decryption of old messages will become impossible
-        require(arbitrators[msg.sender].publicKey.length == 0, "already registered");
-        require(pubkey_.length == 33, "invalid pubkey length, must be compressed, 33 bytes");
+        require(
+            arbitrators[msg.sender].publicKey.length == 0,
+            "already registered"
+        );
+        require(
+            pubkey_.length == 33,
+            "invalid pubkey length, must be compressed, 33 bytes"
+        );
         checkUserParams(name_, bio_, avatar_);
         arbitrators[msg.sender] = JobArbitrator(
             msg.sender,
@@ -284,10 +351,21 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
 
         arbitratorAddresses.push(msg.sender);
 
-        emit ArbitratorRegistered(msg.sender, pubkey_, name_, bio_, avatar_, fee_);
+        emit ArbitratorRegistered(
+            msg.sender,
+            pubkey_,
+            name_,
+            bio_,
+            avatar_,
+            fee_
+        );
     }
 
-    function updateArbitrator(string calldata name_, string calldata bio_, string calldata avatar_) public {
+    function updateArbitrator(
+        string calldata name_,
+        string calldata bio_,
+        string calldata avatar_
+    ) public {
         require(arbitrators[msg.sender].publicKey.length > 0, "not registered");
         checkUserParams(name_, bio_, avatar_);
 
@@ -298,11 +376,11 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
         emit ArbitratorUpdated(msg.sender, name_, bio_, avatar_);
     }
 
-    function arbitratorRefused(address address_) public onlyMarketplace() {
+    function arbitratorRefused(address address_) public onlyMarketplace {
         arbitrators[address_].refusedCount += 1;
     }
 
-    function arbitratorSettled(address address_) public onlyMarketplace() {
+    function arbitratorSettled(address address_) public onlyMarketplace {
         arbitrators[address_].settledCount += 1;
     }
 
@@ -318,7 +396,10 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
         return arbitratorAddresses.length;
     }
 
-    function getArbitrators(uint256 index_, uint256 limit_) public view returns (JobArbitrator[] memory) {
+    function getArbitrators(
+        uint256 index_,
+        uint256 limit_
+    ) public view returns (JobArbitrator[] memory) {
         uint256 arbitratorsLength_ = arbitratorAddresses.length;
         require(index_ < arbitratorsLength_, "index out of bounds");
 
@@ -334,49 +415,84 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
         return result;
     }
 
-    function getArbitrator(address arbitratorAddress_) public view returns (JobArbitrator memory) {
+    function getArbitrator(
+        address arbitratorAddress_
+    ) public view returns (JobArbitrator memory) {
         return arbitrators[arbitratorAddress_];
     }
 
-    function updateUserRating(address userAddress_, uint8 reviewRating_) public onlyMarketplace() {
+    function updateUserRating(
+        address userAddress_,
+        uint8 reviewRating_
+    ) public onlyMarketplace {
         UserRating storage rating = userRatings[userAddress_];
 
-        rating.averageRating = uint16((rating.averageRating * rating.numberOfReviews + reviewRating_ * 10000) / (rating.numberOfReviews + 1));
+        rating.averageRating = uint16(
+            (rating.averageRating *
+                rating.numberOfReviews +
+                reviewRating_ *
+                10000) / (rating.numberOfReviews + 1)
+        );
         rating.numberOfReviews++;
     }
 
-    function getUserRating(address userAddress_) public view returns (UserRating memory) {
+    function getUserRating(
+        address userAddress_
+    ) public view returns (UserRating memory) {
         return userRatings[userAddress_];
     }
 
     // Function to read MECE tag's long form given the short form
-    function readMeceTag(string memory shortForm) public view returns (string memory) {
+    function readMeceTag(
+        string memory shortForm
+    ) public view returns (string memory) {
         require(bytes(meceTags[shortForm]).length != 0, "Invalid MECE tag");
         return meceTags[shortForm];
     }
 
     // Governance function to add or update MECE tags
-    function updateMeceTag(string memory shortForm, string memory longForm) public onlyOwner {
-        require(bytes(shortForm).length > 0 && bytes(longForm).length > 0, "Invalid tag data");
+    function updateMeceTag(
+        string memory shortForm,
+        string memory longForm
+    ) public onlyOwner {
+        require(
+            bytes(shortForm).length > 0 && bytes(longForm).length > 0,
+            "Invalid tag data"
+        );
         meceTags[shortForm] = longForm;
     }
 
     function removeMeceTag(string memory shortForm) public onlyOwner {
-        require(bytes(meceTags[shortForm]).length != 0, "MECE tag does not exist");
+        require(
+            bytes(meceTags[shortForm]).length != 0,
+            "MECE tag does not exist"
+        );
         delete meceTags[shortForm];
     }
 
-    function addReview(address target_, address reviewer_, uint256 jobId_, uint8 rating_, string memory text_) public onlyMarketplace {
-        userReviews[target_].push(Review({
-            reviewer: reviewer_,
-            jobId: jobId_,
-            rating: rating_,
-            text: text_,
-            timestamp: uint32(block.timestamp)
-        }));
+    function addReview(
+        address target_,
+        address reviewer_,
+        uint256 jobId_,
+        uint8 rating_,
+        string memory text_
+    ) public onlyMarketplace {
+        userReviews[target_].push(
+            Review({
+                reviewer: reviewer_,
+                jobId: jobId_,
+                rating: rating_,
+                text: text_,
+                timestamp: uint32(block.timestamp)
+            })
+        );
     }
 
-    function getReviews(address target_, uint256 index_, uint256 limit_) public view returns (Review[] memory) {
+    function getReviews(
+        address target_,
+        uint256 index_,
+        uint256 limit_
+    ) public view returns (Review[] memory) {
         uint256 reviewsLength_ = userReviews[target_].length;
         require(index_ < reviewsLength_, "index out of bounds");
 

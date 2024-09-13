@@ -18,7 +18,6 @@ export default function useUsersByAddresses(targetAddresses: string[]) {
       const checkedItem = sessionStorage.getItem(`user-${targetAddress}`);
       return {targetAddress, checkedItem };
     });
-
     const cachedItems = checkedItems.filter(val => val.checkedItem && val.checkedItem !== "undefined") as CacheCheck[];
     const missedItems = checkedItems.filter(val => !val.checkedItem || val.checkedItem === "undefined") as CacheCheck[];
     setCachedItems(cachedItems);
@@ -40,7 +39,6 @@ export default function useUsersByAddresses(targetAddresses: string[]) {
 
   const usersData = result.data;
   const { data: _, ...rest } = result;
-
   useEffect(() => {
     // @ts-ignore
     if ((usersData && Object.keys(usersData).length) || cachedItems.length > 0) {

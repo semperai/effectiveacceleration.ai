@@ -1,17 +1,17 @@
 import React from 'react'
+import { Suspense } from 'react'
 import PostJobPage from '../dashboard/post-job/PostJobPage'
 import Image from 'next/image'
+import DefaultNavBar from '@/components/DefaultNavBar'
 
 const page = () => {
   return (
     <>
-      <div className='w-full bg-primary h-20 sm:h-16 flex  justify-center'>
-        <div className='content-center'>
-          <Image height={50} width={50} src={'/negativeLogo.svg'} alt={'Effective Acceleration Logo'}></Image>
-        </div>
-      </div>
+      <DefaultNavBar/>
       <div className='max-w-6xl mx-auto mt-10'>
+        <Suspense fallback={<div>Loading...</div>}>
           <PostJobPage/>
+        </Suspense>
       </div>
     </>
   )
