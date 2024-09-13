@@ -1,12 +1,12 @@
 {
-  "ownerAddress": "0x11AD04D7C7d5c7912dab1555f677F3579A469064",
+  "ownerAddress": "0x98427EB0A7AC42229901922F533E63210B5dD53f",
   "marketplaceFeeAddress": "0x000000000000000000000000000000000000beef",
-  "marketplaceAddress": "0x60a1561455c9Bd8fe6B0F05976d7F84ff2eff5a3",
-  "marketplaceDataAddress": "0xB43014F1328dd3732f60C06107F1b5a03eea60AF",
-  "fakeTokenAddress": "0x1235747639a5da96d3B52EffC0E179957C94Dc71",
-  "unicrowAddress": "0xc1Ec57Ba2a0B27d3C17a73dC4f160fA3Ad83d07A",
-  "unicrowDisputeAddress": "0xeC5b67E980E2F472e21AB18C4c685bB7F5B522C5",
-  "unicrowArbitratorAddress": "0x643e37Ab434406F47B1369CbbbcDa13eC301Fa21",
-  "unicrowClaimAddress": "0x42f98E65E54a85411DA99cF1cC6Bd79c575e0Cc1",
+  "marketplaceAddress": "0x373470128549E0b704F4401470e4060116a1b64B",
+  "marketplaceDataAddress": "0xeC05ebbf5Ad8ffb3c6D8cAa688Bb42EF4367764b",
+  "fakeTokenAddress": "0x5Bf5deffd9506d4d52D89497103c42015740A6ef",
+  "unicrowAddress": "0x6d46c01795B0ec511AA0BA32B4c852D86a3e06d7",
+  "unicrowDisputeAddress": "0x26EadF247ac02bAB5243F385c06C0aD36b12Cd92",
+  "unicrowArbitratorAddress": "0xd8032d4f5E5c9090d9616500F4b931aA350a6002",
+  "unicrowClaimAddress": "0x7497D9ac6ea2881C91de47A546c2f688FD886154",
   "multicall3Address": "0xca11bde05977b3631167028862be2a173976ca11"
 }
