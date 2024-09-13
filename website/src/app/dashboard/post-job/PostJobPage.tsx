@@ -36,6 +36,7 @@ import { BsInfoCircle } from 'react-icons/bs'
 import { usePathname, useSearchParams } from "next/navigation";
 import { MARKETPLACE_DATA_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceDataV1";
 import { LocalStorageJob } from '@/service/JobsService'
+import useUnsavedChangesWarning from '@/hooks/useUnsavedChangesWarning'
 
 interface PostJobParams {
   title?: string;
@@ -103,7 +104,6 @@ const categories = [
   { id: "NDS", name: "Non-Digital Services" },
   { id: "NDO", name: "Non-Digital Others" },
 ]
-
 
 function PostJobPage() {
   const searchParams = useSearchParams();
@@ -274,8 +274,6 @@ function PostJobPage() {
     { label: 'Arbitrator Address', inputInfo: selectedArbitratorAddress },
     { label: 'Worker Address', inputInfo: selectedWorkerAddress },
   ];
-      
-  
   useEffect(() => {
     if (isConfirmed || error) {
       if (error) {
@@ -304,7 +302,7 @@ function PostJobPage() {
     console.log(selectedArbitratorAddress, 'arbitratorAddresses', extractedParams.arbitrator)
   }, [searchParams])
 
-
+  useUnsavedChangesWarning(isConfirmed)
   return (
     <div>
       {!showSummary && (

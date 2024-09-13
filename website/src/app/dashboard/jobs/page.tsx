@@ -25,7 +25,7 @@ const environments: Record<string, string> = {
 export default function OpenJobsPage() {
   const { data: jobs } = useJobs();
   const { data: users } = useUsersByAddresses(jobs.map(job => job.roles.creator));
-  console.log(jobs)
+  console.log(users, 'ALL USERS')
   return (
     <Layout>
       <h1 className="text-xl font-medium mb-8 ml-2">Open Jobs</h1>

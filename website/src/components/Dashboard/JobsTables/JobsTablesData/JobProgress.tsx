@@ -4,38 +4,39 @@ import {LocalStorageJob, TInProgressTable, TOpenJobTable} from '@/service/JobsSe
 import { useReactTable, getCoreRowModel, createColumnHelper } from '@tanstack/react-table'
 import useJobs from '@/hooks/useJobs';
 import { Job, JobState } from 'effectiveacceleration-contracts/dist/src/interfaces';
+import Link from 'next/link';
 
 const columnHelperCompletedTable = createColumnHelper<TOpenJobTable>()
 
 const columnsCompletedTable = [
   columnHelperCompletedTable.accessor(row => row.jobName, {
       id: 'jobName',
-      cell: info => <i>{info.getValue()}</i>,
-      header: () => <span>Job Name</span>,
+      cell: info => <div>{info.getValue()}</div>,
+      header: () => <span className='text-black'>Job Name</span>,
   }),
   columnHelperCompletedTable.accessor(row => row.description, {
     id: 'description',
-    cell: info => <i>{info.getValue()}</i>,
-    header: () => <span>Description</span>,
+    cell: info => <div>{info.getValue()}</div>,
+    header: () => <span className='text-black'>Assigned to</span>,
   }),
   columnHelperCompletedTable.accessor(row => row.tag, {
       id: 'tag',
-      cell: info => <i>{info.getValue()}</i>,
-      header: () => <span>Completed By</span>,
+      cell: info => <div>{info.getValue()}</div>,
+      header: () => <span className='text-black'>Progress</span>,
   }),
   columnHelperCompletedTable.accessor(row => row.actions, {
     id: 'actions',
-    cell: info => <i>{info.getValue()}</i>,
-    header: () => <span>Actions</span>,
+    cell: info => <div>{info.getValue()}</div>,
+    header: () => <span className='text-black'>Actions</span>,
   })
 ]
 
 const OpenJobs = ({jobs}: {jobs: Job[]}) => {
   const defaultDataCompletedTable: TOpenJobTable[] = jobs.map(job => ({
-    jobName: job.title,
-    description: job.content ?? '',
-    tag: job.tags,
-    actions: 'test', // Assuming 'actions' is a placeholder for now
+    jobName: <span className='font-bold   '>{job.title}</span>,
+    description: <span className='font-md '>{job.roles.worker ?? ''}</span>,
+    tag: <span className='px-3 py-2 text-[#23B528] rounded-full bg-[#E1FFEF]'>{job.tags[1] ?? ''}</span>,
+    actions: <Link href={`dashboard/jobs/${job.id?.toString()}`}><span className='font-md  text-primary font-semibold underline'>View Details</span></Link>, // Assuming 'actions' is a placeholder for now
   }));
   const [dataCompletedTable, _setDataCompletedTable] = React.useState(() => [...defaultDataCompletedTable])
   const tableCompletedTable = useReactTable({
@@ -46,7 +47,7 @@ const OpenJobs = ({jobs}: {jobs: Job[]}) => {
 
   return (
     <>
-        <JobsTable table={tableCompletedTable} title='Completed Jobs'></JobsTable>
+        <JobsTable table={tableCompletedTable} title='In Progress'></JobsTable>
     </>
   )
 }

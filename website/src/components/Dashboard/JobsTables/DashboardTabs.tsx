@@ -12,12 +12,19 @@ import useUsersByAddresses from '@/hooks/useUsersByAddresses';
 import DevelopAllJobs from './JobsTablesData/DevelopAllJobs';
 import { Job, JobState } from 'effectiveacceleration-contracts/dist/src/interfaces';
 import { LocalStorageJob } from '@/service/JobsService';
+import useJobsByIds from '@/hooks/useJobsByIds';
 
 const DashboardTabs = () => {
   const { data: jobs } = useJobs();
   const { data: users } = useUsersByAddresses(jobs.map(job => job.roles.creator));
+
   const [localJobs, setLocalJobs] = useState<Job[]>([]);
   const [jobIds, setJobIds] = useState<bigint[]>([]);
+  const {data: selectedJobs } = useJobsByIds(jobIds)
+  const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
+  const [filteredJobsInProgress, setFilteredJobsInProgress] = useState<Job[]>([]);
+  const [tabsKey, setTabsKey] = useState(0);
+  console.log(selectedJobs, 'selected JOBSSS')
   useEffect(() => {
     const storedJobs = localStorage.getItem('createdJobs');
     if (storedJobs) {
@@ -28,13 +35,22 @@ const DashboardTabs = () => {
     }
   }, []);
 
-  const filteredJobs = jobs.filter(job => jobIds.includes(BigInt(job.id as bigint))  && job.state === JobState.Open);
-  const filteredJobsInProgress = jobs.filter(job => jobIds.includes(BigInt(job.id as bigint))  && job.state === JobState.Taken);
-  console.log(filteredJobs, jobs)
+  useEffect(() => {
+    if (selectedJobs.length === 0) return
+    const newFilteredJobs = selectedJobs.filter(job => job.state === JobState.Open);
+    const newFilteredJobsInProgress = selectedJobs.filter(job => job.state === JobState.Taken);
+    setFilteredJobs(newFilteredJobs);
+    setFilteredJobsInProgress(newFilteredJobsInProgress);
+  }, [selectedJobs]);
 
+  useEffect(() => {
+    // Update the key to force re-render of Tabs component
+    setTabsKey(prevKey => prevKey + 1);
+  }, [selectedJobs]);
+  console.log(filteredJobs, 'filteredJobsInProgress')
   return (
     <div className=''>
-    <Tabs>
+    <Tabs key={tabsKey}>
         <TabList className='flex border-b-2 borde-gray-100 mb-7'>
             <Tab selectedClassName='!border-lightPurple  border-b-2  !text-lightPurple'  className='px-8 py-2 font-medium relative cursor-pointer top-[2px] outline-none text-darkBlueFont'>
               Open Jobs
