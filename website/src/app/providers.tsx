@@ -37,7 +37,7 @@ export const staging = /*#__PURE__*/ defineChain({
   },
   testnet: true,
   rpcUrls: {
-    default: { http: ["http://localhost:8545/rpc"] },
+    default: { http: ["https://eacc-staging.pat.mn/rpc"] },
   },
   contracts: {
     multicall3: {
