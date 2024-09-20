@@ -1,0 +1,1 @@
+export const LOCAL_JOBS_CACHE = 'createdJobs';

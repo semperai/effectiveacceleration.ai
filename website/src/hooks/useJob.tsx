@@ -2,13 +2,33 @@ import { getFromIpfs, Job } from "effectiveacceleration-contracts";
 import { MARKETPLACE_DATA_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceDataV1";
 import Config from "effectiveacceleration-contracts/scripts/config.json";
 import { useParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAccount, useReadContract, useWatchContractEvent } from "wagmi";
+import { LOCAL_JOBS_CACHE } from "@/utils/constants";
 
+const updateLocalJobStorage = ({id, jobEvent, jobData}: {id: bigint, jobEvent: any, jobData: Job}) => {
+  // Update local storage job with new job state and event.
+  const storedJobs = localStorage.getItem(LOCAL_JOBS_CACHE);
+  if (storedJobs) {
+    const parsedJobs = JSON.parse(storedJobs as string);
+    const jobIndex = parsedJobs.findIndex((job: Job) => job.id as unknown as string === id.toString());
+    if (jobIndex !== -1) {
+      const selectedJobIndex = parsedJobs[jobIndex];
+      selectedJobIndex.lastJobEvent = jobEvent[0].args.eventData;
+      selectedJobIndex.state = jobData.state;
+      console.log(selectedJobIndex.lastJobEvent, 'selectedJobIndex.lastJobEvent');
+      selectedJobIndex.lastJobEvent.id = selectedJobIndex.lastJobEvent.id?.toString();
+      console.log(parsedJobs, 'parsedJobs', jobData, 'jobData');
+      // Convert BigInt values to strings
+      localStorage.setItem(LOCAL_JOBS_CACHE, JSON.stringify(parsedJobs));
+    }
+  }
+}
 
 export default function useJob(id: bigint) {
   const [job, setJob] = useState<Job | undefined>(undefined);
   const [blockNumber, setBlockNumber] = useState<any>(undefined);
+  const [lastJobEvent, setLastJobEvent] = useState<any>(null);
   const { address } = useAccount();
 
   const result = useReadContract({
@@ -40,10 +60,18 @@ export default function useJob(id: bigint) {
         if (blockNumber === undefined) setBlockNumber(jobEvent[0].blockNumber);
         if (blockNumber !== jobEvent[0].blockNumber && blockNumber !== undefined) {
           setBlockNumber(jobEvent[0].blockNumber)
-          refetch();
-        }
+          await refetch()
+          setLastJobEvent(jobEvent);
+      }
     },
   });
+
+  useMemo(() => {
+    if (jobData && lastJobEvent) {
+      updateLocalJobStorage({ id, jobEvent: lastJobEvent, jobData });
+      setLastJobEvent(null);
+    }
+  }, [jobData, lastJobEvent]);
 
   useEffect(() => {
     (async () => {

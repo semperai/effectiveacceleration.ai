@@ -8,7 +8,7 @@ import { getEncryptionSigningKey } from 'effectiveacceleration-contracts/dist/sr
 import { config } from '../providers';
 import { UserButton } from '@/components/UserActions/UserButton';
 
-
+const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL;
 
 const SignInMessage = ({setEncryptionPublicKey} : {setEncryptionPublicKey: Dispatch<any>}) => {
   const { signMessageAsync } = useSignMessage();
@@ -16,7 +16,7 @@ const SignInMessage = ({setEncryptionPublicKey} : {setEncryptionPublicKey: Dispa
 
   const handleSignMessage = async () => {
     try {
-      const provider = new JsonRpcProvider();
+      const provider = new JsonRpcProvider(rpcUrl);
       // Get the signer from the provider
       const message = 'Effective Acceleration';
       const signature = await signMessageAsync({ message });

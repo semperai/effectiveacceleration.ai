@@ -49,6 +49,7 @@ import JobChatsList from './JobChatsList';
 import JobChat from './JobChat';
 import JobChatDetails from './JobChatDetails';
 import JobButtonActions from './JobButtonActions';
+import config from 'effectiveacceleration-contracts/scripts/config.json';
 
 export default function JobPage() {
   const id = useParams().id as string;

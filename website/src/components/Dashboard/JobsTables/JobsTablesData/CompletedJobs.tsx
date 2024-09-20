@@ -36,7 +36,7 @@ const columnsCompletedTable = [
   })
 ]
 
-const OpenJobs = ({jobs}:{jobs:Job[]}) => {
+const OpenJobs = ({jobs, localJobs}: {jobs: Job[], localJobs: Job[]}) => {
   const defaultDataCompletedTable: TCompletedTable[] = jobs.map(job => ({
     jobName: <span className='font-bold   '>{job.title}</span>,
     status: <span className='px-3 py-2 text-[#23B528] rounded-full bg-[#E1FFEF]'>Completed</span>,
@@ -53,7 +53,7 @@ const OpenJobs = ({jobs}:{jobs:Job[]}) => {
 
   return (
     <>
-        <JobsTable table={tableCompletedTable} title='Completed Jobs'></JobsTable>
+        <JobsTable table={tableCompletedTable} localJobs={localJobs} title='Completed Jobs'></JobsTable>
     </>
   )
 }

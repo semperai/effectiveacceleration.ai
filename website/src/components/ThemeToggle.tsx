@@ -23,7 +23,7 @@ function ThemeIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
 export function ThemeToggle() {
   let [mounted, setMounted] = useState(false)
   let { resolvedTheme, setTheme } = useTheme()
-  let otherTheme = resolvedTheme === 'dark' ? 'light' : 'dark'
+  let otherTheme = resolvedTheme === 'dark' ? 'dark' : 'light'
 
   
 
