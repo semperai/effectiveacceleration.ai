@@ -70,7 +70,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             darkMode: darkTheme(),
           }}
         >
-          <ThemeProvider attribute="class" disableTransitionOnChange>
+          <ThemeProvider defaultTheme="light" attribute="class" disableTransitionOnChange>
             {children}
           </ThemeProvider>
         </RainbowKitProvider>
