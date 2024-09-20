@@ -10,7 +10,7 @@ interface IUnicrowClaim {
     /// @notice Claim a single escrow
     /// @dev To save everyone's gas costs, it claims balances and fees of all parties that are eligible for a share from the escrow
     /// @param escrowId escrow to be claimed
-    function claim(uint escrowId) external returns (uint256[5] memory);
+    function claim(uint escrowId) external returns(uint256[5] memory);
 
     // @notice Update rewards contract pointer (governable)
     // @param crowRewards_ New rewards address
