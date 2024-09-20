@@ -15,9 +15,9 @@ const SignInMessage = ({setEncryptionPublicKey} : {setEncryptionPublicKey: Dispa
 
 
   const handleSignMessage = async () => {
-    try {
+    try {  
       const provider = new JsonRpcProvider(rpcUrl);
-      // Get the signer from the provider
+      // Get the signer from the provider 
       const message = 'Effective Acceleration';
       const signature = await signMessageAsync({ message });
 
