@@ -1,4 +1,6 @@
-import { ethers, upgrades } from "hardhat";
+import { ethers } from "ethers";
+import { upgrades } from "@openzeppelin/hardhat-upgrades";
+import { ethers as hardhatEthers } from "hardhat";
 import { MarketplaceV1 as Marketplace } from '../typechain-types/contracts/MarketplaceV1';
 import { MarketplaceDataV1 as MarketplaceData } from "../typechain-types/contracts/MarketplaceDataV1";
 import * as fs from 'fs'
@@ -9,7 +11,7 @@ let marketplaceFeeAddress = "0x000000000000000000000000000000000000beef";
 let unicrowProtocolFeeAddress = "0x0000000000000000000000000000000000001337";
 
 async function main() {
-  const signers = await ethers.getSigners();
+  const signers = await hardhatEthers.getSigners();
   const deployer = signers[0];
 
   console.log("Deploying contracts with the account:", deployer.address);
@@ -80,7 +82,7 @@ async function deployUnicrowSuite(): Promise<{
   unicrowArbitrator: UnicrowArbitrator,
   unicrowClaim: UnicrowClaim,
 }> {
-  const [deployer] = await ethers.getSigners();
+  const [deployer] = await hardhatEthers.getSigners();
 
   const Unicrow = await ethers.getContractFactory("Unicrow");
   const UnicrowDispute = await ethers.getContractFactory("UnicrowDispute");
@@ -170,7 +172,7 @@ async function deployUnicrowSuite(): Promise<{
 }
 
 async function deployMulticall3(): Promise<IMulticall3> {
-  const signers = await ethers.getSigners();
+  const signers = await hardhatEthers.getSigners();
   const deployer = signers[0];
 
   const code = await deployer.provider.send('eth_getCode', ['0xca11bde05977b3631167028862be2a173976ca11']);
@@ -181,7 +183,7 @@ async function deployMulticall3(): Promise<IMulticall3> {
     await deployer.provider.send('eth_sendRawTransaction', [tx]);
   }
 
-  return ethers.getContractAt('IMulticall3', '0xca11bde05977b3631167028862be2a173976ca11') as unknown as IMulticall3;
+  return hardhatEthers.getContractAt('IMulticall3', '0xca11bde05977b3631167028862be2a173976ca11') as unknown as IMulticall3;
 }
 
 main();
