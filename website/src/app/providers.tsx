@@ -39,7 +39,8 @@ export const staging = /*#__PURE__*/ defineChain({
   },
   testnet: true,
   rpcUrls: {
-    default: { http: [rpcUrl ? rpcUrl : 'https://localhost:8545/rpc'] },
+    // default: { http: [rpcUrl ? rpcUrl : 'https://localhost:8545/rpc'] },
+    default: { http: ['https://localhost:8545/rpc'] },
   },
   contracts: {
     multicall3: {
