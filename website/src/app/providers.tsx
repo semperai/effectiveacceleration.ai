@@ -4,6 +4,7 @@ import { ThemeProvider } from 'next-themes'
 
 import '@rainbow-me/rainbowkit/styles.css';
 
+
 import {
   getDefaultConfig,
   lightTheme,
@@ -26,6 +27,7 @@ declare module 'wagmi' {
     config: typeof config
   }
 }
+const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL;
 
 export const staging = /*#__PURE__*/ defineChain({
   id: 31_338,
@@ -37,7 +39,8 @@ export const staging = /*#__PURE__*/ defineChain({
   },
   testnet: true,
   rpcUrls: {
-    default: { http: ["https://eacc-staging.pat.mn/rpc"] },
+    // default: { http: [rpcUrl ? rpcUrl : 'https://localhost:8545/rpc'] },
+    default: { http: ['https://localhost:8545/rpc'] },
   },
   contracts: {
     multicall3: {
