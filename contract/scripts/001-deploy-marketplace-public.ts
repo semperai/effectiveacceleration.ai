@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { upgrades } from "@openzeppelin/hardhat-upgrades";
+import { upgrades } from "hardhat";
 import { MarketplaceV1 as Marketplace } from '../typechain-types/contracts/MarketplaceV1';
 import { MarketplaceDataV1 as MarketplaceData } from "../typechain-types/contracts/MarketplaceDataV1";
 import * as fs from 'fs'
