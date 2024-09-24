@@ -1,84 +1,53 @@
 'use client'
+import { Button } from '@/components/Button'
+import React, { Dispatch } from 'react'
+import { useSignMessage, useAccount, useConnect, useWalletClient } from 'wagmi';
+import { getEncryptionSigningKey } from 'effectiveacceleration-contracts/dist/src/utils/encryption';
+import { ethers } from 'ethers'
 
-import { ThemeProvider } from 'next-themes'
+const SignInMessage = ({setEncryptionPublicKey} : {setEncryptionPublicKey: Dispatch<any>}) => {
+  const { signMessageAsync } = useSignMessage();
+  const { data: walletClient } = useWalletClient();
+  const { address } = useAccount();
 
-import '@rainbow-me/rainbowkit/styles.css';
+  const handleSignMessage = async () => {
+    if (!walletClient || !address) {
+      console.error('No wallet client or address available');
+      return;
+    }
 
+    try {  
+      const message = 'Effective Acceleration';
+      const signature = await signMessageAsync({ message });
 
-import {
-  getDefaultConfig,
-  lightTheme,
-  darkTheme,
-  RainbowKitProvider,
-} from '@rainbow-me/rainbowkit';
-import { WagmiProvider } from 'wagmi';
-import {
-  hardhat,
-  arbitrum,
-  arbitrumSepolia
-} from 'wagmi/chains';
-import {
-  QueryClientProvider,
-  QueryClient,
-} from "@tanstack/react-query";
-import { defineChain } from 'viem';
+      // Create an ethers.js signer from the walletClient
+      const provider = new ethers.BrowserProvider(walletClient as any);
+      const signer = await provider.getSigner();
 
-declare module 'wagmi' {
-  interface Register {
-    config: typeof config
-  }
-}
-const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL;
+      // Modify getEncryptionSigningKey to work with ethers 6 signer
+      const modifiedSigner = {
+        ...signer,
+        getAddress: async () => await signer.getAddress(),
+        signMessage: async (message: string) => await signer.signMessage(message)
+      };
 
-export const staging = /*#__PURE__*/ defineChain({
-  id: 31_338,
-  name: 'EACC Staging',
-  nativeCurrency: {
-    decimals: 18,
-    name: 'Ether',
-    symbol: 'ETH',
-  },
-  testnet: true,
-  rpcUrls: {
-    default: { http: [rpcUrl ? rpcUrl : 'https://localhost:8545/rpc'] },
-    // default: { http: ['https://localhost:8545/rpc'] },
-  },
-  contracts: {
-    multicall3: {
-      address: '0xca11bde05977b3631167028862be2a173976ca11',
-      blockCreated: 12,
-    },
-  },
-  iconUrl: "https://coin-images.coingecko.com/coins/images/35246/large/arbius-200x-logo.png?1707987961",
-  iconBackground: '#fff',
-})
+      const encryptionKey = (await getEncryptionSigningKey(modifiedSigner as any)).compressedPublicKey;
+      console.log(encryptionKey, 'encryptionKey');
+      setEncryptionPublicKey(encryptionKey);
+    } catch (error) {
+      console.error('Error signing message:', error);
+    }
+  };
 
-export const config = getDefaultConfig({
-  appName: 'Effective Acceleration',
-  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!,
-  chains: [staging, hardhat, arbitrum, arbitrumSepolia],
-  ssr: true, // If your dApp uses server side rendering (SSR)
-}) as any;
-
-const queryClient = new QueryClient();
-
-
-export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider
-          initialChain={arbitrumSepolia}
-          theme={{
-            lightMode: lightTheme(),
-            darkMode: darkTheme(),
-          }}
-        >
-          <ThemeProvider defaultTheme="light" attribute="class" disableTransitionOnChange>
-            {children}
-          </ThemeProvider>
-        </RainbowKitProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+    <div className='w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all flex justify-center flex-col self-center'>
+      <div className='flex justify-center flex-col self-center my-16'>
+        <h1 className='text-xl font-extrabold text-center'>Sign in</h1>
+        <span className='text-center'>Please sign a message with your wallet</span>
+      </div>
+        <Button onClick={handleSignMessage}>Sign In</Button>
+    </div>
   )
 }
+
+export default SignInMessage
