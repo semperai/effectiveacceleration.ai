@@ -37,6 +37,8 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { MARKETPLACE_DATA_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceDataV1";
 import { LocalStorageJob } from '@/service/JobsService'
 import useUnsavedChangesWarning from '@/hooks/useUnsavedChangesWarning'
+import { LOCAL_JOBS_CACHE } from "@/utils/constants";
+import { shortenText } from '@/utils/utils'
 
 interface PostJobParams {
   title?: string;
@@ -46,19 +48,6 @@ interface PostJobParams {
   deliveryMethod?: string;
   arbitrator?: string;
   tags: string[];
-}
-
-function shortenText({text, maxLength} : {text: string | `0x${string}` | undefined, maxLength: number}) {
-  if (!text) return console.log("No text provided");
-  if (text.length <= maxLength) {
-    return text;
-  }
-
-  const partLength = Math.floor((maxLength - 3) / 2); // Subtract 3 for the ellipsis
-  const start = text.slice(0, partLength + 1);
-  const end = text.slice(-partLength + 1);
-
-  return `${start}...${end}`;
 }
 
 interface FieldValidation {
@@ -135,7 +124,7 @@ function PostJobPage() {
   const [descriptionError, setDescriptionError] = useState<string>('');
   const [categoryError, setCategoryError] = useState<string>('');
   const [postButtonDisabled, setPostButtonDisabled] = useState(false);
-
+  const userJobCache = `${address}${LOCAL_JOBS_CACHE}`
   const {
     data: hash,
     error,
@@ -207,7 +196,7 @@ function PostJobPage() {
 
   const jobIdCache = (jobId: bigint) => {
     const createdJobId = jobId.toString()
-    const createdJobs = JSON.parse(localStorage.getItem('createdJobs') || '[]');
+    const createdJobs = JSON.parse(localStorage.getItem(userJobCache) || '[]');
 
     // newJob Should correspond to type "Job" but bigInts are not JSON stringifiable
     const newJob: any = {
@@ -236,7 +225,7 @@ function PostJobPage() {
       rating: 0,
     };
     createdJobs.push(newJob);
-    localStorage.setItem('createdJobs', JSON.stringify(createdJobs));
+    localStorage.setItem(userJobCache, JSON.stringify(createdJobs));
   }
 
   useWatchContractEvent({

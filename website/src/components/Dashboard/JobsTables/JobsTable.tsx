@@ -24,7 +24,7 @@ const getValidJobsCount = (title: string, jobs?: Job[]): number => {
 
 function JobsTable<T>({table, title, localJobs}:{table: Table<T>, title:string, localJobs?: Job[]}) {
   const [loading, setLoading] = useState(true);
-  const [jobCount, setJobCount] = useState(3);
+  const [jobCount, setJobCount] = useState(0);
   const [dataRow, setDataRow] = useState(false)
   useEffect(() => {
     setJobCount(getValidJobsCount(title, localJobs))
@@ -36,7 +36,7 @@ function JobsTable<T>({table, title, localJobs}:{table: Table<T>, title:string, 
   console.log(jobCount, 'JOB COUNT', localJobs, 'localJobs')
   return (
     <>
-      {dataRow === false && jobCount === 50 ? (
+      {jobCount === 0 ? (
         <div className='w-full h-[300px] bg-white rounded-2xl p-5 [box-shadow:0px_0px_8px_lightgray] text-center flex items-center justify-center'>
           <div>
             <h2 className='text-xl font-semibold mb-4 '>No jobs available {(title).toLowerCase()}: (</h2>

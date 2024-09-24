@@ -40,7 +40,6 @@ import { WhitelistButton } from '@/components/JobActions/WhitelistButton';
 import { RemoveFromWhitelistButton } from '@/components/JobActions/RemoveFromWhitelistButton';
 import { UpdateButton } from '@/components/JobActions/UpdateButton';
 import LinearProgress from '@mui/material/LinearProgress';
-import useShortenText from '@/hooks/useShortenText';
 import jobs from '../../job/applicants/[id]/dummyData';
 import clsx from 'clsx';
 import { IoIosClose } from 'react-icons/io';

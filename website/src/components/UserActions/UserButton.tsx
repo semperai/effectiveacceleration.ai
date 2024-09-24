@@ -196,22 +196,6 @@ export function UserButton({...rest}: React.ComponentPropsWithoutRef<'div'>) {
                   </Dialog.Title>
                   <div className='mt-5 mb-3 flex flex-col gap-5'>
                     {(user || arbitrator) && <>
-                      <Field className='flex flex-row justify-between items-center'>
-                        <Label className='items-center'>View as</Label>
-                        <RadioGroup className='flex !mt-0' value={viewAs} onChange={(value) => {
-                            setViewAs(value); setUserIndex(viewAsValues.indexOf(value));
-                          }} aria-label="Server size">
-                          {viewAsValues.map((option) => (
-                            <Field className='items-center flex !mt-0 ml-5' key={option}>
-                              <Radio className='mr-2' value={option}>
-                                <span>{option}</span>
-                              </Radio>
-                              <Label>{option}</Label>
-                            </Field>
-                          ))}
-                        </RadioGroup>
-                      </Field>
-
                       <Field>
                         <Label>Address</Label>
                         <Input value={address} readOnly />

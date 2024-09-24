@@ -6,9 +6,10 @@ import { useState, useEffect, useMemo } from "react";
 import { useAccount, useReadContract, useWatchContractEvent } from "wagmi";
 import { LOCAL_JOBS_CACHE } from "@/utils/constants";
 
-const updateLocalJobStorage = ({id, jobEvent, jobData}: {id: bigint, jobEvent: any, jobData: Job}) => {
+const updateLocalJobStorage = ({id, jobEvent, jobData, address}: {id: bigint, jobEvent: any, jobData: Job, address: `0x${string}` | undefined}) => {
+    const userJobCache = `${address}${LOCAL_JOBS_CACHE}`
   // Update local storage job with new job state and event.
-  const storedJobs = localStorage.getItem(LOCAL_JOBS_CACHE);
+  const storedJobs = localStorage.getItem(userJobCache);
   if (storedJobs) {
     const parsedJobs = JSON.parse(storedJobs as string);
     const jobIndex = parsedJobs.findIndex((job: Job) => job.id as unknown as string === id.toString());
@@ -20,7 +21,7 @@ const updateLocalJobStorage = ({id, jobEvent, jobData}: {id: bigint, jobEvent: a
       selectedJobIndex.lastJobEvent.id = selectedJobIndex.lastJobEvent.id?.toString();
       console.log(parsedJobs, 'parsedJobs', jobData, 'jobData');
       // Convert BigInt values to strings
-      localStorage.setItem(LOCAL_JOBS_CACHE, JSON.stringify(parsedJobs));
+      localStorage.setItem(userJobCache, JSON.stringify(parsedJobs));
     }
   }
 }
@@ -68,7 +69,7 @@ export default function useJob(id: bigint) {
 
   useMemo(() => {
     if (jobData && lastJobEvent) {
-      updateLocalJobStorage({ id, jobEvent: lastJobEvent, jobData });
+      updateLocalJobStorage({ id, jobEvent: lastJobEvent, jobData, address });
       setLastJobEvent(null);
     }
   }, [jobData, lastJobEvent]);

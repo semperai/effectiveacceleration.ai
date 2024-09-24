@@ -1,6 +1,6 @@
 import React from 'react'
 import { Button } from '@/components/Button'
-import useShortenText from '@/hooks/useShortenText'
+import { shortenText } from '@/utils/utils'
 import clsx from 'clsx'
 import { CurrencyDollarIcon, LinkIcon, UserIcon } from '@heroicons/react/20/solid'
 import { formatTokenNameAndAmount, tokenIcon } from '@/tokens'
@@ -133,7 +133,7 @@ const JobChatDetails = ({job, users, address, sessionKeys, addresses, events, wh
           </div>
           <div className='flex justify-between my-2'>
               <span>Arbitrator Address</span>
-              <span>{useShortenText({text: job?.roles.arbitrator ,maxLength: 12}) || ''}</span>
+              <span>{shortenText({text: job?.roles.arbitrator ,maxLength: 12}) || ''}</span>
           </div>
       </div>
       <div className='p-4 border border-gray-100'>
