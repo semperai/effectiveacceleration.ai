@@ -46,6 +46,14 @@ const config: HardhatUserConfig = {
         passphrase: undefined,
       }
     },
+    arbitrumSepolia: {
+      accounts: {
+        mnemonic: "park ice isolate false ribbon business acid onion sunny supply cake tattoo",
+
+      },
+      url: "https://sepolia-rollup.arbitrum.io/rpc",
+      chainId: 421614
+    }
   },
   // limit is 24.576 KiB
   contractSizer: {
@@ -59,6 +67,21 @@ const config: HardhatUserConfig = {
   paths: {
     abi: "wagmi",
   },
+  etherscan: {
+    apiKey: {
+      arbitrumSepolia: 'NQDDEPSUNVM2JQP93GVGG4TFPIPKKEZKAN'
+    },
+    customChains: [
+      {
+        network: "arbitrumSepolia",
+        chainId: 421614,
+        urls: {
+          apiURL: "https://api-sepolia.arbiscan.io/api",
+          browserURL: "https://sepolia.arbiscan.io/"
+        }
+      },
+    ]
+  }
 };
 
 export default config;
