@@ -1,5 +1,5 @@
 'use client'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
 import OpenJobs from './JobsTablesData/OpenJobs';
@@ -10,47 +10,68 @@ import CancelledJobs from './JobsTablesData/CancelledJobs';
 import useJobs from '@/hooks/useJobs';
 import useUsersByAddresses from '@/hooks/useUsersByAddresses';
 import DevelopAllJobs from './JobsTablesData/DevelopAllJobs';
-import { Job, JobState } from 'effectiveacceleration-contracts/dist/src/interfaces';
+import { Job, JobEventType, JobState } from 'effectiveacceleration-contracts/dist/src/interfaces';
 import { LocalStorageJob } from '@/service/JobsService';
 import useJobsByIds from '@/hooks/useJobsByIds';
+import { LOCAL_JOBS_CACHE } from '@/utils/constants';
+import { useAccount } from 'wagmi';
 
 const DashboardTabs = () => {
   const { data: jobs } = useJobs();
+  const { address } = useAccount();
   const { data: users } = useUsersByAddresses(jobs.map(job => job.roles.creator));
-
   const [localJobs, setLocalJobs] = useState<Job[]>([]);
   const [jobIds, setJobIds] = useState<bigint[]>([]);
   const {data: selectedJobs } = useJobsByIds(jobIds)
   const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
   const [filteredJobsInProgress, setFilteredJobsInProgress] = useState<Job[]>([]);
+  const [filteredCompletedJobs, setFilteredCompletedJobs] = useState<Job[]>([]);
   const [tabsKey, setTabsKey] = useState(0);
-  console.log(selectedJobs, 'selected JOBSSS')
+  const [activeTabIndex, setActiveTabIndex] = useState(0);
+  const [mounted, setMounted] = useState(false);
+  const userJobCache = `${address}${LOCAL_JOBS_CACHE}`
   useEffect(() => {
-    const storedJobs = localStorage.getItem('createdJobs');
+    const storedJobs = localStorage.getItem(userJobCache);
     if (storedJobs) {
       const parsedJobs = JSON.parse(storedJobs);
-      const jobIdsArray = Array.from(new Set(parsedJobs.map((job: LocalStorageJob) => BigInt(job.jobId))));
+      const jobIdsArray = Array.from(new Set(parsedJobs.map((job: Job) => job.id)));
       setLocalJobs(parsedJobs);
       setJobIds(jobIdsArray as bigint[]);
     }
-  }, []);
+    setMounted(true);
+  }, [address]);
+
+  const filteredJobsMemo = useMemo(() => {
+    if (selectedJobs.length === 0) return { open: [], inProgress: [], completed: [] };
+
+    const filteredOpenJobs: Job[] = [];
+    const filteredJobsInProgress: Job[] = [];
+    const filteredCompletedJobs: Job[] = [];
+
+    selectedJobs.forEach((job, index) => {
+      if (job.state === JobState.Open) {
+        filteredOpenJobs.push(job);
+      } else if (job.state === JobState.Taken) {
+        filteredJobsInProgress.push(job);
+      } else if (job.state === JobState.Closed && localJobs[index].id === job.id && localJobs[index].lastJobEvent?.type_ === JobEventType.Completed) {
+        filteredCompletedJobs.push(job);
+      }
+    });
+    return { open: filteredOpenJobs, inProgress: filteredJobsInProgress, completed: filteredCompletedJobs };
+  }, [selectedJobs, localJobs]);
 
   useEffect(() => {
-    if (selectedJobs.length === 0) return
-    const newFilteredJobs = selectedJobs.filter(job => job.state === JobState.Open);
-    const newFilteredJobsInProgress = selectedJobs.filter(job => job.state === JobState.Taken);
-    setFilteredJobs(newFilteredJobs);
-    setFilteredJobsInProgress(newFilteredJobsInProgress);
-  }, [selectedJobs]);
-
-  useEffect(() => {
-    // Update the key to force re-render of Tabs component
     setTabsKey(prevKey => prevKey + 1);
-  }, [selectedJobs]);
-  console.log(filteredJobs, 'filteredJobsInProgress')
+    setFilteredJobs(filteredJobsMemo.open);
+    setFilteredJobsInProgress(filteredJobsMemo.inProgress);
+    setFilteredCompletedJobs(filteredJobsMemo.completed);
+  }, [filteredJobsMemo]);
+
+  console.log(localJobs, 'filtered Jobs')
   return (
     <div className=''>
-    <Tabs key={tabsKey}>
+    {mounted && (
+      <Tabs key={tabsKey} selectedIndex={activeTabIndex} onSelect={index => setActiveTabIndex(index)}>
         <TabList className='flex border-b-2 borde-gray-100 mb-7'>
             <Tab selectedClassName='!border-lightPurple  border-b-2  !text-lightPurple'  className='px-8 py-2 font-medium relative cursor-pointer top-[2px] outline-none text-darkBlueFont'>
               Open Jobs
@@ -67,13 +88,13 @@ const DashboardTabs = () => {
               Develop: All Jobs</Tab>
         </TabList>
         <TabPanel>
-          <OpenJobs jobs={filteredJobs}/>
+          <OpenJobs jobs={filteredJobs} localJobs={localJobs}/>
         </TabPanel>
         <TabPanel>
-          <JobProgress jobs={filteredJobsInProgress}/>
+          <JobProgress jobs={filteredJobsInProgress} localJobs={localJobs}/>
         </TabPanel>
         <TabPanel>
-          <CompletedJobs jobs={jobs}/>
+          <CompletedJobs jobs={filteredCompletedJobs} localJobs={localJobs}/>
         </TabPanel>
         <TabPanel>
           <DisputedJobs/>
@@ -84,8 +105,9 @@ const DashboardTabs = () => {
         <TabPanel>
           <DevelopAllJobs jobs={jobs}/>
         </TabPanel>
-    </Tabs>
-  </div>
+      </Tabs>
+    )}
+    </div>
   )
 }
 

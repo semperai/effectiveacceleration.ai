@@ -22,7 +22,7 @@ import { TokenSelector } from '@/components/TokenSelector'
 import { Token, tokens } from '@/tokens'
 import { Radio, RadioGroup } from '@/components/Radio'
 import { Listbox, ListboxOption } from '@/components/Listbox'
-import { publishToIpfs } from 'effectiveacceleration-contracts'
+import { Job, publishToIpfs } from 'effectiveacceleration-contracts'
 import { zeroAddress } from 'viem'
 import useUsers from '@/hooks/useUsers'
 import useArbitrators from '@/hooks/useArbitrators'
@@ -37,6 +37,8 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { MARKETPLACE_DATA_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceDataV1";
 import { LocalStorageJob } from '@/service/JobsService'
 import useUnsavedChangesWarning from '@/hooks/useUnsavedChangesWarning'
+import { LOCAL_JOBS_CACHE } from "@/utils/constants";
+import { shortenText } from '@/utils/utils'
 
 interface PostJobParams {
   title?: string;
@@ -46,19 +48,6 @@ interface PostJobParams {
   deliveryMethod?: string;
   arbitrator?: string;
   tags: string[];
-}
-
-function shortenText({text, maxLength} : {text: string | `0x${string}` | undefined, maxLength: number}) {
-  if (!text) return console.log("No text provided");
-  if (text.length <= maxLength) {
-    return text;
-  }
-
-  const partLength = Math.floor((maxLength - 3) / 2); // Subtract 3 for the ellipsis
-  const start = text.slice(0, partLength + 1);
-  const end = text.slice(-partLength + 1);
-
-  return `${start}...${end}`;
 }
 
 interface FieldValidation {
@@ -135,7 +124,7 @@ function PostJobPage() {
   const [descriptionError, setDescriptionError] = useState<string>('');
   const [categoryError, setCategoryError] = useState<string>('');
   const [postButtonDisabled, setPostButtonDisabled] = useState(false);
-
+  const userJobCache = `${address}${LOCAL_JOBS_CACHE}`
   const {
     data: hash,
     error,
@@ -207,23 +196,36 @@ function PostJobPage() {
 
   const jobIdCache = (jobId: bigint) => {
     const createdJobId = jobId.toString()
-    const createdJobs = JSON.parse(localStorage.getItem('createdJobs') || '[]');
+    const createdJobs = JSON.parse(localStorage.getItem(userJobCache) || '[]');
 
-    const newJob: LocalStorageJob = {
-      jobId: createdJobId,
+    // newJob Should correspond to type "Job" but bigInts are not JSON stringifiable
+    const newJob: any = {
+      id: createdJobId,
       title: title,
-      description: description,
+      content: description,
       multipleApplicants: multipleApplicants === 'Yes',
-      categoriesAndTags: [selectedCategory?.id, ...tags.map(tag => tag.name)],
-      selectedTokenId: selectedToken ? `0x${selectedToken.id}` : null,
-      deadline,
-      deliveryMethod,
-      selectedArbitratorAddress: `0x${selectedArbitratorAddress}`,
-      selectedWorkerAddresses: selectedWorkerAddress ? [`0x${selectedWorkerAddress}`] : []
+      tags: [selectedCategory?.id as string, ...tags.map(tag => tag.name)],
+      token: `0x${selectedToken?.id}` as `0x${string}`,
+      maxTime: deadline as number,
+      deliveryMethod: deliveryMethod,
+      roles: {
+        creator: address as `0x${string}`,
+        arbitrator: selectedArbitratorAddress as `0x${string}`,
+        worker: selectedWorkerAddress as `0x${string}`,
+      },
+      state: 0,
+      whitelistWorkers: false,
+      contentHash: hash as `0x${string}`,
+      amount: amount,
+      disputed: false,
+      timestamp: Date.now(),
+      collateralOwed: 0,
+      escrowId: 0,
+      resultHash: hash as `0x${string}`,
+      rating: 0,
     };
-
     createdJobs.push(newJob);
-    localStorage.setItem('createdJobs', JSON.stringify(createdJobs));
+    localStorage.setItem(userJobCache, JSON.stringify(createdJobs));
   }
 
   useWatchContractEvent({

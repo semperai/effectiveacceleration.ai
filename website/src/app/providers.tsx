@@ -4,6 +4,7 @@ import { ThemeProvider } from 'next-themes'
 
 import '@rainbow-me/rainbowkit/styles.css';
 
+
 import {
   getDefaultConfig,
   lightTheme,
@@ -27,6 +28,7 @@ declare module 'wagmi' {
     config: typeof config
   }
 }
+const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL;
 
 export const staging = /*#__PURE__*/ defineChain({
   id: 31_338,
@@ -38,9 +40,10 @@ export const staging = /*#__PURE__*/ defineChain({
   },
   testnet: true,
   rpcUrls: {
-    default: { http: ["http://localhost:8545/rpc"] },
+    default: { http: [rpcUrl ? rpcUrl : 'https://localhost:8545/rpc'] },
+    // default: { http: ['https://localhost:8545/rpc'] },
   },
-  contracts: {
+contracts: {
     multicall3: {
       address: '0xca11bde05977b3631167028862be2a173976ca11',
       blockCreated: 12,
@@ -71,7 +74,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             darkMode: darkTheme(),
           }}
         >
-          <ThemeProvider attribute="class" disableTransitionOnChange>
+          <ThemeProvider defaultTheme="light" attribute="class" disableTransitionOnChange>
             {children}
           </ThemeProvider>
         </RainbowKitProvider>

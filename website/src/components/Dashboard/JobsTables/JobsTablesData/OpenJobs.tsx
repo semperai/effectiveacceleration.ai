@@ -42,8 +42,10 @@ const columnsCompletedTable = [
   })
 ]
 
-const OpenJobs = ({jobs}: {jobs: Job[]}) => {
-  console.log(jobs, 'jobsOfOpenJobs')
+const OpenJobs = ({jobs, localJobs}: {jobs: Job[], localJobs: Job[]}) => {
+  useEffect(() => {
+    _setDataCompletedTable([...defaultDataCompletedTable]);
+  }, [jobs]);
   const defaultDataCompletedTable: TOpenJobTable[] = jobs.map(job => ({
     jobName: <span className='font-bold   '>{job.title}</span>,
     description: <span className='font-md '>{job.content ?? ''}</span>,
@@ -58,7 +60,7 @@ const OpenJobs = ({jobs}: {jobs: Job[]}) => {
   })
   return (
     <>
-        <JobsTable table={tableCompletedTable} title='Open Jobs'></JobsTable>
+        <JobsTable table={tableCompletedTable} localJobs={localJobs} title='Open Jobs'></JobsTable>
     </>
   )
 }

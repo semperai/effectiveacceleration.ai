@@ -3,29 +3,47 @@ import { Table, flexRender } from '@tanstack/react-table'
 import React, { useEffect, useState } from 'react';
 import { Skeleton } from '@mui/material';
 import { Button } from '@/components/Button';
+import { Job, JobEventType, JobState } from 'effectiveacceleration-contracts/dist/src/interfaces';
 
-function JobsTable<T>({table, title}:{table: Table<T>, title:string}) {
+const getValidJobsCount = (title: string, jobs?: Job[]): number => {
+  if (!jobs) return 0;
+  switch (title) {
+    case 'Open Jobs':
+      return jobs.filter(job => job.state === JobState.Open).length;
+    case 'In Progress':
+      return jobs.filter(job => job.state === JobState.Taken).length;
+    case 'Completed Jobs':
+      return jobs.filter(job => 
+        job.state === JobState.Closed).length;
+        // && 
+        // job.lastJobEvent?.type_ === JobEventType.Completed
+    default:
+      return 0;
+  }
+};
+
+function JobsTable<T>({table, title, localJobs}:{table: Table<T>, title:string, localJobs?: Job[]}) {
   const [loading, setLoading] = useState(true);
-  const [jobCount, setJobCount] = useState(3);
+  const [jobCount, setJobCount] = useState(0);
   const [dataRow, setDataRow] = useState(false)
   useEffect(() => {
-    setLoading(false)
+    setJobCount(getValidJobsCount(title, localJobs))
+    console.log(localJobs)
     if (table.getRowModel().rows.length === 0) return
+    setLoading(false)
     setDataRow(true)
-
-  }, [table, dataRow]);
-
-
+  }, [table, dataRow]); 
+  console.log(jobCount, 'JOB COUNT', localJobs, 'localJobs')
   return (
     <>
-  {dataRow === false && loading === false ? (
-    <div className='w-full h-[300px] bg-white rounded-2xl p-5 [box-shadow:0px_0px_8px_lightgray] text-center flex items-center justify-center'>
-      <div>
-        <h2 className='text-xl font-semibold mb-4 '>No jobs available {(title).toLowerCase()} :(</h2>
-        <Button>Create a job</Button>
-      </div>
-      </div>
-  ) : (
+      {jobCount === 0 ? (
+        <div className='w-full h-[300px] bg-white rounded-2xl p-5 [box-shadow:0px_0px_8px_lightgray] text-center flex items-center justify-center'>
+          <div>
+            <h2 className='text-xl font-semibold mb-4 '>No jobs available {(title).toLowerCase()}: (</h2>
+            <Button>Create a job</Button>
+          </div>
+        </div>
+      ) : (
     <div className="[box-shadow:0px_0px_8px_lightgray] rounded-2xl bg-white">
       <div className='p-5'>
         <h1 className='text-xl font-semibold'>{title}</h1>

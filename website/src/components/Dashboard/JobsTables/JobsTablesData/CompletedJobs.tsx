@@ -4,6 +4,7 @@ import { TCompletedTable} from '@/service/JobsService';
 import { useReactTable, getCoreRowModel, createColumnHelper } from '@tanstack/react-table';
 import { Job } from 'effectiveacceleration-contracts/dist/src/interfaces';
 import Link from 'next/link';
+import { shortenText } from '@/utils/utils'
 
 
 const columnHelperCompletedTable = createColumnHelper<TCompletedTable>()
@@ -19,11 +20,6 @@ const columnsCompletedTable = [
     cell: info => <div>{info.getValue()}</div>,
     header: () => <span>Status</span>,
   }),
-  columnHelperCompletedTable.accessor(row => row.timeTaken, {
-      id: 'timeTaken',
-      cell: info => <div>{info.getValue()}</div>,
-      header: () => <span>TimeTaken</span>,
-  }),
   columnHelperCompletedTable.accessor(row => row.completedBy, {
       id: 'completedBy',
       cell: info => <div>{info.getValue()}</div>,
@@ -36,12 +32,12 @@ const columnsCompletedTable = [
   })
 ]
 
-const OpenJobs = ({jobs}:{jobs:Job[]}) => {
+const OpenJobs = ({jobs, localJobs}: {jobs: Job[], localJobs: Job[]}) => {
   const defaultDataCompletedTable: TCompletedTable[] = jobs.map(job => ({
     jobName: <span className='font-bold   '>{job.title}</span>,
     status: <span className='px-3 py-2 text-[#23B528] rounded-full bg-[#E1FFEF]'>Completed</span>,
     timeTaken: <span >{job.maxTime}</span>,
-    completedBy: <span className='font-md '>{job.roles.worker ?? ''}</span>,
+    completedBy: <span className='font-md '>{shortenText({text: job?.roles.worker, maxLength: 20}) || ''}</span>,
     actions: <Link href={`dashboard/jobs/${job.id?.toString()}`}><span className='font-md  text-primary font-semibold underline'>View Details</span></Link>, // Assuming 'actions' is a placeholder for now
   }));
   const [dataCompletedTable, _setDataCompletedTable] = React.useState(() => [...defaultDataCompletedTable])
@@ -53,7 +49,7 @@ const OpenJobs = ({jobs}:{jobs:Job[]}) => {
 
   return (
     <>
-        <JobsTable table={tableCompletedTable} title='Completed Jobs'></JobsTable>
+        <JobsTable table={tableCompletedTable} localJobs={localJobs} title='Completed Jobs'></JobsTable>
     </>
   )
 }

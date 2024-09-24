@@ -47,7 +47,7 @@ const SidebarDesktopView = (
                     </li>
                 </ul>
             </nav>
-            <ThemeToggle />
+            {/* <ThemeToggle /> */}
     
         </div>
     </div>

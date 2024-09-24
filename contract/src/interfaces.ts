@@ -14,6 +14,7 @@ export type Job = {
   content?: string,
   result?: string,
   allowedWorkers?: string[],
+  lastJobEvent?: JobEvent;
 } & DeepWriteable<ReadContractReturnType<typeof MARKETPLACE_DATA_V1_ABI, 'getJob'>>;
 export type JobEvent = {
   id?: bigint,

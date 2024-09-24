@@ -42,7 +42,7 @@ export default function useJobsByIds(targetIds: bigint[]) {
 
   const jobsData = result.data;
   const { data: _, ...rest } = result;
-  console.log(result.data, 'THIS IS THE RESULT', missedItems, 'missedItems')
+
   useEffect(() => {
     // @ts-ignore
     if ((jobsData && Object.keys(jobsData).length) || cachedItems.length > 0) {
@@ -61,7 +61,7 @@ export default function useJobsByIds(targetIds: bigint[]) {
         cachedItems.forEach((item) => {
             resultMap.push(JSON5.parse(item.checkedItem) as Job);
         });
-      setJobs(resultMap);
+          setJobs(resultMap);
     }
   // @ts-ignore
   }, [jobsData, cachedItems, missedItems]);
