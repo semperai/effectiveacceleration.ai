@@ -14,6 +14,7 @@ import { WagmiProvider } from 'wagmi';
 import {
   hardhat,
   arbitrum,
+  arbitrumSepolia
 } from 'wagmi/chains';
 import {
   QueryClientProvider,
@@ -52,7 +53,7 @@ export const staging = /*#__PURE__*/ defineChain({
 export const config = getDefaultConfig({
   appName: 'Effective Acceleration',
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!,
-  chains: [staging, hardhat, arbitrum],
+  chains: [staging, hardhat, arbitrum, arbitrumSepolia],
   ssr: true, // If your dApp uses server side rendering (SSR)
 }) as any;
 
@@ -64,7 +65,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider
-          initialChain={staging}
+          initialChain={arbitrumSepolia}
           theme={{
             lightMode: lightTheme(),
             darkMode: darkTheme(),
