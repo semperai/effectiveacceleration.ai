@@ -701,13 +701,15 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             IERC20 token = IERC20(job.token);
             token.approve(unicrowAddress, type(uint256).max);
             EscrowInput memory escrowInput = EscrowInput(
+                address(0),
                 msg.sender, // worker address
                 unicrowMarketplaceAddress,
                 unicrowMarketplaceFee,
                 job.token,
                 job.maxTime + _24_HRS,
                 job.maxTime + _24_HRS,
-                job.amount
+                job.amount,
+                string(abi.encodePacked("EACC #", jobId_))
             );
 
             job.escrowId = unicrow.pay(
@@ -757,13 +759,15 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         IERC20 token = IERC20(job.token);
         token.approve(unicrowAddress, type(uint256).max);
         EscrowInput memory escrowInput = EscrowInput(
+            address(0),
             worker_,
             unicrowMarketplaceAddress,
             unicrowMarketplaceFee,
             job.token,
             job.maxTime + _24_HRS,
             job.maxTime + _24_HRS,
-            job.amount
+            job.amount,
+            string(abi.encodePacked("EACC #", jobId_))
         );
 
         job.escrowId = unicrow.pay(
