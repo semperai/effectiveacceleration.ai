@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
 
-// import "./@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
 uint16 constant _100_PCT_IN_BIPS = 10000;
 
 // these constants are used as keys for consensus and split arrays
@@ -16,22 +14,31 @@ uint8 constant WHO_ARBITRATOR = 4;
 struct Escrow {
     /// @dev Who sent the payment
     address buyer;
+
     /// @dev By how much will the challenge period get extended after a challenge (in seconds)
     uint64 challengeExtension;
+
     /// @dev Whom is the payment for
     address seller;
+
     /// @dev When does/has the current challenge period start(ed) (seconds in Unix epoch)
     uint64 challengePeriodStart;
+
     /// @dev Address of a marketplace that has facilitated the trade (0x000...00 if none)
     address marketplace;
+
     /// @dev Fee for the marketplace (can be 0 even if a marketplace was set but doesn't charge fee)
     uint256 marketplaceFee;
+
     /// @dev When does the current challenge period end (seconds in Unix epoch)
     uint64 challengePeriodEnd;
+
     /// @dev Token used in the payment (0x00..00 for ETH)
     address currency;
+
     /// @dev True if the payment was already withdrawn from the escrow
     uint16 claimed;
+
     /**
      * @dev Indicates status of the payment from buyer's and seller's side.
      * Negative value means that party was challenged.
@@ -44,6 +51,7 @@ struct Escrow {
      *  3, 2: Released, Refunded, or Settled. Deduct 1 from each consensus number to calculate number of challenges
      */
     int16[2] consensus;
+
     /**
      * @dev Buyer's and Seller's share, and fees, in bips
      * Example of a new payment with 5% marketplace fee, 5% arbitrator fee: [0, 10000, 500, 500]
@@ -54,26 +62,42 @@ struct Escrow {
      * The actual fees and shares are re-calculated when the payment is finally claimed
      */
     uint16[4] split;
+
     /// @dev amount in the token
     uint256 amount;
+
+    /// @dev Optional text reference can be used to identify the payment or provide information for an arbitrator
+    string paymentReference;
 }
 
 /// @dev Escrow parameters to be sent along with the deposit
 struct EscrowInput {
+    /// @dev who's the buyer, i.e. who can release the payment or whom should a refund be sent to. Normally this would be msg.sender but if Unicrow.pay() is called is called via another contract it should be set explicitly to user's EOA. If set to address(0), it defaults to msg.sender
+    address buyer;
+
     /// @dev who should receive the payment
     address seller;
+
     /// @dev address of a marketplace that has facilitated the payment
     address marketplace;
+
     /// @dev Fee for the marketplace (can be 0 even if a marketplace was set but doesn't charge fee)
     uint16 marketplaceFee;
+
     /// @dev Token used in the payment (0x00..00 for ETH)
     address currency;
+
     /// @dev Initial challenge period (in seconds)
     uint32 challengePeriod;
+
     /// @dev By how much will the challenge period get extended after a challenge (in seconds)
     uint32 challengeExtension;
+
     /// @dev Amount in token
     uint256 amount;
+
+    /// @dev Optional text reference can be used to identify the payment or provide information for an arbitrator
+    string paymentReference;
 }
 
 /// @dev Information about arbitrator proposed or assigned to an escrow.
@@ -81,12 +105,16 @@ struct EscrowInput {
 struct Arbitrator {
     /// @dev Address of the arbitrator. 0x00..00 for no arbitrator
     address arbitrator;
+
     /// @dev Arbitrator's fee in bips. Can be 0
     uint16 arbitratorFee;
+
     /// @dev Seller's agreement on the arbitrator
     bool sellerConsensus;
+
     /// @dev Buyer's agreement on the arbitrator
     bool buyerConsensus;
+
     /// @dev Has the escrow been decided by the arbitrator
     bool arbitrated;
 }
@@ -95,6 +123,7 @@ struct Arbitrator {
 struct Settlement {
     /// @dev address of who sent the latest settlement offer. Returns 0x00..00 if no offer has been made
     address latestSettlementOfferBy;
+
     /// @dev how the payment was offered to be settled [buyer, seller] in bips
     uint16[2] latestSettlementOffer;
 }

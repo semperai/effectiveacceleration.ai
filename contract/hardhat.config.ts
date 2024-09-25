@@ -7,6 +7,13 @@ import "hardhat-contract-sizer";
 import "hardhat-ts-plugin-abi-extractor";
 import "./tasks/index";
 
+// Import MNEMONIC from .env file
+const MNEMONIC = process.env.MNEMONIC;
+
+if (!MNEMONIC) {
+  throw new Error("Please set your MNEMONIC in a .env file");
+}
+
 const config: HardhatUserConfig = {
   solidity: {
     compilers: [
@@ -21,6 +28,9 @@ const config: HardhatUserConfig = {
         },
       },
     ],
+  },
+  paths: {
+    sources: ["./contracts/MarketplaceDataV1.sol", "./contracts/MarketplaceV1.sol"],
   },
   networks: {
     hardhat: {
@@ -48,8 +58,7 @@ const config: HardhatUserConfig = {
     },
     arbitrumSepolia: {
       accounts: {
-        mnemonic: "park ice isolate false ribbon business acid onion sunny supply cake tattoo",
-
+        mnemonic: MNEMONIC,
       },
       url: "https://sepolia-rollup.arbitrum.io/rpc",
       chainId: 421614
