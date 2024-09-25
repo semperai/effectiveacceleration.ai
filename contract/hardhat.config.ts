@@ -8,10 +8,10 @@ import "hardhat-ts-plugin-abi-extractor";
 import "./tasks/index";
 
 // Import MNEMONIC from .env file
-const MNEMONIC = process.env.MNEMONIC;
+let MNEMONIC = process.env.MNEMONIC;
 
 if (!MNEMONIC) {
-  throw new Error("Please set your MNEMONIC in a .env file");
+  MNEMONIC = "rebuild always symbol rabbit sunset napkin laundry diary doll chalk valid train";
 }
 
 const config: HardhatUserConfig = {
