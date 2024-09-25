@@ -12,7 +12,7 @@ export const tokens: Token[] = [
   {
     id: Config.fakeTokenAddress,
     name: 'Test',
-    symbol: 'TST',
+    symbol: 'TTK',
     icon: 'https://assets.coingecko.com/coins/images/31188/standard/IMG_6480.png',
     decimals: 18,
   },
