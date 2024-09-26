@@ -57,6 +57,51 @@ interface FieldValidation {
   custom?: (value: string) => string;
 }
 
+async function setupAndGiveAllowance(spenderAddress: `0x${string}` | undefined, amount: string, tokenAddress: `0x${string}` | undefined) {
+  return new Promise<void>(async (resolve, reject) => {
+    try {
+      if (!spenderAddress || !tokenAddress) {
+        throw new Error('Invalid spender or token address');
+      }
+
+      // Get the provider from MetaMask (or another wallet)
+      const provider = new ethers.BrowserProvider(window.ethereum);
+
+      // Request account access if needed
+      await provider.send("eth_requestAccounts", []);
+
+      // Get the signer
+      const signer = await provider.getSigner();
+
+      // Create an instance of the token contract
+      const tokenContract = new ethers.Contract(tokenAddress, ERC20Abi, signer);
+
+      // Get the token decimals
+      const decimals = await tokenContract.decimals();
+
+      // Parse the amount to the correct units
+      const parsedAmount = ethers.parseUnits(amount, decimals);
+
+      // Call the approve function
+      const tx = await tokenContract.approve(spenderAddress, parsedAmount);
+      
+      // Wait for the transaction to be mined
+      const receipt = await tx.wait();
+
+      if (receipt.status === 1) { // Check if the transaction was successful
+        console.log(`Allowance given to ${spenderAddress} for ${amount} tokens`);
+        resolve();
+      } else {
+        throw new Error('Transaction failed');
+      }
+
+    } catch (error) {
+      console.error('Error in setupAndGiveAllowance:', error);
+      reject(error);
+    }
+  });
+}
+
 const validateField = (value: string, validation: FieldValidation): string => {
   if (validation.required && !value) {
     return 'This field is required';
@@ -171,10 +216,17 @@ function PostJobPage() {
     if (!selectedCategory) return
     setPostButtonDisabled(true);
 
-    console.log('posting job', title, description, selectedToken?.id, amount, deadline);
-
     const { hash: contentHash } = await publishToIpfs(description);
-
+    const allowanceResponse = await setupAndGiveAllowance(Config.marketplaceAddress as `0x${string}`, amount, selectedToken?.id as `0x${string}` | undefined)
+    console.log(allowanceResponse)
+    // Ask the user for confirmation or any other action
+    const userConfirmed = window.confirm("Allowance set. Do you want to proceed with publishing the job post?");
+    if (!userConfirmed) {
+      setPostButtonDisabled(false);
+      return;
+    }
+    // Call the giveAllowance function
+    // await setupAndGiveAllowance(Config.marketplaceAddress as `0x${string}`, amount, selectedToken?.id as `0x${string}` | undefined);
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
       address: Config.marketplaceAddress as `0x${string}`,
@@ -303,7 +355,6 @@ function PostJobPage() {
     setDeadline(parseInt(extractedParams.maxTime || '0'));
     console.log(selectedArbitratorAddress, 'arbitratorAddresses', extractedParams.arbitrator)
   }, [searchParams])
-
   useUnsavedChangesWarning(isConfirmed)
   return (
     <div>
