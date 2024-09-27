@@ -43,11 +43,7 @@ export default function useJob(id: bigint) {
     }
   });
 
-
-
   // Handle the error as needed, e.g., show a notification or set an error state
-  
-
   const jobData = result.data as Job;
   const refetch = result.refetch;
   const { data: _, ...rest } = result;
@@ -78,10 +74,16 @@ export default function useJob(id: bigint) {
   useEffect(() => {
     (async () => {
       if (jobData) {
-        const content = await getFromIpfs(jobData.contentHash);
-        jobData.content = content;
-        jobData.id = BigInt(id);
-        setJob(jobData as any);
+        try {
+          const content = await getFromIpfs(jobData.contentHash);
+          console.log(content, 'GET CONTENT FROM IPFS');
+          jobData.content = content;
+          jobData.id = BigInt(id);
+          setJob(jobData as any);
+        } catch (e) {
+          console.log(e, 'NOT FETCHED FROM IPFS')
+        }
+
       }
     })();
   }, [jobData, address, id]);
