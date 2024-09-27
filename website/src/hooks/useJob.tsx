@@ -54,6 +54,7 @@ export default function useJob(id: bigint) {
     abi: MARKETPLACE_DATA_V1_ABI,
     eventName: 'JobEvent',
     onLogs: async (jobEvent) => {
+      console.log(jobEvent, 'This is a Job Event emitted from Marketplace_Data_v1_Abi')
         // Avoid a lot of refetches, only refetch if blockevent changes
         if (blockNumber === undefined) setBlockNumber(jobEvent[0].blockNumber);
         if (blockNumber !== jobEvent[0].blockNumber && blockNumber !== undefined) {

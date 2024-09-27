@@ -45,7 +45,7 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
     address: Config.marketplaceDataAddress as `0x${string}`,
     eventName: 'JobEvent',
     onLogs: async (logs) => {
-      console.log(logs, 'logsEventsData');
+      console.log(logs, 'This is a Job Event emitted from Marketplace_Data_v1_Abi')
       const filtered = logs.filter(log => log.args.jobId === jobId &&
         rawJobEventsData?.findIndex((other) => other.type_ === log.args.eventData?.type_ && other.timestamp_ === log.args.eventData?.timestamp_) === -1 &&
         logEvents.findIndex((other) => other.type_ === log.args.eventData?.type_ && other.timestamp_ === log.args.eventData?.timestamp_) === -1

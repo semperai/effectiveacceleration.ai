@@ -285,6 +285,7 @@ function PostJobPage() {
     abi: MARKETPLACE_DATA_V1_ABI,
     eventName: 'JobEvent',
     onLogs: async (jobEvent) => {
+        console.log(jobEvent, 'This is a Job Event emitted from Marketplace_Data_v1_Abi')
         if (!isConfirmed) return
         jobIdCache(jobEvent[0].args.jobId as bigint) 
     },
