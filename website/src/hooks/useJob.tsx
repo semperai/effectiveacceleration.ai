@@ -44,13 +44,14 @@ export default function useJob(id: bigint) {
   });
 
 
-    console.log('Error fetching job:', result.error);
-    // Handle the error as needed, e.g., show a notification or set an error state
+
+  // Handle the error as needed, e.g., show a notification or set an error state
   
 
   const jobData = result.data as Job;
   const refetch = result.refetch;
   const { data: _, ...rest } = result;
+  console.log('JobData', jobData);
 
   useWatchContractEvent({
     address: Config.marketplaceDataAddress as `0x${string}`,
