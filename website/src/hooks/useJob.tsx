@@ -51,7 +51,7 @@ export default function useJob(id: bigint) {
   const jobData = result.data as Job;
   const refetch = result.refetch;
   const { data: _, ...rest } = result;
-  console.log('JobData', jobData);
+  console.log('JobData', jobData, job, 'JOB');
 
   useWatchContractEvent({
     address: Config.marketplaceDataAddress as `0x${string}`,
