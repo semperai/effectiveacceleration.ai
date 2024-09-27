@@ -71,6 +71,7 @@ export default function JobPage() {
     : setEventMessages(events);
   }, [events, selectedWorker])
 
+  console.log(job, 'JOBS', events, 'EVENTS', users, 'USERS', addresses, 'ADDRESSES')
   return isLoadingError ? <div className="mt-5">
     <Layout>
       <Text>
