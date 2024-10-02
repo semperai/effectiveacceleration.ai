@@ -5,7 +5,6 @@ import PostJobPage from './PostJobPage';
 import { useWatchContractEvent } from 'wagmi';
 import Config from 'effectiveacceleration-contracts/scripts/config.json'
 import { MARKETPLACE_DATA_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceDataV1'
-import useWatchJobEvent from '@/hooks/useWatchJobEvent';
 
 const Page = () => {
   const postJobPageRef = useRef<{ jobIdCache: (jobId: bigint) => void }>(null);
