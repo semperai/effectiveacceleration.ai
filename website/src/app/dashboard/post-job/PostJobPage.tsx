@@ -1,5 +1,5 @@
 'use client'
-import React, { ChangeEvent, FormEvent } from 'react'
+import React, { ChangeEvent, FormEvent, forwardRef, useImperativeHandle } from 'react'
 import { ethers } from 'ethers'
 import {
   useAccount,
@@ -118,6 +118,9 @@ const validateField = (value: string, validation: FieldValidation): string => {
   return '';
 };
 
+interface PostJobPageProps {
+  onJobIdCache: (jobId: bigint) => void;
+}
 
 const unitsDeliveryTime = [
   { id: 0, name: 'minutes' },
@@ -139,7 +142,7 @@ const categories = [
   { id: "NDO", name: "Non-Digital Others" },
 ]
 
-function PostJobPage() {
+const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((props, ref) => {
   const searchParams = useSearchParams();
   const { address } = useAccount();
   const { data: workers } = useUsers();
@@ -219,12 +222,6 @@ function PostJobPage() {
     const { hash: contentHash } = await publishToIpfs(description);
     const allowanceResponse = await setupAndGiveAllowance(Config.marketplaceAddress as `0x${string}`, amount, selectedToken?.id as `0x${string}` | undefined)
     console.log(allowanceResponse)
-    // Ask the user for confirmation or any other action
-    const userConfirmed = window.confirm("Allowance set. Do you want to proceed with publishing the job post?");
-    if (!userConfirmed) {
-      setPostButtonDisabled(false);
-      return;
-    }
     // Call the giveAllowance function
     // await setupAndGiveAllowance(Config.marketplaceAddress as `0x${string}`, amount, selectedToken?.id as `0x${string}` | undefined);
     const w = writeContract({
@@ -280,16 +277,10 @@ function PostJobPage() {
     localStorage.setItem(userJobCache, JSON.stringify(createdJobs));
   }
 
-  useWatchContractEvent({
-    address: Config.marketplaceDataAddress as `0x${string}`,
-    abi: MARKETPLACE_DATA_V1_ABI,
-    eventName: 'JobEvent',
-    onLogs: async (jobEvent) => {
-        console.log(jobEvent, 'This is a Job Event emitted from Marketplace_Data_v1_Abi')
-        if (!isConfirmed) return
-        jobIdCache(jobEvent[0].args.jobId as bigint) 
-    },
-  });
+  useImperativeHandle(ref, () => ({
+    jobIdCache,
+  }));
+
 
   const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>, errorSetter: React.Dispatch<React.SetStateAction<string>>, validation: FieldValidation) => (e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
@@ -551,6 +542,6 @@ function PostJobPage() {
       )}
     </div>
   );
-}
+});
 
 export default PostJobPage;

@@ -17,9 +17,7 @@ const updateLocalJobStorage = ({id, jobEvent, jobData, address}: {id: bigint, jo
       const selectedJobIndex = parsedJobs[jobIndex];
       selectedJobIndex.lastJobEvent = jobEvent[0].args.eventData;
       selectedJobIndex.state = jobData.state;
-      console.log(selectedJobIndex.lastJobEvent, 'selectedJobIndex.lastJobEvent');
       selectedJobIndex.lastJobEvent.id = selectedJobIndex.lastJobEvent.id?.toString();
-      console.log(parsedJobs, 'parsedJobs', jobData, 'jobData');
       // Convert BigInt values to strings
       localStorage.setItem(userJobCache, JSON.stringify(parsedJobs));
     }
@@ -47,7 +45,6 @@ export default function useJob(id: bigint) {
   const jobData = result.data as Job;
   const refetch = result.refetch;
   const { data: _, ...rest } = result;
-  console.log('JobData', jobData, job, 'JOB');
 
   useWatchContractEvent({
     address: Config.marketplaceDataAddress as `0x${string}`,
@@ -55,12 +52,13 @@ export default function useJob(id: bigint) {
     eventName: 'JobEvent',
     onLogs: async (jobEvent) => {
       console.log(jobEvent, 'This is a Job Event emitted from Marketplace_Data_v1_Abi')
+      await refetch()
+      setLastJobEvent(jobEvent);
         // Avoid a lot of refetches, only refetch if blockevent changes
         if (blockNumber === undefined) setBlockNumber(jobEvent[0].blockNumber);
         if (blockNumber !== jobEvent[0].blockNumber && blockNumber !== undefined) {
           setBlockNumber(jobEvent[0].blockNumber)
-          await refetch()
-          setLastJobEvent(jobEvent);
+
       }
     },
   });
@@ -77,7 +75,6 @@ export default function useJob(id: bigint) {
       if (jobData) {
         try {
           const content = await getFromIpfs(jobData.contentHash);
-          console.log(content, 'GET CONTENT FROM IPFS');
           jobData.content = content;
           jobData.id = BigInt(id);
           setJob(jobData as any);
