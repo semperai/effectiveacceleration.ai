@@ -33,7 +33,7 @@ import Image from 'next/image'
 import moment from 'moment'
 import TagsInput from '@/components/TagsInput'
 import { BsInfoCircle } from 'react-icons/bs'
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { MARKETPLACE_DATA_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceDataV1";
 import { LocalStorageJob } from '@/service/JobsService'
 import useUnsavedChangesWarning from '@/hooks/useUnsavedChangesWarning'
@@ -143,6 +143,7 @@ const categories = [
 ]
 
 const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((props, ref) => {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const { address } = useAccount();
   const { data: workers } = useUsers();
@@ -275,6 +276,9 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
     };
     createdJobs.push(newJob);
     localStorage.setItem(userJobCache, JSON.stringify(createdJobs));
+    setTimeout(() => {
+      router.push(`/dashboard/jobs/${createdJobId}`);
+    }, 1000);
   }
 
   useImperativeHandle(ref, () => ({
@@ -543,5 +547,7 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
     </div>
   );
 });
+
+PostJobPage.displayName = 'PostJobPage';
 
 export default PostJobPage;
