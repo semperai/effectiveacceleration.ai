@@ -7,7 +7,7 @@ import Config from 'effectiveacceleration-contracts/scripts/config.json'
 import { MARKETPLACE_DATA_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceDataV1'
 import useWatchJobEvent from '@/hooks/useWatchJobEvent';
 
-const page = () => {
+const Page = () => {
   const postJobPageRef = useRef<{ jobIdCache: (jobId: bigint) => void }>(null);
 
   useWatchContractEvent({
@@ -35,4 +35,4 @@ const page = () => {
     );
 };
 
-export default page
+export default Page
