@@ -154,7 +154,7 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
   const arbitratorNames = ["None", ...(arbitrators?.map((worker) => worker.name) ?? [])];
   const arbitratorFees = ["0", ...(arbitrators?.map((worker) => worker.fee) ?? [])];
   const [selectedToken, setSelectedToken] = useState<Token | undefined>(tokens[0]);
-  const multipleApplicantsValues = ['Yes', 'No']
+  const multipleApplicantsValues = ['No','Yes']
   const [showSummary, setShowSummary] = useState(false);
   const [title, setTitle] = useState<string>('');
   const [deliveryMethod, setDeliveryMethod] = useState('');
@@ -351,7 +351,6 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
     setDeadline(parseInt(extractedParams.maxTime || '0'));
     console.log(selectedArbitratorAddress, 'arbitratorAddresses', extractedParams.arbitrator)
   }, [searchParams])
-  useUnsavedChangesWarning(isConfirmed)
   return (
     <div>
       {!showSummary && (
