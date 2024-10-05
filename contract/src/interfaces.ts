@@ -106,6 +106,7 @@ export type JobArbitratedEvent = {
   workerAmount: bigint;
   reasonHash: string;
   workerAddress: string;
+  arbitratorAmount: bigint;
   reason?: string;
 }
 

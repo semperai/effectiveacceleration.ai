@@ -30,7 +30,8 @@ const config: HardhatUserConfig = {
     ],
   },
   paths: {
-    sources: ["./contracts/MarketplaceDataV1.sol", "./contracts/MarketplaceV1.sol"],
+    sources: "./contracts",
+    abi: "wagmi",
   },
   networks: {
     hardhat: {
@@ -73,9 +74,6 @@ const config: HardhatUserConfig = {
     only: ['contracts/MarketplaceV1.sol', 'contracts/MarketplaceDataV1.sol'],
   },
   contractsToExtractAbi: ['MarketplaceV1', 'MarketplaceDataV1', 'FakeToken', 'Unicrow', 'UnicrowDispute', 'UnicrowArbitrator', 'UnicrowClaim'],
-  paths: {
-    abi: "wagmi",
-  },
   etherscan: {
     apiKey: {
       arbitrumSepolia: 'NQDDEPSUNVM2JQP93GVGG4TFPIPKKEZKAN'
