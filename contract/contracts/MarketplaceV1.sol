@@ -604,6 +604,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
     function postThreadMessage(uint256 jobId_, bytes32 contentHash_) public {
         require(jobs[jobId_].state != uint8(JobState.Closed), "job closed");
+        require(marketplaceData.userRegistered(msg.sender), "not registered");
 
         bool isOwner = jobs[jobId_].roles.creator == msg.sender;
         if (!isOwner) {

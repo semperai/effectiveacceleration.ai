@@ -2159,10 +2159,12 @@ describe("Marketplace Unit Tests", () => {
   describe("post thread message", () => {
     it("sanity checks", async () => {
       const randomWallet = ethers.Wallet.createRandom();
-      const { marketplace, marketplaceData, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+      const { marketplace, marketplaceData, fakeToken, user1, user2, arbitrator, wallet1, wallet2, wallet3, jobId } = await deployMarketplaceWithUsersAndJob();
 
       const message = "I am interested in this job";
       const { hash: messageHash } = await publishToIpfs(message);
+
+      await registerPublicKey(marketplaceData, arbitrator, wallet3);
 
       await expect(
         marketplace.connect(arbitrator).postThreadMessage(jobId, messageHash)
@@ -2210,9 +2212,12 @@ describe("Marketplace Unit Tests", () => {
         marketplace.connect(user2).postThreadMessage(jobId, messageHash)
       ).to.be.not.revertedWith("taken/not worker");
 
-      await expect(
-        marketplace.connect(arbitrator).postThreadMessage(jobId, messageHash)
-      ).to.be.revertedWith("taken/not worker");
+      {
+        const { marketplace, marketplaceData, fakeToken, user1, user2, arbitrator, user4, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, false);
+        await expect(
+          marketplace.connect(user4).postThreadMessage(jobId, messageHash)
+        ).to.be.revertedWith("not registered");
+      }
     });
 
     it("post thread message", async () => {
