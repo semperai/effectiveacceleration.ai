@@ -602,12 +602,14 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         );
     }
 
-    function postThreadMessage(uint256 jobId_, bytes32 contentHash_) public {
+    function postThreadMessage(uint256 jobId_, bytes32 contentHash_, address recipient) public {
         require(jobs[jobId_].state != uint8(JobState.Closed), "job closed");
-        require(marketplaceData.userRegistered(msg.sender), "not registered");
+        require(msg.sender != recipient, "can't message yourself");
 
         bool isOwner = jobs[jobId_].roles.creator == msg.sender;
         if (!isOwner) {
+            require(marketplaceData.userRegistered(msg.sender), "not registered");
+
             if (jobs[jobId_].state == uint8(JobState.Taken)) {
                 // only assigned workers can message on the job if it is taken
                 require(
@@ -622,6 +624,12 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
                     "not whitelisted"
                 );
             }
+
+            // override any possibly-invalid recipient if the message is from the worker
+            recipient = jobs[jobId_].roles.creator;
+        } else {
+            // restrict messaging only to registered users
+            require(marketplaceData.userRegistered(recipient), "not registered");
         }
 
         publishJobEvent(
@@ -633,7 +641,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
                         : JobEventType.WorkerMessage
                 ),
                 address_: abi.encodePacked(msg.sender),
-                data_: abi.encodePacked(contentHash_),
+                data_: abi.encodePacked(contentHash_, recipient),
                 timestamp_: 0
             })
         );

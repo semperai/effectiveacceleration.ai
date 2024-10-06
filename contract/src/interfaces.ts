@@ -113,6 +113,7 @@ export type JobArbitratedEvent = {
 export type JobMessageEvent = {
   contentHash: string;
   content?: string;
+  recipientAddress: string;
 }
 
 export type CustomJobEvent = JobCreatedEvent | JobUpdatedEvent | JobSignedEvent | JobRatedEvent | JobDisputedEvent | JobArbitratedEvent | JobMessageEvent;

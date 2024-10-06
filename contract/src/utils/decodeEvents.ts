@@ -89,8 +89,11 @@ export const decodeJobArbitratedEvent = (rawData: BytesLike): JobArbitratedEvent
 }
 
 export const decodeJobMessageEvent = (rawData: BytesLike): JobMessageEvent => {
+  const bytes = getBytes(rawData);
+
   return {
-    contentHash: hexlify(rawData),
+    contentHash: hexlify(bytes.slice(0, 32)),
+    recipientAddress: getAddress(hexlify(bytes.slice(32, 52))),
   };
 }
 
