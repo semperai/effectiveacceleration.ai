@@ -34,7 +34,7 @@ const JobChat = ({users, selectedWorker, events, job, address, addresses, sessio
         {job && <>
             {job.state !== JobState.Closed && address !== job.roles.arbitrator && addresses.length && Object.keys(sessionKeys).length > 0 &&
                 <div className='row-span-1 flex flex-1 border border-gray-100'>
-                    <PostMessageButton address={address} addresses={addresses as any} sessionKeys={sessionKeys} job={job}/>
+                    <PostMessageButton address={address} recipient={selectedWorker as `0x${string}`} addresses={addresses as any} sessionKeys={sessionKeys} job={job}/>
                 </div>
             }
         </>

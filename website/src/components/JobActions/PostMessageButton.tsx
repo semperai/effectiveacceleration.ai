@@ -16,12 +16,13 @@ import { PiPaperPlaneRight } from "react-icons/pi";
 
 export type PostMessageButtonProps = {
   address: `0x${string}` | undefined,
+  recipient: `0x${string}`,
   addresses: `0x${string}`[] | undefined,
   sessionKeys: Record<string, string>,
   job: Job,
 }
 
-export function PostMessageButton({address, addresses, job, sessionKeys, ...rest}: PostMessageButtonProps & React.ComponentPropsWithoutRef<'div'>) {
+export function PostMessageButton({address, recipient, addresses, job, sessionKeys, ...rest}: PostMessageButtonProps & React.ComponentPropsWithoutRef<'div'>) {
   const [message, setMessage] = useState<string>("");
   const excludes = [address];
   const userAddresses = [zeroAddress, ...(addresses?.filter(user => !excludes.includes(user)) ?? [])];
@@ -72,7 +73,8 @@ export function PostMessageButton({address, addresses, job, sessionKeys, ...rest
       functionName: 'postThreadMessage',
       args: [
         job.id!,
-        contentHash as any
+        contentHash as any,
+        recipient,
       ],
     });
 
