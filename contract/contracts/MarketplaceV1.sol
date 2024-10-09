@@ -11,7 +11,6 @@ import {encodeString, encodeBytes, encodeStringArray} from "./libraries/Encoding
 import "./unicrow/interfaces/IUnicrow.sol";
 import "./unicrow/interfaces/IUnicrowDispute.sol";
 import "./unicrow/interfaces/IUnicrowArbitrator.sol";
-// import "./unicrow/UnicrowTypes.sol";
 import "./MarketplaceDataV1.sol";
 
 // import "hardhat/console.sol";
@@ -23,9 +22,6 @@ enum JobState {
 }
 
 uint32 constant _24_HRS = 60 * 60 * 24;
-
-uint8 constant RATING_MIN = 1;
-uint8 constant RATING_MAX = 5;
 
 struct JobRoles {
     address creator;
@@ -55,10 +51,7 @@ struct JobPost {
 }
 
 contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
-    address public treasury; // where treasury fees/rewards go
     MarketplaceDataV1 public marketplaceData; // address of helper contract which stores the marketplace data which is not jobs
-
-    address public pauser; // who can pause contract
 
     uint256 public version; // version (should be updated when performing updates)
 
@@ -71,16 +64,10 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     address public unicrowDisputeAddress;
     address public unicrowArbitratorAddress;
 
-    address public unicrowMarketplaceAddress;
+    address public treasuryAddress;
     uint16 public unicrowMarketplaceFee;
 
-    uint256[39] __gap; // upgradeable gap
-
-    /// @notice Modifier to restrict to only pauser
-    modifier onlyPauser() {
-        require(msg.sender == pauser, "not pauser");
-        _;
-    }
+    uint256[41] __gap; // upgradeable gap
 
     modifier onlyJobCreator(uint256 jobId_) {
         require(jobs[jobId_].roles.creator == msg.sender, "not creator");
@@ -106,14 +93,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         _;
     }
 
-    event PauserTransferred(
-        address indexed previousPauser,
-        address indexed newPauser
-    );
-    event TreasuryTransferred(
-        address indexed previousTreasury,
-        address indexed newTreasury
-    );
     event VersionChanged(uint256 indexed version);
 
     event NotificationBroadcast(address indexed addr, uint256 indexed id);
@@ -126,30 +105,26 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
     /// @notice Initialize contract
     /// @dev For upgradeable contracts this function necessary
-    /// @param treasury_ Address of treasury
     /// @param unicrowAddress_ Address of Unicrow contract
     /// @param unicrowDisputeAddress_ Address of UnicrowDispute contract
     /// @param unicrowArbitratorAddress_ Address of UnicrowArbitrator contract
-    /// @param unicrowMarketplaceAddress_ Address which will collect this marketplace fees, better not to set it to address(this) to not mess up with collateral values
+    /// @param treasuryAddress_ Address which will collect this marketplace fees, better not to set it to address(this) to not mess up with collateral values
     /// @param unicrowMarketplaceFee_ Fee for this marketplace in bips
     function initialize(
-        address treasury_,
         address unicrowAddress_,
         address unicrowDisputeAddress_,
         address unicrowArbitratorAddress_,
-        address unicrowMarketplaceAddress_,
+        address treasuryAddress_,
         uint16 unicrowMarketplaceFee_
     ) public initializer {
         __Ownable_init(msg.sender);
         __Pausable_init();
-        pauser = msg.sender;
-        treasury = treasury_;
 
         unicrowAddress = unicrowAddress_;
         unicrowDisputeAddress = unicrowDisputeAddress_;
         unicrowArbitratorAddress = unicrowArbitratorAddress_;
 
-        unicrowMarketplaceAddress = unicrowMarketplaceAddress_;
+        treasuryAddress = treasuryAddress_;
         unicrowMarketplaceFee = unicrowMarketplaceFee_;
     }
 
@@ -167,27 +142,13 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         super.transferOwnership(to_);
     }
 
-    /// @notice Transfer pause ability
-    /// @param to_ Address to transfer pauser to
-    function transferPauser(address to_) external onlyOwner {
-        emit PauserTransferred(pauser, to_);
-        pauser = to_;
-    }
-
-    /// @notice Transfer treasury
-    /// @param to_ Address to transfer treasury to
-    function transferTreasury(address to_) external onlyOwner {
-        emit TreasuryTransferred(treasury, to_);
-        treasury = to_;
-    }
-
     /// @notice Pauses contract
-    function pause() external onlyPauser {
+    function pause() external onlyOwner {
         _pause();
     }
 
     /// @notice Unpauses contract
-    function unpause() external onlyPauser {
+    function unpause() external onlyOwner {
         _unpause();
     }
 
@@ -199,10 +160,10 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         emit VersionChanged(version_);
     }
 
-    function setUnicrowMarketplaceAddress(
-        address unicrowMarketplaceAddress_
+    function setTreasuryAddress(
+        address treasuryAddress_
     ) public onlyOwner {
-        unicrowMarketplaceAddress = unicrowMarketplaceAddress_;
+        treasuryAddress = treasuryAddress_;
     }
 
     function updateUnicrowAddresses(
@@ -236,7 +197,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         uint256 amount_,
         address arbitrator_,
         address creator_
-    ) internal {
+    ) internal view {
         uint256 titleLength = bytes(title_).length;
         require(
             titleLength > 0 && titleLength < 255,
@@ -256,7 +217,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         }
 
         uint meceCount = 0;
-        string memory meceShortForm = "";
 
         // Check for exactly one MECE tag
         for (uint8 i = 0; i < tags_.length; i++) {
@@ -265,7 +225,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
                 if (meceCount > 1) {
                     revert("Only one MECE tag is allowed");
                 }
-                meceShortForm = tags_[i]; // Save the short form
             }
         }
 
@@ -276,11 +235,14 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      * @notice Publish a new job post
      * @notice To assign the job to a specific worker, set multipleApplicants_ to false and add the worker to the allowedWorkers_. In such a case, title and description can be encrypted for the worker
      * @notice The function will request a collateral deposit in the amount_ and token_ from the caller.
+     * @notice Great care should be taken both by job creator and worker accepting the job to verify that the reward token does not have side effects, e.g. those of rebasing tokens. This can cause locked funds problem or lack of liquidity problem due to discrepancy in marketplace contract's state (stored amounts) and token contract's state (actual balance).
+     * @notice This contract does not try to solve the potential problem of job creator and arbitrator colluding to profit from the worker. Platform users bare the responsibility of choosing the arbitrators and working with them.
+     * @notice Maintaining a whitelist of trusted tokens and/or arbitrators does not appear to be a solution for two possible problems mentioned above for this marketplace, as it would empair the freedom of choice of the platform users and would require further maintenance work from contract owner/governing group.
      * @param title_ job title - must be not null
      * @param contentHash_ short job description published on IPFS
      * @param multipleApplicants_ do you want to select from multiple applicants or let the first one take the job?
      * @param tags_ labels to help the workers search for the job. Each job must have exactly one of the labels listed above, and any number of other labels
-     * @param token_ token in which you prefer to pay the job with - must be a valid ERC20 token or 0x00..00 for ETH
+     * @param token_ token in which you prefer to pay the job with - must be a valid ERC20 token, e.g. WETH
      * @param amount_ expected amount to pay for the job - must be greater than 0
      * @param maxTime_ maximum expected time (in sec) to deliver the job - must be greater than 0
      * @param deliveryMethod_ preferred method of delivery (e.g. "IPFS", "Courier")
@@ -305,7 +267,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             token_.code.length > 0 && IERC20(token_).balanceOf(msg.sender) > 0,
             "invalid token"
         );
-        IERC20(token_).approve(address(this), type(uint256).max);
+        SafeERC20.forceApprove(IERC20(token_), address(this), type(uint256).max);
 
         uint256 deliveyMethodLength = bytes(deliveryMethod_).length;
         require(
@@ -395,6 +357,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         if (job.amount != amount_) {
             if (amount_ > job.amount) {
                 uint256 difference = amount_ - job.amount;
+                require(difference >= job.collateralOwed, "Invalid collateral-adjusted amount increase");
 
                 SafeERC20.safeTransferFrom(
                     IERC20(job.token),
@@ -406,9 +369,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             } else {
                 uint256 difference = job.amount - amount_;
                 if (block.timestamp >= job.timestamp + _24_HRS) {
-                    SafeERC20.safeTransferFrom(
+                    SafeERC20.safeTransfer(
                         IERC20(job.token),
-                        address(this),
                         msg.sender,
                         difference + job.collateralOwed
                     );
@@ -515,9 +477,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         if (block.timestamp >= job.timestamp + _24_HRS) {
             uint256 amount = job.amount + job.collateralOwed;
             job.collateralOwed = 0; // Clear the collateral record
-            SafeERC20.safeTransferFrom(
+            SafeERC20.safeTransfer(
                 IERC20(job.token),
-                address(this),
                 job.roles.creator,
                 amount
             );
@@ -551,9 +512,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         require(job.collateralOwed > 0, "No collateral to withdraw");
 
         uint256 amount = job.collateralOwed;
-        SafeERC20.safeTransferFrom(
+        SafeERC20.safeTransfer(
             IERC20(job.token),
-            address(this),
             job.roles.creator,
             amount
         );
@@ -708,11 +668,11 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             IUnicrow unicrow = IUnicrow(unicrowAddress);
 
             IERC20 token = IERC20(job.token);
-            token.approve(unicrowAddress, type(uint256).max);
+            SafeERC20.forceApprove(IERC20(token), unicrowAddress, type(uint256).max);
             EscrowInput memory escrowInput = EscrowInput(
                 address(0),
                 msg.sender, // worker address
-                unicrowMarketplaceAddress,
+                treasuryAddress,
                 unicrowMarketplaceFee,
                 job.token,
                 job.maxTime + _24_HRS,
@@ -766,11 +726,11 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         IUnicrow unicrow = IUnicrow(unicrowAddress);
 
         IERC20 token = IERC20(job.token);
-        token.approve(unicrowAddress, type(uint256).max);
+        SafeERC20.forceApprove(IERC20(token), address(unicrowAddress), type(uint256).max);
         EscrowInput memory escrowInput = EscrowInput(
             address(0),
             worker_,
-            unicrowMarketplaceAddress,
+            treasuryAddress,
             unicrowMarketplaceFee,
             job.token,
             job.maxTime + _24_HRS,
@@ -867,10 +827,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         require(
             jobs[jobId_].state == uint8(JobState.Closed),
             "Job doesn't exist or not closed"
-        );
-        require(
-            reviewRating_ >= RATING_MIN && reviewRating_ <= RATING_MAX,
-            "Invalid review score"
         );
         require(bytes(reviewText_).length <= 100, "Review text too long");
 

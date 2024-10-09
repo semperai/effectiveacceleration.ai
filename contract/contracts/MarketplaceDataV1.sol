@@ -71,6 +71,9 @@ struct Review {
     uint32 timestamp;
 }
 
+uint8 constant RATING_MIN = 1;
+uint8 constant RATING_MAX = 5;
+
 contract MarketplaceDataV1 is OwnableUpgradeable {
     event JobEvent(uint256 indexed jobId, JobEventData eventData);
     event PublicKeyRegistered(address indexed addr, bytes pubkey);
@@ -425,6 +428,12 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
         address userAddress_,
         uint8 reviewRating_
     ) public onlyMarketplace {
+        // check reviewRating_ value bounds to avoid possible integer overflow in averageRating calculation
+        require(
+            reviewRating_ >= RATING_MIN && reviewRating_ <= RATING_MAX,
+            "Invalid review score"
+        );
+
         UserRating storage rating = userRatings[userAddress_];
 
         rating.averageRating = uint16(
@@ -477,6 +486,11 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
         uint8 rating_,
         string memory text_
     ) public onlyMarketplace {
+        require(
+            rating_ >= RATING_MIN && rating_ <= RATING_MAX,
+            "Invalid review score"
+        );
+
         userReviews[target_].push(
             Review({
                 reviewer: reviewer_,

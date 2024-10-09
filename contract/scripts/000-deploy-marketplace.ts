@@ -23,7 +23,6 @@ async function main() {
   );
 
   const marketplace = (await upgrades.deployProxy(Marketplace, [
-    await deployer.getAddress(),
     await unicrow.getAddress(),
     await unicrowDispute.getAddress(),
     await unicrowArbitrator.getAddress(),

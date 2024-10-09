@@ -18,7 +18,6 @@ describe("Encrypted communication tests", async () => {
       "MarketplaceV1"
     );
     marketplace = (await upgrades.deployProxy(Marketplace, [
-      await deployer.getAddress(),
       ethers.ZeroAddress,
       ethers.ZeroAddress,
       ethers.ZeroAddress,
@@ -249,7 +248,6 @@ describe("Encrypted communication tests", async () => {
       "MarketplaceV1"
     );
     marketplace = (await upgrades.deployProxy(Marketplace, [
-      await deployer.getAddress(),
       ethers.ZeroAddress,
       ethers.ZeroAddress,
       ethers.ZeroAddress,

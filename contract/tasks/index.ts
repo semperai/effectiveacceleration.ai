@@ -234,7 +234,7 @@ task("marketplace:seed", "Seed local marketplace instance")
     const workerMessage = "I can do it!";
     const { hash: workerMessageHash } = await publishToIpfs(workerMessage, workerSessionKey);
 
-    await marketplace.connect(worker).postThreadMessage(jobId, workerMessageHash);
+    await marketplace.connect(worker).postThreadMessage(jobId, workerMessageHash, owner.address);
 
     await marketplace.connect(owner).payStartJob(jobId, worker.address);
   }
@@ -263,13 +263,13 @@ task("marketplace:seed", "Seed local marketplace instance")
     const workerMessage = "I can do it!";
     const { hash: workerMessageHash } = await publishToIpfs(workerMessage, workerSessionKey);
 
-    await marketplace.connect(worker).postThreadMessage(jobId, workerMessageHash);
+    await marketplace.connect(worker).postThreadMessage(jobId, workerMessageHash, owner.address);
 
     const ownerSessionKey = await getSessionKey(owner, await marketplaceData.connect(owner).publicKeys(worker.address), jobId);
     const ownerMessage = "Go ahead!";
     const { hash: ownerMessageHash } = await publishToIpfs(ownerMessage, ownerSessionKey);
 
-    await marketplace.connect(owner).postThreadMessage(jobId, ownerMessageHash);
+    await marketplace.connect(owner).postThreadMessage(jobId, ownerMessageHash, owner.address);
 
     // worker takes the job
     const revision = await marketplaceData.eventsLength(jobId);

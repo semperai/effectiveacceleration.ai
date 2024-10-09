@@ -1,8 +1,8 @@
 {
   "ownerAddress": "0x98427EB0A7AC42229901922F533E63210B5dD53f",
   "marketplaceFeeAddress": "0x000000000000000000000000000000000000beef",
-  "marketplaceAddress": "0xA235730429fEa9A638b5b614133093175c49cd14",
-  "marketplaceDataAddress": "0x3aeAb3a0754245de2235f3D1547778003d013f7c",
+  "marketplaceAddress": "0x52EA368D8a722713a0acaA7b538Db8f5aEB75cE9",
+  "marketplaceDataAddress": "0x9AC17beEf8e0507A31C58841B8ff4a9503cF65eC",
   "fakeTokenAddress": "0x53743D547c87d81d6A066A41B421E9b7588DEeB9",
   "unicrowAddress": "0x6d98b03C09EaD582a77C093bdb2d3E85683Aa956",
   "unicrowDisputeAddress": "0x3dC5d22716599e7FcD1bbB1752544D9dfa7e719E",
