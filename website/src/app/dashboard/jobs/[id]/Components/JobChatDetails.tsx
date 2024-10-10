@@ -34,12 +34,16 @@ const JobChatDetails = ({job, users, address, sessionKeys, addresses, events, wh
         <JobStatusWrapper job={job} events={events} address={address} zeroHash={zeroHash} addresses={addresses} sessionKeys={sessionKeys} />
       }
       <div className='p-4 border border-gray-100'>
-          <div>
-              <span className='font-bold'>{ job?.title }</span>
-          </div>
-          <div className='my-2 mb-4'>
-              <span className='text-sm mb-2'>{ job?.content }</span>
-          </div>
+        {job && address === job.roles.creator &&
+          <>
+            <div>
+                <span className='font-bold'>{ job?.title }</span>
+            </div>
+            <div className='my-2 mb-4'>
+                <span className='text-sm mb-2'>{ job?.content }</span>
+            </div>
+          </>
+        }
           <div>  
               <div className='flex-col justify-center'>
                   <JobButtonActions job={job} addresses={addresses} sessionKeys={sessionKeys} events={events} whitelistedWorkers={whitelistedWorkers} address={address} timePassed={timePassed} />
