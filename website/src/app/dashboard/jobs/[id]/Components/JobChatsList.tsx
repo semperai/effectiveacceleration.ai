@@ -17,10 +17,10 @@ const JobChatsList = ({users, job, setSelectedWorker} : {users: Record<string, U
             {  Object.entries(users).map(([key, value]) => (
                 job?.roles.creator !== key ?
                     <li key={key} className='flex flex-row py-2 hover:bg-slate-100 cursor-pointer rounded' onClick={() => setSelectedWorker(key)}>
-                        <Image className='flex flex-1 items-center mr-2 max-h-10 max-w-10 rounded-lg' src={value.avatar} height={100} width={100} alt={'Profile picture'}></Image>
+                        <Image className='flex flex-1 items-center mr-2 max-h-10 max-w-10 rounded-lg' src={`${value.avatar ? value.avatar : '/profilePicture.webp'}`} height={100} width={100} alt={'Profile picture'}></Image>
                         <div className='flex flex-col flex-[4] items-left'>
                             <span >{value.name}</span>
-                            <p className='text-sm text-darkBlueFont truncate ... max-w-56 '>{value.bio}</p>
+                            <p className='text-sm text-darkBlueFont truncate ... max-w-56 '>{value.bio ? value.bio : 'Unregistered Account'}</p>
                         </div>
                         <div className='flex flex-1'>
                                 {/* {applicant.lastMessageHour} */}

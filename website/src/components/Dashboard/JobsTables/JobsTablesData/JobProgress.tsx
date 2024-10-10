@@ -36,7 +36,7 @@ const OpenJobs = ({jobs, localJobs}: {jobs: Job[], localJobs: Job[]}) => {
     jobName: <span className='font-bold'>{job.title}</span>,
     description: <span className='font-md'>{job.roles.worker ?? ''}</span>,
     tag: <span className='px-3 py-2 text-[#23B528] rounded-full bg-[#E1FFEF]'>{job.tags[1] ?? ''}</span>,
-    actions: <Link href={`dashboard/jobs/${job.id?.toString()}`}><span className='font-md  text-primary font-semibold underline'>View Details</span></Link>, // Assuming 'actions' is a placeholder for now
+    actions: <Link href={`/dashboard/jobs/${job.id?.toString()}`}><span className='font-md  text-primary font-semibold underline'>View Details</span></Link>, // Assuming 'actions' is a placeholder for now
   }));
   const [dataCompletedTable, _setDataCompletedTable] = React.useState(() => [...defaultDataCompletedTable])
   const tableCompletedTable = useReactTable({

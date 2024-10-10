@@ -15,9 +15,10 @@ import { LOCAL_JOBS_CACHE } from '@/utils/constants';
 export type AssignWorkerButtonProps = {
   address: `0x${string}` | undefined,
   job: Job,
+  selectedWorker: string
 }
 
-export function AssignWorkerButton({address, job, ...rest}: AssignWorkerButtonProps & React.ComponentPropsWithoutRef<'div'>) {
+export function AssignWorkerButton({address, job, selectedWorker, ...rest}: AssignWorkerButtonProps & React.ComponentPropsWithoutRef<'div'>) {
   const {data: users} = useUsers();
   const excludes = [address]
   const userList = users.filter(user => !excludes.includes(user.address_));
@@ -62,7 +63,7 @@ export function AssignWorkerButton({address, job, ...rest}: AssignWorkerButtonPr
       functionName: 'payStartJob',
       args: [
         job.id!,
-        userList[0].address_!,
+        selectedWorker as `0x${string}`,
       ],
     });
   }
@@ -119,7 +120,7 @@ export function AssignWorkerButton({address, job, ...rest}: AssignWorkerButtonPr
                     <span><b>delivery Method:</b> {job.deliveryMethod}</span>
                     <span><b>Max Time:</b> {job.maxTime}</span>
                     <span><b>Amount:</b> {job.tags}</span>
-                    <span><b>Worker:</b> WORKER</span>
+                    <span><b>Worker:</b> {selectedWorker}</span>
                   </div>
                   <div className='mt-5 mb-3 flex flex-col gap-5'>
                     <Button disabled={buttonDisabled} onClick={buttonClick}>

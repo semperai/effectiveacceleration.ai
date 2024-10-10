@@ -5,12 +5,13 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {encodeString, encodeBytes, encodeStringArray} from "./libraries/Encoding.sol";
 
-import "./unicrow/Unicrow.sol";
-import "./unicrow/UnicrowDispute.sol";
-import "./unicrow/UnicrowArbitrator.sol";
-import "./unicrow/UnicrowTypes.sol";
+import "./unicrow/interfaces/IUnicrow.sol";
+import "./unicrow/interfaces/IUnicrowDispute.sol";
+import "./unicrow/interfaces/IUnicrowArbitrator.sol";
+// import "./unicrow/UnicrowTypes.sol";
 import "./MarketplaceDataV1.sol";
 
 // import "hardhat/console.sol";
@@ -695,18 +696,20 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             job.state = uint8(JobState.Taken);
             job.roles.worker = msg.sender;
 
-            Unicrow unicrow = Unicrow(unicrowAddress);
+            IUnicrow unicrow = IUnicrow(unicrowAddress);
 
             IERC20 token = IERC20(job.token);
             token.approve(unicrowAddress, type(uint256).max);
             EscrowInput memory escrowInput = EscrowInput(
+                address(0),
                 msg.sender, // worker address
                 unicrowMarketplaceAddress,
                 unicrowMarketplaceFee,
                 job.token,
                 job.maxTime + _24_HRS,
                 job.maxTime + _24_HRS,
-                job.amount
+                job.amount,
+                string(abi.encodePacked("EACC #", jobId_))
             );
 
             job.escrowId = unicrow.pay(
@@ -751,18 +754,20 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         job.state = uint8(JobState.Taken);
         job.roles.worker = worker_;
 
-        Unicrow unicrow = Unicrow(unicrowAddress);
+        IUnicrow unicrow = IUnicrow(unicrowAddress);
 
         IERC20 token = IERC20(job.token);
         token.approve(unicrowAddress, type(uint256).max);
         EscrowInput memory escrowInput = EscrowInput(
+            address(0),
             worker_,
             unicrowMarketplaceAddress,
             unicrowMarketplaceFee,
             job.token,
             job.maxTime + _24_HRS,
             job.maxTime + _24_HRS,
-            job.amount
+            job.amount,
+            string(abi.encodePacked("EACC #", jobId_))
         );
 
         job.escrowId = unicrow.pay(
@@ -821,7 +826,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         require(job.state == uint8(JobState.Taken), "job in invalid state");
 
-        Unicrow unicrow = Unicrow(unicrowAddress);
+        IUnicrow unicrow = IUnicrow(unicrowAddress);
 
         unicrow.release(job.escrowId);
 
@@ -895,7 +900,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         JobPost storage job = jobs[jobId_];
         require(job.state == uint8(JobState.Taken), "job in invalid state");
 
-        Unicrow unicrow = Unicrow(unicrowAddress);
+        IUnicrow unicrow = IUnicrow(unicrowAddress);
 
         unicrow.refund(job.escrowId);
 
@@ -950,7 +955,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         job.disputed = true;
 
         if (msg.sender == job.roles.creator) {
-            UnicrowDispute unicrowDispute = UnicrowDispute(
+            IUnicrowDispute unicrowDispute = IUnicrowDispute(
                 unicrowDisputeAddress
             );
 
@@ -990,7 +995,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         require(job.disputed, "not disputed");
         job.state = uint8(JobState.Closed);
 
-        UnicrowArbitrator unicrowArbitrator = UnicrowArbitrator(
+        IUnicrowArbitrator unicrowArbitrator = IUnicrowArbitrator(
             unicrowArbitratorAddress
         );
 

@@ -1,35 +1,44 @@
 'use client'
 import { Button } from '@/components/Button'
 import React, { Dispatch } from 'react'
-import { useSignMessage, useAccount, useConnect} from 'wagmi';
-import { getWalletClient } from '@wagmi/core'
-import { ethers, hashMessage, JsonRpcProvider, JsonRpcSigner, recoverAddress, Signer, verifyMessage } from 'ethers'
+import { useSignMessage, useAccount, useConnect, useWalletClient } from 'wagmi';
 import { getEncryptionSigningKey } from 'effectiveacceleration-contracts/dist/src/utils/encryption';
-import { config } from '../providers';
-import { UserButton } from '@/components/UserActions/UserButton';
-
-const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL;
+import { ethers } from 'ethers'
 
 const SignInMessage = ({setEncryptionPublicKey} : {setEncryptionPublicKey: Dispatch<any>}) => {
   const { signMessageAsync } = useSignMessage();
-
+  const { data: walletClient } = useWalletClient();
+  const { address } = useAccount();
 
   const handleSignMessage = async () => {
+    if (!walletClient || !address) {
+      console.error('No wallet client or address available');
+      return;
+    }
+
     try {  
-      const provider = new JsonRpcProvider(rpcUrl);
-      // Get the signer from the provider 
       const message = 'Effective Acceleration';
       const signature = await signMessageAsync({ message });
 
-      // setEncryptionPublicKey(recoveredPublicKey)
+      // Create an ethers.js signer from the walletClient
+      const provider = new ethers.BrowserProvider(walletClient as any);
       const signer = await provider.getSigner();
-      const encryptionKey = (await getEncryptionSigningKey(signer as any)).compressedPublicKey
-      console.log(encryptionKey, 'encryptionKey')
-      setEncryptionPublicKey(encryptionKey)
+
+      // Modify getEncryptionSigningKey to work with ethers 6 signer
+      const modifiedSigner = {
+        ...signer,
+        getAddress: async () => await signer.getAddress(),
+        signMessage: async (message: string) => await signer.signMessage(message)
+      };
+
+      const encryptionKey = (await getEncryptionSigningKey(modifiedSigner as any)).compressedPublicKey;
+      console.log(encryptionKey, 'encryptionKey');
+      setEncryptionPublicKey(encryptionKey);
     } catch (error) {
       console.error('Error signing message:', error);
     }
   };
+
   return (
     <div className='w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all flex justify-center flex-col self-center'>
       <div className='flex justify-center flex-col self-center my-16'>

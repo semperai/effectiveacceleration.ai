@@ -61,10 +61,7 @@ export default function useJobsByIds(targetIds: bigint[]) {
         cachedItems.forEach((item) => {
             resultMap.push(JSON5.parse(item.checkedItem) as Job);
         });
-        setTimeout(() => {
-          // Timeout setted up for skeleton testing purposes
           setJobs(resultMap);
-        }, 4000);
     }
   // @ts-ignore
   }, [jobsData, cachedItems, missedItems]);

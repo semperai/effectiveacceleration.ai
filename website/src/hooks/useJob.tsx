@@ -6,9 +6,10 @@ import { useState, useEffect, useMemo } from "react";
 import { useAccount, useReadContract, useWatchContractEvent } from "wagmi";
 import { LOCAL_JOBS_CACHE } from "@/utils/constants";
 
-const updateLocalJobStorage = ({id, jobEvent, jobData}: {id: bigint, jobEvent: any, jobData: Job}) => {
+const updateLocalJobStorage = ({id, jobEvent, jobData, address}: {id: bigint, jobEvent: any, jobData: Job, address: `0x${string}` | undefined}) => {
+    const userJobCache = `${address}${LOCAL_JOBS_CACHE}`
   // Update local storage job with new job state and event.
-  const storedJobs = localStorage.getItem(LOCAL_JOBS_CACHE);
+  const storedJobs = localStorage.getItem(userJobCache);
   if (storedJobs) {
     const parsedJobs = JSON.parse(storedJobs as string);
     const jobIndex = parsedJobs.findIndex((job: Job) => job.id as unknown as string === id.toString());
@@ -16,11 +17,9 @@ const updateLocalJobStorage = ({id, jobEvent, jobData}: {id: bigint, jobEvent: a
       const selectedJobIndex = parsedJobs[jobIndex];
       selectedJobIndex.lastJobEvent = jobEvent[0].args.eventData;
       selectedJobIndex.state = jobData.state;
-      console.log(selectedJobIndex.lastJobEvent, 'selectedJobIndex.lastJobEvent');
       selectedJobIndex.lastJobEvent.id = selectedJobIndex.lastJobEvent.id?.toString();
-      console.log(parsedJobs, 'parsedJobs', jobData, 'jobData');
       // Convert BigInt values to strings
-      localStorage.setItem(LOCAL_JOBS_CACHE, JSON.stringify(parsedJobs));
+      localStorage.setItem(userJobCache, JSON.stringify(parsedJobs));
     }
   }
 }
@@ -42,11 +41,7 @@ export default function useJob(id: bigint) {
     }
   });
 
-
-    console.log('Error fetching job:', result.error);
-    // Handle the error as needed, e.g., show a notification or set an error state
-  
-
+  // Handle the error as needed, e.g., show a notification or set an error state
   const jobData = result.data as Job;
   const refetch = result.refetch;
   const { data: _, ...rest } = result;
@@ -56,19 +51,21 @@ export default function useJob(id: bigint) {
     abi: MARKETPLACE_DATA_V1_ABI,
     eventName: 'JobEvent',
     onLogs: async (jobEvent) => {
+      console.log(jobEvent, 'This is a Job Event emitted from Marketplace_Data_v1_Abi')
+      await refetch()
+      setLastJobEvent(jobEvent);
         // Avoid a lot of refetches, only refetch if blockevent changes
         if (blockNumber === undefined) setBlockNumber(jobEvent[0].blockNumber);
         if (blockNumber !== jobEvent[0].blockNumber && blockNumber !== undefined) {
           setBlockNumber(jobEvent[0].blockNumber)
-          await refetch()
-          setLastJobEvent(jobEvent);
+
       }
     },
   });
 
   useMemo(() => {
     if (jobData && lastJobEvent) {
-      updateLocalJobStorage({ id, jobEvent: lastJobEvent, jobData });
+      updateLocalJobStorage({ id, jobEvent: lastJobEvent, jobData, address });
       setLastJobEvent(null);
     }
   }, [jobData, lastJobEvent]);
@@ -76,10 +73,15 @@ export default function useJob(id: bigint) {
   useEffect(() => {
     (async () => {
       if (jobData) {
-        const content = await getFromIpfs(jobData.contentHash);
-        jobData.content = content;
-        jobData.id = BigInt(id);
-        setJob(jobData as any);
+        try {
+          const content = await getFromIpfs(jobData.contentHash);
+          jobData.content = content;
+          jobData.id = BigInt(id);
+          setJob(jobData as any);
+        } catch (e) {
+          console.log(e, 'NOT FETCHED FROM IPFS')
+        }
+
       }
     })();
   }, [jobData, address, id]);

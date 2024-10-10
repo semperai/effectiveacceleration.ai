@@ -12,6 +12,8 @@ import Config from "effectiveacceleration-contracts/scripts/config.json";
 import { useSearchParams } from 'next/navigation'
 import { UserButton } from '@/components/UserActions/UserButton'
 import useUser from '@/hooks/useUser'
+import { useRouter } from 'next/navigation';
+
 
 const ipfsGatewayUrl = process.env.NEXT_PUBLIC_IPFS_GATEWAY_URL ?? '';
 
@@ -25,6 +27,7 @@ const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string
     const { address } = useAccount();
     const {data: user} = useUser(address!);
     const [avatarFileUrl, setAvatarFileUrl] = useState<string>('');
+    const router = useRouter();
     const {
       data: hash,
       error,
@@ -71,6 +74,9 @@ const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string
             console.log(error, error.message);
             alert("Unknown error occurred");
           }
+        }
+        if (isConfirmed) {
+          router.push('/dashboard');
         }
       }
     }, [isConfirmed, error]);

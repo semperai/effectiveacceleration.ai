@@ -1,6 +1,6 @@
 import React from 'react'
 import { Button } from '@/components/Button'
-import useShortenText from '@/hooks/useShortenText'
+import { shortenText } from '@/utils/utils'
 import clsx from 'clsx'
 import { CurrencyDollarIcon, LinkIcon, UserIcon } from '@heroicons/react/20/solid'
 import { formatTokenNameAndAmount, tokenIcon } from '@/tokens'
@@ -34,12 +34,16 @@ const JobChatDetails = ({job, users, address, sessionKeys, addresses, events, wh
         <JobStatusWrapper job={job} events={events} address={address} zeroHash={zeroHash} addresses={addresses} sessionKeys={sessionKeys} />
       }
       <div className='p-4 border border-gray-100'>
-          <div>
-              <span className='font-bold'>{ job?.title }</span>
-          </div>
-          <div className='my-2 mb-4'>
-              <span className='text-sm mb-2'>{ job?.content }</span>
-          </div>
+        {job && address === job.roles.creator &&
+          <>
+            <div>
+                <span className='font-bold'>{ job?.title }</span>
+            </div>
+            <div className='my-2 mb-4'>
+                <span className='text-sm mb-2'>{ job?.content }</span>
+            </div>
+          </>
+        }
           <div>  
               <div className='flex-col justify-center'>
                   <JobButtonActions job={job} addresses={addresses} sessionKeys={sessionKeys} events={events} whitelistedWorkers={whitelistedWorkers} address={address} timePassed={timePassed} />
@@ -133,7 +137,7 @@ const JobChatDetails = ({job, users, address, sessionKeys, addresses, events, wh
           </div>
           <div className='flex justify-between my-2'>
               <span>Arbitrator Address</span>
-              <span>{useShortenText({text: job?.roles.arbitrator ,maxLength: 12}) || ''}</span>
+              <span>{shortenText({text: job?.roles.arbitrator ,maxLength: 12}) || ''}</span>
           </div>
       </div>
       <div className='p-4 border border-gray-100'>

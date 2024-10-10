@@ -1,5 +1,5 @@
 'use client'
-import React, { ChangeEvent, FormEvent, forwardRef, useImperativeHandle } from 'react'
+import React, { ChangeEvent, FormEvent, useRef } from 'react'
 import { ethers } from 'ethers'
 import {
   useAccount,
@@ -33,7 +33,7 @@ import Image from 'next/image'
 import moment from 'moment'
 import TagsInput from '@/components/TagsInput'
 import { BsInfoCircle } from 'react-icons/bs'
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { MARKETPLACE_DATA_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceDataV1";
 import { LocalStorageJob } from '@/service/JobsService'
 import useUnsavedChangesWarning from '@/hooks/useUnsavedChangesWarning'
@@ -118,9 +118,6 @@ const validateField = (value: string, validation: FieldValidation): string => {
   return '';
 };
 
-interface PostJobPageProps {
-  onJobIdCache: (jobId: bigint) => void;
-}
 
 const unitsDeliveryTime = [
   { id: 0, name: 'minutes' },
@@ -142,10 +139,12 @@ const categories = [
   { id: "NDO", name: "Non-Digital Others" },
 ]
 
-const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((props, ref) => {
-  const router = useRouter();
+function PostJobForm() {
+  const renderCount = useRef(0);
+  renderCount.current += 1;
+  console.log(renderCount.current);
   const searchParams = useSearchParams();
-  const { address } = useAccount();
+  const { address } = useAccount(); 
   const { data: workers } = useUsers();
   const workerAddresses = workers?.filter(worker => worker.address_ !== address).map((worker) => worker.address_) ?? [];
   const workerNames = workers?.filter(worker => worker.address_ !== address).map((worker) => worker.name) ?? [];
@@ -154,7 +153,7 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
   const arbitratorNames = ["None", ...(arbitrators?.map((worker) => worker.name) ?? [])];
   const arbitratorFees = ["0", ...(arbitrators?.map((worker) => worker.fee) ?? [])];
   const [selectedToken, setSelectedToken] = useState<Token | undefined>(tokens[0]);
-  const multipleApplicantsValues = ['No','Yes']
+  const multipleApplicantsValues = ['Yes', 'No']
   const [showSummary, setShowSummary] = useState(false);
   const [title, setTitle] = useState<string>('');
   const [deliveryMethod, setDeliveryMethod] = useState('');
@@ -221,8 +220,8 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
     setPostButtonDisabled(true);
 
     const { hash: contentHash } = await publishToIpfs(description);
-    const allowanceResponse = await setupAndGiveAllowance(Config.marketplaceAddress as `0x${string}`, amount, selectedToken?.id as `0x${string}` | undefined)
-    console.log(allowanceResponse)
+    // const allowanceResponse = await setupAndGiveAllowance(Config.marketplaceAddress as `0x${string}`, amount, selectedToken?.id as `0x${string}` | undefined)
+    // console.log(allowanceResponse)
     // Call the giveAllowance function
     // await setupAndGiveAllowance(Config.marketplaceAddress as `0x${string}`, amount, selectedToken?.id as `0x${string}` | undefined);
     const w = writeContract({
@@ -276,15 +275,7 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
     };
     createdJobs.push(newJob);
     localStorage.setItem(userJobCache, JSON.stringify(createdJobs));
-    setTimeout(() => {
-      router.push(`/dashboard/jobs/${createdJobId}`);
-    }, 1000);
   }
-
-  useImperativeHandle(ref, () => ({
-    jobIdCache,
-  }));
-
 
   const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>, errorSetter: React.Dispatch<React.SetStateAction<string>>, validation: FieldValidation) => (e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
@@ -333,24 +324,25 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
     }
   }, [isConfirmed, error]);
 
-  useEffect(() => {
-    const params = Object.fromEntries(searchParams.entries());
-    const extractedParams: PostJobParams = {
-      ...params,
-      tags: searchParams.getAll('tags')
-    };
-    setTitle(extractedParams.title || '');
-    setDescription(extractedParams.content || '');
-    setTags(extractedParams.tags.map((tag, index) => ({ id: index, name: tag })));
-    setDeliveryMethod(extractedParams.deliveryMethod || '');
-    if (extractedParams.arbitrator === '0x0000000000000000000000000000000000000000') {
-      setArbitratorRequired('No');
-    } else {
-      setsSelectedArbitratorAddress(extractedParams.arbitrator || '');
-    }
-    setDeadline(parseInt(extractedParams.maxTime || '0'));
-    console.log(selectedArbitratorAddress, 'arbitratorAddresses', extractedParams.arbitrator)
-  }, [searchParams])
+  // useEffect(() => {
+  //   const params = Object.fromEntries(searchParams.entries());
+  //   const extractedParams: PostJobParams = {
+  //     ...params,
+  //     tags: searchParams.getAll('tags')
+  //   };
+  //   setTitle(extractedParams.title || '');
+  //   setDescription(extractedParams.content || '');
+  //   setTags(extractedParams.tags.map((tag, index) => ({ id: index, name: tag })));
+  //   setDeliveryMethod(extractedParams.deliveryMethod || '');
+  //   if (extractedParams.arbitrator === '0x0000000000000000000000000000000000000000') {
+  //     setArbitratorRequired('No');
+  //   } else {
+  //     setsSelectedArbitratorAddress(extractedParams.arbitrator || '');
+  //   }
+  //   setDeadline(parseInt(extractedParams.maxTime || '0'));
+  //   console.log(selectedArbitratorAddress, 'arbitratorAddresses', extractedParams.arbitrator)
+  // }, [searchParams])
+  useUnsavedChangesWarning(isConfirmed)
   return (
     <div>
       {!showSummary && (
@@ -545,8 +537,6 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
       )}
     </div>
   );
-});
+}
 
-PostJobPage.displayName = 'PostJobPage';
-
-export default PostJobPage;
+export default PostJobForm;

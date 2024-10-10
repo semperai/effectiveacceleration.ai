@@ -14,9 +14,11 @@ import { Job, JobEventType, JobState } from 'effectiveacceleration-contracts/dis
 import { LocalStorageJob } from '@/service/JobsService';
 import useJobsByIds from '@/hooks/useJobsByIds';
 import { LOCAL_JOBS_CACHE } from '@/utils/constants';
+import { useAccount } from 'wagmi';
 
 const DashboardTabs = () => {
   const { data: jobs } = useJobs();
+  const { address } = useAccount();
   const { data: users } = useUsersByAddresses(jobs.map(job => job.roles.creator));
   const [localJobs, setLocalJobs] = useState<Job[]>([]);
   const [jobIds, setJobIds] = useState<bigint[]>([]);
@@ -27,9 +29,9 @@ const DashboardTabs = () => {
   const [tabsKey, setTabsKey] = useState(0);
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [mounted, setMounted] = useState(false);
-
+  const userJobCache = `${address}${LOCAL_JOBS_CACHE}`
   useEffect(() => {
-    const storedJobs = localStorage.getItem(LOCAL_JOBS_CACHE);
+    const storedJobs = localStorage.getItem(userJobCache);
     if (storedJobs) {
       const parsedJobs = JSON.parse(storedJobs);
       const jobIdsArray = Array.from(new Set(parsedJobs.map((job: Job) => job.id)));
@@ -37,7 +39,7 @@ const DashboardTabs = () => {
       setJobIds(jobIdsArray as bigint[]);
     }
     setMounted(true);
-  }, []);
+  }, [address]);
 
   const filteredJobsMemo = useMemo(() => {
     if (selectedJobs.length === 0) return { open: [], inProgress: [], completed: [] };
@@ -65,6 +67,7 @@ const DashboardTabs = () => {
     setFilteredCompletedJobs(filteredJobsMemo.completed);
   }, [filteredJobsMemo]);
 
+  console.log(localJobs, 'filtered Jobs')
   return (
     <div className=''>
     {mounted && (

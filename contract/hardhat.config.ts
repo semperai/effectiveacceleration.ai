@@ -7,6 +7,13 @@ import "hardhat-contract-sizer";
 import "hardhat-ts-plugin-abi-extractor";
 import "./tasks/index";
 
+// Import MNEMONIC from .env file
+let MNEMONIC = process.env.MNEMONIC;
+
+if (!MNEMONIC) {
+  MNEMONIC = "rebuild always symbol rabbit sunset napkin laundry diary doll chalk valid train";
+}
+
 const config: HardhatUserConfig = {
   solidity: {
     compilers: [
@@ -21,6 +28,9 @@ const config: HardhatUserConfig = {
         },
       },
     ],
+  },
+  paths: {
+    sources: ["./contracts/MarketplaceDataV1.sol", "./contracts/MarketplaceV1.sol"],
   },
   networks: {
     hardhat: {
@@ -46,6 +56,13 @@ const config: HardhatUserConfig = {
         passphrase: undefined,
       }
     },
+    arbitrumSepolia: {
+      accounts: {
+        mnemonic: MNEMONIC,
+      },
+      url: "https://sepolia-rollup.arbitrum.io/rpc",
+      chainId: 421614
+    }
   },
   // limit is 24.576 KiB
   contractSizer: {
@@ -59,6 +76,21 @@ const config: HardhatUserConfig = {
   paths: {
     abi: "wagmi",
   },
+  etherscan: {
+    apiKey: {
+      arbitrumSepolia: 'NQDDEPSUNVM2JQP93GVGG4TFPIPKKEZKAN'
+    },
+    customChains: [
+      {
+        network: "arbitrumSepolia",
+        chainId: 421614,
+        urls: {
+          apiURL: "https://api-sepolia.arbiscan.io/api",
+          browserURL: "https://sepolia.arbiscan.io/"
+        }
+      },
+    ]
+  }
 };
 
 export default config;
