@@ -10,6 +10,8 @@ const getValidJobsCount = (title: string, jobs?: Job[]): number => {
   switch (title) {
     case 'Open Jobs':
       return jobs.filter(job => job.state === JobState.Open).length;
+      case 'All Jobs':
+        return jobs.filter(job => job).length;
     case 'In Progress':
       return jobs.filter(job => job.state === JobState.Taken).length;
     case 'Completed Jobs':
@@ -26,9 +28,11 @@ function JobsTable<T>({table, title, localJobs}:{table: Table<T>, title:string, 
   const [loading, setLoading] = useState(true);
   const [jobCount, setJobCount] = useState(0);
   const [dataRow, setDataRow] = useState(false)
+  console.log(localJobs, 'localjobs')
   useEffect(() => {
+    console.log(title, localJobs, 'TITLE AND LOCAL JOBS')
     setJobCount(getValidJobsCount(title, localJobs))
-    console.log(localJobs)
+    console.log(localJobs, 'localjobs')
     if (table.getRowModel().rows.length === 0) return
     setLoading(false)
     setDataRow(true)

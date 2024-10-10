@@ -42,7 +42,7 @@ const columnsCompletedTable = [
   })
 ]
 
-const OpenJobs = ({jobs, localJobs}: {jobs: Job[], localJobs: Job[]}) => {
+const AllJobs = ({jobs, localJobs}: {jobs: Job[], localJobs: Job[]}) => {
   useEffect(() => {
     _setDataCompletedTable([...defaultDataCompletedTable]);
   }, [jobs]);
@@ -60,9 +60,9 @@ const OpenJobs = ({jobs, localJobs}: {jobs: Job[], localJobs: Job[]}) => {
   })
   return (
     <>
-        <JobsTable table={tableCompletedTable} localJobs={localJobs} title='Open Jobs'></JobsTable>
+        <JobsTable table={tableCompletedTable} localJobs={localJobs} title='All Jobs'></JobsTable>
     </>
   )
 }
 
-export default OpenJobs
+export default AllJobs

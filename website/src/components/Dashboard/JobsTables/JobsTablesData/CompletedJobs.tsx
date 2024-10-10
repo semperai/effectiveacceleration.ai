@@ -38,7 +38,7 @@ const OpenJobs = ({jobs, localJobs}: {jobs: Job[], localJobs: Job[]}) => {
     status: <span className='px-3 py-2 text-[#23B528] rounded-full bg-[#E1FFEF]'>Completed</span>,
     timeTaken: <span >{job.maxTime}</span>,
     completedBy: <span className='font-md '>{shortenText({text: job?.roles.worker, maxLength: 20}) || ''}</span>,
-    actions: <Link href={`dashboard/jobs/${job.id?.toString()}`}><span className='font-md  text-primary font-semibold underline'>View Details</span></Link>, // Assuming 'actions' is a placeholder for now
+    actions: <Link href={`/dashboard/jobs/${job.id?.toString()}`}><span className='font-md  text-primary font-semibold underline'>View Details</span></Link>, // Assuming 'actions' is a placeholder for now
   }));
   const [dataCompletedTable, _setDataCompletedTable] = React.useState(() => [...defaultDataCompletedTable])
   const tableCompletedTable = useReactTable({

@@ -11,11 +11,11 @@ import { DisputeButton } from '@/components/JobActions/DisputeButton';
 import { ApproveButton } from '@/components/JobActions/ApproveButton';
 import { AssignWorkerButton } from '@/components/JobActions/AssignWorkerButton';
 import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
-import JobChatStatus from './Components/JobChat/JobChatStatus';
-import ProfileUserHeader from './Components/JobChat/ProfileUserHeader';
-import JobChatEvents from './Components/JobChat/JobChat';
+import JobChatStatus from './JobChat/JobChatStatus';
+import ProfileUserHeader from './JobChat/ProfileUserHeader';
+import JobChatEvents from './JobChat/JobChat';
 
-const JobChat = ({users, selectedWorker, events, job, address, addresses, sessionKeys} : 
+const JobChat = ({users, selectedWorker, events, job, address, addresses, sessionKeys, jobUsersData} : 
 {
     users: Record<string, User>, 
     selectedWorker: string, 
@@ -23,21 +23,23 @@ const JobChat = ({users, selectedWorker, events, job, address, addresses, sessio
     job: Job, 
     address: `0x${string}` | undefined,
     sessionKeys: Record<string, string>,
-    addresses: string[]  
+    addresses: string[],
+    jobUsersData?: Record<string, User>
+    
 }) => {
     const lastEventType = events[events.length - 1]?.type_
-    console.log(events, 'events')
   return (
-    <div className='grid grid-rows-[74px_70%_10%] max-h-customHeader'>
+    <div className='grid grid-rows-[74px_70%_10%] min-h-customHeader'>
         <ProfileUserHeader users={users} selectedWorker={selectedWorker}/>
-        <JobChatEvents users={users} selectedWorker={''} events={events} job={job} address={address} />
-        {job && <>
-            {job.state !== JobState.Closed && address !== job.roles.arbitrator && addresses.length && Object.keys(sessionKeys).length > 0 &&
-                <div className='row-span-1 flex flex-1 border border-gray-100'>
-                    <PostMessageButton address={address} addresses={addresses as any} sessionKeys={sessionKeys} job={job}/>
-                </div>
-            }
-        </>
+        <JobChatEvents users={users} selectedWorker={selectedWorker} events={events} job={job} address={address} />
+        {job && (address === job.roles.arbitrator || address === job.roles.worker || (address === job.roles.creator && selectedWorker)) &&
+            <>
+                {job.state !== JobState.Closed && addresses.length && Object.keys(sessionKeys).length > 0 &&
+                    <div className='row-span-1 flex flex-1 border border-gray-100'>
+                        <PostMessageButton address={address} addresses={addresses as any} sessionKeys={sessionKeys} job={job} />
+                    </div>
+                }
+            </>
         }
     </div>
   )
