@@ -17,9 +17,9 @@ import { Signer, HDNodeWallet, EventLog, getCreateAddress, toBigInt, hexlify, Ze
 import { Unicrow, UnicrowDispute, UnicrowArbitrator, UnicrowClaim, IERC20Errors__factory, ECDSA__factory, OwnableUpgradeable__factory, Initializable__factory } from "../typechain-types";
 import { HardhatNetworkHDAccountsConfig } from "hardhat/types";
 import { computeJobStateDiffs, fetchEventContents } from "../src/utils/ui";
-import { decodeJobCreatedEvent, decodeJobUpdatedEvent, decodeJobSignedEvent, decodeJobRatedEvent, decodeJobDisputedEvent, decodeJobArbitratedEvent, decryptJobDisputedEvent } from "../src/utils/decodeEvents";
+import { decodeJobCreatedEvent, decodeJobUpdatedEvent, decodeJobSignedEvent, decodeJobRatedEvent, decodeJobDisputedEvent, decodeJobArbitratedEvent, decryptJobDisputedEvent, decodeJobMessageEvent } from "../src/utils/decodeEvents";
 import { getEncryptionSigningKey, publishToIpfs, getSessionKey, encryptUtf8Data, encryptBinaryData, getFromIpfs } from "../src/utils/encryption";
-import { JobEventType, JobCreatedEvent, JobState, JobUpdatedEvent, JobSignedEvent, JobRatedEvent, JobDisputedEvent, JobArbitratedEvent } from "../src/interfaces";
+import { JobEventType, JobCreatedEvent, JobState, JobUpdatedEvent, JobSignedEvent, JobRatedEvent, JobDisputedEvent, JobArbitratedEvent, JobMessageEvent } from "../src/interfaces";
 
 import { inspect } from 'util';
 import { timeStamp } from "console";
@@ -153,7 +153,6 @@ describe("Marketplace Unit Tests", () => {
     );
 
     const marketplace = (await upgrades.deployProxy(Marketplace, [
-      await deployer.getAddress(),
       await unicrow.getAddress(),
       await unicrowDispute.getAddress(),
       await unicrowArbitrator.getAddress(),
@@ -264,44 +263,6 @@ describe("Marketplace Unit Tests", () => {
       ).to.be.reverted;
     });
 
-    it("transfer pauser", async () => {
-      const { marketplace, deployer, user1 } = await loadFixture(deployContractsFixture);
-      await expect(marketplace
-        .connect(deployer)
-        .transferPauser(await user1.getAddress())
-      ).to.emit(marketplace, 'PauserTransferred')
-      .withArgs(await deployer.getAddress(), await user1.getAddress());
-
-      expect(await marketplace.pauser()).to.equal(await user1.getAddress());
-    });
-
-    it("non owner cannot transfer pauser", async () => {
-      const { marketplace, marketplaceData, user1 } = await loadFixture(deployContractsFixture);
-      await expect(marketplace
-        .connect(user1)
-        .transferPauser(await user1.getAddress())
-      ).to.be.reverted;
-    });
-
-    it("transfer treasury", async () => {
-      const { marketplace, deployer, user1 } = await loadFixture(deployContractsFixture);
-      await expect(marketplace
-        .connect(deployer)
-        .transferTreasury(await user1.getAddress())
-      ).to.emit(marketplace, 'TreasuryTransferred')
-      .withArgs(await deployer.getAddress(), await user1.getAddress());
-
-      expect(await marketplace.treasury()).to.equal(await user1.getAddress());
-    });
-
-    it("non owner cannot transfer treasury", async () => {
-      const { marketplace, marketplaceData, user1 } = await loadFixture(deployContractsFixture);
-      await expect(marketplace
-        .connect(user1)
-        .transferTreasury(await user1.getAddress())
-      ).to.be.reverted;
-    });
-
     it("pause/unpause", async () => {
       const { marketplace, deployer, user1 } = await loadFixture(deployContractsFixture);
       await expect(marketplace
@@ -361,7 +322,7 @@ describe("Marketplace Unit Tests", () => {
     it("can not call initializer", async () => {
       const { marketplace } = await loadFixture(deployContractsFixture);
       await expect(
-        marketplace.initialize(ZeroAddress, ZeroAddress, ZeroAddress, ZeroAddress, ZeroAddress, 0)
+        marketplace.initialize(ZeroAddress, ZeroAddress, ZeroAddress, ZeroAddress, 0)
       ).to.be.revertedWithCustomError({interface: Initializable__factory.createInterface()}, "InvalidInitialization");
     });
   });
@@ -631,14 +592,14 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, deployer } = await loadFixture(deployContractsFixture);
       await expect(marketplace
         .connect(deployer)
-        .setUnicrowMarketplaceAddress(ethers.ZeroAddress)
+        .setTreasuryAddress(ethers.ZeroAddress)
       ).to.be.not.reverted;
-      expect(await marketplace.unicrowMarketplaceAddress()).to.equal(ethers.ZeroAddress);
+      expect(await marketplace.treasuryAddress()).to.equal(ethers.ZeroAddress);
 
       const randomWallet = ethers.Wallet.createRandom();
       await expect(marketplace
         .connect(randomWallet.connect(deployer.provider))
-        .setUnicrowMarketplaceAddress(ethers.ZeroAddress)
+        .setTreasuryAddress(ethers.ZeroAddress)
       ).to.be.revertedWithCustomError({interface: OwnableUpgradeable__factory.createInterface()}, "OwnableUnauthorizedAccount");
     });
 
@@ -2159,13 +2120,19 @@ describe("Marketplace Unit Tests", () => {
   describe("post thread message", () => {
     it("sanity checks", async () => {
       const randomWallet = ethers.Wallet.createRandom();
-      const { marketplace, marketplaceData, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob();
+      const { marketplace, marketplaceData, fakeToken, user1, user2, arbitrator, user4, wallet1, wallet2, wallet3, jobId } = await deployMarketplaceWithUsersAndJob();
 
       const message = "I am interested in this job";
       const { hash: messageHash } = await publishToIpfs(message);
 
+      await registerPublicKey(marketplaceData, arbitrator, wallet3);
+
       await expect(
-        marketplace.connect(arbitrator).postThreadMessage(jobId, messageHash)
+        marketplace.connect(user1).postThreadMessage(jobId, messageHash, user1.address)
+      ).to.be.revertedWith("can't message yourself");
+
+      await expect(
+        marketplace.connect(arbitrator).postThreadMessage(jobId, messageHash, user1.address)
       ).to.be.revertedWith("not whitelisted");
 
       await expect(
@@ -2173,13 +2140,13 @@ describe("Marketplace Unit Tests", () => {
       ).to.be.not.reverted;
 
       await expect(
-        marketplace.connect(arbitrator).postThreadMessage(jobId, messageHash)
+        marketplace.connect(arbitrator).postThreadMessage(jobId, messageHash, user1.address)
       ).to.be.not.reverted;
 
       {
         const { marketplace, marketplaceData, fakeToken, user1, user2, arbitrator, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, false);
         await expect(
-          marketplace.connect(arbitrator).postThreadMessage(jobId, messageHash)
+          marketplace.connect(arbitrator).postThreadMessage(jobId, messageHash, user1.address)
         ).to.be.not.revertedWith("not whitelisted");
       }
 
@@ -2188,7 +2155,7 @@ describe("Marketplace Unit Tests", () => {
       ).to.be.not.reverted;
 
       await expect(
-        marketplace.connect(user1).postThreadMessage(jobId, messageHash)
+        marketplace.connect(user1).postThreadMessage(jobId, messageHash, user2.address)
       ).to.be.revertedWith("job closed");
 
       await expect(
@@ -2203,16 +2170,19 @@ describe("Marketplace Unit Tests", () => {
       ).to.be.not.reverted;
 
       await expect(
-        marketplace.connect(user1).postThreadMessage(jobId, messageHash)
+        marketplace.connect(user1).postThreadMessage(jobId, messageHash, user4.address)
       ).to.be.not.revertedWith("taken/not worker");
 
       await expect(
-        marketplace.connect(user2).postThreadMessage(jobId, messageHash)
+        marketplace.connect(user2).postThreadMessage(jobId, messageHash, user4.address)
       ).to.be.not.revertedWith("taken/not worker");
 
-      await expect(
-        marketplace.connect(arbitrator).postThreadMessage(jobId, messageHash)
-      ).to.be.revertedWith("taken/not worker");
+      {
+        const { marketplace, marketplaceData, fakeToken, user1, user2, arbitrator, user4, wallet1, wallet2, jobId } = await deployMarketplaceWithUsersAndJob(false, false);
+        await expect(
+          marketplace.connect(user4).postThreadMessage(jobId, messageHash, user1)
+        ).to.be.revertedWith("not registered");
+      }
     });
 
     it("post thread message", async () => {
@@ -2222,12 +2192,15 @@ describe("Marketplace Unit Tests", () => {
       const { hash: messageHash } = await publishToIpfs(message);
 
       await expect(
-        marketplace.connect(user1).postThreadMessage(jobId, messageHash)
+        marketplace.connect(user1).postThreadMessage(jobId, messageHash, user2.address)
       ).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.OwnerMessage);
         expect(jobEventData.address_).to.equal(user1.address.toLowerCase());
-        expect(jobEventData.data_).to.equal(messageHash);
+
+        const messageEvent: JobMessageEvent = decodeJobMessageEvent(jobEventData.data_);
+        expect(messageEvent.contentHash).to.equal(messageHash);
+        expect(messageEvent.recipientAddress).to.equal(user2.address);
 
         return true;
       });
@@ -2235,12 +2208,15 @@ describe("Marketplace Unit Tests", () => {
       await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
 
       await expect(
-        marketplace.connect(user2).postThreadMessage(jobId, messageHash)
+        marketplace.connect(user2).postThreadMessage(jobId, messageHash, user1.address)
       ).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.WorkerMessage);
         expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
-        expect(jobEventData.data_).to.equal(messageHash);
+
+        const messageEvent: JobMessageEvent = decodeJobMessageEvent(jobEventData.data_);
+        expect(messageEvent.contentHash).to.equal(messageHash);
+        expect(messageEvent.recipientAddress).to.equal(user1.address);
 
         return true;
       });
@@ -2471,7 +2447,7 @@ describe("Marketplace Unit Tests", () => {
       expect(await fakeToken.balanceOf(await user2.getAddress())).to.equal(BigInt(1079e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(0);
       expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(0);
-      expect(await fakeToken.balanceOf(await marketplace.unicrowMarketplaceAddress())).to.equal(BigInt(19.31e18));
+      expect(await fakeToken.balanceOf(await marketplace.treasuryAddress())).to.equal(BigInt(19.31e18));
       expect(await fakeToken.balanceOf(unicrowProtocolFeeAddress)).to.equal(BigInt(0.69e18));
 
       expect((await marketplace.connect(user1).jobs(jobId)).state).to.be.equal(JobState.Closed);
@@ -2873,7 +2849,7 @@ describe("Marketplace Unit Tests", () => {
       expect(await fakeToken.balanceOf(await arbitrator.getAddress())).to.equal(BigInt(1e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(79.2e18));
       expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(0);
-      expect(await fakeToken.balanceOf(await marketplace.unicrowMarketplaceAddress())).to.equal(BigInt(3.86e18));
+      expect(await fakeToken.balanceOf(await marketplace.treasuryAddress())).to.equal(BigInt(3.86e18));
       expect(await fakeToken.balanceOf(unicrowProtocolFeeAddress)).to.equal(BigInt(0.13e18));
 
       const job = await marketplace.jobs(jobId);
@@ -2952,7 +2928,7 @@ describe("Marketplace Unit Tests", () => {
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(0e18));
       expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(BigInt(0e18));
       expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(0);
-      expect(await fakeToken.balanceOf(await marketplace.unicrowMarketplaceAddress())).to.equal(BigInt(19.31e18));
+      expect(await fakeToken.balanceOf(await marketplace.treasuryAddress())).to.equal(BigInt(19.31e18));
       expect(await fakeToken.balanceOf(unicrowProtocolFeeAddress)).to.equal(BigInt(0.69e18));
 
       const job = await marketplace.jobs(jobId);
@@ -3031,7 +3007,7 @@ describe("Marketplace Unit Tests", () => {
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(99e18));
       expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(BigInt(99e18));
       expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(0);
-      expect(await fakeToken.balanceOf(await marketplace.unicrowMarketplaceAddress())).to.equal(BigInt(0e18));
+      expect(await fakeToken.balanceOf(await marketplace.treasuryAddress())).to.equal(BigInt(0e18));
       expect(await fakeToken.balanceOf(unicrowProtocolFeeAddress)).to.equal(BigInt(0e18));
 
       const job = await marketplace.jobs(jobId);
@@ -3196,7 +3172,9 @@ describe("Marketplace Unit Tests", () => {
           if (jobId_ === jobId && Number(jobEventData.type_) === JobEventType.WorkerMessage) {
             const otherCompressedPublicKey = await marketplaceData.connect(user1).publicKeys(user2.address);
             const sessionKey = await getSessionKey(user1, otherCompressedPublicKey, jobId);
-            const hash = jobEventData.data_;
+
+            const messageEvent: JobMessageEvent = decodeJobMessageEvent(jobEventData.data_);
+            const hash = messageEvent.contentHash;
 
             const message = await getFromIpfs(hash, sessionKey);
 
@@ -3214,7 +3192,9 @@ describe("Marketplace Unit Tests", () => {
           if (jobId_ === jobId && Number(jobEventData.type_) === JobEventType.OwnerMessage) {
             const otherCompressedPublicKey = await marketplaceData.connect(user2).publicKeys(user1.address);
             const sessionKey = await getSessionKey(user2, otherCompressedPublicKey, jobId);
-            const hash = jobEventData.data_;
+
+            const messageEvent: JobMessageEvent = decodeJobMessageEvent(jobEventData.data_);
+            const hash = messageEvent.contentHash;
 
             const message = await getFromIpfs(hash, sessionKey);
 
@@ -3246,13 +3226,13 @@ describe("Marketplace Unit Tests", () => {
       const workerMessage = "I can do it!";
       const { hash: workerMessageHash } = await publishToIpfs(workerMessage, workerSessionKey);
 
-      const [workerMessageRead] = await Promise.all([readWorkerMessage, withDelay(marketplace.connect(user2).postThreadMessage(jobId, workerMessageHash))]);
+      const [workerMessageRead] = await Promise.all([readWorkerMessage, withDelay(marketplace.connect(user2).postThreadMessage(jobId, workerMessageHash, user1.address))]);
       expect(workerMessageRead).to.equal(workerMessage);
 
       const ownerMessage = "Go ahead!";
       const { hash: ownerMessageHash } = await publishToIpfs(ownerMessage, ownerSessionKey);
 
-      const [ownerMessageRead] = await Promise.all([readOwnerMessage, withDelay(marketplace.connect(user1).postThreadMessage(jobId, ownerMessageHash))]);
+      const [ownerMessageRead] = await Promise.all([readOwnerMessage, withDelay(marketplace.connect(user1).postThreadMessage(jobId, ownerMessageHash, user2.address))]);
       expect(ownerMessageRead).to.equal(ownerMessage);
 
       // worker takes the job

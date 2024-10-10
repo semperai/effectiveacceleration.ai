@@ -35,6 +35,7 @@ export function CommentEvent({event, ...rest}: EventProps & React.ComponentProps
             </a>
           </div>
           <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">Commented {date}</p>
+          <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">Recipient {details.recipientAddress}</p>
         </div>
         <div className="mt-2 text-sm text-gray-700 dark:text-gray-500">
           <p>{details.content}</p>

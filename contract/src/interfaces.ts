@@ -106,12 +106,14 @@ export type JobArbitratedEvent = {
   workerAmount: bigint;
   reasonHash: string;
   workerAddress: string;
+  arbitratorAmount: bigint;
   reason?: string;
 }
 
 export type JobMessageEvent = {
   contentHash: string;
   content?: string;
+  recipientAddress: string;
 }
 
 export type CustomJobEvent = JobCreatedEvent | JobUpdatedEvent | JobSignedEvent | JobRatedEvent | JobDisputedEvent | JobArbitratedEvent | JobMessageEvent;
