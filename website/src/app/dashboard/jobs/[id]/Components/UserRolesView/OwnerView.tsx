@@ -17,7 +17,7 @@ export default function OwnerView({users, selectedWorker, events, job, address, 
           ''
         }
         <div className={`${job?.state === JobState.Open && address === job.roles.creator ? 'col-span-2' : 'col-span-3' } bg-white max-h-customHeader`}>
-          {job && <JobChat users={users} selectedWorker={selectedWorker} events={eventMessages} job={job} address={address} addresses={addresses} sessionKeys={sessionKeys} jobUsersData={jobUsersData}/>}
+          {job && <JobChat users={users} selectedWorker={selectedWorker} eventMessages={eventMessages} job={job} address={address} addresses={addresses} sessionKeys={sessionKeys} jobUsersData={jobUsersData}/>}
         </div>
         <div className='col-span-1 bg-white overflow-y-auto max-h-customHeader'>
           <JobChatDetails job={job} users={users} address={address} sessionKeys={sessionKeys} addresses={addresses} events={events} whitelistedWorkers={whitelistedWorkers}/>

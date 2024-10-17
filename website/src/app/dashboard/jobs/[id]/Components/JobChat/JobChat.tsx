@@ -6,6 +6,7 @@ import { formatTokenNameAndAmount } from '@/tokens';
 import JobChatStatus from './JobChatStatus';
 import { renderEvent } from '@/components/Events';
 import logoDark from '@/images/logo-light.png'
+import { zeroAddress } from 'viem';
 
 interface ResultAcceptedProps {
     job: Job;
@@ -15,10 +16,10 @@ interface ResultAcceptedProps {
     address: `0x${string}` | undefined,
   }
   const JobChatEvents: React.FC<ResultAcceptedProps> = ({ job, users, selectedWorker, events, address }) => {
-    console.log(events, 'events')
+
   return (
     <div className='row-span-4 border border-gray-100 bg-softBlue  max-h-customHeader overflow-y-auto'>
-        {selectedWorker ? (
+        {selectedWorker && events.length > 0 ? (
             <>
                 <div className="flow-root w-full pl-5">
                     <ul role="list" className="-mb-8">

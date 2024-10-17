@@ -28,7 +28,8 @@ export function PostMessageButton({address, recipient, addresses, job, sessionKe
   const userAddresses = [zeroAddress, ...(addresses?.filter(user => !excludes.includes(user)) ?? [])];
   const {data: users} = useUsersByAddresses(addresses?.filter(user => !excludes.includes(user) ?? []) as string[]);
   const [selectedUserAddress, setSelectedUserAddress] = useState<`0x${string}`>(zeroAddress);
-
+  const selectedUserRecipient = recipient === address ? job.roles.creator : recipient
+  console.log(recipient, 'recipient')
   const {
     data: hash,
     error,
@@ -44,6 +45,7 @@ export function PostMessageButton({address, recipient, addresses, job, sessionKe
 
   useEffect(() => {
     if (isConfirmed || error) {
+      setMessage("");
       if (error) {
         const revertReason = error.message.match(`The contract function ".*" reverted with the following reason:\n(.*)\n.*`)?.[1];
         if (revertReason) {
@@ -64,7 +66,7 @@ export function PostMessageButton({address, recipient, addresses, job, sessionKe
       return;
     }
 
-    const sessionKey = sessionKeys[`${address}-${selectedUserAddress}`];
+    const sessionKey = sessionKeys[`${address}-${selectedUserRecipient}`];
     const { hash: contentHash } = await publishToIpfs(message, sessionKey);
 
     const w = writeContract({
@@ -74,7 +76,7 @@ export function PostMessageButton({address, recipient, addresses, job, sessionKe
       args: [
         job.id!,
         contentHash as any,
-        recipient,
+        selectedUserRecipient,
       ],
     });
 
@@ -84,19 +86,6 @@ export function PostMessageButton({address, recipient, addresses, job, sessionKe
           <div className="flex  items-center justify-center text-center">
                 <div className='flex flex-row w-full p-3 gap-x-5'>
                   <Textarea rows={1} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Type new message" className="w-full !rounded" />
-                  {/* <Listbox
-                    value={selectedUserAddress}
-                    onChange={(e) => setSelectedUserAddress(e)}
-                    className="border border-gray-300 rounded-md shadow-sm z-10"
-                    placeholder="Select an option"
-                  >
-                    {userAddresses.map((address, index) => (
-                        <ListboxOption key={index} value={address}>
-                          {users[address]?.name ?? "Unencrypted"}
-                        </ListboxOption>
-                    ))}
-                  </Listbox> */}
-                  
                     <Button disabled={buttonDisabled} onClick={buttonClick} color='lightBlue'>
                       <PiPaperPlaneRight className='text-white text-xl' />
                     </Button>
