@@ -15,6 +15,8 @@ import GuestView from './Components/UserRolesView/GuestView';
 import WorkerView from './Components/UserRolesView/WorkerView';
 import { zeroAddress } from 'viem';
 import { JobUserRoles } from '@/service/Interfaces';
+import { JobMessageEvent, JobState } from 'effectiveacceleration-contracts';
+import JobStatus from './Components/JobStatus';
 
 export default function JobPage() {
   const id = useParams().id as string;
@@ -27,16 +29,17 @@ export default function JobPage() {
   const whitelistedWorkers = events.at(-1)?.job.allowedWorkers ?? [];
   const [selectedWorker, setSelectedWorker] = useState<string>('');
   const [eventMessages, setEventMessages] = useState(events);
-
+  console.log(job,events, 'JOB')
   useEffect(() => {
-    if (selectedWorker === 'allEvents') {
-      setEventMessages(events) 
-      return
-    };
+    if (job?.state === JobState.Taken || job?.state === JobState.Closed) {
+      setSelectedWorker(job.roles.worker);
+    }
+    if (address && job?.state === JobState.Open && address !== job.roles.creator) {
+      setSelectedWorker(address);
+    }
     selectedWorker ? 
-    setEventMessages(events.filter(event => event.address_ === selectedWorker.toLowerCase())) 
+    setEventMessages(events.filter(event => event.address_ === selectedWorker.toLowerCase() || (event.details as JobMessageEvent)?.recipientAddress === selectedWorker)) 
     : setEventMessages(events);
-    if (job && job.roles.worker !== zeroAddress) setSelectedWorker(job.roles.worker[0]);
   }, [events, selectedWorker])
 
   if (isLoadingError) {
@@ -59,13 +62,13 @@ export default function JobPage() {
 
   const renderRoleBasedView = () => {
     if (address && job?.roles.creator.includes(address)) {
-      return <OwnerView users={users} job={job} setSelectedWorker={setSelectedWorker} events={eventMessages} address={address} addresses={addresses} sessionKeys={sessionKeys} jobUsersData={jobUsersData} whitelistedWorkers={whitelistedWorkers} selectedWorker={selectedWorker} eventMessages={eventMessages} ></OwnerView>
+      return <OwnerView users={users} job={job} setSelectedWorker={setSelectedWorker} events={events} address={address} addresses={addresses} sessionKeys={sessionKeys} jobUsersData={jobUsersData} whitelistedWorkers={whitelistedWorkers} selectedWorker={selectedWorker} eventMessages={eventMessages} ></OwnerView>
     } else if (address && job?.roles.worker.includes(address)) {
-      return <WorkerView users={users} job={job} setSelectedWorker={setSelectedWorker} events={eventMessages} address={address} addresses={addresses} sessionKeys={sessionKeys} jobUsersData={jobUsersData} whitelistedWorkers={whitelistedWorkers} selectedWorker={selectedWorker} eventMessages={eventMessages} ></WorkerView>
+      return <WorkerView users={users} job={job} setSelectedWorker={setSelectedWorker} events={events} address={address} addresses={addresses} sessionKeys={sessionKeys} jobUsersData={jobUsersData} whitelistedWorkers={whitelistedWorkers} selectedWorker={selectedWorker} eventMessages={eventMessages} ></WorkerView>
     } else if (address && job?.roles.arbitrator.includes(address)) {
-      return <ArbitratorView users={users} job={job} setSelectedWorker={setSelectedWorker} events={eventMessages} address={address} addresses={addresses} sessionKeys={sessionKeys} jobUsersData={jobUsersData} whitelistedWorkers={whitelistedWorkers} selectedWorker={selectedWorker} eventMessages={eventMessages} ></ArbitratorView>
+      return <ArbitratorView users={users} job={job} setSelectedWorker={setSelectedWorker} events={events} address={address} addresses={addresses} sessionKeys={sessionKeys} jobUsersData={jobUsersData} whitelistedWorkers={whitelistedWorkers} selectedWorker={selectedWorker} eventMessages={eventMessages} ></ArbitratorView>
     } else {
-      return <GuestView users={users} job={job} setSelectedWorker={setSelectedWorker} events={eventMessages} address={address} addresses={addresses} sessionKeys={sessionKeys} jobUsersData={jobUsersData} whitelistedWorkers={whitelistedWorkers} selectedWorker={selectedWorker} eventMessages={eventMessages} ></GuestView>
+      return <GuestView users={users} job={job} setSelectedWorker={setSelectedWorker} events={events} address={address} addresses={addresses} sessionKeys={sessionKeys} jobUsersData={jobUsersData} whitelistedWorkers={whitelistedWorkers} selectedWorker={selectedWorker} eventMessages={eventMessages} ></GuestView>
     }
   } 
 

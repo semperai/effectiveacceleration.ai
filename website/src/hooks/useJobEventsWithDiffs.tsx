@@ -35,7 +35,7 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
   const rawJobEventsData = result.data as JobEvent[];
   const refetch = result.refetch;
   const { data: _, ...rest } = result;
-  console.log(rawJobEventsData, 'rawJobEventsData');
+
   useEffect(() => {
     refetch();
   }, [address, refetch]);
@@ -45,7 +45,6 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
     address: Config.marketplaceDataAddress as `0x${string}`,
     eventName: 'JobEvent',
     onLogs: async (logs) => {
-      console.log(logs, 'This is a Job Event emitted from Marketplace_Data_v1_Abi')
       const filtered = logs.filter(log => log.args.jobId === jobId &&
         rawJobEventsData?.findIndex((other) => other.type_ === log.args.eventData?.type_ && other.timestamp_ === log.args.eventData?.timestamp_) === -1 &&
         logEvents.findIndex((other) => other.type_ === log.args.eventData?.type_ && other.timestamp_ === log.args.eventData?.timestamp_) === -1

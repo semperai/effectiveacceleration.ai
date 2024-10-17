@@ -16,18 +16,20 @@ import { PiPaperPlaneRight } from "react-icons/pi";
 
 export type PostMessageButtonProps = {
   address: `0x${string}` | undefined,
+  recipient: `0x${string}`,
   addresses: `0x${string}`[] | undefined,
   sessionKeys: Record<string, string>,
   job: Job,
 }
 
-export function PostMessageButton({address, addresses, job, sessionKeys, ...rest}: PostMessageButtonProps & React.ComponentPropsWithoutRef<'div'>) {
+export function PostMessageButton({address, recipient, addresses, job, sessionKeys, ...rest}: PostMessageButtonProps & React.ComponentPropsWithoutRef<'div'>) {
   const [message, setMessage] = useState<string>("");
   const excludes = [address];
   const userAddresses = [zeroAddress, ...(addresses?.filter(user => !excludes.includes(user)) ?? [])];
   const {data: users} = useUsersByAddresses(addresses?.filter(user => !excludes.includes(user) ?? []) as string[]);
   const [selectedUserAddress, setSelectedUserAddress] = useState<`0x${string}`>(zeroAddress);
-
+  const selectedUserRecipient = recipient === address ? job.roles.creator : recipient
+  console.log(recipient, 'recipient')
   const {
     data: hash,
     error,
@@ -43,6 +45,7 @@ export function PostMessageButton({address, addresses, job, sessionKeys, ...rest
 
   useEffect(() => {
     if (isConfirmed || error) {
+      setMessage("");
       if (error) {
         const revertReason = error.message.match(`The contract function ".*" reverted with the following reason:\n(.*)\n.*`)?.[1];
         if (revertReason) {
@@ -63,7 +66,7 @@ export function PostMessageButton({address, addresses, job, sessionKeys, ...rest
       return;
     }
 
-    const sessionKey = sessionKeys[`${address}-${selectedUserAddress}`];
+    const sessionKey = sessionKeys[`${address}-${selectedUserRecipient}`];
     const { hash: contentHash } = await publishToIpfs(message, sessionKey);
 
     const w = writeContract({
@@ -72,7 +75,8 @@ export function PostMessageButton({address, addresses, job, sessionKeys, ...rest
       functionName: 'postThreadMessage',
       args: [
         job.id!,
-        contentHash as any
+        contentHash as any,
+        selectedUserRecipient,
       ],
     });
 
@@ -82,19 +86,6 @@ export function PostMessageButton({address, addresses, job, sessionKeys, ...rest
           <div className="flex  items-center justify-center text-center">
                 <div className='flex flex-row w-full p-3 gap-x-5'>
                   <Textarea rows={1} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Type new message" className="w-full !rounded" />
-                  {/* <Listbox
-                    value={selectedUserAddress}
-                    onChange={(e) => setSelectedUserAddress(e)}
-                    className="border border-gray-300 rounded-md shadow-sm z-10"
-                    placeholder="Select an option"
-                  >
-                    {userAddresses.map((address, index) => (
-                        <ListboxOption key={index} value={address}>
-                          {users[address]?.name ?? "Unencrypted"}
-                        </ListboxOption>
-                    ))}
-                  </Listbox> */}
-                  
                     <Button disabled={buttonDisabled} onClick={buttonClick} color='lightBlue'>
                       <PiPaperPlaneRight className='text-white text-xl' />
                     </Button>

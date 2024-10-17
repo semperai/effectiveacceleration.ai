@@ -19,7 +19,7 @@ const JobStatusWrapper: React.FC<JobStatusWrapperProps> = ({ job, events, addres
         return <JobStatus text="Cancelled" bgColor="bg-[#DC143C]" textColor="text-[#CD1242]" />;
     }
 
-    if (lastEventType === JobEventType.Completed || lastEventType === JobEventType.CollateralWithdrawn || lastEventType === JobEventType.Arbitrated && job.state === JobState.Closed && job.disputed !== true) {
+    if (lastEventType === JobEventType.Rated || lastEventType === JobEventType.Completed || lastEventType === JobEventType.CollateralWithdrawn || lastEventType === JobEventType.Arbitrated && job.state === JobState.Closed && job.disputed !== true) {
         return <JobStatus text="Completed" bgColor="bg-[#70FF00]" textColor="text-[#42CD12]" />;
     }
 

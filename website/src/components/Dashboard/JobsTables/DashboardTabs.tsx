@@ -47,19 +47,20 @@ const DashboardTabs = () => {
     const filteredOpenJobs: Job[] = [];
     const filteredJobsInProgress: Job[] = [];
     const filteredCompletedJobs: Job[] = [];
-
+    
     selectedJobs.forEach((job, index) => {
+      console.log(localJobs[index].id, 'localJobs[index]', job, 'job.id')
       if (job.state === JobState.Open) {
         filteredOpenJobs.push(job);
       } else if (job.state === JobState.Taken) {
         filteredJobsInProgress.push(job);
-      } else if (job.state === JobState.Closed && localJobs[index].id === job.id && localJobs[index].lastJobEvent?.type_ === JobEventType.Completed) {
+      } else if (job.state === JobState.Closed  && localJobs[index].lastJobEvent?.type_ === JobEventType.Rated ) {
         filteredCompletedJobs.push(job);
       }
     });
     return { open: filteredOpenJobs, inProgress: filteredJobsInProgress, completed: filteredCompletedJobs };
   }, [selectedJobs, localJobs]);
-
+  console.log(filteredCompletedJobs, 'filteredCompletedJobs')
   useEffect(() => {
     setTabsKey(prevKey => prevKey + 1);
     setFilteredJobs(filteredJobsMemo.open);

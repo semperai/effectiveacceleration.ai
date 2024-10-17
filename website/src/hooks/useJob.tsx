@@ -7,10 +7,11 @@ import { useAccount, useReadContract, useWatchContractEvent } from "wagmi";
 import { LOCAL_JOBS_CACHE } from "@/utils/constants";
 
 const updateLocalJobStorage = ({id, jobEvent, jobData, address}: {id: bigint, jobEvent: any, jobData: Job, address: `0x${string}` | undefined}) => {
-    const userJobCache = `${address}${LOCAL_JOBS_CACHE}`
+  const userJobCache = `${address}${LOCAL_JOBS_CACHE}`
+  console.log(jobEvent, 'JOB EVENT')
   // Update local storage job with new job state and event.
   const storedJobs = localStorage.getItem(userJobCache);
-  if (storedJobs) {
+  if (storedJobs && jobEvent[0].args.eventData.details?.title) {
     const parsedJobs = JSON.parse(storedJobs as string);
     const jobIndex = parsedJobs.findIndex((job: Job) => job.id as unknown as string === id.toString());
     if (jobIndex !== -1) {
@@ -18,6 +19,9 @@ const updateLocalJobStorage = ({id, jobEvent, jobData, address}: {id: bigint, jo
       selectedJobIndex.lastJobEvent = jobEvent[0].args.eventData;
       selectedJobIndex.state = jobData.state;
       selectedJobIndex.lastJobEvent.id = selectedJobIndex.lastJobEvent.id?.toString();
+      if (selectedJobIndex.lastJobEvent.details.amount) {
+        selectedJobIndex.lastJobEvent.details.amount = selectedJobIndex.lastJobEvent.details.amount.toString();
+      } 
       // Convert BigInt values to strings
       localStorage.setItem(userJobCache, JSON.stringify(parsedJobs));
     }
@@ -51,7 +55,6 @@ export default function useJob(id: bigint) {
     abi: MARKETPLACE_DATA_V1_ABI,
     eventName: 'JobEvent',
     onLogs: async (jobEvent) => {
-      console.log(jobEvent, 'This is a Job Event emitted from Marketplace_Data_v1_Abi')
       await refetch()
       setLastJobEvent(jobEvent);
         // Avoid a lot of refetches, only refetch if blockevent changes
