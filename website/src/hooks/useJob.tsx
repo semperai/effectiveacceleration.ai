@@ -11,18 +11,21 @@ const updateLocalJobStorage = ({id, jobEvent, jobData, address}: {id: bigint, jo
   console.log(jobEvent, 'JOB EVENT')
   // Update local storage job with new job state and event.
   const storedJobs = localStorage.getItem(userJobCache);
-  if (storedJobs && jobEvent[0].args.eventData.details?.title) {
+  if (storedJobs) {
     const parsedJobs = JSON.parse(storedJobs as string);
     const jobIndex = parsedJobs.findIndex((job: Job) => job.id as unknown as string === id.toString());
     if (jobIndex !== -1) {
       const selectedJobIndex = parsedJobs[jobIndex];
+      console.log(selectedJobIndex, jobData, 'SELECTED JOB INDEX INIT')
       selectedJobIndex.lastJobEvent = jobEvent[0].args.eventData;
       selectedJobIndex.state = jobData.state;
       selectedJobIndex.lastJobEvent.id = selectedJobIndex.lastJobEvent.id?.toString();
-      if (selectedJobIndex.lastJobEvent.details.amount) {
+      if (selectedJobIndex.lastJobEvent.details?.amount) {
         selectedJobIndex.lastJobEvent.details.amount = selectedJobIndex.lastJobEvent.details.amount.toString();
       } 
+      console.log(selectedJobIndex, 'SELECTED JOB INDEX END')
       // Convert BigInt values to strings
+      console.log(parsedJobs, 'PARSED JOBS')
       localStorage.setItem(userJobCache, JSON.stringify(parsedJobs));
     }
   }
@@ -57,12 +60,6 @@ export default function useJob(id: bigint) {
     onLogs: async (jobEvent) => {
       await refetch()
       setLastJobEvent(jobEvent);
-        // Avoid a lot of refetches, only refetch if blockevent changes
-        if (blockNumber === undefined) setBlockNumber(jobEvent[0].blockNumber);
-        if (blockNumber !== jobEvent[0].blockNumber && blockNumber !== undefined) {
-          setBlockNumber(jobEvent[0].blockNumber)
-
-      }
     },
   });
 

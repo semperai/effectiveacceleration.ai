@@ -23,17 +23,17 @@ export type TCompletedTable = {
 }
 
 export type TDisputedTable = {
-    jobName: string
-    arbitrationStatus: string
-    disputedAmount: number
-    timeSpentDispute: string
+    jobName: ReactNode
+    arbitrationStatus: ReactNode
+    disputedAmount: ReactNode
+    timeSpentDispute: ReactNode
 }
 
 export type TCancelledTable = {
-    jobName: string
-    reason: string
-    assignedTo: number
-    actionsTaken: string
+    jobName: ReactNode
+    reason: ReactNode
+    assignedTo: ReactNode
+    actionsTaken: ReactNode
 }
 
 export type LocalStorageJob = {
