@@ -26,6 +26,16 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import Image from 'next/image';
 import { StaticImport } from 'next/dist/shared/lib/get-img-props';
 
+async function isImageValid(url: string): Promise<boolean> {
+  try {
+    const response = await fetch(url, { method: 'HEAD' });
+    return response.ok; // Return true if the response is ok (status in the range 200-299)
+  } catch (error) {
+    console.error('Error checking image URL:', error);
+    return false;
+  }
+}
+
 export function UserButton({...rest}: React.ComponentPropsWithoutRef<'div'>) {
   const viewAsValues = ['User', 'Arbitrator']
   const [viewAs, setViewAs] = useState<string>(viewAsValues[0]);
@@ -41,14 +51,26 @@ export function UserButton({...rest}: React.ComponentPropsWithoutRef<'div'>) {
   const [bio, setBio] = useState<string>();
   const [avatar, setAvatar] = useState<string>();
   const [fee, setFee] = useState<number>();
+  const [isImgValid, setIsImgValid] = useState<boolean>(false);
 
   useEffect(() => {
     setName(users[userIndex]?.name);
     setBio(users[userIndex]?.bio);
     setAvatar(users[userIndex]?.avatar);
     setFee(arbitrator?.fee ?? 0);
-  }, [user, arbitrator]);
 
+  }, [user, arbitrator]);
+  
+  useEffect(() => {
+    if (avatar) {
+      isImageValid(avatar)
+        .then(isValid => setIsImgValid(isValid))
+        .catch(error => {
+          console.error('Error checking image URL:', error);
+          setIsImgValid(false);
+        });
+    }
+  }, [avatar]); 
   const {
     data: hash,
     error,
@@ -152,7 +174,7 @@ export function UserButton({...rest}: React.ComponentPropsWithoutRef<'div'>) {
       </Button> */}
       <button onClick={() => openModal()} className='p-2 bg-primary rounded-full flex items-center align-middle overflow-hidden relative w-10 h-10'>
         {/* <span className='text-white inline-block w-6 h-6'>{name && name[0].toUpperCase()} */}
-        {avatar === '' || avatar === undefined || avatar === null ? <span className='text-white inline-block w-6 h-6'>{name && name[0].toUpperCase()}
+        {avatar === '' || avatar === undefined || avatar === null || !isImgValid ? <span className='text-white inline-block w-6 h-6'>{name && name[0].toUpperCase()}
         {
           !name && <UserIcon className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-300" aria-hidden="true" />
         }</span>  
