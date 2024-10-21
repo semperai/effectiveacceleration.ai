@@ -16,7 +16,7 @@ interface ResultAcceptedProps {
     address: `0x${string}` | undefined,
   }
   const JobChatEvents: React.FC<ResultAcceptedProps> = ({ job, users, selectedWorker, events, address }) => {
-
+  const numberOfWorkers = (Object.keys(users).length) - 1  // -1 to exclude the creator;
   return (
     <div className='row-span-4 border border-gray-100 bg-softBlue  max-h-customHeader overflow-y-auto'>
         {selectedWorker && events.length > 0 ? (
@@ -46,11 +46,14 @@ interface ResultAcceptedProps {
                 />
             </>
         ) : (
-            <>
-                <div className='flex h-full items-center justify-center max-h-customHeader'>
-                    <Image className='text-center max-h-[35px] max-w-[150px]' src={logoDark} alt="Worker" width={150} height={150} />
-                </div>
-            </>
+            <div className='flex h-full items-center justify-center max-h-customHeader'>
+            {numberOfWorkers === 0 ? (
+                <span className='text-center'>A chat with the applying workers will appear here</span>
+            ) : (
+                <Image className='text-center max-h-[35px] max-w-[150px]' src={logoDark} alt="Worker" width={150} height={150} />
+            )
+            }
+            </div>
         )}
     </div>
 

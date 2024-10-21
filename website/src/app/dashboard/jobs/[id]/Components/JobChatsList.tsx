@@ -10,9 +10,17 @@ const JobChatsList = ({users, job, setSelectedWorker} : {users: Record<string, U
         <div>
             <span className='font-bold'>Chats</span>    
         </div>
+        {numberOfWorkers === 0 ? (
+            <div>
+                <span className='text-darkBlueFont text-sm'>There are no applicants yet</span>  
+            </div>
+        ) : (
         <div>
             <span className='text-darkBlueFont text-sm'>{numberOfWorkers}/{numberOfWorkers} applicants reviewed</span>  
         </div>
+        )
+        }
+
         <ul>
             {  Object.entries(users).map(([key, value]) => (
                 job?.roles.creator !== key ?
