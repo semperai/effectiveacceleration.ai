@@ -17,8 +17,6 @@ import { useRouter } from 'next/navigation';
 
 const ipfsGatewayUrl = process.env.NEXT_PUBLIC_IPFS_GATEWAY_URL ?? '';
 
-// const helia = await createHelia({ url: 'http://localhost:5001' })
-
 const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string}`}) => {
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [avatar, setAvatar] = useState<string>('')
@@ -26,8 +24,10 @@ const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string
     const [userBio, setBio] = useState<string>('')
     const { address } = useAccount();
     const {data: user} = useUser(address!);
+    const userCopy = {...user}
     const [avatarFileUrl, setAvatarFileUrl] = useState<string>('');
     const router = useRouter();
+    console.log(user, address, encryptionPublicKey, userName, userBio, avatarFileUrl)
     const {
       data: hash,
       error,
@@ -76,6 +76,12 @@ const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string
           }
         }
         if (isConfirmed) {
+          userCopy.address_ = address;
+          userCopy.publicKey = encryptionPublicKey;
+          userCopy.name = userName;
+          userCopy.bio = userBio;
+          userCopy.avatar = avatarFileUrl;
+          sessionStorage.setItem(`user-${address}`, JSON.stringify(userCopy));
           router.push('/dashboard');
         }
       }

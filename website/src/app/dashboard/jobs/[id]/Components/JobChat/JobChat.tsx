@@ -47,11 +47,14 @@ interface ResultAcceptedProps {
             </>
         ) : (
             <div className='flex h-full items-center justify-center max-h-customHeader'>
-            {numberOfWorkers === 0 ? (
-                <span className='text-center'>A chat with the applying workers will appear here</span>
-            ) : (
-                <Image className='text-center max-h-[35px] max-w-[150px]' src={logoDark} alt="Worker" width={150} height={150} />
-            )
+            {numberOfWorkers === 0 ? 
+                (
+                    <span className='text-center'>A chat with the applying workers will appear here</span>
+                ) 
+                : 
+                (
+                    <Image className='text-center max-h-[35px] max-w-[150px]' src={logoDark} alt="Worker" width={150} height={150} />
+                )
             }
             </div>
         )}
