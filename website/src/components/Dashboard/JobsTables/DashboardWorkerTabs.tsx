@@ -90,7 +90,7 @@ const DashboardTabs = () => {
         <TabPanel>
           <AllJobs jobs={jobs} localJobs={jobs}/>
         </TabPanel>
-        <TabPanel>
+        {/* <TabPanel>
           <JobProgress jobs={filteredJobsInProgress} localJobs={[]}/>
         </TabPanel>
         <TabPanel>
@@ -98,7 +98,7 @@ const DashboardTabs = () => {
         </TabPanel>
         <TabPanel>
           <CompletedJobs jobs={filteredCompletedJobs} localJobs={[]}/>
-        </TabPanel>
+        </TabPanel> */}
       </Tabs>
     )}
     </div>
