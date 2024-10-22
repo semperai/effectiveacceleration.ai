@@ -13,6 +13,7 @@ import { useSearchParams } from 'next/navigation'
 import { UserButton } from '@/components/UserActions/UserButton'
 import useUser from '@/hooks/useUser'
 import { useRouter } from 'next/navigation';
+import UploadAvatar from '@/components/UploadAvatar'
 
 
 const ipfsGatewayUrl = process.env.NEXT_PUBLIC_IPFS_GATEWAY_URL ?? '';
@@ -27,7 +28,7 @@ const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string
     const userCopy = {...user}
     const [avatarFileUrl, setAvatarFileUrl] = useState<string>('');
     const router = useRouter();
-    console.log(user, address, encryptionPublicKey, userName, userBio, avatarFileUrl)
+
     const {
       data: hash,
       error,
@@ -40,29 +41,6 @@ const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string
     } = useWaitForTransactionReceipt({
       hash
     });
-
-    const uploadToIPFS = async (file: File): Promise<void> => {
-      try {
-        const formData = new FormData();
-        formData.append('file', file);
-  
-        const response = await fetch('http://localhost:5001/api/v0/add', {
-          method: 'POST',
-          body: formData,
-        });
-  
-        if (!response.ok) {
-          throw new Error('Failed to upload file to IPFS');
-        }
-  
-        const data = await response.json();
-        const url = `${ipfsGatewayUrl}/ipfs/${data.Hash}`;
-        setAvatarFileUrl(url);
-        console.log('File uploaded to IPFS:', url);
-      } catch (error) {
-        console.error('Error uploading file to IPFS:', error);
-      }
-    };
 
     useEffect(() => {
       if (isConfirmed || error) {
@@ -87,32 +65,7 @@ const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string
       }
     }, [isConfirmed, error]);
 
-    useEffect(() => {
-      console.log(user, address, 'User and its Address')
-    }, [user]);
-
-    const handleAvatarClick = () => {
-      if (fileInputRef.current) {
-        fileInputRef.current.click()
-      }
-    }
-
-    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0]
-        if (file) {
-          const reader = new FileReader()
-          reader.onloadend = () => {
-            setAvatar(reader.result as string)
-          }
-          reader.readAsDataURL(file)
-
-          uploadToIPFS(file);
-        }
-    }
-
-
     const submit = () => {
-      console.log(encryptionPublicKey, userName, userBio, avatarFileUrl)
       try {
         const w = writeContract({
           abi: MARKETPLACE_DATA_V1_ABI,
@@ -131,14 +84,14 @@ const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string
       }
     }
   
-
+    console.log(avatarFileUrl, 'FILE URL')
   return (
     <div className='flex flex-row self-center shadow-xl'>
         <Image className='rounded-l-md z-10' src={'/registerImage.jpg'} height={50} width={350} alt={''}></Image>
         <div className='w-full max-w-md transform overflow-hidden rounded-l-none rounded-md bg-white p-6 text-left align-middle transition-all flex justify-center flex-col self-center gap-y-2'>
             <h1 className='text-xl font-extrabold'>Create a Profile</h1>
             <FieldGroup className='flex-1 my-2'> 
-                <Field>
+                {/* <Field>
                     <span className='mb-4'>Add an avatar to stand out from the crowd</span>
                     <input
                         type="file"
@@ -158,7 +111,9 @@ const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string
                             <BsPersonPlus className='text-2xl' />
                         )}
                     </button>
-                </Field>
+                </Field> */}
+                <UploadAvatar avatar={avatar} setAvatar={setAvatar} setAvatarFileUrl={setAvatarFileUrl}>
+                </UploadAvatar>
                 <Field>
                 <Label>Your Name</Label>
                 <Input
