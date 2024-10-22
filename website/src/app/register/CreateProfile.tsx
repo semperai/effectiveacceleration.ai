@@ -20,13 +20,13 @@ const ipfsGatewayUrl = process.env.NEXT_PUBLIC_IPFS_GATEWAY_URL ?? '';
 
 const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string}`}) => {
     const fileInputRef = useRef<HTMLInputElement>(null)
-    const [avatar, setAvatar] = useState<string>('')
+    const [avatar, setAvatar] = useState<string | undefined>('')
+    const [avatarFileUrl, setAvatarFileUrl] = useState<string | undefined>('');
     const [userName, setName] = useState<string>('') 
     const [userBio, setBio] = useState<string>('')
     const { address } = useAccount();
     const {data: user} = useUser(address!);
     const userCopy = {...user}
-    const [avatarFileUrl, setAvatarFileUrl] = useState<string>('');
     const router = useRouter();
 
     const {
@@ -66,6 +66,7 @@ const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string
     }, [isConfirmed, error]);
 
     const submit = () => {
+      if (avatarFileUrl === undefined) return
       try {
         const w = writeContract({
           abi: MARKETPLACE_DATA_V1_ABI,
@@ -90,7 +91,8 @@ const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string
         <Image className='rounded-l-md z-10' src={'/registerImage.jpg'} height={50} width={350} alt={''}></Image>
         <div className='w-full max-w-md transform overflow-hidden rounded-l-none rounded-md bg-white p-6 text-left align-middle transition-all flex justify-center flex-col self-center gap-y-2'>
             <h1 className='text-xl font-extrabold'>Create a Profile</h1>
-            <FieldGroup className='flex-1 my-2'> 
+            <FieldGroup className='flex-1 my-2'>
+                <span className='mb-4'>Add an avatar to stand out from the crowd</span> 
                 <UploadAvatar avatar={avatar} setAvatar={setAvatar} setAvatarFileUrl={setAvatarFileUrl}/>
                 <Field>
                 <Label>Your Name</Label>

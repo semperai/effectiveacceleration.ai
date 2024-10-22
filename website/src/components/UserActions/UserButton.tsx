@@ -25,6 +25,7 @@ import { useEthersSigner } from '@/hooks/useEthersSigner';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import Image from 'next/image';
 import { StaticImport } from 'next/dist/shared/lib/get-img-props';
+import UploadAvatar from '../UploadAvatar';
 
 async function isImageValid(url: string): Promise<boolean> {
   try {
@@ -39,38 +40,30 @@ async function isImageValid(url: string): Promise<boolean> {
 export function UserButton({...rest}: React.ComponentPropsWithoutRef<'div'>) {
   const viewAsValues = ['User', 'Arbitrator']
   const [viewAs, setViewAs] = useState<string>(viewAsValues[0]);
-
   const signer = useEthersSigner();
   const { address, connector } = useAccount();
   const {data: user} = useUser(address!);
   const {data: arbitrator} = useArbitrator(address!);
-
   const users = [user, arbitrator];
   const [userIndex, setUserIndex] = useState<number>(0);
   const [name, setName] = useState<string>();
   const [bio, setBio] = useState<string>();
-  const [avatar, setAvatar] = useState<string>();
+  const [avatar, setAvatar] = useState<string | undefined>('');
+  const [avatarFileUrl, setAvatarFileUrl] = useState<string | undefined>('');
+  const [newAvatar, setNewAvatar] = useState<string | undefined>('');
   const [fee, setFee] = useState<number>();
   const [isImgValid, setIsImgValid] = useState<boolean>(false);
 
   useEffect(() => {
+    const avatarUrl = users[userIndex]?.avatar;
     setName(users[userIndex]?.name);
     setBio(users[userIndex]?.bio);
-    setAvatar(users[userIndex]?.avatar);
+    setAvatarFileUrl(avatarUrl);
+    setNewAvatar(avatarUrl);
+    setAvatar(avatarUrl);
     setFee(arbitrator?.fee ?? 0);
-
   }, [user, arbitrator]);
   
-  useEffect(() => {
-    if (avatar) {
-      isImageValid(avatar)
-        .then(isValid => setIsImgValid(isValid))
-        .catch(error => {
-          console.error('Error checking image URL:', error);
-          setIsImgValid(false);
-        });
-    }
-  }, [avatar]); 
   const {
     data: hash,
     error,
@@ -86,6 +79,9 @@ export function UserButton({...rest}: React.ComponentPropsWithoutRef<'div'>) {
 
   useEffect(() => {
     if (isConfirmed || error) {
+      if (avatar !== newAvatar) {
+        setAvatar(newAvatar);
+      }
       if (error) {
         const revertReason = error.message.match(`The contract function ".*" reverted with the following reason:\n(.*)\n.*`)?.[1];
         if (revertReason) {
@@ -104,6 +100,17 @@ export function UserButton({...rest}: React.ComponentPropsWithoutRef<'div'>) {
     }
   }, [isConfirmed, error]);
 
+  useEffect(() => {
+    if (avatar) {
+      isImageValid(avatar)
+        .then(isValid => setIsImgValid(isValid))
+        .catch(error => {
+          console.error('Error checking image URL:', error);
+          setIsImgValid(false);
+        });
+    }
+  }, [avatar]); 
+
   const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
 
   async function updateButtonClick() {
@@ -118,7 +125,7 @@ export function UserButton({...rest}: React.ComponentPropsWithoutRef<'div'>) {
       args: [
         name!,
         bio!,
-        avatar!,
+        avatarFileUrl!,
       ],
     });
   }
@@ -137,7 +144,7 @@ export function UserButton({...rest}: React.ComponentPropsWithoutRef<'div'>) {
           encryptionPublicKey as `0x${string}`,
           name!,
           bio!,
-          avatar!,
+          avatarFileUrl!,
         ],
       });
     } else {
@@ -149,7 +156,7 @@ export function UserButton({...rest}: React.ComponentPropsWithoutRef<'div'>) {
           encryptionPublicKey as `0x${string}`,
           name!,
           bio!,
-          avatar!,
+          avatarFileUrl!,
           fee!,
         ],
       });
@@ -168,22 +175,14 @@ export function UserButton({...rest}: React.ComponentPropsWithoutRef<'div'>) {
 
   return <>
     <span className="">
-      {/* <Button disabled={buttonDisabled} onClick={() => openModal()}>
-        <CheckIcon className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-        Update
-      </Button> */}
       <button onClick={() => openModal()} className='p-2 bg-primary rounded-full flex items-center align-middle overflow-hidden relative w-10 h-10'>
-        {/* <span className='text-white inline-block w-6 h-6'>{name && name[0].toUpperCase()} */}
         {avatar === '' || avatar === undefined || avatar === null || !isImgValid ? <span className='text-white inline-block w-6 h-6'>{name && name[0].toUpperCase()}
         {
           !name && <UserIcon className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-300" aria-hidden="true" />
         }</span>  
         : <Image className='object-cover w-full h-full'  fill src={avatar as string | StaticImport} alt={'Profile picture'}></Image>
         }
-        
-
       </button>
-
       <Transition appear show={isOpen} as={Fragment}>
         <Dialog as="div" className="relative z-10" onClose={closeModal}>
           <Transition.Child
@@ -216,7 +215,7 @@ export function UserButton({...rest}: React.ComponentPropsWithoutRef<'div'>) {
                   >
                     User info
                   </Dialog.Title>
-                  <div className='mt-5 mb-3 flex flex-col gap-5'>
+                  <div className='mt-5 mb-3 flex flex-col gap-2'>
                     {(user || arbitrator) && <>
                       <Field>
                         <Label>Address</Label>
@@ -230,10 +229,9 @@ export function UserButton({...rest}: React.ComponentPropsWithoutRef<'div'>) {
                         <Label>Bio</Label>
                         <Input value={bio} onChange={(e) => setBio(e.target.value)} />
                       </Field>
-                      <Field>
-                        <Label>Avatar</Label>
-                        <Input value={avatar} onChange={(e) => setAvatar(e.target.value)} />
-                      </Field>
+                      <span className='text-sm font-bold'>Avatar</span> 
+                      <UploadAvatar avatar={newAvatar} setAvatar={setNewAvatar} setAvatarFileUrl={setAvatarFileUrl}/>
+                      
                       {userIndex === 1 && <Field>
                         <Label>Fee</Label>
                         <Input type="number" value={fee} readOnly={arbitrator !== undefined} onChange={(e) => setFee(Number(e.target.value))} invalid={["-","e","."].some((char) => String(fee).includes(char))} />

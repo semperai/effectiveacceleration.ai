@@ -4,7 +4,7 @@ import { BsPersonPlus } from 'react-icons/bs';
 
 const ipfsGatewayUrl = process.env.NEXT_PUBLIC_IPFS_GATEWAY_URL ?? '';
 
-const UploadAvatar = ({avatar, setAvatar, setAvatarFileUrl} : {avatar: string, setAvatar: React.Dispatch<React.SetStateAction<string>>, setAvatarFileUrl: React.Dispatch<React.SetStateAction<string>>,}) => {
+const UploadAvatar = ({avatar, setAvatar, setAvatarFileUrl} : {avatar: string | undefined, setAvatar: React.Dispatch<React.SetStateAction<string | undefined>>, setAvatarFileUrl: React.Dispatch<React.SetStateAction<string | undefined>>,}) => {
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     const uploadToIPFS = async (file: File): Promise<void> => {
@@ -50,7 +50,6 @@ const UploadAvatar = ({avatar, setAvatar, setAvatarFileUrl} : {avatar: string, s
     }
   return (
     <Field>
-        <span className='mb-4'>Add an avatar to stand out from the crowd</span>
         <input
             type="file"
             name="avatar"
@@ -61,7 +60,7 @@ const UploadAvatar = ({avatar, setAvatar, setAvatarFileUrl} : {avatar: string, s
         />
         <button
             onClick={handleAvatarClick}
-            className="flex items-center justify-center w-12 h-12 text-gray-500 bg-gray-200 rounded-full hover:bg-gray-300 mt-4"
+            className="flex items-center justify-center w-12 h-12 text-gray-500 bg-gray-200 rounded-full hover:bg-gray-300"
         >
             {avatar ? (
             <img src={avatar} alt="Avatar" className="w-full h-full rounded-full object-cover" />
