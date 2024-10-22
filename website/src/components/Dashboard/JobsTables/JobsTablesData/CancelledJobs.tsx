@@ -1,28 +1,10 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import JobsTable from '../JobsTable'
 import { TCancelledTable} from '@/service/JobsService';
 import { useReactTable, getCoreRowModel, createColumnHelper } from '@tanstack/react-table';
-
-const defaultDataCancelledTable: TCancelledTable[] = [
-  {
-    jobName: 'test',
-    reason: 'test',
-    assignedTo: 24,
-    actionsTaken: 'test',
-  },
-  {
-    jobName: 'test',
-    reason: 'test',
-    assignedTo: 24,
-    actionsTaken: 'test',
-  },
-  {
-    jobName: 'test',
-    reason: 'test',
-    assignedTo: 24,
-    actionsTaken: 'test',
-  },
-]
+import { Job } from 'effectiveacceleration-contracts/dist/src/interfaces';
+import Link from 'next/link';
+import { shortenText } from '@/utils/utils';
 
 const columnHelperCancelledTable = createColumnHelper<TCancelledTable>()
 
@@ -49,7 +31,17 @@ const columnsCancelledTable = [
   })
 ]
 
-const OpenJobs = () => {
+const CancelledJobs = ({filteredJobs, localJobs}: {filteredJobs: Job[], localJobs: Job[]}) => {
+  useEffect(() => {
+    _setDataCancelledTable([...defaultDataCancelledTable]);
+  }, [filteredJobs]);
+  
+  const defaultDataCancelledTable: TCancelledTable[] = filteredJobs.map(job => ({
+    jobName: <span className='font-bold'>{job.title}</span>,
+    reason: <span className=''>Reason</span>,
+    assignedTo: <span className='font-md'>{shortenText({text: job?.roles.worker, maxLength: 20}) || ''}</span>,
+    actionsTaken: <Link href={`/dashboard/jobs/${job.id?.toString()}`}><span className='font-md  text-primary font-semibold underline'>View Details</span></Link>, // Assuming 'actions' is a placeholder for now
+  }));
   const [dataCancelledTable, _setDataCancelledTable] = React.useState(() => [...defaultDataCancelledTable])
   const tableCancelledTable = useReactTable({
       data: dataCancelledTable,
@@ -59,9 +51,9 @@ const OpenJobs = () => {
 
   return (
     <>
-        <JobsTable table={tableCancelledTable} title='Cancelled Jobs'></JobsTable>
+        <JobsTable table={tableCancelledTable} filteredJobs={filteredJobs} localJobs={localJobs} title='Cancelled Jobs'></JobsTable>
     </>
   )
 }
 
-export default OpenJobs
+export default CancelledJobs

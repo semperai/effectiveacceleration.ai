@@ -13,21 +13,22 @@ import { useSearchParams } from 'next/navigation'
 import { UserButton } from '@/components/UserActions/UserButton'
 import useUser from '@/hooks/useUser'
 import { useRouter } from 'next/navigation';
+import UploadAvatar from '@/components/UploadAvatar'
 
 
 const ipfsGatewayUrl = process.env.NEXT_PUBLIC_IPFS_GATEWAY_URL ?? '';
 
-// const helia = await createHelia({ url: 'http://localhost:5001' })
-
 const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string}`}) => {
     const fileInputRef = useRef<HTMLInputElement>(null)
-    const [avatar, setAvatar] = useState<string>('')
+    const [avatar, setAvatar] = useState<string | undefined>('')
+    const [avatarFileUrl, setAvatarFileUrl] = useState<string | undefined>('');
     const [userName, setName] = useState<string>('') 
     const [userBio, setBio] = useState<string>('')
     const { address } = useAccount();
     const {data: user} = useUser(address!);
-    const [avatarFileUrl, setAvatarFileUrl] = useState<string>('');
+    const userCopy = {...user}
     const router = useRouter();
+
     const {
       data: hash,
       error,
@@ -41,29 +42,6 @@ const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string
       hash
     });
 
-    const uploadToIPFS = async (file: File): Promise<void> => {
-      try {
-        const formData = new FormData();
-        formData.append('file', file);
-  
-        const response = await fetch('http://localhost:5001/api/v0/add', {
-          method: 'POST',
-          body: formData,
-        });
-  
-        if (!response.ok) {
-          throw new Error('Failed to upload file to IPFS');
-        }
-  
-        const data = await response.json();
-        const url = `${ipfsGatewayUrl}/ipfs/${data.Hash}`;
-        setAvatarFileUrl(url);
-        console.log('File uploaded to IPFS:', url);
-      } catch (error) {
-        console.error('Error uploading file to IPFS:', error);
-      }
-    };
-
     useEffect(() => {
       if (isConfirmed || error) {
         if (error) {
@@ -76,37 +54,19 @@ const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string
           }
         }
         if (isConfirmed) {
+          userCopy.address_ = address;
+          userCopy.publicKey = encryptionPublicKey;
+          userCopy.name = userName;
+          userCopy.bio = userBio;
+          userCopy.avatar = avatarFileUrl;
+          sessionStorage.setItem(`user-${address}`, JSON.stringify(userCopy));
           router.push('/dashboard');
         }
       }
     }, [isConfirmed, error]);
 
-    useEffect(() => {
-      console.log(user, address, 'User and its Address')
-    }, [user]);
-
-    const handleAvatarClick = () => {
-      if (fileInputRef.current) {
-        fileInputRef.current.click()
-      }
-    }
-
-    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0]
-        if (file) {
-          const reader = new FileReader()
-          reader.onloadend = () => {
-            setAvatar(reader.result as string)
-          }
-          reader.readAsDataURL(file)
-
-          uploadToIPFS(file);
-        }
-    }
-
-
     const submit = () => {
-      console.log(encryptionPublicKey, userName, userBio, avatarFileUrl)
+      if (avatarFileUrl === undefined) return
       try {
         const w = writeContract({
           abi: MARKETPLACE_DATA_V1_ABI,
@@ -125,34 +85,15 @@ const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string
       }
     }
   
-
+    console.log(avatarFileUrl, 'FILE URL')
   return (
     <div className='flex flex-row self-center shadow-xl'>
         <Image className='rounded-l-md z-10' src={'/registerImage.jpg'} height={50} width={350} alt={''}></Image>
         <div className='w-full max-w-md transform overflow-hidden rounded-l-none rounded-md bg-white p-6 text-left align-middle transition-all flex justify-center flex-col self-center gap-y-2'>
             <h1 className='text-xl font-extrabold'>Create a Profile</h1>
-            <FieldGroup className='flex-1 my-2'> 
-                <Field>
-                    <span className='mb-4'>Add an avatar to stand out from the crowd</span>
-                    <input
-                        type="file"
-                        name="avatar"
-                        accept="image/*"
-                        ref={fileInputRef}
-                        className="hidden"
-                        onChange={handleFileChange}
-                    />
-                    <button
-                        onClick={handleAvatarClick}
-                        className="flex items-center justify-center w-12 h-12 text-gray-500 bg-gray-200 rounded-full hover:bg-gray-300 mt-4"
-                    >
-                        {avatar ? (
-                          <img src={avatar} alt="Avatar" className="w-full h-full rounded-full object-cover" />
-                        ) : (
-                            <BsPersonPlus className='text-2xl' />
-                        )}
-                    </button>
-                </Field>
+            <FieldGroup className='flex-1 my-2'>
+                <span className='mb-4'>Add an avatar to stand out from the crowd</span> 
+                <UploadAvatar avatar={avatar} setAvatar={setAvatar} setAvatarFileUrl={setAvatarFileUrl}/>
                 <Field>
                 <Label>Your Name</Label>
                 <Input

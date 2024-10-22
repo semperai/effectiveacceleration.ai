@@ -1,32 +1,12 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import JobsTable from '../JobsTable'
-import {TDisputedTable} from '@/service/JobsService';
+import { TDisputedTable} from '@/service/JobsService';
 import { useReactTable, getCoreRowModel, createColumnHelper } from '@tanstack/react-table';
-
-
-const defaultDataDisputedTable: TDisputedTable[] = [
-  {
-    jobName: 'test',
-    arbitrationStatus: 'test',
-    disputedAmount: 24,
-    timeSpentDispute: 'test',
-  },
-  {
-    jobName: 'test',
-    arbitrationStatus: 'test',
-    disputedAmount: 24,
-    timeSpentDispute: 'test',
-  },
-  {
-    jobName: 'test',
-    arbitrationStatus: 'test',
-    disputedAmount: 24,
-    timeSpentDispute: 'test',
-  },
-]
+import { Job } from 'effectiveacceleration-contracts/dist/src/interfaces';
+import Link from 'next/link';
+import { shortenText } from '@/utils/utils';
 
 const columnHelperDisputedTable = createColumnHelper<TDisputedTable>()
-
 const columnsDisputedTable = [
   columnHelperDisputedTable.accessor(row => row.jobName, {
       id: 'jobName',
@@ -50,7 +30,17 @@ const columnsDisputedTable = [
   })
 ]
 
-const OpenJobs = () => {
+const DisputedJobs = ({filteredJobs, localJobs}: {filteredJobs: Job[], localJobs: Job[]}) => {
+  useEffect(() => {
+    _setDataDisputedTable([...defaultDataDisputedTable]);
+  }, [filteredJobs]);  
+
+  const defaultDataDisputedTable: TDisputedTable[] = filteredJobs.map(job => ({
+    jobName: <span className='font-bold'>{job.title}</span>,
+    arbitrationStatus: <span className=''>ArbitrationStatus</span>,
+    disputedAmount: <span className='font-md'>{job?.amount}</span>,
+    timeSpentDispute: <Link href={`/dashboard/jobs/${job.id?.toString()}`}><span className='font-md  text-primary font-semibold underline'>View Details</span></Link>, // Assuming 'actions' is a placeholder for now
+  }));
   const [dataDisputedTable, _setDataDisputedTable] = React.useState(() => [...defaultDataDisputedTable])
   const tableDisputedTable = useReactTable({
       data: dataDisputedTable,
@@ -60,9 +50,9 @@ const OpenJobs = () => {
 
   return (
     <>
-        <JobsTable table={tableDisputedTable} title='Disputed Jobs'></JobsTable>
+        <JobsTable table={tableDisputedTable} filteredJobs={filteredJobs} localJobs={localJobs} title='Disputed Jobs'></JobsTable>
     </>
   )
 }
 
-export default OpenJobs
+export default DisputedJobs

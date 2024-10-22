@@ -29,7 +29,7 @@ export function PostMessageButton({address, recipient, addresses, job, sessionKe
   const {data: users} = useUsersByAddresses(addresses?.filter(user => !excludes.includes(user) ?? []) as string[]);
   const [selectedUserAddress, setSelectedUserAddress] = useState<`0x${string}`>(zeroAddress);
   const selectedUserRecipient = recipient === address ? job.roles.creator : recipient
-  console.log(recipient, 'recipient')
+
   const {
     data: hash,
     error,

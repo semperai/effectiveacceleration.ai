@@ -32,8 +32,8 @@ const columnsCompletedTable = [
   })
 ]
 
-const OpenJobs = ({jobs, localJobs}: {jobs: Job[], localJobs: Job[]}) => {
-  const defaultDataCompletedTable: TCompletedTable[] = jobs.map(job => ({
+const CompletedJobs = ({filteredJobs, localJobs}: {filteredJobs: Job[], localJobs: Job[]}) => {
+  const defaultDataCompletedTable: TCompletedTable[] = filteredJobs.map(job => ({
     jobName: <span className='font-bold   '>{job.title}</span>,
     status: <span className='px-3 py-2 text-[#23B528] rounded-full bg-[#E1FFEF]'>Completed</span>,
     timeTaken: <span >{job.maxTime}</span>,
@@ -54,4 +54,4 @@ const OpenJobs = ({jobs, localJobs}: {jobs: Job[], localJobs: Job[]}) => {
   )
 }
 
-export default OpenJobs
+export default CompletedJobs

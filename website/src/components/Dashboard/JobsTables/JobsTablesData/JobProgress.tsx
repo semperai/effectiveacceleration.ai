@@ -31,8 +31,8 @@ const columnsCompletedTable = [
   })
 ]
 
-const OpenJobs = ({jobs, localJobs}: {jobs: Job[], localJobs: Job[]}) => {
-  const defaultDataCompletedTable: TOpenJobTable[] = jobs.map(job => ({
+const ProgressJobs = ({filteredJobs, localJobs}: {filteredJobs: Job[], localJobs: Job[]}) => {
+  const defaultDataCompletedTable: TOpenJobTable[] = filteredJobs.map(job => ({
     jobName: <span className='font-bold'>{job.title}</span>,
     description: <span className='font-md'>{job.roles.worker ?? ''}</span>,
     tag: <span className='px-3 py-2 text-[#23B528] rounded-full bg-[#E1FFEF]'>{job.tags[1] ?? ''}</span>,
@@ -52,4 +52,4 @@ const OpenJobs = ({jobs, localJobs}: {jobs: Job[], localJobs: Job[]}) => {
   )
 }
 
-export default OpenJobs
+export default ProgressJobs

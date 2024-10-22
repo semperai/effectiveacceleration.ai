@@ -42,11 +42,12 @@ const columnsCompletedTable = [
   })
 ]
 
-const OpenJobs = ({jobs, localJobs}: {jobs: Job[], localJobs: Job[]}) => {
+const OpenJobs = ({filteredJobs, localJobs, selectedJobs}: {filteredJobs: Job[], localJobs: Job[], selectedJobs: Job[]}) => {
   useEffect(() => {
     _setDataCompletedTable([...defaultDataCompletedTable]);
-  }, [jobs]);
-  const defaultDataCompletedTable: TOpenJobTable[] = jobs.map(job => ({
+  }, [filteredJobs]);
+
+  const defaultDataCompletedTable: TOpenJobTable[] = filteredJobs.map(job => ({
     jobName: <span className='font-bold   '>{job.title}</span>,
     description: <span className='font-md '>{job.content ?? ''}</span>,
     tag: <span className='px-3 text-sm py-2  text-[#23B528] rounded-full bg-[#E1FFEF]'>{job.tags[1] ?? ''}</span>,
@@ -60,7 +61,7 @@ const OpenJobs = ({jobs, localJobs}: {jobs: Job[], localJobs: Job[]}) => {
   })
   return (
     <>
-        <JobsTable table={tableCompletedTable} localJobs={localJobs} title='Open Jobs'></JobsTable>
+        <JobsTable table={tableCompletedTable} filteredJobs={filteredJobs} localJobs={localJobs} title='Open Jobs'></JobsTable>
     </>
   )
 }

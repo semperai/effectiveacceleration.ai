@@ -23,9 +23,11 @@ const DashboardTabs = () => {
   const [localJobs, setLocalJobs] = useState<Job[]>([]);
   const [jobIds, setJobIds] = useState<bigint[]>([]);
   const {data: selectedJobs } = useJobsByIds(jobIds)
-  const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
+  const [filteredOpenJobs, setOpenFilteredJobs] = useState<Job[]>([]);
   const [filteredJobsInProgress, setFilteredJobsInProgress] = useState<Job[]>([]);
   const [filteredCompletedJobs, setFilteredCompletedJobs] = useState<Job[]>([]);
+  const [filteredCancelledJobs, setFilteredCancelledJobs] = useState<Job[]>([]);
+  const [filteredDisputedJobs, setFilteredDisputedJobs] = useState<Job[]>([]);
   const [tabsKey, setTabsKey] = useState(0);
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [mounted, setMounted] = useState(false);
@@ -42,33 +44,40 @@ const DashboardTabs = () => {
   }, [address]);
 
   const filteredJobsMemo = useMemo(() => {
-    if (selectedJobs.length === 0) return { open: [], inProgress: [], completed: [] };
+    if (selectedJobs.length === 0) return { open: [], inProgress: [], completed: [], cancelled: [], disputed: []};
 
     const filteredOpenJobs: Job[] = [];
     const filteredJobsInProgress: Job[] = [];
     const filteredCompletedJobs: Job[] = [];
+    const filteredCancelledJobs: Job[] = [];
+    const filteredDisputedJobs: Job[] = [];
     
     selectedJobs.forEach((job, index) => {
-      console.log(localJobs[index].id, 'localJobs[index]', job, 'job.id')
       if (job.state === JobState.Open) {
         filteredOpenJobs.push(job);
       } else if (job.state === JobState.Taken) {
         filteredJobsInProgress.push(job);
-      } else if (job.state === JobState.Closed  && localJobs[index].lastJobEvent?.type_ === JobEventType.Rated ) {
+      } else if (job.state === JobState.Closed && localJobs[index].lastJobEvent?.type_ === JobEventType.Completed || localJobs[index].lastJobEvent?.type_ === JobEventType.Rated || localJobs[index].lastJobEvent?.type_ === JobEventType.Arbitrated) {
         filteredCompletedJobs.push(job);
+      } else if (job.state === JobState.Closed && localJobs[index].lastJobEvent?.type_ === JobEventType.Closed) {
+        filteredCancelledJobs.push(job);
+      } else if (job.state === JobState.Taken && localJobs[index].lastJobEvent?.type_ === JobEventType.Disputed) {
+        filteredDisputedJobs.push(job);
       }
+      
     });
-    return { open: filteredOpenJobs, inProgress: filteredJobsInProgress, completed: filteredCompletedJobs };
+    return { open: filteredOpenJobs, inProgress: filteredJobsInProgress, completed: filteredCompletedJobs, cancelled: filteredCancelledJobs, disputed: filteredDisputedJobs};
   }, [selectedJobs, localJobs]);
-  console.log(filteredCompletedJobs, 'filteredCompletedJobs')
+
   useEffect(() => {
     setTabsKey(prevKey => prevKey + 1);
-    setFilteredJobs(filteredJobsMemo.open);
+    setOpenFilteredJobs(filteredJobsMemo.open);
     setFilteredJobsInProgress(filteredJobsMemo.inProgress);
     setFilteredCompletedJobs(filteredJobsMemo.completed);
+    setFilteredCancelledJobs(filteredJobsMemo.cancelled);
+    setFilteredDisputedJobs(filteredJobsMemo.disputed);
   }, [filteredJobsMemo]);
-
-  console.log(localJobs, 'filtered Jobs')
+  console.log('filteredJobsMemo', filteredJobsMemo)
   return (
     <div className=''>
     {mounted && (
@@ -89,19 +98,19 @@ const DashboardTabs = () => {
               Develop: All Jobs</Tab>
         </TabList>
         <TabPanel>
-          <OpenJobs jobs={filteredJobs} localJobs={localJobs}/>
+          <OpenJobs filteredJobs={filteredOpenJobs} selectedJobs={selectedJobs}  localJobs={localJobs}/>
         </TabPanel>
         <TabPanel>
-          <JobProgress jobs={filteredJobsInProgress} localJobs={localJobs}/>
+          <JobProgress filteredJobs={filteredJobsInProgress} localJobs={localJobs}/>
         </TabPanel>
         <TabPanel>
-          <CompletedJobs jobs={filteredCompletedJobs} localJobs={localJobs}/>
+          <CompletedJobs filteredJobs={filteredCompletedJobs} localJobs={localJobs}/>
         </TabPanel>
         <TabPanel>
-          <DisputedJobs/>
+          <DisputedJobs filteredJobs={filteredDisputedJobs} localJobs={localJobs}/>
         </TabPanel>        
         <TabPanel>
-          <CancelledJobs/>
+          <CancelledJobs filteredJobs={filteredCancelledJobs} localJobs={localJobs}/>
         </TabPanel>
         <TabPanel>
           <DevelopAllJobs jobs={jobs}/>

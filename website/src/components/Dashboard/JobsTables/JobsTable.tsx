@@ -5,39 +5,39 @@ import { Skeleton } from '@mui/material';
 import { Button } from '@/components/Button';
 import { Job, JobEventType, JobState } from 'effectiveacceleration-contracts/dist/src/interfaces';
 
-const getValidJobsCount = (title: string, jobs?: Job[]): number => {
-  if (!jobs) return 0;
+const getValidJobsCount = (title: string, localJobs?: Job[]): number => {
+  console.log(localJobs, 'LOCALJOBS')
+  // Here we use local storaged Jobs because we needed to setup skeleton rows. 
+  // We use the lastJobEvent instead of job state because the job state is not correctly updated in the local storage. 
+  if (!localJobs) return 0; 
   switch (title) {
     case 'Open Jobs':
-      return jobs.filter(job => job.state === JobState.Open).length;
-      case 'All Jobs':
-        return jobs.filter(job => job).length;
+      return localJobs.filter(job => job.lastJobEvent?.type_ === JobEventType.Reopened || job.lastJobEvent?.type_ === JobEventType.Created || !job.lastJobEvent).length;
+    case 'All Jobs':
+      return localJobs.filter(job => job).length;
     case 'In Progress':
-      return jobs.filter(job => job.state === JobState.Taken).length;
+      return localJobs.filter(job => job.lastJobEvent?.type_ === JobEventType.Taken || job.lastJobEvent?.type_ === JobEventType.Delivered || job.lastJobEvent?.type_ === JobEventType.Paid).length;
     case 'Completed Jobs':
-      return jobs.filter(job => 
-        job.state === JobState.Closed).length;
-        // && 
-        // job.lastJobEvent?.type_ === JobEventType.Completed
+      return localJobs.filter(job => job.lastJobEvent?.type_ === JobEventType.Completed || job.lastJobEvent?.type_ === JobEventType.Rated || job.lastJobEvent?.type_ === JobEventType.Arbitrated).length;
+    case 'Cancelled Jobs':
+      return localJobs.filter(job => job.lastJobEvent?.type_ === JobEventType.Closed).length;
+    case 'Disputed Jobs':
+      return localJobs.filter(job => job.lastJobEvent?.type_ === JobEventType.Disputed).length;
     default:
       return 0;
   }
 };
 
-function JobsTable<T>({table, title, localJobs}:{table: Table<T>, title:string, localJobs?: Job[]}) {
+function JobsTable<T>({table, title, localJobs, filteredJobs}:{table: Table<T>, title:string, localJobs?: Job[], filteredJobs?: Job[]}) {
   const [loading, setLoading] = useState(true);
   const [jobCount, setJobCount] = useState(0);
   const [dataRow, setDataRow] = useState(false)
-  console.log(localJobs, 'localjobs')
   useEffect(() => {
-    console.log(title, localJobs, 'TITLE AND LOCAL JOBS')
     setJobCount(getValidJobsCount(title, localJobs))
-    console.log(localJobs, 'localjobs')
     if (table.getRowModel().rows.length === 0) return
     setLoading(false)
     setDataRow(true)
   }, [table, dataRow]); 
-  console.log(jobCount, 'JOB COUNT', localJobs, 'localJobs')
   return (
     <>
       {jobCount === 0 ? (
