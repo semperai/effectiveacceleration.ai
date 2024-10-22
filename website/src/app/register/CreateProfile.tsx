@@ -91,29 +91,7 @@ const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string
         <div className='w-full max-w-md transform overflow-hidden rounded-l-none rounded-md bg-white p-6 text-left align-middle transition-all flex justify-center flex-col self-center gap-y-2'>
             <h1 className='text-xl font-extrabold'>Create a Profile</h1>
             <FieldGroup className='flex-1 my-2'> 
-                {/* <Field>
-                    <span className='mb-4'>Add an avatar to stand out from the crowd</span>
-                    <input
-                        type="file"
-                        name="avatar"
-                        accept="image/*"
-                        ref={fileInputRef}
-                        className="hidden"
-                        onChange={handleFileChange}
-                    />
-                    <button
-                        onClick={handleAvatarClick}
-                        className="flex items-center justify-center w-12 h-12 text-gray-500 bg-gray-200 rounded-full hover:bg-gray-300 mt-4"
-                    >
-                        {avatar ? (
-                          <img src={avatar} alt="Avatar" className="w-full h-full rounded-full object-cover" />
-                        ) : (
-                            <BsPersonPlus className='text-2xl' />
-                        )}
-                    </button>
-                </Field> */}
-                <UploadAvatar avatar={avatar} setAvatar={setAvatar} setAvatarFileUrl={setAvatarFileUrl}>
-                </UploadAvatar>
+                <UploadAvatar avatar={avatar} setAvatar={setAvatar} setAvatarFileUrl={setAvatarFileUrl}/>
                 <Field>
                 <Label>Your Name</Label>
                 <Input
