@@ -39,14 +39,20 @@ import { LocalStorageJob } from '@/service/JobsService'
 import useUnsavedChangesWarning from '@/hooks/useUnsavedChangesWarning'
 import { LOCAL_JOBS_CACHE } from "@/utils/constants";
 import { shortenText } from '@/utils/utils'
+import useUser from '@/hooks/useUser'
+import RegisterModal from './RegisterModal'
+import LoadingModal from './LoadingModal'
 
-interface PostJobParams {
+export interface PostJobParams {
   title?: string;
+  amount?: string;
   content?: string;
   token?: string;
   maxTime?: string;
   deliveryMethod?: string;
-  arbitrator?: string;
+  roles?: {
+    arbitrator?: string;
+  }
   tags: string[];
 }
 
@@ -146,6 +152,7 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
   const router = useRouter();
   const searchParams = useSearchParams();
   const { address } = useAccount();
+  const {data: user} = useUser(address!);
   const { data: workers } = useUsers();
   const workerAddresses = workers?.filter(worker => worker.address_ !== address).map((worker) => worker.address_) ?? [];
   const workerNames = workers?.filter(worker => worker.address_ !== address).map((worker) => worker.name) ?? [];
@@ -159,11 +166,10 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
   const [title, setTitle] = useState<string>('');
   const [deliveryMethod, setDeliveryMethod] = useState('');
   const [description, setDescription] = useState<string>('');
-  // const [amount, setAmount] = useState(ethers.formatUnits(0, 0));
   const [amount, setAmount] = useState('');
   const [deadline, setDeadline] = useState<number>();
   const [multipleApplicants, setMultipleApplicants] = useState(multipleApplicantsValues[1])
-  const [arbitratorRequired, setArbitratorRequired] = useState(multipleApplicantsValues[0])
+  const [arbitratorRequired, setArbitratorRequired] = useState(multipleApplicantsValues[1])
   const [selectedUnitTime, setselectedUnitTime] = useState<ComboBoxOption>()
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<{id: string, name: string}>();
@@ -173,7 +179,10 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
   const [descriptionError, setDescriptionError] = useState<string>('');
   const [categoryError, setCategoryError] = useState<string>('');
   const [postButtonDisabled, setPostButtonDisabled] = useState(false);
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false)
+  const [isLoadingModalOpen, setIsLoadingModalOpen] = useState(false)
   const userJobCache = `${address}${LOCAL_JOBS_CACHE}`
+  const unregisteredUserLabel = `${address}-unregistered-job-cache`
   const {
     data: hash,
     error,
@@ -203,6 +212,11 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
   }, [title, description, amount, deadline, selectedToken, error])
 
   const handleSummary = () => {
+    if (!user) {
+      setIsRegisterModalOpen(true)
+      jobIdCache()
+      return
+    } 
     setShowSummary(!showSummary);
   };
 
@@ -222,7 +236,6 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
 
     const { hash: contentHash } = await publishToIpfs(description);
     const allowanceResponse = await setupAndGiveAllowance(Config.marketplaceAddress as `0x${string}`, amount, selectedToken?.id as `0x${string}` | undefined)
-    console.log(allowanceResponse)
     // Call the giveAllowance function
     // await setupAndGiveAllowance(Config.marketplaceAddress as `0x${string}`, amount, selectedToken?.id as `0x${string}` | undefined);
     const w = writeContract({
@@ -244,13 +257,13 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
     });
   }
 
-  const jobIdCache = (jobId: bigint) => {
-    const createdJobId = jobId.toString()
+  const jobIdCache = (jobId?: bigint) => {
+    const createdJobId = jobId?.toString()
     const createdJobs = JSON.parse(localStorage.getItem(userJobCache) || '[]');
 
     // newJob Should correspond to type "Job" but bigInts are not JSON stringifiable
     const newJob: any = {
-      id: createdJobId,
+      id: createdJobId ? createdJobId : '0',
       title: title,
       content: description,
       multipleApplicants: multipleApplicants === 'Yes',
@@ -275,15 +288,30 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
       rating: 0,
     };
     createdJobs.push(newJob);
-    localStorage.setItem(userJobCache, JSON.stringify(createdJobs));
-    setTimeout(() => {
-      router.push(`/dashboard/jobs/${createdJobId}`);
-    }, 1000);
+    // Save job to local storage, if unregistered save to session storage
+    // for later retrieval after registration
+    if (user) {
+      localStorage.setItem(userJobCache, JSON.stringify(createdJobs));
+      setTimeout(() => {
+        router.push(`/dashboard/jobs/${createdJobId}`);
+      }, 1000);
+    } else {
+      sessionStorage.setItem(unregisteredUserLabel, JSON.stringify(createdJobs))
+    }
   }
 
   useImperativeHandle(ref, () => ({
     jobIdCache,
   }));
+
+  
+  function closeRegisterModal() {
+    setIsRegisterModalOpen(false)
+  }
+  console.log(isLoadingModalOpen, 'IS LOADING MODAL OPEN')
+  function closeLoadingModal() {
+    setIsRegisterModalOpen(false)
+  }
 
 
   const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>, errorSetter: React.Dispatch<React.SetStateAction<string>>, validation: FieldValidation) => (e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLTextAreaElement>) => {
@@ -330,27 +358,58 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
         console.log(error, error.message);
         alert(error.message.match(`The contract function ".*" reverted with the following reason:\n(.*)\n.*`)?.[1])
       }
+      if (isConfirmed) {
+        console.log('Job confirmed MODAL OPEN');
+        setIsLoadingModalOpen(true)
+      }
     }
   }, [isConfirmed, error]);
 
   useEffect(() => {
+    setsSelectedArbitratorAddress(arbitratorAddresses[1])
+  }, [arbitratorAddresses]);
+  console.log(selectedArbitratorAddress, 'ARBITRATOR ADDRESS', arbitratorAddresses, 'ARBITRATOR ADDRESSES')
+
+  useEffect(() => {
+    // Get session storage to fill form for new signed up users
+    const jobsAfterSignUp = JSON.parse(sessionStorage.getItem(unregisteredUserLabel) || '[]')
+    const savedJob: PostJobParams = jobsAfterSignUp[0]
+
+    // Get params from URL of users that clicked postNewJob from job page 
     const params = Object.fromEntries(searchParams.entries());
     const extractedParams: PostJobParams = {
       ...params,
       tags: searchParams.getAll('tags')
     };
-    setTitle(extractedParams.title || '');
-    setDescription(extractedParams.content || '');
-    setTags(extractedParams.tags.map((tag, index) => ({ id: index, name: tag })));
-    setDeliveryMethod(extractedParams.deliveryMethod || '');
-    if (extractedParams.arbitrator === '0x0000000000000000000000000000000000000000') {
-      setArbitratorRequired('No');
-    } else {
-      setsSelectedArbitratorAddress(extractedParams.arbitrator || '');
+    // Check if either savedJob or params are true
+    if (user && (savedJob || extractedParams.title)) {
+      initializeForm(savedJob || extractedParams);
     }
-    setDeadline(parseInt(extractedParams.maxTime || '0'));
-    console.log(selectedArbitratorAddress, 'arbitratorAddresses', extractedParams.arbitrator)
-  }, [searchParams])
+  }, [searchParams, address, user])
+
+  const initializeForm = (job: PostJobParams) => {
+    setTitle(job.title || '');
+    setDescription(job.content || '');
+    setTags(job.tags
+      .filter((_, index) => index !== 0)
+      .map((tag: string, index: number) => ({ id: index + 1, name: tag }))
+    );
+    const selectedCategory = categories.find(category => category.id === job.tags[0]);
+    setSelectedCategory(selectedCategory)
+    setDeliveryMethod(job.deliveryMethod || '');
+    setAmount(job.amount || '');
+    if (job.roles?.arbitrator === zeroAddress) {
+        setArbitratorRequired('No');
+    } else {
+        setArbitratorRequired('Yes');
+        setsSelectedArbitratorAddress(job.roles?.arbitrator || '');
+    }
+    setDeadline(parseInt(job.maxTime || '0'));
+    // delete unregisteredUserLabel as this only should be consumed after user regis
+    sessionStorage.removeItem(unregisteredUserLabel);
+    handleSummary();
+  };
+
   return (
     <div>
       {!showSummary && (
@@ -485,7 +544,7 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
                 {arbitratorAddresses.map((arbitratorAddress, index) => (
                   index > 0 && 
                     <ListboxOption  key={index} value={arbitratorAddress}>
-                      {`${arbitratorNames[index]}  ${shortenText({ text: arbitratorAddress, maxLength: 11 })} ${arbitratorFees[index]}%`}
+                      {`${arbitratorNames[index]}  ${shortenText({ text: arbitratorAddress, maxLength: 11 })} ${+arbitratorFees[index] / 100}%`}
                     </ListboxOption>
                 ))}
               </Listbox>
@@ -529,10 +588,12 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
                     {isPending ? 'Posting...' : 'Continue'}
                   </Button>
                 </div>
-              )}
+        )}
+        <RegisterModal closeRegisterModal={closeRegisterModal} isRegisterModalOpen={isRegisterModalOpen} />
       </Fieldset>
       )}
         {showSummary && (
+        <>
         <JobSummary
           handleSummary={handleSummary}
           formInputs={formInputs}
@@ -542,6 +603,8 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
           isConfirmed={isConfirmed}   
           postButtonDisabled={postButtonDisabled}
           />
+          <LoadingModal closeLoadingModal={closeLoadingModal} isLoadingModalOpen={isLoadingModalOpen}/>
+        </>
       )}
     </div>
   );
