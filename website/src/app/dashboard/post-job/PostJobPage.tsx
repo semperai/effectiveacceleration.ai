@@ -154,8 +154,6 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
   const { address } = useAccount();
   const {data: user} = useUser(address!);
   const { data: workers } = useUsers();
-  const workerAddresses = workers?.filter(worker => worker.address_ !== address).map((worker) => worker.address_) ?? [];
-  const workerNames = workers?.filter(worker => worker.address_ !== address).map((worker) => worker.name) ?? [];
   const { data: arbitrators } = useArbitrators();
   const arbitratorAddresses = [zeroAddress, ...(arbitrators?.map((worker) => worker.address_) ?? [])];
   const arbitratorNames = ["None", ...(arbitrators?.map((worker) => worker.name) ?? [])];
@@ -366,7 +364,8 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
   }, [isConfirmed, error]);
 
   useEffect(() => {
-    setsSelectedArbitratorAddress(arbitratorAddresses[1])
+    if (arbitratorRequired === 'Yes')  setsSelectedArbitratorAddress(arbitratorAddresses[1])
+
   }, [arbitratorAddresses]);
   console.log(selectedArbitratorAddress, 'ARBITRATOR ADDRESS', arbitratorAddresses, 'ARBITRATOR ADDRESSES')
 
@@ -410,6 +409,13 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
     handleSummary();
   };
 
+  const handleArbitratorChange = (value: string) => {
+    setArbitratorRequired(value);
+    if (value === 'No') {
+      setsSelectedArbitratorAddress(zeroAddress);
+    }
+  };
+  console.log(selectedArbitratorAddress, 'ARBITRATOR ADDRESS')
   return (
     <div>
       {!showSummary && (
@@ -521,7 +527,7 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
             </Field>
             <Field className='flex flex-row justify-between items-center'>
             <Label className='items-center !font-bold mb-0 pb-0'>Arbitrator Required</Label>
-              <RadioGroup className='flex !mt-0' value={arbitratorRequired} onChange={setArbitratorRequired} aria-label="Server size">
+              <RadioGroup className='flex !mt-0' value={arbitratorRequired} onChange={handleArbitratorChange} aria-label="Server size">
                 {multipleApplicantsValues.map((option) => (
                   <Field className='items-center flex !mt-0 ml-5' key={option}>
                     <Radio color='default' className='mr-2' value={option}>
