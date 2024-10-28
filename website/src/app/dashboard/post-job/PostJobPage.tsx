@@ -60,6 +60,7 @@ interface FieldValidation {
   required?: boolean;
   minLength?: number;
   pattern?: RegExp;
+  mustBeGreaterThanOrEqualTo?: string;  // Add this line
   custom?: (value: string) => string;
 }
 
@@ -138,11 +139,16 @@ const validateField = (value: string, validation: FieldValidation): string => {
   if (validation.pattern && !validation.pattern.test(value)) {
     return 'Invalid format';
   }
+  if (validation.mustBeGreaterThanOrEqualTo && parseFloat(value) < parseFloat(validation.mustBeGreaterThanOrEqualTo)) {
+    return `Must be greater than or equal to ${validation.mustBeGreaterThanOrEqualTo}`;
+  }
   if (validation.custom) {
     return validation.custom(value);
   }
-  return '';
+  
+  return ''; 
 };
+
 
 interface PostJobPageProps {
   onJobIdCache: (jobId: bigint) => void;
@@ -196,6 +202,7 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
   const [titleError, setTitleError] = useState<string>('');
   const [descriptionError, setDescriptionError] = useState<string>('');
   const [categoryError, setCategoryError] = useState<string>('');
+  const [paymentTokenError, setPaymentTokenError] = useState<string>('');
   const [postButtonDisabled, setPostButtonDisabled] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false)
   const [isLoadingModalOpen, setIsLoadingModalOpen] = useState(false)
@@ -245,7 +252,7 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
     functionName: 'balanceOf',
     args:         [address!],
   });
-
+  console.log(typeof balanceData, 'BALANCE DATA')
   async function postJobClick() {
     if (!deadline) return
     if (!amount) return
@@ -340,14 +347,22 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
   };
 
   const handleSubmit = () => {
+    // Ensure balanceData is of type ethers.BigNumberish
+    const balanceAsString = (Number(BigInt(balanceData as ethers.BigNumberish) / BigInt(10 ** 18))).toString(); // Converts balanceData from BigNumberish to BigInt, divides by 10^18 to convert from smallest unit (e.g., wei) to main unit (e.g., ether), converts to number, then to string
+
     // Validate all fields before submission
     const titleValidationMessage = validateField(title, { required: true, minLength: 3 });
     const descriptionValidationMessage = validateField(description, { required: true, minLength: 10 });
     const categoryValidationMessage = validateField(selectedCategory?.name || '', { required: true, minLength: 10 });
+    const paymentTokenValidationMessage = validateField(balanceAsString, { 
+      required: true, 
+      mustBeGreaterThanOrEqualTo: amount,
+    });
 
     setTitleError(titleValidationMessage);
     setDescriptionError(descriptionValidationMessage);
-    setCategoryError(categoryValidationMessage)
+    setCategoryError(categoryValidationMessage);
+    setPaymentTokenError(paymentTokenValidationMessage);
     if (!titleValidationMessage && !descriptionValidationMessage) {
       // Proceed with form submission
       console.log('Form is valid');
@@ -534,13 +549,16 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
                     onClick={(token: Token) => setSelectedToken(token)}
                   />
                 </div>
-                {selectedToken && !!balanceData && (
+                {selectedToken && (balanceData !== null && balanceData !== undefined) ? (
                   <Text>
-                    {ethers.formatEther(balanceData as ethers.BigNumberish)}
-                    {' '}
-                    {selectedToken.symbol} available
+                    Balance: {ethers.formatEther(balanceData as ethers.BigNumberish)} {selectedToken.symbol}
+                  </Text>
+                ) : (
+                  <Text style={{ color: 'red' }}>
+                    Balance: 0.0 {selectedToken?.symbol}
                   </Text>
                 )}
+                {paymentTokenError && <div className='text-xs' style={{ color: 'red' }}>{descriptionError}</div>} 
               </div>
             </Field>
           </div>
