@@ -88,6 +88,26 @@ async function setupAndGiveAllowance(spenderAddress: `0x${string}` | undefined, 
       // Parse the amount to the correct units
       const parsedAmount = ethers.parseUnits(amount, decimals);
 
+      // Get the current allowance
+      const ownerAddress = await signer.getAddress();
+      const currentAllowance = await tokenContract.allowance(ownerAddress, spenderAddress);
+
+      // Ensure currentAllowance and parsedAmount are BigInt instances
+      if (typeof currentAllowance === 'bigint' && typeof parsedAmount === 'bigint') {
+        // Check if the current allowance is sufficient
+        if (currentAllowance >= parsedAmount) {
+          console.log(`Sufficient allowance already given to ${spenderAddress} for ${amount} tokens`);
+          if (typeof resolve === 'function') {
+            resolve();
+          } else {
+            console.error('resolve is not a function');
+          }
+          return;
+        }
+      } else {
+        console.error('currentAllowance or parsedAmount is not a valid BigInt');
+      }
+
       // Call the approve function
       const tx = await tokenContract.approve(spenderAddress, parsedAmount);
       
