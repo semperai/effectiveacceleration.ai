@@ -168,7 +168,7 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
   const [deadline, setDeadline] = useState<number>();
   const [multipleApplicants, setMultipleApplicants] = useState(multipleApplicantsValues[1])
   const [arbitratorRequired, setArbitratorRequired] = useState(multipleApplicantsValues[1])
-  const [selectedUnitTime, setselectedUnitTime] = useState<ComboBoxOption>()
+  const [selectedUnitTime, setselectedUnitTime] = useState<ComboBoxOption>(unitsDeliveryTime[2])
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<{id: string, name: string}>();
   const [selectedWorkerAddress, setsSelectedWorkerAddress] = useState<string | undefined>(undefined);
@@ -323,11 +323,11 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
     // Validate all fields before submission
     const titleValidationMessage = validateField(title, { required: true, minLength: 3 });
     const descriptionValidationMessage = validateField(description, { required: true, minLength: 10 });
-    // const categoryValidationMessage = validateField(selectedCategory, { required: true, minLength: 10 });
+    const categoryValidationMessage = validateField(selectedCategory?.name || '', { required: true, minLength: 10 });
 
     setTitleError(titleValidationMessage);
     setDescriptionError(descriptionValidationMessage);
-    // setCategoryError(categoryValidationMessage)
+    setCategoryError(categoryValidationMessage)
     if (!titleValidationMessage && !descriptionValidationMessage) {
       // Proceed with form submission
       console.log('Form is valid');
@@ -365,7 +365,6 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
 
   useEffect(() => {
     if (arbitratorRequired === 'Yes')  setsSelectedArbitratorAddress(arbitratorAddresses[1])
-
   }, [arbitratorAddresses]);
   console.log(selectedArbitratorAddress, 'ARBITRATOR ADDRESS', arbitratorAddresses, 'ARBITRATOR ADDRESSES')
 
@@ -415,7 +414,7 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
       setsSelectedArbitratorAddress(zeroAddress);
     }
   };
-  console.log(selectedArbitratorAddress, 'ARBITRATOR ADDRESS')
+
   return (
     <div>
       {!showSummary && (
@@ -464,11 +463,20 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
             </Field>
             <Field>
               <Label>Category</Label>
-              <ComboBox placeholder='Search Category...' value={selectedCategory} className="w-auto border border-gray-300 rounded-md shadow-sm bg-slate-600" 
-              options={categories}  onChange={(option) => {
-                setSelectedCategory(option as {id: string, name: string})
-              }}></ComboBox>
-              {categoryError && <div className='text-xs' style={{ color: 'red' }}>{descriptionError}</div>}
+                <Listbox
+                  placeholder="Select Category"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e)}
+                  className="border border-gray-300 rounded-md shadow-sm"
+                  >
+                  {categories.map((category, index) => (
+                    index > 0 && 
+                      <ListboxOption  key={index} value={category}>
+                        {`${categories[index].name}`}
+                      </ListboxOption>
+                  ))}
+                </Listbox>
+              {categoryError && <div className='text-xs' style={{ color: 'red' }}>{descriptionError}</div>} 
             </Field>
             <Field>
               <Label>Tags</Label>
@@ -575,11 +583,19 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
             </Field>
             <Field className='flex-1'>
             <Label>Units</Label>
-            <ComboBox placeholder='Time Units' className="w-auto border border-gray-300 rounded-md shadow-sm bg-slate-600" 
-              value={selectedUnitTime}
-              options={unitsDeliveryTime}  onChange={(option) => {
-                setselectedUnitTime(option as ComboBoxOption)
-              }}></ComboBox>
+            <Listbox
+                  placeholder="Time Units"
+                  value={selectedUnitTime}
+                  onChange={(e) => setselectedUnitTime(e)}
+                  className="border border-gray-300 rounded-md shadow-sm"
+                  >
+                  {unitsDeliveryTime.map((timeUnit, index) => (
+                    index > 0 && 
+                      <ListboxOption  key={index} value={timeUnit}>
+                        {`${unitsDeliveryTime[index].name}`}
+                      </ListboxOption>
+                  ))}
+              </Listbox>
             </Field>
           </div>
           </FieldGroup>
