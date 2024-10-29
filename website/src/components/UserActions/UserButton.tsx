@@ -175,14 +175,20 @@ export function UserButton({...rest}: React.ComponentPropsWithoutRef<'div'>) {
 
   return <>
     <span className="">
-      <button onClick={() => openModal()} className='p-2 bg-primary rounded-full flex items-center align-middle overflow-hidden relative w-10 h-10'>
-        {avatar === '' || avatar === undefined || avatar === null || !isImgValid ? <span className='text-white inline-block w-6 h-6'>{name && name[0].toUpperCase()}
-        {
-          !name && <UserIcon className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-300" aria-hidden="true" />
-        }</span>  
-        : <Image className='object-cover w-full h-full'  fill src={avatar as string | StaticImport} alt={'Profile picture'}></Image>
-        }
-      </button>
+      {user ? 
+        (
+          <button onClick={() => openModal()} className='p-2 bg-primary rounded-full flex items-center align-middle overflow-hidden relative w-10 h-10'>
+            {avatar === '' || avatar === undefined || avatar === null || !isImgValid ? <span className='text-white inline-block w-6 h-6'>{name && name[0].toUpperCase()}
+              {
+                !name && <UserIcon className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-300" aria-hidden="true" />
+              }</span>  
+                : <Image className='object-cover w-full h-full'  fill src={avatar as string | StaticImport} alt={'Profile picture'}></Image>
+            }
+          </button>
+        ) 
+        : 
+        (<></>)
+      }
       <Transition appear show={isOpen} as={Fragment}>
         <Dialog as="div" className="relative z-10" onClose={closeModal}>
           <Transition.Child

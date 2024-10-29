@@ -39,14 +39,20 @@ import { LocalStorageJob } from '@/service/JobsService'
 import useUnsavedChangesWarning from '@/hooks/useUnsavedChangesWarning'
 import { LOCAL_JOBS_CACHE } from "@/utils/constants";
 import { shortenText } from '@/utils/utils'
+import useUser from '@/hooks/useUser'
+import RegisterModal from './RegisterModal'
+import LoadingModal from './LoadingModal'
 
-interface PostJobParams {
+export interface PostJobParams {
   title?: string;
+  amount?: string;
   content?: string;
   token?: string;
   maxTime?: string;
   deliveryMethod?: string;
-  arbitrator?: string;
+  roles?: {
+    arbitrator?: string;
+  }
   tags: string[];
 }
 
@@ -54,6 +60,7 @@ interface FieldValidation {
   required?: boolean;
   minLength?: number;
   pattern?: RegExp;
+  mustBeGreaterThanOrEqualTo?: string;  // Add this line
   custom?: (value: string) => string;
 }
 
@@ -81,6 +88,26 @@ async function setupAndGiveAllowance(spenderAddress: `0x${string}` | undefined, 
 
       // Parse the amount to the correct units
       const parsedAmount = ethers.parseUnits(amount, decimals);
+
+      // Get the current allowance
+      const ownerAddress = await signer.getAddress();
+      const currentAllowance = await tokenContract.allowance(ownerAddress, spenderAddress);
+
+      // Ensure currentAllowance and parsedAmount are BigInt instances
+      if (typeof currentAllowance === 'bigint' && typeof parsedAmount === 'bigint') {
+        // Check if the current allowance is sufficient
+        if (currentAllowance >= parsedAmount) {
+          console.log(`Sufficient allowance already given to ${spenderAddress} for ${amount} tokens`);
+          if (typeof resolve === 'function') {
+            resolve();
+          } else {
+            console.error('resolve is not a function');
+          }
+          return;
+        }
+      } else {
+        console.error('currentAllowance or parsedAmount is not a valid BigInt');
+      }
 
       // Call the approve function
       const tx = await tokenContract.approve(spenderAddress, parsedAmount);
@@ -112,11 +139,16 @@ const validateField = (value: string, validation: FieldValidation): string => {
   if (validation.pattern && !validation.pattern.test(value)) {
     return 'Invalid format';
   }
+  if (validation.mustBeGreaterThanOrEqualTo && parseFloat(value) < parseFloat(validation.mustBeGreaterThanOrEqualTo)) {
+    return `Must be greater than or equal to ${validation.mustBeGreaterThanOrEqualTo}`;
+  }
   if (validation.custom) {
     return validation.custom(value);
   }
-  return '';
+  
+  return ''; 
 };
+
 
 interface PostJobPageProps {
   onJobIdCache: (jobId: bigint) => void;
@@ -146,9 +178,8 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
   const router = useRouter();
   const searchParams = useSearchParams();
   const { address } = useAccount();
+  const {data: user} = useUser(address!);
   const { data: workers } = useUsers();
-  const workerAddresses = workers?.filter(worker => worker.address_ !== address).map((worker) => worker.address_) ?? [];
-  const workerNames = workers?.filter(worker => worker.address_ !== address).map((worker) => worker.name) ?? [];
   const { data: arbitrators } = useArbitrators();
   const arbitratorAddresses = [zeroAddress, ...(arbitrators?.map((worker) => worker.address_) ?? [])];
   const arbitratorNames = ["None", ...(arbitrators?.map((worker) => worker.name) ?? [])];
@@ -159,12 +190,11 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
   const [title, setTitle] = useState<string>('');
   const [deliveryMethod, setDeliveryMethod] = useState('');
   const [description, setDescription] = useState<string>('');
-  // const [amount, setAmount] = useState(ethers.formatUnits(0, 0));
   const [amount, setAmount] = useState('');
   const [deadline, setDeadline] = useState<number>();
   const [multipleApplicants, setMultipleApplicants] = useState(multipleApplicantsValues[1])
-  const [arbitratorRequired, setArbitratorRequired] = useState(multipleApplicantsValues[0])
-  const [selectedUnitTime, setselectedUnitTime] = useState<ComboBoxOption>()
+  const [arbitratorRequired, setArbitratorRequired] = useState(multipleApplicantsValues[1])
+  const [selectedUnitTime, setselectedUnitTime] = useState<ComboBoxOption>(unitsDeliveryTime[2])
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<{id: string, name: string}>();
   const [selectedWorkerAddress, setsSelectedWorkerAddress] = useState<string | undefined>(undefined);
@@ -172,8 +202,12 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
   const [titleError, setTitleError] = useState<string>('');
   const [descriptionError, setDescriptionError] = useState<string>('');
   const [categoryError, setCategoryError] = useState<string>('');
+  const [paymentTokenError, setPaymentTokenError] = useState<string>('');
   const [postButtonDisabled, setPostButtonDisabled] = useState(false);
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false)
+  const [isLoadingModalOpen, setIsLoadingModalOpen] = useState(false)
   const userJobCache = `${address}${LOCAL_JOBS_CACHE}`
+  const unregisteredUserLabel = `${address}-unregistered-job-cache`
   const {
     data: hash,
     error,
@@ -203,6 +237,11 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
   }, [title, description, amount, deadline, selectedToken, error])
 
   const handleSummary = () => {
+    if (!user) {
+      setIsRegisterModalOpen(true)
+      jobIdCache()
+      return
+    } 
     setShowSummary(!showSummary);
   };
 
@@ -213,7 +252,7 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
     functionName: 'balanceOf',
     args:         [address!],
   });
-
+  console.log(typeof balanceData, 'BALANCE DATA')
   async function postJobClick() {
     if (!deadline) return
     if (!amount) return
@@ -222,7 +261,6 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
 
     const { hash: contentHash } = await publishToIpfs(description);
     const allowanceResponse = await setupAndGiveAllowance(Config.marketplaceAddress as `0x${string}`, amount, selectedToken?.id as `0x${string}` | undefined)
-    console.log(allowanceResponse)
     // Call the giveAllowance function
     // await setupAndGiveAllowance(Config.marketplaceAddress as `0x${string}`, amount, selectedToken?.id as `0x${string}` | undefined);
     const w = writeContract({
@@ -244,13 +282,13 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
     });
   }
 
-  const jobIdCache = (jobId: bigint) => {
-    const createdJobId = jobId.toString()
+  const jobIdCache = (jobId?: bigint) => {
+    const createdJobId = jobId?.toString()
     const createdJobs = JSON.parse(localStorage.getItem(userJobCache) || '[]');
 
     // newJob Should correspond to type "Job" but bigInts are not JSON stringifiable
     const newJob: any = {
-      id: createdJobId,
+      id: createdJobId ? createdJobId : '0',
       title: title,
       content: description,
       multipleApplicants: multipleApplicants === 'Yes',
@@ -275,15 +313,30 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
       rating: 0,
     };
     createdJobs.push(newJob);
-    localStorage.setItem(userJobCache, JSON.stringify(createdJobs));
-    setTimeout(() => {
-      router.push(`/dashboard/jobs/${createdJobId}`);
-    }, 1000);
+    // Save job to local storage, if unregistered save to session storage
+    // for later retrieval after registration
+    if (user) {
+      localStorage.setItem(userJobCache, JSON.stringify(createdJobs));
+      setTimeout(() => {
+        router.push(`/dashboard/jobs/${createdJobId}`);
+      }, 1000);
+    } else {
+      sessionStorage.setItem(unregisteredUserLabel, JSON.stringify(createdJobs))
+    }
   }
 
   useImperativeHandle(ref, () => ({
     jobIdCache,
   }));
+
+  
+  function closeRegisterModal() {
+    setIsRegisterModalOpen(false)
+  }
+  console.log(isLoadingModalOpen, 'IS LOADING MODAL OPEN')
+  function closeLoadingModal() {
+    setIsRegisterModalOpen(false)
+  }
 
 
   const handleInputChange = (setter: React.Dispatch<React.SetStateAction<string>>, errorSetter: React.Dispatch<React.SetStateAction<string>>, validation: FieldValidation) => (e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLTextAreaElement>) => {
@@ -294,14 +347,22 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
   };
 
   const handleSubmit = () => {
+    // Ensure balanceData is of type ethers.BigNumberish
+    const balanceAsString = (Number(BigInt(balanceData as ethers.BigNumberish) / BigInt(10 ** 18))).toString(); // Converts balanceData from BigNumberish to BigInt, divides by 10^18 to convert from smallest unit (e.g., wei) to main unit (e.g., ether), converts to number, then to string
+
     // Validate all fields before submission
     const titleValidationMessage = validateField(title, { required: true, minLength: 3 });
     const descriptionValidationMessage = validateField(description, { required: true, minLength: 10 });
-    // const categoryValidationMessage = validateField(selectedCategory, { required: true, minLength: 10 });
+    const categoryValidationMessage = validateField(selectedCategory?.name || '', { required: true, minLength: 10 });
+    const paymentTokenValidationMessage = validateField(balanceAsString, { 
+      required: true, 
+      mustBeGreaterThanOrEqualTo: amount,
+    });
 
     setTitleError(titleValidationMessage);
     setDescriptionError(descriptionValidationMessage);
-    // setCategoryError(categoryValidationMessage)
+    setCategoryError(categoryValidationMessage);
+    setPaymentTokenError(paymentTokenValidationMessage);
     if (!titleValidationMessage && !descriptionValidationMessage) {
       // Proceed with form submission
       console.log('Form is valid');
@@ -330,27 +391,65 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
         console.log(error, error.message);
         alert(error.message.match(`The contract function ".*" reverted with the following reason:\n(.*)\n.*`)?.[1])
       }
+      if (isConfirmed) {
+        console.log('Job confirmed MODAL OPEN');
+        setIsLoadingModalOpen(true)
+      }
     }
   }, [isConfirmed, error]);
 
   useEffect(() => {
+    if (arbitratorRequired === 'Yes')  setsSelectedArbitratorAddress(arbitratorAddresses[1])
+  }, [arbitratorAddresses]);
+  console.log(selectedArbitratorAddress, 'ARBITRATOR ADDRESS', arbitratorAddresses, 'ARBITRATOR ADDRESSES')
+
+  useEffect(() => {
+    // Get session storage to fill form for new signed up users
+    const jobsAfterSignUp = JSON.parse(sessionStorage.getItem(unregisteredUserLabel) || '[]')
+    const savedJob: PostJobParams = jobsAfterSignUp[0]
+
+    // Get params from URL of users that clicked postNewJob from job page 
     const params = Object.fromEntries(searchParams.entries());
     const extractedParams: PostJobParams = {
       ...params,
       tags: searchParams.getAll('tags')
     };
-    setTitle(extractedParams.title || '');
-    setDescription(extractedParams.content || '');
-    setTags(extractedParams.tags.map((tag, index) => ({ id: index, name: tag })));
-    setDeliveryMethod(extractedParams.deliveryMethod || '');
-    if (extractedParams.arbitrator === '0x0000000000000000000000000000000000000000') {
-      setArbitratorRequired('No');
-    } else {
-      setsSelectedArbitratorAddress(extractedParams.arbitrator || '');
+    // Check if either savedJob or params are true
+    if (user && (savedJob || extractedParams.title)) {
+      initializeForm(savedJob || extractedParams);
     }
-    setDeadline(parseInt(extractedParams.maxTime || '0'));
-    console.log(selectedArbitratorAddress, 'arbitratorAddresses', extractedParams.arbitrator)
-  }, [searchParams])
+  }, [searchParams, address, user])
+
+  const initializeForm = (job: PostJobParams) => {
+    setTitle(job.title || '');
+    setDescription(job.content || '');
+    setTags(job.tags
+      .filter((_, index) => index !== 0)
+      .map((tag: string, index: number) => ({ id: index + 1, name: tag }))
+    );
+    const selectedCategory = categories.find(category => category.id === job.tags[0]);
+    setSelectedCategory(selectedCategory)
+    setDeliveryMethod(job.deliveryMethod || '');
+    setAmount(job.amount || '');
+    if (job.roles?.arbitrator === zeroAddress) {
+        setArbitratorRequired('No');
+    } else {
+        setArbitratorRequired('Yes');
+        setsSelectedArbitratorAddress(job.roles?.arbitrator || '');
+    }
+    setDeadline(parseInt(job.maxTime || '0'));
+    // delete unregisteredUserLabel as this only should be consumed after user regis
+    sessionStorage.removeItem(unregisteredUserLabel);
+    handleSummary();
+  };
+
+  const handleArbitratorChange = (value: string) => {
+    setArbitratorRequired(value);
+    if (value === 'No') {
+      setsSelectedArbitratorAddress(zeroAddress);
+    }
+  };
+
   return (
     <div>
       {!showSummary && (
@@ -399,11 +498,20 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
             </Field>
             <Field>
               <Label>Category</Label>
-              <ComboBox placeholder='Search Category...' value={selectedCategory} className="w-auto border border-gray-300 rounded-md shadow-sm bg-slate-600" 
-              options={categories}  onChange={(option) => {
-                setSelectedCategory(option as {id: string, name: string})
-              }}></ComboBox>
-              {categoryError && <div className='text-xs' style={{ color: 'red' }}>{descriptionError}</div>}
+                <Listbox
+                  placeholder="Select Category"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e)}
+                  className="border border-gray-300 rounded-md shadow-sm"
+                  >
+                  {categories.map((category, index) => (
+                    index > 0 && 
+                      <ListboxOption  key={index} value={category}>
+                        {`${categories[index].name}`}
+                      </ListboxOption>
+                  ))}
+                </Listbox>
+              {categoryError && <div className='text-xs' style={{ color: 'red' }}>{descriptionError}</div>} 
             </Field>
             <Field>
               <Label>Tags</Label>
@@ -441,13 +549,16 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
                     onClick={(token: Token) => setSelectedToken(token)}
                   />
                 </div>
-                {selectedToken && !!balanceData && (
+                {selectedToken && (balanceData !== null && balanceData !== undefined) ? (
                   <Text>
-                    {ethers.formatEther(balanceData as ethers.BigNumberish)}
-                    {' '}
-                    {selectedToken.symbol} available
+                    Balance: {ethers.formatEther(balanceData as ethers.BigNumberish)} {selectedToken.symbol}
+                  </Text>
+                ) : (
+                  <Text style={{ color: 'red' }}>
+                    Balance: 0.0 {selectedToken?.symbol}
                   </Text>
                 )}
+                {paymentTokenError && <div className='text-xs' style={{ color: 'red' }}>{descriptionError}</div>} 
               </div>
             </Field>
           </div>
@@ -462,7 +573,7 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
             </Field>
             <Field className='flex flex-row justify-between items-center'>
             <Label className='items-center !font-bold mb-0 pb-0'>Arbitrator Required</Label>
-              <RadioGroup className='flex !mt-0' value={arbitratorRequired} onChange={setArbitratorRequired} aria-label="Server size">
+              <RadioGroup className='flex !mt-0' value={arbitratorRequired} onChange={handleArbitratorChange} aria-label="Server size">
                 {multipleApplicantsValues.map((option) => (
                   <Field className='items-center flex !mt-0 ml-5' key={option}>
                     <Radio color='default' className='mr-2' value={option}>
@@ -485,7 +596,7 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
                 {arbitratorAddresses.map((arbitratorAddress, index) => (
                   index > 0 && 
                     <ListboxOption  key={index} value={arbitratorAddress}>
-                      {`${arbitratorNames[index]}  ${shortenText({ text: arbitratorAddress, maxLength: 11 })} ${arbitratorFees[index]}%`}
+                      {`${arbitratorNames[index]}  ${shortenText({ text: arbitratorAddress, maxLength: 11 })} ${+arbitratorFees[index] / 100}%`}
                     </ListboxOption>
                 ))}
               </Listbox>
@@ -510,11 +621,19 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
             </Field>
             <Field className='flex-1'>
             <Label>Units</Label>
-            <ComboBox placeholder='Time Units' className="w-auto border border-gray-300 rounded-md shadow-sm bg-slate-600" 
-              value={selectedUnitTime}
-              options={unitsDeliveryTime}  onChange={(option) => {
-                setselectedUnitTime(option as ComboBoxOption)
-              }}></ComboBox>
+            <Listbox
+                  placeholder="Time Units"
+                  value={selectedUnitTime}
+                  onChange={(e) => setselectedUnitTime(e)}
+                  className="border border-gray-300 rounded-md shadow-sm"
+                  >
+                  {unitsDeliveryTime.map((timeUnit, index) => (
+                    index > 0 && 
+                      <ListboxOption  key={index} value={timeUnit}>
+                        {`${unitsDeliveryTime[index].name}`}
+                      </ListboxOption>
+                  ))}
+              </Listbox>
             </Field>
           </div>
           </FieldGroup>
@@ -529,10 +648,12 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
                     {isPending ? 'Posting...' : 'Continue'}
                   </Button>
                 </div>
-              )}
+        )}
+        <RegisterModal closeRegisterModal={closeRegisterModal} isRegisterModalOpen={isRegisterModalOpen} />
       </Fieldset>
       )}
         {showSummary && (
+        <>
         <JobSummary
           handleSummary={handleSummary}
           formInputs={formInputs}
@@ -542,6 +663,8 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
           isConfirmed={isConfirmed}   
           postButtonDisabled={postButtonDisabled}
           />
+          <LoadingModal closeLoadingModal={closeLoadingModal} isLoadingModalOpen={isLoadingModalOpen}/>
+        </>
       )}
     </div>
   );

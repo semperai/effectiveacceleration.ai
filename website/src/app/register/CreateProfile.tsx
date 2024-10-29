@@ -14,6 +14,7 @@ import { UserButton } from '@/components/UserActions/UserButton'
 import useUser from '@/hooks/useUser'
 import { useRouter } from 'next/navigation';
 import UploadAvatar from '@/components/UploadAvatar'
+import { PostJobParams } from '../dashboard/post-job/PostJobPage'
 
 
 const ipfsGatewayUrl = process.env.NEXT_PUBLIC_IPFS_GATEWAY_URL ?? '';
@@ -28,7 +29,8 @@ const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string
     const {data: user} = useUser(address!);
     const userCopy = {...user}
     const router = useRouter();
-
+    const unregisteredUserLabel = `${address}-unregistered-job-cache`
+   
     const {
       data: hash,
       error,
@@ -42,6 +44,7 @@ const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string
       hash
     });
 
+
     useEffect(() => {
       if (isConfirmed || error) {
         if (error) {
@@ -54,12 +57,19 @@ const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string
           }
         }
         if (isConfirmed) {
+          const jobsAfterSignUp = JSON.parse(sessionStorage.getItem(unregisteredUserLabel) || '[]')
+          const savedJob: PostJobParams = jobsAfterSignUp[0]
           userCopy.address_ = address;
           userCopy.publicKey = encryptionPublicKey;
           userCopy.name = userName;
           userCopy.bio = userBio;
           userCopy.avatar = avatarFileUrl;
           sessionStorage.setItem(`user-${address}`, JSON.stringify(userCopy));
+          // If savedJob.title exist then this unregistered user is comming from posting a job
+          if (savedJob?.title) {
+            router.push('/dashboard/post-job'); 
+            return
+          }
           router.push('/dashboard');
         }
       }
