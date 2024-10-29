@@ -24,7 +24,12 @@ const BreadCrumbs = ({separator, containerClasses, listClasses, activeClasses, c
             <ul className={containerClasses}>
             {
                 pathNames.map( (link, index, row) => {
-                    let href = `/${pathNames.slice(0, index + 1).join('/')}`
+                    console.log(pathNames, 'PATHNAMES')
+                    let href = `/${pathNames.slice(0, index + 1).join('/')}`;
+                    if (href === '/dashboard/jobs') {
+                      href = '/dashboard/owner-job-list';
+                    }
+                    console.log(href, 'HREF')
                     let itemClasses = paths === href ? `${listClasses} ${activeClasses}` : listClasses
                     let itemLink = capitalizeLinks ? link[0].toUpperCase() + link.slice(1, link.length) : link
                     return (
