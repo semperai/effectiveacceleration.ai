@@ -130,9 +130,7 @@ async function setupAndGiveAllowance(spenderAddress: `0x${string}` | undefined, 
 }
 
 const validateField = (value: string, validation: FieldValidation): string => {
-  if (validation.required && !value) {
-    return 'This field is required';
-  }
+  console.log((validation.minLength && value.length < validation.minLength), 'VALUE AND VALIDATIONE')
   if (validation.minLength && value.length < validation.minLength) {
     return `Must be at least ${validation.minLength} characters long`;
   }
@@ -140,10 +138,13 @@ const validateField = (value: string, validation: FieldValidation): string => {
     return 'Invalid format';
   }
   if (validation.mustBeGreaterThanOrEqualTo && parseFloat(value) < parseFloat(validation.mustBeGreaterThanOrEqualTo)) {
-    return `Must be greater than or equal to ${validation.mustBeGreaterThanOrEqualTo}`;
+    return `Insufficient balance of the selected token`;
   }
   if (validation.custom) {
     return validation.custom(value);
+  }
+  if (validation.required && !value) {
+    return 'This field is required';
   }
   
   return ''; 
@@ -351,19 +352,16 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
     const balanceAsString = (Number(BigInt(balanceData as ethers.BigNumberish) / BigInt(10 ** 18))).toString(); // Converts balanceData from BigNumberish to BigInt, divides by 10^18 to convert from smallest unit (e.g., wei) to main unit (e.g., ether), converts to number, then to string
 
     // Validate all fields before submission
-    const titleValidationMessage = validateField(title, { required: true, minLength: 3 });
+    const titleValidationMessage = validateField(title, { minLength: 3 });
     const descriptionValidationMessage = validateField(description, { required: true, minLength: 10 });
-    const categoryValidationMessage = validateField(selectedCategory?.name || '', { required: true, minLength: 10 });
-    const paymentTokenValidationMessage = validateField(balanceAsString, { 
-      required: true, 
-      mustBeGreaterThanOrEqualTo: amount,
-    });
-
+    const categoryValidationMessage = validateField(selectedCategory?.name || '', { required: true });
+    const paymentTokenValidationMessage = validateField(balanceAsString, {mustBeGreaterThanOrEqualTo: amount,});
+    console.log(titleValidationMessage, descriptionValidationMessage, categoryValidationMessage, paymentTokenValidationMessage, 'VALIDATION MESSAGES')
     setTitleError(titleValidationMessage);
     setDescriptionError(descriptionValidationMessage);
     setCategoryError(categoryValidationMessage);
     setPaymentTokenError(paymentTokenValidationMessage);
-    if (!titleValidationMessage && !descriptionValidationMessage) {
+    if (!titleValidationMessage && !descriptionValidationMessage && !categoryValidationMessage && !paymentTokenValidationMessage) {
       // Proceed with form submission
       console.log('Form is valid');
       handleSummary();
@@ -511,7 +509,7 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
                       </ListboxOption>
                   ))}
                 </Listbox>
-              {categoryError && <div className='text-xs' style={{ color: 'red' }}>{descriptionError}</div>} 
+              {categoryError && <div className='text-xs' style={{ color: 'red' }}>{categoryError}</div>} 
             </Field>
             <Field>
               <Label>Tags</Label>
@@ -533,6 +531,7 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
               />
+               {paymentTokenError && <div className='text-xs' style={{ color: 'red' }}>{paymentTokenError}</div>} 
               <Description></Description>
             </Field>
             <Field className='flex-1'>
@@ -558,7 +557,6 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
                     Balance: 0.0 {selectedToken?.symbol}
                   </Text>
                 )}
-                {paymentTokenError && <div className='text-xs' style={{ color: 'red' }}>{descriptionError}</div>} 
               </div>
             </Field>
           </div>
