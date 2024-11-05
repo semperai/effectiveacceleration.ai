@@ -153,7 +153,6 @@ describe("Marketplace Unit Tests", () => {
     );
 
     const marketplace = (await upgrades.deployProxy(Marketplace, [
-      await deployer.getAddress(),
       await unicrow.getAddress(),
       await unicrowDispute.getAddress(),
       await unicrowArbitrator.getAddress(),
@@ -264,44 +263,6 @@ describe("Marketplace Unit Tests", () => {
       ).to.be.reverted;
     });
 
-    it("transfer pauser", async () => {
-      const { marketplace, deployer, user1 } = await loadFixture(deployContractsFixture);
-      await expect(marketplace
-        .connect(deployer)
-        .transferPauser(await user1.getAddress())
-      ).to.emit(marketplace, 'PauserTransferred')
-      .withArgs(await deployer.getAddress(), await user1.getAddress());
-
-      expect(await marketplace.pauser()).to.equal(await user1.getAddress());
-    });
-
-    it("non owner cannot transfer pauser", async () => {
-      const { marketplace, marketplaceData, user1 } = await loadFixture(deployContractsFixture);
-      await expect(marketplace
-        .connect(user1)
-        .transferPauser(await user1.getAddress())
-      ).to.be.reverted;
-    });
-
-    it("transfer treasury", async () => {
-      const { marketplace, deployer, user1 } = await loadFixture(deployContractsFixture);
-      await expect(marketplace
-        .connect(deployer)
-        .transferTreasury(await user1.getAddress())
-      ).to.emit(marketplace, 'TreasuryTransferred')
-      .withArgs(await deployer.getAddress(), await user1.getAddress());
-
-      expect(await marketplace.treasury()).to.equal(await user1.getAddress());
-    });
-
-    it("non owner cannot transfer treasury", async () => {
-      const { marketplace, marketplaceData, user1 } = await loadFixture(deployContractsFixture);
-      await expect(marketplace
-        .connect(user1)
-        .transferTreasury(await user1.getAddress())
-      ).to.be.reverted;
-    });
-
     it("pause/unpause", async () => {
       const { marketplace, deployer, user1 } = await loadFixture(deployContractsFixture);
       await expect(marketplace
@@ -361,7 +322,7 @@ describe("Marketplace Unit Tests", () => {
     it("can not call initializer", async () => {
       const { marketplace } = await loadFixture(deployContractsFixture);
       await expect(
-        marketplace.initialize(ZeroAddress, ZeroAddress, ZeroAddress, ZeroAddress, ZeroAddress, 0)
+        marketplace.initialize(ZeroAddress, ZeroAddress, ZeroAddress, ZeroAddress, 0)
       ).to.be.revertedWithCustomError({interface: Initializable__factory.createInterface()}, "InvalidInitialization");
     });
   });
@@ -631,14 +592,14 @@ describe("Marketplace Unit Tests", () => {
       const { marketplace, deployer } = await loadFixture(deployContractsFixture);
       await expect(marketplace
         .connect(deployer)
-        .setUnicrowMarketplaceAddress(ethers.ZeroAddress)
+        .setTreasuryAddress(ethers.ZeroAddress)
       ).to.be.not.reverted;
-      expect(await marketplace.unicrowMarketplaceAddress()).to.equal(ethers.ZeroAddress);
+      expect(await marketplace.treasuryAddress()).to.equal(ethers.ZeroAddress);
 
       const randomWallet = ethers.Wallet.createRandom();
       await expect(marketplace
         .connect(randomWallet.connect(deployer.provider))
-        .setUnicrowMarketplaceAddress(ethers.ZeroAddress)
+        .setTreasuryAddress(ethers.ZeroAddress)
       ).to.be.revertedWithCustomError({interface: OwnableUpgradeable__factory.createInterface()}, "OwnableUnauthorizedAccount");
     });
 
@@ -2486,7 +2447,7 @@ describe("Marketplace Unit Tests", () => {
       expect(await fakeToken.balanceOf(await user2.getAddress())).to.equal(BigInt(1079e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(0);
       expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(0);
-      expect(await fakeToken.balanceOf(await marketplace.unicrowMarketplaceAddress())).to.equal(BigInt(19.31e18));
+      expect(await fakeToken.balanceOf(await marketplace.treasuryAddress())).to.equal(BigInt(19.31e18));
       expect(await fakeToken.balanceOf(unicrowProtocolFeeAddress)).to.equal(BigInt(0.69e18));
 
       expect((await marketplace.connect(user1).jobs(jobId)).state).to.be.equal(JobState.Closed);
@@ -2888,7 +2849,7 @@ describe("Marketplace Unit Tests", () => {
       expect(await fakeToken.balanceOf(await arbitrator.getAddress())).to.equal(BigInt(1e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(79.2e18));
       expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(0);
-      expect(await fakeToken.balanceOf(await marketplace.unicrowMarketplaceAddress())).to.equal(BigInt(3.86e18));
+      expect(await fakeToken.balanceOf(await marketplace.treasuryAddress())).to.equal(BigInt(3.86e18));
       expect(await fakeToken.balanceOf(unicrowProtocolFeeAddress)).to.equal(BigInt(0.13e18));
 
       const job = await marketplace.jobs(jobId);
@@ -2967,7 +2928,7 @@ describe("Marketplace Unit Tests", () => {
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(0e18));
       expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(BigInt(0e18));
       expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(0);
-      expect(await fakeToken.balanceOf(await marketplace.unicrowMarketplaceAddress())).to.equal(BigInt(19.31e18));
+      expect(await fakeToken.balanceOf(await marketplace.treasuryAddress())).to.equal(BigInt(19.31e18));
       expect(await fakeToken.balanceOf(unicrowProtocolFeeAddress)).to.equal(BigInt(0.69e18));
 
       const job = await marketplace.jobs(jobId);
@@ -3046,7 +3007,7 @@ describe("Marketplace Unit Tests", () => {
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(99e18));
       expect((await marketplace.connect(user1).jobs(jobId)).collateralOwed).to.be.equal(BigInt(99e18));
       expect(await fakeToken.balanceOf(await unicrowGlobal.getAddress())).to.equal(0);
-      expect(await fakeToken.balanceOf(await marketplace.unicrowMarketplaceAddress())).to.equal(BigInt(0e18));
+      expect(await fakeToken.balanceOf(await marketplace.treasuryAddress())).to.equal(BigInt(0e18));
       expect(await fakeToken.balanceOf(unicrowProtocolFeeAddress)).to.equal(BigInt(0e18));
 
       const job = await marketplace.jobs(jobId);
