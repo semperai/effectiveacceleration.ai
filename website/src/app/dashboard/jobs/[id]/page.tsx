@@ -29,7 +29,7 @@ export default function JobPage() {
   const whitelistedWorkers = events.at(-1)?.job.allowedWorkers ?? [];
   const [selectedWorker, setSelectedWorker] = useState<string>('');
   const [eventMessages, setEventMessages] = useState(events);
-  console.log(job,events, 'JOB')
+
   useEffect(() => {
     if (job?.state === JobState.Taken || job?.state === JobState.Closed) {
       setSelectedWorker(job.roles.worker);

@@ -42,6 +42,7 @@ import { shortenText } from '@/utils/utils'
 import useUser from '@/hooks/useUser'
 import RegisterModal from './RegisterModal'
 import LoadingModal from './LoadingModal'
+import { jobMeceTags } from '@/utils/jobMeceTags'
 
 export interface PostJobParams {
   title?: string;
@@ -164,17 +165,6 @@ const unitsDeliveryTime = [
   { id: 5, name: 'years' },
 ]
 
-const categories = [
-  { id: "DA", name: "Digital Audio" },
-  { id: "DV", name: "Digital Video" },
-  { id: "DT", name: "Digital Text" },
-  { id: "DS", name: "Digital Software" },
-  { id: "DO", name: "Digital Others" },
-  { id: "NDG", name: "Non-Digital Goods" },
-  { id: "NDS", name: "Non-Digital Services" },
-  { id: "NDO", name: "Non-Digital Others" },
-]
-
 const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((props, ref) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -263,7 +253,8 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
     const { hash: contentHash } = await publishToIpfs(description);
     const allowanceResponse = await setupAndGiveAllowance(Config.marketplaceAddress as `0x${string}`, amount, selectedToken?.id as `0x${string}` | undefined)
     // Call the giveAllowance function
-    // await setupAndGiveAllowance(Config.marketplaceAddress as `0x${string}`, amount, selectedToken?.id as `0x${string}` | undefined);
+    // await setupAndGiveAllowance(Config.marketplaceAddress as `0x${string}`, amount, selectedToken?.id as `0x${string}` | undefined);\
+    console.log([selectedCategory.id, ...tags.map(tag => tag.name)], 'TAG')
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
       address: Config.marketplaceAddress as `0x${string}`,
@@ -425,7 +416,7 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
       .filter((_, index) => index !== 0)
       .map((tag: string, index: number) => ({ id: index + 1, name: tag }))
     );
-    const selectedCategory = categories.find(category => category.id === job.tags[0]);
+    const selectedCategory = jobMeceTags.find(category => category.id === job.tags[0]);
     setSelectedCategory(selectedCategory)
     setDeliveryMethod(job.deliveryMethod || '');
     setAmount(job.amount || '');
@@ -502,10 +493,10 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
                   onChange={(e) => setSelectedCategory(e)}
                   className="border border-gray-300 rounded-md shadow-sm"
                   >
-                  {categories.map((category, index) => (
+                  {jobMeceTags.map((category, index) => (
                     index > 0 && 
                       <ListboxOption  key={index} value={category}>
-                        {`${categories[index].name}`}
+                        {`${jobMeceTags[index].name}`}
                       </ListboxOption>
                   ))}
                 </Listbox>

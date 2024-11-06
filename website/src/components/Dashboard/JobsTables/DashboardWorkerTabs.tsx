@@ -31,6 +31,7 @@ const DashboardTabs = () => {
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [mounted, setMounted] = useState(false);
   const userJobCache = `${address}${LOCAL_JOBS_CACHE}`
+
   useEffect(() => {
     const storedJobs = localStorage.getItem(userJobCache);
     if (storedJobs) {
@@ -66,16 +67,15 @@ const DashboardTabs = () => {
     setFilteredJobs(filteredJobsMemo.open);
     setFilteredJobsInProgress(filteredJobsMemo.inProgress);
     setFilteredCompletedJobs(filteredJobsMemo.completed);
-  }, [filteredJobsMemo]);
-
-  console.log(localJobs, 'filtered Jobs')
+  }, [/*filteredJobsMemo*/jobs]);
+  console.log(jobs, 'JOBS')
   return (
     <div className=''>
     {mounted && (
       <Tabs key={tabsKey} selectedIndex={activeTabIndex} onSelect={index => setActiveTabIndex(index)}>
         <TabList className='flex border-b-2 borde-gray-100 mb-7'>
             <Tab selectedClassName='!border-lightPurple  border-b-2  !text-lightPurple'  className='px-8 py-2 font-medium relative cursor-pointer top-[2px] outline-none text-darkBlueFont'>
-              All Jobs
+              Open Jobs
             </Tab>
             <Tab selectedClassName='!border-lightPurple  border-b-2 !text-lightPurple'  className='px-8 py-2 font-medium relative cursor-pointer top-[2px] outline-none text-darkBlueFont'>
               Applications

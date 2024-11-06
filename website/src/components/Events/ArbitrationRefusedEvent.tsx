@@ -2,6 +2,7 @@ import { type EventProps } from './index';
 import moment from 'moment';
 import useArbitrator from '@/hooks/useArbitrator';
 import { getAddress } from 'viem';
+import EventProfileImage from './Components/EventProfileImage';
 
 export function ArbitrationRefusedEvent({event, ...rest}: EventProps & React.ComponentPropsWithoutRef<'div'>) {
   const prevWorker = event.diffs.find(val => val.field === "roles.arbitrator")?.oldValue as string;
@@ -13,11 +14,7 @@ export function ArbitrationRefusedEvent({event, ...rest}: EventProps & React.Com
   return (
     <>
       <div className="relative">
-        <img
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-400 ring-8 ring-white"
-          src={arbitrator?.avatar}
-          alt=""
-        />
+        {arbitrator && <EventProfileImage user={arbitrator} />}
       </div>
       <div className="min-w-0 flex-1">
         <div>

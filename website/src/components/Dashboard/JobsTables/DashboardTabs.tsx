@@ -1,5 +1,5 @@
 'use client'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState, useRef } from 'react'
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
 import OpenJobs from './JobsTablesData/OpenJobs';
@@ -19,7 +19,6 @@ import { useAccount } from 'wagmi';
 const DashboardTabs = () => {
   const { data: jobs } = useJobs();
   const { address } = useAccount();
-  const { data: users } = useUsersByAddresses(jobs.map(job => job.roles.creator));
   const [localJobs, setLocalJobs] = useState<Job[]>([]);
   const [jobIds, setJobIds] = useState<bigint[]>([]);
   const {data: selectedJobs } = useJobsByIds(jobIds)
@@ -31,6 +30,7 @@ const DashboardTabs = () => {
   const [tabsKey, setTabsKey] = useState(0);
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [mounted, setMounted] = useState(false);
+  const isFirstUpdate = useRef(true);
   const userJobCache = `${address}${LOCAL_JOBS_CACHE}`
   useEffect(() => {
     const storedJobs = localStorage.getItem(userJobCache);
@@ -57,11 +57,11 @@ const DashboardTabs = () => {
         filteredOpenJobs.push(job);
       } else if (job.state === JobState.Taken) {
         filteredJobsInProgress.push(job);
-      } else if (job.state === JobState.Closed && localJobs[index].lastJobEvent?.type_ === JobEventType.Completed || localJobs[index].lastJobEvent?.type_ === JobEventType.Rated || localJobs[index].lastJobEvent?.type_ === JobEventType.Arbitrated) {
+      } else if (job.state === JobState.Closed && localJobs[index]?.lastJobEvent?.type_ === JobEventType.Completed || localJobs[index].lastJobEvent?.type_ === JobEventType.Rated || localJobs[index].lastJobEvent?.type_ === JobEventType.Arbitrated) {
         filteredCompletedJobs.push(job);
-      } else if (job.state === JobState.Closed && localJobs[index].lastJobEvent?.type_ === JobEventType.Closed) {
+      } else if (job.state === JobState.Closed && localJobs[index]?.lastJobEvent?.type_ === JobEventType.Closed) {
         filteredCancelledJobs.push(job);
-      } else if (job.state === JobState.Taken && localJobs[index].lastJobEvent?.type_ === JobEventType.Disputed) {
+      } else if (job.state === JobState.Taken && localJobs[index]?.lastJobEvent?.type_ === JobEventType.Disputed) {
         filteredDisputedJobs.push(job);
       }
       
@@ -70,14 +70,17 @@ const DashboardTabs = () => {
   }, [selectedJobs, localJobs]);
 
   useEffect(() => {
-    setTabsKey(prevKey => prevKey + 1);
     setOpenFilteredJobs(filteredJobsMemo.open);
     setFilteredJobsInProgress(filteredJobsMemo.inProgress);
     setFilteredCompletedJobs(filteredJobsMemo.completed);
     setFilteredCancelledJobs(filteredJobsMemo.cancelled);
     setFilteredDisputedJobs(filteredJobsMemo.disputed);
+    if (selectedJobs.length > 0 && isFirstUpdate.current) {
+      setTabsKey(prevKey => prevKey + 1);
+      isFirstUpdate.current = false;
+    }
   }, [filteredJobsMemo]);
-  console.log('filteredJobsMemo', filteredJobsMemo)
+
   return (
     <div className=''>
     {mounted && (
@@ -122,3 +125,5 @@ const DashboardTabs = () => {
 }
 
 export default DashboardTabs
+
+// Removed incorrect useRef function definition

@@ -5,6 +5,9 @@ import JobChatsList from '../JobChatsList';
 import JobChat from '../JobChat';
 import JobChatDetails from '../JobChatDetails';
 import { JobViewProps } from '@/service/Interfaces';
+import Image from 'next/image';
+import { StaticImport } from 'next/dist/shared/lib/get-img-props';
+import { shortenText } from '@/utils/utils';
 
 export default function WorkerView({users, selectedWorker, events, job, address, addresses, sessionKeys, jobUsersData, setSelectedWorker, eventMessages, whitelistedWorkers} : JobViewProps) {
   return (

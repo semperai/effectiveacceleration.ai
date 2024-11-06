@@ -3,6 +3,7 @@ import moment from 'moment';
 import { JobSignedEvent } from 'effectiveacceleration-contracts';
 import { getAddress } from 'viem';
 import useUser from '@/hooks/useUser';
+import EventProfileImage from './Components/EventProfileImage';
 
 export function SignedEvent({event, ...rest}: EventProps & React.ComponentPropsWithoutRef<'div'>) {
   const address = getAddress(event.address_);
@@ -14,11 +15,7 @@ export function SignedEvent({event, ...rest}: EventProps & React.ComponentPropsW
   return (
     <>
       <div className="relative">
-        <img
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-400 ring-8 ring-white"
-          src={user?.avatar}
-          alt=""
-        />
+        {user && <EventProfileImage user={user} />}
       </div>
       <div className="min-w-0 flex-1 py-1.5">
         <div className="text-sm text-gray-500 dark:text-gray-400">

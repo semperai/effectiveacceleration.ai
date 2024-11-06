@@ -11,6 +11,7 @@ import JobButtonActions from './JobButtonActions'
 import { zeroHash } from 'viem'
 import JobStatus from './JobStatus'
 import JobStatusWrapper from './JobStatusWrapper'
+import { jobMeceTags } from '@/utils/jobMeceTags'
 
 const JobChatDetails = ({job, users, address, sessionKeys, addresses, events, whitelistedWorkers} : 
   {
@@ -28,6 +29,8 @@ const JobChatDetails = ({job, users, address, sessionKeys, addresses, events, wh
     const timePassed = Math.sign(hoursPassed) === (1 || 0) ? true : false // if 24h have passed
     const progressValue = (hoursPassed / 24) * 100;  // Calculate the progress value (0 to 100)
     const adjustedProgressValue = progressValue < 0 ? 100 + progressValue : 100 - progressValue;
+    const jobMeceTag = jobMeceTags.find(tag => tag.id === job?.tags[0])?.name
+
   return (
     <>
       {job && address && events &&
@@ -142,10 +145,22 @@ const JobChatDetails = ({job, users, address, sessionKeys, addresses, events, wh
       </div>
       <div className='p-4 border border-gray-100'>
           <div>
+              <span className='font-bold'>Category</span>    
+          </div>
+          <div className='my-2'>
+              <div
+                className={clsx("bg-softBlue text-white px-3 py-1 pb-2 m-1 rounded-full inline ")}
+              >
+                <span className='text-darkBlueFont text-md font-medium inline'>
+                  {jobMeceTag}
+                </span>
+              </div>
+          </div>
+          <div className='mt-4'>
               <span className='font-bold'>Tags</span>    
           </div>
           <div className='my-2'>
-            {job?.tags.map((value) => (
+            {job?.tags.slice(1).map((value) => (
               <div
                 key={value}
                 className={clsx("bg-softBlue text-white px-3 py-1 pb-2 m-1 rounded-full inline ")}

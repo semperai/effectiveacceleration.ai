@@ -232,7 +232,7 @@ function PostJobForm() {
         title,
         contentHash as `0x${string}`,
         multipleApplicants === 'Yes',
-        [selectedCategory.id, ...tags.map(tag => tag.name)],
+        [selectedCategory.name, ...tags.map(tag => tag.name)],
         selectedToken?.id! as `0x${string}`,
         ethers.parseUnits(amount, selectedToken?.decimals!),
         deadline,
@@ -242,7 +242,7 @@ function PostJobForm() {
       ],
     });
   }
-
+  console.log(selectedCategory?.name, 'CATEGORY NAME')
   const jobIdCache = (jobId: bigint) => {
     const createdJobId = jobId.toString()
     const createdJobs = JSON.parse(localStorage.getItem(userJobCache) || '[]');
