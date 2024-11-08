@@ -2,7 +2,7 @@ import { MARKETPLACE_DATA_V1_ABI } from "effectiveacceleration-contracts/wagmi/M
 import Config from "effectiveacceleration-contracts/scripts/config.json";
 import { useState, useEffect, useMemo } from "react";
 import { useAccount, useReadContract } from "wagmi";
-import { getSessionKey, JobEventType, computeJobStateDiffs, fetchEventContents } from "effectiveacceleration-contracts";
+import { getSessionKey, JobEventType, computeJobStateDiffs, fetchEventContents, JobDisputedEvent, decryptJobDisputedEvent } from "effectiveacceleration-contracts";
 import { useEthersSigner } from "./useEthersSigner";
 import usePublicKeys from "./usePublicKeys";
 import { useWatchContractEvent } from 'wagmi'
@@ -116,6 +116,19 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
           sessionKeys_[`${ownerAddress}-${arbitratorAddress}`] = await getSessionKey(signer as any, otherPubkey, jobId);
           sessionKeys_[`${arbitratorAddress}-${ownerAddress}`] = await getSessionKey(signer as any, otherPubkey, jobId);
         }
+      }
+
+      const jobDisputedEvents = jobEventsWithDiffs.filter(event => event.type_ === JobEventType.Disputed);
+      for (const jobDisputedEvent of jobDisputedEvents) {
+        const details = jobDisputedEvent.details as JobDisputedEvent;
+        const initiator = getAddress(jobDisputedEvent.address_);
+        const arbitrator = jobDisputedEvent.job.roles.arbitrator;
+        const key = `${initiator}-${arbitrator}`;
+        decryptJobDisputedEvent(details, sessionKeys_[key]);
+
+        const other = initiator === ownerAddress ? jobDisputedEvent.job.roles.worker : initiator;
+        sessionKeys_[`${initiator}-${other}`] = details.sessionKey!;
+        sessionKeys_[`${other}-${initiator}`] = details.sessionKey!;
       }
 
       const eventContents = await fetchEventContents(jobEventsWithDiffs, sessionKeys_);

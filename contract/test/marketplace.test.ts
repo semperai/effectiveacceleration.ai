@@ -2675,26 +2675,26 @@ describe("Marketplace Unit Tests", () => {
       const sessionKeyOA = await getSessionKey(user1, (await marketplaceData.connect(user1).arbitrators(arbitrator.address)).publicKey, jobId);
 
       const encryptedContent = hexlify(encryptUtf8Data("Objection!", sessionKeyOA));
-      const encruptedSessionKeyOW = hexlify(encryptBinaryData(getBytes("0x" + "00".repeat(32)), sessionKeyOA));
+      const encryptedSessionKeyOW = hexlify(encryptBinaryData(getBytes("0x" + "00".repeat(32)), sessionKeyOA));
 
       await expect(
         marketplace.connect(user2).takeJob(jobId, signature)
       ).not.to.be.reverted;
 
       await expect(
-        marketplace.connect(user1).dispute(jobId, encruptedSessionKeyOW, encryptedContent)
+        marketplace.connect(user1).dispute(jobId, encryptedSessionKeyOW, encryptedContent)
       ).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Disputed);
         expect(jobEventData.address_).to.equal(user1.address.toLowerCase());
 
         const event: JobDisputedEvent = decodeJobDisputedEvent(jobEventData.data_);
-        expect(event.encryptedSessionKey).to.equal(encruptedSessionKeyOW);
+        expect(event.encryptedSessionKey).to.equal(encryptedSessionKeyOW);
         expect(event.encryptedContent).to.equal(encryptedContent);
         expect(event.sessionKey).to.equal(undefined);
         expect(event.content).to.equal(undefined);
         decryptJobDisputedEvent(event, sessionKeyOA);
-        expect(event.encryptedSessionKey).to.equal(encruptedSessionKeyOW);
+        expect(event.encryptedSessionKey).to.equal(encryptedSessionKeyOW);
         expect(event.encryptedContent).to.equal(encryptedContent);
         expect(event.sessionKey).to.equal("0x" + "00".repeat(32));
         expect(event.content).to.equal("Objection!");
