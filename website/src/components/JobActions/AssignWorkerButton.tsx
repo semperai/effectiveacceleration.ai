@@ -9,7 +9,6 @@ import { Dialog, Transition } from '@headlessui/react'
 import { Fragment } from 'react'
 import useUsers from '@/hooks/useUsers';
 import { Listbox, ListboxOption } from '../Listbox';
-import { LOCAL_JOBS_CACHE } from '@/utils/constants';
 import { formatTokenNameAndAmount } from '@/tokens';
 import moment from 'moment';
 import { jobMeceTags } from '@/utils/jobMeceTags';
@@ -40,7 +39,7 @@ export function AssignWorkerButton({address, job, selectedWorker, ...rest}: Assi
   } = useWaitForTransactionReceipt({
     hash
   });
-  console.log(job, 'JOB')
+
   useEffect(() => {
     if (isConfirmed || error) {
       if (error) {

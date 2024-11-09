@@ -7,7 +7,7 @@ import useJobEventsWithDiffs from '@/hooks/useJobEventsWithDiffs';
 import useJob from '@/hooks/useJob';
 import { useAccount } from 'wagmi';
 import useUsersByAddresses from '@/hooks/useUsersByAddresses';
-import { SetStateAction, useEffect, useState } from 'react';
+import { SetStateAction, useEffect, useState, useRef } from 'react';
 import useUser from '@/hooks/useUser';
 import OwnerView from './Components/UserRolesView/OwnerView';
 import ArbitratorView from './Components/UserRolesView/ArbitratorView';
@@ -15,8 +15,10 @@ import GuestView from './Components/UserRolesView/GuestView';
 import WorkerView from './Components/UserRolesView/WorkerView';
 import { zeroAddress } from 'viem';
 import { JobUserRoles } from '@/service/Interfaces';
-import { JobMessageEvent, JobState } from 'effectiveacceleration-contracts';
+import { JobMessageEvent, JobState, Job } from 'effectiveacceleration-contracts';
 import JobStatus from './Components/JobStatus';
+import { LOCAL_JOBS_WORKER_CACHE } from '@/utils/constants';
+import { LOCAL_JOBS_OWNER_CACHE } from '@/utils/constants';
 
 export default function JobPage() {
   const id = useParams().id as string;
@@ -29,7 +31,43 @@ export default function JobPage() {
   const whitelistedWorkers = events.at(-1)?.job.allowedWorkers ?? [];
   const [selectedWorker, setSelectedWorker] = useState<string>('');
   const [eventMessages, setEventMessages] = useState(events);
+  const {data: user} = useUser(address!)
+  const workerJobCache = `${address}${LOCAL_JOBS_WORKER_CACHE}`
+  const ownerJobCache = `${address}${LOCAL_JOBS_OWNER_CACHE}`
+  const prevJobRef = useRef<Job | undefined>(undefined);
+  const prevEventsRef = useRef(null);
+  console.log(events, 'events')
+  useEffect(() => {
+    if (prevJobRef.current === job && !events) return;
+    prevJobRef.current = job;
+    const workerUser = user?.address_ === job?.roles.worker
+    const ownerUser = user?.address_ === job?.roles.creator
+    if (!user || !job || (ownerUser === false && workerUser === false)) return
+    const ownerStoredJobs = localStorage.getItem(ownerJobCache);
+    const workerStoredJobs = localStorage.getItem(workerJobCache);
+    if (ownerStoredJobs && ownerUser) {
+      const parsedJobs = JSON.parse(ownerStoredJobs);
+      const jobIndex = parsedJobs.findIndex((job: Job) => job.id as unknown as string === id);
+      if (jobIndex !== -1) {
+        const selectedJobIndex = parsedJobs[jobIndex];
+        selectedJobIndex.state = job.state;
+        selectedJobIndex.lastJobEvent = {};
+        selectedJobIndex.lastJobEvent.type_ = events[events.length - 1]?.type_;
+        localStorage.setItem(ownerJobCache, JSON.stringify(parsedJobs));
+      }
+     
+    } else if (!ownerStoredJobs && ownerUser) {
+      localStorage.setItem(ownerJobCache, JSON.stringify([job], (key, value) =>
+        typeof value === 'bigint' ? value.toString() : value
+      ));
+    }
 
+    // if (workerStoredJobs && workerUser) {
+    //   const parsedJobs = JSON.parse(workerStoredJobs);
+    // } else if (!workerStoredJobs && workerUser) {
+    //   localStorage.setItem(workerJobCache, JSON.stringify([]));
+    // }
+  }, [job])
   useEffect(() => {
     if (job?.state === JobState.Taken || job?.state === JobState.Closed) {
       setSelectedWorker(job.roles.worker);

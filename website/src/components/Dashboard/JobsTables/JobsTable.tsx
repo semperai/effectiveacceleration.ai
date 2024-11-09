@@ -36,8 +36,9 @@ function JobsTable<T>({table, title, localJobs, filteredJobs}:{table: Table<T>, 
   const { address } = useAccount();
   const {data: user} = useUser(address!)
   useEffect(() => {
+    if (localJobs?.length === 0) return
     setJobCount(getValidJobsCount(title, localJobs))
-  },[localJobs])
+  },[localJobs, table])
 
   useEffect(() => {
     if (table.getRowModel().rows.length === 0 && localJobs?.length === 0) return

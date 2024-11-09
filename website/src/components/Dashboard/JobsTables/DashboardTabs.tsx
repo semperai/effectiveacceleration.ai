@@ -13,7 +13,7 @@ import DevelopAllJobs from './JobsTablesData/DevelopAllJobs';
 import { Job, JobEventType, JobState } from 'effectiveacceleration-contracts/dist/src/interfaces';
 import { LocalStorageJob } from '@/service/JobsService';
 import useJobsByIds from '@/hooks/useJobsByIds';
-import { LOCAL_JOBS_CACHE } from '@/utils/constants';
+import { LOCAL_JOBS_OWNER_CACHE } from '@/utils/constants';
 import { useAccount } from 'wagmi';
 
 const DashboardTabs = () => {
@@ -31,7 +31,8 @@ const DashboardTabs = () => {
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [mounted, setMounted] = useState(false);
   const isFirstUpdate = useRef(true);
-  const userJobCache = `${address}${LOCAL_JOBS_CACHE}`
+  const userJobCache = `${address}${LOCAL_JOBS_OWNER_CACHE}`
+
   useEffect(() => {
     const storedJobs = localStorage.getItem(userJobCache);
     if (storedJobs) {

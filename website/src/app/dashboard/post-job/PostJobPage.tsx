@@ -37,7 +37,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { MARKETPLACE_DATA_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceDataV1";
 import { LocalStorageJob } from '@/service/JobsService'
 import useUnsavedChangesWarning from '@/hooks/useUnsavedChangesWarning'
-import { LOCAL_JOBS_CACHE } from "@/utils/constants";
+import { LOCAL_JOBS_OWNER_CACHE } from "@/utils/constants";
 import { shortenText } from '@/utils/utils'
 import useUser from '@/hooks/useUser'
 import RegisterModal from './RegisterModal'
@@ -197,7 +197,7 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
   const [postButtonDisabled, setPostButtonDisabled] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false)
   const [isLoadingModalOpen, setIsLoadingModalOpen] = useState(false)
-  const userJobCache = `${address}${LOCAL_JOBS_CACHE}`
+  const userJobCache = `${address}${LOCAL_JOBS_OWNER_CACHE}`
   const unregisteredUserLabel = `${address}-unregistered-job-cache`
   const {
     data: hash,
