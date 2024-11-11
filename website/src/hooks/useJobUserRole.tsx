@@ -7,12 +7,9 @@ export const useJobUserRole = () => {
     const paths = usePathname()
     const pathNames = paths.split('/').filter( path => path )
     const isJobPage: boolean = pathNames.includes('jobs');
-    if (!isJobPage) {
-        return 'Not a Job Page';
-    }
     const { address } = useAccount();
     const id = useParams().id as string;
-    const jobId = BigInt(id);
+    const jobId = BigInt(id || 0n);
     const { data: job, isLoadingError, ...rest } = useJob(jobId);
 
     const role = useMemo(() => {

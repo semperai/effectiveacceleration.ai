@@ -20,6 +20,25 @@ import JobStatus from './Components/JobStatus';
 import { LOCAL_JOBS_WORKER_CACHE } from '@/utils/constants';
 import { LOCAL_JOBS_OWNER_CACHE } from '@/utils/constants';
 
+function updateJobCache(storedJobs: string | null, user: any, jobCacheKey: string, job: Job, events: any[], id: string) {
+  if (storedJobs && user) {
+    const parsedJobs = JSON.parse(storedJobs);
+    const jobIndex = parsedJobs.findIndex((job: Job) => job.id as unknown as string === id);
+    if (jobIndex !== -1) {
+      const selectedJob = parsedJobs[jobIndex];
+      selectedJob.state = job.state;
+      selectedJob.lastJobEvent = {};
+      selectedJob.lastJobEvent.type_ = events[events.length - 1]?.type_;
+      localStorage.setItem(jobCacheKey, JSON.stringify(parsedJobs));
+    }
+  } else if (!storedJobs && user) {
+    localStorage.setItem(jobCacheKey, JSON.stringify([job], (key, value) =>
+      typeof value === 'bigint' ? value.toString() : value
+    ));
+  }
+}
+
+
 export default function JobPage() {
   const id = useParams().id as string;
   const jobId = BigInt(id);
@@ -36,12 +55,12 @@ export default function JobPage() {
   const ownerJobCache = `${address}${LOCAL_JOBS_OWNER_CACHE}`
   const prevJobRef = useRef<Job | undefined>(undefined);
   const prevEventsRef = useRef(null);
-  console.log(events, 'events')
   useEffect(() => {
     if (prevJobRef.current === job && !events) return;
     prevJobRef.current = job;
     const workerUser = user?.address_ === job?.roles.worker
     const ownerUser = user?.address_ === job?.roles.creator
+
     if (!user || !job || (ownerUser === false && workerUser === false)) return
     const ownerStoredJobs = localStorage.getItem(ownerJobCache);
     const workerStoredJobs = localStorage.getItem(workerJobCache);
@@ -55,13 +74,27 @@ export default function JobPage() {
         selectedJobIndex.lastJobEvent.type_ = events[events.length - 1]?.type_;
         localStorage.setItem(ownerJobCache, JSON.stringify(parsedJobs));
       }
-     
     } else if (!ownerStoredJobs && ownerUser) {
       localStorage.setItem(ownerJobCache, JSON.stringify([job], (key, value) =>
         typeof value === 'bigint' ? value.toString() : value
       ));
     }
 
+    if (workerStoredJobs && workerUser) {
+      const parsedJobs = JSON.parse(workerStoredJobs);
+      const jobIndex = parsedJobs.findIndex((job: Job) => job.id as unknown as string === id);
+      if (jobIndex !== -1) {
+        const selectedJobIndex = parsedJobs[jobIndex];
+        selectedJobIndex.state = job.state;
+        selectedJobIndex.lastJobEvent = {};
+        selectedJobIndex.lastJobEvent.type_ = events[events.length - 1]?.type_;
+        localStorage.setItem(workerJobCache, JSON.stringify(parsedJobs));
+      }
+    } else if (!workerStoredJobs && workerUser) {
+      localStorage.setItem(ownerJobCache, JSON.stringify([job], (key, value) =>
+        typeof value === 'bigint' ? value.toString() : value
+      ));
+    }
     // if (workerStoredJobs && workerUser) {
     //   const parsedJobs = JSON.parse(workerStoredJobs);
     // } else if (!workerStoredJobs && workerUser) {

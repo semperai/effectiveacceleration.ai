@@ -37,7 +37,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { MARKETPLACE_DATA_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceDataV1";
 import { LocalStorageJob } from '@/service/JobsService'
 import useUnsavedChangesWarning from '@/hooks/useUnsavedChangesWarning'
-import { LOCAL_JOBS_CACHE } from "@/utils/constants";
+import { LOCAL_JOBS_OWNER_CACHE } from "@/utils/constants";
 import { shortenText } from '@/utils/utils'
 
 interface PostJobParams {
@@ -172,7 +172,7 @@ function PostJobForm() {
   const [descriptionError, setDescriptionError] = useState<string>('');
   const [categoryError, setCategoryError] = useState<string>('');
   const [postButtonDisabled, setPostButtonDisabled] = useState(false);
-  const userJobCache = `${address}${LOCAL_JOBS_CACHE}`
+  const userJobCache = `${address}${LOCAL_JOBS_OWNER_CACHE}`
   const {
     data: hash,
     error,

@@ -165,7 +165,7 @@ const unitsDeliveryTime = [
   { id: 5, name: 'years' },
 ]
 
-const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((props, ref) => {
+const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((props, ref) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { address } = useAccount();
@@ -659,6 +659,6 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
   );
 });
 
-PostJobPage.displayName = 'PostJobPage';
+PostJob.displayName = 'PostJob';
 
-export default PostJobPage;
+export default PostJob;
