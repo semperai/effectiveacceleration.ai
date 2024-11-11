@@ -269,7 +269,7 @@ task("marketplace:seed", "Seed local marketplace instance")
     const ownerMessage = "Go ahead!";
     const { hash: ownerMessageHash } = await publishToIpfs(ownerMessage, ownerSessionKey);
 
-    await marketplace.connect(owner).postThreadMessage(jobId, ownerMessageHash, owner.address);
+    await marketplace.connect(owner).postThreadMessage(jobId, ownerMessageHash, worker.address);
 
     // worker takes the job
     const revision = await marketplaceData.eventsLength(jobId);

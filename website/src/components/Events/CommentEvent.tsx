@@ -14,6 +14,8 @@ export function CommentEvent({event, ...rest}: EventProps & React.ComponentProps
   const {data: user} = useUser(address);
   const date = moment(event.timestamp_ * 1000).fromNow()
   const details = event.details as JobMessageEvent;
+  const {data: recipient} = useUser(details.recipientAddress as `0x${string}`);
+  const recipientHref = `/dashboard/users/${details.recipientAddress}`;
 
   return (
     <>
@@ -26,12 +28,14 @@ export function CommentEvent({event, ...rest}: EventProps & React.ComponentProps
       <div className="min-w-0 flex-1">
         <div>
           <div className="text-sm">
-            <a href={href} className="font-medium text-gray-900 dark:text-gray-100">
+            <a href={href} className="font-medium text-gray-900 dark:text-gray-100" title={address}>
               {user?.name}
             </a>
           </div>
           <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">Commented {date}</p>
-          <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">Recipient {details.recipientAddress}</p>
+          <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">Recipient:
+            <a href={recipientHref} className="font-medium text-gray-900 dark:text-gray-100 ml-1" title={recipient?.address_}>{recipient?.name}</a>
+          </p>
         </div>
         <div className="mt-2 text-sm text-gray-700 dark:text-gray-500">
           <p>{details.content}</p>
