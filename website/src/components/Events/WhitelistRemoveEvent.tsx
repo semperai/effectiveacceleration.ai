@@ -2,6 +2,7 @@ import { type EventProps } from './index';
 import moment from 'moment';
 import { getAddress } from 'viem';
 import useUser from '@/hooks/useUser';
+import EventProfileImage from './Components/EventProfileImage';
 
 export function WhitelistRemoveEvent({event, ...rest}: EventProps & React.ComponentPropsWithoutRef<'div'>) {
   const ownerAddress = getAddress(event.job.roles.creator);
@@ -17,11 +18,7 @@ export function WhitelistRemoveEvent({event, ...rest}: EventProps & React.Compon
   return (
     <>
       <div className="relative">
-        <img
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-400 ring-8 ring-white"
-          src={owner?.avatar}
-          alt=""
-        />
+        {owner && <EventProfileImage user={owner} />}
       </div>
       <div className="min-w-0 flex-1 py-1.5">
         <div className="text-sm text-gray-500 dark:text-gray-400">

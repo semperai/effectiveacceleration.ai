@@ -1,12 +1,12 @@
 'use client'
 import React, { Suspense, useEffect, useRef } from 'react';
 import { Layout } from '@/components/Dashboard/Layout';
-import PostJobPage from './PostJobPage';
+import PostJob from './PostJobPage';
 import { useWatchContractEvent } from 'wagmi';
 import Config from 'effectiveacceleration-contracts/scripts/config.json'
 import { MARKETPLACE_DATA_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceDataV1'
 
-const Page = () => {
+const PostJobPage = () => {
   const postJobPageRef = useRef<{ jobIdCache: (jobId: bigint) => void }>(null);
 
   useWatchContractEvent({
@@ -28,10 +28,10 @@ const Page = () => {
     return (
         <Layout>
           <Suspense fallback={<div>Loading...</div>}>
-            <PostJobPage ref={postJobPageRef}/>
+            <PostJob ref={postJobPageRef}/>
           </Suspense>
         </Layout>
     );
 };
 
-export default Page
+export default PostJobPage

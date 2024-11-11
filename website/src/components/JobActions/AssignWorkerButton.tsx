@@ -9,7 +9,10 @@ import { Dialog, Transition } from '@headlessui/react'
 import { Fragment } from 'react'
 import useUsers from '@/hooks/useUsers';
 import { Listbox, ListboxOption } from '../Listbox';
-import { LOCAL_JOBS_CACHE } from '@/utils/constants';
+import { formatTokenNameAndAmount } from '@/tokens';
+import moment from 'moment';
+import { jobMeceTags } from '@/utils/jobMeceTags';
+import clsx from 'clsx';
 
 
 export type AssignWorkerButtonProps = {
@@ -23,6 +26,7 @@ export function AssignWorkerButton({address, job, selectedWorker, ...rest}: Assi
   const excludes = [address]
   const userList = users.filter(user => !excludes.includes(user.address_));
   const [selectedUserAddress, setSelectedUserAddress] = useState<`0x${string}` | undefined>(undefined);
+  const jobMeceTag = jobMeceTags.find(tag => tag.id === job?.tags[0])?.name
   const {
     data: hash,
     error,
@@ -118,9 +122,11 @@ export function AssignWorkerButton({address, job, selectedWorker, ...rest}: Assi
                     <span><b>Title:</b> {job.title}</span>
                     <span><b>Content:</b> {job.content}</span>
                     <span><b>delivery Method:</b> {job.deliveryMethod}</span>
-                    <span><b>Max Time:</b> {job.maxTime}</span>
-                    <span><b>Amount:</b> {job.tags}</span>
+                    <span><b>Max Time:</b> { moment.duration(job?.maxTime, "days").humanize() } </span>
+                    <span><b>Amount:</b> {formatTokenNameAndAmount(job.token, job.amount)}</span>
                     <span><b>Worker:</b> {selectedWorker}</span>
+                    <span><b>Category:</b> {jobMeceTag}</span>
+                    <span><b>Tags:</b> {job?.tags.slice(1).map((value, index) => <span key={index}>{value}</span>)}</span>
                   </div>
                   <div className='mt-5 mb-3 flex flex-col gap-5'>
                     <Button disabled={buttonDisabled} onClick={buttonClick}>

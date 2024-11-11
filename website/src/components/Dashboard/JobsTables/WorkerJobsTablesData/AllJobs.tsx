@@ -46,7 +46,8 @@ const AllJobs = ({jobs, localJobs}: {jobs: Job[], localJobs: Job[]}) => {
   useEffect(() => {
     _setDataCompletedTable([...defaultDataCompletedTable]);
   }, [jobs]);
-  const defaultDataCompletedTable: TOpenJobTable[] = jobs.map(job => ({
+
+  const defaultDataCompletedTable: TOpenJobTable[] = [...jobs].reverse().map(job => ({
     jobName: <span className='font-bold   '>{job.title}</span>,
     description: <span className='font-md '>{job.content ?? ''}</span>,
     tag: <span className='px-3 text-sm py-2  text-[#23B528] rounded-full bg-[#E1FFEF]'>{job.tags[1] ?? ''}</span>,

@@ -26,16 +26,8 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import Image from 'next/image';
 import { StaticImport } from 'next/dist/shared/lib/get-img-props';
 import UploadAvatar from '../UploadAvatar';
+import { isImageValid } from '@/utils/ImageValidity';
 
-async function isImageValid(url: string): Promise<boolean> {
-  try {
-    const response = await fetch(url, { method: 'HEAD' });
-    return response.ok; // Return true if the response is ok (status in the range 200-299)
-  } catch (error) {
-    console.error('Error checking image URL:', error);
-    return false;
-  }
-}
 
 export function UserButton({...rest}: React.ComponentPropsWithoutRef<'div'>) {
   const viewAsValues = ['User', 'Arbitrator']
@@ -178,7 +170,8 @@ export function UserButton({...rest}: React.ComponentPropsWithoutRef<'div'>) {
       {user ? 
         (
           <button onClick={() => openModal()} className='p-2 bg-primary rounded-full flex items-center align-middle overflow-hidden relative w-10 h-10'>
-            {avatar === '' || avatar === undefined || avatar === null || !isImgValid ? <span className='text-white inline-block w-6 h-6'>{name && name[0].toUpperCase()}
+            {avatar === '' || avatar === undefined || avatar === null || !isImgValid ? 
+            <span className='text-white inline-block w-6 h-6'>{name && name[0].toUpperCase()}
               {
                 !name && <UserIcon className="mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-300" aria-hidden="true" />
               }</span>  

@@ -116,7 +116,7 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
           sessionKeys_[`${ownerAddress}-${arbitratorAddress}`] = await getSessionKey(signer as any, otherPubkey, jobId);
           sessionKeys_[`${arbitratorAddress}-${ownerAddress}`] = await getSessionKey(signer as any, otherPubkey, jobId);
         }
-      }
+      } 
 
       const jobDisputedEvents = jobEventsWithDiffs.filter(event => event.type_ === JobEventType.Disputed);
       for (const jobDisputedEvent of jobDisputedEvents) {
@@ -132,7 +132,18 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
       }
 
       const eventContents = await fetchEventContents(jobEventsWithDiffs, sessionKeys_);
-      setFinalEvents(eventContents);
+      // There were some specific bugs in which some events were duplicated, for now we will filter them out
+      const uniqueEvents = [];
+      const seenData = new Set();
+
+      for (const event of eventContents) {
+        if (!seenData.has(event.data_)) {   
+          uniqueEvents.push(event);
+          seenData.add(event.data_);
+        }
+      }
+
+      setFinalEvents(uniqueEvents);
       setSessionKeys(prev => ({
         ...prev,
         ...sessionKeys_,

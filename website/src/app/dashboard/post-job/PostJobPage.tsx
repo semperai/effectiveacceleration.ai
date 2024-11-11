@@ -37,11 +37,12 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { MARKETPLACE_DATA_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceDataV1";
 import { LocalStorageJob } from '@/service/JobsService'
 import useUnsavedChangesWarning from '@/hooks/useUnsavedChangesWarning'
-import { LOCAL_JOBS_CACHE } from "@/utils/constants";
+import { LOCAL_JOBS_OWNER_CACHE } from "@/utils/constants";
 import { shortenText } from '@/utils/utils'
 import useUser from '@/hooks/useUser'
 import RegisterModal from './RegisterModal'
 import LoadingModal from './LoadingModal'
+import { jobMeceTags } from '@/utils/jobMeceTags'
 
 export interface PostJobParams {
   title?: string;
@@ -130,9 +131,7 @@ async function setupAndGiveAllowance(spenderAddress: `0x${string}` | undefined, 
 }
 
 const validateField = (value: string, validation: FieldValidation): string => {
-  if (validation.required && !value) {
-    return 'This field is required';
-  }
+  console.log((validation.minLength && value.length < validation.minLength), 'VALUE AND VALIDATIONE')
   if (validation.minLength && value.length < validation.minLength) {
     return `Must be at least ${validation.minLength} characters long`;
   }
@@ -140,10 +139,13 @@ const validateField = (value: string, validation: FieldValidation): string => {
     return 'Invalid format';
   }
   if (validation.mustBeGreaterThanOrEqualTo && parseFloat(value) < parseFloat(validation.mustBeGreaterThanOrEqualTo)) {
-    return `Must be greater than or equal to ${validation.mustBeGreaterThanOrEqualTo}`;
+    return `Insufficient balance of the selected token`;
   }
   if (validation.custom) {
     return validation.custom(value);
+  }
+  if (validation.required && !value) {
+    return 'This field is required';
   }
   
   return ''; 
@@ -163,18 +165,7 @@ const unitsDeliveryTime = [
   { id: 5, name: 'years' },
 ]
 
-const categories = [
-  { id: "DA", name: "Digital Audio" },
-  { id: "DV", name: "Digital Video" },
-  { id: "DT", name: "Digital Text" },
-  { id: "DS", name: "Digital Software" },
-  { id: "DO", name: "Digital Others" },
-  { id: "NDG", name: "Non-Digital Goods" },
-  { id: "NDS", name: "Non-Digital Services" },
-  { id: "NDO", name: "Non-Digital Others" },
-]
-
-const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((props, ref) => {
+const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((props, ref) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { address } = useAccount();
@@ -206,7 +197,7 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
   const [postButtonDisabled, setPostButtonDisabled] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false)
   const [isLoadingModalOpen, setIsLoadingModalOpen] = useState(false)
-  const userJobCache = `${address}${LOCAL_JOBS_CACHE}`
+  const userJobCache = `${address}${LOCAL_JOBS_OWNER_CACHE}`
   const unregisteredUserLabel = `${address}-unregistered-job-cache`
   const {
     data: hash,
@@ -262,7 +253,8 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
     const { hash: contentHash } = await publishToIpfs(description);
     const allowanceResponse = await setupAndGiveAllowance(Config.marketplaceAddress as `0x${string}`, amount, selectedToken?.id as `0x${string}` | undefined)
     // Call the giveAllowance function
-    // await setupAndGiveAllowance(Config.marketplaceAddress as `0x${string}`, amount, selectedToken?.id as `0x${string}` | undefined);
+    // await setupAndGiveAllowance(Config.marketplaceAddress as `0x${string}`, amount, selectedToken?.id as `0x${string}` | undefined);\
+    console.log([selectedCategory.id, ...tags.map(tag => tag.name)], 'TAG')
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
       address: Config.marketplaceAddress as `0x${string}`,
@@ -351,19 +343,16 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
     const balanceAsString = (Number(BigInt(balanceData as ethers.BigNumberish) / BigInt(10 ** 18))).toString(); // Converts balanceData from BigNumberish to BigInt, divides by 10^18 to convert from smallest unit (e.g., wei) to main unit (e.g., ether), converts to number, then to string
 
     // Validate all fields before submission
-    const titleValidationMessage = validateField(title, { required: true, minLength: 3 });
+    const titleValidationMessage = validateField(title, { minLength: 3 });
     const descriptionValidationMessage = validateField(description, { required: true, minLength: 10 });
-    const categoryValidationMessage = validateField(selectedCategory?.name || '', { required: true, minLength: 10 });
-    const paymentTokenValidationMessage = validateField(balanceAsString, { 
-      required: true, 
-      mustBeGreaterThanOrEqualTo: amount,
-    });
-
+    const categoryValidationMessage = validateField(selectedCategory?.name || '', { required: true });
+    const paymentTokenValidationMessage = validateField(balanceAsString, {mustBeGreaterThanOrEqualTo: amount,});
+    console.log(titleValidationMessage, descriptionValidationMessage, categoryValidationMessage, paymentTokenValidationMessage, 'VALIDATION MESSAGES')
     setTitleError(titleValidationMessage);
     setDescriptionError(descriptionValidationMessage);
     setCategoryError(categoryValidationMessage);
     setPaymentTokenError(paymentTokenValidationMessage);
-    if (!titleValidationMessage && !descriptionValidationMessage) {
+    if (!titleValidationMessage && !descriptionValidationMessage && !categoryValidationMessage && !paymentTokenValidationMessage) {
       // Proceed with form submission
       console.log('Form is valid');
       handleSummary();
@@ -427,7 +416,7 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
       .filter((_, index) => index !== 0)
       .map((tag: string, index: number) => ({ id: index + 1, name: tag }))
     );
-    const selectedCategory = categories.find(category => category.id === job.tags[0]);
+    const selectedCategory = jobMeceTags.find(category => category.id === job.tags[0]);
     setSelectedCategory(selectedCategory)
     setDeliveryMethod(job.deliveryMethod || '');
     setAmount(job.amount || '');
@@ -504,14 +493,14 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
                   onChange={(e) => setSelectedCategory(e)}
                   className="border border-gray-300 rounded-md shadow-sm"
                   >
-                  {categories.map((category, index) => (
+                  {jobMeceTags.map((category, index) => (
                     index > 0 && 
                       <ListboxOption  key={index} value={category}>
-                        {`${categories[index].name}`}
+                        {`${jobMeceTags[index].name}`}
                       </ListboxOption>
                   ))}
                 </Listbox>
-              {categoryError && <div className='text-xs' style={{ color: 'red' }}>{descriptionError}</div>} 
+              {categoryError && <div className='text-xs' style={{ color: 'red' }}>{categoryError}</div>} 
             </Field>
             <Field>
               <Label>Tags</Label>
@@ -533,6 +522,7 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
               />
+               {paymentTokenError && <div className='text-xs' style={{ color: 'red' }}>{paymentTokenError}</div>} 
               <Description></Description>
             </Field>
             <Field className='flex-1'>
@@ -558,7 +548,6 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
                     Balance: 0.0 {selectedToken?.symbol}
                   </Text>
                 )}
-                {paymentTokenError && <div className='text-xs' style={{ color: 'red' }}>{descriptionError}</div>} 
               </div>
             </Field>
           </div>
@@ -670,6 +659,6 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
   );
 });
 
-PostJobPage.displayName = 'PostJobPage';
+PostJob.displayName = 'PostJob';
 
-export default PostJobPage;
+export default PostJob;

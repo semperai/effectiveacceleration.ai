@@ -6,6 +6,7 @@ import moment from 'moment';
 import { JobMessageEvent } from 'effectiveacceleration-contracts';
 import { getAddress } from 'viem';
 import useUser from '@/hooks/useUser';
+import EventProfileImage from './Components/EventProfileImage';
 
 export function CommentEvent({event, ...rest}: EventProps & React.ComponentPropsWithoutRef<'div'>) {
   const address = getAddress(event.address_);
@@ -19,12 +20,7 @@ export function CommentEvent({event, ...rest}: EventProps & React.ComponentProps
   return (
     <>
       <div className="relative">
-        <img
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-400 ring-8 ring-white"
-          src={user?.avatar}
-          alt=""
-        />
-
+        {user && <EventProfileImage user={user} />}
         <span className="absolute -bottom-0.5 -right-1 rounded-tl bg-white px-0.5 py-px">
           <ChatBubbleLeftEllipsisIcon className="h-5 w-5 text-gray-400 dark:text-gray-600" aria-hidden="true" />
         </span>

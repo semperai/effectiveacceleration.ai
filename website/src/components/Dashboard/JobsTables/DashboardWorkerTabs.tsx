@@ -1,5 +1,5 @@
 'use client'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState, useRef } from 'react'
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
 import OpenJobs from './JobsTablesData/OpenJobs';
@@ -13,7 +13,7 @@ import DevelopAllJobs from './JobsTablesData/DevelopAllJobs';
 import { Job, JobEventType, JobState } from 'effectiveacceleration-contracts/dist/src/interfaces';
 import { LocalStorageJob } from '@/service/JobsService';
 import useJobsByIds from '@/hooks/useJobsByIds';
-import { LOCAL_JOBS_CACHE } from '@/utils/constants';
+import { LOCAL_JOBS_OWNER_CACHE } from '@/utils/constants';
 import { useAccount } from 'wagmi';
 import AllJobs from './WorkerJobsTablesData/AllJobs';
 
@@ -30,7 +30,9 @@ const DashboardTabs = () => {
   const [tabsKey, setTabsKey] = useState(0);
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [mounted, setMounted] = useState(false);
-  const userJobCache = `${address}${LOCAL_JOBS_CACHE}`
+  const isFirstUpdate = useRef(true);
+  const userJobCache = `${address}${LOCAL_JOBS_OWNER_CACHE}`
+
   useEffect(() => {
     const storedJobs = localStorage.getItem(userJobCache);
     if (storedJobs) {
@@ -43,39 +45,42 @@ const DashboardTabs = () => {
   }, [address]);
 
   const filteredJobsMemo = useMemo(() => {
-    if (selectedJobs.length === 0) return { open: [], inProgress: [], completed: [] };
+    if (jobs.length === 0) return { open: [], inProgress: [], completed: [] };
 
     const filteredOpenJobs: Job[] = [];
     const filteredJobsInProgress: Job[] = [];
     const filteredCompletedJobs: Job[] = [];
-
-    selectedJobs.forEach((job, index) => {
+    jobs.forEach((job, index) => {
+      console.log(job, 'JOB')
       if (job.state === JobState.Open) {
         filteredOpenJobs.push(job);
       } else if (job.state === JobState.Taken) {
         filteredJobsInProgress.push(job);
-      } else if (job.state === JobState.Closed && localJobs[index].id === job.id && localJobs[index].lastJobEvent?.type_ === JobEventType.Completed) {
-        filteredCompletedJobs.push(job);
       }
+      // } else if (job.state === JobState.Closed && localJobs[index].id === job.id && localJobs[index].lastJobEvent?.type_ === JobEventType.Completed) {
+      //   filteredCompletedJobs.push(job);
+      // }
     });
     return { open: filteredOpenJobs, inProgress: filteredJobsInProgress, completed: filteredCompletedJobs };
-  }, [selectedJobs, localJobs]);
+  }, [jobs, localJobs]);
 
   useEffect(() => {
-    setTabsKey(prevKey => prevKey + 1);
     setFilteredJobs(filteredJobsMemo.open);
     setFilteredJobsInProgress(filteredJobsMemo.inProgress);
     setFilteredCompletedJobs(filteredJobsMemo.completed);
+    if (selectedJobs.length > 0 && isFirstUpdate.current) {
+      setTabsKey(prevKey => prevKey + 1);
+      isFirstUpdate.current = false;
+    }
   }, [filteredJobsMemo]);
 
-  console.log(localJobs, 'filtered Jobs')
   return (
     <div className=''>
     {mounted && (
       <Tabs key={tabsKey} selectedIndex={activeTabIndex} onSelect={index => setActiveTabIndex(index)}>
         <TabList className='flex border-b-2 borde-gray-100 mb-7'>
             <Tab selectedClassName='!border-lightPurple  border-b-2  !text-lightPurple'  className='px-8 py-2 font-medium relative cursor-pointer top-[2px] outline-none text-darkBlueFont'>
-              All Jobs
+              Open Jobs
             </Tab>
             <Tab selectedClassName='!border-lightPurple  border-b-2 !text-lightPurple'  className='px-8 py-2 font-medium relative cursor-pointer top-[2px] outline-none text-darkBlueFont'>
               Applications
@@ -88,7 +93,7 @@ const DashboardTabs = () => {
             </Tab>
         </TabList>
         <TabPanel>
-          <AllJobs jobs={jobs} localJobs={jobs}/>
+          <AllJobs jobs={filteredJobs} localJobs={filteredJobs}/>
         </TabPanel>
         {/* <TabPanel>
           <JobProgress jobs={filteredJobsInProgress} localJobs={[]}/>
