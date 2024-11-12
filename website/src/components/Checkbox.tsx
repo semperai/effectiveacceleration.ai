@@ -3,14 +3,17 @@ import {
   Field as HeadlessField,
   type CheckboxProps as HeadlessCheckboxProps,
   type FieldProps as HeadlessFieldProps,
-} from '@headlessui/react'
-import { clsx } from 'clsx'
-import type React from 'react'
+} from '@headlessui/react';
+import { clsx } from 'clsx';
+import type React from 'react';
 
-export function CheckboxGroup({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
+export function CheckboxGroup({
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<'div'>) {
   return (
     <div
-      data-slot="control"
+      data-slot='control'
       {...props}
       className={clsx(
         className,
@@ -22,13 +25,13 @@ export function CheckboxGroup({ className, ...props }: React.ComponentPropsWitho
         'has-[[data-slot=description]]:space-y-6 [&_[data-slot=label]]:has-[[data-slot=description]]:font-medium'
       )}
     />
-  )
+  );
 }
 
 export function CheckboxField({ className, ...props }: HeadlessFieldProps) {
   return (
     <HeadlessField
-      data-slot="field"
+      data-slot='field'
       {...props}
       className={clsx(
         className,
@@ -49,7 +52,7 @@ export function CheckboxField({ className, ...props }: HeadlessFieldProps) {
         '[&_[data-slot=label]]:has-[[data-slot=description]]:font-medium'
       )}
     />
-  )
+  );
 }
 
 const base = [
@@ -87,7 +90,7 @@ const base = [
   // Forced colors mode
   'forced-colors:[--checkbox-check:HighlightText] forced-colors:[--checkbox-checked-bg:Highlight] forced-colors:group-data-[disabled]:[--checkbox-check:Highlight]',
   'dark:forced-colors:[--checkbox-check:HighlightText] dark:forced-colors:[--checkbox-checked-bg:Highlight] dark:forced-colors:group-data-[disabled]:[--checkbox-check:Highlight]',
-]
+];
 
 const colors = {
   'dark/zinc': [
@@ -128,48 +131,48 @@ const colors = {
     '[--checkbox-check:theme(colors.white)] [--checkbox-checked-bg:theme(colors.fuchsia.500)] [--checkbox-checked-border:theme(colors.fuchsia.600/90%)]',
   pink: '[--checkbox-check:theme(colors.white)] [--checkbox-checked-bg:theme(colors.pink.500)] [--checkbox-checked-border:theme(colors.pink.600/90%)]',
   rose: '[--checkbox-check:theme(colors.white)] [--checkbox-checked-bg:theme(colors.rose.500)] [--checkbox-checked-border:theme(colors.rose.600/90%)]',
-}
+};
 
-type Color = keyof typeof colors
+type Color = keyof typeof colors;
 
 export function Checkbox({
   color = 'dark/zinc',
   className,
   ...props
 }: {
-  color?: Color
-  className?: string
+  color?: Color;
+  className?: string;
 } & HeadlessCheckboxProps) {
   return (
     <HeadlessCheckbox
-      data-slot="control"
+      data-slot='control'
       className={clsx(className, 'group inline-flex focus:outline-none')}
       {...props}
     >
       <span className={clsx([base, colors[color]])}>
         <svg
-          className="size-4 stroke-[--checkbox-check] opacity-0 group-data-[checked]:opacity-100 sm:h-3.5 sm:w-3.5"
-          viewBox="0 0 14 14"
-          fill="none"
+          className='size-4 stroke-[--checkbox-check] opacity-0 group-data-[checked]:opacity-100 sm:h-3.5 sm:w-3.5'
+          viewBox='0 0 14 14'
+          fill='none'
         >
           {/* Checkmark icon */}
           <path
-            className="opacity-100 group-data-[indeterminate]:opacity-0"
-            d="M3 8L6 11L11 3.5"
+            className='opacity-100 group-data-[indeterminate]:opacity-0'
+            d='M3 8L6 11L11 3.5'
             strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
+            strokeLinecap='round'
+            strokeLinejoin='round'
           />
           {/* Indeterminate icon */}
           <path
-            className="opacity-0 group-data-[indeterminate]:opacity-100"
-            d="M3 7H11"
+            className='opacity-0 group-data-[indeterminate]:opacity-100'
+            d='M3 7H11'
             strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
+            strokeLinecap='round'
+            strokeLinejoin='round'
           />
         </svg>
       </span>
     </HeadlessCheckbox>
-  )
+  );
 }

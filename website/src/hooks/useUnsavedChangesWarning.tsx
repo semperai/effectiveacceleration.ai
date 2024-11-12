@@ -20,7 +20,7 @@ const useUnsavedChangesWarning = (isConfirmed: boolean) => {
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
-    document.querySelectorAll('a').forEach(link => {
+    document.querySelectorAll('a').forEach((link) => {
       link.addEventListener('click', handleLinkClick);
     });
 
@@ -30,7 +30,7 @@ const useUnsavedChangesWarning = (isConfirmed: boolean) => {
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      document.querySelectorAll('a').forEach(link => {
+      document.querySelectorAll('a').forEach((link) => {
         link.removeEventListener('click', handleLinkClick);
       });
       clearTimeout(timer);

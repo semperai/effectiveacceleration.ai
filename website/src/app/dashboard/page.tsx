@@ -1,7 +1,7 @@
-"use client"
-import { Layout } from '@/components/Dashboard/Layout'
-import React from 'react'
-import DashboardTabs from '@/components/Dashboard/JobsTables/DashboardTabs'
+'use client';
+import { Layout } from '@/components/Dashboard/Layout';
+import React from 'react';
+import DashboardTabs from '@/components/Dashboard/JobsTables/DashboardTabs';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
@@ -12,12 +12,9 @@ export default function IndexPage() {
     router.push('/dashboard/owner-job-list');
   }, [router]);
 
-
-return (
+  return (
     <Layout>
       <></>
     </Layout>
   );
 }
-
-

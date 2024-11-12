@@ -1,16 +1,16 @@
 // Prefix for all lscache keys
-const CACHE_PREFIX = "lscache-unicrow-";
+const CACHE_PREFIX = 'lscache-unicrow-';
 
 // Suffix for the key name on the expiration items in localStorage
-const CACHE_SUFFIX = "-cache-expiration-unicrow";
-const INITIAL_PREFERRED_TOKENS_SUFFIX = "initial-preferred-tokens";
-const PREFERRED_TOKENS_SUFFIX = "preferred-tokens";
-const LAST_TOKEN_SELECTED_SUFFIX = "last-token-selected";
-const LAST_NETWORK_TOKEN = "last-network-token";
-const UI_SHOW_DEVS_NOTICE_SUFFIX = "ui-show-devs-notice";
-const SIGNED_TOKEN = "@Unicrow/AccessTokens";
-const SKELETON_DATA_SUFFIX = "skeleton-data";
-const CUSTOM_TOKENS_SUFFIX = "custom-tokens";
+const CACHE_SUFFIX = '-cache-expiration-unicrow';
+const INITIAL_PREFERRED_TOKENS_SUFFIX = 'initial-preferred-tokens';
+const PREFERRED_TOKENS_SUFFIX = 'preferred-tokens';
+const LAST_TOKEN_SELECTED_SUFFIX = 'last-token-selected';
+const LAST_NETWORK_TOKEN = 'last-network-token';
+const UI_SHOW_DEVS_NOTICE_SUFFIX = 'ui-show-devs-notice';
+const SIGNED_TOKEN = '@Unicrow/AccessTokens';
+const SKELETON_DATA_SUFFIX = 'skeleton-data';
+const CUSTOM_TOKENS_SUFFIX = 'custom-tokens';
 
 // Type
 type tKEY =
@@ -33,7 +33,7 @@ let maxDate = calculateMaxDate(expiryMilliseconds);
 
 let cachedStorage: boolean;
 let cachedJSON: boolean;
-let cacheBucket = "";
+let cacheBucket = '';
 let warnings = false;
 
 // Determines if localStorage is supported in the browser;
@@ -42,7 +42,7 @@ let warnings = false;
 // it's not straightforward due to FF4 issues.
 // It's not run at parse-time as it takes 200ms in Android.
 function supportsStorage() {
-  const key = "__lscache-unicrow-test__";
+  const key = '__lscache-unicrow-test__';
   const value = key;
 
   if (cachedStorage !== undefined) {
@@ -79,9 +79,9 @@ function supportsStorage() {
 function isOutOfSpace(e: Error) {
   return (
     e &&
-    (e.name === "QUOTA_EXCEEDED_ERR" ||
-      e.name === "NS_ERROR_DOM_QUOTA_REACHED" ||
-      e.name === "QuotaExceededError")
+    (e.name === 'QUOTA_EXCEEDED_ERR' ||
+      e.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+      e.name === 'QuotaExceededError')
   );
 }
 
@@ -100,7 +100,7 @@ function supportsJSON() {
  * @returns string
  */
 function escapeRegExpSpecialCharacters(text: string) {
-  return text.replace(/[[\]{}()*+?.\\^$|]/g, "\\$&");
+  return text.replace(/[[\]{}()*+?.\\^$|]/g, '\\$&');
 }
 
 /**
@@ -140,7 +140,7 @@ function removeItem(key: string) {
 
 function eachKey(fn: any) {
   const prefixRegExp = new RegExp(
-    `^${CACHE_PREFIX}${escapeRegExpSpecialCharacters(cacheBucket)}(.*)`,
+    `^${CACHE_PREFIX}${escapeRegExpSpecialCharacters(cacheBucket)}(.*)`
   );
   // We first identify which keys to process
   const keysToProcess = [];
@@ -185,7 +185,7 @@ function flushExpiredItem(key: string) {
 
 function warn(message: string, err: Error | null) {
   if (!warnings) return;
-  if (!("console" in window) || typeof window.console.warn !== "function")
+  if (!('console' in window) || typeof window.console.warn !== 'function')
     return;
   window.console.warn(`lscache - ${message}`);
   if (err) window.console.warn(`lscache - The error was: ${err.message}`);
@@ -238,7 +238,7 @@ const lscacheModule = {
           }
           storedKeys.push({
             key: key,
-            size: (getItem(key) || "").length,
+            size: (getItem(key) || '').length,
             expiration: expiration,
           });
         });
@@ -247,12 +247,12 @@ const lscacheModule = {
           return b.expiration - a.expiration;
         });
 
-        let targetSize = (value || "").length;
+        let targetSize = (value || '').length;
         while (storedKeys.length && targetSize > 0) {
           storedKey = storedKeys.pop();
           warn(
             `Cache is full, removing item with key '${storedKey.key}'`,
-            null,
+            null
           );
           flushItem(storedKey.key);
           targetSize -= storedKey.size;
@@ -264,7 +264,7 @@ const lscacheModule = {
           // value may be larger than total quota
           warn(
             `Could not add item with key '${key}', perhaps it's too big?`,
-            err,
+            err
           );
           return false;
         }
@@ -280,7 +280,7 @@ const lscacheModule = {
     if (time) {
       setItem(
         expirationKey(key),
-        (currentTime() + time).toString(EXPIRY_RADIX),
+        (currentTime() + time).toString(EXPIRY_RADIX)
       );
     } else {
       // In case they previously set a time, remove that info from localStorage.
@@ -371,7 +371,7 @@ const lscacheModule = {
    * Resets the string being appended to CACHE_PREFIX so lscache will use the default storage behavior.
    */
   resetBucket: function () {
-    cacheBucket = "";
+    cacheBucket = '';
   },
 
   /**

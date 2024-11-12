@@ -1,4 +1,4 @@
-import Config from 'effectiveacceleration-contracts/scripts/config.json'
+import Config from 'effectiveacceleration-contracts/scripts/config.json';
 
 export interface Token {
   id: string;
@@ -30,19 +30,27 @@ export const tokens: Token[] = [
     icon: 'https://assets.coingecko.com/coins/images/35246/standard/arbius-200x-logo.png',
     decimals: 18,
   },
-]
+];
 
-export const tokensMap: Record<string, Token> = tokens.reduce((acc, token) => {
-  acc[token.id] = token;
-  return acc;
-}, {} as Record<string, Token>);
+export const tokensMap: Record<string, Token> = tokens.reduce(
+  (acc, token) => {
+    acc[token.id] = token;
+    return acc;
+  },
+  {} as Record<string, Token>
+);
 
-export const formatTokenNameAndAmount = (tokenId: string, amount: bigint | undefined) => {
-  const amountBigint = (amount ?? 0n) * 10000n / 10n ** BigInt(tokensMap[tokenId]?.decimals ?? 0);
+export const formatTokenNameAndAmount = (
+  tokenId: string,
+  amount: bigint | undefined
+) => {
+  const amountBigint =
+    ((amount ?? 0n) * 10000n) /
+    10n ** BigInt(tokensMap[tokenId]?.decimals ?? 0);
   const amountNumber = Number(amountBigint) / 10000;
-  return `${amountNumber} ${tokensMap[tokenId]?.symbol ?? ""}`;
-}
+  return `${amountNumber} ${tokensMap[tokenId]?.symbol ?? ''}`;
+};
 
 export const tokenIcon = (tokenId: string) => {
-  return tokensMap[tokenId]?.icon ?? "";
-}
+  return tokensMap[tokenId]?.icon ?? '';
+};

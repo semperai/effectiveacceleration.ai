@@ -1,38 +1,41 @@
-import { Button } from '@/components/Button'
-import { CheckIcon } from "@heroicons/react/20/solid";
-import { Job } from "effectiveacceleration-contracts";
-import { MARKETPLACE_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceV1";
-import Config from "effectiveacceleration-contracts/scripts/config.json";
-import { useEffect, useState } from "react";
-import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import { Button } from '@/components/Button';
+import { CheckIcon } from '@heroicons/react/20/solid';
+import { Job } from 'effectiveacceleration-contracts';
+import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
+import Config from 'effectiveacceleration-contracts/scripts/config.json';
+import { useEffect, useState } from 'react';
+import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 
 export type RefuseArbitrationButtonProps = {
-  job: Job,
-}
+  job: Job;
+};
 
-export function RefuseArbitrationButton({job, ...rest}: RefuseArbitrationButtonProps & React.ComponentPropsWithoutRef<'div'>) {
-  const {
-    data: hash,
-    error,
-    writeContract,
-  } = useWriteContract();
+export function RefuseArbitrationButton({
+  job,
+  ...rest
+}: RefuseArbitrationButtonProps & React.ComponentPropsWithoutRef<'div'>) {
+  const { data: hash, error, writeContract } = useWriteContract();
 
-  const {
-    isLoading: isConfirming,
-    isSuccess: isConfirmed,
-  } = useWaitForTransactionReceipt({
-    hash
-  });
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({
+      hash,
+    });
 
   useEffect(() => {
     if (isConfirmed || error) {
       if (error) {
-        const revertReason = error.message.match(`The contract function ".*" reverted with the following reason:\n(.*)\n.*`)?.[1];
+        const revertReason = error.message.match(
+          `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
+        )?.[1];
         if (revertReason) {
-          alert(error.message.match(`The contract function ".*" reverted with the following reason:\n(.*)\n.*`)?.[1])
+          alert(
+            error.message.match(
+              `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
+            )?.[1]
+          );
         } else {
           console.log(error, error.message);
-          alert("Unknown error occurred");
+          alert('Unknown error occurred');
         }
       }
       setButtonDisabled(false);
@@ -48,15 +51,20 @@ export function RefuseArbitrationButton({job, ...rest}: RefuseArbitrationButtonP
       abi: MARKETPLACE_V1_ABI,
       address: Config.marketplaceAddress as `0x${string}`,
       functionName: 'refuseArbitration',
-      args: [
-        job.id!,
-      ],
+      args: [job.id!],
     });
   }
 
-  return <>
-      <Button disabled={buttonDisabled} onClick={buttonClick} color={'borderlessGray'} className={'w-full'}>
+  return (
+    <>
+      <Button
+        disabled={buttonDisabled}
+        onClick={buttonClick}
+        color={'borderlessGray'}
+        className={'w-full'}
+      >
         Refuse Arbitration
       </Button>
-  </>
+    </>
+  );
 }

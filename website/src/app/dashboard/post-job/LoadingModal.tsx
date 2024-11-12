@@ -1,54 +1,60 @@
-import { Transition } from '@headlessui/react'
-import React from 'react'
-import { Dialog} from '@headlessui/react'
-import { Fragment } from 'react'
-import { Button } from '@/components/Button'
-import { AiOutlineLoading } from "react-icons/ai";
+import { Transition } from '@headlessui/react';
+import React from 'react';
+import { Dialog } from '@headlessui/react';
+import { Fragment } from 'react';
+import { Button } from '@/components/Button';
+import { AiOutlineLoading } from 'react-icons/ai';
 
-const LoadingModal = ({closeLoadingModal, isLoadingModalOpen}: { closeLoadingModal: () => void, isLoadingModalOpen: boolean }) => {
+const LoadingModal = ({
+  closeLoadingModal,
+  isLoadingModalOpen,
+}: {
+  closeLoadingModal: () => void;
+  isLoadingModalOpen: boolean;
+}) => {
   return (
     <>
-        <Transition appear show={isLoadingModalOpen} as={Fragment}>
-            <Dialog as="div" className="relative z-10" onClose={closeLoadingModal}>
-                <Transition.Child
+      <Transition appear show={isLoadingModalOpen} as={Fragment}>
+        <Dialog as='div' className='relative z-10' onClose={closeLoadingModal}>
+          <Transition.Child
+            as={Fragment}
+            enter='ease-out duration-300'
+            enterFrom='opacity-0'
+            enterTo='opacity-100'
+            leave='ease-in duration-200'
+            leaveFrom='opacity-100'
+            leaveTo='opacity-0'
+          >
+            <div className='fixed inset-0 bg-black bg-opacity-25' />
+          </Transition.Child>
+
+          <div className='fixed inset-0 overflow-y-auto'>
+            <div className='flex min-h-full items-center justify-center p-4 text-center'>
+              <Transition.Child
                 as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0"
-                enterTo="opacity-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100"
-                leaveTo="opacity-0"
-                >
-                <div className="fixed inset-0 bg-black bg-opacity-25" />
-                </Transition.Child>
-
-                <div className="fixed inset-0 overflow-y-auto">
-                <div className="flex min-h-full items-center justify-center p-4 text-center">
-                    <Transition.Child
-                    as={Fragment}
-                    enter="ease-out duration-300"
-                    enterFrom="opacity-0 scale-95"
-                    enterTo="opacity-100 scale-100"
-                    leave="ease-in duration-200"
-                    leaveFrom="opacity-100 scale-100"
-                    leaveTo="opacity-0 scale-95"
-                    >
-                    <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                        <Dialog.Title
-                        as="h3"
-                        className="text-lg font-medium leading-6 text-gray-900"
-                        >
-                        Your job is being uploaded, please wait...
-                        </Dialog.Title>
-                        <AiOutlineLoading className="animate-spin animate-loading duration-1500 ease-linear infinite"/>
-                    </Dialog.Panel>
-                    </Transition.Child>
-                </div>
-                </div>
-            </Dialog>
-        </Transition>
+                enter='ease-out duration-300'
+                enterFrom='opacity-0 scale-95'
+                enterTo='opacity-100 scale-100'
+                leave='ease-in duration-200'
+                leaveFrom='opacity-100 scale-100'
+                leaveTo='opacity-0 scale-95'
+              >
+                <Dialog.Panel className='w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all'>
+                  <Dialog.Title
+                    as='h3'
+                    className='text-lg font-medium leading-6 text-gray-900'
+                  >
+                    Your job is being uploaded, please wait...
+                  </Dialog.Title>
+                  <AiOutlineLoading className='animate-loading duration-1500 infinite animate-spin ease-linear' />
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
     </>
-  )
-}
+  );
+};
 
-export default LoadingModal
+export default LoadingModal;

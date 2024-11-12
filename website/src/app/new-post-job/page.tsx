@@ -1,20 +1,20 @@
-import React from 'react'
-import { Suspense } from 'react'
-import PostJobPage from '../dashboard/post-job/PostJobPage'
-import Image from 'next/image'
-import DefaultNavBar from '@/components/DefaultNavBar'
+import React from 'react';
+import { Suspense } from 'react';
+import PostJobPage from '../dashboard/post-job/PostJobPage';
+import Image from 'next/image';
+import DefaultNavBar from '@/components/DefaultNavBar';
 
 const page = () => {
   return (
     <>
-      <DefaultNavBar/>
-      <div className='max-w-6xl mx-auto mt-10'>
+      <DefaultNavBar />
+      <div className='mx-auto mt-10 max-w-6xl'>
         <Suspense fallback={<div>Loading...</div>}>
-          <PostJobPage/>
+          <PostJobPage />
         </Suspense>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default page
+export default page;

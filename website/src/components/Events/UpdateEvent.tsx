@@ -1,47 +1,48 @@
 import { type EventProps } from './index';
 import moment from 'moment';
-import { Fragment } from 'react'
-import { Badge } from '@/components/Badge'
+import { Fragment } from 'react';
+import { Badge } from '@/components/Badge';
 import { getAddress } from 'viem';
 import useUser from '@/hooks/useUser';
 import EventProfileImage from './Components/EventProfileImage';
 
-export function UpdateEvent({event, ...rest}: EventProps & React.ComponentPropsWithoutRef<'div'>) {
+export function UpdateEvent({
+  event,
+  ...rest
+}: EventProps & React.ComponentPropsWithoutRef<'div'>) {
   const address = getAddress(event.job.roles.creator);
   const href = `/dashboard/users/${address}`;
-  const {data: user} = useUser(address);
-  const date = moment(event.timestamp_ * 1000).fromNow()
+  const { data: user } = useUser(address);
+  const date = moment(event.timestamp_ * 1000).fromNow();
 
   return (
     <>
-      <div className="relative">
+      <div className='relative'>
         {user && <EventProfileImage user={user} />}
       </div>
-      <div className="min-w-0 flex-1 py-1.5">
-        <div className="text-sm text-gray-500 dark:text-gray-400">
-          <a href={href} className="font-medium text-gray-900 dark:text-gray-100">
+      <div className='min-w-0 flex-1 py-1.5'>
+        <div className='text-sm text-gray-500 dark:text-gray-400'>
+          <a
+            href={href}
+            className='font-medium text-gray-900 dark:text-gray-100'
+          >
             {user?.name}
           </a>{' '}
-          updated the job{' '}{' '}
-          <span className="whitespace-nowrap">{date}</span>
+          updated the job <span className='whitespace-nowrap'>{date}</span>
         </div>
 
-        <span className="mr-0.5 mt-2 flex gap-3 flex-col">
+        <span className='mr-0.5 mt-2 flex flex-col gap-3'>
           {event.diffs.map((diff) => (
             <div className='flex flex-row gap-1' key={diff.field}>
               <Fragment>
                 <span>{diff.field}:</span>
-                <Badge color="lime">
-                  {diff.newValue?.toString()}
-                </Badge>
-                <Badge color="red">
-                  {diff.oldValue?.toString()}
-                </Badge>
+                <Badge color='lime'>{diff.newValue?.toString()}</Badge>
+                <Badge color='red'>{diff.oldValue?.toString()}</Badge>
               </Fragment>
             </div>
           ))}
         </span>
       </div>
     </>
-  )
+  );
 }

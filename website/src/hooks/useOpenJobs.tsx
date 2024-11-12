@@ -1,6 +1,5 @@
-import useJobs from "./useJobs";
-import { Job, JobState } from "effectiveacceleration-contracts";
-
+import useJobs from './useJobs';
+import { Job, JobState } from 'effectiveacceleration-contracts';
 
 export default function useOpenJobs() {
   const { data, ...rest } = useJobs();

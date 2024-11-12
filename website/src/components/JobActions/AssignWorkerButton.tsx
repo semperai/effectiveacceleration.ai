@@ -1,12 +1,12 @@
-import { Button } from '@/components/Button'
-import { CheckIcon } from "@heroicons/react/20/solid";
-import { Job, User } from "effectiveacceleration-contracts";
-import { MARKETPLACE_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceV1";
-import Config from "effectiveacceleration-contracts/scripts/config.json";
-import { useEffect, useState } from "react";
-import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
-import { Dialog, Transition } from '@headlessui/react'
-import { Fragment } from 'react'
+import { Button } from '@/components/Button';
+import { CheckIcon } from '@heroicons/react/20/solid';
+import { Job, User } from 'effectiveacceleration-contracts';
+import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
+import Config from 'effectiveacceleration-contracts/scripts/config.json';
+import { useEffect, useState } from 'react';
+import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
+import { Dialog, Transition } from '@headlessui/react';
+import { Fragment } from 'react';
 import useUsers from '@/hooks/useUsers';
 import { Listbox, ListboxOption } from '../Listbox';
 import { formatTokenNameAndAmount } from '@/tokens';
@@ -14,41 +14,47 @@ import moment from 'moment';
 import { jobMeceTags } from '@/utils/jobMeceTags';
 import clsx from 'clsx';
 
-
 export type AssignWorkerButtonProps = {
-  address: `0x${string}` | undefined,
-  job: Job,
-  selectedWorker: string
-}
+  address: `0x${string}` | undefined;
+  job: Job;
+  selectedWorker: string;
+};
 
-export function AssignWorkerButton({address, job, selectedWorker, ...rest}: AssignWorkerButtonProps & React.ComponentPropsWithoutRef<'div'>) {
-  const {data: users} = useUsers();
-  const excludes = [address]
-  const userList = users.filter(user => !excludes.includes(user.address_));
-  const [selectedUserAddress, setSelectedUserAddress] = useState<`0x${string}` | undefined>(undefined);
-  const jobMeceTag = jobMeceTags.find(tag => tag.id === job?.tags[0])?.name
-  const {
-    data: hash,
-    error,
-    writeContract,
-  } = useWriteContract();
+export function AssignWorkerButton({
+  address,
+  job,
+  selectedWorker,
+  ...rest
+}: AssignWorkerButtonProps & React.ComponentPropsWithoutRef<'div'>) {
+  const { data: users } = useUsers();
+  const excludes = [address];
+  const userList = users.filter((user) => !excludes.includes(user.address_));
+  const [selectedUserAddress, setSelectedUserAddress] = useState<
+    `0x${string}` | undefined
+  >(undefined);
+  const jobMeceTag = jobMeceTags.find((tag) => tag.id === job?.tags[0])?.name;
+  const { data: hash, error, writeContract } = useWriteContract();
 
-  const {
-    isLoading: isConfirming,
-    isSuccess: isConfirmed,
-  } = useWaitForTransactionReceipt({
-    hash
-  });
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({
+      hash,
+    });
 
   useEffect(() => {
     if (isConfirmed || error) {
       if (error) {
-        const revertReason = error.message.match(`The contract function ".*" reverted with the following reason:\n(.*)\n.*`)?.[1];
+        const revertReason = error.message.match(
+          `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
+        )?.[1];
         if (revertReason) {
-          alert(error.message.match(`The contract function ".*" reverted with the following reason:\n(.*)\n.*`)?.[1])
+          alert(
+            error.message.match(
+              `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
+            )?.[1]
+          );
         } else {
           console.log(error, error.message);
-          alert("Unknown error occurred");
+          alert('Unknown error occurred');
         }
       }
       setButtonDisabled(false);
@@ -58,77 +64,102 @@ export function AssignWorkerButton({address, job, selectedWorker, ...rest}: Assi
 
   const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
 
-
   async function buttonClick() {
     setButtonDisabled(true);
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
       address: Config.marketplaceAddress as `0x${string}`,
       functionName: 'payStartJob',
-      args: [
-        job.id!,
-        selectedWorker as `0x${string}`,
-      ],
+      args: [job.id!, selectedWorker as `0x${string}`],
     });
   }
 
-  let [isOpen, setIsOpen] = useState(false)
+  let [isOpen, setIsOpen] = useState(false);
 
   function closeModal() {
-    setIsOpen(false)
+    setIsOpen(false);
   }
 
   function openModal() {
-    setIsOpen(true)
+    setIsOpen(true);
   }
-  
-  return <>
-    <Button disabled={buttonDisabled} onClick={() => openModal()} color={'purplePrimary'} className={'w-full'}>
-      Start Job with WORKER
-    </Button>
+
+  return (
+    <>
+      <Button
+        disabled={buttonDisabled}
+        onClick={() => openModal()}
+        color={'purplePrimary'}
+        className={'w-full'}
+      >
+        Start Job with WORKER
+      </Button>
       <Transition appear show={isOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-10" onClose={closeModal}>
+        <Dialog as='div' className='relative z-10' onClose={closeModal}>
           <Transition.Child
             as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
+            enter='ease-out duration-300'
+            enterFrom='opacity-0'
+            enterTo='opacity-100'
+            leave='ease-in duration-200'
+            leaveFrom='opacity-100'
+            leaveTo='opacity-0'
           >
-            <div className="fixed inset-0 bg-black bg-opacity-25" />
+            <div className='fixed inset-0 bg-black bg-opacity-25' />
           </Transition.Child>
 
-          <div className="fixed inset-0 overflow-y-auto">
-            <div className="flex min-h-full items-center justify-center p-4 text-center">
+          <div className='fixed inset-0 overflow-y-auto'>
+            <div className='flex min-h-full items-center justify-center p-4 text-center'>
               <Transition.Child
                 as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
+                enter='ease-out duration-300'
+                enterFrom='opacity-0 scale-95'
+                enterTo='opacity-100 scale-100'
+                leave='ease-in duration-200'
+                leaveFrom='opacity-100 scale-100'
+                leaveTo='opacity-0 scale-95'
               >
-                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                <Dialog.Panel className='w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all'>
                   <Dialog.Title
-                    as="h3"
-                    className="text-lg font-medium leading-6  mb-4"
+                    as='h3'
+                    className='mb-4 text-lg font-medium leading-6'
                   >
                     Review job details
                   </Dialog.Title>
                   <div className='flex flex-col'>
-                    <span><b>Title:</b> {job.title}</span>
-                    <span><b>Content:</b> {job.content}</span>
-                    <span><b>delivery Method:</b> {job.deliveryMethod}</span>
-                    <span><b>Max Time:</b> { moment.duration(job?.maxTime, "days").humanize() } </span>
-                    <span><b>Amount:</b> {formatTokenNameAndAmount(job.token, job.amount)}</span>
-                    <span><b>Worker:</b> {selectedWorker}</span>
-                    <span><b>Category:</b> {jobMeceTag}</span>
-                    <span><b>Tags:</b> {job?.tags.slice(1).map((value, index) => <span key={index}>{value}</span>)}</span>
+                    <span>
+                      <b>Title:</b> {job.title}
+                    </span>
+                    <span>
+                      <b>Content:</b> {job.content}
+                    </span>
+                    <span>
+                      <b>delivery Method:</b> {job.deliveryMethod}
+                    </span>
+                    <span>
+                      <b>Max Time:</b>{' '}
+                      {moment.duration(job?.maxTime, 'days').humanize()}{' '}
+                    </span>
+                    <span>
+                      <b>Amount:</b>{' '}
+                      {formatTokenNameAndAmount(job.token, job.amount)}
+                    </span>
+                    <span>
+                      <b>Worker:</b> {selectedWorker}
+                    </span>
+                    <span>
+                      <b>Category:</b> {jobMeceTag}
+                    </span>
+                    <span>
+                      <b>Tags:</b>{' '}
+                      {job?.tags
+                        .slice(1)
+                        .map((value, index) => (
+                          <span key={index}>{value}</span>
+                        ))}
+                    </span>
                   </div>
-                  <div className='mt-5 mb-3 flex flex-col gap-5'>
+                  <div className='mb-3 mt-5 flex flex-col gap-5'>
                     <Button disabled={buttonDisabled} onClick={buttonClick}>
                       Confirm
                     </Button>
@@ -139,5 +170,6 @@ export function AssignWorkerButton({address, job, selectedWorker, ...rest}: Assi
           </div>
         </Dialog>
       </Transition>
-  </>
+    </>
+  );
 }

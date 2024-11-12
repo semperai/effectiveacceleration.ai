@@ -4,27 +4,35 @@ import useUser from '@/hooks/useUser';
 import { getAddress } from 'viem';
 import EventProfileImage from './Components/EventProfileImage';
 
-export function ReopenedEvent({event, ...rest}: EventProps & React.ComponentPropsWithoutRef<'div'>) {
+export function ReopenedEvent({
+  event,
+  ...rest
+}: EventProps & React.ComponentPropsWithoutRef<'div'>) {
   const address = getAddress(event.job.roles.creator);
   const href = `/dashboard/users/${address}`;
-  const {data: user} = useUser(address);
-  const date = moment(event.timestamp_ * 1000).fromNow()
+  const { data: user } = useUser(address);
+  const date = moment(event.timestamp_ * 1000).fromNow();
 
   return (
     <>
-      <div className="relative">
+      <div className='relative'>
         {user && <EventProfileImage user={user} />}
       </div>
-      <div className="min-w-0 flex-1">
+      <div className='min-w-0 flex-1'>
         <div>
-          <div className="text-sm">
-            <a href={href} className="font-medium text-gray-900 dark:text-gray-100">
+          <div className='text-sm'>
+            <a
+              href={href}
+              className='font-medium text-gray-900 dark:text-gray-100'
+            >
               {user?.name}
             </a>
           </div>
-          <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">Reopened the job {date}</p>
+          <p className='mt-0.5 text-sm text-gray-500 dark:text-gray-400'>
+            Reopened the job {date}
+          </p>
         </div>
       </div>
     </>
-  )
+  );
 }
