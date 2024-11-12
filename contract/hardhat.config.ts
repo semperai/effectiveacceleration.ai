@@ -63,7 +63,12 @@ const config: HardhatUserConfig = {
       },
       url: "https://sepolia-rollup.arbitrum.io/rpc",
       chainId: 421614
-    }
+    },
+    arbitrum: {
+      accounts: [process.env.PRIVATE_KEY],
+      url: "https://arbitrum.llamarpc.com",
+      chainId: 42161,
+    },
   },
   // limit is 24.576 KiB
   contractSizer: {
