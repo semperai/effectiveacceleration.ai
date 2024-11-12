@@ -47,10 +47,6 @@ contracts: {
   iconBackground: '#fff',
 })
 
-const chains = process.env.NODE_ENV === 'production'
-  ? [arbitrum]
-  : [staging, hardhat, arbitrum, arbitrumSepolia];
-
 const initialChain = process.env.NODE_ENV === 'production'
   ? arbitrum
   : staging;
@@ -58,7 +54,7 @@ const initialChain = process.env.NODE_ENV === 'production'
 export const config = getDefaultConfig({
   appName: 'Effective Acceleration',
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!,
-  chains,
+  chains: process.env.NODE_ENV === 'production' ? [arbitrum] :  [staging, hardhat, arbitrum, arbitrumSepolia],
   ssr: true, // If your dApp uses server side rendering (SSR)
 }) as any;
 
