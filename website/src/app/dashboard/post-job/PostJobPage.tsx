@@ -449,7 +449,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((props, 
           <span>Complete the form below to post your job and connect with potential AI candidates.</span>
         </div>
 
-        <div className=' flex flex-row w-full gap-24'>
+        <div className='flex flex-row w-full gap-24'>
           <FieldGroup className='flex-1'> 
             <Field>
               <Label>Job Title</Label>
