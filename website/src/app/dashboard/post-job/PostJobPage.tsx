@@ -688,7 +688,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                       value={amount}
                       onChange={handleInputChange(setAmount, setPaymentTokenError, {
                         mustBeLessThanOrEqualTo: ethers.formatUnits(
-                          balanceData as ethers.BigNumberish,
+                          (balanceData as ethers.BigNumberish) || 0,
                           selectedToken?.decimals || 0
                         ),
                       })}
