@@ -14,6 +14,11 @@ if (!MNEMONIC) {
   MNEMONIC = "rebuild always symbol rabbit sunset napkin laundry diary doll chalk valid train";
 }
 
+let PRIVATE_KEY = process.env.PRIVATE_KEY;
+if (!PRIVATE_KEY) {
+  PRIVATE_KEY = "0x" + "0".repeat(64);
+}
+
 const config: HardhatUserConfig = {
   solidity: {
     compilers: [
@@ -65,7 +70,7 @@ const config: HardhatUserConfig = {
       chainId: 421614
     },
     arbitrum: {
-      accounts: [process.env.PRIVATE_KEY],
+      accounts: [PRIVATE_KEY],
       url: "https://arbitrum.llamarpc.com",
       chainId: 42161,
     },
