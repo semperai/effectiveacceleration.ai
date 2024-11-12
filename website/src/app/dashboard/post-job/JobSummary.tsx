@@ -27,7 +27,7 @@ const JobSummary: React.FC<JobSummaryProps> = ({
       <div className='mb-6'>
         <h1 className='mb-1 text-3xl font-bold'>Summary</h1>
         <span className='text-darkBlueFont'>
-          Before you submit your form, check your answers.
+          Before you submit your job, please double check your answers.
         </span>
       </div>
       <div className='flex flex-col rounded-3xl bg-white p-8 shadow-md'>
