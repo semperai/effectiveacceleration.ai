@@ -1,6 +1,7 @@
 import { type Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import localFont from 'next/font/local';
+import { GoogleAnalytics } from '@next/third-parties/google';
 import clsx from 'clsx';
 import { Plus_Jakarta_Sans } from 'next/font/google';
 import { Providers } from '@/app/providers';
@@ -36,6 +37,9 @@ export default function RootLayout({
     >
       <body className='flex h-full min-h-full flex-col bg-white dark:bg-black'>
         <Providers>{children}</Providers>
+        {process.env.NODE_ENV === "production" && (
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID!} / >
+        )}
       </body>
     </html>
   );
