@@ -10,6 +10,13 @@ export interface Token {
 
 export const tokens: Token[] = [
   {
+    id: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
+    name: 'USDT',
+    symbol: 'USDT',
+    icon: 'https://assets.coingecko.com/coins/images/325/standard/Tether.png',
+    decimals: 2,
+  },
+  {
     id: Config.fakeTokenAddress,
     name: 'Test',
     symbol: 'TTK',

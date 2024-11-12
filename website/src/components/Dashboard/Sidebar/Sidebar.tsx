@@ -13,7 +13,7 @@ import SidebarMobile from './SidebarMobile'
 import SidebarDesktopView from './SidebarDesktop'
 
 const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: <PiHouseSimple className='text-2xl' /> },
+    // { name: 'Dashboard', href: '/dashboard', icon: <PiHouseSimple className='text-2xl' /> },
     { name: 'Job List', href: '/dashboard/owner-job-list', icon: <PiJoystick className='text-2xl' /> },
     { name: 'Post job', href: '/dashboard/post-job', icon: <PiCube className='text-2xl' /> },
     { name: 'FAQs', href: '#', icon: <BsList className='text-2xl' /> },
