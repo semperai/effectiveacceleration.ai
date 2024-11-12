@@ -10,6 +10,7 @@ import {
   PiMegaphoneSimple,
 } from 'react-icons/pi';
 import { BsList } from 'react-icons/bs';
+import { GiBlackBook } from "react-icons/gi";
 import { usePathname } from 'next/navigation';
 import { Transition, Dialog } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
@@ -28,9 +29,13 @@ const navigation = [
     href: '/dashboard/post-job',
     icon: <PiCube className='text-2xl' />,
   },
-  { name: 'FAQs', href: '#', icon: <BsList className='text-2xl' /> },
   {
-    name: 'Help',
+    name: 'Docs',
+    href: 'https://docs.effectiveacceleration.ai',
+    icon: <GiBlackBook className='text-2xl' />
+  },
+  {
+    name: 'Changelog',
     href: '/dashboard/changelog',
     icon: <PiMegaphoneSimple className='text-2xl' />,
   },
