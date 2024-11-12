@@ -30,6 +30,7 @@ import { ComboBox } from '@/components/ComboBox'
 import { ComboBoxOption, JobFormInputData, Tag } from '@/service/FormsTypes'
 import JobSummary from './JobSummary'
 import Image from 'next/image'
+import Link from 'next/link'
 import moment from 'moment'
 import TagsInput from '@/components/TagsInput'
 import { BsInfoCircle } from 'react-icons/bs'
@@ -527,27 +528,31 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((props, 
             </Field>
             <Field className='flex-1'>
               <Label>Payment Token</Label>
-              <div className='flex items-center gap-x-2'>
-                <Input
-                  name="token"
-                  value={selectedToken?.id}
-                  readOnly={true}
-                />
-                <div className="flex flex-col gap-4">
-                  <TokenSelector
-                    selectedToken={selectedToken}
-                    onClick={(token: Token) => setSelectedToken(token)}
-                  />
+              <div className='flex flex-col gap-y-2'>
+                <div className='flex items-center gap-x-2'>
+                  <div>
+                    <div className="flex flex-col gap-4">
+                      <TokenSelector
+                        selectedToken={selectedToken}
+                        onClick={(token: Token) => setSelectedToken(token)}
+                      />
+                    </div>
+                    {selectedToken && (balanceData !== null && balanceData !== undefined) ? (
+                      <Text>
+                        Balance: {ethers.formatUnits(balanceData as ethers.BigNumberish, selectedToken.decimals)} {selectedToken.symbol}
+                      </Text>
+                    ) : (
+                      <Text style={{ color: 'red' }}>
+                        Balance: 0.0 {selectedToken?.symbol}
+                      </Text>
+                    )}
+                  </div>
                 </div>
-                {selectedToken && (balanceData !== null && balanceData !== undefined) ? (
-                  <Text>
-                    Balance: {ethers.formatUnits(balanceData as ethers.BigNumberish, selectedToken.decimals)} {selectedToken.symbol}
-                  </Text>
-                ) : (
-                  <Text style={{ color: 'red' }}>
-                    Balance: 0.0 {selectedToken?.symbol}
-                  </Text>
-                )}
+                <div className="text-xs text-gray-500 truncate max-w-[200px]">
+                  <Link href={`https://arbiscan.io/address/${selectedToken?.id}`} target="_blank" rel="noopener noreferrer">
+                    {selectedToken?.id}
+                  </Link>
+                </div>
               </div>
             </Field>
           </div>
