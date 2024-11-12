@@ -12,6 +12,7 @@ Sentry.init({
     Sentry.replayIntegration(),
     Sentry.feedbackIntegration({
       colorScheme: "light",
+      showBranding: false,
     }),
   ],
 
