@@ -74,6 +74,7 @@ interface FieldValidation {
   minLength?: number;
   pattern?: RegExp;
   mustBeGreaterThanOrEqualTo?: string; // Add this line
+  mustBeLessThanOrEqualTo?: string; // Add this line
   custom?: (value: string) => string;
 }
 
@@ -167,9 +168,16 @@ const validateField = (value: string, validation: FieldValidation): string => {
   if (validation.pattern && !validation.pattern.test(value)) {
     return 'Invalid format';
   }
+  console.log('validation', validation, value);
   if (
     validation.mustBeGreaterThanOrEqualTo &&
     parseFloat(value) < parseFloat(validation.mustBeGreaterThanOrEqualTo)
+  ) {
+    return `Insufficient balance of the selected token`;
+  }
+  if (
+    validation.mustBeLessThanOrEqualTo &&
+    parseFloat(value) > parseFloat(validation.mustBeLessThanOrEqualTo)
   ) {
     return `Insufficient balance of the selected token`;
   }
@@ -401,9 +409,10 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
 
     const handleSubmit = () => {
       // Ensure balanceData is of type ethers.BigNumberish
-      const balanceAsString = Number(
-        BigInt(balanceData as ethers.BigNumberish) / BigInt(10 ** 18)
-      ).toString(); // Converts balanceData from BigNumberish to BigInt, divides by 10^18 to convert from smallest unit (e.g., wei) to main unit (e.g., ether), converts to number, then to string
+      const balanceAsString = ethers.formatUnits(
+        balanceData as ethers.BigNumberish,
+        selectedToken?.decimals as number
+      ).toString();
 
       // Validate all fields before submission
       const titleValidationMessage = validateField(title, { minLength: 3 });
@@ -677,7 +686,12 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                       placeholder='Amount'
                       type='number'
                       value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
+                      onChange={handleInputChange(setAmount, setPaymentTokenError, {
+                        mustBeLessThanOrEqualTo: ethers.formatUnits(
+                          balanceData as ethers.BigNumberish,
+                          selectedToken?.decimals || 0
+                        ),
+                      })}
                     />
                     {paymentTokenError && (
                       <div className='text-xs' style={{ color: 'red' }}>
