@@ -20,6 +20,7 @@ export function Listbox<T>({
   autoFocus,
   'aria-label': ariaLabel,
   children: options,
+  dataSentryComponent,
   ...props
 }: {
   className?: string
@@ -27,6 +28,7 @@ export function Listbox<T>({
   autoFocus?: boolean
   'aria-label'?: string
   children?: React.ReactNode
+  dataSentryComponent?: string
 } & Omit<HeadlessListboxProps<typeof Fragment, T>, 'multiple'>) {
   return (
     <HeadlessListbox {...props} multiple={false}>
