@@ -541,7 +541,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((props, 
                 </div>
                 {selectedToken && (balanceData !== null && balanceData !== undefined) ? (
                   <Text>
-                    Balance: {ethers.formatEther(balanceData as ethers.BigNumberish)} {selectedToken.symbol}
+                    Balance: {ethers.formatUnits(balanceData as ethers.BigNumberish, selectedToken.decimals)} {selectedToken.symbol}
                   </Text>
                 ) : (
                   <Text style={{ color: 'red' }}>

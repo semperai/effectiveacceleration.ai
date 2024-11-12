@@ -435,7 +435,7 @@ function PostJobForm() {
                 </div>
                 {selectedToken && !!balanceData && (
                   <Text>
-                    {ethers.formatEther(balanceData as ethers.BigNumberish)}
+                    {ethers.formatUnits(balanceData as ethers.BigNumberish, selectedToken.decimals)}
                     {' '}
                     {selectedToken.symbol} available
                   </Text>

@@ -14,7 +14,7 @@ export const tokens: Token[] = [
     name: 'USDT',
     symbol: 'USDT',
     icon: 'https://assets.coingecko.com/coins/images/325/standard/Tether.png',
-    decimals: 2,
+    decimals: 6,
   },
   {
     id: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
