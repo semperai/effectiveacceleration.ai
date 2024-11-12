@@ -2,17 +2,18 @@
 // import "@nomicfoundation/hardhat-ethers";
 // import "@openzeppelin/hardhat-upgrades";
 const { ethers, upgrades } = require("hardhat");
+const hre = require("hardhat");
 
 import { MarketplaceV1 as Marketplace } from '../typechain-types/contracts/MarketplaceV1';
 import { MarketplaceDataV1 as MarketplaceData } from "../typechain-types/contracts/MarketplaceDataV1";
 import * as fs from 'fs'
 
-let marketplaceFeeAddress = "0x000000000000000000000000000000000000beef";
+let marketplaceFeeAddress = "0xF20D0ebD8223DfF22cFAf05F0549021525015577";
 
-let unicrowAddress = "0x6d98b03C09EaD582a77C093bdb2d3E85683Aa956";
-let unicrowDisputeAddress = "0x3dC5d22716599e7FcD1bbB1752544D9dfa7e719E";
-let unicrowArbitratorAddress = "0xdB400Dd10a4A645c2C1429b3A48F1449E7e4F64A";
-let unicrowClaimAddress = "0x7761D841D83c5Aeb876DB2b110798C668cd83872"
+let unicrowAddress = "0x78AEe48cCEBCcEe05F550849A7C7Baa1e0837a6D";
+let unicrowDisputeAddress = "0xdC14E36ac67Cd3B8eE25a9c2309EcE6087e93225";
+let unicrowArbitratorAddress = "0xdC14E36ac67Cd3B8eE25a9c2309EcE6087e93225";
+let unicrowClaimAddress = "0x5902AF8be15c80794C3229aD4E68aa69845Cc5fC"
 
 async function main() {
   const signers = await ethers.getSigners();
