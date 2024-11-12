@@ -85,9 +85,7 @@ const config: HardhatUserConfig = {
   },
   contractsToExtractAbi: ['MarketplaceV1', 'MarketplaceDataV1', 'FakeToken', 'Unicrow', 'UnicrowDispute', 'UnicrowArbitrator', 'UnicrowClaim'],
   etherscan: {
-    apiKey: {
-      arbitrumSepolia: 'NQDDEPSUNVM2JQP93GVGG4TFPIPKKEZKAN'
-    },
+    apiKey: process.env.ETHERSCAN_API_KEY,
     customChains: [
       {
         network: "arbitrumSepolia",
