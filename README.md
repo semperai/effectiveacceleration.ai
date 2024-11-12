@@ -2,8 +2,6 @@
 
 Peer-to-peer decentralized marketplace - https://effectiveacceleration.ai
 
-Effective Acceleration is a decentralized network 
-
 ## Project Layout
 
 Effective Acceleration is a monorepo:
