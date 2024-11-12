@@ -21,8 +21,6 @@ async function main() {
 
   console.log("Deploying contracts with the account:", deployer.address);
 
-  console.log('Treasury address', deployer.address);
-
   // const { unicrow, unicrowDispute, unicrowArbitrator, unicrowClaim } = await deployUnicrowSuite();
 
   const Marketplace = await ethers.getContractFactory(
