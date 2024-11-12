@@ -1,14 +1,8 @@
 'use client'
 
-import { ThemeProvider } from 'next-themes'
-
 import '@rainbow-me/rainbowkit/styles.css';
-
-
 import {
   getDefaultConfig,
-  lightTheme,
-  darkTheme,
   RainbowKitProvider,
 } from '@rainbow-me/rainbowkit';
 import { WagmiProvider } from 'wagmi';
@@ -57,6 +51,10 @@ const chains = process.env.NODE_ENV === 'production'
   ? [arbitrum]
   : [staging, hardhat, arbitrum, arbitrumSepolia];
 
+const initialChain = process.env.NODE_ENV === 'production'
+  ? arbitrum
+  : staging;
+
 export const config = getDefaultConfig({
   appName: 'Effective Acceleration',
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!,
@@ -71,16 +69,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider
-          initialChain={arbitrumSepolia}
-          theme={{
-            lightMode: lightTheme(),
-            darkMode: darkTheme(),
-          }}
-        >
-          <ThemeProvider defaultTheme="light" attribute="class" disableTransitionOnChange>
-            {children}
-          </ThemeProvider>
+        <RainbowKitProvider initialChain={initialChain} >
+          {children}
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
