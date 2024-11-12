@@ -837,7 +837,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
               </FieldGroup>
             </div>
             {!showSummary && (
-              <div className='flex justify-end'>
+              <div className='flex justify-end mt-5 mb-40'>
                 <Button
                   // disabled={postButtonDisabled || isPending}
                   // onClick={postJobClick}
