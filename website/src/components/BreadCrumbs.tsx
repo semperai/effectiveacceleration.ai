@@ -1,4 +1,3 @@
-// /components/BreadCrumbs.tsx
 'use client';
 
 import React, { ReactNode, useEffect, useMemo, useState } from 'react';
@@ -41,8 +40,10 @@ const BreadCrumbs = ({
           let itemClasses =
             paths === href ? `${listClasses} ${activeClasses}` : listClasses;
           let itemLink = capitalizeLinks
-            ? link[0].toUpperCase() + link.slice(1, link.length)
-            : link;
+            ? link[0].toUpperCase() +
+              link.slice(1, link.length).replace(/-/g, ' ')
+            : link.replace(/-/g, ' ');
+          console.log(itemLink, 'ITEM LINK');
           return (
             <React.Fragment key={index}>
               <li

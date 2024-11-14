@@ -17,17 +17,13 @@ const getValidJobsCount = (title: string, localJobs?: Job[]): number => {
   if (!localJobs) return 0;
   switch (title) {
     case 'Open Jobs':
-      return localJobs.filter(
-        (job) =>
-          job.lastJobEvent?.type_ === JobEventType.Reopened ||
-          job.lastJobEvent?.type_ === JobEventType.Created ||
-          !job.lastJobEvent
-      ).length;
+      return localJobs.filter((job) => job.state === JobState.Open).length;
     case 'All Jobs':
       return localJobs.filter((job) => job).length;
     case 'In Progress':
       return localJobs.filter(
         (job) =>
+          job.state === JobState.Taken ||
           job.lastJobEvent?.type_ === JobEventType.Taken ||
           job.lastJobEvent?.type_ === JobEventType.Delivered ||
           job.lastJobEvent?.type_ === JobEventType.Paid
@@ -47,6 +43,10 @@ const getValidJobsCount = (title: string, localJobs?: Job[]): number => {
       return localJobs.filter(
         (job) => job.lastJobEvent?.type_ === JobEventType.Disputed
       ).length;
+    case 'Started Jobs':
+      return localJobs.filter((job) => job.state === JobState.Taken).length;
+    case 'Job Aplications':
+      return localJobs.filter((job) => job.state === JobState.Open).length;
     default:
       return 0;
   }
@@ -68,17 +68,21 @@ function JobsTable<T>({
   const [dataRow, setDataRow] = useState(false);
   const { address } = useAccount();
   const { data: user } = useUser(address!);
+  console.log(localJobs, 'LOCAL JOBS');
   useEffect(() => {
     if (localJobs?.length === 0) return;
     setJobCount(getValidJobsCount(title, localJobs));
-  }, [localJobs, table]);
+  }, [localJobs]);
 
   useEffect(() => {
+    console.log(loading, 'LOADING');
     if (table.getRowModel().rows.length === 0 && localJobs?.length === 0)
       return;
     setLoading(false);
     setDataRow(true);
   }, [table, dataRow]);
+
+  console.log(table, dataRow, jobCount, localJobs, 'TAB DATA');
 
   return (
     <>

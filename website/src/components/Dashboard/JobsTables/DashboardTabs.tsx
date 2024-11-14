@@ -69,25 +69,26 @@ const DashboardTabs = () => {
     const filteredDisputedJobs: Job[] = [];
 
     selectedJobs.forEach((job, index) => {
+      const localJob = localJobs.find((localJob) => localJob.id === job.id);
       if (job.state === JobState.Open) {
         filteredOpenJobs.push(job);
       } else if (job.state === JobState.Taken) {
         filteredJobsInProgress.push(job);
       } else if (
         (job.state === JobState.Closed &&
-          localJobs[index]?.lastJobEvent?.type_ === JobEventType.Completed) ||
-        localJobs[index].lastJobEvent?.type_ === JobEventType.Rated ||
-        localJobs[index].lastJobEvent?.type_ === JobEventType.Arbitrated
+          localJob?.lastJobEvent?.type_ === JobEventType.Completed) ||
+        localJob?.lastJobEvent?.type_ === JobEventType.Rated ||
+        localJob?.lastJobEvent?.type_ === JobEventType.Arbitrated
       ) {
         filteredCompletedJobs.push(job);
       } else if (
         job.state === JobState.Closed &&
-        localJobs[index]?.lastJobEvent?.type_ === JobEventType.Closed
+        localJob?.lastJobEvent?.type_ === JobEventType.Closed
       ) {
         filteredCancelledJobs.push(job);
       } else if (
         job.state === JobState.Taken &&
-        localJobs[index]?.lastJobEvent?.type_ === JobEventType.Disputed
+        localJob?.lastJobEvent?.type_ === JobEventType.Disputed
       ) {
         filteredDisputedJobs.push(job);
       }
