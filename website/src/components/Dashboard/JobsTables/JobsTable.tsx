@@ -64,7 +64,7 @@ function JobsTable<T>({
   filteredJobs?: Job[];
 }) {
   const [loading, setLoading] = useState(true);
-  const [jobCount, setJobCount] = useState(-1);
+  const [jobCount, setJobCount] = useState(0);
   const [dataRow, setDataRow] = useState(false);
   const { address } = useAccount();
   const { data: user } = useUser(address!);
