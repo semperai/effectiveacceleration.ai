@@ -94,8 +94,14 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     }
 
     event VersionChanged(uint256 indexed version);
-
-    event NotificationBroadcast(address indexed addr, uint256 indexed id);
+    event MarketplaceDataAddressChanged(address marketplaceDataAddress);
+    event UnicrowAddressesChanged(
+        address unicrowAddress,
+        address unicrowDisputeAddress,
+        address unicrowArbitratorAddress
+    );
+    event UnicrowMarketplaceFeeChanged(uint16 unicrowMarketplaceFee);
+    event TreasuryAddressChanged(address treasuryAddress);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -126,12 +132,29 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
 
         treasuryAddress = treasuryAddress_;
         unicrowMarketplaceFee = unicrowMarketplaceFee_;
+
+        emit UnicrowAddressesChanged(
+            unicrowAddress_,
+            unicrowDisputeAddress_,
+            unicrowArbitratorAddress_
+        );
+
+        emit TreasuryAddressChanged(treasuryAddress_);
+        emit UnicrowMarketplaceFeeChanged(unicrowMarketplaceFee_);
     }
 
     function setMarketplaceDataAddress(
         address marketplaceDataAddress_
     ) public onlyOwner {
         marketplaceData = MarketplaceDataV1(marketplaceDataAddress_);
+        emit MarketplaceDataAddressChanged(marketplaceDataAddress_);
+    }
+
+    function setUnicrowMarketplaceFee(
+        uint16 unicrowMarketplaceFee_
+    ) public onlyOwner {
+        unicrowMarketplaceFee = unicrowMarketplaceFee_;
+        emit UnicrowMarketplaceFeeChanged(unicrowMarketplaceFee_);
     }
 
     /// @notice Transfer ownership
@@ -164,6 +187,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         address treasuryAddress_
     ) public onlyOwner {
         treasuryAddress = treasuryAddress_;
+        emit TreasuryAddressChanged(treasuryAddress_);
     }
 
     function updateUnicrowAddresses(
@@ -174,6 +198,12 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         unicrowAddress = unicrowAddress_;
         unicrowDisputeAddress = unicrowDisputeAddress_;
         unicrowArbitratorAddress = unicrowArbitratorAddress_;
+
+        emit UnicrowAddressesChanged(
+            unicrowAddress_,
+            unicrowDisputeAddress_,
+            unicrowArbitratorAddress_
+        );
     }
 
     function jobsLength() public view returns (uint256) {
@@ -260,7 +290,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         string calldata deliveryMethod_,
         address arbitrator_,
         address[] calldata allowedWorkers_
-    ) public returns (uint256) {
+    ) public whenNotPaused returns (uint256) {
         checkParams(title_, tags_, amount_, arbitrator_, msg.sender);
 
         require(
@@ -341,7 +371,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         uint32 maxTime_,
         address arbitrator_,
         bool whitelistWorkers_
-    ) public onlyJobCreator(jobId_) {
+    ) public whenNotPaused onlyJobCreator(jobId_) {
         require(jobs[jobId_].state == uint8(JobState.Open), "not open");
 
         checkParams(
@@ -424,7 +454,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         uint256 jobId_,
         address[] memory allowedWorkers_,
         address[] memory disallowedWorkers_
-    ) public onlyJobCreator(jobId_) {
+    ) public whenNotPaused onlyJobCreator(jobId_) {
         _updateJobWhitelist(jobId_, allowedWorkers_, disallowedWorkers_);
     }
 
@@ -469,7 +499,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      * @notice If it's been more than 24 hrs since the job was posted, the collateral will be automatically returned.
      * @notice Otherwise the buyer must withdraw the collateral separately.
      */
-    function closeJob(uint256 jobId_) public onlyJobCreator(jobId_) {
+    function closeJob(uint256 jobId_) public whenNotPaused onlyJobCreator(jobId_) {
         require(jobs[jobId_].state == uint8(JobState.Open), "not open");
         JobPost storage job = jobs[jobId_];
         job.state = uint8(JobState.Closed);
@@ -500,7 +530,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     /**
      * @notice Withdraw collateral from the closed job
      */
-    function withdrawCollateral(uint256 jobId_) public {
+    function withdrawCollateral(uint256 jobId_) public whenNotPaused {
         // check if the job is closed
         require(jobs[jobId_].state == uint8(JobState.Closed), "not closed");
 
@@ -530,7 +560,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         );
     }
 
-    function reopenJob(uint256 jobId_) public onlyJobCreator(jobId_) {
+    function reopenJob(uint256 jobId_) public whenNotPaused onlyJobCreator(jobId_) {
         JobPost storage job = jobs[jobId_];
 
         require(job.state == uint8(JobState.Closed), "not closed");
@@ -562,7 +592,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         );
     }
 
-    function postThreadMessage(uint256 jobId_, bytes32 contentHash_, address recipient) public {
+    function postThreadMessage(uint256 jobId_, bytes32 contentHash_, address recipient) public whenNotPaused {
         require(jobs[jobId_].state != uint8(JobState.Closed), "job closed");
         require(msg.sender != recipient, "can't message yourself");
 
@@ -614,7 +644,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      * @param jobId_ id of the job
      * @param signature_ worker's signature of all the job parameters
      */
-    function takeJob(uint256 jobId_, bytes calldata signature_) public {
+    function takeJob(uint256 jobId_, bytes calldata signature_) public whenNotPaused {
         require(marketplaceData.userRegistered(msg.sender), "not registered");
         require(
             msg.sender != jobs[jobId_].roles.creator,
@@ -707,7 +737,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     function payStartJob(
         uint256 jobId_,
         address worker_
-    ) public payable onlyJobCreator(jobId_) {
+    ) public payable whenNotPaused onlyJobCreator(jobId_) {
         JobPost storage job = jobs[jobId_];
         require(job.state == uint8(JobState.Open), "not open");
         require(marketplaceData.userRegistered(worker_), "not registered");
@@ -765,7 +795,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     function deliverResult(
         uint256 jobId_,
         bytes32 resultHash_
-    ) public onlyWorker(jobId_) {
+    ) public whenNotPaused onlyWorker(jobId_) {
         JobPost storage job = jobs[jobId_];
 
         job.resultHash = resultHash_;
@@ -790,7 +820,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         uint256 jobId_,
         uint8 reviewRating_,
         string calldata reviewText_
-    ) public onlyJobCreator(jobId_) {
+    ) public whenNotPaused onlyJobCreator(jobId_) {
         JobPost storage job = jobs[jobId_];
 
         require(job.state == uint8(JobState.Taken), "job in invalid state");
@@ -822,7 +852,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         uint256 jobId_,
         uint8 reviewRating_,
         string calldata reviewText_
-    ) public onlyJobCreator(jobId_) {
+    ) public whenNotPaused onlyJobCreator(jobId_) {
         require(jobs[jobId_].rating == 0, "already rated");
         require(
             jobs[jobId_].state == uint8(JobState.Closed),
@@ -887,7 +917,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             jobId_,
             JobEventData({
                 type_: uint8(JobEventType.Refunded),
-                address_: bytes(""),
+                address_: byWorker ? abi.encodePacked(job.roles.worker) : abi.encodePacked(job.roles.arbitrator),
                 data_: bytes(""),
                 timestamp_: 0
             })
@@ -897,7 +927,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     /**
      * @notice Worker refunds the buyer and switches the job back to non-started state
      */
-    function refund(uint256 jobId_) public onlyWorker(jobId_) {
+    function refund(uint256 jobId_) public whenNotPaused onlyWorker(jobId_) {
         _refund(jobId_, true);
     }
 
@@ -911,7 +941,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         uint256 jobId_,
         bytes calldata sessionKey_,
         bytes calldata content_
-    ) public onlyCreatorOrWorker(jobId_) {
+    ) public whenNotPaused onlyCreatorOrWorker(jobId_) {
         JobPost storage job = jobs[jobId_];
         require(job.state == uint8(JobState.Taken), "job in invalid state");
         require(job.roles.arbitrator != address(0), "no arbitrator");
@@ -952,7 +982,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         uint16 buyerShare_,
         uint16 workerShare_,
         bytes32 reasonHash_
-    ) public onlyArbitrator(jobId_) {
+    ) public whenNotPaused onlyArbitrator(jobId_) {
         marketplaceData.arbitratorSettled(msg.sender);
 
         JobPost storage job = jobs[jobId_];
@@ -998,7 +1028,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      *      funds from potentially illicit transactions. However, perhaps it might be better for the arbitrator to keep the fee to prevent spam?
      *      More in Notion
      */
-    function refuseArbitration(uint256 jobId_) public onlyArbitrator(jobId_) {
+    function refuseArbitration(uint256 jobId_) public whenNotPaused onlyArbitrator(jobId_) {
         JobPost storage job = jobs[jobId_];
         require(job.state != uint8(JobState.Closed), "job in invalid state");
         job.roles.arbitrator = address(0);

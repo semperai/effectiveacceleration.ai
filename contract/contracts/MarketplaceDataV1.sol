@@ -74,9 +74,9 @@ struct Review {
 uint8 constant RATING_MIN = 1;
 uint8 constant RATING_MAX = 5;
 
-contract MarketplaceDataV1 is OwnableUpgradeable {
+contract MarketplaceDataV1 is OwnableUpgradeable, PausableUpgradeable {
+    event MarketplaceAddressChanged(address marketplaceAddress);
     event JobEvent(uint256 indexed jobId, JobEventData eventData);
-    event PublicKeyRegistered(address indexed addr, bytes pubkey);
     event UserRegistered(
         address indexed addr,
         bytes pubkey,
@@ -154,6 +154,8 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
         meceTags["NDG"] = "NON_DIGITAL_GOODS";
         meceTags["NDS"] = "NON_DIGITAL_SERVICES";
         meceTags["NDO"] = "NON_DIGITAL_OTHERS";
+
+        emit MarketplaceAddressChanged(marketplace_);
     }
 
     function publishJobEvent(
@@ -223,7 +225,7 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
         string calldata name_,
         string calldata bio_,
         string calldata avatar_
-    ) internal {
+    ) internal pure {
         require(
             bytes(name_).length > 0 && bytes(name_).length < 20,
             "name too short or long"
@@ -240,7 +242,7 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
         string calldata name_,
         string calldata bio_,
         string calldata avatar_
-    ) public {
+    ) public whenNotPaused {
         // presently we do not allow to update the public keys otherwise the decryption of old messages will become impossible
         require(users[msg.sender].publicKey.length == 0, "already registered");
         require(
@@ -267,7 +269,7 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
         string calldata name_,
         string calldata bio_,
         string calldata avatar_
-    ) public {
+    ) public whenNotPaused {
         require(users[msg.sender].publicKey.length > 0, "not registered");
         checkUserParams(name_, bio_, avatar_);
 
@@ -330,7 +332,7 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
         string calldata bio_,
         string calldata avatar_,
         uint16 fee_
-    ) public {
+    ) public whenNotPaused {
         // presently we do not allow to update the public keys otherwise the decryption of old messages will become impossible
         require(
             arbitrators[msg.sender].publicKey.length == 0,
@@ -368,7 +370,7 @@ contract MarketplaceDataV1 is OwnableUpgradeable {
         string calldata name_,
         string calldata bio_,
         string calldata avatar_
-    ) public {
+    ) public whenNotPaused {
         require(arbitrators[msg.sender].publicKey.length > 0, "not registered");
         checkUserParams(name_, bio_, avatar_);
 
