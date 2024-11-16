@@ -1,0 +1,1072 @@
+export const description = 'Solidity Docs';
+
+# Solidity API
+
+## JobEventData
+
+```solidity
+struct JobEventData {
+  uint8 type_;
+  bytes address_;
+  bytes data_;
+  uint32 timestamp_;
+}
+```
+
+## JobEventType
+
+```solidity
+enum JobEventType {
+  Created,
+  Taken,
+  Paid,
+  Updated,
+  Signed,
+  Completed,
+  Delivered,
+  Closed,
+  Reopened,
+  Rated,
+  Refunded,
+  Disputed,
+  Arbitrated,
+  ArbitrationRefused,
+  WhitelistedWorkerAdded,
+  WhitelistedWorkerRemoved,
+  CollateralWithdrawn,
+  WorkerMessage,
+  OwnerMessage
+}
+```
+
+## JobArbitrator
+
+```solidity
+struct JobArbitrator {
+  address address_;
+  bytes publicKey;
+  string name;
+  string bio;
+  string avatar;
+  uint16 fee;
+  uint16 settledCount;
+  uint16 refusedCount;
+}
+```
+
+## User
+
+```solidity
+struct User {
+  address address_;
+  bytes publicKey;
+  string name;
+  string bio;
+  string avatar;
+  uint16 reputationUp;
+  uint16 reputationDown;
+}
+```
+
+## UserRating
+
+_Stores current average user's rating and number of reviews so it can be updated with every new review_
+
+```solidity
+struct UserRating {
+  uint16 averageRating;
+  uint256 numberOfReviews;
+}
+```
+
+## Review
+
+```solidity
+struct Review {
+  address reviewer;
+  uint256 jobId;
+  uint8 rating;
+  string text;
+  uint32 timestamp;
+}
+```
+
+## RATING_MIN
+
+```solidity
+uint8 RATING_MIN
+```
+
+## RATING_MAX
+
+```solidity
+uint8 RATING_MAX
+```
+
+## MarketplaceDataV1
+
+### MarketplaceAddressChanged
+
+```solidity
+event MarketplaceAddressChanged(address marketplaceAddress)
+```
+
+### JobEvent
+
+```solidity
+event JobEvent(uint256 jobId, struct JobEventData eventData)
+```
+
+### UserRegistered
+
+```solidity
+event UserRegistered(address addr, bytes pubkey, string name, string bio, string avatar)
+```
+
+### UserUpdated
+
+```solidity
+event UserUpdated(address addr, string name, string bio, string avatar)
+```
+
+### ArbitratorRegistered
+
+```solidity
+event ArbitratorRegistered(address addr, bytes pubkey, string name, string bio, string avatar, uint16 fee)
+```
+
+### ArbitratorUpdated
+
+```solidity
+event ArbitratorUpdated(address addr, string name, string bio, string avatar)
+```
+
+### marketplace
+
+```solidity
+contract MarketplaceV1 marketplace
+```
+
+### jobEvents
+
+```solidity
+mapping(uint256 => struct JobEventData[]) jobEvents
+```
+
+### users
+
+```solidity
+mapping(address => struct User) users
+```
+
+### userAddresses
+
+```solidity
+address[] userAddresses
+```
+
+### arbitrators
+
+```solidity
+mapping(address => struct JobArbitrator) arbitrators
+```
+
+### arbitratorAddresses
+
+```solidity
+address[] arbitratorAddresses
+```
+
+### userRatings
+
+```solidity
+mapping(address => struct UserRating) userRatings
+```
+
+### userReviews
+
+```solidity
+mapping(address => struct Review[]) userReviews
+```
+
+### meceTags
+
+```solidity
+mapping(string => string) meceTags
+```
+
+### __gap
+
+```solidity
+uint256[41] __gap
+```
+
+### onlyMarketplace
+
+```solidity
+modifier onlyMarketplace()
+```
+
+### constructor
+
+```solidity
+constructor() public
+```
+
+### initialize
+
+```solidity
+function initialize(address marketplace_) public
+```
+
+Initialize contract
+
+_For upgradeable contracts this function necessary_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| marketplace_ | address | Address of marketplace |
+
+### publishJobEvent
+
+```solidity
+function publishJobEvent(uint256 jobId_, struct JobEventData event_) public
+```
+
+### eventsLength
+
+```solidity
+function eventsLength(uint256 jobId_) public view returns (uint256)
+```
+
+### jobsLength
+
+```solidity
+function jobsLength() public view returns (uint256)
+```
+
+### getJobs
+
+```solidity
+function getJobs(uint256 index_, uint256 limit_) public view returns (struct JobPost[])
+```
+
+### getJob
+
+```solidity
+function getJob(uint256 jobId_) public view returns (struct JobPost)
+```
+
+### getEvents
+
+```solidity
+function getEvents(uint256 jobId_, uint256 index_, uint256 limit_) public view returns (struct JobEventData[])
+```
+
+### checkUserParams
+
+```solidity
+function checkUserParams(string name_, string bio_, string avatar_) internal pure
+```
+
+### registerUser
+
+```solidity
+function registerUser(bytes pubkey_, string name_, string bio_, string avatar_) public
+```
+
+### updateUser
+
+```solidity
+function updateUser(string name_, string bio_, string avatar_) public
+```
+
+### userRegistered
+
+```solidity
+function userRegistered(address address_) public view returns (bool)
+```
+
+### userRefunded
+
+```solidity
+function userRefunded(address address_) public
+```
+
+### userDelivered
+
+```solidity
+function userDelivered(address address_) public
+```
+
+### usersLength
+
+```solidity
+function usersLength() public view returns (uint256)
+```
+
+### getUsers
+
+```solidity
+function getUsers(uint256 index_, uint256 limit_) public view returns (struct User[])
+```
+
+### publicKeys
+
+```solidity
+function publicKeys(address userAddress_) public view returns (bytes)
+```
+
+### getUser
+
+```solidity
+function getUser(address userAddress_) public view returns (struct User)
+```
+
+### registerArbitrator
+
+```solidity
+function registerArbitrator(bytes pubkey_, string name_, string bio_, string avatar_, uint16 fee_) public
+```
+
+### updateArbitrator
+
+```solidity
+function updateArbitrator(string name_, string bio_, string avatar_) public
+```
+
+### arbitratorRefused
+
+```solidity
+function arbitratorRefused(address address_) public
+```
+
+### arbitratorSettled
+
+```solidity
+function arbitratorSettled(address address_) public
+```
+
+### arbitratorRegistered
+
+```solidity
+function arbitratorRegistered(address address_) public view returns (bool)
+```
+
+### getArbitratorFee
+
+```solidity
+function getArbitratorFee(address address_) public view returns (uint16)
+```
+
+### arbitratorsLength
+
+```solidity
+function arbitratorsLength() public view returns (uint256)
+```
+
+### getArbitrators
+
+```solidity
+function getArbitrators(uint256 index_, uint256 limit_) public view returns (struct JobArbitrator[])
+```
+
+### getArbitrator
+
+```solidity
+function getArbitrator(address arbitratorAddress_) public view returns (struct JobArbitrator)
+```
+
+### updateUserRating
+
+```solidity
+function updateUserRating(address userAddress_, uint8 reviewRating_) public
+```
+
+### getUserRating
+
+```solidity
+function getUserRating(address userAddress_) public view returns (struct UserRating)
+```
+
+### readMeceTag
+
+```solidity
+function readMeceTag(string shortForm) public view returns (string)
+```
+
+### updateMeceTag
+
+```solidity
+function updateMeceTag(string shortForm, string longForm) public
+```
+
+### removeMeceTag
+
+```solidity
+function removeMeceTag(string shortForm) public
+```
+
+### addReview
+
+```solidity
+function addReview(address target_, address reviewer_, uint256 jobId_, uint8 rating_, string text_) public
+```
+
+### getReviews
+
+```solidity
+function getReviews(address target_, uint256 index_, uint256 limit_) public view returns (struct Review[])
+```
+
+## JobState
+
+```solidity
+enum JobState {
+  Open,
+  Taken,
+  Closed
+}
+```
+
+## _24_HRS
+
+```solidity
+uint32 _24_HRS
+```
+
+## JobRoles
+
+```solidity
+struct JobRoles {
+  address creator;
+  address arbitrator;
+  address worker;
+}
+```
+
+## JobPost
+
+```solidity
+struct JobPost {
+  uint8 state;
+  bool whitelistWorkers;
+  struct JobRoles roles;
+  string title;
+  string[] tags;
+  bytes32 contentHash;
+  bool multipleApplicants;
+  uint256 amount;
+  address token;
+  uint32 timestamp;
+  uint32 maxTime;
+  string deliveryMethod;
+  uint256 collateralOwed;
+  uint256 escrowId;
+  bytes32 resultHash;
+  uint8 rating;
+  bool disputed;
+}
+```
+
+## MarketplaceV1
+
+### marketplaceData
+
+```solidity
+contract MarketplaceDataV1 marketplaceData
+```
+
+### version
+
+```solidity
+uint256 version
+```
+
+### jobs
+
+```solidity
+struct JobPost[] jobs
+```
+
+### whitelistWorkers
+
+```solidity
+mapping(uint256 => mapping(address => bool)) whitelistWorkers
+```
+
+### unicrowAddress
+
+```solidity
+address unicrowAddress
+```
+
+### unicrowDisputeAddress
+
+```solidity
+address unicrowDisputeAddress
+```
+
+### unicrowArbitratorAddress
+
+```solidity
+address unicrowArbitratorAddress
+```
+
+### treasuryAddress
+
+```solidity
+address treasuryAddress
+```
+
+### unicrowMarketplaceFee
+
+```solidity
+uint16 unicrowMarketplaceFee
+```
+
+### __gap
+
+```solidity
+uint256[41] __gap
+```
+
+### onlyJobCreator
+
+```solidity
+modifier onlyJobCreator(uint256 jobId_)
+```
+
+### onlyWorker
+
+```solidity
+modifier onlyWorker(uint256 jobId_)
+```
+
+### onlyCreatorOrWorker
+
+```solidity
+modifier onlyCreatorOrWorker(uint256 jobId_)
+```
+
+### onlyArbitrator
+
+```solidity
+modifier onlyArbitrator(uint256 jobId_)
+```
+
+### VersionChanged
+
+```solidity
+event VersionChanged(uint256 version)
+```
+
+### MarketplaceDataAddressChanged
+
+```solidity
+event MarketplaceDataAddressChanged(address marketplaceDataAddress)
+```
+
+### UnicrowAddressesChanged
+
+```solidity
+event UnicrowAddressesChanged(address unicrowAddress, address unicrowDisputeAddress, address unicrowArbitratorAddress)
+```
+
+### UnicrowMarketplaceFeeChanged
+
+```solidity
+event UnicrowMarketplaceFeeChanged(uint16 unicrowMarketplaceFee)
+```
+
+### TreasuryAddressChanged
+
+```solidity
+event TreasuryAddressChanged(address treasuryAddress)
+```
+
+### constructor
+
+```solidity
+constructor() public
+```
+
+### initialize
+
+```solidity
+function initialize(address unicrowAddress_, address unicrowDisputeAddress_, address unicrowArbitratorAddress_, address treasuryAddress_, uint16 unicrowMarketplaceFee_) public
+```
+
+Initialize contract
+
+_For upgradeable contracts this function necessary_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| unicrowAddress_ | address | Address of Unicrow contract |
+| unicrowDisputeAddress_ | address | Address of UnicrowDispute contract |
+| unicrowArbitratorAddress_ | address | Address of UnicrowArbitrator contract |
+| treasuryAddress_ | address | Address which will collect this marketplace fees, better not to set it to address(this) to not mess up with collateral values |
+| unicrowMarketplaceFee_ | uint16 | Fee for this marketplace in bips |
+
+### setMarketplaceDataAddress
+
+```solidity
+function setMarketplaceDataAddress(address marketplaceDataAddress_) public
+```
+
+### setUnicrowMarketplaceFee
+
+```solidity
+function setUnicrowMarketplaceFee(uint16 unicrowMarketplaceFee_) public
+```
+
+### transferOwnership
+
+```solidity
+function transferOwnership(address to_) public
+```
+
+Transfer ownership
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| to_ | address | Address to transfer ownership to |
+
+### pause
+
+```solidity
+function pause() external
+```
+
+Pauses contract
+
+### unpause
+
+```solidity
+function unpause() external
+```
+
+Unpauses contract
+
+### setVersion
+
+```solidity
+function setVersion(uint256 version_) external
+```
+
+Set version
+
+_This is used for upgrades to inform miners of changes_
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| version_ | uint256 | Version of contract |
+
+### setTreasuryAddress
+
+```solidity
+function setTreasuryAddress(address treasuryAddress_) public
+```
+
+### updateUnicrowAddresses
+
+```solidity
+function updateUnicrowAddresses(address unicrowAddress_, address unicrowDisputeAddress_, address unicrowArbitratorAddress_) public
+```
+
+### jobsLength
+
+```solidity
+function jobsLength() public view returns (uint256)
+```
+
+### getJob
+
+```solidity
+function getJob(uint256 jobId_) public view returns (struct JobPost)
+```
+
+### publishJobEvent
+
+```solidity
+function publishJobEvent(uint256 jobId_, struct JobEventData event_) internal
+```
+
+### checkParams
+
+```solidity
+function checkParams(string title_, string[] tags_, uint256 amount_, address arbitrator_, address creator_) internal view
+```
+
+### publishJobPost
+
+```solidity
+function publishJobPost(string title_, bytes32 contentHash_, bool multipleApplicants_, string[] tags_, address token_, uint256 amount_, uint32 maxTime_, string deliveryMethod_, address arbitrator_, address[] allowedWorkers_) public returns (uint256)
+```
+
+Publish a new job post
+To assign the job to a specific worker, set multipleApplicants_ to false and add the worker to the allowedWorkers_. In such a case, title and description can be encrypted for the worker
+The function will request a collateral deposit in the amount_ and token_ from the caller.
+Great care should be taken both by job creator and worker accepting the job to verify that the reward token does not have side effects, e.g. those of rebasing tokens. This can cause locked funds problem or lack of liquidity problem due to discrepancy in marketplace contract's state (stored amounts) and token contract's state (actual balance).
+This contract does not try to solve the potential problem of job creator and arbitrator colluding to profit from the worker. Platform users bare the responsibility of choosing the arbitrators and working with them.
+Maintaining a whitelist of trusted tokens and/or arbitrators does not appear to be a solution for two possible problems mentioned above for this marketplace, as it would empair the freedom of choice of the platform users and would require further maintenance work from contract owner/governing group.
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| title_ | string | job title - must be not null |
+| contentHash_ | bytes32 | short job description published on IPFS |
+| multipleApplicants_ | bool | do you want to select from multiple applicants or let the first one take the job? |
+| tags_ | string[] | labels to help the workers search for the job. Each job must have exactly one of the labels listed above, and any number of other labels |
+| token_ | address | token in which you prefer to pay the job with - must be a valid ERC20 token, e.g. WETH |
+| amount_ | uint256 | expected amount to pay for the job - must be greater than 0 |
+| maxTime_ | uint32 | maximum expected time (in sec) to deliver the job - must be greater than 0 |
+| deliveryMethod_ | string | preferred method of delivery (e.g. "IPFS", "Courier") |
+| arbitrator_ | address | address of an arbitrator preferred by the customer |
+| allowedWorkers_ | address[] | list of workers that can apply for the job. Leave empty if any worker can apply |
+
+### updateJobPost
+
+```solidity
+function updateJobPost(uint256 jobId_, string title_, bytes32 contentHash_, string[] tags_, uint256 amount_, uint32 maxTime_, address arbitrator_, bool whitelistWorkers_) public
+```
+
+### updateJobWhitelist
+
+```solidity
+function updateJobWhitelist(uint256 jobId_, address[] allowedWorkers_, address[] disallowedWorkers_) public
+```
+
+### _updateJobWhitelist
+
+```solidity
+function _updateJobWhitelist(uint256 jobId_, address[] allowedWorkers_, address[] disallowedWorkers_) internal
+```
+
+### closeJob
+
+```solidity
+function closeJob(uint256 jobId_) public
+```
+
+Close the job that hasn't been started.
+If it's been more than 24 hrs since the job was posted, the collateral will be automatically returned.
+Otherwise the buyer must withdraw the collateral separately.
+
+### withdrawCollateral
+
+```solidity
+function withdrawCollateral(uint256 jobId_) public
+```
+
+Withdraw collateral from the closed job
+
+### reopenJob
+
+```solidity
+function reopenJob(uint256 jobId_) public
+```
+
+### postThreadMessage
+
+```solidity
+function postThreadMessage(uint256 jobId_, bytes32 contentHash_, address recipient) public
+```
+
+### takeJob
+
+```solidity
+function takeJob(uint256 jobId_, bytes signature_) public
+```
+
+The worker takes the job, i.e. is ready to start working on it.
+        The worker also cryptographically signs job parameters to prevent disputes about job specification.
+        If this is FCFS job, the function may move money to the
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| jobId_ | uint256 | id of the job |
+| signature_ | bytes | worker's signature of all the job parameters |
+
+### payStartJob
+
+```solidity
+function payStartJob(uint256 jobId_, address worker_) public payable
+```
+
+Pay for a job so that the it gets started.
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| jobId_ | uint256 | ID of the job |
+| worker_ | address | An address of the worker selected for the job |
+
+### deliverResult
+
+```solidity
+function deliverResult(uint256 jobId_, bytes32 resultHash_) public
+```
+
+Information about the job delivery
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| jobId_ | uint256 | Id of the job |
+| resultHash_ | bytes32 | e.g. IPFS url or a tracking no. |
+
+### approveResult
+
+```solidity
+function approveResult(uint256 jobId_, uint8 reviewRating_, string reviewText_) public
+```
+
+Buyer approves the result delivered by the seller, releases funds from the escrow, and optionally leaves a review.
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| jobId_ | uint256 |  |
+| reviewRating_ | uint8 | 1-5 (tbd) score of the worker. Set to 0 for no review |
+| reviewText_ | string | Optional review text. Empty string for no text |
+
+### review
+
+```solidity
+function review(uint256 jobId_, uint8 reviewRating_, string reviewText_) public
+```
+
+### _refund
+
+```solidity
+function _refund(uint256 jobId_, bool byWorker) internal
+```
+
+Worker refunds the buyer and switches the job back to non-started state
+
+### refund
+
+```solidity
+function refund(uint256 jobId_) public
+```
+
+Worker refunds the buyer and switches the job back to non-started state
+
+### dispute
+
+```solidity
+function dispute(uint256 jobId_, bytes sessionKey_, bytes content_) public
+```
+
+Raise a dispute with the arbitrator.
+If the buyer is calling the dispute, the function will challenge the payment on Unicrow.
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| jobId_ | uint256 |  |
+| sessionKey_ | bytes | Encrypted session key for the arbitrator to decrypt owner's and worker's messages |
+| content_ | bytes | Encrypted short description for the arbitrator |
+
+### arbitrate
+
+```solidity
+function arbitrate(uint256 jobId_, uint16 buyerShare_, uint16 workerShare_, bytes32 reasonHash_) public
+```
+
+decide on a dispute about the job.
+
+#### Parameters
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| jobId_ | uint256 |  |
+| buyerShare_ | uint16 | how much of the payment should be refunded back to the buyer (in BPS) |
+| workerShare_ | uint16 | how much of the payment should be released to the worker (in BPS) |
+| reasonHash_ | bytes32 | reason for arbitrator's decision (encrypted for all three parties) |
+
+### refuseArbitration
+
+```solidity
+function refuseArbitration(uint256 jobId_) public
+```
+
+If an arbitrator has been included in a job they're not comfortable with, they can remove themselves.
+If the job has been started and paid into the escrow, the escrow will be fully refunded
+TBD: we discussed that the in this case, the arbitrator fee should be refunded as well so t hat the arbitrator doesn't keep
+     funds from potentially illicit transactions. However, perhaps it might be better for the arbitrator to keep the fee to prevent spam?
+     More in Notion
+
+## encodeString
+
+```solidity
+function encodeString(string str) internal pure returns (bytes)
+```
+
+## encodeBytes
+
+```solidity
+function encodeBytes(bytes b) internal pure returns (bytes)
+```
+
+## encodeStringArray
+
+```solidity
+function encodeStringArray(string[] arr) internal pure returns (bytes)
+```
+
+## encodeAddressArray
+
+```solidity
+function encodeAddressArray(address[] arr) internal pure returns (bytes)
+```
+
+## _100_PCT_IN_BIPS
+
+```solidity
+uint16 _100_PCT_IN_BIPS
+```
+
+## WHO_BUYER
+
+```solidity
+uint8 WHO_BUYER
+```
+
+## WHO_SELLER
+
+```solidity
+uint8 WHO_SELLER
+```
+
+## WHO_MARKETPLACE
+
+```solidity
+uint8 WHO_MARKETPLACE
+```
+
+## WHO_PROTOCOL
+
+```solidity
+uint8 WHO_PROTOCOL
+```
+
+## WHO_ARBITRATOR
+
+```solidity
+uint8 WHO_ARBITRATOR
+```
+
+## Escrow
+
+_This is how information about each escrow is stored int he main contract, mapped to escrowId_
+
+```solidity
+struct Escrow {
+  address buyer;
+  uint64 challengeExtension;
+  address seller;
+  uint64 challengePeriodStart;
+  address marketplace;
+  uint256 marketplaceFee;
+  uint64 challengePeriodEnd;
+  address currency;
+  uint16 claimed;
+  int16[2] consensus;
+  uint16[4] split;
+  uint256 amount;
+  string paymentReference;
+}
+```
+
+## EscrowInput
+
+_Escrow parameters to be sent along with the deposit_
+
+```solidity
+struct EscrowInput {
+  address buyer;
+  address seller;
+  address marketplace;
+  uint16 marketplaceFee;
+  address currency;
+  uint32 challengePeriod;
+  uint32 challengeExtension;
+  uint256 amount;
+  string paymentReference;
+}
+```
+
+## Arbitrator
+
+_Information about arbitrator proposed or assigned to an escrow.
+If both buyerConsensus and sellerConsensus are 1, the arbitrator is assigned, otherwise it's only been proposed by the party that has 1_
+
+```solidity
+struct Arbitrator {
+  address arbitrator;
+  uint16 arbitratorFee;
+  bool sellerConsensus;
+  bool buyerConsensus;
+  bool arbitrated;
+}
+```
+
+## Settlement
+
+_Stores information about settlement, mapped to escrowId in UnicrowDispute contract_
+
+```solidity
+struct Settlement {
+  address latestSettlementOfferBy;
+  uint16[2] latestSettlementOffer;
+}
+```
+
+## Token
+
+_Information about the token used in the payment is returned in this structure_
+
+```solidity
+struct Token {
+  address address_;
+  uint8 decimals;
+  string symbol;
+}
+```
+
+## Data
+
+_Superstructure that includes all the information relevant to an escrow_
+
+```solidity
+struct Data {
+  struct Escrow escrow;
+  struct Arbitrator arbitrator;
+  struct Settlement settlement;
+  struct Token token;
+}
+```
+
+## abs8
+
+```solidity
+function abs8(int16 x) internal pure returns (int16)
+```

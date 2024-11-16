@@ -194,6 +194,7 @@ export const navigation = [
   {
     title: 'Contract',
     links: [
+      { title: 'Contract', href: '/' },
     ],
   },
   {
