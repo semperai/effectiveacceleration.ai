@@ -90,6 +90,7 @@ const AllJobs = ({ jobs, localJobs }: { jobs: Job[]; localJobs: Job[] }) => {
     columns: columnsCompletedTable,
     getCoreRowModel: getCoreRowModel(),
   });
+
   return (
     <>
       <JobsTable
