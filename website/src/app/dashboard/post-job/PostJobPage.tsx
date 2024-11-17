@@ -284,12 +284,14 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
     const [descriptionError, setDescriptionError] = useState<string>('');
     const [categoryError, setCategoryError] = useState<string>('');
     const [paymentTokenError, setPaymentTokenError] = useState<string>('');
+    const [arbitratorError, setArbitratorError] = useState<string>('');
     const [postButtonDisabled, setPostButtonDisabled] = useState(false);
     const jobTitleRef = useRef<HTMLDivElement>(null);
     const jobDescriptionRef = useRef<HTMLDivElement>(null);
     const jobCategoryRef = useRef<HTMLDivElement>(null);
     const jobAmountRef = useRef<HTMLDivElement>(null);
     const jobDeadlineRef = useRef<HTMLDivElement>(null);
+    const jobArbitratorRef = useRef<HTMLDivElement>(null);
     const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
     const [isLoadingModalOpen, setIsLoadingModalOpen] = useState(false);
     const userJobCache = `${address}${LOCAL_JOBS_OWNER_CACHE}`;
@@ -466,22 +468,32 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
         required: true,
       });
 
+      let arbitratorValidationMessage = '';
+      if (arbitratorRequired === 'Yes') {
+        if (! selectedArbitratorAddress || selectedArbitratorAddress === zeroAddress) {
+          arbitratorValidationMessage = 'Please select an arbitrator';
+        }
+      }
+
       console.log(
         'VALIDATION MESSAGES',
         titleValidationMessage,
         descriptionValidationMessage,
         categoryValidationMessage,
         paymentTokenValidationMessage,
+        arbitratorValidationMessage,
       );
       setTitleError(titleValidationMessage);
       setDescriptionError(descriptionValidationMessage);
       setCategoryError(categoryValidationMessage);
       setPaymentTokenError(paymentTokenValidationMessage);
+      setArbitratorError(arbitratorValidationMessage);
       if (
         !titleValidationMessage &&
         !descriptionValidationMessage &&
         !categoryValidationMessage &&
-        !paymentTokenValidationMessage
+        !paymentTokenValidationMessage &&
+        !arbitratorValidationMessage
       ) {
         // Proceed with form submission
         handleSummary();
@@ -508,6 +520,12 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
         if (paymentTokenValidationMessage) {
           jobAmountRef.current?.focus();
           jobAmountRef.current?.scrollIntoView({behavior: 'smooth'});
+          return;
+        }
+
+        if (arbitratorValidationMessage) {
+          jobArbitratorRef.current?.focus();
+          jobArbitratorRef.current?.scrollIntoView({behavior: 'smooth'});
           return;
         }
       }
@@ -630,13 +648,6 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
       // delete unregisteredUserLabel as this only should be consumed after user regis
       sessionStorage.removeItem(unregisteredUserLabel);
       handleSummary();
-    };
-
-    const handleArbitratorChange = (value: string) => {
-      setArbitratorRequired(value);
-      if (value === 'No') {
-        setsSelectedArbitratorAddress(zeroAddress);
-      }
     };
 
     // show all validations on first render
@@ -855,7 +866,16 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                   <RadioGroup
                     className='!mt-0 flex'
                     value={arbitratorRequired}
-                    onChange={handleArbitratorChange}
+                    onChange={(value) => {
+                      setArbitratorRequired(value);
+                      if (value === 'No') {
+                        setsSelectedArbitratorAddress(zeroAddress);
+                      } else {
+                        if (!selectedArbitratorAddress || selectedArbitratorAddress === zeroAddress) {
+                          setArbitratorError('Please select an arbitrator');
+                        }
+                      }
+                    }}
                     aria-label='Server size'
                   >
                     {multipleApplicantsValues.map((option) => (
@@ -873,10 +893,14 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                 </Field>
                 {arbitratorRequired === 'Yes' && (
                   <Field>
+                    <div className='scroll-mt-20' ref={jobArbitratorRef} />
                     <Listbox
                       placeholder='Select Arbitrator'
                       value={selectedArbitratorAddress}
-                      onChange={(e) => setsSelectedArbitratorAddress(e)}
+                      onChange={(e) => {
+                        setsSelectedArbitratorAddress(e);
+                        setArbitratorError('');
+                      }}
                       className='rounded-md border border-gray-300 shadow-sm'
                     >
                       {arbitratorAddresses.map(
@@ -891,6 +915,11 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                           )
                       )}
                     </Listbox>
+                    {arbitratorError && (
+                      <div className='text-xs' style={{ color: 'red' }}>
+                        {arbitratorError}
+                      </div>
+                    )}
                   </Field>
                 )}
 
