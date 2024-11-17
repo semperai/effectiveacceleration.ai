@@ -4,6 +4,7 @@ import React, {
   FormEvent,
   forwardRef,
   useImperativeHandle,
+  useRef,
 } from 'react';
 import { ethers } from 'ethers';
 import {
@@ -277,6 +278,11 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
     const [categoryError, setCategoryError] = useState<string>('');
     const [paymentTokenError, setPaymentTokenError] = useState<string>('');
     const [postButtonDisabled, setPostButtonDisabled] = useState(false);
+    const jobTitleRef = useRef<HTMLDivElement>(null);
+    const jobDescriptionRef = useRef<HTMLDivElement>(null);
+    const jobCategoryRef = useRef<HTMLDivElement>(null);
+    const jobAmountRef = useRef<HTMLDivElement>(null);
+    const jobDeadlineRef = useRef<HTMLDivElement>(null);
     const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
     const [isLoadingModalOpen, setIsLoadingModalOpen] = useState(false);
     const userJobCache = `${address}${LOCAL_JOBS_OWNER_CACHE}`;
@@ -464,12 +470,35 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
         !paymentTokenValidationMessage
       ) {
         // Proceed with form submission
-        console.log('Form is valid');
         handleSummary();
       } else {
         console.log('Form has errors');
+        if (titleValidationMessage) {
+          jobTitleRef.current?.focus();
+          jobTitleRef.current?.scrollIntoView({behavior: 'smooth'});
+          return;
+        }
+
+        if (descriptionValidationMessage) {
+          jobDescriptionRef.current?.focus();
+          jobDescriptionRef.current?.scrollIntoView({behavior: 'smooth'});
+          return;
+        }
+
+        if (categoryValidationMessage) {
+          jobCategoryRef.current?.focus();
+          jobCategoryRef.current?.scrollIntoView({behavior: 'smooth'});
+          return;
+        }
+
+        if (paymentTokenValidationMessage) {
+          jobAmountRef.current?.focus();
+          jobAmountRef.current?.scrollIntoView({behavior: 'smooth'});
+          return;
+        }
       }
     };
+
     const formInputs: JobFormInputData[] = [
       { label: 'Job Title', inputInfo: title },
       { label: 'Description', inputInfo: description },
@@ -612,6 +641,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
               <FieldGroup className='flex-1'>
                 <Field>
                   <Label>Job Title</Label>
+                  <div className='scroll-mt-20' ref={jobTitleRef} />
                   <Input
                     name='title'
                     value={title}
@@ -629,6 +659,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                 </Field>
                 <Field>
                   <Label>Description</Label>
+                  <div className='scroll-mt-20' ref={jobDescriptionRef} />
                   <Textarea
                     rows={10}
                     name='description'
@@ -669,6 +700,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                 </Field>
                 <Field>
                   <Label>Category</Label>
+                  <div ref={jobCategoryRef} className='scroll-mt-20' />
                   <Listbox
                     placeholder='Select Category'
                     value={selectedCategory}
@@ -694,12 +726,12 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                   <Label>Tags</Label>
                   <TagsInput tags={tags} setTags={setTags} />
                 </Field>
-                <Field></Field>
               </FieldGroup>
               <FieldGroup className='flex-1'>
                 <div className='flex flex-row justify-between gap-5'>
                   <Field className='flex-1'>
                     <Label>Payment Amount</Label>
+                    <div className='scroll-mt-20' ref={jobAmountRef} />
                     <Input
                       name='amount'
                       placeholder='Amount'
@@ -836,6 +868,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                       Maximum delivery time{' '}
                       {selectedUnitTime ? `in ${selectedUnitTime.name}` : ''}
                     </Label>
+                    <div className='scroll-mt-20' ref={jobDeadlineRef} />
                     <Input
                       name='deadline'
                       type='number'
