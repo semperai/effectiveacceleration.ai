@@ -440,6 +440,9 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
       };
 
     const handleSubmit = () => {
+      if (! balanceData) {
+        throw new Error('Balance data is not available');
+      }
       // Ensure balanceData is of type ethers.BigNumberish
       const balanceAsString = ethers.formatUnits(
         balanceData as ethers.BigNumberish,
