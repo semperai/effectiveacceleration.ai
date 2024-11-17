@@ -149,7 +149,7 @@ const CreateProfile = ({
           </Field>
         </FieldGroup>
         <span className='text-sm text-primary'>
-          * Name and avatar cannot be changed once your profile is created
+          * Name and avatar can be changed later
         </span>
         <Button onClick={submit}>Create Profile</Button>
       </div>
