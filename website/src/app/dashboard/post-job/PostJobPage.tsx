@@ -686,10 +686,10 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                       placeholder='Amount'
                       type='number'
                       value={amount}
-                      min='0'
+                      min={0}
                       onChange={(e) => {
                         const value = e.target.value;
-                        const sanitizedValue = value === '' ? '' : Math.abs(Number(value)).toString();
+                        const sanitizedValue = value === '' ? '' : parseFloat(value) < 0 ? -value : value;
 
                         handleInputChange(setAmount, setPaymentTokenError, {
                           mustBeLessThanOrEqualTo: ethers.formatUnits(
@@ -697,7 +697,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                             selectedToken?.decimals || 0
                           ),
                           mustBeGreaterThanOrEqualTo: '0',
-                        })({ ...e, target: { ...e.target, value: sanitizedValue } });
+                        })({ ...e, target: { ...e.target, value: sanitizedValue.toString() } });
                       }}
                     />
                     {paymentTokenError && (
