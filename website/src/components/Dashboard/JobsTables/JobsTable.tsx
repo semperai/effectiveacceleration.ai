@@ -99,7 +99,7 @@ function JobsTable<T>({
         <div className='flex h-[300px] w-full items-center justify-center rounded-2xl bg-white p-5 text-center [box-shadow:0px_0px_8px_lightgray]'>
           <div>
             <h2 className='mb-4 text-xl font-semibold'>
-              No jobs available {title.toLowerCase()}: (
+              No jobs available : (
             </h2>
             <Button>Create a job</Button>
           </div>
