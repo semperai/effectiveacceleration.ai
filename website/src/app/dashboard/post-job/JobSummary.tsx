@@ -54,10 +54,19 @@ const JobSummary: React.FC<JobSummaryProps> = ({
           Go back
         </Button>
         <Button disabled={postButtonDisabled || isPending} onClick={submitJob}>
-          {isPending ? 'Posting...' : 'Post Job'}
+          {(() => {
+            if (isConfirmed) {
+              return <>Transaction confirmed</>;
+            }
+            if (isConfirming) {
+              return <>Waiting for confirmation...</>;
+            }
+            if (isPending) {
+              return <>Posting...</>;
+            }
+            return <>Post Job</>;
+          })()}
         </Button>
-        {isConfirming && <div>Waiting for confirmation...</div>}
-        {isConfirmed && <div>Transaction confirmed.</div>}
       </div>
     </div>
   );
