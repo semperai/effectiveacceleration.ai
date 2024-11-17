@@ -60,8 +60,12 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
 
   useEffect(() => {
     const avatarUrl = users[userIndex]?.avatar;
-    setName(users[userIndex]?.name);
-    setBio(users[userIndex]?.bio);
+    if (users[userIndex]?.name) {
+      setName(users[userIndex].name);
+    }
+    if (users[userIndex]?.bio) {
+      setBio(users[userIndex].bio);
+    }
     setAvatarFileUrl(avatarUrl);
     setNewAvatar(avatarUrl);
     setAvatar(avatarUrl);
