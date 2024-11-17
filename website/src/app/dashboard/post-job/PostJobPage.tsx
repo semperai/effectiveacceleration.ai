@@ -204,6 +204,25 @@ const unitsDeliveryTime = [
   { id: 5, name: 'years' },
 ];
 
+const deliveryMethods = [
+  {
+    label: 'IPFS',
+    value: 'ipfs',
+  },
+  {
+    label: 'Courier',
+    value: 'courier',
+  },
+  {
+    label: 'Digital Proof',
+    value: 'digital_proof',
+  },
+  {
+    label: 'Other',
+    value: 'other',
+  },
+];
+
 const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
   (props, ref) => {
     const router = useRouter();
@@ -230,7 +249,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
     const multipleApplicantsValues = ['No', 'Yes'];
     const [showSummary, setShowSummary] = useState(false);
     const [title, setTitle] = useState<string>('');
-    const [deliveryMethod, setDeliveryMethod] = useState('');
+    const [deliveryMethod, setDeliveryMethod] = useState(deliveryMethods[0].value);
     const [description, setDescription] = useState<string>('');
     const [amount, setAmount] = useState('');
     const [deadline, setDeadline] = useState<number>();
@@ -752,12 +771,18 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                 </div>
                 <Field>
                   <Label>Delivery Method</Label>
-                  <Input
-                    name='deliveryMethod'
-                    placeholder='e.g. IPFS'
+                  <Listbox
+                    placeholder='Delivery Method'
                     value={deliveryMethod}
-                    onChange={(e) => setDeliveryMethod(e.target.value)}
-                  />
+                    onChange={(e) => setDeliveryMethod(e)}
+                    className='rounded-md border border-gray-300 shadow-sm'
+                  >
+                    {deliveryMethods.map((method, index) => (
+                      <ListboxOption key={index} value={method.value}>
+                        {`${deliveryMethods[index].label}`}
+                      </ListboxOption>
+                    ))}
+                  </Listbox>
                 </Field>
                 <Field className='flex flex-row items-center justify-between'>
                   <Label className='mb-0 items-center pb-0 !font-bold'>
