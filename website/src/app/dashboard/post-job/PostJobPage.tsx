@@ -285,6 +285,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
     const [categoryError, setCategoryError] = useState<string>('');
     const [paymentTokenError, setPaymentTokenError] = useState<string>('');
     const [arbitratorError, setArbitratorError] = useState<string>('');
+    const [deadlineError, setDeadlineError] = useState<string>('');
     const [postButtonDisabled, setPostButtonDisabled] = useState(false);
     const jobTitleRef = useRef<HTMLDivElement>(null);
     const jobDescriptionRef = useRef<HTMLDivElement>(null);
@@ -475,6 +476,13 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
         }
       }
 
+      const deadlineValidationMessage = validateField(
+        deadline ? deadline.toString() : '',
+        {
+          mustBeGreaterThan: '0',
+          required: true,
+        }
+      );
       console.log(
         'VALIDATION MESSAGES',
         titleValidationMessage,
@@ -488,12 +496,14 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
       setCategoryError(categoryValidationMessage);
       setPaymentTokenError(paymentTokenValidationMessage);
       setArbitratorError(arbitratorValidationMessage);
+      setDeadlineError(deadlineValidationMessage);
       if (
         !titleValidationMessage &&
         !descriptionValidationMessage &&
         !categoryValidationMessage &&
         !paymentTokenValidationMessage &&
-        !arbitratorValidationMessage
+        !arbitratorValidationMessage &&
+        !deadlineValidationMessage
       ) {
         // Proceed with form submission
         handleSummary();
@@ -943,8 +953,21 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                           deadline = -deadline;
                         }
                         setDeadline(deadline);
+                        console.log('deadline', deadline);
+                        if (deadline === 0 || e.target.value === '') {
+                          setDeadlineError('Please enter a valid deadline');
+                        } else {
+                          if (deadlineError) {
+                            setDeadlineError('');
+                          }
+                        }
                       }}
                     />
+                    {deadlineError && (
+                      <div className='text-xs' style={{ color: 'red' }}>
+                        {deadlineError}
+                      </div>
+                    )}
                   </Field>
                   <Field className='flex-1'>
                     <Label>Units</Label>
