@@ -45,7 +45,7 @@ const JobChatDetails = ({
     ?.filter((event) => event.type_ === JobEventType.Closed)
     .slice(-1)[0]?.timestamp_;
   const hoursPassed = moment().diff(moment(timestamp! * 1000), 'hours'); // hours passed since the job was closed
-  const timePassed = Math.sign(hoursPassed) === (1 || 0) ? true : false; // if 24h have passed
+  const timePassed = hoursPassed >= 24; // If 24 hours have passed since the job was closed
   const progressValue = (hoursPassed / 24) * 100; // Calculate the progress value (0 to 100)
   const adjustedProgressValue =
     progressValue < 0 ? 100 + progressValue : 100 - progressValue;
