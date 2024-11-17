@@ -9,7 +9,6 @@ import { GoPerson } from 'react-icons/go';
 import { MdOutlineArrowForwardIos } from 'react-icons/md';
 import { PiBellSimple } from 'react-icons/pi';
 import { useAccount, useReadContract } from 'wagmi';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
 import useUser from '@/hooks/useUser';
 import { UserIcon } from '@heroicons/react/20/solid';
 import { UserButton } from '@/components/UserActions/UserButton';
@@ -80,14 +79,11 @@ const Navbar = ({
               </span>
             </Link>
 
-            <ConnectButton />
-
             <button className='rounded-full bg-gray-200 p-2'>
               <PiBellSimple className='text-2xl' />
             </button>
-            <UserButton></UserButton>
-            {/* <div className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-900/10" aria-hidden="true" /> */}
-            {/* <ConnectButton /> */}
+
+            <UserButton />
           </div>
         </div>
       </div>

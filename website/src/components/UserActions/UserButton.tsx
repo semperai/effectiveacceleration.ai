@@ -32,7 +32,7 @@ import useUser from '@/hooks/useUser';
 import useArbitrator from '@/hooks/useArbitrator';
 import { MARKETPLACE_DATA_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceDataV1';
 import { useEthersSigner } from '@/hooks/useEthersSigner';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { ConnectButton } from '@/components/ConnectButton';
 import Image from 'next/image';
 import { StaticImport } from 'next/dist/shared/lib/get-img-props';
 import UploadAvatar from '../UploadAvatar';
@@ -202,7 +202,7 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
             )}
           </button>
         ) : (
-          <></>
+          <ConnectButton />
         )}
         <Transition appear show={isOpen} as={Fragment}>
           <Dialog as='div' className='relative z-10' onClose={closeModal}>
@@ -332,17 +332,7 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
                         </>
                       )}
 
-                      {address && (
-                        <Button onClick={() => connector?.disconnect()}>
-                          <CheckIcon
-                            className='-ml-0.5 mr-1.5 h-5 w-5'
-                            aria-hidden='true'
-                          />
-                          Disconnect Wallet
-                        </Button>
-                      )}
-
-                      {!address && <ConnectButton />}
+                      <ConnectButton />
                     </div>
                   </Dialog.Panel>
                 </Transition.Child>
