@@ -175,7 +175,7 @@ const validateField = (value: string, validation: FieldValidation): string => {
     validation.mustBeGreaterThan &&
     parseFloat(value) <= parseFloat(validation.mustBeGreaterThan)
   ) {
-    return `Insufficient balance of the selected token`;
+    return `Amount must be greater than ${validation.mustBeGreaterThan}`;
   }
   if (
     validation.mustBeGreaterThanOrEqualTo &&
@@ -460,24 +460,18 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
         { required: true }
       );
 
-      const amountValidationMessage = validateField(amount, {
+      const paymentTokenValidationMessage = validateField(amount, {
         mustBeLessThanOrEqualTo: balanceAsString,
         mustBeGreaterThan: '0',
         required: true,
       });
 
-      const paymentTokenValidationMessage = amountValidationMessage || validateField(balanceAsString, {
-        mustBeGreaterThanOrEqualTo: amount,
-        mustBeGreaterThan: '0',
-        required: true,
-      });
       console.log(
         'VALIDATION MESSAGES',
         titleValidationMessage,
         descriptionValidationMessage,
         categoryValidationMessage,
         paymentTokenValidationMessage,
-        amountValidationMessage,
       );
       setTitleError(titleValidationMessage);
       setDescriptionError(descriptionValidationMessage);
