@@ -841,8 +841,13 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                       type='number'
                       placeholder={`Maximum delivery time ${selectedUnitTime ? `in ${selectedUnitTime.name}` : ''}`}
                       value={deadline}
+                      min={1}
+                      step={1}
                       onChange={(e) => {
-                        const deadline = parseInt(e.target.value);
+                        let deadline = parseInt(e.target.value);
+                        if (deadline < 0) {
+                          deadline = -deadline;
+                        }
                         setDeadline(deadline);
                       }}
                     />
