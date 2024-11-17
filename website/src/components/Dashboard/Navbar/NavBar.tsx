@@ -81,16 +81,6 @@ const Navbar = ({
 
             <ConnectButton />
 
-            <Link
-              href={'/dashboard/post-job'}
-              className='flex w-36 items-center justify-center gap-2 rounded-full bg-primary p-2 text-white'
-            >
-              <GoPerson className='text-xl' />
-              <span className='flex h-6 items-center text-sm text-white'>
-                Create Job
-              </span>
-              <FaArrowRight className='text-lg' />
-            </Link>
             <button className='rounded-full bg-gray-200 p-2'>
               <PiBellSimple className='text-2xl' />
             </button>
