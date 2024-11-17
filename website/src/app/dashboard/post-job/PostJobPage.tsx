@@ -74,8 +74,9 @@ interface FieldValidation {
   required?: boolean;
   minLength?: number;
   pattern?: RegExp;
-  mustBeGreaterThanOrEqualTo?: string; // Add this line
-  mustBeLessThanOrEqualTo?: string; // Add this line
+  mustBeGreaterThanOrEqualTo?: string;
+  mustBeGreaterThan?: string;
+  mustBeLessThanOrEqualTo?: string;
   custom?: (value: string) => string;
 }
 
@@ -170,6 +171,12 @@ const validateField = (value: string, validation: FieldValidation): string => {
     return 'Invalid format';
   }
   console.log('validation', validation, value);
+  if (
+    validation.mustBeGreaterThan &&
+    parseFloat(value) <= parseFloat(validation.mustBeGreaterThan)
+  ) {
+    return `Insufficient balance of the selected token`;
+  }
   if (
     validation.mustBeGreaterThanOrEqualTo &&
     parseFloat(value) < parseFloat(validation.mustBeGreaterThanOrEqualTo)
@@ -451,6 +458,8 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
       );
       const paymentTokenValidationMessage = validateField(balanceAsString, {
         mustBeGreaterThanOrEqualTo: amount,
+        mustBeGreaterThan: '0',
+        required: true,
       });
       console.log(
         titleValidationMessage,
@@ -747,7 +756,8 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                             (balanceData as ethers.BigNumberish) || 0,
                             selectedToken?.decimals || 0
                           ),
-                          mustBeGreaterThanOrEqualTo: '0',
+                          mustBeGreaterThan: '0',
+                          required: true,
                         })({ ...e, target: { ...e.target, value: sanitizedValue.toString() } });
                       }}
                     />
