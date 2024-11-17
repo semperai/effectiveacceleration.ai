@@ -6,8 +6,10 @@ import React, { Fragment, useState } from 'react';
 import {
   PiHouseSimple,
   PiJoystick,
-  PiCube,
   PiMegaphoneSimple,
+  PiFinnTheHuman,
+  PiPerson,
+  PiPaperPlaneTilt,
 } from 'react-icons/pi';
 import { BsList } from 'react-icons/bs';
 import { GiBlackBook } from "react-icons/gi";
@@ -27,7 +29,17 @@ const navigation = [
   {
     name: 'Post job',
     href: '/dashboard/post-job',
-    icon: <PiCube className='text-2xl' />,
+    icon: <PiPaperPlaneTilt className='text-2xl' />,
+  },
+  {
+    name: 'Arbitrators',
+    href: '/dashboard/arbitrators',
+    icon: <PiFinnTheHuman className='text-2xl' />,
+  },
+  {
+    name: 'Users',
+    href: '/dashboard/users',
+    icon: <PiPerson className='text-2xl' />,
   },
   {
     name: 'Docs',
