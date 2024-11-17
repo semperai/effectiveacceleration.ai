@@ -20,6 +20,15 @@ import useJobsByIds from '@/hooks/useJobsByIds';
 import { LOCAL_JOBS_OWNER_CACHE } from '@/utils/constants';
 import { useAccount } from 'wagmi';
 
+const tabs = [
+  'Open Jobs',
+  'In Progress',
+  'Completed',
+  'Disputed',
+  'Cancelled',
+  'Develop: All Jobs',
+];
+
 const DashboardTabs = () => {
   const { data: jobs } = useJobs();
   const { address } = useAccount();
@@ -122,43 +131,16 @@ const DashboardTabs = () => {
           selectedIndex={activeTabIndex}
           onSelect={(index) => setActiveTabIndex(index)}
         >
-          <TabList className='borde-gray-100 mb-7 flex border-b-2'>
-            <Tab
-              selectedClassName='!border-lightPurple  border-b-2  !text-lightPurple'
-              className='relative top-[2px] cursor-pointer px-8 py-2 font-medium text-darkBlueFont outline-none'
-            >
-              Open Jobs
-            </Tab>
-            <Tab
-              selectedClassName='!border-lightPurple  border-b-2 !text-lightPurple'
-              className='relative top-[2px] cursor-pointer px-8 py-2 font-medium text-darkBlueFont outline-none'
-            >
-              In Progress
-            </Tab>
-            <Tab
-              selectedClassName='!border-lightPurple  border-b-2 !text-lightPurple'
-              className='relative top-[2px] cursor-pointer px-8 py-2 font-medium text-darkBlueFont outline-none'
-            >
-              Completed
-            </Tab>
-            <Tab
-              selectedClassName='!border-lightPurple  border-b-2 !text-lightPurple'
-              className='relative top-[2px] cursor-pointer px-8 py-2 font-medium text-darkBlueFont outline-none'
-            >
-              Disputed
-            </Tab>
-            <Tab
-              selectedClassName='!border-lightPurple  border-b-2 !text-lightPurple'
-              className='relative top-[2px] cursor-pointer px-8 py-2 font-medium text-darkBlueFont outline-none'
-            >
-              Cancelled
-            </Tab>
-            <Tab
-              selectedClassName='!border-lightPurple  border-b-2 !text-lightPurple'
-              className='relative top-[2px] cursor-pointer px-8 py-2 font-medium text-darkBlueFont outline-none'
-            >
-              Develop: All Jobs
-            </Tab>
+          <TabList className='border-gray-200 mb-7 flex flex-col md:flex-row gap-4 border-b-2'>
+            {tabs.map((tab, idx) => (
+              <Tab
+                selectedClassName='!border-lightPurple border-b-2 !text-lightPurple'
+                className='relative top-[2px] cursor-pointer py-2 font-medium text-darkBlueFont outline-none whitespace-nowrap'
+                key={tab}
+              >
+                {tab}
+              </Tab>
+            ))}
           </TabList>
           <TabPanel>
             <OpenJobs
