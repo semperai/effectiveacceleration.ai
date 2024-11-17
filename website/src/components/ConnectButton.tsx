@@ -53,6 +53,7 @@ export function ConnectButton() {
               onClick={onClick}
             >
               <PiWallet className='w-6 h-6' />
+
               {(() => {
                 if (! connected) {
                   return <>Connect</>;
