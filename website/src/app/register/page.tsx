@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation';
 import { useAccount } from 'wagmi';
 import useUser from '@/hooks/useUser';
 import DefaultNavBar from '@/components/DefaultNavBar';

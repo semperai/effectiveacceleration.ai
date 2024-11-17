@@ -257,7 +257,9 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
     const multipleApplicantsValues = ['No', 'Yes'];
     const [showSummary, setShowSummary] = useState(false);
     const [title, setTitle] = useState<string>('');
-    const [deliveryMethod, setDeliveryMethod] = useState(deliveryMethods[0].value);
+    const [deliveryMethod, setDeliveryMethod] = useState(
+      deliveryMethods[0].value
+    );
     const [description, setDescription] = useState<string>('');
     const [amount, setAmount] = useState('');
     const [deadline, setDeadline] = useState<number>();
@@ -443,14 +445,16 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
       };
 
     const handleSubmit = () => {
-      if (! balanceData) {
+      if (!balanceData) {
         throw new Error('Balance data is not available');
       }
       // Ensure balanceData is of type ethers.BigNumberish
-      const balanceAsString = ethers.formatUnits(
-        balanceData as ethers.BigNumberish,
-        selectedToken?.decimals as number
-      ).toString();
+      const balanceAsString = ethers
+        .formatUnits(
+          balanceData as ethers.BigNumberish,
+          selectedToken?.decimals as number
+        )
+        .toString();
 
       // Validate all fields before submission
       const titleValidationMessage = validateField(title, { minLength: 3 });
@@ -471,7 +475,10 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
 
       let arbitratorValidationMessage = '';
       if (arbitratorRequired === 'Yes') {
-        if (! selectedArbitratorAddress || selectedArbitratorAddress === zeroAddress) {
+        if (
+          !selectedArbitratorAddress ||
+          selectedArbitratorAddress === zeroAddress
+        ) {
           arbitratorValidationMessage = 'Please select an arbitrator';
         }
       }
@@ -489,7 +496,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
         descriptionValidationMessage,
         categoryValidationMessage,
         paymentTokenValidationMessage,
-        arbitratorValidationMessage,
+        arbitratorValidationMessage
       );
       setTitleError(titleValidationMessage);
       setDescriptionError(descriptionValidationMessage);
@@ -511,31 +518,31 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
         console.log('Form has errors');
         if (titleValidationMessage) {
           jobTitleRef.current?.focus();
-          jobTitleRef.current?.scrollIntoView({behavior: 'smooth'});
+          jobTitleRef.current?.scrollIntoView({ behavior: 'smooth' });
           return;
         }
 
         if (descriptionValidationMessage) {
           jobDescriptionRef.current?.focus();
-          jobDescriptionRef.current?.scrollIntoView({behavior: 'smooth'});
+          jobDescriptionRef.current?.scrollIntoView({ behavior: 'smooth' });
           return;
         }
 
         if (categoryValidationMessage) {
           jobCategoryRef.current?.focus();
-          jobCategoryRef.current?.scrollIntoView({behavior: 'smooth'});
+          jobCategoryRef.current?.scrollIntoView({ behavior: 'smooth' });
           return;
         }
 
         if (paymentTokenValidationMessage) {
           jobAmountRef.current?.focus();
-          jobAmountRef.current?.scrollIntoView({behavior: 'smooth'});
+          jobAmountRef.current?.scrollIntoView({ behavior: 'smooth' });
           return;
         }
 
         if (arbitratorValidationMessage) {
           jobArbitratorRef.current?.focus();
-          jobArbitratorRef.current?.scrollIntoView({behavior: 'smooth'});
+          jobArbitratorRef.current?.scrollIntoView({ behavior: 'smooth' });
           return;
         }
       }
@@ -661,9 +668,10 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
     };
 
     // show all validations on first render
-    const [initialRenderValidation, setInitialRenderValidation] = useState(false);
+    const [initialRenderValidation, setInitialRenderValidation] =
+      useState(false);
     useEffect(() => {
-      if (! initialRenderValidation) {
+      if (!initialRenderValidation) {
         try {
           handleSubmit();
           setInitialRenderValidation(true);
@@ -672,7 +680,6 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
         }
       }
     }, [balanceData]);
-
 
     return (
       <div>
@@ -792,7 +799,12 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                       min={0}
                       onChange={(e) => {
                         const value = e.target.value;
-                        const sanitizedValue = value === '' ? '' : parseFloat(value) < 0 ? -value : value;
+                        const sanitizedValue =
+                          value === ''
+                            ? ''
+                            : parseFloat(value) < 0
+                              ? -value
+                              : value;
 
                         handleInputChange(setAmount, setPaymentTokenError, {
                           mustBeLessThanOrEqualTo: ethers.formatUnits(
@@ -801,7 +813,13 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                           ),
                           mustBeGreaterThan: '0',
                           required: true,
-                        })({ ...e, target: { ...e.target, value: sanitizedValue.toString() } });
+                        })({
+                          ...e,
+                          target: {
+                            ...e.target,
+                            value: sanitizedValue.toString(),
+                          },
+                        });
                       }}
                     />
                     {paymentTokenError && (
@@ -881,7 +899,10 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                       if (value === 'No') {
                         setsSelectedArbitratorAddress(zeroAddress);
                       } else {
-                        if (!selectedArbitratorAddress || selectedArbitratorAddress === zeroAddress) {
+                        if (
+                          !selectedArbitratorAddress ||
+                          selectedArbitratorAddress === zeroAddress
+                        ) {
                           setArbitratorError('Please select an arbitrator');
                         }
                       }
@@ -991,7 +1012,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
               </FieldGroup>
             </div>
             {!showSummary && (
-              <div className='flex justify-end mt-5 mb-40'>
+              <div className='mb-40 mt-5 flex justify-end'>
                 <Button
                   // disabled={postButtonDisabled || isPending}
                   // onClick={postJobClick}

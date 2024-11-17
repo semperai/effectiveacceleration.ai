@@ -45,7 +45,7 @@ const JobSummary: React.FC<JobSummaryProps> = ({
           </tbody>
         </table>
       </div>
-      <div className='mt-5 mb-40 flex justify-end'>
+      <div className='mb-40 mt-5 flex justify-end'>
         <Button
           color={'cancelBorder'}
           className={'mr-5'}

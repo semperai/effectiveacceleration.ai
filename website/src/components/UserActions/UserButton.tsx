@@ -190,7 +190,7 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
   function validateBio() {
     // could have not loaded yet
     // 0 length is ok
-    if (! bio) {
+    if (!bio) {
       setBioError('');
       return;
     }
@@ -213,7 +213,6 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
       setButtonDisabled(false);
     }
   }, [name, bio]);
-
 
   return (
     <>
@@ -365,7 +364,11 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
 
                           {users[userIndex] && (
                             <Button
-                              disabled={buttonDisabled || nameError.length > 0 || bioError.length > 0}
+                              disabled={
+                                buttonDisabled ||
+                                nameError.length > 0 ||
+                                bioError.length > 0
+                              }
                               onClick={updateButtonClick}
                             >
                               <CheckIcon

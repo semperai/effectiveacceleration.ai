@@ -23,12 +23,7 @@ import AllJobs from './WorkerJobsTablesData/AllJobs';
 import JobsApplications from './WorkerJobsTablesData/JobsAplications';
 import JobsAplications from './WorkerJobsTablesData/JobsAplications';
 
-const tabs = [
-  'Open Jobs',
-  'Applications',
-  'Started Jobs',
-  'Completed Jobs',
-];
+const tabs = ['Open Jobs', 'Applications', 'Started Jobs', 'Completed Jobs'];
 
 const DashboardTabs = () => {
   const { data: jobs } = useJobs();
@@ -115,11 +110,11 @@ const DashboardTabs = () => {
           selectedIndex={activeTabIndex}
           onSelect={(index) => setActiveTabIndex(index)}
         >
-          <TabList className='border-gray-100 mb-7 flex flex-col md:flex-row gap-4 border-b-2'>
+          <TabList className='mb-7 flex flex-col gap-4 border-b-2 border-gray-100 md:flex-row'>
             {tabs.map((tab, idx) => (
               <Tab
                 selectedClassName='!border-lightPurple border-b-2 !text-lightPurple'
-                className='relative top-[2px] cursor-pointer py-2 font-medium text-darkBlueFont outline-none whitespace-nowrap'
+                className='relative top-[2px] cursor-pointer whitespace-nowrap py-2 font-medium text-darkBlueFont outline-none'
                 key={tab}
               >
                 {tab}
