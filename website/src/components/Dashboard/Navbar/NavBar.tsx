@@ -21,6 +21,7 @@ const Navbar = ({
   const { address } = useAccount();
   const [notificationsCount, setNotificationsCount] = useState(BigInt(0));
   const pathname = usePathname();
+  // TODO update for new contract
   const { data: notificationsLengthData } = useReadContract({
     account: address,
     // abi:          MarketplaceArtifact.abi,
