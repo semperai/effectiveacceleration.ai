@@ -637,6 +637,20 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
       }
     };
 
+    // show all validations on first render
+    const [initialRenderValidation, setInitialRenderValidation] = useState(false);
+    useEffect(() => {
+      if (! initialRenderValidation) {
+        try {
+          handleSubmit();
+          setInitialRenderValidation(true);
+        } catch (e) {
+          console.error('Error in initial render validation', e);
+        }
+      }
+    }, [balanceData]);
+
+
     return (
       <div>
         {!showSummary && (
