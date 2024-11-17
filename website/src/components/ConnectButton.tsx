@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { ConnectButton as RainbowConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount, useContractRead } from 'wagmi';
 import clsx from 'clsx';
+import { PiWallet } from 'react-icons/pi';
 
 export function ConnectButton() {
   const { address, isConnected } = useAccount();
@@ -51,6 +52,7 @@ export function ConnectButton() {
               )}
               onClick={onClick}
             >
+              <PiWallet className='w-6 h-6' />
               {(() => {
                 if (! connected) {
                   return <>Connect</>;
