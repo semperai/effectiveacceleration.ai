@@ -730,7 +730,10 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                   <Listbox
                     placeholder='Select Category'
                     value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e)}
+                    onChange={(c) => {
+                      setSelectedCategory(c);
+                      setCategoryError('');
+                    }}
                     className='rounded-md border border-gray-300 shadow-sm'
                   >
                     {jobMeceTags.map(
