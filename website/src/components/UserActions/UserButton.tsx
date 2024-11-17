@@ -47,11 +47,14 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
   const { data: arbitrator } = useArbitrator(address!);
   const users = [user, arbitrator];
   const [userIndex, setUserIndex] = useState<number>(0);
-  const [name, setName] = useState<string>();
-  const [bio, setBio] = useState<string>();
+  const [name, setName] = useState<string>('');
+  const [bio, setBio] = useState<string>('');
   const [avatar, setAvatar] = useState<string | undefined>('');
   const [avatarFileUrl, setAvatarFileUrl] = useState<string | undefined>('');
   const [newAvatar, setNewAvatar] = useState<string | undefined>('');
+  const [nameError, setNameError] = useState<string>('');
+  const [bioError, setBioError] = useState<string>('');
+  const [avatarError, setAvatarError] = useState<string>();
   const [fee, setFee] = useState<number>();
   const [isImgValid, setIsImgValid] = useState<boolean>(false);
 
@@ -171,6 +174,47 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
     setIsOpen(true);
   }
 
+  function validateName() {
+    if (!name || name.length === 0) {
+      setNameError('Name is required');
+      return;
+    }
+    if (name.length >= 20) {
+      setNameError('Name is too long (20 characters max)');
+      return;
+    }
+
+    setNameError('');
+  }
+
+  function validateBio() {
+    // could have not loaded yet
+    // 0 length is ok
+    if (! bio) {
+      setBioError('');
+      return;
+    }
+
+    if (bio.length >= 255) {
+      setBioError('Bio is too long (255 characters max)');
+      return;
+    }
+
+    setBioError('');
+  }
+
+  useEffect(() => {
+    validateName();
+    validateBio();
+
+    if (nameError || bioError) {
+      setButtonDisabled(true);
+    } else {
+      setButtonDisabled(false);
+    }
+  }, [name, bio]);
+
+
   return (
     <>
       <span className=''>
@@ -247,15 +291,29 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
                             <Label>Name</Label>
                             <Input
                               value={name}
-                              onChange={(e) => setName(e.target.value)}
+                              onChange={(e) => {
+                                setName(e.target.value);
+                              }}
                             />
+                            {nameError && (
+                              <div className='text-xs' style={{ color: 'red' }}>
+                                {nameError}
+                              </div>
+                            )}
                           </Field>
                           <Field>
                             <Label>Bio</Label>
                             <Input
                               value={bio}
-                              onChange={(e) => setBio(e.target.value)}
+                              onChange={(e) => {
+                                setBio(e.target.value);
+                              }}
                             />
+                            {bioError && (
+                              <div className='text-xs' style={{ color: 'red' }}>
+                                {bioError}
+                              </div>
+                            )}
                           </Field>
                           <span className='text-sm font-bold'>Avatar</span>
                           <UploadAvatar
@@ -307,7 +365,7 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
 
                           {users[userIndex] && (
                             <Button
-                              disabled={buttonDisabled}
+                              disabled={buttonDisabled || nameError.length > 0 || bioError.length > 0}
                               onClick={updateButtonClick}
                             >
                               <CheckIcon
