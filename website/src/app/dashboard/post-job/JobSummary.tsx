@@ -32,15 +32,17 @@ const JobSummary: React.FC<JobSummaryProps> = ({
       </div>
       <div className='flex flex-col rounded-3xl bg-white p-8 shadow-md'>
         <table className='w-full'>
-          {formInputs.map(
-            (inputData, index) =>
-              inputData.inputInfo && (
-                <tr key={index} className='mb-8 flex'>
-                  <td className='w-1/2 font-bold'>{inputData.label}</td>
-                  <td className='flex grow-[2]'>{inputData.inputInfo}</td>
-                </tr>
-              )
-          )}
+          <tbody>
+            {formInputs.map(
+              (inputData, index) =>
+                inputData.inputInfo && (
+                  <tr key={index} className='mb-8 flex'>
+                    <td className='w-1/2 font-bold'>{inputData.label}</td>
+                    <td className='flex grow-[2]'>{inputData.inputInfo}</td>
+                  </tr>
+                )
+            )}
+          </tbody>
         </table>
       </div>
       <div className='mt-5 mb-40 flex justify-end'>
