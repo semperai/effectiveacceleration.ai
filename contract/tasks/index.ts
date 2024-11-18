@@ -5,10 +5,55 @@ import { MarketplaceDataV1 as MarketplaceData } from '../typechain-types/contrac
 import { FakeToken } from '../typechain-types/contracts/unicrow/FakeToken';
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { task } from "hardhat/config";
-import Config from '../scripts/config.json';
+import Config from '../scripts/config.local.json';
+import LocalConfig from '../scripts/config.json';
 import { AbiCoder, getBytes, hexlify, keccak256, ZeroAddress } from 'ethers';
 import { getEncryptionSigningKey, publishToIpfs, getSessionKey, encryptUtf8Data, encryptBinaryData } from '../src/utils/encryption';
 import "@nomicfoundation/hardhat-ethers";
+
+async function getMarketplace(hre: HardhatRuntimeEnvironment) {
+  const Marketplace = await hre.ethers.getContractFactory("MarketplaceV1");
+
+  if (hre.network.name === 'hardhat') {
+    console.log('You are on hardhat network, try localhost');
+    process.exit(1);
+  }
+
+  if (hre.network.name === 'localhost') {
+    const marketplace = await Marketplace.attach(LocalConfig.marketplaceAddress);
+    return marketplace;
+  }
+
+  if (hre.network.name === 'arbitrum') {
+    const marketplace = await Marketplace.attach(Config.marketplaceAddress);
+    return marketplace;
+  }
+
+  console.log(`Unknown network ${hre.network.name}`);
+  process.exit(1);
+}
+
+async function getMarketplaceData(hre: HardhatRuntimeEnvironment) {
+  const MarketplaceData = await hre.ethers.getContractFactory("MarketplaceDataV1");
+
+  if (hre.network.name === 'hardhat') {
+    console.log('You are on hardhat network, try localhost');
+    process.exit(1);
+  }
+
+  if (hre.network.name === 'localhost') {
+    const marketplaceData = await MarketplaceData.attach(LocalConfig.marketplaceDataAddress);
+    return marketplaceData;
+  }
+
+  if (hre.network.name === 'arbitrum') {
+    const marketplaceData = await MarketplaceData.attach(Config.marketplaceDataAddress);
+    return marketplaceData;
+  }
+
+  console.log(`Unknown network ${hre.network.name}`);
+  process.exit(1);
+}
 
 async function getUserAddress(hre: HardhatRuntimeEnvironment) {
   const accounts = await hre.ethers.getSigners();
@@ -324,10 +369,7 @@ task("arbitrator:register", "Register as arbitrator")
 .addOptionalParam("avatar", "Avatar")
 .addParam("fee", "Fee in bps (10000 = 100%)")
 .setAction(async ({ pubkey, name, bio, avatar, fee }, hre) => {
-  const MarketplaceData = await hre.ethers.getContractFactory(
-    "MarketplaceDataV1"
-  );
-  const marketplaceData = await MarketplaceData.attach(Config.marketplaceDataAddress);
+  const marketplaceData = await getMarketplaceData(hre);
 
   // try to load from params first otherwise use the default signer
   let publicKey = pubkey;
