@@ -12,10 +12,10 @@ import {
   PiPerson,
   PiPaperPlaneTilt,
   PiNetwork,
-  PiMoney,
+  PiListHeart,
+  PiBooks,
 } from 'react-icons/pi';
 import { BsList } from 'react-icons/bs';
-import { GiBlackBook } from 'react-icons/gi';
 import { usePathname } from 'next/navigation';
 import { Transition, Dialog } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
@@ -37,7 +37,7 @@ const navigation: NavigationItem[] = [
   {
     name: 'Open Jobs',
     href: '/dashboard/open-job-list',
-    icon: <PiMoney className='text-2xl' />,
+    icon: <PiListHeart className='text-2xl' />,
   },
   {
     name: 'Your Jobs',
@@ -46,7 +46,7 @@ const navigation: NavigationItem[] = [
   },
   {
     name: 'Worker Jobs',
-    href: '/dashboard/owner-job-list',
+    href: '/dashboard/worker-job-list',
     icon: <PiBriefcase className='text-2xl' />,
   },
   {
@@ -62,7 +62,7 @@ const navigation: NavigationItem[] = [
   {
     name: 'Docs',
     href: 'https://docs.effectiveacceleration.ai',
-    icon: <GiBlackBook className='text-2xl' />,
+    icon: <PiBooks className='text-2xl' />,
   },
   {
     name: 'Changelog',
@@ -70,14 +70,6 @@ const navigation: NavigationItem[] = [
     icon: <PiMegaphoneSimple className='text-2xl' />,
   },
 ];
-
-const navigationLinkOnPageClasses =
-  'bg-opacity-40  bg-indigo-200 dark:bg-fuchsia-200  dark:text-slate-100';
-const navigationLinkOffPageClasses =
-  'text-white dark:text-slate-100 hover:bg-indigo-500/10 hover:dark:bg-fuchsia-500/10';
-
-const navigationIconOnPageClasses = 'text-slate-800 dark:text-slate-100';
-const navigationIconOffPageClasses = 'text-slate-800 dark:text-slate-100';
 
 const SidebarDesktop = ({
   sidebarOpen,
