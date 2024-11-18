@@ -4,12 +4,15 @@ import clsx from 'clsx';
 import Link from 'next/link';
 import React, { Fragment, useState } from 'react';
 import {
+  PiBriefcase,
   PiHouseSimple,
   PiJoystick,
   PiMegaphoneSimple,
   PiFinnTheHuman,
   PiPerson,
   PiPaperPlaneTilt,
+  PiNetwork,
+  PiMoney,
 } from 'react-icons/pi';
 import { BsList } from 'react-icons/bs';
 import { GiBlackBook } from 'react-icons/gi';
@@ -19,17 +22,32 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import SidebarMobile from './SidebarMobile';
 import SidebarDesktopView from './SidebarDesktop';
 
-const navigation = [
-  // { name: 'Dashboard', href: '/dashboard', icon: <PiHouseSimple className='text-2xl' /> },
-  {
-    name: 'Job List',
-    href: '/dashboard/owner-job-list',
-    icon: <PiJoystick className='text-2xl' />,
-  },
+type NavigationItem = {
+  name: string;
+  href: string;
+  icon: JSX.Element;
+};
+
+const navigation: NavigationItem[] = [
   {
     name: 'Post job',
     href: '/dashboard/post-job',
     icon: <PiPaperPlaneTilt className='text-2xl' />,
+  },
+  {
+    name: 'Open Jobs',
+    href: '/dashboard/open-job-list',
+    icon: <PiMoney className='text-2xl' />,
+  },
+  {
+    name: 'Your Jobs',
+    href: '/dashboard/owner-job-list',
+    icon: <PiNetwork className='text-2xl' />,
+  },
+  {
+    name: 'Worker Jobs',
+    href: '/dashboard/owner-job-list',
+    icon: <PiBriefcase className='text-2xl' />,
   },
   {
     name: 'Arbitrators',
@@ -69,14 +87,15 @@ const SidebarDesktop = ({
   setSidebarOpen: (value: boolean) => void;
 }) => {
   const pathname = usePathname();
+
   return (
     <>
       <SidebarMobile
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         navigationItems={navigation}
-      ></SidebarMobile>
-      <SidebarDesktopView navigationItems={navigation}></SidebarDesktopView>
+      />
+      <SidebarDesktopView navigationItems={navigation} />
     </>
   );
 };
