@@ -45,7 +45,7 @@ const JobChatDetails = ({
     ?.filter((event) => event.type_ === JobEventType.Closed)
     .slice(-1)[0]?.timestamp_;
   const hoursPassed = moment().diff(moment(timestamp! * 1000), 'hours'); // hours passed since the job was closed
-  const timePassed = Math.sign(hoursPassed) === (1 || 0) ? true : false; // if 24h have passed
+  const timePassed = hoursPassed >= 24; // If 24 hours have passed since the job was closed
   const progressValue = (hoursPassed / 24) * 100; // Calculate the progress value (0 to 100)
   const adjustedProgressValue =
     progressValue < 0 ? 100 + progressValue : 100 - progressValue;
@@ -147,9 +147,25 @@ const JobChatDetails = ({
         address === job.roles.creator &&
         job.collateralOwed > 0n && ( // If collateral is owed
           <div className='border border-gray-100 p-4'>
-            <div className='my-2 flex justify-between'>
-              <span className='font-bold'>Time left to withraw collateral</span>
-              {/* { moment.duration(job?.maxTime, "seconds").humanize() }  */}
+            <div className='my-2'>
+              <span className='font-bold'>
+                Time remaining to withdraw collateral
+              </span>
+            </div>
+            <div className='my-2'>
+              <span className='text-xs'>
+                {(() => {
+                  if (!job || job.timestamp === undefined) return;
+
+                  const ts = moment.unix(job.timestamp);
+
+                  if (ts.add(24, 'hours').isAfter(moment())) {
+                    return <>{ts.from(moment(), true)}</>;
+                  }
+
+                  return <>Ready to withdraw</>;
+                })()}
+              </span>
             </div>
             <div className='my-2'>
               <LinearProgress

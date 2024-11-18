@@ -38,7 +38,7 @@ export const staging = /*#__PURE__*/ defineChain({
   iconBackground: '#fff',
 });
 
-const initialChain = process.env.NODE_ENV === 'production' ? arbitrum : staging;
+const initialChain = arbitrum;
 
 export const config = getDefaultConfig({
   appName: 'Effective Acceleration',

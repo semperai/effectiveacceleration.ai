@@ -37,8 +37,10 @@ export default function RootLayout({
     >
       <body className='flex h-full min-h-full flex-col bg-white dark:bg-black'>
         <Providers>{children}</Providers>
-        {process.env.NODE_ENV === "production" && (
-          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID!} / >
+        {process.env.NODE_ENV === 'production' && (
+          <GoogleAnalytics
+            gaId={process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID!}
+          />
         )}
       </body>
     </html>

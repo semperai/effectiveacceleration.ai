@@ -5,7 +5,7 @@ import DashboardWorkerTabs from '@/components/Dashboard/JobsTables/DashboardWork
 export default function OwnerJobListPage() {
   return (
     <Layout>
-      <DashboardWorkerTabs></DashboardWorkerTabs>
+      <DashboardWorkerTabs />
     </Layout>
   );
 }

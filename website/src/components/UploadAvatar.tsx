@@ -20,6 +20,7 @@ const UploadAvatar = ({
       const formData = new FormData();
       formData.append('file', file);
 
+      // TODO this should be controlled by environment not posting to localhost first
       const response = await fetch('http://localhost:5001/api/v0/add', {
         method: 'POST',
         body: formData,

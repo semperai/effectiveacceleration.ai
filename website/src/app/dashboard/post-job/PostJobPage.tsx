@@ -4,6 +4,7 @@ import React, {
   FormEvent,
   forwardRef,
   useImperativeHandle,
+  useRef,
 } from 'react';
 import { ethers } from 'ethers';
 import {
@@ -73,8 +74,9 @@ interface FieldValidation {
   required?: boolean;
   minLength?: number;
   pattern?: RegExp;
-  mustBeGreaterThanOrEqualTo?: string; // Add this line
-  mustBeLessThanOrEqualTo?: string; // Add this line
+  mustBeGreaterThanOrEqualTo?: string;
+  mustBeGreaterThan?: string;
+  mustBeLessThanOrEqualTo?: string;
   custom?: (value: string) => string;
 }
 
@@ -170,6 +172,12 @@ const validateField = (value: string, validation: FieldValidation): string => {
   }
   console.log('validation', validation, value);
   if (
+    validation.mustBeGreaterThan &&
+    parseFloat(value) <= parseFloat(validation.mustBeGreaterThan)
+  ) {
+    return `Amount must be greater than ${validation.mustBeGreaterThan}`;
+  }
+  if (
     validation.mustBeGreaterThanOrEqualTo &&
     parseFloat(value) < parseFloat(validation.mustBeGreaterThanOrEqualTo)
   ) {
@@ -204,6 +212,25 @@ const unitsDeliveryTime = [
   { id: 5, name: 'years' },
 ];
 
+const deliveryMethods = [
+  {
+    label: 'IPFS',
+    value: 'ipfs',
+  },
+  {
+    label: 'Courier',
+    value: 'courier',
+  },
+  {
+    label: 'Digital Proof',
+    value: 'digital_proof',
+  },
+  {
+    label: 'Other',
+    value: 'other',
+  },
+];
+
 const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
   (props, ref) => {
     const router = useRouter();
@@ -230,7 +257,9 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
     const multipleApplicantsValues = ['No', 'Yes'];
     const [showSummary, setShowSummary] = useState(false);
     const [title, setTitle] = useState<string>('');
-    const [deliveryMethod, setDeliveryMethod] = useState('');
+    const [deliveryMethod, setDeliveryMethod] = useState(
+      deliveryMethods[0].value
+    );
     const [description, setDescription] = useState<string>('');
     const [amount, setAmount] = useState('');
     const [deadline, setDeadline] = useState<number>();
@@ -248,16 +277,24 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
       id: string;
       name: string;
     }>();
-    const [selectedWorkerAddress, setsSelectedWorkerAddress] = useState<
+    const [selectedWorkerAddress, setSelectedWorkerAddress] = useState<
       string | undefined
     >(undefined);
-    const [selectedArbitratorAddress, setsSelectedArbitratorAddress] =
+    const [selectedArbitratorAddress, setSelectedArbitratorAddress] =
       useState<string>();
     const [titleError, setTitleError] = useState<string>('');
     const [descriptionError, setDescriptionError] = useState<string>('');
     const [categoryError, setCategoryError] = useState<string>('');
     const [paymentTokenError, setPaymentTokenError] = useState<string>('');
+    const [arbitratorError, setArbitratorError] = useState<string>('');
+    const [deadlineError, setDeadlineError] = useState<string>('');
     const [postButtonDisabled, setPostButtonDisabled] = useState(false);
+    const jobTitleRef = useRef<HTMLDivElement>(null);
+    const jobDescriptionRef = useRef<HTMLDivElement>(null);
+    const jobCategoryRef = useRef<HTMLDivElement>(null);
+    const jobAmountRef = useRef<HTMLDivElement>(null);
+    const jobDeadlineRef = useRef<HTMLDivElement>(null);
+    const jobArbitratorRef = useRef<HTMLDivElement>(null);
     const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
     const [isLoadingModalOpen, setIsLoadingModalOpen] = useState(false);
     const userJobCache = `${address}${LOCAL_JOBS_OWNER_CACHE}`;
@@ -408,11 +445,16 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
       };
 
     const handleSubmit = () => {
+      if (!balanceData) {
+        throw new Error('Balance data is not available');
+      }
       // Ensure balanceData is of type ethers.BigNumberish
-      const balanceAsString = ethers.formatUnits(
-        balanceData as ethers.BigNumberish,
-        selectedToken?.decimals as number
-      ).toString();
+      const balanceAsString = ethers
+        .formatUnits(
+          balanceData as ethers.BigNumberish,
+          selectedToken?.decimals as number
+        )
+        .toString();
 
       // Validate all fields before submission
       const titleValidationMessage = validateField(title, { minLength: 3 });
@@ -424,33 +466,88 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
         selectedCategory?.name || '',
         { required: true }
       );
-      const paymentTokenValidationMessage = validateField(balanceAsString, {
-        mustBeGreaterThanOrEqualTo: amount,
+
+      const paymentTokenValidationMessage = validateField(amount, {
+        mustBeLessThanOrEqualTo: balanceAsString,
+        mustBeGreaterThan: '0',
+        required: true,
       });
+
+      let arbitratorValidationMessage = '';
+      if (arbitratorRequired === 'Yes') {
+        if (
+          !selectedArbitratorAddress ||
+          selectedArbitratorAddress === zeroAddress
+        ) {
+          arbitratorValidationMessage = 'Please select an arbitrator';
+        }
+      }
+
+      const deadlineValidationMessage = validateField(
+        deadline ? deadline.toString() : '',
+        {
+          mustBeGreaterThan: '0',
+          required: true,
+        }
+      );
       console.log(
+        'VALIDATION MESSAGES',
         titleValidationMessage,
         descriptionValidationMessage,
         categoryValidationMessage,
         paymentTokenValidationMessage,
-        'VALIDATION MESSAGES'
+        arbitratorValidationMessage
       );
       setTitleError(titleValidationMessage);
       setDescriptionError(descriptionValidationMessage);
       setCategoryError(categoryValidationMessage);
       setPaymentTokenError(paymentTokenValidationMessage);
+      setArbitratorError(arbitratorValidationMessage);
+      setDeadlineError(deadlineValidationMessage);
       if (
         !titleValidationMessage &&
         !descriptionValidationMessage &&
         !categoryValidationMessage &&
-        !paymentTokenValidationMessage
+        !paymentTokenValidationMessage &&
+        !arbitratorValidationMessage &&
+        !deadlineValidationMessage
       ) {
         // Proceed with form submission
-        console.log('Form is valid');
         handleSummary();
       } else {
         console.log('Form has errors');
+        if (titleValidationMessage) {
+          jobTitleRef.current?.focus();
+          jobTitleRef.current?.scrollIntoView({ behavior: 'smooth' });
+          return;
+        }
+
+        if (descriptionValidationMessage) {
+          jobDescriptionRef.current?.focus();
+          jobDescriptionRef.current?.scrollIntoView({ behavior: 'smooth' });
+          return;
+        }
+
+        if (categoryValidationMessage) {
+          jobCategoryRef.current?.focus();
+          jobCategoryRef.current?.scrollIntoView({ behavior: 'smooth' });
+          return;
+        }
+
+        if (paymentTokenValidationMessage) {
+          jobAmountRef.current?.focus();
+          jobAmountRef.current?.scrollIntoView({ behavior: 'smooth' });
+          return;
+        }
+
+        if (arbitratorValidationMessage) {
+          jobArbitratorRef.current?.focus();
+          jobArbitratorRef.current?.scrollIntoView({ behavior: 'smooth' });
+          return;
+        }
       }
     };
+
     const formInputs: JobFormInputData[] = [
       { label: 'Job Title', inputInfo: title },
       { label: 'Description', inputInfo: description },
@@ -514,10 +611,6 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
       }
     }, [isConfirmed, error]);
 
-    useEffect(() => {
-      if (arbitratorRequired === 'Yes')
-        setsSelectedArbitratorAddress(arbitratorAddresses[1]);
-    }, [arbitratorAddresses]);
     console.log(
       selectedArbitratorAddress,
       'ARBITRATOR ADDRESS',
@@ -562,7 +655,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
         setArbitratorRequired('No');
       } else {
         setArbitratorRequired('Yes');
-        setsSelectedArbitratorAddress(job.roles?.arbitrator || '');
+        setSelectedArbitratorAddress(job.roles?.arbitrator || '');
       }
       setDeadline(parseInt(job.maxTime || '0'));
       // delete unregisteredUserLabel as this only should be consumed after user regis
@@ -570,12 +663,19 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
       handleSummary();
     };
 
-    const handleArbitratorChange = (value: string) => {
-      setArbitratorRequired(value);
-      if (value === 'No') {
-        setsSelectedArbitratorAddress(zeroAddress);
+    // show all validations on first render
+    const [initialRenderValidation, setInitialRenderValidation] =
+      useState(false);
+    useEffect(() => {
+      if (!initialRenderValidation) {
+        try {
+          handleSubmit();
+          setInitialRenderValidation(true);
+        } catch (e) {
+          console.error('Error in initial render validation', e);
+        }
       }
-    };
+    }, [balanceData]);
 
     return (
       <div>
@@ -593,6 +693,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
               <FieldGroup className='flex-1'>
                 <Field>
                   <Label>Job Title</Label>
+                  <div className='scroll-mt-20' ref={jobTitleRef} />
                   <Input
                     name='title'
                     value={title}
@@ -610,6 +711,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                 </Field>
                 <Field>
                   <Label>Description</Label>
+                  <div className='scroll-mt-20' ref={jobDescriptionRef} />
                   <Textarea
                     rows={10}
                     name='description'
@@ -650,10 +752,14 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                 </Field>
                 <Field>
                   <Label>Category</Label>
+                  <div ref={jobCategoryRef} className='scroll-mt-20' />
                   <Listbox
                     placeholder='Select Category'
                     value={selectedCategory}
-                    onChange={(e) => setSelectedCategory(e)}
+                    onChange={(c) => {
+                      setSelectedCategory(c);
+                      setCategoryError('');
+                    }}
                     className='rounded-md border border-gray-300 shadow-sm'
                   >
                     {jobMeceTags.map(
@@ -675,23 +781,42 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                   <Label>Tags</Label>
                   <TagsInput tags={tags} setTags={setTags} />
                 </Field>
-                <Field></Field>
               </FieldGroup>
               <FieldGroup className='flex-1'>
                 <div className='flex flex-row justify-between gap-5'>
                   <Field className='flex-1'>
                     <Label>Payment Amount</Label>
+                    <div className='scroll-mt-20' ref={jobAmountRef} />
                     <Input
                       name='amount'
                       placeholder='Amount'
                       type='number'
                       value={amount}
-                      onChange={handleInputChange(setAmount, setPaymentTokenError, {
-                        mustBeLessThanOrEqualTo: ethers.formatUnits(
-                          (balanceData as ethers.BigNumberish) || 0,
-                          selectedToken?.decimals || 0
-                        ),
-                      })}
+                      min={0}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const sanitizedValue =
+                          value === ''
+                            ? ''
+                            : parseFloat(value) < 0
+                              ? -value
+                              : value;
+
+                        handleInputChange(setAmount, setPaymentTokenError, {
+                          mustBeLessThanOrEqualTo: ethers.formatUnits(
+                            (balanceData as ethers.BigNumberish) || 0,
+                            selectedToken?.decimals || 0
+                          ),
+                          mustBeGreaterThan: '0',
+                          required: true,
+                        })({
+                          ...e,
+                          target: {
+                            ...e.target,
+                            value: sanitizedValue.toString(),
+                          },
+                        });
+                      }}
                     />
                     {paymentTokenError && (
                       <div className='text-xs' style={{ color: 'red' }}>
@@ -745,12 +870,18 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                 </div>
                 <Field>
                   <Label>Delivery Method</Label>
-                  <Input
-                    name='deliveryMethod'
-                    placeholder='e.g. IPFS'
+                  <Listbox
+                    placeholder='Delivery Method'
                     value={deliveryMethod}
-                    onChange={(e) => setDeliveryMethod(e.target.value)}
-                  />
+                    onChange={(e) => setDeliveryMethod(e)}
+                    className='rounded-md border border-gray-300 shadow-sm'
+                  >
+                    {deliveryMethods.map((method, index) => (
+                      <ListboxOption key={index} value={method.value}>
+                        {`${deliveryMethods[index].label}`}
+                      </ListboxOption>
+                    ))}
+                  </Listbox>
                 </Field>
                 <Field className='flex flex-row items-center justify-between'>
                   <Label className='mb-0 items-center pb-0 !font-bold'>
@@ -759,7 +890,19 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                   <RadioGroup
                     className='!mt-0 flex'
                     value={arbitratorRequired}
-                    onChange={handleArbitratorChange}
+                    onChange={(value) => {
+                      setArbitratorRequired(value);
+                      if (value === 'No') {
+                        setSelectedArbitratorAddress(zeroAddress);
+                      } else {
+                        if (
+                          !selectedArbitratorAddress ||
+                          selectedArbitratorAddress === zeroAddress
+                        ) {
+                          setArbitratorError('Please select an arbitrator');
+                        }
+                      }
+                    }}
                     aria-label='Server size'
                   >
                     {multipleApplicantsValues.map((option) => (
@@ -777,10 +920,14 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                 </Field>
                 {arbitratorRequired === 'Yes' && (
                   <Field>
+                    <div className='scroll-mt-20' ref={jobArbitratorRef} />
                     <Listbox
                       placeholder='Select Arbitrator'
                       value={selectedArbitratorAddress}
-                      onChange={(e) => setsSelectedArbitratorAddress(e)}
+                      onChange={(e) => {
+                        setSelectedArbitratorAddress(e);
+                        setArbitratorError('');
+                      }}
                       className='rounded-md border border-gray-300 shadow-sm'
                     >
                       {arbitratorAddresses.map(
@@ -795,6 +942,11 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                           )
                       )}
                     </Listbox>
+                    {arbitratorError && (
+                      <div className='text-xs' style={{ color: 'red' }}>
+                        {arbitratorError}
+                      </div>
+                    )}
                   </Field>
                 )}
 
@@ -804,16 +956,35 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                       Maximum delivery time{' '}
                       {selectedUnitTime ? `in ${selectedUnitTime.name}` : ''}
                     </Label>
+                    <div className='scroll-mt-20' ref={jobDeadlineRef} />
                     <Input
                       name='deadline'
                       type='number'
                       placeholder={`Maximum delivery time ${selectedUnitTime ? `in ${selectedUnitTime.name}` : ''}`}
                       value={deadline}
+                      min={1}
+                      step={1}
                       onChange={(e) => {
-                        const deadline = parseInt(e.target.value);
+                        let deadline = parseInt(e.target.value);
+                        if (deadline < 0) {
+                          deadline = -deadline;
+                        }
                         setDeadline(deadline);
+                        console.log('deadline', deadline);
+                        if (deadline === 0 || e.target.value === '') {
+                          setDeadlineError('Please enter a valid deadline');
+                        } else {
+                          if (deadlineError) {
+                            setDeadlineError('');
+                          }
+                        }
                       }}
                     />
+                    {deadlineError && (
+                      <div className='text-xs' style={{ color: 'red' }}>
+                        {deadlineError}
+                      </div>
+                    )}
                   </Field>
                   <Field className='flex-1'>
                     <Label>Units</Label>
@@ -837,7 +1008,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
               </FieldGroup>
             </div>
             {!showSummary && (
-              <div className='flex justify-end mt-5 mb-40'>
+              <div className='mb-40 mt-5 flex justify-end'>
                 <Button
                   // disabled={postButtonDisabled || isPending}
                   // onClick={postJobClick}

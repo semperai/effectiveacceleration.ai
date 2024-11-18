@@ -112,11 +112,8 @@ const JobButtonActions = ({
                 whitelist={whitelistedWorkers}
               ></RemoveFromWhitelistButton>
             )}
-          {((job.state === JobState.Open && address === job.roles.creator) ||
-            (job.state === JobState.Closed &&
-              address === job.roles.creator &&
-              job.resultHash === zeroHash)) && (
-            <UpdateButton address={address} job={job}></UpdateButton>
+          {job.state === JobState.Open && address === job.roles.creator && (
+            <UpdateButton address={address} job={job} />
           )}
 
           {/* worker actions */}

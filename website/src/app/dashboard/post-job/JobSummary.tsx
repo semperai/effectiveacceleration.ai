@@ -31,21 +31,21 @@ const JobSummary: React.FC<JobSummaryProps> = ({
         </span>
       </div>
       <div className='flex flex-col rounded-3xl bg-white p-8 shadow-md'>
-        {formInputs.map(
-          (inputData, index) =>
-            inputData.inputInfo && (
-              <div key={index} className='mb-8 flex'>
-                <div className='flex grow md:min-w-[14rem] md:max-w-[14rem]'>
-                  <span className='font-bold'>{inputData.label}</span>
-                </div>
-                <div className='flex grow-[2]'>
-                  <span className=''>{inputData.inputInfo}</span>
-                </div>
-              </div>
-            )
-        )}
+        <table className='w-full'>
+          <tbody>
+            {formInputs.map(
+              (inputData, index) =>
+                inputData.inputInfo && (
+                  <tr key={index} className='mb-8 flex'>
+                    <td className='w-1/2 font-bold'>{inputData.label}</td>
+                    <td className='flex grow-[2]'>{inputData.inputInfo}</td>
+                  </tr>
+                )
+            )}
+          </tbody>
+        </table>
       </div>
-      <div className='mt-5 flex justify-end'>
+      <div className='mb-40 mt-5 flex justify-end'>
         <Button
           color={'cancelBorder'}
           className={'mr-5'}
@@ -54,10 +54,19 @@ const JobSummary: React.FC<JobSummaryProps> = ({
           Go back
         </Button>
         <Button disabled={postButtonDisabled || isPending} onClick={submitJob}>
-          {isPending ? 'Posting...' : 'Post Job'}
+          {(() => {
+            if (isConfirmed) {
+              return <>Transaction confirmed</>;
+            }
+            if (isConfirming) {
+              return <>Waiting for confirmation...</>;
+            }
+            if (isPending) {
+              return <>Posting...</>;
+            }
+            return <>Post Job</>;
+          })()}
         </Button>
-        {isConfirming && <div>Waiting for confirmation...</div>}
-        {isConfirmed && <div>Transaction confirmed.</div>}
       </div>
     </div>
   );

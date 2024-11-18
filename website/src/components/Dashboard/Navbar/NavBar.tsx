@@ -9,7 +9,6 @@ import { GoPerson } from 'react-icons/go';
 import { MdOutlineArrowForwardIos } from 'react-icons/md';
 import { PiBellSimple } from 'react-icons/pi';
 import { useAccount, useReadContract } from 'wagmi';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
 import useUser from '@/hooks/useUser';
 import { UserIcon } from '@heroicons/react/20/solid';
 import { UserButton } from '@/components/UserActions/UserButton';
@@ -21,6 +20,7 @@ const Navbar = ({
   const { address } = useAccount();
   const [notificationsCount, setNotificationsCount] = useState(BigInt(0));
   const pathname = usePathname();
+  // TODO update for new contract
   const { data: notificationsLengthData } = useReadContract({
     account: address,
     // abi:          MarketplaceArtifact.abi,
@@ -59,7 +59,7 @@ const Navbar = ({
               }
               activeClasses='text-primary'
               containerClasses='flex'
-              listClasses='hover:underline mx-2 font-bold'
+              listClasses='hover:underline mx-2 font-bold text-sm'
               capitalizeLinks
             />
           </div>
@@ -79,24 +79,11 @@ const Navbar = ({
               </span>
             </Link>
 
-            <ConnectButton />
-
-            <Link
-              href={'/dashboard/post-job'}
-              className='flex w-36 items-center justify-center gap-2 rounded-full bg-primary p-2 text-white'
-            >
-              <GoPerson className='text-xl' />
-              <span className='flex h-6 items-center text-sm text-white'>
-                Create Job
-              </span>
-              <FaArrowRight className='text-lg' />
-            </Link>
             <button className='rounded-full bg-gray-200 p-2'>
               <PiBellSimple className='text-2xl' />
             </button>
-            <UserButton></UserButton>
-            {/* <div className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-900/10" aria-hidden="true" /> */}
-            {/* <ConnectButton /> */}
+
+            <UserButton />
           </div>
         </div>
       </div>

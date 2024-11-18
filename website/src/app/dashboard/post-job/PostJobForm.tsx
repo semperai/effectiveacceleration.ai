@@ -428,7 +428,7 @@ function PostJobForm() {
             <h1 className='mb-2 text-3xl font-bold'>Create a Job Post</h1>
             <span>
               Complete the form below to post your job and connect with
-              potential AI candidates.
+              potential candidates.
             </span>
           </div>
 

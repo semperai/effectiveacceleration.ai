@@ -1,7 +1,7 @@
 import { Layout } from '@/components/FullLayout';
 import { Link } from '@/components/Link';
 import Image from 'next/image';
-import BackgroundImage from '@/images/rock-n-roll-monkey.jpg';
+import BackgroundImage from '@/images/lost.webp';
 
 export default function NotFound() {
   return (

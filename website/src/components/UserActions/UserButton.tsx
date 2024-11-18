@@ -32,7 +32,7 @@ import useUser from '@/hooks/useUser';
 import useArbitrator from '@/hooks/useArbitrator';
 import { MARKETPLACE_DATA_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceDataV1';
 import { useEthersSigner } from '@/hooks/useEthersSigner';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { ConnectButton } from '@/components/ConnectButton';
 import Image from 'next/image';
 import { StaticImport } from 'next/dist/shared/lib/get-img-props';
 import UploadAvatar from '../UploadAvatar';
@@ -47,18 +47,25 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
   const { data: arbitrator } = useArbitrator(address!);
   const users = [user, arbitrator];
   const [userIndex, setUserIndex] = useState<number>(0);
-  const [name, setName] = useState<string>();
-  const [bio, setBio] = useState<string>();
+  const [name, setName] = useState<string>('');
+  const [bio, setBio] = useState<string>('');
   const [avatar, setAvatar] = useState<string | undefined>('');
   const [avatarFileUrl, setAvatarFileUrl] = useState<string | undefined>('');
   const [newAvatar, setNewAvatar] = useState<string | undefined>('');
+  const [nameError, setNameError] = useState<string>('');
+  const [bioError, setBioError] = useState<string>('');
+  const [avatarError, setAvatarError] = useState<string>();
   const [fee, setFee] = useState<number>();
   const [isImgValid, setIsImgValid] = useState<boolean>(false);
 
   useEffect(() => {
     const avatarUrl = users[userIndex]?.avatar;
-    setName(users[userIndex]?.name);
-    setBio(users[userIndex]?.bio);
+    if (users[userIndex]?.name) {
+      setName(users[userIndex].name);
+    }
+    if (users[userIndex]?.bio) {
+      setBio(users[userIndex].bio);
+    }
     setAvatarFileUrl(avatarUrl);
     setNewAvatar(avatarUrl);
     setAvatar(avatarUrl);
@@ -171,6 +178,46 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
     setIsOpen(true);
   }
 
+  function validateName() {
+    if (!name || name.length === 0) {
+      setNameError('Name is required');
+      return;
+    }
+    if (name.length >= 20) {
+      setNameError('Name is too long (20 characters max)');
+      return;
+    }
+
+    setNameError('');
+  }
+
+  function validateBio() {
+    // could have not loaded yet
+    // 0 length is ok
+    if (!bio) {
+      setBioError('');
+      return;
+    }
+
+    if (bio.length >= 255) {
+      setBioError('Bio is too long (255 characters max)');
+      return;
+    }
+
+    setBioError('');
+  }
+
+  useEffect(() => {
+    validateName();
+    validateBio();
+
+    if (nameError || bioError) {
+      setButtonDisabled(true);
+    } else {
+      setButtonDisabled(false);
+    }
+  }, [name, bio]);
+
   return (
     <>
       <span className=''>
@@ -202,7 +249,7 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
             )}
           </button>
         ) : (
-          <></>
+          <ConnectButton />
         )}
         <Transition appear show={isOpen} as={Fragment}>
           <Dialog as='div' className='relative z-10' onClose={closeModal}>
@@ -247,15 +294,29 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
                             <Label>Name</Label>
                             <Input
                               value={name}
-                              onChange={(e) => setName(e.target.value)}
+                              onChange={(e) => {
+                                setName(e.target.value);
+                              }}
                             />
+                            {nameError && (
+                              <div className='text-xs' style={{ color: 'red' }}>
+                                {nameError}
+                              </div>
+                            )}
                           </Field>
                           <Field>
                             <Label>Bio</Label>
                             <Input
                               value={bio}
-                              onChange={(e) => setBio(e.target.value)}
+                              onChange={(e) => {
+                                setBio(e.target.value);
+                              }}
                             />
+                            {bioError && (
+                              <div className='text-xs' style={{ color: 'red' }}>
+                                {bioError}
+                              </div>
+                            )}
                           </Field>
                           <span className='text-sm font-bold'>Avatar</span>
                           <UploadAvatar
@@ -307,7 +368,11 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
 
                           {users[userIndex] && (
                             <Button
-                              disabled={buttonDisabled}
+                              disabled={
+                                buttonDisabled ||
+                                nameError.length > 0 ||
+                                bioError.length > 0
+                              }
                               onClick={updateButtonClick}
                             >
                               <CheckIcon
@@ -332,17 +397,7 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
                         </>
                       )}
 
-                      {address && (
-                        <Button onClick={() => connector?.disconnect()}>
-                          <CheckIcon
-                            className='-ml-0.5 mr-1.5 h-5 w-5'
-                            aria-hidden='true'
-                          />
-                          Disconnect Wallet
-                        </Button>
-                      )}
-
-                      {!address && <ConnectButton />}
+                      <ConnectButton />
                     </div>
                   </Dialog.Panel>
                 </Transition.Child>

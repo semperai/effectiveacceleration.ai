@@ -24,7 +24,7 @@ async function main() {
   console.log("Marketplace deployed to:", marketplace.target);
 
   // SAVE CONFIG
-  const configPath = __dirname + '/config.json';
+  const configPath = __dirname + '/config.local.json';
   fs.writeFileSync(configPath, JSON.stringify({
     marketplaceAddress: marketplace.target,
     fakeTokenAddress: fakeToken.target,
