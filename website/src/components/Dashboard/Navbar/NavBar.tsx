@@ -59,7 +59,7 @@ const Navbar = ({
               }
               activeClasses='text-primary'
               containerClasses='flex'
-              listClasses='hover:underline mx-2 font-bold'
+              listClasses='hover:underline mx-2 font-bold text-sm'
               capitalizeLinks
             />
           </div>
