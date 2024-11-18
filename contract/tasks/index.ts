@@ -10,7 +10,7 @@ import { AbiCoder, getBytes, hexlify, keccak256, ZeroAddress } from 'ethers';
 import { getEncryptionSigningKey, publishToIpfs, getSessionKey, encryptUtf8Data, encryptBinaryData } from '../src/utils/encryption';
 import "@nomicfoundation/hardhat-ethers";
 
-async function getMinerAddress(hre: HardhatRuntimeEnvironment) {
+async function getUserAddress(hre: HardhatRuntimeEnvironment) {
   const accounts = await hre.ethers.getSigners();
   return accounts[0].address;
 }
@@ -315,4 +315,40 @@ task("chainId", "Seed local marketplace instance")
 .setAction(async ({ }, hre) => {
   const [deployer] = await hre.ethers.getSigners();
   console.log((await deployer.provider.getNetwork()).chainId);
+});
+
+task("arbitrator:register", "Register as arbitrator")
+.addOptionalParam("pubkey", "Specify a different pubkey for encryption")
+.addParam("name", "Name (must be 1-20 characters)")
+.addOptionalParam("bio", "Bio")
+.addOptionalParam("avatar", "Avatar")
+.addParam("fee", "Fee in bps (10000 = 100%)")
+.setAction(async ({ pubkey, name, bio, avatar, fee }, hre) => {
+  const MarketplaceData = await hre.ethers.getContractFactory(
+    "MarketplaceDataV1"
+  );
+  const marketplaceData = await MarketplaceData.attach(Config.marketplaceDataAddress);
+
+  // try to load from params first otherwise use the default signer
+  let publicKey = pubkey;
+  if (! publicKey) {
+    const accounts = await hre.ethers.getSigners();
+    const account = accounts[0];
+    const signingKey = await getEncryptionSigningKey(account);
+    publicKey = signingKey.compressedPublicKey;
+  }
+
+  console.log("Registering arbitrator with pubkey", publicKey);
+
+  const tx = await marketplaceData.registerArbitrator(
+    publicKey,
+    name,
+    bio || "",
+    avatar || "",
+    fee,
+  );
+
+  const receipt = await tx.wait();
+
+  console.log("Transaction hash:", receipt.transactionHash);
 });
