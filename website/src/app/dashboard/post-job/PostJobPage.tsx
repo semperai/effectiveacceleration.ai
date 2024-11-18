@@ -611,10 +611,6 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
       }
     }, [isConfirmed, error]);
 
-    useEffect(() => {
-      if (arbitratorRequired === 'Yes')
-        setSelectedArbitratorAddress(arbitratorAddresses[1]);
-    }, [arbitratorAddresses]);
     console.log(
       selectedArbitratorAddress,
       'ARBITRATOR ADDRESS',
