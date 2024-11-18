@@ -151,7 +151,7 @@ const DashboardTabs = () => {
               selectedClassName='!border-lightPurple  border-b-2 !text-lightPurple'
               className='relative top-[2px] cursor-pointer px-8 py-2 font-medium text-darkBlueFont outline-none'
             >
-              Cancelled
+              Closed
             </Tab>
             <Tab
               selectedClassName='!border-lightPurple  border-b-2 !text-lightPurple'

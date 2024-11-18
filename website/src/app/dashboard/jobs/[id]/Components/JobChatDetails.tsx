@@ -18,7 +18,7 @@ import {
   User,
 } from 'effectiveacceleration-contracts/dist/src/interfaces';
 import JobButtonActions from './JobButtonActions';
-import { zeroHash } from 'viem';
+import { zeroAddress, zeroHash } from 'viem';
 import JobStatus from './JobStatus';
 import JobStatusWrapper from './JobStatusWrapper';
 import { jobMeceTags } from '@/utils/jobMeceTags';
@@ -192,17 +192,20 @@ const JobChatDetails = ({
             </div>
           </div>
         )}
-      <div className='border border-gray-100 p-4'>
-        <div>
-          <span className='font-bold'>Addresses</span>
+      {job?.roles.arbitrator !== zeroAddress && (
+        <div className='border border-gray-100 p-4'>
+          <div>
+            <span className='font-bold'>Addresses</span>
+          </div>
+          <div className='my-2 flex justify-between'>
+            <span>Arbitrator Address</span>
+            <span>
+              {shortenText({ text: job?.roles.arbitrator, maxLength: 12 }) ||
+                ''}
+            </span>
+          </div>
         </div>
-        <div className='my-2 flex justify-between'>
-          <span>Arbitrator Address</span>
-          <span>
-            {shortenText({ text: job?.roles.arbitrator, maxLength: 12 }) || ''}
-          </span>
-        </div>
-      </div>
+      )}
       <div className='border border-gray-100 p-4'>
         <div>
           <span className='font-bold'>Category</span>
