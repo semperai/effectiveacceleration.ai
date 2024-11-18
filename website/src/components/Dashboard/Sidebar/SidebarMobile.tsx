@@ -88,8 +88,7 @@ const SidebarMobile = ({
                                   pathname == item.href
                                     ? 'bg-indigo-200 bg-opacity-40 dark:bg-fuchsia-200 dark:text-slate-100'
                                     : 'text-white hover:bg-indigo-500/10 dark:text-slate-100 hover:dark:bg-fuchsia-500/10',
-                                  'group flex gap-x-3 rounded-full p-2 text-sm font-semibold leading-6',
-
+                                  'group flex gap-x-3 rounded-full p-2 text-sm font-semibold leading-6'
                                 )}
                               >
                                 {item.icon}
