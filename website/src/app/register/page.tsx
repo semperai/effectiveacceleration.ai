@@ -17,8 +17,6 @@ export default function RegisterPage() {
   const { data: user } = useUser(address as `0x${string}`);
   const [encryptionPublicKey, setEncryptionPublicKey] =
     React.useState<`0x${string}`>(`0x`);
-  console.log(encryptionPublicKey, 'encryptionPublicKey');
-  console.log(isConnected);
 
   useEffect(() => {
     if (address && typeof user !== 'undefined') {

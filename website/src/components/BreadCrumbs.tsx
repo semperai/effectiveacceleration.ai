@@ -43,7 +43,6 @@ const BreadCrumbs = ({
             ? link[0].toUpperCase() +
               link.slice(1, link.length).replace(/-/g, ' ')
             : link.replace(/-/g, ' ');
-          console.log(itemLink, 'ITEM LINK');
           return (
             <React.Fragment key={index}>
               <li

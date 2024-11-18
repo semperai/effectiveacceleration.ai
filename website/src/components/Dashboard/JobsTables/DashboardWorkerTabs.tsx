@@ -57,7 +57,7 @@ const DashboardTabs = () => {
     }
     setMounted(true);
   }, [address]);
-  console.log(localJobs, 'LOCAL JOBSSS');
+  
   const filteredJobsMemo = useMemo(() => {
     if (selectedJobs.length === 0)
       return { open: [], aplications: [], started: [], completed: [] };

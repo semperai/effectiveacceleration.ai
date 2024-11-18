@@ -24,7 +24,6 @@ export function ApproveButton({
 }: ApproveButtonProps & React.ComponentPropsWithoutRef<'div'>) {
   const [review, setReview] = useState<string>('');
   const [rating, setRating] = useState<number>(0);
-  console.log(rating);
 
   const { data: hash, error, writeContract } = useWriteContract();
 
@@ -70,7 +69,7 @@ export function ApproveButton({
     }
 
     setButtonDisabled(true);
-    console.log(skipReview);
+
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
       address: Config.marketplaceAddress as `0x${string}`,
