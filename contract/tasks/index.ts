@@ -372,18 +372,17 @@ task("arbitrator:register", "Register as arbitrator")
   const marketplaceData = await getMarketplaceData(hre);
 
   // try to load from params first otherwise use the default signer
-  let publicKey = pubkey;
-  if (! publicKey) {
+  if (! pubkey) {
     const accounts = await hre.ethers.getSigners();
     const account = accounts[0];
     const signingKey = await getEncryptionSigningKey(account);
-    publicKey = signingKey.compressedPublicKey;
+    pubkey = signingKey.compressedPublicKey;
   }
 
-  console.log("Registering arbitrator with pubkey", publicKey);
+  console.log("Registering arbitrator with pubkey", pubkey);
 
   const tx = await marketplaceData.registerArbitrator(
-    publicKey,
+    pubkey,
     name,
     bio || "",
     avatar || "",
@@ -392,5 +391,258 @@ task("arbitrator:register", "Register as arbitrator")
 
   const receipt = await tx.wait();
 
+  console.log("Transaction hash:", receipt.transactionHash);
+});
+
+task("arbitrator:update", "Update arbitrator")
+.addParam("name", "Name (must be 1-20 characters)")
+.addOptionalParam("bio", "Bio")
+.addOptionalParam("avatar", "Avatar")
+.setAction(async ({ name, bio, avatar }, hre) => {
+  const marketplaceData = await getMarketplaceData(hre);
+
+  const tx = await marketplaceData.updateArbitrator(
+    name,
+    bio || "",
+    avatar || "",
+  );
+
+  const receipt = await tx.wait();
+
+  console.log("Transaction hash:", receipt.transactionHash);
+});
+
+task("arbitrator:refuse", "Refuse arbitration")
+.addParam("jobId", "Job ID")
+.setAction(async ({ jobId }, hre) => {
+  const marketplace = await getMarketplace(hre);
+  const arbitrator = await getUserAddress(hre);
+
+  const tx = await marketplace.refuseArbitration(BigInt(jobId));
+
+  const receipt = await tx.wait();
+
+  console.log("Transaction hash:", receipt.transactionHash);
+});
+
+task("arbitrator:arbitrate", "Arbitrate a job")
+.addParam("jobId", "Job ID")
+.addParam("buyerShare", "Buyer share in bps")
+.addParam("workerShare", "Worker share in bps")
+.addParam("reason", "Reason")
+.setAction(async ({ jobId, buyerShare, workerShare, reason }, hre) => {
+  const marketplace = await getMarketplace(hre);
+  const marketplaceData = await getMarketplaceData(hre);
+
+  // TODO encrypt reason
+  // const otherCompressedPublicKey = await marketplaceData.connect(user1).publicKeys(user2.address);
+  // const sessionKey = await getSessionKey(user1, otherCompressedPublicKey, jobId);
+  // ...
+  throw new Error("Not implemented");
+
+  const reasonHash = (await publishToIpfs(reason)).hash;
+  const tx = await marketplace.arbitrate(BigInt(jobId), buyerShare, workerShare, reasonHash);
+  const receipt = await tx.wait();
+  console.log("Transaction hash:", receipt.transactionHash);
+});
+
+task("user:register", "Register as user")
+.addOptionalParam("pubkey", "Specify a different pubkey for encryption")
+.addParam("name", "Name (must be 1-20 characters)")
+.addOptionalParam("bio", "Bio")
+.addOptionalParam("avatar", "Avatar")
+.setAction(async ({ pubkey, name, bio, avatar }, hre) => {
+  const marketplaceData = await getMarketplaceData(hre);
+
+  if (! pubkey) {
+    const accounts = await hre.ethers.getSigners();
+    const account = accounts[0];
+    pubkey = (await getEncryptionSigningKey(account)).compressedPublicKey;
+  }
+
+  console.log("Registering user with pubkey", pubkey);
+
+  const tx = await marketplaceData.registerUser(
+    pubkey,
+    name,
+    bio || "",
+    avatar || "",
+  );
+
+  const receipt = await tx.wait();
+
+  console.log("Transaction hash:", receipt.transactionHash);
+});
+
+task("user:update", "Update user")
+.addParam("name", "Name (must be 1-20 characters)")
+.addOptionalParam("bio", "Bio")
+.addOptionalParam("avatar", "Avatar")
+.setAction(async ({ name, bio, avatar }, hre) => {
+  const marketplaceData = await getMarketplaceData(hre);
+
+  const tx = await marketplaceData.updateUser(
+    name,
+    bio || "",
+    avatar || "",
+  );
+
+  const receipt = await tx.wait();
+
+  console.log("Transaction hash:", receipt.transactionHash);
+});
+
+task("job:publish", "Publish a job post")
+.addParam("title", "Title")
+.addParam("content", "Content")
+.addParam("multipleApplicants", "Allow multiple applicants")
+.addOptionalParam("tags", "Tags")
+.addParam("token", "Token address")
+.addParam("amount", "Amount of tokens")
+.addParam("maxTime", "Max time in seconds")
+.addParam("deliveryMethod", "Delivery method")
+.addOptionalParam("arbitrator", "Arbitrator address")
+.addOptionalParam("whitelist", "Whitelist", "")
+.setAction(async ({
+  title,
+  content,
+  multipleApplicants,
+  tags,
+  token,
+  amount,
+  maxTime,
+  deliveryMethod,
+  arbitrator,
+  whitelist
+}, hre) => {
+  const marketplace = await getMarketplace(hre);
+  const owner = await getUserAddress(hre);
+  
+  const contentHash = (await publishToIpfs(content)).hash;
+
+  if (! tags) tags = '';
+  if (! arbitrator) arbitrator = ZeroAddress;
+  if (! whitelist)  whitelist = false;
+  
+  const tx = await marketplace.publishJobPost(
+    title,
+    contentHash,
+    multipleApplicants === 'true',
+    tags.split(','),
+    token,
+    BigInt(amount),
+    BigInt(maxTime),
+    deliveryMethod,
+    arbitrator,
+    whitelist.split(','),
+  );
+  
+  const receipt = await tx.wait();
+  
+  console.log("Transaction hash:", receipt.transactionHash);
+
+  const jobId = await marketplace.jobCount();
+  console.log("Job ID:", jobId);
+});
+
+task("job:update", "Update a job post")
+.addParam("jobId", "Job ID")
+.addParam("title", "Title")
+.addParam("content", "Content")
+.addOptionalParam("tags", "Tags")
+.addParam("amount", "Amount of tokens")
+.addParam("maxTime", "Max time in seconds")
+.addOptionalParam("arbitrator", "Arbitrator address")
+.addOptionalParam("whitelist", "Whitelist workers")
+.setAction(async ({
+  jobId,
+  title,
+  content,
+  tags,
+  amount,
+  maxTime,
+  arbitrator,
+  whitelist
+}, hre) => {
+  const marketplace = await getMarketplace(hre);
+  const owner = await getUserAddress(hre);
+  
+  const contentHash = (await publishToIpfs(content)).hash;
+
+  if (! tags) tags = '';
+  if (! arbitrator) arbitrator = ZeroAddress;
+  if (! whitelist)  whitelist = false;
+  
+  const tx = await marketplace.updateJobPost(
+    BigInt(jobId),
+    title,
+    contentHash,
+    tags.split(','),
+    BigInt(amount),
+    BigInt(maxTime),
+    arbitrator,
+    true,
+  );
+  
+  const receipt = await tx.wait();
+  
+  console.log("Transaction hash:", receipt.transactionHash);
+});
+
+task("job:whitelist", "Update a job post whitelist")
+.addParam("jobId", "Job ID")
+.addParam("whitelist", "Workers to add")
+.addParam("blacklist", "Workers to remove")
+.setAction(async ({ jobId, whitelist, blacklist }, hre) => {
+  const marketplace = await getMarketplace(hre);
+  const owner = await getUserAddress(hre);
+
+  const tx = await marketplace.updateJobWhitelist(
+    BigInt(jobId),
+    whitelist.split(','),
+    blacklist.split(','),
+  );
+
+  const receipt = await tx.wait();
+  
+  console.log("Transaction hash:", receipt.transactionHash);
+});
+
+task("job:close", "Close a job post")
+.addParam("jobId", "Job ID")
+.setAction(async ({ jobId }, hre) => {
+  const marketplace = await getMarketplace(hre);
+  const owner = await getUserAddress(hre);
+
+  const tx = await marketplace.closeJob(BigInt(jobId));
+
+  const receipt = await tx.wait();
+  
+  console.log("Transaction hash:", receipt.transactionHash);
+});
+
+task("job:witdraw", "Withdraw job collateral")
+.addParam("jobId", "Job ID")
+.setAction(async ({ jobId }, hre) => {
+  const marketplace = await getMarketplace(hre);
+  const owner = await getUserAddress(hre);
+
+  const tx = await marketplace.withdrawCollateral(BigInt(jobId));
+
+  const receipt = await tx.wait();
+  
+  console.log("Transaction hash:", receipt.transactionHash);
+});
+
+task("job:reopen", "Reopen a job post")
+.addParam("jobId", "Job ID")
+.setAction(async ({ jobId }, hre) => {
+  const marketplace = await getMarketplace(hre);
+  const owner = await getUserAddress(hre);
+
+  const tx = await marketplace.reopenJob(BigInt(jobId));
+
+  const receipt = await tx.wait();
+  
   console.log("Transaction hash:", receipt.transactionHash);
 });
