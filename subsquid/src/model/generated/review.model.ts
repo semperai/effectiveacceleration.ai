@@ -1,8 +1,9 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, StringColumn as StringColumn_, Index as Index_, IntColumn as IntColumn_, ManyToOne as ManyToOne_} from "@subsquid/typeorm-store"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, StringColumn as StringColumn_, Index as Index_, BigIntColumn as BigIntColumn_, IntColumn as IntColumn_, ManyToOne as ManyToOne_} from "@subsquid/typeorm-store"
 import {User} from "./user.model"
+import {Review as IReview} from "@effectiveacceleration/contracts";
 
 @Entity_()
-export class Review {
+export class Review implements IReview {
     constructor(props?: Partial<Review>) {
         Object.assign(this, props)
     }
@@ -19,8 +20,8 @@ export class Review {
     reviewer!: string
 
     @Index_()
-    @IntColumn_({nullable: false})
-    jobId!: number
+    @BigIntColumn_({nullable: false})
+    jobId!: bigint
 
     @IntColumn_({nullable: false})
     rating!: number

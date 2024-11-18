@@ -2,9 +2,10 @@ import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, I
 import * as marshal from "./marshal"
 import {JobRoles} from "./_jobRoles"
 import {JobEvent} from "./jobEvent.model"
+import {Job as IJob} from "@effectiveacceleration/contracts";
 
 @Entity_()
-export class Job {
+export class Job implements IJob {
     constructor(props?: Partial<Job>) {
         Object.assign(this, props)
     }
@@ -29,6 +30,9 @@ export class Job {
 
     @StringColumn_({nullable: false})
     contentHash!: string
+
+    @StringColumn_({nullable: false})
+    content!: string
 
     @BooleanColumn_({nullable: false})
     multipleApplicants!: boolean

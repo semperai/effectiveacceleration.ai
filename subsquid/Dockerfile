@@ -11,8 +11,8 @@ ADD assets assets
 ADD db db
 # remove if needed
 ADD schema.graphql .
+ADD patches patches
 RUN npm ci
-ADD node_modules/effectiveacceleration-contracts node_modules/effectiveacceleration-contracts
 ADD tsconfig.json .
 ADD src src
 RUN npm run build
@@ -20,8 +20,8 @@ FROM node-with-gyp AS deps
 WORKDIR /squid
 ADD package.json .
 ADD package-lock.json .
+ADD patches patches
 RUN npm ci --production
-ADD node_modules/effectiveacceleration-contracts node_modules/effectiveacceleration-contracts
 FROM node AS squid
 WORKDIR /squid
 COPY --from=deps /squid/package.json .
@@ -38,4 +38,5 @@ COPY --from=builder /squid/schema.graphql schema.graphql
 ADD commands.json .
 RUN echo -e "loglevel=silent\\nupdate-notifier=false" > /squid/.npmrc
 RUN npm i -g @subsquid/commands && mv $(which squid-commands) /usr/local/bin/sqd
+ADD .env .
 ENV PROCESSOR_PROMETHEUS_PORT 3000

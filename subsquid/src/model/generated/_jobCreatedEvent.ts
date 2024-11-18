@@ -1,7 +1,8 @@
 import assert from "assert"
 import * as marshal from "./marshal"
+import {JobCreatedEvent as IJobCreatedEvent} from "@effectiveacceleration/contracts";
 
-export class JobCreatedEvent {
+export class JobCreatedEvent implements IJobCreatedEvent {
     public readonly isTypeOf = 'JobCreatedEvent'
     private _title!: string
     private _contentHash!: string

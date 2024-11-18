@@ -26,6 +26,7 @@ services:
     command: ["sqd", "serve:prod"]
     depends_on:
       - db
+    restart: always
   processor:
     image: marketplace-squid
     build: .
@@ -40,4 +41,5 @@ services:
     command: ["sqd", "process:prod"]
     depends_on:
       - db
+    restart: always
 

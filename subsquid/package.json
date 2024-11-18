@@ -1,10 +1,12 @@
 {
-  "name": "squid-evm-template",
-  "private": true,
+  "name": "@effectiveacceleration/subsquid",
+  "version": "1.0.1",
   "scripts": {
-    "build": "rm -rf lib && tsc"
+    "build": "rm -rf lib && tsc",
+    "postinstall": "patch-package"
   },
   "dependencies": {
+    "@effectiveacceleration/contracts": "^1.0.4",
     "@subsquid/evm-abi": "^0.3.0",
     "@subsquid/evm-processor": "^1.19.1",
     "@subsquid/graphql-server": "^4.6.0",
@@ -12,8 +14,8 @@
     "@subsquid/typeorm-store": "^1.5.1",
     "@subsquid/util-internal": "^3.2.0",
     "dotenv": "^16.4.5",
-    "effectiveacceleration-contracts": "file:../contract",
     "ethers": "^6.13.4",
+    "patch-package": "^8.0.0",
     "pg": "^8.12.0",
     "typeorm": "^0.3.20"
   },

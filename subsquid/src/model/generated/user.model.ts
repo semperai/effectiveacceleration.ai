@@ -1,8 +1,9 @@
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, StringColumn as StringColumn_, Index as Index_, IntColumn as IntColumn_, OneToMany as OneToMany_} from "@subsquid/typeorm-store"
 import {Review} from "./review.model"
+import {User as IUser} from "@effectiveacceleration/contracts";
 
 @Entity_()
-export class User {
+export class User implements IUser {
     constructor(props?: Partial<User>) {
         Object.assign(this, props)
     }
@@ -12,7 +13,7 @@ export class User {
 
     @Index_()
     @StringColumn_({nullable: false})
-    address!: string
+    address_!: string
 
     @StringColumn_({nullable: false})
     publicKey!: string

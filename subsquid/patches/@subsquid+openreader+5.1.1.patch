@@ -1,0 +1,13 @@
+diff --git a/node_modules/@subsquid/openreader/lib/model.tools.js b/node_modules/@subsquid/openreader/lib/model.tools.js
+index fffc56c..249d73a 100644
+--- a/node_modules/@subsquid/openreader/lib/model.tools.js
++++ b/node_modules/@subsquid/openreader/lib/model.tools.js
+@@ -130,7 +130,7 @@ function validateModel(model) {
+ }
+ exports.validateModel = validateModel;
+ const TYPE_NAME_REGEX = /^[A-Z][a-zA-Z0-9]*$/;
+-const PROP_NAME_REGEX = /^[a-z][a-zA-Z0-9]*$/;
++const PROP_NAME_REGEX = /^[a-z][a-zA-Z0-9_]*$/;
+ function validateNames(model) {
+     for (let name in model) {
+         let item = model[name];

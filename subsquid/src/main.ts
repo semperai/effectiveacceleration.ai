@@ -1,5 +1,6 @@
 // main.js
 // This is the main executable of the squid indexer.
+import 'dotenv/config';
 
 // EvmBatchProcessor is the class responsible for data retrieval and processing.
 import { EvmBatchProcessor } from "@subsquid/evm-processor";
@@ -8,7 +9,7 @@ import { TypeormDatabase } from "@subsquid/typeorm-store";
 
 import * as marketplaceAbi from "./abi/MarketplaceV1";
 import * as marketplaceDataAbi from "./abi/MarketplaceDataV1";
-import Config from "effectiveacceleration-contracts/scripts/config.json";
+import Config from "@effectiveacceleration/contracts/scripts/config.json";
 
 import {
   JobEvent,
@@ -34,9 +35,10 @@ import {
   decodeJobRatedEvent,
   decodeJobSignedEvent,
   decodeJobUpdatedEvent,
+  getFromIpfs,
   JobEventType,
   JobState,
-} from "effectiveacceleration-contracts";
+} from "@effectiveacceleration/contracts";
 import { toBigInt, ZeroAddress, ZeroHash } from "ethers";
 
 // const MARKETPLACE_CONTRACT_ADDRESS =
@@ -258,7 +260,7 @@ processor.run(db, async (ctx) => {
 
             const user = new User({
               id: userRegisteredEvent.addr,
-              address: userRegisteredEvent.addr,
+              address_: userRegisteredEvent.addr,
               publicKey: userRegisteredEvent.pubkey,
               name: userRegisteredEvent.name,
               bio: userRegisteredEvent.bio,
@@ -298,7 +300,7 @@ processor.run(db, async (ctx) => {
 
             const arbitrator = new Arbitrator({
               id: arbitratorRegisteredEvent.addr,
-              address: arbitratorRegisteredEvent.addr,
+              address_: arbitratorRegisteredEvent.addr,
               publicKey: arbitratorRegisteredEvent.pubkey,
               name: arbitratorRegisteredEvent.name,
               bio: arbitratorRegisteredEvent.bio,
@@ -346,10 +348,10 @@ processor.run(db, async (ctx) => {
 
             const event = decoded.eventData;
             const jobEvent = new JobEvent({
-              address: decoded.eventData.address_,
-              data: decoded.eventData.data_,
-              timestamp: decoded.eventData.timestamp_,
-              type: decoded.eventData.type_,
+              address_: decoded.eventData.address_,
+              data_: decoded.eventData.data_,
+              timestamp_: decoded.eventData.timestamp_,
+              type_: decoded.eventData.type_,
               job: new Job({ id: decoded.jobId.toString() }),
               id: log.id,
             });
@@ -370,6 +372,11 @@ processor.run(db, async (ctx) => {
                   job.id = jobId;
                   job.title = jobCreated.title;
                   job.contentHash = jobCreated.contentHash as `0x${string}`;
+                  try {
+                    job.content = await getFromIpfs(job.contentHash);
+                  } catch {
+                    job.content = "";
+                  }
                   job.multipleApplicants = jobCreated.multipleApplicants;
                   job.tags = jobCreated.tags;
                   job.token = jobCreated.token as `0x${string}`;
@@ -563,7 +570,7 @@ processor.run(db, async (ctx) => {
                   new Review({
                     id: log.id,
                     rating: jobRated.rating,
-                    jobId: Number(decoded.jobId),
+                    jobId: decoded.jobId,
                     text: jobRated.review,
                     timestamp: event.timestamp_,
                     user: job.roles.worker,

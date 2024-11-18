@@ -24,6 +24,7 @@ type Job @entity {
   title: String!
   tags: [String!]!
   contentHash: String!
+  content: String!
   multipleApplicants: Boolean!
   amount: BigInt!
   token: String!
@@ -43,15 +44,15 @@ type Job @entity {
 type JobEvent @entity {
   jobId: Int!
   job: Job!
-  type: Int!
-  address: String!
-  data: String!
-  timestamp: Int!
+  type_: Int!
+  address_: String!
+  data_: String!
+  timestamp_: Int!
   details: CustomJobEvent
 }
 
 type Arbitrator @entity {
-  address: String! @index
+  address_: String! @index
   publicKey: String!
   name: String!
   bio: String!
@@ -62,7 +63,7 @@ type Arbitrator @entity {
 }
 
 type User @entity {
-  address: String! @index
+  address_: String! @index
   publicKey: String!
   name: String!
   bio: String!
@@ -79,7 +80,7 @@ type User @entity {
 type Review @entity {
   user: String! @index
   reviewer: String! @index
-  jobId: Int! @index
+  jobId: BigInt! @index
   rating: Int!
   text: String!
   timestamp: Int!

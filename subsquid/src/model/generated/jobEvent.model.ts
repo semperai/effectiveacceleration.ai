@@ -2,9 +2,10 @@ import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, I
 import * as marshal from "./marshal"
 import {Job} from "./job.model"
 import {CustomJobEvent, fromJsonCustomJobEvent} from "./_customJobEvent"
+import {JobEvent as IJobEvent} from "@effectiveacceleration/contracts";
 
 @Entity_()
-export class JobEvent {
+export class JobEvent implements IJobEvent {
     constructor(props?: Partial<JobEvent>) {
         Object.assign(this, props)
     }
@@ -20,17 +21,17 @@ export class JobEvent {
     job!: Job
 
     @IntColumn_({nullable: false})
-    type!: number
+    type_!: number
 
     @StringColumn_({nullable: false})
-    address!: string
+    address_!: string
 
     @StringColumn_({nullable: false})
-    data!: string
+    data_!: string
 
     @IntColumn_({nullable: false})
-    timestamp!: number
+    timestamp_!: number
 
     @Column_("jsonb", {transformer: {to: obj => obj == null ? undefined : obj.toJSON(), from: obj => obj == null ? undefined : fromJsonCustomJobEvent(obj)}, nullable: true})
-    details!: CustomJobEvent | undefined | null
+    details!: CustomJobEvent | undefined
 }
