@@ -9,14 +9,14 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
   let previousJobState: Job | undefined = job;
   let id = 0n;
   for (const event of jobEvents) {
-    event.id = id++;
+    event.id = String(id++);
     switch (Number(event.type_)) {
       case JobEventType.Created: {
         const jobCreated = decodeJobCreatedEvent(event.data_);
 
         if (!job) {
           job = {roles:{}} as Job;
-          job.id = jobId;
+          job.id = String(jobId);
           job.title = jobCreated.title;
           job.contentHash = jobCreated.contentHash as `0x${string}`;
           job.multipleApplicants = jobCreated.multipleApplicants;
