@@ -20,14 +20,17 @@ export type UserRating = ReadContractReturnType<typeof MARKETPLACE_DATA_V1_ABI, 
 export type Review = GetElementType<DeepWriteable<ReadContractReturnType<typeof MARKETPLACE_DATA_V1_ABI, 'getReviews'>>>;
 
 export type Job = {
-  id?: bigint,
+  id?: string,
   content?: string,
   result?: string,
   allowedWorkers?: string[],
   lastJobEvent?: JobEvent;
 } & DeepWriteable<ReadContractReturnType<typeof MARKETPLACE_DATA_V1_ABI, 'getJob'>>;
+
+export type JobRoles = Job['roles'];
+
 export type JobEvent = {
-  id?: bigint,
+  id?: string,
   details?: CustomJobEvent,
 } & GetElementType<DeepWriteable<ReadContractReturnType<typeof MARKETPLACE_DATA_V1_ABI, 'getEvents'>>>;
 
