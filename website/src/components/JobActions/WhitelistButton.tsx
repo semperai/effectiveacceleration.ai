@@ -12,7 +12,7 @@ import { Listbox, ListboxOption } from '../Listbox';
 
 
 export type WhitelistButtonProps = {
-  address: `0x${string}` | undefined,
+  address: string | undefined,
   job: Job,
   whitelist: string[],
 }
@@ -21,7 +21,7 @@ export function WhitelistButton({address, job, whitelist, ...rest}: WhitelistBut
   const {data: users} = useUsers();
   const excludes = [address, ...whitelist];
   const userList = users.filter(user => !excludes.includes(user.address_));
-  const [selectedUserAddress, setSelectedUserAddress] = useState<`0x${string}` | undefined>(undefined);
+  const [selectedUserAddress, setSelectedUserAddress] = useState<string | undefined>(undefined);
   const {
     data: hash,
     error,
@@ -58,10 +58,10 @@ export function WhitelistButton({address, job, whitelist, ...rest}: WhitelistBut
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress as `0x${string}`,
+      address: Config.marketplaceAddress,
       functionName: 'updateJobWhitelist',
       args: [
-        job.id!,
+        BigInt(job.id!),
         [selectedUserAddress!],
         []
       ],

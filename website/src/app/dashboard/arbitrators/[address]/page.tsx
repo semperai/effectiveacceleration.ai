@@ -12,7 +12,7 @@ import useArbitrator from '@/hooks/useArbitrator';
 export default function ArbitratorPage() {
   const address = useParams().address as string;
 
-  const { data: arbitrator } = useArbitrator(address as `0x${string}`);
+  const { data: arbitrator } = useArbitrator(address);
 
   return (
     <Layout>

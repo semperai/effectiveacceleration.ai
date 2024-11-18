@@ -11,7 +11,7 @@ export default function useJobs() {
   const result = useReadContract({
     account:      address,
     abi:          MARKETPLACE_DATA_V1_ABI,
-    address:      Config.marketplaceDataAddress as `0x${string}`,
+    address:      Config.marketplaceDataAddress,
     functionName: 'getJobs',
     args:         [0n, 0n],
   });
@@ -28,7 +28,7 @@ export default function useJobs() {
         }));
 
         jobsData.forEach((job: Job, id) => {
-          job.id = BigInt(id);
+          job.id = String(id);
         });
         setJobs(jobsData as any);
       }

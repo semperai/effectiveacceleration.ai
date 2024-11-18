@@ -22,7 +22,7 @@ const Navbar = ({setSidebarOpen} : {setSidebarOpen: (value: boolean) => void}) =
     const { data: notificationsLengthData } = useReadContract({
         account:      address,
         // abi:          MarketplaceArtifact.abi,
-        // address: Config.marketplaceAddress as `0x${string}`,
+        // address: Config.marketplaceAddress,
         address:      `0x6EAdb61bce217A9FBA5A1d91427ae2F7A8CCBac6`,
         functionName: 'notificationsLength',
         args:         [address],

@@ -30,12 +30,12 @@ export default function useUserRatings(targetAddresses: string[]) {
       (item) => ({
         account:      address,
         abi:          MARKETPLACE_DATA_V1_ABI,
-        address:      Config.marketplaceDataAddress as `0x${string}`,
+        address:      Config.marketplaceDataAddress,
         functionName: 'getUserRating',
         args:         [item.targetAddress],
       })
     ),
-    multicallAddress: Config.multicall3Address as `0x${string}`,
+    multicallAddress: Config.multicall3Address,
   });
 
   const userRatingsData = result.data;

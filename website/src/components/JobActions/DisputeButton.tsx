@@ -11,7 +11,7 @@ import { Textarea } from '../Textarea';
 import { getBytes, hexlify } from 'ethers';
 
 export type DisputeButtonProps = {
-  address: `0x${string}` | undefined,
+  address: string | undefined,
   sessionKeys: Record<string, string>,
   job: Job,
 }
@@ -64,12 +64,12 @@ export function DisputeButton({address, job, sessionKeys, ...rest}: DisputeButto
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress as `0x${string}`,
+      address: Config.marketplaceAddress,
       functionName: 'dispute',
       args: [
-        job.id!,
-        encryptedSessionKey as `0x${string}`,
-        encryptedContent as `0x${string}`,
+        BigInt(job.id!),
+        encryptedSessionKey,
+        encryptedContent,
       ],
     });
   }

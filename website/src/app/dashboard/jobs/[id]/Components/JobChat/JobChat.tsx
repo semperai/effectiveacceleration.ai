@@ -13,7 +13,7 @@ interface ResultAcceptedProps {
     events: JobEventWithDiffs[],   
     users: Record<string, User>, 
     selectedWorker: string, 
-    address: `0x${string}` | undefined,
+    address: string | undefined,
   }
   const JobChatEvents: React.FC<ResultAcceptedProps> = ({ job, users, selectedWorker, events, address }) => {
   const numberOfWorkers = (Object.keys(users).length) - 1  // -1 to exclude the creator;

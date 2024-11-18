@@ -120,7 +120,7 @@ export function UserButton({...rest}: React.ComponentPropsWithoutRef<'div'>) {
 
     const w = writeContract({
       abi: MARKETPLACE_DATA_V1_ABI,
-      address: Config.marketplaceDataAddress as `0x${string}`,
+      address: Config.marketplaceDataAddress,
       functionName: methodName,
       args: [
         name!,
@@ -138,10 +138,10 @@ export function UserButton({...rest}: React.ComponentPropsWithoutRef<'div'>) {
     if (userIndex === 0) {
       const w = writeContract({
         abi: MARKETPLACE_DATA_V1_ABI,
-        address: Config.marketplaceDataAddress as `0x${string}`,
+        address: Config.marketplaceDataAddress,
         functionName: 'registerUser',
         args: [
-          encryptionPublicKey as `0x${string}`,
+          encryptionPublicKey,
           name!,
           bio!,
           avatarFileUrl!,
@@ -150,10 +150,10 @@ export function UserButton({...rest}: React.ComponentPropsWithoutRef<'div'>) {
     } else {
       const w = writeContract({
         abi: MARKETPLACE_DATA_V1_ABI,
-        address: Config.marketplaceDataAddress as `0x${string}`,
+        address: Config.marketplaceDataAddress,
         functionName: 'registerArbitrator',
         args: [
-          encryptionPublicKey as `0x${string}`,
+          encryptionPublicKey,
           name!,
           bio!,
           avatarFileUrl!,

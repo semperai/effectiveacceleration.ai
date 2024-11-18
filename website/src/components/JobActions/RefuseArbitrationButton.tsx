@@ -46,10 +46,10 @@ export function RefuseArbitrationButton({job, ...rest}: RefuseArbitrationButtonP
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress as `0x${string}`,
+      address: Config.marketplaceAddress,
       functionName: 'refuseArbitration',
       args: [
-        job.id!,
+        BigInt(job.id!),
       ],
     });
   }

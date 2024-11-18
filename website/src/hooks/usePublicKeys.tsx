@@ -28,12 +28,12 @@ export default function usePublicKeys(targetAddresses: string[]) {
       (item) => ({
         account:      address,
         abi:          MARKETPLACE_DATA_V1_ABI,
-        address:      Config.marketplaceDataAddress as `0x${string}`,
+        address:      Config.marketplaceDataAddress,
         functionName: 'publicKeys',
         args:         [item.targetAddress],
       })
     ),
-    multicallAddress: Config.multicall3Address as `0x${string}`,
+    multicallAddress: Config.multicall3Address,
   });
 
   const publicKeyData = result.data;

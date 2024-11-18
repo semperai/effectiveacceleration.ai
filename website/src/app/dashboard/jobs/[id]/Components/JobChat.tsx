@@ -21,7 +21,7 @@ const JobChat = ({ users, selectedWorker, eventMessages, job, address, addresses
         selectedWorker: string,
         eventMessages: JobEventWithDiffs[],
         job: Job,
-        address: `0x${string}` | undefined,
+        address: string | undefined,
         sessionKeys: Record<string, string>,
         addresses: string[],
         jobUsersData?: Record<string, User>
@@ -39,7 +39,7 @@ const JobChat = ({ users, selectedWorker, eventMessages, job, address, addresses
             {job &&  (isJobOpenForWorker || isUserWorker || isUserCreatorWithSelectedWorkerOrTaken) && shouldShowPostMessageButton &&
                 <>
                         <div className='row-span-1 flex flex-1 border border-gray-100'>
-                            <PostMessageButton address={address} recipient={selectedWorker as `0x${string}`} addresses={addresses as any} sessionKeys={sessionKeys} job={job} />
+                            <PostMessageButton address={address} recipient={selectedWorker} addresses={addresses as any} sessionKeys={sessionKeys} job={job} />
                         </div>
                 </>
             }

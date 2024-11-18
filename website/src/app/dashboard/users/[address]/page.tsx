@@ -15,8 +15,8 @@ import useUsersByAddresses from '@/hooks/useUsersByAddresses';
 export default function JobPage() {
   const address = useParams().address as string;
 
-  const { data: user } = useUser(address as `0x${string}`);
-  const { data: reviews } = useReviews(address as `0x${string}`);
+  const { data: user } = useUser(address);
+  const { data: reviews } = useReviews(address);
   const { data: users } = useUsersByAddresses(reviews?.map(review => review.reviewer));
 
   return (

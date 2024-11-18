@@ -94,7 +94,7 @@ export default function PostJobPage() {
   const { data: balanceData } = useReadContract({
     account:      address,
     abi:          ERC20Abi,
-    address:      selectedToken?.id as `0x${string}`|undefined,
+    address:      selectedToken?.id,
     functionName: 'balanceOf',
     args:         [address!],
   });
@@ -110,7 +110,7 @@ export default function PostJobPage() {
 
     // const w = writeContract({
     //   abi: MARKETPLACE_V1_ABI,
-    //   // address: Config.marketplaceAddress as `0x${string}`,
+    //   // address: Config.marketplaceAddress,
     //   address: '0x6EAdb61bce217A9FBA5A1d91427ae2F7A8CCBac6',
     //   functionName: 'publishJobPost',
     //   args: [

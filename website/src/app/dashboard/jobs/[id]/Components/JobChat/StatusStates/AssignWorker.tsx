@@ -8,7 +8,7 @@ interface ResultAcceptedProps {
     events: JobEventWithDiffs[],   
     users: Record<string, User>, 
     selectedWorker: string, 
-    address: `0x${string}` | undefined,
+    address: string | undefined,
   }
   
   const AssignWorker: React.FC<ResultAcceptedProps> = ({ job, address, selectedWorker }) => {

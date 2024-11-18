@@ -10,7 +10,7 @@ interface ResultAcceptedProps {
     events: JobEventWithDiffs[],   
     users: Record<string, User>, 
     selectedWorker: string, 
-    address: `0x${string}` | undefined,
+    address: string | undefined,
   }
   
   const ArbitratedStatus: React.FC<ResultAcceptedProps> = ({ job, users, selectedWorker, events, address }) => {

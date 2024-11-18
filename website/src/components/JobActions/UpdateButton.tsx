@@ -21,7 +21,7 @@ import { Radio, RadioGroup } from '../Radio';
 
 
 export type UpdateButtonProps = {
-  address: `0x${string}` | undefined,
+  address: string | undefined,
   job: Job,
 }
 
@@ -38,7 +38,7 @@ export function UpdateButton({address, job, ...rest}: UpdateButtonProps & React.
   const {data: arbitrators} = useArbitrators();
   const excludes = [address];
   const userList = [{ address_: zeroAddress, name: "None" }, ...Object.values(arbitrators).filter(user => !excludes.includes(user.address_))];
-  const [selectedArbitratorAddress, setSelectedArbitratorAddress] = useState<`0x${string}`>(job.roles.arbitrator);
+  const [selectedArbitratorAddress, setSelectedArbitratorAddress] = useState<string>(job.roles.arbitrator);
   const {
     data: hash,
     error,
@@ -79,12 +79,12 @@ export function UpdateButton({address, job, ...rest}: UpdateButtonProps & React.
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress as `0x${string}`,
+      address: Config.marketplaceAddress,
       functionName: 'updateJobPost',
       args: [
-        job.id!,
+        BigInt(job.id!),
         title,
-        contentHash as `0x${string}`,
+        contentHash,
         uniqueTags,
         rawAmount,
         maxTime,

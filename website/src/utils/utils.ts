@@ -1,4 +1,4 @@
-export function shortenText({text, maxLength} : {text: string | `0x${string}` | undefined, maxLength: number}) {
+export function shortenText({text, maxLength} : {text: string | string | undefined, maxLength: number}) {
     if (!text) return console.log("No text provided");
     if (text.length <= maxLength) {
       return text;

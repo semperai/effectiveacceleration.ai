@@ -11,7 +11,7 @@ import { Textarea } from '../Textarea';
 import { Input } from '../Input';
 
 export type ReviewButtonProps = {
-  address: `0x${string}` | undefined,
+  address: string | undefined,
   job: Job,
 }
 
@@ -62,10 +62,10 @@ export function ReviewButton({address, job, ...rest}: ReviewButtonProps & React.
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress as `0x${string}`,
+      address: Config.marketplaceAddress,
       functionName: 'review',
       args: [
-        job.id!,
+        BigInt(job.id!),
         rating,
         review,
       ],

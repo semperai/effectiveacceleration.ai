@@ -10,7 +10,7 @@ const Page = () => {
   const postJobPageRef = useRef<{ jobIdCache: (jobId: bigint) => void }>(null);
 
   useWatchContractEvent({
-    address: Config.marketplaceDataAddress as `0x${string}`,
+    address: Config.marketplaceDataAddress,
     abi: MARKETPLACE_DATA_V1_ABI,
     eventName: 'JobEvent',
     onLogs: async (jobEvent) => {

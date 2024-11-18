@@ -64,7 +64,7 @@ interface FieldValidation {
   custom?: (value: string) => string;
 }
 
-async function setupAndGiveAllowance(spenderAddress: `0x${string}` | undefined, amount: string, tokenAddress: `0x${string}` | undefined) {
+async function setupAndGiveAllowance(spenderAddress: string | undefined, amount: string, tokenAddress: string | undefined) {
   return new Promise<void>(async (resolve, reject) => {
     try {
       if (!spenderAddress || !tokenAddress) {
@@ -248,7 +248,7 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
   const { data: balanceData } = useReadContract({
     account:      address,
     abi:          ERC20Abi,
-    address:      selectedToken?.id as `0x${string}`|undefined,
+    address:      selectedToken?.id,
     functionName: 'balanceOf',
     args:         [address!],
   });
@@ -260,24 +260,24 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
     setPostButtonDisabled(true);
 
     const { hash: contentHash } = await publishToIpfs(description);
-    const allowanceResponse = await setupAndGiveAllowance(Config.marketplaceAddress as `0x${string}`, amount, selectedToken?.id as `0x${string}` | undefined)
+    const allowanceResponse = await setupAndGiveAllowance(Config.marketplaceAddress, amount, selectedToken?.id)
     // Call the giveAllowance function
-    // await setupAndGiveAllowance(Config.marketplaceAddress as `0x${string}`, amount, selectedToken?.id as `0x${string}` | undefined);
+    // await setupAndGiveAllowance(Config.marketplaceAddress, amount, selectedToken?.id);
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress as `0x${string}`,
+      address: Config.marketplaceAddress,
       functionName: 'publishJobPost',
       args: [
         title,
-        contentHash as `0x${string}`,
+        contentHash,
         multipleApplicants === 'Yes',
         [selectedCategory.id, ...tags.map(tag => tag.name)],
-        selectedToken?.id! as `0x${string}`,
+        selectedToken?.id!,
         ethers.parseUnits(amount, selectedToken?.decimals!),
         deadline,
         deliveryMethod,
-        selectedArbitratorAddress as `0x${string}`,
-        selectedWorkerAddress ? [selectedWorkerAddress as `0x${string}`] : [],
+        selectedArbitratorAddress!,
+        selectedWorkerAddress ? [selectedWorkerAddress] : [],
       ],
     });
   }
@@ -293,23 +293,23 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
       content: description,
       multipleApplicants: multipleApplicants === 'Yes',
       tags: [selectedCategory?.id as string, ...tags.map(tag => tag.name)],
-      token: `0x${selectedToken?.id}` as `0x${string}`,
+      token: `0x${selectedToken?.id}`,
       maxTime: deadline as number,
       deliveryMethod: deliveryMethod,
       roles: {
-        creator: address as `0x${string}`,
-        arbitrator: selectedArbitratorAddress as `0x${string}`,
-        worker: selectedWorkerAddress as `0x${string}`,
+        creator: address,
+        arbitrator: selectedArbitratorAddress,
+        worker: selectedWorkerAddress,
       },
       state: 0,
       whitelistWorkers: false,
-      contentHash: hash as `0x${string}`,
+      contentHash: hash,
       amount: amount,
       disputed: false,
       timestamp: Date.now(),
       collateralOwed: 0,
       escrowId: 0,
-      resultHash: hash as `0x${string}`,
+      resultHash: hash,
       rating: 0,
     };
     createdJobs.push(newJob);

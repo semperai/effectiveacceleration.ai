@@ -10,7 +10,7 @@ export default function useEventsLength(jobId: bigint) {
   const result = useReadContract({
     account:      address,
     abi:          MARKETPLACE_DATA_V1_ABI,
-    address:      Config.marketplaceDataAddress as `0x${string}`,
+    address:      Config.marketplaceDataAddress,
     functionName: 'eventsLength',
     args:         [jobId],
   });

@@ -3,7 +3,7 @@ import { User } from "@effectiveacceleration/contracts";
 import { useMemo } from "react";
 import { zeroAddress } from "viem";
 
-export default function useUser(userAddress: `0x${string}`) {
+export default function useUser(userAddress: string) {
   const { data, ...rest } = useUsersByAddresses([userAddress]);
   const isEmpty = data[userAddress]?.address_ === zeroAddress;
 

@@ -15,9 +15,9 @@ import { PiPaperPlaneRight } from "react-icons/pi";
 
 
 export type PostMessageButtonProps = {
-  address: `0x${string}` | undefined,
-  recipient: `0x${string}`,
-  addresses: `0x${string}`[] | undefined,
+  address: string | undefined,
+  recipient: string,
+  addresses: string[] | undefined,
   sessionKeys: Record<string, string>,
   job: Job,
 }
@@ -27,7 +27,7 @@ export function PostMessageButton({address, recipient, addresses, job, sessionKe
   const excludes = [address];
   const userAddresses = [zeroAddress, ...(addresses?.filter(user => !excludes.includes(user)) ?? [])];
   const {data: users} = useUsersByAddresses(addresses?.filter(user => !excludes.includes(user) ?? []) as string[]);
-  const [selectedUserAddress, setSelectedUserAddress] = useState<`0x${string}`>(zeroAddress);
+  const [selectedUserAddress, setSelectedUserAddress] = useState<string>(zeroAddress);
   const selectedUserRecipient = recipient === address ? job.roles.creator : recipient
 
   const {
@@ -71,10 +71,10 @@ export function PostMessageButton({address, recipient, addresses, job, sessionKe
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress as `0x${string}`,
+      address: Config.marketplaceAddress,
       functionName: 'postThreadMessage',
       args: [
-        job.id!,
+        BigInt(job.id!),
         contentHash as any,
         selectedUserRecipient,
       ],

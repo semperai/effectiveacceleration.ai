@@ -13,7 +13,7 @@ import { LOCAL_JOBS_CACHE } from '@/utils/constants';
 
 
 export type AssignWorkerButtonProps = {
-  address: `0x${string}` | undefined,
+  address: string | undefined,
   job: Job,
   selectedWorker: string
 }
@@ -22,7 +22,7 @@ export function AssignWorkerButton({address, job, selectedWorker, ...rest}: Assi
   const {data: users} = useUsers();
   const excludes = [address]
   const userList = users.filter(user => !excludes.includes(user.address_));
-  const [selectedUserAddress, setSelectedUserAddress] = useState<`0x${string}` | undefined>(undefined);
+  const [selectedUserAddress, setSelectedUserAddress] = useState<string | undefined>(undefined);
   const {
     data: hash,
     error,
@@ -59,11 +59,11 @@ export function AssignWorkerButton({address, job, selectedWorker, ...rest}: Assi
     setButtonDisabled(true);
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress as `0x${string}`,
+      address: Config.marketplaceAddress,
       functionName: 'payStartJob',
       args: [
-        job.id!,
-        selectedWorker as `0x${string}`,
+        BigInt(job.id!),
+        selectedWorker,
       ],
     });
   }

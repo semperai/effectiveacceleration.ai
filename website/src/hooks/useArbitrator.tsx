@@ -3,7 +3,7 @@ import { Arbitrator } from "@effectiveacceleration/contracts";
 import { useMemo } from "react";
 import { zeroAddress } from "viem";
 
-export default function useArbitrator(arbitratorAddress: `0x${string}`) {
+export default function useArbitrator(arbitratorAddress: string) {
   const { data, ...rest } = useArbitratorsByAddresses([arbitratorAddress]);
   const isEmpty = data[arbitratorAddress]?.address_ === zeroAddress;
 

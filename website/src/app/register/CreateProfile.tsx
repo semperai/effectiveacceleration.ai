@@ -19,7 +19,7 @@ import { PostJobParams } from '../dashboard/post-job/PostJobPage'
 
 const ipfsGatewayUrl = process.env.NEXT_PUBLIC_IPFS_GATEWAY_URL ?? '';
 
-const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string}`}) => {
+const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: string}) => {
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [avatar, setAvatar] = useState<string | undefined>('')
     const [avatarFileUrl, setAvatarFileUrl] = useState<string | undefined>('');
@@ -80,10 +80,10 @@ const CreateProfile = ({encryptionPublicKey} : {encryptionPublicKey: `0x${string
       try {
         const w = writeContract({
           abi: MARKETPLACE_DATA_V1_ABI,
-          address: Config.marketplaceDataAddress as `0x${string}`,
+          address: Config.marketplaceDataAddress,
           functionName: 'registerUser',
           args: [
-            encryptionPublicKey as `0x${string}`,
+            encryptionPublicKey,
             userName, 
             userBio, 
             avatarFileUrl

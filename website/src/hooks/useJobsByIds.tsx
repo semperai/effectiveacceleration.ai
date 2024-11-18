@@ -31,13 +31,13 @@ export default function useJobsByIds(targetIds: bigint[]) {
       (item, index) => ({
         account:      address,
         abi:          MARKETPLACE_DATA_V1_ABI,
-        address:      Config.marketplaceDataAddress as `0x${string}`,
+        address:      Config.marketplaceDataAddress,
         functionName: 'getJob',
         args:         [item.targetJobId],
         id: targetIds[index]
       })
     ),
-    multicallAddress: Config.multicall3Address as `0x${string}`,
+    multicallAddress: Config.multicall3Address,
   });
 
   const jobsData = result.data;
@@ -52,7 +52,7 @@ export default function useJobsByIds(targetIds: bigint[]) {
             const targetId = missedItems[index].targetJobId;
             const dataResult = data.result as unknown as Job;
             // Add Id because it is not returned from the contract
-            dataResult.id = targetId;
+            dataResult.id = String(targetId);
             dataResult.content = await getFromIpfs(dataResult.contentHash);
             resultMap.push(dataResult);
             sessionStorage.setItem(`job-${targetId}`, JSON5.stringify(data.result));

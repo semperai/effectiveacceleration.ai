@@ -6,7 +6,7 @@ export interface JobViewProps {
     selectedWorker: string;
     events: JobEventWithDiffs[];
     job: Job;
-    address: `0x${string}` | undefined;
+    address: string | undefined;
     sessionKeys: Record<string, string>;
     addresses: string[];
     jobUsersData?: Record<string, User>;

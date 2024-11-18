@@ -4,14 +4,14 @@ import { useState, useEffect } from "react";
 import { useAccount, useReadContract } from "wagmi";
 import { Review } from "@effectiveacceleration/contracts";
 
-export default function useReviews(targetAddress: `0x${string}`) {
+export default function useReviews(targetAddress: string) {
   const [reviews, setReviews] = useState<Review[]>([]);
   const { address } = useAccount();
 
   const result = useReadContract({
     account:      address,
     abi:          MARKETPLACE_DATA_V1_ABI,
-    address:      Config.marketplaceDataAddress as `0x${string}`,
+    address:      Config.marketplaceDataAddress,
     functionName: 'getReviews',
     args:         [targetAddress, 0n, 0n],
   });

@@ -27,7 +27,7 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
   const result = useReadContract({
     account:      address,
     abi:          MARKETPLACE_DATA_V1_ABI,
-    address:      Config.marketplaceDataAddress as `0x${string}`,
+    address:      Config.marketplaceDataAddress,
     functionName: 'getEvents',
     args:         [jobId, 0n, 0n],
   });
@@ -42,7 +42,7 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
 
   useWatchContractEvent({
     abi: MARKETPLACE_DATA_V1_ABI,
-    address: Config.marketplaceDataAddress as `0x${string}`,
+    address: Config.marketplaceDataAddress,
     eventName: 'JobEvent',
     onLogs: async (logs) => {
       const filtered = logs.filter(log => log.args.jobId === jobId &&

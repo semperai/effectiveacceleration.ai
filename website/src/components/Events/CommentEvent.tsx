@@ -13,7 +13,7 @@ export function CommentEvent({event, ...rest}: EventProps & React.ComponentProps
   const {data: user} = useUser(address);
   const date = moment(event.timestamp_ * 1000).fromNow()
   const details = event.details as JobMessageEvent;
-  const {data: recipient} = useUser(details.recipientAddress as `0x${string}`);
+  const {data: recipient} = useUser(details.recipientAddress);
   const recipientHref = `/dashboard/users/${details.recipientAddress}`;
 
   return (

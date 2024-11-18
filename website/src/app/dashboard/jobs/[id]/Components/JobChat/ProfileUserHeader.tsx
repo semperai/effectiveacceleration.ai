@@ -8,7 +8,7 @@ interface ResultAcceptedProps {
     users: Record<string, User>,
     selectedWorker: string,
     eventMessages: JobEventWithDiffs[],
-    address: `0x${string}` | undefined,
+    address: string | undefined,
     job: Job,
   }
   const ProfileUserHeader: React.FC<ResultAcceptedProps> = ({ selectedWorker, users, eventMessages, address, job }) => {

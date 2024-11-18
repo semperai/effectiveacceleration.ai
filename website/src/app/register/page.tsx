@@ -12,7 +12,7 @@ import Image from 'next/image'
 
 export default function RegisterPage() {
   const { isConnected } = useAccount()
-  const [encryptionPublicKey, setEncryptionPublicKey] = React.useState<`0x${string}`>(`0x`)
+  const [encryptionPublicKey, setEncryptionPublicKey] = React.useState<string>(`0x`)
   console.log(encryptionPublicKey, 'encryptionPublicKey')
   console.log(isConnected)
   return (

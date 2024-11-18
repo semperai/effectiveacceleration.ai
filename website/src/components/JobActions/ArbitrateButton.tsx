@@ -12,7 +12,7 @@ import { Input } from '../Input';
 import { Field, Label } from '../Fieldset';
 
 export type ArbitrateButtonProps = {
-  address: `0x${string}` | undefined,
+  address: string | undefined,
   sessionKeys: Record<string, string>,
   job: Job,
 }
@@ -69,13 +69,13 @@ export function ArbitrateButton({address, job, sessionKeys, ...rest}: ArbitrateB
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress as `0x${string}`,
+      address: Config.marketplaceAddress,
       functionName: 'arbitrate',
       args: [
-        job.id!,
+        BigInt(job.id!),
         ownerShare * 100,
         workerShare * 100,
-        contentHash as `0x${string}`,
+        contentHash,
       ],
     });
   }

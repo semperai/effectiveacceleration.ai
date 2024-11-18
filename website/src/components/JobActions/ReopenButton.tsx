@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 
 export type ReopenButtonProps = {
-  address: `0x${string}` | undefined,
+  address: string | undefined,
   job: Job,
 }
 
@@ -47,10 +47,10 @@ export function ReopenButton({address, job, ...rest}: ReopenButtonProps & React.
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress as `0x${string}`,
+      address: Config.marketplaceAddress,
       functionName: 'reopenJob',
       args: [
-        job.id!,
+        BigInt(job.id!),
       ],
     });
   }

@@ -7,7 +7,7 @@ export function ArbitrationRefusedEvent({event, ...rest}: EventProps & React.Com
   const prevWorker = event.diffs.find(val => val.field === "roles.arbitrator")?.oldValue as string;
   const address = getAddress(prevWorker);
   const href = `/dashboard/users/${address}`;
-  const {data: arbitrator} = useArbitrator(prevWorker as `0x${string}`);
+  const {data: arbitrator} = useArbitrator(prevWorker);
   const date = moment(event.timestamp_ * 1000).fromNow()
 
   return (

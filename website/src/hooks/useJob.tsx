@@ -6,7 +6,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useAccount, useReadContract, useWatchContractEvent } from "wagmi";
 import { LOCAL_JOBS_CACHE } from "@/utils/constants";
 
-const updateLocalJobStorage = ({id, jobEvent, jobData, address}: {id: bigint, jobEvent: any, jobData: Job, address: `0x${string}` | undefined}) => {
+const updateLocalJobStorage = ({id, jobEvent, jobData, address}: {id: bigint, jobEvent: any, jobData: Job, address: string | undefined}) => {
   const userJobCache = `${address}${LOCAL_JOBS_CACHE}`
   console.log(jobEvent, 'JOB EVENT')
   // Update local storage job with new job state and event.
@@ -40,7 +40,7 @@ export default function useJob(id: bigint) {
   const result = useReadContract({
     account:      address,
     abi:          MARKETPLACE_DATA_V1_ABI,
-    address:      Config.marketplaceDataAddress as `0x${string}`,
+    address:      Config.marketplaceDataAddress,
     functionName: 'getJob',
     args:         [id],
     query: {
@@ -54,7 +54,7 @@ export default function useJob(id: bigint) {
   const { data: _, ...rest } = result;
 
   useWatchContractEvent({
-    address: Config.marketplaceDataAddress as `0x${string}`,
+    address: Config.marketplaceDataAddress,
     abi: MARKETPLACE_DATA_V1_ABI,
     eventName: 'JobEvent',
     onLogs: async (jobEvent) => {
@@ -76,7 +76,7 @@ export default function useJob(id: bigint) {
         try {
           const content = await getFromIpfs(jobData.contentHash);
           jobData.content = content;
-          jobData.id = BigInt(id);
+          jobData.id = String(id);
           setJob(jobData as any);
         } catch (e) {
           console.log(e, 'NOT FETCHED FROM IPFS')

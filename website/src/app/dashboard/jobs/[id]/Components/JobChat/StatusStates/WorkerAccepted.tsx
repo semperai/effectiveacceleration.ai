@@ -5,7 +5,7 @@ import { AssignWorkerButton } from '@/components/JobActions/AssignWorkerButton';
 
 interface ResultAcceptedProps {
     job: Job;
-    address: `0x${string}` | undefined,
+    address: string | undefined,
   }
   
   const WorkerAccepted: React.FC<ResultAcceptedProps> = ({ job, address }) => {

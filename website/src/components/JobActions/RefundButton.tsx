@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 
 export type RefundButtonProps = {
-  address: `0x${string}` | undefined,
+  address: string | undefined,
   job: Job,
 }
 
@@ -47,10 +47,10 @@ export function RefundButton({address, job, ...rest}: RefundButtonProps & React.
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress as `0x${string}`,
+      address: Config.marketplaceAddress,
       functionName: 'refund',
       args: [
-        job.id!,
+        BigInt(job.id!),
       ],
     });
   }

@@ -18,7 +18,7 @@ import { Job, JobEventWithDiffs, JobState } from '@effectiveacceleration/contrac
 import React from 'react'
 import { zeroHash, zeroAddress } from 'viem'
 
-const JobButtonActions = ({job, address, sessionKeys, addresses, events, whitelistedWorkers, timePassed} : {job: Job | undefined, address:`0x${string}` | undefined, sessionKeys:Record<string, string>, addresses: string[], events: JobEventWithDiffs[], whitelistedWorkers: string[], timePassed?: boolean}) => {
+const JobButtonActions = ({job, address, sessionKeys, addresses, events, whitelistedWorkers, timePassed} : {job: Job | undefined, address:string | undefined, sessionKeys:Record<string, string>, addresses: string[], events: JobEventWithDiffs[], whitelistedWorkers: string[], timePassed?: boolean}) => {
   return (
     <div className="">
     {job && <div className="flex flex-col gap-2">

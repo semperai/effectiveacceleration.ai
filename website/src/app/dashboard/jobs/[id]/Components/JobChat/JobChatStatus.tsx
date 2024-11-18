@@ -19,7 +19,7 @@ interface JobStatusProps {
   users: Record<string, User>, 
   selectedWorker: string, 
   job: Job, 
-  address: `0x${string}` | undefined,
+  address: string | undefined,
 }
 
 const JobChatStatus: React.FC<JobStatusProps> = ({

@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { useSignMessage, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 
 export type AcceptButtonProps = {
-  address: `0x${string}` | undefined,
+  address: string | undefined,
   events: JobEventWithDiffs[],
   job: Job,
 }
@@ -56,10 +56,10 @@ export function AcceptButton({address, job, events, ...rest}: AcceptButtonProps 
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress as `0x${string}`,
+      address: Config.marketplaceAddress,
       functionName: 'takeJob',
       args: [
-        job.id!,
+        BigInt(job.id!),
         signature,
       ],
     });

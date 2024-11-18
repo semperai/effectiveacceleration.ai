@@ -16,7 +16,7 @@ const JobChatDetails = ({job, users, address, sessionKeys, addresses, events, wh
   {
     job: Job | undefined, 
     users: Record<string, User>,
-    address: `0x${string}` | undefined,
+    address: string | undefined,
     sessionKeys: Record<string, string>,
     addresses: string[],
     events: JobEventWithDiffs[],
