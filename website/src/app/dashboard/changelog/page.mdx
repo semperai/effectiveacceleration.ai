@@ -2,10 +2,94 @@ export { Layout as default } from '@/components/Dashboard/Layout';
 
 ---
 
-![dark mode](@/images/dark-mode.png)
+![dark mode](@/images/changelog-1.webp)
 
-## Commit v0.1.0 {{  date: '2023-03-03T00:00Z' }}
+## Effective Acceleration v0.1.0 {{  date: '2024-11-18T00:00Z' }}
 
-Commit is a command palette-style Git client you can pull up from anywhere with a keyboard shortcut that makes it really easy to commit your work. It uses the "last modified" timestamp of the files in all of your projects to automatically know which project you're in the middle of working on, so any time you pull up the UI it's already got the right project selected — you just have to type your commit message, hit <kbd>Cmd</kbd> + <kbd>Enter</kbd> and your changes are captured.
+The alpha release of Effective Acceleration introduces significant protocol upgrades, featuring enhanced marketplace contracts with pause state enforcement and granular event tracking. Core improvements include a rebuilt job management system with comprehensive client-side validations, and deployment to Arbitrum as the primary network. The frontend has been streamlined through dependency cleanup and improved state handling, while the contract layer has undergone a security audit and now includes thorough documentation via solidity-docgen. Key technical enhancements focus on validation logic, async state management, and optimized contract interactions.
 
-I'd be lying if I really thought this was that useful but I was looking for an excuse to learn macOS development and here we are. It's open source at least so maybe you can find something interesting in the code even if the app itself is a total waste of hard drive space.
+### 🔒 Security & Contract Updates
+- Added security audit
+- Made Marketplace contract respect paused state with respective modifier
+- Added more events for changing contract properties
+- Made MarketplaceData contract respect paused state
+- Added address of user triggering refund event
+- Added basic contract documentation (solidity-docgen)
+- Updated deployments and contract configurations
+- Added Arbitrum chain support
+- Integrated Unicrow addresses
+
+### 💼 Job Management Features
+- Added unfiltered open jobs list page
+- Improved job posting workflow:
+  - Added deadline error handling
+  - Configured post job to handle deadlines properly
+  - Added minimum/greater than validation
+  - Improved amount validation for both balance and input
+  - Set delivery method defaults with dropdown
+  - Restricted payment amount to positive values
+- Enhanced job display:
+  - Show "Update Job" option only when open
+  - Show withdrawal collateral timing
+  - Improved token ID and USDT balance display
+
+### 👤 User Experience
+- Enhanced profile management:
+  - Redirect to home from register if already registered
+  - Updated create profile text about updating data later
+  - Added validations for user info updates
+- Improved wallet integration:
+  - Added wallet icon display
+  - Created nicer connect button
+  - Set Arbitrum as initial network
+- Added feedback button on bottom right
+- Improved mobile experience:
+  - Optimized for wide display on mobile
+  - Used flex-based tabs for mobile layout
+
+### 🎨 UI/UX Improvements
+- Enhanced navigation:
+  - Made navbar breadcrumbs smaller
+  - Added more items to sidebar
+  - Added documentation link in sidebar
+  - Removed create job from header
+- Improved form validation:
+  - Added scroll to elements on validation failure
+  - Show all validation errors on load
+  - Remove error from selected category on change
+- Added nicer contract loader
+- Improved table layouts and summary page spacing
+- Updated various text and wording
+
+### 🛠 Technical Updates
+- Configured local setup and scripts
+  - Added output to .local.json
+  - Added local config script
+- Updated development environment:
+  - Set Node.js version to LTS/Hydrogen
+  - Bumped Hardhat upgrades
+  - Added etherscan API key support
+- Optimized error handling:
+  - Fixed empty LocalStorage fallback
+  - Fixed price validation
+  - Improved balance data loading
+- Removed unnecessary components:
+  - Removed next-themes
+  - Removed dark mode preferences
+  - Removed MDX support
+  - Cleaned up Sentry configuration
+
+### 📚 Documentation
+- Updated README
+- Improved documentation writing
+- Updated links to Telegram
+- Removed FAQs and whitepaper links
+- Added comprehensive contract documentation
+
+### 🐛 Bug Fixes
+- Fixed various UI/UX issues (#17, #18)
+- Fixed broken docs page
+- Fixed minimum input value string conversion
+- Added padding to prevent bug box button occlusion
+- Fixed crash issues
+- Resolved joblist display problems
