@@ -277,10 +277,10 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
       id: string;
       name: string;
     }>();
-    const [selectedWorkerAddress, setsSelectedWorkerAddress] = useState<
+    const [selectedWorkerAddress, setSelectedWorkerAddress] = useState<
       string | undefined
     >(undefined);
-    const [selectedArbitratorAddress, setsSelectedArbitratorAddress] =
+    const [selectedArbitratorAddress, setSelectedArbitratorAddress] =
       useState<string>();
     const [titleError, setTitleError] = useState<string>('');
     const [descriptionError, setDescriptionError] = useState<string>('');
@@ -613,7 +613,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
 
     useEffect(() => {
       if (arbitratorRequired === 'Yes')
-        setsSelectedArbitratorAddress(arbitratorAddresses[1]);
+        setSelectedArbitratorAddress(arbitratorAddresses[1]);
     }, [arbitratorAddresses]);
     console.log(
       selectedArbitratorAddress,
@@ -659,7 +659,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
         setArbitratorRequired('No');
       } else {
         setArbitratorRequired('Yes');
-        setsSelectedArbitratorAddress(job.roles?.arbitrator || '');
+        setSelectedArbitratorAddress(job.roles?.arbitrator || '');
       }
       setDeadline(parseInt(job.maxTime || '0'));
       // delete unregisteredUserLabel as this only should be consumed after user regis
@@ -897,7 +897,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                     onChange={(value) => {
                       setArbitratorRequired(value);
                       if (value === 'No') {
-                        setsSelectedArbitratorAddress(zeroAddress);
+                        setSelectedArbitratorAddress(zeroAddress);
                       } else {
                         if (
                           !selectedArbitratorAddress ||
@@ -929,7 +929,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                       placeholder='Select Arbitrator'
                       value={selectedArbitratorAddress}
                       onChange={(e) => {
-                        setsSelectedArbitratorAddress(e);
+                        setSelectedArbitratorAddress(e);
                         setArbitratorError('');
                       }}
                       className='rounded-md border border-gray-300 shadow-sm'
