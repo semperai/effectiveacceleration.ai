@@ -1,3 +1,13 @@
+declare module 'abitype' {
+  export interface Register {
+    addressType: string;
+    bytesType: {
+      inputs: string;
+      outputs: string;
+    }
+  }
+}
+
 import { ReadContractReturnType } from "viem";
 import { MARKETPLACE_DATA_V1_ABI } from "../wagmi/MarketplaceDataV1";
 

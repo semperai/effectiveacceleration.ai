@@ -1,6 +1,6 @@
 {
   "name": "@effectiveacceleration/contracts",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "arbius",
   "author": "Kasumi Null <kasumi.null@yandex.com>",
   "license": "MIT",
@@ -61,6 +61,6 @@
   },
   "dependencies": {
     "@noble/ciphers": "^0.5.3",
-    "viem": "^2.15.1"
+    "viem": "^2.21.47"
   }
 }
