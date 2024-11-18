@@ -2,7 +2,7 @@ import React from 'react'
 import Image from 'next/image'
 import { Button } from '@/components/Button'
 import { renderEvent } from '@/components/Events';
-import { CustomJobEvent, Job, JobArbitratedEvent, JobEvent, JobEventType, JobEventWithDiffs, JobState, User } from 'effectiveacceleration-contracts/dist/src/interfaces';
+import { CustomJobEvent, Job, JobArbitratedEvent, JobEvent, JobEventType, JobEventWithDiffs, JobState, User } from '@effectiveacceleration/contracts';
 import { PostMessageButton } from '@/components/JobActions/PostMessageButton';
 import Link from 'next/link';
 import { title } from 'process';

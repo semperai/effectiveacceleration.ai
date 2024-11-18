@@ -1,6 +1,6 @@
 import { type EventProps } from './index';
 import moment from 'moment';
-import { JobArbitratedEvent } from 'effectiveacceleration-contracts';
+import { JobArbitratedEvent } from '@effectiveacceleration/contracts';
 import useArbitrator from '@/hooks/useArbitrator';
 import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
 import { getAddress } from 'viem';

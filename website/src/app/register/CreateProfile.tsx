@@ -7,8 +7,8 @@ import Image from 'next/image'
 import React, { useEffect, useRef, useState } from 'react'
 import { BsPersonPlus } from "react-icons/bs";
 import { useAccount, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
-import { MARKETPLACE_DATA_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceDataV1";
-import Config from "effectiveacceleration-contracts/scripts/config.json";
+import { MARKETPLACE_DATA_V1_ABI } from "@effectiveacceleration/contracts/wagmi/MarketplaceDataV1";
+import Config from "@effectiveacceleration/contracts/scripts/config.json";
 import { useSearchParams } from 'next/navigation'
 import { UserButton } from '@/components/UserActions/UserButton'
 import useUser from '@/hooks/useUser'

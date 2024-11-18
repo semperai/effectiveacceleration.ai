@@ -1,8 +1,8 @@
-import Config from "effectiveacceleration-contracts/scripts/config.json";
+import Config from "@effectiveacceleration/contracts/scripts/config.json";
 import { useState, useEffect } from "react";
 import { useAccount, useReadContracts } from "wagmi";
-import { MARKETPLACE_DATA_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceDataV1";
-import { Arbitrator } from "effectiveacceleration-contracts";
+import { MARKETPLACE_DATA_V1_ABI } from "@effectiveacceleration/contracts/wagmi/MarketplaceDataV1";
+import { Arbitrator } from "@effectiveacceleration/contracts";
 
 type CacheCheck = { targetAddress: string, checkedItem: string }
 

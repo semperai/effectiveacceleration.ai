@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/Button';
-import { Job, JobEventType, JobEventWithDiffs, User } from 'effectiveacceleration-contracts/dist/src/interfaces';
+import { Job, JobEventType, JobEventWithDiffs, User } from '@effectiveacceleration/contracts';
 
 
 interface ResultAcceptedProps {

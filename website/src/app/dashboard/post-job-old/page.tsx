@@ -33,7 +33,7 @@ import JobSummary from '../post-job/JobSummary'
 import { JobFormInputData } from '@/service/FormsTypes'
 import Link from 'next/link'
 import { dataCategories, dataTags, dataWhitelist, dataUnits, dataAddresses } from './postJobDummyData'
-import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1'
+import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1'
 
 
 export default function PostJobPage() {

@@ -3,7 +3,7 @@ import {
 } from '@heroicons/react/20/solid'
 import { type EventProps } from './index';
 import moment from 'moment';
-import { JobDisputedEvent } from 'effectiveacceleration-contracts';
+import { JobDisputedEvent } from '@effectiveacceleration/contracts';
 import { getAddress } from 'viem';
 import useUser from '@/hooks/useUser';
 

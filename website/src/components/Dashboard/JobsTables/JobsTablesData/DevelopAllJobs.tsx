@@ -4,7 +4,7 @@ import { TOpenJobTable} from '@/service/JobsService';
 import { useReactTable, getCoreRowModel, createColumnHelper } from '@tanstack/react-table';
 import { Checkbox } from '@/components/Checkbox';
 import useJobs from '@/hooks/useJobs';
-import { Job } from 'effectiveacceleration-contracts/dist/src/interfaces';
+import { Job } from '@effectiveacceleration/contracts';
 
 const DevelopAllJobs = ({jobs}: {jobs: Job[]}) => {
   return (

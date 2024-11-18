@@ -1,5 +1,5 @@
 "use client";
-import { Job, JobEventWithDiffs, JobState, User } from 'effectiveacceleration-contracts';
+import { Job, JobEventWithDiffs, JobState, User } from '@effectiveacceleration/contracts';
 import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import JobChatsList from '../JobChatsList';
 import JobChat from '../JobChat';

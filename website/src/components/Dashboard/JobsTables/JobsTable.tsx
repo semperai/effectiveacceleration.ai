@@ -3,7 +3,7 @@ import { Table, flexRender } from '@tanstack/react-table'
 import React, { useEffect, useState } from 'react';
 import { Skeleton } from '@mui/material';
 import { Button } from '@/components/Button';
-import { Job, JobEventType, JobState } from 'effectiveacceleration-contracts/dist/src/interfaces';
+import { Job, JobEventType, JobState } from '@effectiveacceleration/contracts';
 
 const getValidJobsCount = (title: string, localJobs?: Job[]): number => {
   console.log(localJobs, 'LOCALJOBS')

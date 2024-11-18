@@ -1,6 +1,6 @@
 import { type EventProps } from './index';
 import moment from 'moment';
-import { JobSignedEvent } from 'effectiveacceleration-contracts';
+import { JobSignedEvent } from '@effectiveacceleration/contracts';
 import { getAddress } from 'viem';
 import useUser from '@/hooks/useUser';
 

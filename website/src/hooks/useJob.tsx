@@ -1,6 +1,6 @@
-import { getFromIpfs, Job } from "effectiveacceleration-contracts";
-import { MARKETPLACE_DATA_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceDataV1";
-import Config from "effectiveacceleration-contracts/scripts/config.json";
+import { getFromIpfs, Job } from "@effectiveacceleration/contracts";
+import { MARKETPLACE_DATA_V1_ABI } from "@effectiveacceleration/contracts/wagmi/MarketplaceDataV1";
+import Config from "@effectiveacceleration/contracts/scripts/config.json";
 import { useParams } from "next/navigation";
 import { useState, useEffect, useMemo } from "react";
 import { useAccount, useReadContract, useWatchContractEvent } from "wagmi";

@@ -1,4 +1,4 @@
-import { Job, JobEvent, JobEventWithDiffs, User } from "effectiveacceleration-contracts/dist/src/interfaces";
+import { Job, JobEvent, JobEventWithDiffs, User } from "@effectiveacceleration/contracts";
 import { Dispatch, SetStateAction } from "react";
 
 export interface JobViewProps {

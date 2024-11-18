@@ -1,12 +1,12 @@
-import { MARKETPLACE_DATA_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceDataV1";
-import Config from "effectiveacceleration-contracts/scripts/config.json";
+import { MARKETPLACE_DATA_V1_ABI } from "@effectiveacceleration/contracts/wagmi/MarketplaceDataV1";
+import Config from "@effectiveacceleration/contracts/scripts/config.json";
 import { useState, useEffect, useMemo } from "react";
 import { useAccount, useReadContract } from "wagmi";
-import { getSessionKey, JobEventType, computeJobStateDiffs, fetchEventContents, JobDisputedEvent, decryptJobDisputedEvent } from "effectiveacceleration-contracts";
+import { getSessionKey, JobEventType, computeJobStateDiffs, fetchEventContents, JobDisputedEvent, decryptJobDisputedEvent } from "@effectiveacceleration/contracts";
 import { useEthersSigner } from "./useEthersSigner";
 import usePublicKeys from "./usePublicKeys";
 import { useWatchContractEvent } from 'wagmi'
-import { JobEventWithDiffs, JobEvent } from "effectiveacceleration-contracts";
+import { JobEventWithDiffs, JobEvent } from "@effectiveacceleration/contracts";
 import { getAddress, ZeroAddress } from "ethers";
 import useArbitratorPublicKeys from "./useArbitratorPublicKeys";
 

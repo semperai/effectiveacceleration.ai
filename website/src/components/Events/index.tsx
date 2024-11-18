@@ -1,4 +1,4 @@
-import { JobEventType, JobEventWithDiffs } from 'effectiveacceleration-contracts'
+import { JobEventType, JobEventWithDiffs } from '@effectiveacceleration/contracts'
 import React from 'react'
 import { CommentEvent } from './CommentEvent'
 import { AssignedEvent } from './AssignmentEvent'

@@ -14,7 +14,7 @@ import { ReviewButton } from '@/components/JobActions/ReviewButton'
 import { UpdateButton } from '@/components/JobActions/UpdateButton'
 import { WhitelistButton } from '@/components/JobActions/WhitelistButton'
 import { WithdrawCollateralButton } from '@/components/JobActions/WithdrawCollateralButton'
-import { Job, JobEventWithDiffs, JobState } from 'effectiveacceleration-contracts'
+import { Job, JobEventWithDiffs, JobState } from '@effectiveacceleration/contracts'
 import React from 'react'
 import { zeroHash, zeroAddress } from 'viem'
 

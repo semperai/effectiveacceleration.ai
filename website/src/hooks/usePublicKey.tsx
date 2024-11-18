@@ -1,5 +1,5 @@
-import { MARKETPLACE_DATA_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceDataV1";
-import Config from "effectiveacceleration-contracts/scripts/config.json";
+import { MARKETPLACE_DATA_V1_ABI } from "@effectiveacceleration/contracts/wagmi/MarketplaceDataV1";
+import Config from "@effectiveacceleration/contracts/scripts/config.json";
 import { useState, useEffect } from "react";
 import { useAccount, useReadContract } from "wagmi";
 

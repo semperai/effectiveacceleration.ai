@@ -1,4 +1,4 @@
-import Config from 'effectiveacceleration-contracts/scripts/config.json'
+import Config from '@effectiveacceleration/contracts/scripts/config.json'
 
 export interface Token {
   id: string;

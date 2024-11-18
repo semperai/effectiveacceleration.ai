@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Job, JobEventType, JobEventWithDiffs, JobState, User } from 'effectiveacceleration-contracts/dist/src/interfaces';
+import { Job, JobEventType, JobEventWithDiffs, JobState, User } from '@effectiveacceleration/contracts';
 import { ApproveButton } from '@/components/JobActions/ApproveButton';
 import { zeroHash } from 'viem';
 

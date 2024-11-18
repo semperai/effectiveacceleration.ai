@@ -1,5 +1,5 @@
 import useUsersByAddresses from "@/hooks/useUsersByAddresses";
-import { User } from "effectiveacceleration-contracts";
+import { User } from "@effectiveacceleration/contracts";
 import { useMemo } from "react";
 import { zeroAddress } from "viem";
 

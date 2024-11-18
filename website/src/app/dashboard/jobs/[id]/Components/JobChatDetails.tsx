@@ -6,7 +6,7 @@ import { CurrencyDollarIcon, LinkIcon, UserIcon } from '@heroicons/react/20/soli
 import { formatTokenNameAndAmount, tokenIcon } from '@/tokens'
 import moment from 'moment'
 import LinearProgress from '@mui/material/LinearProgress'
-import { Job, JobEventType, JobEventWithDiffs, JobState, User } from 'effectiveacceleration-contracts/dist/src/interfaces'
+import { Job, JobEventType, JobEventWithDiffs, JobState, User } from '@effectiveacceleration/contracts'
 import JobButtonActions from './JobButtonActions'
 import { zeroHash } from 'viem'
 import JobStatus from './JobStatus'

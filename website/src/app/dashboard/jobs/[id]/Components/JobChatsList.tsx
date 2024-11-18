@@ -1,7 +1,7 @@
 import React, { Dispatch, SetStateAction } from 'react'
 import Image from 'next/image'
-import { Job } from 'effectiveacceleration-contracts'
-import { User } from 'effectiveacceleration-contracts/dist/src/interfaces';
+import { Job } from '@effectiveacceleration/contracts'
+import { User } from '@effectiveacceleration/contracts';
 
 const JobChatsList = ({users, job, setSelectedWorker} : {users: Record<string, User>, job: Job | undefined, setSelectedWorker:Dispatch<SetStateAction<string>> }) => {
   const numberOfWorkers = (Object.keys(users).length) - 1  // -1 to exclude the creator;

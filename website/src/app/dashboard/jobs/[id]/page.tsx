@@ -15,7 +15,7 @@ import GuestView from './Components/UserRolesView/GuestView';
 import WorkerView from './Components/UserRolesView/WorkerView';
 import { zeroAddress } from 'viem';
 import { JobUserRoles } from '@/service/Interfaces';
-import { JobMessageEvent, JobState } from 'effectiveacceleration-contracts';
+import { JobMessageEvent, JobState } from '@effectiveacceleration/contracts';
 import JobStatus from './Components/JobStatus';
 
 export default function JobPage() {

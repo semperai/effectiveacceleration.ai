@@ -2,7 +2,7 @@
 import { Button } from '@/components/Button'
 import React, { Dispatch } from 'react'
 import { useSignMessage, useAccount, useConnect, useWalletClient } from 'wagmi';
-import { getEncryptionSigningKey } from 'effectiveacceleration-contracts/dist/src/utils/encryption';
+import { getEncryptionSigningKey } from '@effectiveacceleration/contracts';
 import { ethers } from 'ethers'
 
 const SignInMessage = ({setEncryptionPublicKey} : {setEncryptionPublicKey: Dispatch<any>}) => {

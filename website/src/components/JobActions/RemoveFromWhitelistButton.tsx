@@ -1,8 +1,8 @@
 import { Button } from '@/components/Button'
 import { CheckIcon } from "@heroicons/react/20/solid";
-import { Job, JobEventWithDiffs, User } from "effectiveacceleration-contracts";
-import { MARKETPLACE_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceV1";
-import Config from "effectiveacceleration-contracts/scripts/config.json";
+import { Job, JobEventWithDiffs, User } from "@effectiveacceleration/contracts";
+import { MARKETPLACE_V1_ABI } from "@effectiveacceleration/contracts/wagmi/MarketplaceV1";
+import Config from "@effectiveacceleration/contracts/scripts/config.json";
 import { useEffect, useState } from "react";
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { Dialog, Transition } from '@headlessui/react'

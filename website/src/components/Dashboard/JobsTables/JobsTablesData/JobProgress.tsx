@@ -3,7 +3,7 @@ import JobsTable from '../JobsTable'
 import {LocalStorageJob, TInProgressTable, TOpenJobTable} from '@/service/JobsService';
 import { useReactTable, getCoreRowModel, createColumnHelper } from '@tanstack/react-table'
 import useJobs from '@/hooks/useJobs';
-import { Job, JobState } from 'effectiveacceleration-contracts/dist/src/interfaces';
+import { Job, JobState } from '@effectiveacceleration/contracts';
 import Link from 'next/link';
 
 const columnHelperCompletedTable = createColumnHelper<TOpenJobTable>()

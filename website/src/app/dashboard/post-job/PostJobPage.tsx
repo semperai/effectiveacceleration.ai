@@ -9,8 +9,8 @@ import {
   useWriteContract,
 } from 'wagmi'
 import ERC20Abi from '@/abis/ERC20.json'
-import Config from 'effectiveacceleration-contracts/scripts/config.json'
-import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1'
+import Config from '@effectiveacceleration/contracts/scripts/config.json'
+import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1'
 import { useEffect, useState } from 'react'
 import { Layout } from '@/components/Dashboard/Layout'
 import { Button } from '@/components/Button'
@@ -22,7 +22,7 @@ import { TokenSelector } from '@/components/TokenSelector'
 import { Token, tokens } from '@/tokens'
 import { Radio, RadioGroup } from '@/components/Radio'
 import { Listbox, ListboxOption } from '@/components/Listbox'
-import { Job, publishToIpfs } from 'effectiveacceleration-contracts'
+import { Job, publishToIpfs } from '@effectiveacceleration/contracts'
 import { zeroAddress } from 'viem'
 import useUsers from '@/hooks/useUsers'
 import useArbitrators from '@/hooks/useArbitrators'
@@ -34,7 +34,7 @@ import moment from 'moment'
 import TagsInput from '@/components/TagsInput'
 import { BsInfoCircle } from 'react-icons/bs'
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { MARKETPLACE_DATA_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceDataV1";
+import { MARKETPLACE_DATA_V1_ABI } from "@effectiveacceleration/contracts/wagmi/MarketplaceDataV1";
 import { LocalStorageJob } from '@/service/JobsService'
 import useUnsavedChangesWarning from '@/hooks/useUnsavedChangesWarning'
 import { LOCAL_JOBS_CACHE } from "@/utils/constants";

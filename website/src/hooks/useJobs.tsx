@@ -1,8 +1,8 @@
 import { useAccount, useReadContract } from "wagmi";
-import { MARKETPLACE_DATA_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceDataV1";
-import Config from "effectiveacceleration-contracts/scripts/config.json";
+import { MARKETPLACE_DATA_V1_ABI } from "@effectiveacceleration/contracts/wagmi/MarketplaceDataV1";
+import Config from "@effectiveacceleration/contracts/scripts/config.json";
 import { useEffect, useState } from "react";
-import { Job, getFromIpfs } from "effectiveacceleration-contracts";
+import { Job, getFromIpfs } from "@effectiveacceleration/contracts";
 
 export default function useJobs() {
   const [jobs, setJobs] = useState<Job[]>([]);

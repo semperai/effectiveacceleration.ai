@@ -10,7 +10,7 @@ import CancelledJobs from './JobsTablesData/CancelledJobs';
 import useJobs from '@/hooks/useJobs';
 import useUsersByAddresses from '@/hooks/useUsersByAddresses';
 import DevelopAllJobs from './JobsTablesData/DevelopAllJobs';
-import { Job, JobEventType, JobState } from 'effectiveacceleration-contracts/dist/src/interfaces';
+import { Job, JobEventType, JobState } from '@effectiveacceleration/contracts';
 import { LocalStorageJob } from '@/service/JobsService';
 import useJobsByIds from '@/hooks/useJobsByIds';
 import { LOCAL_JOBS_CACHE } from '@/utils/constants';

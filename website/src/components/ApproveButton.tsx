@@ -6,7 +6,7 @@ import {
   useWaitForTransactionReceipt,
 } from 'wagmi';
 import { ethers } from 'ethers'
-import Config from 'effectiveacceleration-contracts/scripts/config.json'
+import Config from '@effectiveacceleration/contracts/scripts/config.json'
 import ERC20Abi from '@/abis/ERC20.json';
 import { Button } from '@/components/Button';
 

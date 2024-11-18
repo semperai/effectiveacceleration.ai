@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 
 import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
-import { Job, JobEventType, JobEventWithDiffs, JobState, User } from 'effectiveacceleration-contracts/dist/src/interfaces';
+import { Job, JobEventType, JobEventWithDiffs, JobState, User } from '@effectiveacceleration/contracts';
 import { zeroAddress, zeroHash } from 'viem';
 import { Button } from '@/components/Button';
 import { ApproveButton } from '@/components/JobActions/ApproveButton';

@@ -1,5 +1,5 @@
 import useArbitratorsByAddresses from "@/hooks/useArbitratorsByAddresses";
-import { Arbitrator } from "effectiveacceleration-contracts";
+import { Arbitrator } from "@effectiveacceleration/contracts";
 import { useMemo } from "react";
 import { zeroAddress } from "viem";
 

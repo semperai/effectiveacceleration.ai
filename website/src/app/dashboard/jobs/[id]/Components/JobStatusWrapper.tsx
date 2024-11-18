@@ -1,4 +1,4 @@
-import { Job, JobEventType, JobEventWithDiffs, JobState } from "effectiveacceleration-contracts";
+import { Job, JobEventType, JobEventWithDiffs, JobState } from "@effectiveacceleration/contracts";
 import JobStatus from "./JobStatus";
 import { zeroAddress } from "viem";
 

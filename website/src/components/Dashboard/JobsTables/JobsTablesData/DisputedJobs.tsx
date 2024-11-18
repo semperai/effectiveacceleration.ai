@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import JobsTable from '../JobsTable'
 import { TDisputedTable} from '@/service/JobsService';
 import { useReactTable, getCoreRowModel, createColumnHelper } from '@tanstack/react-table';
-import { Job } from 'effectiveacceleration-contracts/dist/src/interfaces';
+import { Job } from '@effectiveacceleration/contracts';
 import Link from 'next/link';
 import { shortenText } from '@/utils/utils';
 

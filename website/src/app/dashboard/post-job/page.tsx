@@ -3,8 +3,8 @@ import React, { Suspense, useEffect, useRef } from 'react';
 import { Layout } from '@/components/Dashboard/Layout';
 import PostJobPage from './PostJobPage';
 import { useWatchContractEvent } from 'wagmi';
-import Config from 'effectiveacceleration-contracts/scripts/config.json'
-import { MARKETPLACE_DATA_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceDataV1'
+import Config from '@effectiveacceleration/contracts/scripts/config.json'
+import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1'
 
 const Page = () => {
   const postJobPageRef = useRef<{ jobIdCache: (jobId: bigint) => void }>(null);

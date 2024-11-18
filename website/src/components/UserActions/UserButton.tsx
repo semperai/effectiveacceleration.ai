@@ -1,8 +1,8 @@
 import { Button } from '@/components/Button'
 import { CheckIcon, UserIcon } from "@heroicons/react/20/solid";
-import { getEncryptionSigningKey, Job, JobEventWithDiffs, publishToIpfs, User } from "effectiveacceleration-contracts";
-import { MARKETPLACE_V1_ABI } from "effectiveacceleration-contracts/wagmi/MarketplaceV1";
-import Config from "effectiveacceleration-contracts/scripts/config.json";
+import { getEncryptionSigningKey, Job, JobEventWithDiffs, publishToIpfs, User } from "@effectiveacceleration/contracts";
+import { MARKETPLACE_V1_ABI } from "@effectiveacceleration/contracts/wagmi/MarketplaceV1";
+import Config from "@effectiveacceleration/contracts/scripts/config.json";
 import { useEffect, useState } from "react";
 import { useAccount, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { Dialog, Transition } from '@headlessui/react'
@@ -20,7 +20,7 @@ import { formatUnits, parseUnits } from 'ethers';
 import { Radio, RadioGroup } from '../Radio';
 import useUser from '@/hooks/useUser';
 import useArbitrator from '@/hooks/useArbitrator';
-import { MARKETPLACE_DATA_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceDataV1';
+import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
 import { useEthersSigner } from '@/hooks/useEthersSigner';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import Image from 'next/image';

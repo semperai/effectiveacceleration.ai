@@ -1,7 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 
-import { Job, JobArbitratedEvent, JobEventType, JobEventWithDiffs, JobState, User } from 'effectiveacceleration-contracts/dist/src/interfaces';
+import { Job, JobArbitratedEvent, JobEventType, JobEventWithDiffs, JobState, User } from '@effectiveacceleration/contracts';
 import { formatTokenNameAndAmount } from '@/tokens';
 import JobChatStatus from './JobChatStatus';
 import { renderEvent } from '@/components/Events';

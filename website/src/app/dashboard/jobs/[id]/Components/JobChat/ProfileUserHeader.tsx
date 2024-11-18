@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Job, JobEventType, JobEventWithDiffs, JobState, User } from 'effectiveacceleration-contracts/dist/src/interfaces';
+import { Job, JobEventType, JobEventWithDiffs, JobState, User } from '@effectiveacceleration/contracts';
 import { AssignWorkerButton } from '@/components/JobActions/AssignWorkerButton';
 import Image from 'next/image';
 
