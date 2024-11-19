@@ -95,6 +95,11 @@ const SharedMenu = () => {
                   >
                     {item.icon}
                     {item.name}
+
+                    <div className='absolute inset-0 overflow-hidden rounded-xl'>
+                      <div className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/[.03] to-transparent transition-transform duration-500 group-hover:translate-x-[100%]" />
+
+                    </div>
                   </Link>
                 </li>
               ))}
