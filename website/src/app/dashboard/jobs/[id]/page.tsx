@@ -127,7 +127,7 @@ export default function JobPage() {
   const ownerJobCache = `${address}${LOCAL_JOBS_OWNER_CACHE}`;
   const prevJobRef = useRef<Job | undefined>(undefined);
   const prevEventsRef = useRef(null);
-  console.log(events, 'EVENTS');
+
   useEffect(() => {
     if (prevJobRef.current === job) return;
     prevJobRef.current = job;

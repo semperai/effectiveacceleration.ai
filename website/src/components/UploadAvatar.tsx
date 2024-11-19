@@ -33,7 +33,6 @@ const UploadAvatar = ({
       const data = await response.json();
       const url = `${ipfsGatewayUrl}/ipfs/${data.Hash}`;
       setAvatarFileUrl(url);
-      console.log('File uploaded to IPFS:', url);
     } catch (error) {
       console.error('Error uploading file to IPFS:', error);
     }

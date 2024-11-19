@@ -75,7 +75,7 @@ const ProgressJobs = ({
     columns: columnsCompletedTable,
     getCoreRowModel: getCoreRowModel(),
   });
-  console.log(filteredJobs, localJobs, 'progressjobs');
+
   return (
     <>
       <JobsTable

@@ -123,9 +123,6 @@ async function setupAndGiveAllowance(
       ) {
         // Check if the current allowance is sufficient
         if (currentAllowance >= parsedAmount) {
-          console.log(
-            `Sufficient allowance already given to ${spenderAddress} for ${amount} tokens`
-          );
           if (typeof resolve === 'function') {
             resolve();
           } else {
@@ -145,9 +142,6 @@ async function setupAndGiveAllowance(
 
       if (receipt.status === 1) {
         // Check if the transaction was successful
-        console.log(
-          `Allowance given to ${spenderAddress} for ${amount} tokens`
-        );
         resolve();
       } else {
         throw new Error('Transaction failed');
@@ -160,17 +154,12 @@ async function setupAndGiveAllowance(
 }
 
 const validateField = (value: string, validation: FieldValidation): string => {
-  console.log(
-    validation.minLength && value.length < validation.minLength,
-    'VALUE AND VALIDATIONE'
-  );
   if (validation.minLength && value.length < validation.minLength) {
     return `Must be at least ${validation.minLength} characters long`;
   }
   if (validation.pattern && !validation.pattern.test(value)) {
     return 'Invalid format';
   }
-  console.log('validation', validation, value);
   if (
     validation.mustBeGreaterThan &&
     parseFloat(value) <= parseFloat(validation.mustBeGreaterThan)
@@ -336,7 +325,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
       functionName: 'balanceOf',
       args: [address!],
     });
-    console.log(typeof balanceData, 'BALANCE DATA');
+
     async function postJobClick() {
       if (!deadline) return;
       if (!amount) return;
@@ -349,9 +338,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
         amount,
         selectedToken?.id as `0x${string}` | undefined
       );
-      // Call the giveAllowance function
-      // await setupAndGiveAllowance(Config.marketplaceAddress as `0x${string}`, amount, selectedToken?.id as `0x${string}` | undefined);\
-      console.log([selectedCategory.id, ...tags.map((tag) => tag.name)], 'TAG');
+
       const w = writeContract({
         abi: MARKETPLACE_V1_ABI,
         address: Config.marketplaceAddress as `0x${string}`,
@@ -426,7 +413,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
     function closeRegisterModal() {
       setIsRegisterModalOpen(false);
     }
-    console.log(isLoadingModalOpen, 'IS LOADING MODAL OPEN');
+
     function closeLoadingModal() {
       setIsRegisterModalOpen(false);
     }
@@ -489,14 +476,6 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
           mustBeGreaterThan: '0',
           required: true,
         }
-      );
-      console.log(
-        'VALIDATION MESSAGES',
-        titleValidationMessage,
-        descriptionValidationMessage,
-        categoryValidationMessage,
-        paymentTokenValidationMessage,
-        arbitratorValidationMessage
       );
       setTitleError(titleValidationMessage);
       setDescriptionError(descriptionValidationMessage);
@@ -605,18 +584,10 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
           );
         }
         if (isConfirmed) {
-          console.log('Job confirmed MODAL OPEN');
           setIsLoadingModalOpen(true);
         }
       }
     }, [isConfirmed, error]);
-
-    console.log(
-      selectedArbitratorAddress,
-      'ARBITRATOR ADDRESS',
-      arbitratorAddresses,
-      'ARBITRATOR ADDRESSES'
-    );
 
     useEffect(() => {
       // Get session storage to fill form for new signed up users
@@ -970,7 +941,6 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                           deadline = -deadline;
                         }
                         setDeadline(deadline);
-                        console.log('deadline', deadline);
                         if (deadline === 0 || e.target.value === '') {
                           setDeadlineError('Please enter a valid deadline');
                         } else {

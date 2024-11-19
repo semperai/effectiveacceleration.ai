@@ -102,7 +102,6 @@ const CreateProfile = ({
     }
   };
 
-  console.log(avatarFileUrl, 'FILE URL');
   return (
     <div className='flex flex-row self-center shadow-xl'>
       <Image

@@ -25,7 +25,7 @@ const tabs = [
   'In Progress',
   'Completed',
   'Disputed',
-  'Cancelled',
+  'Closed',
   'Develop: All Jobs',
 ];
 

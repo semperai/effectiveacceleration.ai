@@ -39,7 +39,6 @@ const SignInMessage = ({
       const encryptionKey = (
         await getEncryptionSigningKey(modifiedSigner as any)
       ).compressedPublicKey;
-      console.log(encryptionKey, 'encryptionKey');
       setEncryptionPublicKey(encryptionKey);
     } catch (error) {
       console.error('Error signing message:', error);

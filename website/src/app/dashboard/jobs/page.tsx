@@ -33,7 +33,7 @@ export default function OpenJobsPage() {
   const { data: users } = useUsersByAddresses(
     jobs.map((job) => job.roles.creator)
   );
-  console.log(users, 'ALL USERS');
+
   return (
     <Layout>
       <h1 className='mb-8 ml-2 text-xl font-medium'>Open Jobs</h1>

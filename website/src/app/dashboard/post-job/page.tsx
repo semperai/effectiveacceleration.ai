@@ -15,10 +15,6 @@ const PostJobPage = () => {
     eventName: 'JobEvent',
     onLogs: async (jobEvent) => {
       try {
-        console.log(
-          jobEvent,
-          'This is a Job Event emitted from Marketplace_Data_v1_Abi'
-        );
         if (postJobPageRef.current) {
           postJobPageRef.current.jobIdCache(jobEvent[0].args.jobId as bigint);
         }

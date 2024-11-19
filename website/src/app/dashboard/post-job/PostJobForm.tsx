@@ -100,9 +100,6 @@ async function setupAndGiveAllowance(
 
       if (receipt.status === 1) {
         // Check if the transaction was successful
-        console.log(
-          `Allowance given to ${spenderAddress} for ${amount} tokens`
-        );
         resolve();
       } else {
         throw new Error('Transaction failed');
@@ -153,7 +150,6 @@ const categories = [
 function PostJobForm() {
   const renderCount = useRef(0);
   renderCount.current += 1;
-  console.log(renderCount.current);
   const searchParams = useSearchParams();
   const { address } = useAccount();
   const { data: workers } = useUsers();
@@ -251,10 +247,7 @@ function PostJobForm() {
     setPostButtonDisabled(true);
 
     const { hash: contentHash } = await publishToIpfs(description);
-    // const allowanceResponse = await setupAndGiveAllowance(Config.marketplaceAddress as `0x${string}`, amount, selectedToken?.id as `0x${string}` | undefined)
-    // console.log(allowanceResponse)
-    // Call the giveAllowance function
-    // await setupAndGiveAllowance(Config.marketplaceAddress as `0x${string}`, amount, selectedToken?.id as `0x${string}` | undefined);
+  
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
       address: Config.marketplaceAddress as `0x${string}`,
@@ -273,7 +266,7 @@ function PostJobForm() {
       ],
     });
   }
-  console.log(selectedCategory?.name, 'CATEGORY NAME');
+
   const jobIdCache = (jobId: bigint) => {
     const createdJobId = jobId.toString();
     const createdJobs = JSON.parse(localStorage.getItem(userJobCache) || '[]');
@@ -401,24 +394,6 @@ function PostJobForm() {
     }
   }, [isConfirmed, error]);
 
-  // useEffect(() => {
-  //   const params = Object.fromEntries(searchParams.entries());
-  //   const extractedParams: PostJobParams = {
-  //     ...params,
-  //     tags: searchParams.getAll('tags')
-  //   };
-  //   setTitle(extractedParams.title || '');
-  //   setDescription(extractedParams.content || '');
-  //   setTags(extractedParams.tags.map((tag, index) => ({ id: index, name: tag })));
-  //   setDeliveryMethod(extractedParams.deliveryMethod || '');
-  //   if (extractedParams.arbitrator === '0x0000000000000000000000000000000000000000') {
-  //     setArbitratorRequired('No');
-  //   } else {
-  //     setsSelectedArbitratorAddress(extractedParams.arbitrator || '');
-  //   }
-  //   setDeadline(parseInt(extractedParams.maxTime || '0'));
-  //   console.log(selectedArbitratorAddress, 'arbitratorAddresses', extractedParams.arbitrator)
-  // }, [searchParams])
   useUnsavedChangesWarning(isConfirmed);
   return (
     <div>

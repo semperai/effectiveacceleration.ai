@@ -18,7 +18,7 @@ const updateLocalJobStorage = ({
   address: `0x${string}` | undefined;
 }) => {
   const userJobCache = `${address}${LOCAL_JOBS_OWNER_CACHE}`;
-  console.log(jobEvent, 'JOB EVENT');
+
   // Update local storage job with new job state and event.
   const storedJobs = localStorage.getItem(userJobCache);
   if (storedJobs) {

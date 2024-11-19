@@ -72,21 +72,18 @@ function JobsTable<T>({
   const [dataRow, setDataRow] = useState(false);
   const { address } = useAccount();
   const { data: user } = useUser(address!);
-  console.log(localJobs, 'LOCAL JOBS');
+
   useEffect(() => {
     if (localJobs?.length === 0) return;
     setJobCount(getValidJobsCount(title, localJobs));
   }, [localJobs]);
 
   useEffect(() => {
-    console.log(loading, 'LOADING');
     if (table.getRowModel().rows.length === 0 && localJobs?.length === 0)
       return;
     setLoading(false);
     setDataRow(true);
   }, [table, dataRow]);
-
-  console.log(table, dataRow, jobCount, localJobs, 'TAB DATA');
 
   return (
     <>
