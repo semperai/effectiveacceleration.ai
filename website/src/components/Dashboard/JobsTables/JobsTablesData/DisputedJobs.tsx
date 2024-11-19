@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import JobsTable from '../JobsTable';
 import { TDisputedTable } from '@/service/JobsService';
 import {
@@ -6,32 +6,17 @@ import {
   getCoreRowModel,
   createColumnHelper,
 } from '@tanstack/react-table';
+import { columnBuilder } from '@/components/TablesCommon';
 import { Job } from 'effectiveacceleration-contracts/dist/src/interfaces';
 import Link from 'next/link';
 import { shortenText } from '@/utils/utils';
 
-const columnHelperDisputedTable = createColumnHelper<TDisputedTable>();
-const columnsDisputedTable = [
-  columnHelperDisputedTable.accessor((row) => row.jobName, {
-    id: 'jobName',
-    cell: (info) => <i>{info.getValue()}</i>,
-    header: () => <span>Job Name</span>,
-  }),
-  columnHelperDisputedTable.accessor((row) => row.arbitrationStatus, {
-    id: 'arbitrationStatus',
-    cell: (info) => <i>{info.getValue()}</i>,
-    header: () => <span>arbitrationStatus</span>,
-  }),
-  columnHelperDisputedTable.accessor((row) => row.disputedAmount, {
-    id: 'disputedAmount',
-    cell: (info) => <i>{info.getValue()}</i>,
-    header: () => <span>disputedAmount</span>,
-  }),
-  columnHelperDisputedTable.accessor((row) => row.timeSpentDispute, {
-    id: 'timeSpentDispute',
-    cell: (info) => <i>{info.getValue()}</i>,
-    header: () => <span>timeSpentDispute</span>,
-  }),
+const columnHelper = createColumnHelper<TDisputedTable>();
+const columns = [
+  columnBuilder(columnHelper, 'jobName', 'Job Name'),
+  columnBuilder(columnHelper, 'arbitrationStatus', 'arbitrationStatus'),
+  columnBuilder(columnHelper, 'disputedAmount', 'disputedAmount'),
+  columnBuilder(columnHelper, 'timeSpentDispute', 'timeSpentDispute'),
 ];
 
 const DisputedJobs = ({
@@ -41,11 +26,7 @@ const DisputedJobs = ({
   filteredJobs: Job[];
   localJobs: Job[];
 }) => {
-  useEffect(() => {
-    _setDataDisputedTable([...defaultDataDisputedTable]);
-  }, [filteredJobs]);
-
-  const defaultDataDisputedTable: TDisputedTable[] = filteredJobs.map(
+  const defaultData: TDisputedTable[] = filteredJobs.map(
     (job) => ({
       jobName: <span className='font-bold'>{job.title}</span>,
       arbitrationStatus: <span className=''>ArbitrationStatus</span>,
@@ -56,15 +37,19 @@ const DisputedJobs = ({
             View Details
           </span>
         </Link>
-      ), // Assuming 'actions' is a placeholder for now
+      ),
     })
   );
-  const [dataDisputedTable, _setDataDisputedTable] = React.useState(() => [
-    ...defaultDataDisputedTable,
-  ]);
+
+  const [data, setData] = useState(() => defaultData);
+
+  useEffect(() => {
+    setData(defaultData);
+  }, [filteredJobs]);
+
   const tableDisputedTable = useReactTable({
-    data: dataDisputedTable,
-    columns: columnsDisputedTable,
+    data,
+    columns,
     getCoreRowModel: getCoreRowModel(),
   });
 

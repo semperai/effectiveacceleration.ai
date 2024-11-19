@@ -10,6 +10,7 @@ import {
   getCoreRowModel,
   createColumnHelper,
 } from '@tanstack/react-table';
+import { columnBuilder } from '@/components/TablesCommon';
 import useJobs from '@/hooks/useJobs';
 import {
   Job,
@@ -17,29 +18,13 @@ import {
 } from 'effectiveacceleration-contracts/dist/src/interfaces';
 import Link from 'next/link';
 
-const columnHelperCompletedTable = createColumnHelper<TOpenJobTable>();
+const columnHelper = createColumnHelper<TOpenJobTable>();
 
-const columnsCompletedTable = [
-  columnHelperCompletedTable.accessor((row) => row.jobName, {
-    id: 'jobName',
-    cell: (info) => <div>{info.getValue()}</div>,
-    header: () => <span className='text-black'>Job Name</span>,
-  }),
-  columnHelperCompletedTable.accessor((row) => row.description, {
-    id: 'description',
-    cell: (info) => <div>{info.getValue()}</div>,
-    header: () => <span className='text-black'>Assigned to</span>,
-  }),
-  columnHelperCompletedTable.accessor((row) => row.tag, {
-    id: 'tag',
-    cell: (info) => <div>{info.getValue()}</div>,
-    header: () => <span className='text-black'>Progress</span>,
-  }),
-  columnHelperCompletedTable.accessor((row) => row.actions, {
-    id: 'actions',
-    cell: (info) => <div>{info.getValue()}</div>,
-    header: () => <span className='text-black'>Actions</span>,
-  }),
+const columns = [
+  columnBuilder(columnHelper, 'jobName', 'Job Name'),
+  columnBuilder(columnHelper, 'description', 'Assigned to'), // TODO these seem wrong?
+  columnBuilder(columnHelper, 'tag', 'Progress'),
+  columnBuilder(columnHelper, 'actions', 'Actions'),
 ];
 
 const ProgressJobs = ({
@@ -49,7 +34,7 @@ const ProgressJobs = ({
   filteredJobs: Job[];
   localJobs: Job[];
 }) => {
-  const defaultDataCompletedTable: TOpenJobTable[] = filteredJobs.map(
+  const defaultData: TOpenJobTable[] = filteredJobs.map(
     (job) => ({
       jobName: <span className='font-bold'>{job.title}</span>,
       description: <span className='font-md'>{job.roles.worker ?? ''}</span>,
@@ -64,28 +49,25 @@ const ProgressJobs = ({
             View Details
           </span>
         </Link>
-      ), // Assuming 'actions' is a placeholder for now
+      ),
     })
   );
-  const [dataCompletedTable, _setDataCompletedTable] = React.useState(() => [
-    ...defaultDataCompletedTable,
-  ]);
-  const tableCompletedTable = useReactTable({
-    data: dataCompletedTable,
-    columns: columnsCompletedTable,
+
+  const [data, setData] = useState(() => defaultData);
+  const table = useReactTable({
+    data,
+    columns,
     getCoreRowModel: getCoreRowModel(),
   });
 
   return (
-    <>
-      <JobsTable
-        table={tableCompletedTable}
-        localJobs={localJobs}
-        title='In Progress'
-        emptyMessage='No jobs in progress found'
-        emptySubtext='Why not try creating more jobs?'
-      ></JobsTable>
-    </>
+    <JobsTable
+      table={table}
+      localJobs={localJobs}
+      title='In Progress'
+      emptyMessage='No jobs in progress found'
+      emptySubtext='Why not try creating more jobs?'
+    />
   );
 };
 

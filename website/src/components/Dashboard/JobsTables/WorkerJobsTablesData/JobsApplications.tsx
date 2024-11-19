@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import JobsTable from '../JobsTable';
 import { TOpenJobTable } from '@/service/JobsService';
 import {
@@ -6,32 +6,16 @@ import {
   getCoreRowModel,
   createColumnHelper,
 } from '@tanstack/react-table';
+import { columnBuilder } from '@/components/TablesCommon';
 import { Job } from 'effectiveacceleration-contracts/dist/src/interfaces';
 import Link from 'next/link';
 
-const columnHelperCompletedTable = createColumnHelper<TOpenJobTable>();
-
-const columnsCompletedTable = [
-  columnHelperCompletedTable.accessor((row) => row.jobName, {
-    id: 'jobName',
-    cell: (info) => <div>{info.getValue()}</div>,
-    header: () => <span className='text-black'>Job Name</span>,
-  }),
-  columnHelperCompletedTable.accessor((row) => row.description, {
-    id: 'description',
-    cell: (info) => <div>{info.getValue()}</div>,
-    header: () => <span className='text-black'>Assigned to</span>,
-  }),
-  columnHelperCompletedTable.accessor((row) => row.tag, {
-    id: 'tag',
-    cell: (info) => <div>{info.getValue()}</div>,
-    header: () => <span className='text-black'>Progress</span>,
-  }),
-  columnHelperCompletedTable.accessor((row) => row.actions, {
-    id: 'actions',
-    cell: (info) => <div>{info.getValue()}</div>,
-    header: () => <span className='text-black'>Actions</span>,
-  }),
+const columnHelper = createColumnHelper<TOpenJobTable>();
+const columns = [
+  columnBuilder(columnHelper, 'jobName', 'Job Name'),
+  columnBuilder(columnHelper, 'description', 'Assigned to'), // TODO these seem wrong
+  columnBuilder(columnHelper, 'tag', 'Progress'), // TODO these seem wrong
+  columnBuilder(columnHelper, 'actions', 'Actions'),
 ];
 
 const JobsAplications = ({
@@ -41,7 +25,7 @@ const JobsAplications = ({
   filteredJobs: Job[];
   localJobs: Job[];
 }) => {
-  const defaultDataCompletedTable: TOpenJobTable[] = filteredJobs.map(
+  const defaultData: TOpenJobTable[] = filteredJobs.map(
     (job) => ({
       jobName: <span className='font-bold'>{job.title}</span>,
       description: <span className='font-md'>{job.roles.worker ?? ''}</span>,
@@ -56,20 +40,20 @@ const JobsAplications = ({
             View Details
           </span>
         </Link>
-      ), // Assuming 'actions' is a placeholder for now
+      ),
     })
   );
-  const [dataCompletedTable, _setDataCompletedTable] = React.useState(() => [
-    ...defaultDataCompletedTable,
-  ]);
-  const tableCompletedTable = useReactTable({
-    data: dataCompletedTable,
-    columns: columnsCompletedTable,
+
+  const [data, setData] = useState(() => defaultData);
+  const table = useReactTable({
+    data,
+    columns,
     getCoreRowModel: getCoreRowModel(),
   });
+
   return (
     <JobsTable
-      table={tableCompletedTable}
+      table={table}
       localJobs={localJobs}
       title='Job Aplications'
       emptyMessage='No job applications found'
