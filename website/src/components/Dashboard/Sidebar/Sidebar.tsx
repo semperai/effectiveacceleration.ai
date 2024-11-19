@@ -49,6 +49,7 @@ const navigation: NavigationItem[] = [
     href: '/dashboard/worker-job-list',
     icon: <PiBriefcase className='text-2xl' />,
   },
+  /*
   {
     name: 'Arbitrators',
     href: '/dashboard/arbitrators',
@@ -59,6 +60,7 @@ const navigation: NavigationItem[] = [
     href: '/dashboard/users',
     icon: <PiPerson className='text-2xl' />,
   },
+  */
   {
     name: 'Docs',
     href: 'https://docs.effectiveacceleration.ai',
