@@ -201,6 +201,26 @@ const unitsDeliveryTime = [
   { id: 5, name: 'years' },
 ];
 
+const convertToSeconds = (deadline: number, unit: string): number => {
+  switch (unit) {
+    case 'minutes':
+      return deadline * 60;
+    case 'hours':
+      return deadline * 60 * 60;
+    case 'days':
+      return deadline * 60 * 60 * 24;
+    case 'weeks':
+      return deadline * 60 * 60 * 24 * 7;
+    case 'months':
+      return deadline * 60 * 60 * 24 * 30; // Approximation
+    case 'years':
+      return deadline * 60 * 60 * 24 * 365; // Approximation
+    default:
+      return 0;
+  }
+};
+
+
 const deliveryMethods = [
   {
     label: 'IPFS',
@@ -338,7 +358,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
         amount,
         selectedToken?.id as `0x${string}` | undefined
       );
-
+      const deadlineInSeconds = deadline ? convertToSeconds(deadline, selectedUnitTime.name) : 0;
       const w = writeContract({
         abi: MARKETPLACE_V1_ABI,
         address: Config.marketplaceAddress as `0x${string}`,
@@ -350,7 +370,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
           [selectedCategory.id, ...tags.map((tag) => tag.name)],
           selectedToken?.id! as `0x${string}`,
           ethers.parseUnits(amount, selectedToken?.decimals!),
-          deadline,
+          deadlineInSeconds,
           deliveryMethod,
           selectedArbitratorAddress as `0x${string}`,
           selectedWorkerAddress ? [selectedWorkerAddress as `0x${string}`] : [],
