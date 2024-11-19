@@ -57,11 +57,15 @@ function JobsTable<T>({
   title,
   localJobs,
   filteredJobs,
+  emptyMessage,
+  emptySubtext,
 }: {
   table: Table<T>;
   title: string;
   localJobs?: Job[];
   filteredJobs?: Job[];
+  emptyMessage?: JSX.Element | string;
+  emptySubtext?: JSX.Element | string;
 }) {
   const [loading, setLoading] = useState(true);
   const [jobCount, setJobCount] = useState(0);
@@ -99,9 +103,9 @@ function JobsTable<T>({
         <div className='flex h-[300px] w-full items-center justify-center rounded-2xl bg-white p-5 text-center [box-shadow:0px_0px_8px_lightgray]'>
           <div>
             <h2 className='mb-4 text-xl font-semibold'>
-              No jobs available : (
+              {emptyMessage}
             </h2>
-            <Button>Create a job</Button>
+            <p className='text-gray-500'>{emptySubtext}</p>
           </div>
         </div>
       ) : (

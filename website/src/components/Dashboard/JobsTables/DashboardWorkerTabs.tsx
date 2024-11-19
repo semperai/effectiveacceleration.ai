@@ -19,7 +19,7 @@ import { LocalStorageJob } from '@/service/JobsService';
 import useJobsByIds from '@/hooks/useJobsByIds';
 import { LOCAL_JOBS_WORKER_CACHE } from '@/utils/constants';
 import { useAccount } from 'wagmi';
-import AllJobs from './WorkerJobsTablesData/AllJobs';
+import WorkerOpenJobs from './WorkerJobsTablesData/OpenJobs';
 import JobsApplications from './WorkerJobsTablesData/JobsAplications';
 import JobsAplications from './WorkerJobsTablesData/JobsAplications';
 
@@ -122,7 +122,7 @@ const DashboardTabs = () => {
             ))}
           </TabList>
           <TabPanel>
-            <AllJobs
+            <WorkerOpenJobs
               jobs={jobs.filter((job) => job.state === 0)}
               localJobs={localJobs}
             />

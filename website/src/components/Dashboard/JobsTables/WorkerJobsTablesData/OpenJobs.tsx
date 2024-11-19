@@ -58,7 +58,7 @@ const columnsCompletedTable = [
   }),
 ];
 
-const AllJobs = ({ jobs, localJobs }: { jobs: Job[]; localJobs: Job[] }) => {
+const OpenJobs = ({ jobs, localJobs }: { jobs: Job[]; localJobs: Job[] }) => {
   useEffect(() => {
     _setDataCompletedTable([...defaultDataCompletedTable]);
   }, [jobs]);
@@ -97,9 +97,11 @@ const AllJobs = ({ jobs, localJobs }: { jobs: Job[]; localJobs: Job[] }) => {
         table={tableCompletedTable}
         localJobs={localJobs}
         title='All Jobs'
-      ></JobsTable>
+        emptyMessage='No open jobs'
+        emptySubtext='You are not assigned to any jobs yet. Check the Open Jobs feed for available jobs.'
+      />
     </>
   );
 };
 
-export default AllJobs;
+export default OpenJobs;
