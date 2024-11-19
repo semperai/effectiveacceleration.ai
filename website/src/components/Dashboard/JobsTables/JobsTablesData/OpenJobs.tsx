@@ -103,7 +103,7 @@ const OpenJobs = ({
       table={tableCompletedTable}
       filteredJobs={filteredJobs}
       localJobs={localJobs}
-      title='Open Jobs'
+      title='Open for work Jobs'
       emptyMessage='No open jobs'
       emptySubtext='You do not have any open jobs, why not post one?'
     />

@@ -79,6 +79,10 @@ function JobsTable<T>({
   }, [localJobs]);
 
   useEffect(() => {
+    if ( filteredJobs && title === 'Open for work Jobs') {
+      setLoading(false);
+      setDataRow(true);
+    }
     if (table.getRowModel().rows.length === 0 && localJobs?.length === 0)
       return;
     setLoading(false);
@@ -87,7 +91,7 @@ function JobsTable<T>({
 
   return (
     <>
-      {!user && localJobs?.length === 0 ? (
+      {!user && localJobs?.length === 0 && title !== 'Open for work Jobs' ? (
         <div className='flex h-[300px] w-full items-center justify-center rounded-2xl bg-white p-5 text-center [box-shadow:0px_0px_8px_lightgray]'>
           <div>
             <h2 className='mb-4 text-xl font-semibold'>

@@ -72,7 +72,7 @@ const OpenJobsFeed = () => {
     <div>
       {mounted && (
         <OpenJobs
-          filteredJobs={filteredOpenJobs}
+          filteredJobs={jobs}
           selectedJobs={selectedJobs}
           localJobs={localJobs}
         />
