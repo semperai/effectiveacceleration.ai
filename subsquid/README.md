@@ -32,17 +32,19 @@ A GraphiQL playground will be available at [localhost:4350/graphql](http://local
 # Cheatsheet
 
 ```
-npx squid-typeorm-codegen
-npx tsc && node -r dotenv/config lib/main.js
-
-
-docker compose down -v && docker compose up -d
-npx tsc && rm -rf db/migrations/* && npx squid-typeorm-migration generate
-docker compose down -v && docker compose up -d && sleep 2 && npx squid-typeorm-migration apply
-
-
 npx squid-evm-typegen src/abi ../contract/artifacts/contracts/MarketplaceV1.sol/MarketplaceV1.json
 npx squid-evm-typegen src/abi ../contract/artifacts/contracts/MarketplaceDataV1.sol/MarketplaceDataV1.json
+
+
+npx squid-typeorm-codegen
+
+
+docker compose down -v && docker compose up -d db
+npx tsc && rm -rf db/migrations/* && npx squid-typeorm-migration generate
+docker compose down -v && docker compose up -d db && sleep 2 && npx squid-typeorm-migration apply
+
+
+npx tsc && node -r dotenv/config lib/main.js
 
 
 npx squid-graphql-server

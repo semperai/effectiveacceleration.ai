@@ -1,10 +1,25 @@
 {
   "name": "@effectiveacceleration/subsquid",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "scripts": {
     "build": "rm -rf lib && tsc",
     "postinstall": "patch-package"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/semperai/effectiveacceleration.ai"
+  },
+  "files": [
+    "lib/model",
+    "lib/index.js",
+    "lib/index.js.map",
+    "schema.graphql",
+    "package.json",
+    "package-lock.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "main": "lib/index.js",
   "dependencies": {
     "@effectiveacceleration/contracts": "^1.0.4",
     "@subsquid/evm-abi": "^0.3.0",
