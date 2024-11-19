@@ -72,7 +72,7 @@ const TagsInput: React.FC<{ tags: Tag[]; setTags: (tags: Tag[]) => void }> = ({
         ])}
       />
       {tags.length > 0 && (
-        <ul className='px-2 py-4 pt-5'>
+        <ul className='px-2 py-1 pt-2'>
           {tags.map((tag) => (
             <div
               key={tag.id}
