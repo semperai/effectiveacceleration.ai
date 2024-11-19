@@ -84,10 +84,13 @@ const SharedMenu = () => {
                   <Link
                     href={item.href}
                     className={clsx(
+                      'text-white group flex gap-x-3 rounded-full p-2 text-sm font-semibold leading-6 relative',
                       pathname == item.href
                         ? 'bg-indigo-200 bg-opacity-30'
                         : 'hover:bg-indigo-500/20',
-                      'text-white group flex gap-x-3 rounded-full p-2 text-sm font-semibold leading-6'
+                      item.href == '/dashboard/post-job'
+                        ? 'bg-gradient-to-r from-fuchsia-500/70 to-fuchsia-600/70 shadow-lg font-bold hover:from-fuchsia-500/80 hover:to-fuchsia-600/80 overflow-hidden'
+                        : '',
                     )}
                   >
                     {item.icon}
