@@ -67,7 +67,7 @@ export const Input = forwardRef<
             ],
 
           // Basic layout
-          'relative block w-full appearance-none rounded-xl px-[calc(theme(spacing[3.5])-1px)] py-[calc(theme(spacing[2.5])-1px)] sm:px-[calc(theme(spacing[3])-1px)] sm:py-[calc(theme(spacing[3])-1px)]',
+          'relative block w-full appearance-none rounded-xl px-[calc(theme(spacing[3.5])-1px)] py-[calc(theme(spacing[2])-1px)] sm:px-[calc(theme(spacing[3])-1px)] sm:py-[calc(theme(spacing[2])-1px)]',
 
           // Typography
           'text-base/6 text-darkBlueFont placeholder:text-zinc-500 sm:text-sm/6 dark:text-white',

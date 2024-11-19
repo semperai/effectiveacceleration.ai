@@ -68,7 +68,7 @@ export function Listbox<T>({
           }
           className={clsx([
             // Basic layout
-            'relative block w-full appearance-none rounded-xl py-[calc(theme(spacing[2.5])-1px)] sm:py-[calc(theme(spacing[3])-1px)]',
+            'relative block w-full appearance-none rounded-xl py-[calc(theme(spacing[2])-1px)] sm:py-[calc(theme(spacing[2])-1px)]',
 
             // Set minimum height for when no value is selected
             'min-h-11 sm:min-h-9',
