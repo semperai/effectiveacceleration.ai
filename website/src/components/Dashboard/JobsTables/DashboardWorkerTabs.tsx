@@ -20,8 +20,7 @@ import useJobsByIds from '@/hooks/useJobsByIds';
 import { LOCAL_JOBS_WORKER_CACHE } from '@/utils/constants';
 import { useAccount } from 'wagmi';
 import WorkerOpenJobs from './WorkerJobsTablesData/OpenJobs';
-import JobsApplications from './WorkerJobsTablesData/JobsAplications';
-import JobsAplications from './WorkerJobsTablesData/JobsAplications';
+import JobsApplications from './WorkerJobsTablesData/JobsApplications';
 
 const tabs = ['Open Jobs', 'Applications', 'Started Jobs', 'Completed Jobs'];
 
@@ -35,7 +34,7 @@ const DashboardTabs = () => {
   const [jobIds, setJobIds] = useState<bigint[]>([]);
   const { data: selectedJobs } = useJobsByIds(jobIds);
   const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
-  const [filteredJobsAplications, setFilteredJobsAplications] = useState<Job[]>(
+  const [filteredJobsApplications, setFilteredJobsApplications] = useState<Job[]>(
     []
   );
   const [filteredStartedJobs, setFilteredStartedJobs] = useState<Job[]>([]);
@@ -62,14 +61,14 @@ const DashboardTabs = () => {
     if (selectedJobs.length === 0)
       return { open: [], aplications: [], started: [], completed: [] };
     const filteredOpenJobs: Job[] = [];
-    const filteredJobsAplications: Job[] = [];
+    const filteredJobsApplications: Job[] = [];
     const filteredStartedJobs: Job[] = [];
     const filteredCompletedJobs: Job[] = [];
     selectedJobs.forEach((job, index) => {
       const localJob = localJobs.find((localJob) => localJob.id === job.id);
       if (job.state === JobState.Open) {
         // Applications
-        filteredJobsAplications.push(job);
+        filteredJobsApplications.push(job);
       } else if (job.state === JobState.Taken && job.roles.worker === address) {
         // Started Jobs
         filteredStartedJobs.push(job);
@@ -86,7 +85,7 @@ const DashboardTabs = () => {
     });
     return {
       open: filteredOpenJobs,
-      aplications: filteredJobsAplications,
+      aplications: filteredJobsApplications,
       started: filteredStartedJobs,
       completed: filteredCompletedJobs,
     };
@@ -94,7 +93,7 @@ const DashboardTabs = () => {
 
   useEffect(() => {
     setFilteredJobs(filteredJobsMemo.open);
-    setFilteredJobsAplications(filteredJobsMemo.aplications);
+    setFilteredJobsApplications(filteredJobsMemo.aplications);
     setFilteredStartedJobs(filteredJobsMemo.started);
     setFilteredCompletedJobs(filteredJobsMemo.completed);
     if (selectedJobs.length > 0 && isFirstUpdate.current) {
@@ -128,10 +127,10 @@ const DashboardTabs = () => {
             />
           </TabPanel>
           <TabPanel>
-            <JobsAplications
-              filteredJobs={filteredJobsAplications}
+            <JobsApplications
+              filteredJobs={filteredJobsApplications}
               localJobs={localJobs}
-            ></JobsAplications>
+            ></JobsApplications>
           </TabPanel>
           <TabPanel>
             <JobProgress
