@@ -82,6 +82,8 @@ const ProgressJobs = ({
         table={tableCompletedTable}
         localJobs={localJobs}
         title='Started Jobs'
+        emptyMessage='No jobs in progress found'
+        emptySubtext='Why not try applying for more jobs?'
       ></JobsTable>
     </>
   );

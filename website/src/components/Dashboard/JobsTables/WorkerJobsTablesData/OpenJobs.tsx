@@ -92,15 +92,13 @@ const OpenJobs = ({ jobs, localJobs }: { jobs: Job[]; localJobs: Job[] }) => {
   });
 
   return (
-    <>
-      <JobsTable
-        table={tableCompletedTable}
-        localJobs={localJobs}
-        title='All Jobs'
-        emptyMessage='No open jobs'
-        emptySubtext='You are not assigned to any jobs yet. Check the Open Jobs feed for available jobs.'
-      />
-    </>
+    <JobsTable
+      table={tableCompletedTable}
+      localJobs={localJobs}
+      title='All Jobs'
+      emptyMessage='No open jobs'
+      emptySubtext='Check the Open Jobs feed to apply for available jobs.'
+    />
   );
 };
 

@@ -75,13 +75,13 @@ const CompletedJobs = ({
   });
 
   return (
-    <>
-      <JobsTable
-        table={tableCompletedTable}
-        localJobs={localJobs}
-        title='Completed Jobs'
-      ></JobsTable>
-    </>
+    <JobsTable
+      table={tableCompletedTable}
+      localJobs={localJobs}
+      title='Completed Jobs'
+      emptyMessage='You have no completed jobs'
+      emptySubtext='Complete jobs to see them here'
+    />
   );
 };
 

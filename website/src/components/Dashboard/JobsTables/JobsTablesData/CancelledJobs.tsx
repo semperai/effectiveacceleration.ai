@@ -74,14 +74,14 @@ const CancelledJobs = ({
   });
 
   return (
-    <>
-      <JobsTable
-        table={tableCancelledTable}
-        filteredJobs={filteredJobs}
-        localJobs={localJobs}
-        title='Cancelled Jobs'
-      ></JobsTable>
-    </>
+    <JobsTable
+      table={tableCancelledTable}
+      filteredJobs={filteredJobs}
+      localJobs={localJobs}
+      title='Cancelled Jobs'
+      emptyMessage='No cancelled jobs'
+      emptySubtext='You have not cancelled any job posts'
+    />
   );
 };
 

@@ -68,15 +68,13 @@ const JobsAplications = ({
     getCoreRowModel: getCoreRowModel(),
   });
   return (
-    <>
-      <JobsTable
-        table={tableCompletedTable}
-        localJobs={localJobs}
-        title='Job Aplications'
-        emptyMessage='No job applications found'
-        emptySubtext='Apply to more jobs to see them here'
-      ></JobsTable>
-    </>
+    <JobsTable
+      table={tableCompletedTable}
+      localJobs={localJobs}
+      title='Job Aplications'
+      emptyMessage='No job applications found'
+      emptySubtext='Apply to more jobs to see them here'
+    />
   );
 };
 export default JobsAplications;

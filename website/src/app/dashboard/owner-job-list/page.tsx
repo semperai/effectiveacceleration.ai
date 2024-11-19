@@ -5,7 +5,7 @@ import DashboardTabs from '@/components/Dashboard/JobsTables/DashboardTabs';
 export default function OwnerJobListPage() {
   return (
     <Layout>
-      <DashboardTabs></DashboardTabs>
+      <DashboardTabs />
     </Layout>
   );
 }

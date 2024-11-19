@@ -69,14 +69,14 @@ const DisputedJobs = ({
   });
 
   return (
-    <>
-      <JobsTable
-        table={tableDisputedTable}
-        filteredJobs={filteredJobs}
-        localJobs={localJobs}
-        title='Disputed Jobs'
-      ></JobsTable>
-    </>
+    <JobsTable
+      table={tableDisputedTable}
+      filteredJobs={filteredJobs}
+      localJobs={localJobs}
+      title='Disputed Jobs'
+      emptyMessage='You do not have any disputed jobs'
+      emptySubtext='That&apos;s a good thing!'
+    />
   );
 };
 

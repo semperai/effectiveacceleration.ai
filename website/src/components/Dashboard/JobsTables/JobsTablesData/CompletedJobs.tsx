@@ -80,6 +80,8 @@ const CompletedJobs = ({
         table={tableCompletedTable}
         localJobs={localJobs}
         title='Completed Jobs'
+        emptyMessage='No completed jobs found'
+        emptySubtext='Why not try creating a new job?'
       ></JobsTable>
     </>
   );
