@@ -73,6 +73,8 @@ const JobsAplications = ({
         table={tableCompletedTable}
         localJobs={localJobs}
         title='Job Aplications'
+        emptyMessage='No job applications found'
+        emptySubtext='Apply to more jobs to see them here'
       ></JobsTable>
     </>
   );
