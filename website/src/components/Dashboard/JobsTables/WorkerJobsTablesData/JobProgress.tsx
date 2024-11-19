@@ -77,15 +77,13 @@ const ProgressJobs = ({
   });
 
   return (
-    <>
-      <JobsTable
-        table={tableCompletedTable}
-        localJobs={localJobs}
-        title='Started Jobs'
-        emptyMessage='No jobs in progress found'
-        emptySubtext='Why not try applying for more jobs?'
-      ></JobsTable>
-    </>
+    <JobsTable
+      table={tableCompletedTable}
+      localJobs={localJobs}
+      title='Started Jobs'
+      emptyMessage='No jobs in progress found'
+      emptySubtext='Why not try applying for more jobs?'
+    />
   );
 };
 
