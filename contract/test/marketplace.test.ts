@@ -208,14 +208,14 @@ describe("Marketplace Unit Tests", () => {
     return { wallet1, wallet2, wallet3, wallet4 };
   }
 
-  const checkJobFromStateDiffs = async (marketplace: Marketplace, marketplaceData, jobId: bigint, eventId: number | undefined = undefined) => {
+  const checkJobFromStateDiffs = async (marketplace: Marketplace, marketplaceData, jobId: string, eventId: number | undefined = undefined) => {
     const events = await marketplaceData.getEvents(jobId, 0n, 0n);
 
     if (eventId === undefined) {
       eventId = events.length - 1;
     }
 
-    const diffs = computeJobStateDiffs(events.map((val: any) => val.toObject()), 0n);
+    const diffs = computeJobStateDiffs(events.map((val: any) => val.toObject()), "0");
     const recreatedJob = diffs[eventId].job;
     const job = await marketplaceData.getJob(jobId);
 
@@ -746,7 +746,7 @@ describe("Marketplace Unit Tests", () => {
 
       expect(contentHash).to.equal(job.contentHash);
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, 0n);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, "0");
     });
 
     it("post two jobs", async () => {
@@ -1247,7 +1247,7 @@ describe("Marketplace Unit Tests", () => {
         .connect(user1)
         .whitelistWorkers(jobId, user1.address)).to.be.true;
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
 
       await expect(marketplace.connect(user1).updateJobWhitelist(jobId, [], [await user1.getAddress()])).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
@@ -1262,7 +1262,7 @@ describe("Marketplace Unit Tests", () => {
         .connect(user1)
         .whitelistWorkers(jobId, user1.address)).to.be.false;
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
 
       await marketplace
         .connect(user1)
@@ -1424,7 +1424,7 @@ describe("Marketplace Unit Tests", () => {
       expect(job.roles.arbitrator).to.equal(arbitrator);
       expect(job.whitelistWorkers).to.equal(whitelistWorkers);
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
 
       await expect(marketplace.connect(user2).closeJob(jobId)).to.be.revertedWith("not creator");
       await marketplace.connect(user1).closeJob(jobId);
@@ -1487,7 +1487,7 @@ describe("Marketplace Unit Tests", () => {
         whitelistWorkers,
       )).to.be.not.revertedWith("arbitrator not registered");
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
     });
 
     it("update job tags", async () => {
@@ -1521,7 +1521,7 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
     });
 
     it("update job amounts", async () => {
@@ -1557,7 +1557,7 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(800e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(200e18));
@@ -1580,7 +1580,7 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(800e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(200e18));
@@ -1603,7 +1603,7 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
 
       // collateral will be updated
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(700e18));
@@ -1630,7 +1630,7 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(100e18));
@@ -1719,7 +1719,7 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(100e18));
@@ -1751,7 +1751,7 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(1000e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(0);
@@ -1782,7 +1782,7 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(100e18));
@@ -1797,7 +1797,7 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
 
       expect((await marketplace.connect(user1).jobs(jobId)).resultHash).to.be.equal(ZeroHash);
 
@@ -1827,7 +1827,7 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(1000e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(0);
@@ -1842,7 +1842,7 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(100e18));
@@ -1869,7 +1869,7 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(100e18));
@@ -1888,7 +1888,7 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(1000e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(0);
@@ -1995,7 +1995,7 @@ describe("Marketplace Unit Tests", () => {
         return true;
       }).and.to.emit(unicrowGlobal, "Pay");
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(0);
@@ -2037,7 +2037,7 @@ describe("Marketplace Unit Tests", () => {
         return true;
       }).and.not.to.emit(unicrowGlobal, "Pay");
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
       expect(await fakeToken.balanceOf(await marketplace.getAddress())).to.equal(BigInt(100e18));
@@ -2103,7 +2103,7 @@ describe("Marketplace Unit Tests", () => {
         return true;
       }).to.emit(unicrowGlobal, "Pay");
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
 
       const job = await marketplace.jobs(jobId);
       expect(job.roles.worker).to.equal(await user2.getAddress());
@@ -2205,7 +2205,7 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
 
       await expect(
         marketplace.connect(user2).postThreadMessage(jobId, messageHash, user1.address)
@@ -2221,7 +2221,7 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
     });
   });
 
@@ -2278,7 +2278,7 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
 
       expect((await marketplace.connect(user1).jobs(jobId)).resultHash).to.be.equal(contentHash);
     });
@@ -2441,7 +2441,7 @@ describe("Marketplace Unit Tests", () => {
       expect((await marketplaceData.users(user2.address)).reputationUp).to.equal(1);
       expect((await marketplaceData.users(user2.address)).reputationDown).to.equal(0);
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
       expect(await fakeToken.balanceOf(await user2.getAddress())).to.equal(BigInt(1079e18));
@@ -2540,7 +2540,7 @@ describe("Marketplace Unit Tests", () => {
       ).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Refunded);
-        expect(jobEventData.address_).to.equal("0x");
+        expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
         expect(jobEventData.data_).to.equal("0x");
 
         return true;
@@ -2557,7 +2557,7 @@ describe("Marketplace Unit Tests", () => {
       expect((await marketplaceData.users(user2.address)).reputationUp).to.equal(0);
       expect((await marketplaceData.users(user2.address)).reputationDown).to.equal(1);
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
 
       expect((await marketplace.connect(user1).jobs(jobId)).state).to.be.equal(JobState.Open);
       expect((await marketplace.connect(user1).jobs(jobId)).resultHash).to.not.be.equal(ZeroHash);
@@ -2702,7 +2702,7 @@ describe("Marketplace Unit Tests", () => {
         return true;
       }).and.to.emit(unicrowDisputeGlobal, "Challenge");
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
     });
 
     it("dispute worker", async () => {
@@ -2735,7 +2735,7 @@ describe("Marketplace Unit Tests", () => {
         return true;
       }).and.not.to.emit(unicrowDisputeGlobal, "Challenge");
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
     });
   });
 
@@ -2842,7 +2842,7 @@ describe("Marketplace Unit Tests", () => {
         return true;
       }).and.to.emit(unicrowArbitratorGlobal, "Arbitrated");
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
       expect(await fakeToken.balanceOf(await user2.getAddress())).to.equal(1015810000000000000000n);
@@ -2920,7 +2920,7 @@ describe("Marketplace Unit Tests", () => {
         return true;
       }).and.to.emit(unicrowArbitratorGlobal, "Arbitrated");
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
       expect(await fakeToken.balanceOf(await user2.getAddress())).to.equal(BigInt(1079e18));
@@ -2999,7 +2999,7 @@ describe("Marketplace Unit Tests", () => {
         return true;
       }).and.to.emit(unicrowArbitratorGlobal, "Arbitrated");
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
 
       expect(await fakeToken.balanceOf(await user1.getAddress())).to.equal(BigInt(900e18));
       expect(await fakeToken.balanceOf(await user2.getAddress())).to.equal(BigInt(1000e18));
@@ -3062,7 +3062,7 @@ describe("Marketplace Unit Tests", () => {
         return true;
       });
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
 
       expect((await marketplace.jobs(jobId)).roles.arbitrator).to.equal(ethers.ZeroAddress);
 
@@ -3111,13 +3111,13 @@ describe("Marketplace Unit Tests", () => {
       }).and.to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Refunded);
-        expect(jobEventData.address_).to.equal("0x");
+        expect(jobEventData.address_).to.equal(arbitrator.address.toLowerCase());
         expect(jobEventData.data_).to.equal("0x");
 
         return true;
       });
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
 
       expect((await marketplace.jobs(jobId)).roles.arbitrator).to.equal(ethers.ZeroAddress);
 
@@ -3293,10 +3293,10 @@ describe("Marketplace Unit Tests", () => {
       const reasonRead = await getFromIpfs(arbitrationEvent.reasonHash, sessionKeyOW);
       expect(reasonRead).to.equal(reason);
 
-      await checkJobFromStateDiffs(marketplace, marketplaceData, jobId);
+      await checkJobFromStateDiffs(marketplace, marketplaceData, String(jobId));
 
       const events = await marketplaceData.getEvents(jobId, 0n, 0n);
-      const diffs = computeJobStateDiffs(events.map((val: any) => val.toObject()), 0n);
+      const diffs = computeJobStateDiffs(events.map((val: any) => val.toObject()), "0");
       await fetchEventContents(diffs, {
         [`${user2.address}-${user1.address}`]: workerSessionKey,
         [`${user1.address}-${user2.address}`]: ownerSessionKey,

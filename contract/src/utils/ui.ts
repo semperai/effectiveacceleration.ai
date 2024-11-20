@@ -3,7 +3,7 @@ import { Job, JobArbitratedEvent, JobCreatedEvent, JobDisputedEvent, JobEvent, J
 import { safeGetFromIpfs } from "./encryption";
 import { decodeJobCreatedEvent, decodeJobUpdatedEvent, decodeJobSignedEvent, decodeJobRatedEvent, decodeJobArbitratedEvent, decodeJobMessageEvent, decodeJobDisputedEvent, decryptJobDisputedEvent } from "./decodeEvents";
 
-export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?: Job): JobEventWithDiffs[] => {
+export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: string, job?: Job): JobEventWithDiffs[] => {
   const result: JobEventWithDiffs[] = [];
 
   let previousJobState: Job | undefined = job;
@@ -16,7 +16,7 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
 
         if (!job) {
           job = {roles:{}} as Job;
-          job.id = String(jobId);
+          job.id = jobId;
           job.title = jobCreated.title;
           job.contentHash = jobCreated.contentHash as `0x${string}`;
           job.multipleApplicants = jobCreated.multipleApplicants;

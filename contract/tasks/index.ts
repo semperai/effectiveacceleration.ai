@@ -177,7 +177,7 @@ task("marketplace:seed", "Seed local marketplace instance")
       [worker.address]
     );
 
-    const jobId = 0;
+    const jobId = 0n;
 
     await marketplace.connect(owner).updateJobPost(
       0n,
@@ -225,7 +225,7 @@ task("marketplace:seed", "Seed local marketplace instance")
       []
     );
 
-    const jobId = 1;
+    const jobId = 1n;
 
     // worker reads the post data
     const workerSessionKey = await getSessionKey(worker, await marketplaceData.connect(worker).publicKeys(owner.address), jobId);
@@ -254,7 +254,7 @@ task("marketplace:seed", "Seed local marketplace instance")
       arbitrator.address,
       []
     );
-    const jobId = 2;
+    const jobId = 2n;
 
     // worker reads the post data
     const workerSessionKey = await getSessionKey(worker, await marketplaceData.connect(worker).publicKeys(owner.address), jobId);

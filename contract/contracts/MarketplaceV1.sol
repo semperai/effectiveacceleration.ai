@@ -911,8 +911,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             _updateJobWhitelist(jobId_, new address[](0), disallowedWorkers_);
         }
 
-        job.roles.worker = address(0);
-
         publishJobEvent(
             jobId_,
             JobEventData({
@@ -922,6 +920,8 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
                 timestamp_: 0
             })
         );
+
+        job.roles.worker = address(0);
     }
 
     /**
@@ -1031,7 +1031,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     function refuseArbitration(uint256 jobId_) public whenNotPaused onlyArbitrator(jobId_) {
         JobPost storage job = jobs[jobId_];
         require(job.state != uint8(JobState.Closed), "job in invalid state");
-        job.roles.arbitrator = address(0);
 
         marketplaceData.arbitratorRefused(msg.sender);
 
@@ -1048,5 +1047,6 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         if (job.state == uint8(JobState.Taken)) {
             _refund(jobId_, false);
         }
+        job.roles.arbitrator = address(0);
     }
 }
