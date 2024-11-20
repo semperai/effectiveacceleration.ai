@@ -39,6 +39,9 @@ export class User implements IUser {
     @IntColumn_({nullable: false})
     numberOfReviews!: number
 
+    @IntColumn_({nullable: false})
+    timestamp!: number
+
     @OneToMany_(() => Review, e => e.userLoaded)
     reviews!: Review[]
 

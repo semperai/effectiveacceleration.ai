@@ -10,6 +10,7 @@ services:
       - "127.0.0.1:5432:5432"
       # command: ["postgres", "-c", "log_statement=all"]
     shm_size: 1gb
+    restart: always
 
   api:
     image: marketplace-squid
@@ -27,6 +28,7 @@ services:
     depends_on:
       - db
     restart: always
+
   processor:
     image: marketplace-squid
     build: .

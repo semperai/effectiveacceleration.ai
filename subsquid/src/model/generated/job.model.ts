@@ -2,10 +2,9 @@ import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, I
 import * as marshal from "./marshal"
 import {JobRoles} from "./_jobRoles"
 import {JobEvent} from "./jobEvent.model"
-import {Job as IJob} from "@effectiveacceleration/contracts";
 
 @Entity_()
-export class Job implements IJob {
+export class Job {
     constructor(props?: Partial<Job>) {
         Object.assign(this, props)
     }
@@ -69,6 +68,9 @@ export class Job implements IJob {
 
     @StringColumn_({array: true, nullable: false})
     allowedWorkers!: (string)[]
+
+    @IntColumn_({nullable: false})
+    eventCount!: number
 
     @OneToMany_(() => JobEvent, e => e.job)
     events!: JobEvent[]

@@ -8,6 +8,10 @@ type Marketplace @entity {
   unicrowMarketplaceFee: Int!
   paused: Boolean!
   owner: String!
+
+  jobCount: Int!
+  userCount: Int!
+  arbitratorCount: Int!
 }
 
 type JobRoles {
@@ -37,18 +41,20 @@ type Job @entity {
   rating: Int!
   disputed: Boolean!
   allowedWorkers: [String!]!
+  eventCount: Int!
 
   events: [JobEvent!]! @derivedFrom(field: "job")
 }
 
 type JobEvent @entity {
-  jobId: Int!
-  job: Job!
+  jobId: BigInt!
   type_: Int!
   address_: String!
   data_: String!
   timestamp_: Int!
   details: CustomJobEvent
+
+  job: Job!
 }
 
 type Arbitrator @entity {
@@ -60,6 +66,7 @@ type Arbitrator @entity {
   fee: Int!
   settledCount: Int!
   refusedCount: Int!
+  timestamp: Int!
 }
 
 type User @entity {
@@ -72,6 +79,7 @@ type User @entity {
   reputationDown: Int!
   averageRating: Int!
   numberOfReviews: Int!
+  timestamp: Int!
 
   reviews: [Review!]! @derivedFrom(field: "userLoaded")
   myReviews: [Review!]! @derivedFrom(field: "reviewerLoaded")

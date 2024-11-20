@@ -39,7 +39,8 @@ import {
   JobEventType,
   JobState,
 } from "@effectiveacceleration/contracts";
-import { toBigInt, ZeroAddress, ZeroHash } from "ethers";
+import { getAddress, toBigInt, ZeroAddress, ZeroHash } from "ethers";
+import { get } from 'http';
 
 // const MARKETPLACE_CONTRACT_ADDRESS =
 //   "0x60a1561455c9Bd8fe6B0F05976d7F84ff2eff5a3".toLowerCase();
@@ -113,12 +114,15 @@ processor.run(db, async (ctx) => {
         marketplace =
           marketplace ??
           (await ctx.store.findOneBy(Marketplace, {
-            id: MARKETPLACE_CONTRACT_ADDRESS,
+            id: getAddress(MARKETPLACE_CONTRACT_ADDRESS),
           }))!;
         if (!marketplace) {
           marketplace = new Marketplace({
-            id: MARKETPLACE_CONTRACT_ADDRESS,
+            id: getAddress(MARKETPLACE_CONTRACT_ADDRESS),
             paused: false,
+            jobCount: 0,
+            userCount: 0,
+            arbitratorCount: 0,
           });
         }
 
@@ -154,15 +158,18 @@ processor.run(db, async (ctx) => {
                 const owner = await contract.owner();
 
                 marketplace = new Marketplace({
-                  id: MARKETPLACE_CONTRACT_ADDRESS,
-                  unicrowAddress,
-                  unicrowDisputeAddress,
-                  unicrowArbitratorAddress,
-                  treasuryAddress,
-                  owner,
+                  id: getAddress(MARKETPLACE_CONTRACT_ADDRESS),
+                  unicrowAddress: getAddress(unicrowAddress),
+                  unicrowDisputeAddress: getAddress(unicrowDisputeAddress),
+                  unicrowArbitratorAddress: getAddress(unicrowArbitratorAddress),
+                  treasuryAddress: getAddress(treasuryAddress),
+                  owner: getAddress(owner),
                   unicrowMarketplaceFee,
-                  marketplaceData: MARKETPLACEDATA_CONTRACT_ADDRESS,
+                  marketplaceData: getAddress(MARKETPLACEDATA_CONTRACT_ADDRESS),
                   paused: false,
+                  jobCount: 0,
+                  userCount: 0,
+                  arbitratorCount: 0,
                 });
               } catch (e) {
                 const unicrowAddress = ZeroAddress;
@@ -173,15 +180,18 @@ processor.run(db, async (ctx) => {
                 const unicrowMarketplaceFee = 0;
 
                 marketplace = new Marketplace({
-                  id: MARKETPLACE_CONTRACT_ADDRESS,
-                  unicrowAddress,
-                  unicrowDisputeAddress,
-                  unicrowArbitratorAddress,
-                  treasuryAddress,
-                  owner,
+                  id: getAddress(MARKETPLACE_CONTRACT_ADDRESS),
+                  unicrowAddress: getAddress(unicrowAddress),
+                  unicrowDisputeAddress: getAddress(unicrowDisputeAddress),
+                  unicrowArbitratorAddress: getAddress(unicrowArbitratorAddress),
+                  treasuryAddress: getAddress(treasuryAddress),
+                  owner: getAddress(owner),
                   unicrowMarketplaceFee,
-                  marketplaceData: MARKETPLACEDATA_CONTRACT_ADDRESS,
+                  marketplaceData: getAddress(MARKETPLACEDATA_CONTRACT_ADDRESS),
                   paused: false,
+                  jobCount: 0,
+                  userCount: 0,
+                  arbitratorCount: 0,
                 });
               }
             }
@@ -193,13 +203,13 @@ processor.run(db, async (ctx) => {
           case marketplaceAbi.events.MarketplaceDataAddressChanged.topic: {
             const { marketplaceDataAddress } =
               marketplaceAbi.events.MarketplaceDataAddressChanged.decode(log);
-            marketplace.marketplaceData = marketplaceDataAddress;
+            marketplace.marketplaceData = getAddress(marketplaceDataAddress);
             break;
           }
           case marketplaceAbi.events.TreasuryAddressChanged.topic: {
             const { treasuryAddress } =
               marketplaceAbi.events.TreasuryAddressChanged.decode(log);
-            marketplace.treasuryAddress = treasuryAddress;
+            marketplace.treasuryAddress = getAddress(treasuryAddress);
             break;
           }
           case marketplaceAbi.events.UnicrowAddressesChanged.topic: {
@@ -208,9 +218,9 @@ processor.run(db, async (ctx) => {
               unicrowArbitratorAddress,
               unicrowDisputeAddress,
             } = marketplaceAbi.events.UnicrowAddressesChanged.decode(log);
-            marketplace.unicrowAddress = unicrowAddress;
-            marketplace.unicrowArbitratorAddress = unicrowArbitratorAddress;
-            marketplace.unicrowDisputeAddress = unicrowDisputeAddress;
+            marketplace.unicrowAddress = getAddress(unicrowAddress);
+            marketplace.unicrowArbitratorAddress = getAddress(unicrowArbitratorAddress);
+            marketplace.unicrowDisputeAddress = getAddress(unicrowDisputeAddress);
             break;
           }
           case marketplaceAbi.events.UnicrowMarketplaceFeeChanged.topic: {
@@ -236,7 +246,7 @@ processor.run(db, async (ctx) => {
           case marketplaceAbi.events.OwnershipTransferred.topic: {
             const { newOwner } =
               marketplaceAbi.events.OwnershipTransferred.decode(log);
-            marketplace.owner = newOwner;
+            marketplace.owner = getAddress(newOwner);
             break;
           }
           default:
@@ -259,8 +269,8 @@ processor.run(db, async (ctx) => {
               marketplaceDataAbi.events.UserRegistered.decode(log);
 
             const user = new User({
-              id: userRegisteredEvent.addr,
-              address_: userRegisteredEvent.addr,
+              id: getAddress(userRegisteredEvent.addr),
+              address_: getAddress(userRegisteredEvent.addr),
               publicKey: userRegisteredEvent.pubkey,
               name: userRegisteredEvent.name,
               bio: userRegisteredEvent.bio,
@@ -271,27 +281,36 @@ processor.run(db, async (ctx) => {
               numberOfReviews: 0,
               myReviews: [],
               reviews: [],
+              timestamp: Math.floor(log.block.timestamp / 1000),
             });
 
-            userCache[userRegisteredEvent.addr] = user;
+            userCache[getAddress(userRegisteredEvent.addr)] = user;
+
+            marketplace =
+              marketplace ??
+              await ctx.store.findOneByOrFail(Marketplace, {
+                id: getAddress(MARKETPLACE_CONTRACT_ADDRESS),
+              });
+            marketplace!.userCount += 1;
             break;
           }
           case marketplaceDataAbi.events.UserUpdated.topic: {
             const userUpdatedEvent =
               marketplaceDataAbi.events.UserUpdated.decode(log);
 
+            const userId = getAddress(userUpdatedEvent.addr);
             const user =
-              userCache[userUpdatedEvent.addr] ??
+              userCache[userId] ??
               (await ctx.store.findOneByOrFail(User, {
-                id: userUpdatedEvent.addr,
+                id: userId,
               }))!;
-            userCache[userUpdatedEvent.addr] = user;
+            userCache[userId] = user;
 
             user.name = userUpdatedEvent.name;
             user.bio = userUpdatedEvent.bio;
             user.avatar = userUpdatedEvent.avatar;
 
-            userCache[userUpdatedEvent.addr] = user;
+            userCache[userId] = user;
             break;
           }
           case marketplaceDataAbi.events.ArbitratorRegistered.topic: {
@@ -299,8 +318,8 @@ processor.run(db, async (ctx) => {
               marketplaceDataAbi.events.ArbitratorRegistered.decode(log);
 
             const arbitrator = new Arbitrator({
-              id: arbitratorRegisteredEvent.addr,
-              address_: arbitratorRegisteredEvent.addr,
+              id: getAddress(arbitratorRegisteredEvent.addr),
+              address_: getAddress(arbitratorRegisteredEvent.addr),
               publicKey: arbitratorRegisteredEvent.pubkey,
               name: arbitratorRegisteredEvent.name,
               bio: arbitratorRegisteredEvent.bio,
@@ -308,9 +327,17 @@ processor.run(db, async (ctx) => {
               fee: arbitratorRegisteredEvent.fee,
               refusedCount: 0,
               settledCount: 0,
+              timestamp: Math.floor(log.block.timestamp / 1000),
             });
 
-            arbitratorCache[arbitratorRegisteredEvent.addr] = arbitrator;
+            arbitratorCache[getAddress(arbitratorRegisteredEvent.addr)] = arbitrator;
+
+            marketplace =
+              marketplace ??
+              await ctx.store.findOneByOrFail(Marketplace, {
+                id: getAddress(MARKETPLACE_CONTRACT_ADDRESS),
+              });
+            marketplace!.arbitratorCount += 1;
             break;
           }
           case marketplaceDataAbi.events.ArbitratorUpdated.topic: {
@@ -318,17 +345,17 @@ processor.run(db, async (ctx) => {
               marketplaceDataAbi.events.ArbitratorUpdated.decode(log);
 
             const arbitrator =
-              arbitratorCache[arbitratorUpdatedEvent.addr] ??
+              arbitratorCache[getAddress(arbitratorUpdatedEvent.addr)] ??
               (await ctx.store.findOneByOrFail(Arbitrator, {
-                id: arbitratorUpdatedEvent.addr,
+                id: getAddress(arbitratorUpdatedEvent.addr),
               }))!;
-            arbitratorCache[arbitratorUpdatedEvent.addr] = arbitrator;
+            arbitratorCache[getAddress(arbitratorUpdatedEvent.addr)] = arbitrator;
 
             arbitrator.name = arbitratorUpdatedEvent.name;
             arbitrator.bio = arbitratorUpdatedEvent.bio;
             arbitrator.avatar = arbitratorUpdatedEvent.avatar;
 
-            arbitratorCache[arbitratorUpdatedEvent.addr] = arbitrator;
+            arbitratorCache[getAddress(arbitratorUpdatedEvent.addr)] = arbitrator;
             break;
           }
           case marketplaceDataAbi.events.JobEvent.topic: {
@@ -348,11 +375,12 @@ processor.run(db, async (ctx) => {
 
             const event = decoded.eventData;
             const jobEvent = new JobEvent({
-              address_: decoded.eventData.address_,
+              address_: decoded.eventData.address_ === "0x" ? decoded.eventData.address_ : getAddress(decoded.eventData.address_),
               data_: decoded.eventData.data_,
               timestamp_: decoded.eventData.timestamp_,
               type_: decoded.eventData.type_,
               job: new Job({ id: decoded.jobId.toString() }),
+              jobId: decoded.jobId,
               id: log.id,
             });
 
@@ -371,7 +399,7 @@ processor.run(db, async (ctx) => {
 
                   job.id = jobId;
                   job.title = jobCreated.title;
-                  job.contentHash = jobCreated.contentHash as `0x${string}`;
+                  job.contentHash = jobCreated.contentHash;
                   try {
                     job.content = await getFromIpfs(job.contentHash);
                   } catch {
@@ -379,11 +407,11 @@ processor.run(db, async (ctx) => {
                   }
                   job.multipleApplicants = jobCreated.multipleApplicants;
                   job.tags = jobCreated.tags;
-                  job.token = jobCreated.token as `0x${string}`;
+                  job.token = getAddress(jobCreated.token);
                   job.amount = jobCreated.amount;
                   job.maxTime = jobCreated.maxTime;
                   job.deliveryMethod = jobCreated.deliveryMethod;
-                  job.roles.arbitrator = jobCreated.arbitrator as `0x${string}`;
+                  job.roles.arbitrator = getAddress(jobCreated.arbitrator);
                   job.whitelistWorkers = jobCreated.whitelistWorkers;
 
                   // defaults
@@ -392,17 +420,24 @@ processor.run(db, async (ctx) => {
                   job.state = JobState.Open;
                   job.escrowId = 0n;
                   job.rating = 0;
-                  job.roles.creator = event.address_ as `0x${string}`;
-                  job.roles.worker = ZeroAddress as `0x${string}`;
+                  job.roles.creator = getAddress(event.address_);
+                  job.roles.worker = ZeroAddress;
                   job.timestamp = event.timestamp_;
-                  job.resultHash = ZeroHash as `0x${string}`;
+                  job.resultHash = ZeroHash;
                   job.allowedWorkers = [];
+                  job.eventCount = 0;
                   job.events = [];
                 }
                 jobCache[jobId] = job;
 
                 jobEvent.details = new JobCreatedEvent(jobCreated);
 
+                marketplace =
+                  marketplace ??
+                  await ctx.store.findOneByOrFail(Marketplace, {
+                    id: getAddress(MARKETPLACE_CONTRACT_ADDRESS),
+                  });
+                marketplace!.jobCount += 1;
                 break;
               }
               case JobEventType.Taken: {
@@ -410,7 +445,7 @@ processor.run(db, async (ctx) => {
                   throw new Error("Job must be created before it can be taken");
                 }
 
-                job.roles.worker = event.address_ as `0x${string}`;
+                job.roles.worker = getAddress(event.address_);
                 job.state = JobState.Taken;
                 job.escrowId = toBigInt(event.data_);
 
@@ -421,7 +456,7 @@ processor.run(db, async (ctx) => {
                   throw new Error("Job must be created before it can be paid");
                 }
 
-                job.roles.worker = event.address_ as `0x${string}`;
+                job.roles.worker = getAddress(event.address_);
                 job.state = JobState.Taken;
                 job.escrowId = toBigInt(event.data_);
 
@@ -436,10 +471,10 @@ processor.run(db, async (ctx) => {
 
                 const jobUpdated = decodeJobUpdatedEvent(event.data_);
                 job.title = jobUpdated.title;
-                job.contentHash = jobUpdated.contentHash as `0x${string}`;
+                job.contentHash = jobUpdated.contentHash;
                 job.tags = jobUpdated.tags;
                 job.maxTime = jobUpdated.maxTime;
-                job.roles.arbitrator = jobUpdated.arbitrator as `0x${string}`;
+                job.roles.arbitrator = getAddress(jobUpdated.arbitrator);
                 job.whitelistWorkers = jobUpdated.whitelistWorkers;
 
                 jobEvent.details = new JobUpdatedEvent(jobUpdated);
@@ -533,7 +568,7 @@ processor.run(db, async (ctx) => {
                 }
 
                 job.state = JobState.Open;
-                job.resultHash = ZeroHash as `0x${string}`;
+                job.resultHash = ZeroHash;
                 job.timestamp = event.timestamp_;
 
                 if (job.collateralOwed < job.amount) {
@@ -589,7 +624,7 @@ processor.run(db, async (ctx) => {
                   );
                 }
 
-                const byWorker = event.address_ === job.roles.worker;
+                const byWorker = event.address_.toLowerCase() === job.roles.worker.toLowerCase();
                 if (byWorker) {
                   job.allowedWorkers = job.allowedWorkers.filter(
                     (address) => address !== job!.roles.worker
@@ -603,7 +638,7 @@ processor.run(db, async (ctx) => {
                   userCache[userId] = user;
                 }
 
-                job.roles.worker = ZeroAddress as `0x${string}`;
+                job.roles.worker = ZeroAddress;
                 job.state = JobState.Open;
                 job.escrowId = 0n;
 
@@ -652,8 +687,6 @@ processor.run(db, async (ctx) => {
                   );
                 }
 
-                job.roles.arbitrator = ZeroAddress as `0x${string}`;
-
                 const arbitrator =
                   arbitratorCache[job.roles.arbitrator] ??
                   (await ctx.store.findOneByOrFail(Arbitrator, {
@@ -661,6 +694,8 @@ processor.run(db, async (ctx) => {
                   }))!;
                 arbitratorCache[job.roles.arbitrator] = arbitrator;
                 arbitrator.refusedCount++;
+
+                job.roles.arbitrator = ZeroAddress;
 
                 break;
               }
@@ -671,7 +706,7 @@ processor.run(db, async (ctx) => {
                   );
                 }
 
-                job.allowedWorkers.push(event.address_);
+                job.allowedWorkers.push(getAddress(event.address_));
 
                 break;
               }
@@ -683,7 +718,7 @@ processor.run(db, async (ctx) => {
                 }
 
                 job.allowedWorkers = job.allowedWorkers.filter(
-                  (address) => address !== (event.address_ as `0x${string}`)
+                  (address) => address !== getAddress(event.address_)
                 );
 
                 break;
@@ -716,6 +751,7 @@ processor.run(db, async (ctx) => {
                 break;
             }
 
+            job.eventCount += 1;
             eventList.push(jobEvent);
             break;
           }

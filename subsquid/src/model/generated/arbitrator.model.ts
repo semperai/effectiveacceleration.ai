@@ -1,9 +1,7 @@
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, StringColumn as StringColumn_, Index as Index_, IntColumn as IntColumn_} from "@subsquid/typeorm-store"
 
-import { Arbitrator as IArbitrator } from "@effectiveacceleration/contracts"
-
 @Entity_()
-export class Arbitrator  implements IArbitrator {
+export class Arbitrator {
     constructor(props?: Partial<Arbitrator>) {
         Object.assign(this, props)
     }
@@ -35,4 +33,7 @@ export class Arbitrator  implements IArbitrator {
 
     @IntColumn_({nullable: false})
     refusedCount!: number
+
+    @IntColumn_({nullable: false})
+    timestamp!: number
 }

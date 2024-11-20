@@ -1,7 +1,7 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, IntColumn as IntColumn_, ManyToOne as ManyToOne_, Index as Index_, StringColumn as StringColumn_} from "@subsquid/typeorm-store"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, BigIntColumn as BigIntColumn_, IntColumn as IntColumn_, StringColumn as StringColumn_, ManyToOne as ManyToOne_, Index as Index_} from "@subsquid/typeorm-store"
 import * as marshal from "./marshal"
-import {Job} from "./job.model"
 import {CustomJobEvent, fromJsonCustomJobEvent} from "./_customJobEvent"
+import {Job} from "./job.model"
 import {JobEvent as IJobEvent} from "@effectiveacceleration/contracts";
 
 @Entity_()
@@ -13,12 +13,8 @@ export class JobEvent implements IJobEvent {
     @PrimaryColumn_()
     id!: string
 
-    @IntColumn_({nullable: false})
-    jobId!: number
-
-    @Index_()
-    @ManyToOne_(() => Job, {nullable: true})
-    job!: Job
+    @BigIntColumn_({nullable: false})
+    jobId!: bigint
 
     @IntColumn_({nullable: false})
     type_!: number
@@ -34,4 +30,8 @@ export class JobEvent implements IJobEvent {
 
     @Column_("jsonb", {transformer: {to: obj => obj == null ? undefined : obj.toJSON(), from: obj => obj == null ? undefined : fromJsonCustomJobEvent(obj)}, nullable: true})
     details!: CustomJobEvent | undefined
+
+    @Index_()
+    @ManyToOne_(() => Job, {nullable: true})
+    job!: Job
 }

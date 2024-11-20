@@ -35,4 +35,13 @@ export class Marketplace {
 
     @StringColumn_({nullable: false})
     owner!: string
+
+    @IntColumn_({nullable: false})
+    jobCount!: number
+
+    @IntColumn_({nullable: false})
+    userCount!: number
+
+    @IntColumn_({nullable: false})
+    arbitratorCount!: number
 }
