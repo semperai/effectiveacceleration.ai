@@ -9,7 +9,9 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: string, job?:
   let previousJobState: Job | undefined = job;
   let id = 0n;
   for (const event of jobEvents) {
-    event.id = String(id++);
+    if (event.id === undefined) {
+      event.id = String(id++);
+    }
     switch (Number(event.type_)) {
       case JobEventType.Created: {
         const jobCreated = decodeJobCreatedEvent(event.data_);
