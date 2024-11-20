@@ -56,6 +56,8 @@ import useUser from '@/hooks/useUser';
 import RegisterModal from './RegisterModal';
 import LoadingModal from './LoadingModal';
 import { jobMeceTags } from '@/utils/jobMeceTags';
+import { convertToSeconds } from '@/utils/utils';
+import { unitsDeliveryTime } from '@/utils/utils';
 
 export interface PostJobParams {
   title?: string;
@@ -192,34 +194,6 @@ interface PostJobPageProps {
   onJobIdCache: (jobId: bigint) => void;
 }
 
-const unitsDeliveryTime = [
-  { id: 0, name: 'minutes' },
-  { id: 1, name: 'hours' },
-  { id: 2, name: 'days' },
-  { id: 3, name: 'weeks' },
-  { id: 4, name: 'months' },
-  { id: 5, name: 'years' },
-];
-
-const convertToSeconds = (deadline: number, unit: string): number => {
-  switch (unit) {
-    case 'minutes':
-      return deadline * 60;
-    case 'hours':
-      return deadline * 60 * 60;
-    case 'days':
-      return deadline * 60 * 60 * 24;
-    case 'weeks':
-      return deadline * 60 * 60 * 24 * 7;
-    case 'months':
-      return deadline * 60 * 60 * 24 * 30; // Approximation
-    case 'years':
-      return deadline * 60 * 60 * 24 * 365; // Approximation
-    default:
-      return 0;
-  }
-};
-
 
 const deliveryMethods = [
   {
@@ -281,6 +255,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
     const [selectedUnitTime, setselectedUnitTime] = useState<ComboBoxOption>(
       unitsDeliveryTime[2]
     );
+
     const [tags, setTags] = useState<Tag[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<{
       id: string;
@@ -309,7 +284,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
     const userJobCache = `${address}${LOCAL_JOBS_OWNER_CACHE}`;
     const unregisteredUserLabel = `${address}-unregistered-job-cache`;
     const { data: hash, error, isPending, writeContract } = useWriteContract();
-
+    console.log(selectedUnitTime, selectedCategory)
     const { isLoading: isConfirming, isSuccess: isConfirmed } =
       useWaitForTransactionReceipt({
         hash,

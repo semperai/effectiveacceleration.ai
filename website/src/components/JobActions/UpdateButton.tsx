@@ -8,13 +8,11 @@ import {
 } from 'effectiveacceleration-contracts';
 import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
 import Config from 'effectiveacceleration-contracts/scripts/config.json';
-import { useEffect, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
-import { Dialog, Transition } from '@headlessui/react';
+import { Dialog, ListboxOptions, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-import { Listbox, ListboxOption } from '../Listbox';
-import useUsersByAddresses from '@/hooks/useUsersByAddresses';
-import useUsers from '@/hooks/useUsers';
+import { Listbox, ListboxOption } from '@/components/Listbox';
 import { Textarea } from '../Textarea';
 import useArbitrators from '@/hooks/useArbitrators';
 import { Field, Label } from '../Fieldset';
@@ -23,11 +21,52 @@ import { tokenIcon, tokensMap } from '@/tokens';
 import { zeroAddress } from 'viem';
 import { formatUnits, parseUnits } from 'ethers';
 import { Radio, RadioGroup } from '../Radio';
+import { jobMeceTags } from '@/utils/jobMeceTags';
+import { convertSecondsToDays, convertToSeconds, unitsDeliveryTime } from '@/utils/utils';
+import { ComboBoxOption } from '@/service/FormsTypes';
+import CustomSelect from '../CustomSelect';
+
 
 export type UpdateButtonProps = {
   address: `0x${string}` | undefined;
   job: Job;
 };
+
+type FieldValidation = {
+  required?: boolean;
+  minLength?: number;
+  pattern?: RegExp;
+  custom?: (value: string) => string;
+};
+
+const validateField = (value: string, validation: FieldValidation): string => {
+  if (validation.required && !value) {
+    return 'This field is required';
+  }
+  if (validation.minLength && value.length < validation.minLength) {
+    return `Must be at least ${validation.minLength} characters long`;
+  }
+  if (validation.pattern && !validation.pattern.test(value)) {
+    return 'Invalid format';
+  }
+  if (validation.custom) {
+    return validation.custom(value);
+  }
+  return '';
+};
+
+const handleInputChange =
+  (
+    setter: React.Dispatch<React.SetStateAction<string>>,
+    errorSetter: React.Dispatch<React.SetStateAction<string>>,
+    validation: FieldValidation
+  ) =>
+  (e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setter(value);
+    const errorMessage = validateField(value, validation);
+    errorSetter(errorMessage);
+  };
 
 export function UpdateButton({
   address,
@@ -35,12 +74,26 @@ export function UpdateButton({
   ...rest
 }: UpdateButtonProps & React.ComponentPropsWithoutRef<'div'>) {
   const [title, setTitle] = useState<string>(job.title);
-  const [tags, setTags] = useState<string[]>(job.tags);
+  const [titleError, setTitleError] = useState('');
+  const [descriptionError, setDescriptionError] = useState('');
+  const [tagsError, setTagsError] = useState('');
+  const [amountError, setAmountError] = useState('');
+  const [maxJobTimeError, setMaxJobTimeError] = useState('');
+  const [tags, setTags] = useState<string[]>(job.tags.slice(1));
   const [amount, setAmount] = useState<string>(
     formatUnits(job.amount, tokensMap[job.token].decimals)
   );
-  const [maxTime, setMaxTime] = useState<number>(job.maxTime);
-
+  const [maxTime, setMaxTime] = useState<number>(0);
+  const [selectedCategory, setSelectedCategory] = useState<{
+    id: string;
+    name: string;
+  }>();
+  const [categoryError, setCategoryError] = useState<string>('');
+  const [deadline, setDeadline] = useState<number>();
+  const [selectedUnitTime, setselectedUnitTime] = useState<ComboBoxOption>(
+    unitsDeliveryTime[2]
+  );
+  const [deadlineError, setDeadlineError] = useState<string>('');
   const whitelistWorkersValues = ['Yes', 'No'];
   const [whitelistWorkers, setWhitelistWorkers] = useState<string>(
     job.whitelistWorkers ? whitelistWorkersValues[0] : whitelistWorkersValues[1]
@@ -86,32 +139,76 @@ export function UpdateButton({
     }
   }, [isConfirmed, error]);
 
+  useEffect(() => {
+    if (job.tags) {
+      setSelectedCategory(
+        jobMeceTags.find((category) => category.id === job.tags[0])
+      );
+      setMaxTime(convertSecondsToDays(job?.maxTime));
+    }
+  }, [job]);
+
+
   const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
 
   async function buttonClick() {
+    // Validate all fields before submission
+    const titleValidationMessage = validateField(title, {
+      required: true,
+      minLength: 3,
+    });
+    const descriptionValidationMessage = validateField(content, {
+      required: true,
+      minLength: 5,
+    });
+    setDescriptionError(descriptionValidationMessage);
+  
+    const tagsValidationMessage = tags
+      .map((tag) => validateField(tag, { required: true }))
+      .find((message) => message !== '');
+    setTagsError(tagsValidationMessage || '');
+  
+    const amountValidationMessage = validateField(amount, {
+      required: true,
+      custom: (value) => (parseFloat(value) > 0 ? '' : 'Amount must be greater than 0'),
+    });
+    setAmountError(amountValidationMessage);
+  
+    const maxJobTimeValidationMessage = validateField(maxTime.toString(), {
+      required: true,
+      custom: (value) => (parseFloat(value) > 0 ? '' : 'Amount must be greater than 0'),
+    });
+    setMaxJobTimeError(maxJobTimeValidationMessage);
+    setTitleError(titleValidationMessage);
     setButtonDisabled(true);
 
-    const { hash: contentHash } = await publishToIpfs(content);
-    const uniqueTags = tags
-      .filter((tag, index, array) => array.indexOf(tag) === index)
-      .filter((tag) => tag.length);
-    const rawAmount = parseUnits(amount, tokensMap[job.token].decimals);
+    if (!titleValidationMessage && !tagsValidationMessage && !amountValidationMessage && !maxJobTimeValidationMessage && !descriptionValidationMessage) {
+      const { hash: contentHash } = await publishToIpfs(content);
+      const tokenDecimals = tokensMap[job.token]?.decimals;
+      const rawAmount = parseUnits(amount, tokensMap[job.token].decimals);
+      // Proceed with form submission
+      console.log('Form is valid');
+      const deadlineInSeconds = maxTime ? convertToSeconds(maxTime, selectedUnitTime.name) : 0;
 
-    const w = writeContract({
-      abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress as `0x${string}`,
-      functionName: 'updateJobPost',
-      args: [
-        job.id!,
-        title,
-        contentHash as `0x${string}`,
-        uniqueTags,
-        rawAmount,
-        maxTime,
-        selectedArbitratorAddress,
-        whitelistWorkers === whitelistWorkersValues[0],
-      ],
-    });
+      const w = writeContract({
+        abi: MARKETPLACE_V1_ABI,
+        address: Config.marketplaceAddress as `0x${string}`,
+        functionName: 'updateJobPost',
+        args: [
+          job.id!,
+          title,
+          contentHash as `0x${string}`,
+          [selectedCategory?.id || '', ...tags.map((tag) => tag)],
+          rawAmount,
+          deadlineInSeconds,
+          selectedArbitratorAddress,
+          whitelistWorkers === whitelistWorkersValues[0],
+        ],
+      });
+    } else {
+      setButtonDisabled(false);
+      console.log('Form has errors');
+    }
   }
 
   let [isOpen, setIsOpen] = useState(false);
@@ -171,8 +268,17 @@ export function UpdateButton({
                       <Label>Title</Label>
                       <Input
                         value={title}
-                        onChange={(e) => setTitle(e.target.value)}
+                        placeholder='Title'
+                        onChange={handleInputChange(setTitle, setTitleError, {
+                          required: true,
+                          minLength: 3,
+                        })}
                       />
+                      {titleError && (
+                        <div className='text-xs' style={{ color: 'red' }}>
+                          {titleError}
+                        </div>
+                      )}
                     </Field>
                     <Field>
                       <Label>Description</Label>
@@ -183,9 +289,34 @@ export function UpdateButton({
                         placeholder='Message'
                         className='mt-5'
                       />
+                      {descriptionError && (
+                        <div className='text-xs' style={{ color: 'red' }}>
+                          {descriptionError}
+                        </div>
+                      )}
                     </Field>
                     <Field>
-                      <Label>Tags</Label>
+                    <Label>Category</Label>
+                      <br />
+                      <CustomSelect
+                        name="category"
+                        value={selectedCategory}
+                        onChange={(value) => {
+                          setSelectedCategory(value as { id: string; name: string });
+                        }}
+                        className='rounded-md border border-gray-300 shadow-sm'
+                      >
+                        {jobMeceTags.map((category, index) =>
+                          index > 0 && (
+                            <option key={index} value={category.id}>
+                              {category.name}
+                            </option>
+                          )
+                        )}
+                      </CustomSelect>
+                  </Field>
+                    <Field>
+                      <Label>Tags <span style={{ fontSize: '0.8em', color: '#888' }}>(comma separated)</span></Label>
                       <Input
                         value={tags.join(', ')}
                         onChange={(e) =>
@@ -200,6 +331,11 @@ export function UpdateButton({
                           )
                         }
                       />
+                      {tagsError && (
+                        <div className='text-xs' style={{ color: 'red' }}>
+                          {tagsError}
+                        </div>
+                      )}
                     </Field>
                     <Field>
                       <Label>Amount</Label>
@@ -219,33 +355,88 @@ export function UpdateButton({
                         />
                         <span>{tokensMap[job.token].symbol}</span>
                       </div>
-                    </Field>
-                    <Field>
-                      <Label>Max Job Time</Label>
-                      <Input
-                        type='number'
-                        value={maxTime}
-                        onChange={(e) => setMaxTime(Number(e.target.value))}
-                        invalid={['-', 'e', '.'].some((char) =>
-                          String(maxTime).includes(char)
-                        )}
-                      />
+                      {amountError && (
+                        <div className='text-xs' style={{ color: 'red' }}>
+                          {amountError}
+                        </div>
+                      )}
                     </Field>
 
+                    <div className='flex flex-row justify-between gap-5'>
+                  <Field className='flex-1'>
+                    <Label>
+                      Max delivery time{' '}
+                      {selectedUnitTime ? `in ${selectedUnitTime.name}` : ''}
+                    </Label>
+                    <div className='scroll-mt-20' />
+                    <Input
+                      name='deadline'
+                      type='number'
+                      placeholder={`Maximum delivery time ${selectedUnitTime ? `in ${selectedUnitTime.name}` : ''}`}
+                      value={maxTime}
+                      min={1}
+                      step={1}
+                      onChange={(e) => {
+                        let deadline = parseInt(e.target.value);
+                        if (deadline < 0) {
+                          deadline = -deadline;
+                        }
+                        setMaxTime(deadline);
+                        if (deadline === 0 || e.target.value === '') {
+                          setDeadlineError('Please enter a valid deadline');
+                        } else {
+                          if (deadlineError) {
+                            setDeadlineError('');
+                          }
+                        }
+                      }}
+                    />
+                    {deadlineError && (
+                      <div className='text-xs' style={{ color: 'red' }}>
+                        {deadlineError}
+                      </div>
+                    )}
+                  </Field>
+                  <Field className='flex-1'>
+                    <Label>Units</Label>
+                    <br />
+                    <CustomSelect
+                      name="units"
+                      value={selectedUnitTime.id}
+                      onChange={(value) => {
+                        const selectedValue = isNaN(Number(value)) ? value : Number(value);
+                        const selectedOption = unitsDeliveryTime.find(option => option.id === selectedValue);
+                        if (selectedOption) {
+                          setselectedUnitTime(selectedOption);
+                        }
+                      }}
+                    >
+                      {unitsDeliveryTime.map((unit, index) => (
+                        <option key={index} value={unit.id}>
+                          {unit.name}
+                        </option>
+                      ))}
+                    </CustomSelect>
+                    {maxJobTimeError && (
+                        <div className='text-xs' style={{ color: 'red' }}>
+                          {maxJobTimeError}
+                        </div>
+                      )}
+                  </Field>
+                </div>
                     <Field>
                       <Label>Arbitrator</Label>
-                      <Listbox
+                      <CustomSelect
+                        name="arbitrator"
                         value={selectedArbitratorAddress}
-                        onChange={(e) => setSelectedArbitratorAddress(e)}
-                        className='z-10 rounded-md border border-gray-300 shadow-sm'
-                        placeholder='Select an option'
+                        onChange={(value) => setSelectedArbitratorAddress(value as `0x${string}`)}
                       >
                         {userList.map((user, index) => (
-                          <ListboxOption key={index} value={user.address_}>
+                          <option key={index} value={user.address_}>
                             {user.name}
-                          </ListboxOption>
+                          </option>
                         ))}
-                      </Listbox>
+                      </CustomSelect>
                     </Field>
 
                     <Field className='flex flex-row items-center justify-between'>
