@@ -79,7 +79,7 @@ function JobsTable<T>({
   }, [localJobs]);
 
   useEffect(() => {
-    if ( filteredJobs && title === 'Open for work Jobs') {
+    if ( filteredJobs ) {
       setLoading(false);
       setDataRow(true);
     }
