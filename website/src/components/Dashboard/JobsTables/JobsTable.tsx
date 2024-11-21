@@ -91,7 +91,7 @@ function JobsTable<T>({
 
   return (
     <>
-      {!user && localJobs?.length === 0 && title !== 'Open for work Jobs' ? (
+      {!user && localJobs?.length === 0 && title === 'RemoveForNow' ? (
         <div className='flex h-[300px] w-full items-center justify-center rounded-2xl bg-white p-5 text-center [box-shadow:0px_0px_8px_lightgray]'>
           <div>
             <h2 className='mb-4 text-xl font-semibold'>
@@ -100,7 +100,7 @@ function JobsTable<T>({
             <Button href={'/register'}>Register</Button>
           </div>
         </div>
-      ) : jobCount === 0 && user ? (
+      ) : jobCount === 0 ? (
         <div className='flex h-[300px] w-full items-center justify-center rounded-2xl bg-white p-5 text-center [box-shadow:0px_0px_8px_lightgray]'>
           <div>
             <h2 className='mb-4 text-xl font-semibold'>
