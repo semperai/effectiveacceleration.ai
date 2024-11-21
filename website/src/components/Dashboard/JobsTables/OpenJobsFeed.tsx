@@ -1,10 +1,6 @@
 'use client';
 import React, { useEffect, useMemo, useState, useRef } from 'react';
-import OpenJobs from './JobsTablesData/OpenJobs';
-import JobProgress from './JobsTablesData/JobProgress';
-import CompletedJobs from './JobsTablesData/CompletedJobs';
-import DisputedJobs from './JobsTablesData/DisputedJobs';
-import CancelledJobs from './JobsTablesData/CancelledJobs';
+import { OpenJobs } from './OpenJobs';
 import useJobs from '@/hooks/useJobs';
 import useUsersByAddresses from '@/hooks/useUsersByAddresses';
 import DevelopAllJobs from './JobsTablesData/DevelopAllJobs';
@@ -18,7 +14,7 @@ import useJobsByIds from '@/hooks/useJobsByIds';
 import { LOCAL_JOBS_OWNER_CACHE } from '@/utils/constants';
 import { useAccount } from 'wagmi';
 
-const OpenJobsFeed = () => {
+export const OpenJobsFeed = () => {
   const { data: jobs } = useJobs();
   const { address } = useAccount();
   const [localJobs, setLocalJobs] = useState<Job[]>([]);
@@ -43,17 +39,12 @@ const OpenJobsFeed = () => {
   }, [address]);
 
   const filteredJobsMemo = useMemo(() => {
-    if (selectedJobs.length === 0)
-      return {
-        open: [],
-      };
+    const filteredJobs: Job[] = [];
 
-    const filteredOpenJobs: Job[] = [];
-
-    selectedJobs.forEach((job, index) => {
+    jobs.forEach((job, index) => {
       const localJob = localJobs.find((localJob) => localJob.id === job.id);
       if (job.state === JobState.Open) {
-        filteredOpenJobs.push(job);
+        filteredJobs.push(job);
       }
     });
     return {
@@ -63,9 +54,6 @@ const OpenJobsFeed = () => {
 
   useEffect(() => {
     setOpenFilteredJobs(filteredJobsMemo.open);
-    if (selectedJobs.length > 0 && isFirstUpdate.current) {
-      isFirstUpdate.current = false;
-    }
   }, [filteredJobsMemo]);
 
   return (
@@ -73,12 +61,9 @@ const OpenJobsFeed = () => {
       {mounted && (
         <OpenJobs
           filteredJobs={filteredOpenJobs}
-          selectedJobs={selectedJobs}
           localJobs={localJobs}
         />
       )}
     </div>
   );
 };
-
-export default OpenJobsFeed;

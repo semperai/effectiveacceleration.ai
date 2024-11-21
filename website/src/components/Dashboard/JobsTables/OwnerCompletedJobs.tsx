@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import JobsTable from '../JobsTable';
+import JobsTable from './JobsTable';
 import { TCompletedTable } from '@/service/JobsService';
 import {
   useReactTable,
@@ -19,7 +19,7 @@ const columns = [
   columnBuilder(columnHelper, 'actions', 'Actions'),
 ];
 
-const CompletedJobs = ({
+export const OwnerCompletedJobs = ({
   filteredJobs,
   localJobs,
 }: {
@@ -62,10 +62,8 @@ const CompletedJobs = ({
       table={table}
       localJobs={localJobs}
       title='Completed Jobs'
-      emptyMessage='You have no completed jobs'
-      emptySubtext='Complete jobs to see them here'
+      emptyMessage='No completed jobs found'
+      emptySubtext='Why not try creating a new job?'
     />
   );
 };
-
-export default CompletedJobs;

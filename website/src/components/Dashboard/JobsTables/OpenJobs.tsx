@@ -1,24 +1,31 @@
-import React, { useState } from 'react';
-import JobsTable from '../JobsTable';
-import { TOpenJobTable } from '@/service/JobsService';
+import React, { useEffect, useState } from 'react';
+import JobsTable from './JobsTable';
+import { LocalStorageJob, TOpenJobTable } from '@/service/JobsService';
 import {
   useReactTable,
   getCoreRowModel,
   createColumnHelper,
 } from '@tanstack/react-table';
 import { columnBuilder } from '@/components/TablesCommon';
-import { Job } from 'effectiveacceleration-contracts/dist/src/interfaces';
+import { Checkbox } from '@/components/Checkbox';
+import useJobs from '@/hooks/useJobs';
+import {
+  Job,
+  JobState,
+} from 'effectiveacceleration-contracts/dist/src/interfaces';
 import Link from 'next/link';
+import clsx from 'clsx';
+import EditIcon from '@/components/Icons/EditIcon';
 
 const columnHelper = createColumnHelper<TOpenJobTable>();
-const columns = [
+const columns= [
   columnBuilder(columnHelper, 'jobName', 'Job Name'),
-  columnBuilder(columnHelper, 'description', 'Assigned to'), // TODO these seem wrong
-  columnBuilder(columnHelper, 'tag', 'Progress'), // TODO these seem wrong
+  columnBuilder(columnHelper, 'description', 'Description'),
+  columnBuilder(columnHelper, 'tag', 'Tag'),
   columnBuilder(columnHelper, 'actions', 'Actions'),
 ];
 
-const JobsAplications = ({
+export const OpenJobs = ({
   filteredJobs,
   localJobs,
 }: {
@@ -28,15 +35,16 @@ const JobsAplications = ({
   const defaultData: TOpenJobTable[] = filteredJobs.map(
     (job) => ({
       jobName: <span className='font-bold'>{job.title}</span>,
-      description: <span className='font-md'>{job.roles.worker ?? ''}</span>,
+      description: <span className='font-md'>{job.content ?? ''}</span>,
       tag: (
-        <span className='rounded-full bg-[#E1FFEF] px-3 py-2 text-[#23B528]'>
+        <span className='rounded-full bg-[#E1FFEF] px-3 py-2 text-sm text-[#23B528]'>
           {job.tags[1] ?? ''}
         </span>
       ),
       actions: (
         <Link href={`/dashboard/jobs/${job.id?.toString()}`}>
           <span className='font-md font-semibold text-primary underline'>
+            <EditIcon className='mr-4 inline' />
             View Details
           </span>
         </Link>
@@ -45,6 +53,11 @@ const JobsAplications = ({
   );
 
   const [data, setData] = useState(() => defaultData);
+
+  useEffect(() => {
+    setData(defaultData);
+  }, [filteredJobs]);
+
   const table = useReactTable({
     data,
     columns,
@@ -54,11 +67,11 @@ const JobsAplications = ({
   return (
     <JobsTable
       table={table}
+      filteredJobs={filteredJobs}
       localJobs={localJobs}
-      title='Job Aplications'
-      emptyMessage='No job applications found'
-      emptySubtext='Apply to more jobs to see them here'
+      title='Open Jobs'
+      emptyMessage='No open jobs'
+      emptySubtext='You do not have any open jobs, why not post one?'
     />
   );
 };
-export default JobsAplications;

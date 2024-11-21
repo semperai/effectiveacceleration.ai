@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import JobsTable from '../JobsTable';
+import JobsTable from './JobsTable';
 import {
   LocalStorageJob,
   TInProgressTable,
@@ -19,15 +19,14 @@ import {
 import Link from 'next/link';
 
 const columnHelper = createColumnHelper<TOpenJobTable>();
-
 const columns = [
   columnBuilder(columnHelper, 'jobName', 'Job Name'),
   columnBuilder(columnHelper, 'description', 'Assigned to'), // TODO these seem wrong?
-  columnBuilder(columnHelper, 'tag', 'Progress'),
+  columnBuilder(columnHelper, 'tag', 'Progress'), // TODO these seem wrong?
   columnBuilder(columnHelper, 'actions', 'Actions'),
 ];
 
-const ProgressJobs = ({
+export const WorkerProgressJobs = ({
   filteredJobs,
   localJobs,
 }: {
@@ -64,11 +63,11 @@ const ProgressJobs = ({
     <JobsTable
       table={table}
       localJobs={localJobs}
-      title='In Progress'
+      title='Started Jobs'
       emptyMessage='No jobs in progress found'
-      emptySubtext='Why not try creating more jobs?'
+      emptySubtext='Why not try applying for more jobs?'
     />
   );
 };
 
-export default ProgressJobs;
+export default WorkerProgressJobs;

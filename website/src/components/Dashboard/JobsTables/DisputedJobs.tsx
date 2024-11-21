@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import JobsTable from '../JobsTable';
+import JobsTable from './JobsTable';
 import { TDisputedTable } from '@/service/JobsService';
 import {
   useReactTable,
@@ -19,7 +19,7 @@ const columns = [
   columnBuilder(columnHelper, 'timeSpentDispute', 'timeSpentDispute'),
 ];
 
-const DisputedJobs = ({
+export const DisputedJobs = ({
   filteredJobs,
   localJobs,
 }: {
@@ -64,5 +64,3 @@ const DisputedJobs = ({
     />
   );
 };
-
-export default DisputedJobs;

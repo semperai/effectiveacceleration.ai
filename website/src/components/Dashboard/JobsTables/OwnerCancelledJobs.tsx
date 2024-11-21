@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import JobsTable from '../JobsTable';
+import JobsTable from './JobsTable';
 import { TCancelledTable } from '@/service/JobsService';
 import {
   useReactTable,
@@ -20,7 +20,7 @@ const columns = [
   columnBuilder(columnHelper, 'actionsTaken', 'actionsTaken'),
 ];
 
-const CancelledJobs = ({
+export const OwnerCancelledJobs = ({
   filteredJobs,
   localJobs,
 }: {
@@ -69,5 +69,3 @@ const CancelledJobs = ({
     />
   );
 };
-
-export default CancelledJobs;
