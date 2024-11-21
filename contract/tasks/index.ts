@@ -81,12 +81,12 @@ task("timetravel", "go into the future")
   await hre.network.provider.send("evm_mine");
 });
 
-// task("gen-wallet", "Creates a new wallet", async (taskArgs, hre) => {
-//   const wallet = hre.ethers.Wallet.createRandom();
-//   console.log('address', wallet.address);
-//   console.log('mnemonic', wallet.mnemonic.phrase);
-//   console.log('privateKey', wallet.privateKey);
-// });
+task("gen-wallet", "Creates a new wallet", async (taskArgs, hre) => {
+  const wallet = hre.ethers.Wallet.createRandom();
+  console.log('address', wallet.address);
+  console.log('mnemonic', wallet.mnemonic.phrase);
+  console.log('privateKey', wallet.privateKey);
+});
 
 // task("send-eth", "Send ether")
 // .addParam("to", "Receiver address")
