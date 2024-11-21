@@ -79,6 +79,10 @@ function JobsTable<T>({
   }, [localJobs]);
 
   useEffect(() => {
+    if ( filteredJobs ) {
+      setLoading(false);
+      setDataRow(true);
+    }
     if (table.getRowModel().rows.length === 0 && localJobs?.length === 0)
       return;
     setLoading(false);
@@ -87,7 +91,7 @@ function JobsTable<T>({
 
   return (
     <>
-      {!user && localJobs?.length === 0 ? (
+      {!user && localJobs?.length === 0 && title === 'RemoveForNow' ? (
         <div className='flex h-[300px] w-full items-center justify-center rounded-2xl bg-white p-5 text-center [box-shadow:0px_0px_8px_lightgray]'>
           <div>
             <h2 className='mb-4 text-xl font-semibold'>
@@ -96,7 +100,7 @@ function JobsTable<T>({
             <Button href={'/register'}>Register</Button>
           </div>
         </div>
-      ) : jobCount === 0 && user ? (
+      ) : jobCount === 0 ? (
         <div className='flex h-[300px] w-full items-center justify-center rounded-2xl bg-white p-5 text-center [box-shadow:0px_0px_8px_lightgray]'>
           <div>
             <h2 className='mb-4 text-xl font-semibold'>

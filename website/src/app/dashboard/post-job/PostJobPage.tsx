@@ -56,6 +56,8 @@ import useUser from '@/hooks/useUser';
 import RegisterModal from './RegisterModal';
 import LoadingModal from './LoadingModal';
 import { jobMeceTags } from '@/utils/jobMeceTags';
+import { convertToSeconds } from '@/utils/utils';
+import { unitsDeliveryTime } from '@/utils/utils';
 
 export interface PostJobParams {
   title?: string;
@@ -192,14 +194,6 @@ interface PostJobPageProps {
   onJobIdCache: (jobId: bigint) => void;
 }
 
-const unitsDeliveryTime = [
-  { id: 0, name: 'minutes' },
-  { id: 1, name: 'hours' },
-  { id: 2, name: 'days' },
-  { id: 3, name: 'weeks' },
-  { id: 4, name: 'months' },
-  { id: 5, name: 'years' },
-];
 
 const deliveryMethods = [
   {
@@ -261,6 +255,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
     const [selectedUnitTime, setselectedUnitTime] = useState<ComboBoxOption>(
       unitsDeliveryTime[2]
     );
+
     const [tags, setTags] = useState<Tag[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<{
       id: string;
@@ -289,7 +284,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
     const userJobCache = `${address}${LOCAL_JOBS_OWNER_CACHE}`;
     const unregisteredUserLabel = `${address}-unregistered-job-cache`;
     const { data: hash, error, isPending, writeContract } = useWriteContract();
-
+    console.log(selectedUnitTime, selectedCategory)
     const { isLoading: isConfirming, isSuccess: isConfirmed } =
       useWaitForTransactionReceipt({
         hash,
@@ -338,7 +333,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
         amount,
         selectedToken?.id as `0x${string}` | undefined
       );
-
+      const deadlineInSeconds = deadline ? convertToSeconds(deadline, selectedUnitTime.name) : 0;
       const w = writeContract({
         abi: MARKETPLACE_V1_ABI,
         address: Config.marketplaceAddress as `0x${string}`,
@@ -350,7 +345,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
           [selectedCategory.id, ...tags.map((tag) => tag.name)],
           selectedToken?.id! as `0x${string}`,
           ethers.parseUnits(amount, selectedToken?.decimals!),
-          deadline,
+          deadlineInSeconds,
           deliveryMethod,
           selectedArbitratorAddress as `0x${string}`,
           selectedWorkerAddress ? [selectedWorkerAddress as `0x${string}`] : [],

@@ -201,10 +201,19 @@ const JobChatDetails = ({
           <div className='border border-gray-100 p-4'>
             <div className='my-2 flex justify-between'>
               <span className='font-bold'>Delivery Time</span>
-              {moment.duration(job?.maxTime, 'hours').humanize()}
+              {moment.duration(job?.maxTime, 'seconds').humanize()}
             </div>
             <div className='my-2'>
               <LinearProgress value={5} variant='determinate' />
+            </div>
+          </div>
+        )}
+      {job?.state === JobState.Open &&
+          ( //Started job state // If Started
+          <div className='border border-gray-100 p-4'>
+            <div className='my-2 flex justify-between'>
+              <span className='font-bold'>Max Delivery Time</span>
+              {moment.duration(job?.maxTime, 'seconds').humanize()}
             </div>
           </div>
         )}
