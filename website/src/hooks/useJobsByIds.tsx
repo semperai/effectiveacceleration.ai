@@ -3,7 +3,7 @@ import Config from 'effectiveacceleration-contracts/scripts/config.json';
 import { useState, useEffect, useMemo } from 'react';
 import { useAccount, useReadContract, useReadContracts } from 'wagmi';
 import { getFromIpfs, Job, User } from 'effectiveacceleration-contracts';
-import JSON5 from '@mainnet-pat/json5-bigint';
+import JSON5 from 'json5';
 
 type CacheCheck = { targetJobId: bigint; checkedItem: string };
 

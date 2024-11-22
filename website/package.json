@@ -14,16 +14,16 @@
   "dependencies": {
     "@emotion/react": "^11.13.5",
     "@emotion/styled": "^11.13.5",
-    "@headlessui/react": "^2.0.0-alpha.4",
-    "@heroicons/react": "^2.1.1",
+    "@headlessui/react": "^2.2.0",
+    "@heroicons/react": "^2.2.0",
     "@mainnet-pat/json5-bigint": "^2.2.12",
     "@mui/icons-material": "^5.15.21",
     "@mui/material": "^5.15.20",
     "@next/third-parties": "^15.0.3",
-    "@rainbow-me/rainbowkit": "^2.1.4",
-    "@sentry/nextjs": "^8",
-    "@tailwindcss/forms": "^0.5.7",
-    "@tanstack/react-query": "^5.24.1",
+    "@rainbow-me/rainbowkit": "^2.2.0",
+    "@sentry/nextjs": "^8.40.0",
+    "@tailwindcss/forms": "^0.5.9",
+    "@tanstack/react-query": "^5.61.0",
     "@tanstack/react-table": "^8.17.3",
     "@unicrowio/sdk": "^1.0.0-beta.12",
     "clsx": "^2.1.0",
@@ -37,12 +37,12 @@
     "react-icons": "^5.2.1",
     "react-tabs": "^6.0.2",
     "styled-components": "^6.1.13",
-    "viem": "^2.7.16",
-    "wagmi": "^2.12.4"
+    "viem": "^2.21.49",
+    "wagmi": "^2.13.0"
   },
   "devDependencies": {
-    "@mdx-js/loader": "^3.0.0",
-    "@mdx-js/react": "^3.0.0",
+    "@mdx-js/loader": "^3.1.0",
+    "@mdx-js/react": "^3.1.0",
     "@next/mdx": "^14.0.4",
     "@types/node": "^20",
     "@types/react": "^18.3.12",
@@ -60,7 +60,7 @@
     "next": "^14.0.4",
     "postcss": "^8.4.49",
     "prettier": "^3.3.3",
-    "prettier-plugin-tailwindcss": "^0.6.8",
+    "prettier-plugin-tailwindcss": "^0.6.9",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "recma-import-images": "^0.0.3",
@@ -72,7 +72,7 @@
     "sharp": "^0.33.2",
     "shiki": "^0.14.7",
     "tailwindcss": "^3.4.15",
-    "typescript": "^5.3.3",
+    "typescript": "^5.7.2",
     "unist-util-visit": "^5.0.0"
   }
 }
