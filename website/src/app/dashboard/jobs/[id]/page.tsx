@@ -171,94 +171,92 @@ export default function JobPage() {
       : setEventMessages(events);
   }, [events, selectedWorker]);
 
-  if (isLoadingError) {
-    return (
-      <div className='mt-5'>
-        <Layout>
-          <Text>Job not found</Text>
-        </Layout>
-      </div>
-    );
-  } else if (!job) {
-    return (
-      <Layout>
-        <></>
-      </Layout>
-    );
-  }
-
-  const renderRoleBasedView = () => {
-    if (address && job?.roles.creator.includes(address)) {
-      return (
-        <OwnerView
-          users={users}
-          job={job}
-          setSelectedWorker={setSelectedWorker}
-          events={events}
-          address={address}
-          addresses={addresses}
-          sessionKeys={sessionKeys}
-          jobUsersData={jobUsersData}
-          whitelistedWorkers={whitelistedWorkers}
-          selectedWorker={selectedWorker}
-          eventMessages={eventMessages}
-        ></OwnerView>
-      );
-    } else if (address && job?.roles.worker.includes(address)) {
-      return (
-        <WorkerView
-          users={users}
-          job={job}
-          setSelectedWorker={setSelectedWorker}
-          events={events}
-          address={address}
-          addresses={addresses}
-          sessionKeys={sessionKeys}
-          jobUsersData={jobUsersData}
-          whitelistedWorkers={whitelistedWorkers}
-          selectedWorker={selectedWorker}
-          eventMessages={eventMessages}
-        ></WorkerView>
-      );
-    } else if (address && job?.roles.arbitrator.includes(address)) {
-      return (
-        <ArbitratorView
-          users={users}
-          job={job}
-          setSelectedWorker={setSelectedWorker}
-          events={events}
-          address={address}
-          addresses={addresses}
-          sessionKeys={sessionKeys}
-          jobUsersData={jobUsersData}
-          whitelistedWorkers={whitelistedWorkers}
-          selectedWorker={selectedWorker}
-          eventMessages={eventMessages}
-        ></ArbitratorView>
-      );
-    } else {
-      return (
-        <GuestView
-          users={users}
-          job={job}
-          setSelectedWorker={setSelectedWorker}
-          events={events}
-          address={address}
-          addresses={addresses}
-          sessionKeys={sessionKeys}
-          jobUsersData={jobUsersData}
-          whitelistedWorkers={whitelistedWorkers}
-          selectedWorker={selectedWorker}
-          eventMessages={eventMessages}
-        ></GuestView>
-      );
-    }
-  };
-
   return (
     <Layout borderless>
       <div className='grid min-h-customHeader grid-cols-1'>
-        {renderRoleBasedView()}
+        {(()=> {
+          if (isLoadingError) {
+            return (
+              <Text>Job not found</Text>
+            );
+          }
+
+          if (! job) {
+            return (
+              <></>
+            );
+          }
+
+          if (address && job?.roles.creator.includes(address)) {
+            return (
+              <OwnerView
+                users={users}
+                job={job}
+                setSelectedWorker={setSelectedWorker}
+                events={events}
+                address={address}
+                addresses={addresses}
+                sessionKeys={sessionKeys}
+                jobUsersData={jobUsersData}
+                whitelistedWorkers={whitelistedWorkers}
+                selectedWorker={selectedWorker}
+                eventMessages={eventMessages}
+              />
+            );
+          }
+
+          if (address && job?.roles.worker.includes(address)) {
+            return (
+              <WorkerView
+                users={users}
+                job={job}
+                setSelectedWorker={setSelectedWorker}
+                events={events}
+                address={address}
+                addresses={addresses}
+                sessionKeys={sessionKeys}
+                jobUsersData={jobUsersData}
+                whitelistedWorkers={whitelistedWorkers}
+                selectedWorker={selectedWorker}
+                eventMessages={eventMessages}
+              />
+            );
+          }
+
+          if (address && job?.roles.arbitrator.includes(address)) {
+            return (
+              <ArbitratorView
+                users={users}
+                job={job}
+                setSelectedWorker={setSelectedWorker}
+                events={events}
+                address={address}
+                addresses={addresses}
+                sessionKeys={sessionKeys}
+                jobUsersData={jobUsersData}
+                whitelistedWorkers={whitelistedWorkers}
+                selectedWorker={selectedWorker}
+                eventMessages={eventMessages}
+              />
+            );
+          }
+
+          return (
+            <GuestView
+              users={users}
+              job={job}
+              setSelectedWorker={setSelectedWorker}
+              events={events}
+              address={address}
+              addresses={addresses}
+              sessionKeys={sessionKeys}
+              jobUsersData={jobUsersData}
+              whitelistedWorkers={whitelistedWorkers}
+              selectedWorker={selectedWorker}
+              eventMessages={eventMessages}
+            />
+          );
+        })()}
       </div>
     </Layout>
   );
