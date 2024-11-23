@@ -6,13 +6,13 @@ import { useParams } from 'next/navigation';
 import useJobEventsWithDiffs from '@/hooks/useJobEventsWithDiffs';
 import useJob from '@/hooks/useJob';
 import { useAccount } from 'wagmi';
+import { clsx } from 'clsx';
 import useUsersByAddresses from '@/hooks/useUsersByAddresses';
 import { SetStateAction, useEffect, useState, useRef } from 'react';
 import useUser from '@/hooks/useUser';
-import OwnerView from './Components/UserRolesView/OwnerView';
-import ArbitratorView from './Components/UserRolesView/ArbitratorView';
-import GuestView from './Components/UserRolesView/GuestView';
-import WorkerView from './Components/UserRolesView/WorkerView';
+import JobChat from './Components/JobChat';
+import JobChatsList from './Components/JobChatsList';
+import JobChatDetails from './Components/JobChatDetails';
 import { zeroAddress } from 'viem';
 import { JobUserRoles } from '@/service/Interfaces';
 import {
@@ -23,6 +23,9 @@ import {
 import JobStatus from './Components/JobStatus';
 import { LOCAL_JOBS_WORKER_CACHE } from '@/utils/constants';
 import { LOCAL_JOBS_OWNER_CACHE } from '@/utils/constants';
+import { shortenText } from '@/utils/utils';
+import Image from 'next/image';
+import { StaticImport } from 'next/dist/shared/lib/get-img-props';
 
 function updateJobCache(
   storedJobs: string | null,
@@ -171,92 +174,119 @@ export default function JobPage() {
       : setEventMessages(events);
   }, [events, selectedWorker]);
 
+  // TODO - this should be centered
+  if (isLoadingError) {
+    return (
+      <Layout>
+        <Text>Job not found</Text>
+      </Layout>
+    );
+  }
+
+  // TODO should determine if loading and show loading spinner
+  if (! job) {
+    return (
+      <Layout>
+        <></>
+      </Layout>
+    );
+  }
+
+  const isOwner = address && job?.roles.creator.includes(address);
+  const isWorker = !isOwner && address && job?.roles.worker.includes(address);
+  const isArbitrator = !isOwner && !isWorker && address && job?.roles.arbitrator.includes(address);
+  const isGuest = !isOwner && !isWorker && !isArbitrator;
+
   return (
     <Layout borderless>
       <div className='grid min-h-customHeader grid-cols-1'>
-        {(()=> {
-          if (isLoadingError) {
-            return (
-              <Text>Job not found</Text>
-            );
-          }
-
-          if (! job) {
-            return (
-              <></>
-            );
-          }
-
-          if (address && job?.roles.creator.includes(address)) {
-            return (
-              <OwnerView
+        <div className='grid min-h-customHeader grid-cols-4'>
+          {(isOwner || isArbitrator) && job?.state === JobState.Open && (
+            <div className='col-span-1 max-h-customHeader overflow-y-auto border border-gray-100 bg-white p-3'>
+              <JobChatsList
                 users={users}
                 job={job}
                 setSelectedWorker={setSelectedWorker}
-                events={events}
-                address={address}
-                addresses={addresses}
-                sessionKeys={sessionKeys}
-                jobUsersData={jobUsersData}
-                whitelistedWorkers={whitelistedWorkers}
-                selectedWorker={selectedWorker}
-                eventMessages={eventMessages}
               />
-            );
-          }
+            </div>
+          )}
 
-          if (address && job?.roles.worker.includes(address)) {
+          {isWorker && (
+            <div className='col-span-1 max-h-customHeader bg-white p-5'>
+              <h1>{job.title}</h1>
+              <span>{job.content}</span>
+            </div>
+          )}
+
+          {isGuest && (()=> {
+            const jobOwnerData = jobUsersData ? jobUsersData[job.roles.creator] : null;
+            const ownerAddress = jobOwnerData?.address_ as `0x${string}` | undefined;
             return (
-              <WorkerView
-                users={users}
-                job={job}
-                setSelectedWorker={setSelectedWorker}
-                events={events}
-                address={address}
-                addresses={addresses}
-                sessionKeys={sessionKeys}
-                jobUsersData={jobUsersData}
-                whitelistedWorkers={whitelistedWorkers}
-                selectedWorker={selectedWorker}
-                eventMessages={eventMessages}
-              />
-            );
-          }
+              <>
+                <div className='col-span-1 max-h-customHeader bg-white p-5'>
+                  <h1 className='font-bold'>{job.title}</h1>
+                  <span>{job.content}</span>
+                  <div className='mt-4'>
+                    <label className='block text-sm font-medium text-gray-700'>
+                      Customer
+                    </label>
+                    <div className='mt-1 flex items-center space-x-2'>
+                      <Image
+                        className='rounded-full object-cover'
+                        height={50}
+                        width={50}
+                        src={jobOwnerData?.avatar as string | StaticImport}
+                        alt='Profile picture'
+                      />
 
-          if (address && job?.roles.arbitrator.includes(address)) {
-            return (
-              <ArbitratorView
-                users={users}
-                job={job}
-                setSelectedWorker={setSelectedWorker}
-                events={events}
-                address={address}
-                addresses={addresses}
-                sessionKeys={sessionKeys}
-                jobUsersData={jobUsersData}
-                whitelistedWorkers={whitelistedWorkers}
-                selectedWorker={selectedWorker}
-                eventMessages={eventMessages}
-              />
+                      {(() => {
+                        if (jobOwnerData?.name) {
+                          return <span>{jobOwnerData.name}</span>;
+                        } else if (ownerAddress) {
+                          return <span>{shortenText({ text: ownerAddress, maxLength: 12 }) || ''}</span>;
+                        } else {
+                          return <></>;
+                        }
+                      })()}
+                    </div>
+                  </div>
+                </div>
+              </>
             );
-          }
+          })()}
 
-          return (
-            <GuestView
-              users={users}
+          <div
+           className={clsx(
+            job?.state === JobState.Open && address === job.roles.creator ? 'col-span-2' : 'col-span-3',
+            'max-h-customHeader bg-white',
+           )}
+          >
+           {job && (
+             <JobChat
+               users={users}
+               selectedWorker={selectedWorker}
+               eventMessages={eventMessages}
+               job={job}
+               address={address}
+               addresses={addresses}
+               sessionKeys={sessionKeys}
+               jobUsersData={jobUsersData}
+             />
+           )}
+          </div>
+
+          <div className='col-span-1 max-h-customHeader overflow-y-auto bg-white'>
+            <JobChatDetails
               job={job}
-              setSelectedWorker={setSelectedWorker}
-              events={events}
+              users={users}
               address={address}
-              addresses={addresses}
               sessionKeys={sessionKeys}
-              jobUsersData={jobUsersData}
+              addresses={addresses}
+              events={events}
               whitelistedWorkers={whitelistedWorkers}
-              selectedWorker={selectedWorker}
-              eventMessages={eventMessages}
             />
-          );
-        })()}
+          </div>
+        </div>
       </div>
     </Layout>
   );
