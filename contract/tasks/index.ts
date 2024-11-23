@@ -634,14 +634,40 @@ task("job:witdraw", "Withdraw job collateral")
 });
 
 task("job:reopen", "Reopen a job post")
-.addParam("jobId", "Job ID")
-.setAction(async ({ jobId }, hre) => {
+.addParam("jobid", "Job ID")
+.setAction(async ({ jobid }, hre) => {
   const marketplace = await getMarketplace(hre);
   const owner = await getUserAddress(hre);
 
-  const tx = await marketplace.reopenJob(BigInt(jobId));
+  const tx = await marketplace.reopenJob(BigInt(jobid));
 
   const receipt = await tx.wait();
   
+  console.log("Transaction hash:", receipt.transactionHash);
+});
+
+task("job:dispute", "Raise a dispute on a job")
+.addParam("jobid", "Job ID")
+.addParam("message", "Dispute content")
+.setAction(async ({ jobid, message }, hre) => {
+  const marketplace = await getMarketplace(hre);
+  const marketplaceData = await getMarketplaceData(hre);
+
+  const accounts = await hre.ethers.getSigners();
+  const owner = accounts[0];
+
+  const job = await marketplace.jobs(jobid);
+  const worker = job.jobRoles.worker;
+  const arbitrator = job.arbitrator;
+
+  const sessionKeyOW = await getSessionKey(owner, await marketplaceData.publicKeys(worker.address), jobid);
+  const sessionKeyOA = await getSessionKey(owner, (await marketplaceData.arbitrators(arbitrator.address)).publicKey, jobid);
+
+  const encryptedContent = hexlify(encryptUtf8Data(message, sessionKeyOA));
+  const encrypedSessionKey = hexlify(encryptBinaryData(getBytes(sessionKeyOW), sessionKeyOA));
+
+  const tx = await marketplace.dispute(jobid, encrypedSessionKey, encryptedContent);
+  const receipt = await tx.wait();
+
   console.log("Transaction hash:", receipt.transactionHash);
 });
