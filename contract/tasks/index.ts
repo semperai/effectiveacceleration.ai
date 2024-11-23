@@ -1,5 +1,4 @@
 import * as fs from 'fs';
-import ProxyAdminArtifact from '@openzeppelin/upgrades-core/artifacts/@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol/ProxyAdmin.json';
 import { MarketplaceV1 as Marketplace } from '../typechain-types/contracts/MarketplaceV1';
 import { MarketplaceDataV1 as MarketplaceData } from '../typechain-types/contracts/MarketplaceDataV1';
 import { FakeToken } from '../typechain-types/contracts/unicrow/FakeToken';
