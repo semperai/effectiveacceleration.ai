@@ -4,11 +4,21 @@ import { MarketplaceDataV1 as MarketplaceData } from '../typechain-types/contrac
 import { FakeToken } from '../typechain-types/contracts/unicrow/FakeToken';
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { task } from "hardhat/config";
-import Config from '../scripts/config.local.json';
-import LocalConfig from '../scripts/config.json';
+import Config from '../scripts/config.json';
+import LocalConfig from '../scripts/config.local.json';
 import { AbiCoder, getBytes, hexlify, keccak256, ZeroAddress } from 'ethers';
-import { getEncryptionSigningKey, publishToIpfs, getSessionKey, encryptUtf8Data, encryptBinaryData } from '../src/utils/encryption';
+import {
+  getEncryptionSigningKey,
+  getFromIpfs,
+  publishToIpfs,
+  getSessionKey,
+  encryptUtf8Data,
+  encryptBinaryData,
+  hashToCid,
+} from '../src/utils/encryption';
 import "@nomicfoundation/hardhat-ethers";
+import { base58 } from '@scure/base';
+
 
 async function getMarketplace(hre: HardhatRuntimeEnvironment) {
   const Marketplace = await hre.ethers.getContractFactory("MarketplaceV1");
@@ -246,7 +256,7 @@ task("marketplace:seed", "Seed local marketplace instance")
 
     // worker delivers the result
     const result = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
-    const workerSessionKey = await getSessionKey(worker, await marketplaceData.connect(worker).publicKeys(owner.address), jobId);
+    const workerSessionKey = await getSessionKey(worker, await marketplaceData.connect(worker).publicKeys(owner.address), jobid);
     const { hash: resultHash } = await publishToIpfs(result, workerSessionKey);
 
     await marketplace.connect(worker).deliverResult(0n, resultHash);
@@ -412,7 +422,7 @@ task("arbitrator:update", "Update arbitrator")
 });
 
 task("arbitrator:refuse", "Refuse arbitration")
-.addParam("jobId", "Job ID")
+.addParam("jobid", "Job ID")
 .setAction(async ({ jobId }, hre) => {
   const marketplace = await getMarketplace(hre);
   const arbitrator = await getUserAddress(hre);
@@ -425,11 +435,11 @@ task("arbitrator:refuse", "Refuse arbitration")
 });
 
 task("arbitrator:arbitrate", "Arbitrate a job")
-.addParam("jobId", "Job ID")
-.addParam("buyerShare", "Buyer share in bps")
-.addParam("workerShare", "Worker share in bps")
+.addParam("jobid", "Job ID")
+.addParam("ownerShare", "Buyer share in bips")
+.addParam("workerShare", "Worker share in bips")
 .addParam("reason", "Reason")
-.setAction(async ({ jobId, buyerShare, workerShare, reason }, hre) => {
+.setAction(async ({ jobId, ownerShare, workerShare, reason }, hre) => {
   const marketplace = await getMarketplace(hre);
   const marketplaceData = await getMarketplaceData(hre);
 
@@ -439,10 +449,77 @@ task("arbitrator:arbitrate", "Arbitrate a job")
   // ...
   throw new Error("Not implemented");
 
+
+
   const reasonHash = (await publishToIpfs(reason)).hash;
-  const tx = await marketplace.arbitrate(BigInt(jobId), buyerShare, workerShare, reasonHash);
+  const tx = await marketplace.arbitrate(BigInt(jobId), ownerShare, workerShare, reasonHash);
   const receipt = await tx.wait();
   console.log("Transaction hash:", receipt.transactionHash);
+});
+
+task("arbitrator:decode", "Decode encrypted data")
+.addParam("jobid", "Job ID")
+.addOptionalParam("index", "Index of the message (if not set retrieve all)")
+.setAction(async ({ jobid }, hre) => {
+  const marketplaceData = await getMarketplaceData(hre);
+
+  const jobEventTypes = [
+    'Created',
+    'Taken',
+    'Paid',
+    'Updated',
+    'Signed',
+    'Completed',
+    'Delivered',
+    'Closed',
+    'Reopened',
+    'Rated',
+    'Refunded',
+    'Disputed',
+    'Arbitrated',
+    'ArbitrationRefused',
+    'WhitelistedWorkerAdded',
+    'WhitelistedWorkerRemoved',
+    'CollateralWithdrawn',
+    'WorkerMessage',
+    'OwnerMessage',
+  ];
+
+  const events = await marketplaceData.getEvents(jobid, 0, 0);
+  for (let data of events) {
+    const eventType = jobEventTypes[data[0]];
+    const eventAddress = data[1];
+    const eventData = data[2];
+    const eventTimestamp = data[3];
+
+    console.log(`${eventAddress} [${eventType}] ${eventTimestamp}`);
+
+    let bytes = getBytes(eventData);
+    switch (eventType) {
+      case 'Created':
+        let offset = 0;
+        let len = bytes[0];
+        offset += 1;
+
+        const title = hre.ethers.toUtf8String(bytes.slice(offset, len + offset));
+        offset += len;
+
+        const contentHash = hre.ethers.hexlify(bytes.slice(offset, offset + 32));
+        offset += 32;
+
+        const cid = hashToCid(contentHash);
+        const content = await getFromIpfs(cid);
+
+        console.log(title);
+        console.log(cid);
+        console.log(content);
+
+        break;
+      default:
+        console.log(bytes);
+        break;
+    }
+  }
 });
 
 task("user:register", "Register as user")
@@ -545,7 +622,7 @@ task("job:publish", "Publish a job post")
 });
 
 task("job:update", "Update a job post")
-.addParam("jobId", "Job ID")
+.addParam("jobid", "Job ID")
 .addParam("title", "Title")
 .addParam("content", "Content")
 .addOptionalParam("tags", "Tags")
@@ -589,15 +666,15 @@ task("job:update", "Update a job post")
 });
 
 task("job:whitelist", "Update a job post whitelist")
-.addParam("jobId", "Job ID")
+.addParam("jobid", "Job ID")
 .addParam("whitelist", "Workers to add")
 .addParam("blacklist", "Workers to remove")
-.setAction(async ({ jobId, whitelist, blacklist }, hre) => {
+.setAction(async ({ jobid, whitelist, blacklist }, hre) => {
   const marketplace = await getMarketplace(hre);
   const owner = await getUserAddress(hre);
 
   const tx = await marketplace.updateJobWhitelist(
-    BigInt(jobId),
+    BigInt(jobid),
     whitelist.split(','),
     blacklist.split(','),
   );
@@ -607,26 +684,61 @@ task("job:whitelist", "Update a job post whitelist")
   console.log("Transaction hash:", receipt.transactionHash);
 });
 
+task("job:start", "Start job / pick applicant")
+.addParam("jobid", "Job ID")
+.addParam("worker", "Worker address")
+.setAction(async ({ jobid, worker }, hre) => {
+  const marketplace = await getMarketplace(hre);
+
+  const tx = await marketplace.payStartJob(jobid, worker);
+  const receipt = await tx.wait();
+
+  console.log("Transaction hash:", receipt.transactionHash);
+});
+
+task("job:message", "Post a message in a job thread")
+.addParam("jobid", "Job ID")
+.addParam("message", "Message")
+.setAction(async ({ jobid, message }, hre) => {
+  const marketplace = await getMarketplace(hre);
+  const marketplaceData = await getMarketplaceData(hre);
+
+  const job = await marketplace.jobs(jobid);
+  const owner = job.jobRoles.owner;
+  const accounts = await hre.ethers.getSigners();
+  const worker = accounts[0];
+  const workerSessionKey = await getSessionKey(worker, await marketplaceData.publicKeys(owner.address), jobid);
+
+  const { hash } = await publishToIpfs(message, workerSessionKey);
+
+  const tx = await marketplace.postThreadMessage(jobid, hash, owner.address);
+  const receipt = await tx.wait();
+
+  console.log("Transaction hash:", receipt.transactionHash);
+});
+
+
+
 task("job:close", "Close a job post")
-.addParam("jobId", "Job ID")
-.setAction(async ({ jobId }, hre) => {
+.addParam("jobid", "Job ID")
+.setAction(async ({ jobid }, hre) => {
   const marketplace = await getMarketplace(hre);
   const owner = await getUserAddress(hre);
 
-  const tx = await marketplace.closeJob(BigInt(jobId));
+  const tx = await marketplace.closeJob(BigInt(jobid));
 
   const receipt = await tx.wait();
   
   console.log("Transaction hash:", receipt.transactionHash);
 });
 
-task("job:witdraw", "Withdraw job collateral")
-.addParam("jobId", "Job ID")
-.setAction(async ({ jobId }, hre) => {
+task("job:withdraw", "Withdraw job collateral")
+.addParam("jobid", "Job ID")
+.setAction(async ({ jobid }, hre) => {
   const marketplace = await getMarketplace(hre);
   const owner = await getUserAddress(hre);
 
-  const tx = await marketplace.withdrawCollateral(BigInt(jobId));
+  const tx = await marketplace.withdrawCollateral(BigInt(jobid));
 
   const receipt = await tx.wait();
   
