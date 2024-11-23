@@ -239,6 +239,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
       tokens[0]
     );
     const multipleApplicantsValues = ['No', 'Yes'];
+    const arbitratorRequiredValues = ['No', 'Yes'];
     const [showSummary, setShowSummary] = useState(false);
     const [title, setTitle] = useState<string>('');
     const [deliveryMethod, setDeliveryMethod] = useState(
@@ -251,7 +252,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
       multipleApplicantsValues[1]
     );
     const [arbitratorRequired, setArbitratorRequired] = useState(
-      multipleApplicantsValues[1]
+      arbitratorRequiredValues[1]
     );
     const [selectedUnitTime, setselectedUnitTime] = useState<ComboBoxOption>(
       unitsDeliveryTime[2]
