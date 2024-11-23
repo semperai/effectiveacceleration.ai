@@ -29,18 +29,19 @@ const ResultVerification: React.FC<ResultAcceptedProps> = ({
     (event) => event.type_ === JobEventType.Delivered
   )[0]?.job.result;
 
+  const workerName = users[selectedWorker]?.name || 'user';
+
+
   return (
     <div className='w-full content-center py-16 text-center'>
       <span className='block justify-center pb-2 text-primary'>
-        {users[selectedWorker]?.name || 'user'} has completed the job with a
-        comment:
-        {deliveredEvent}
+        {workerName} has completed the job with a comment: {deliveredEvent}
       </span>
       <span className='block font-semibold'>
         To confirm the result or request a refund, click buttons below.{' '}
       </span>
       <span className='block font-semibold'>
-        To ask Rebecca for changes, simply send them a message
+        To ask {workerName} for changes, simply send them a message
       </span>
       <div className='pt-3'>
         <div className='flex justify-center gap-x-4'>
