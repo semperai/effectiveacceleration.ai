@@ -45,6 +45,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import moment from 'moment';
 import TagsInput from '@/components/TagsInput';
+import { ConnectButton } from '@/components/ConnectButton';
 import { BsInfoCircle } from 'react-icons/bs';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { MARKETPLACE_DATA_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceDataV1';
@@ -218,7 +219,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
   (props, ref) => {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { address } = useAccount();
+    const { address, isConnected } = useAccount();
     const { data: user } = useUser(address!);
     const { data: workers } = useUsers();
     const { data: arbitrators } = useArbitrators();
@@ -995,13 +996,18 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
             </div>
             {!showSummary && (
               <div className='mb-40 mt-5 flex justify-end'>
-                <Button
-                  // disabled={postButtonDisabled || isPending}
-                  // onClick={postJobClick}
-                  onClick={handleSubmit}
-                >
-                  {isPending ? 'Posting...' : 'Continue'}
-                </Button>
+                {isConnected && (
+                  <Button
+                    // disabled={postButtonDisabled || isPending}
+                    // onClick={postJobClick}
+                    onClick={handleSubmit}
+                  >
+                    {isPending ? 'Posting...' : 'Continue'}
+                  </Button>
+                )}
+                {!isConnected && (
+                  <ConnectButton />
+                )}
               </div>
             )}
             <RegisterModal
