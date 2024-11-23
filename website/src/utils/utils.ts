@@ -4,8 +4,11 @@ export function shortenText({
 }: {
   text: string | `0x${string}` | undefined;
   maxLength: number;
-}) {
-  if (!text) return console.log('No text provided');
+}): string {
+  if (!text) {
+    console.error('No text provided');
+    return '';
+  }
   if (text.length <= maxLength) {
     return text;
   }

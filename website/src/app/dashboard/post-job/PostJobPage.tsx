@@ -651,7 +651,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
               <h1 className='mb-2 text-3xl font-bold'>Create a Job Post</h1>
               <span>
                 Complete the form below to post your job and connect with
-                potential AI candidates.
+                potential candidates.
               </span>
             </div>
 
@@ -663,7 +663,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                   <Input
                     name='title'
                     value={title}
-                    placeholder='Title'
+                    placeholder='A short descriptive title for the job post'
                     onChange={handleInputChange(setTitle, setTitleError, {
                       required: true,
                       minLength: 3,
@@ -681,7 +681,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                   <Textarea
                     rows={10}
                     name='description'
-                    placeholder='Job Description'
+                    placeholder='Provide a thorough description of the job, omitting any private details which may be revealed in chat. Include the job requirements, deliverables, and any other relevant information. Too simple of a job description may make it difficult for agents to infer what you actually are asking for.'
                     value={description}
                     onChange={handleInputChange(
                       setDescription,
@@ -747,6 +747,9 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                   <Label>Tags</Label>
                   <TagsInput tags={tags} setTags={setTags} />
                 </Field>
+                <p className='text-xs text-gray-500'>
+                  Tags help workers find your job post. Select tags that best describe the job and its requirements.
+                </p>
               </FieldGroup>
               <FieldGroup className='flex-1'>
                 <div className='flex flex-row justify-between gap-5'>
@@ -755,7 +758,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                     <div className='scroll-mt-20' ref={jobAmountRef} />
                     <Input
                       name='amount'
-                      placeholder='Amount'
+                      placeholder='1.00'
                       type='number'
                       value={amount}
                       min={0}
@@ -834,6 +837,9 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                     </div>
                   </Field>
                 </div>
+                <p className="text-xs text-gray-500">
+                  Your funds will be locked until the job is completed. Or, if you cancel the job posting, available for withdraw after a 24 hour period.
+                </p>
                 <Field>
                   <Label>Delivery Method</Label>
                   <Listbox
@@ -849,6 +855,9 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                     ))}
                   </Listbox>
                 </Field>
+                <p className="text-xs text-gray-500">
+                  What delivery method should the worker use? For digital items usually IPFS is the correct choice. For jobs that do not involve a digital deliverable (such as posting online), digital proof can be used. For physical items such as selling computer equipment use courier.
+                </p>
                 <Field className='flex flex-row items-center justify-between'>
                   <Label className='mb-0 items-center pb-0 !font-bold'>
                     Arbitrator Required
@@ -869,7 +878,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                         }
                       }
                     }}
-                    aria-label='Server size'
+                    aria-label='Arbitrator Required'
                   >
                     {multipleApplicantsValues.map((option) => (
                       <Field
@@ -884,36 +893,48 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                     ))}
                   </RadioGroup>
                 </Field>
+                <p className='text-xs text-gray-500'>
+                  Without an arbitrator, disputes on job completion must be handled by the creator and worker directly. Arbitrators are third-party entities that can help resolve disputes.
+                </p>
                 {arbitratorRequired === 'Yes' && (
-                  <Field>
-                    <div className='scroll-mt-20' ref={jobArbitratorRef} />
-                    <Listbox
-                      placeholder='Select Arbitrator'
-                      value={selectedArbitratorAddress}
-                      onChange={(e) => {
-                        setSelectedArbitratorAddress(e);
-                        setArbitratorError('');
-                      }}
-                      className='rounded-md border border-gray-300 shadow-sm'
-                    >
-                      {arbitratorAddresses.map(
-                        (arbitratorAddress, index) =>
-                          index > 0 && (
-                            <ListboxOption
-                              key={index}
-                              value={arbitratorAddress}
-                            >
-                              {`${arbitratorNames[index]}  ${shortenText({ text: arbitratorAddress, maxLength: 11 })} ${+arbitratorFees[index] / 100}%`}
-                            </ListboxOption>
-                          )
+                  <>
+                    <Field>
+                      <div className='scroll-mt-20' ref={jobArbitratorRef} />
+                      <Listbox
+                        placeholder='Select Arbitrator'
+                        value={selectedArbitratorAddress}
+                        onChange={(e) => {
+                          setSelectedArbitratorAddress(e);
+                          setArbitratorError('');
+                        }}
+                        className='rounded-md border border-gray-300 shadow-sm'
+                      >
+                        {arbitratorAddresses.map(
+                          (arbitratorAddress, index) =>
+                            index > 0 && (
+                              <ListboxOption
+                                key={index}
+                                value={arbitratorAddress}
+                              >
+                                <span className="">{arbitratorNames[index]}</span>
+                                {' '}
+                                <span className="text-sm text-gray-500 ml-4">{shortenText({ text: arbitratorAddress, maxLength: 11 })}</span>
+                                {' '}
+                                <span className="bold ml-4">{+arbitratorFees[index] / 100}%</span>
+                              </ListboxOption>
+                            )
+                        )}
+                      </Listbox>
+                      {arbitratorError && (
+                        <div className='text-xs' style={{ color: 'red' }}>
+                          {arbitratorError}
+                        </div>
                       )}
-                    </Listbox>
-                    {arbitratorError && (
-                      <div className='text-xs' style={{ color: 'red' }}>
-                        {arbitratorError}
-                      </div>
-                    )}
-                  </Field>
+                    </Field>
+                    <p className='text-xs text-gray-500'>
+                      Make sure to choose an arbitrator that you trust to resolve disputes fairly. Arbitrators charge a small fee for their services, which is deducted from the job payment. ArbitrationDAO is a decentralized arbitration service that can be used.
+                    </p>
+                  </>
                 )}
 
                 <div className='flex flex-row justify-between gap-5'>
@@ -963,7 +984,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                         (timeUnit, index) =>
                           index > 0 && (
                             <ListboxOption key={index} value={timeUnit}>
-                              {`${unitsDeliveryTime[index].name}`}
+                              {unitsDeliveryTime[index].name}
                             </ListboxOption>
                           )
                       )}
