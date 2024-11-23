@@ -36,8 +36,8 @@ export function PostMessageButton({
     ...(addresses?.filter((user) => !excludes.includes(user)) ?? []),
   ];
   const { data: users } = useUsersByAddresses(
-    addresses?.filter((user) => !excludes.includes(user) ?? []) as string[]
-  );
+    // addresses?.filter((user) => !excludes.includes(user) ?? []) as string[]
+    addresses?.filter((user) => !excludes.includes(user)) || []);
   const [selectedUserAddress, setSelectedUserAddress] =
     useState<`0x${string}`>(zeroAddress);
   const selectedUserRecipient =

@@ -13,6 +13,7 @@ import {
   List,
   ClickAwayListener,
   Slide,
+  ListItemButton,
 } from '@mui/material';
 import {
   ContainerListPreferredTokens,
@@ -392,9 +393,8 @@ const TokenItem = ({
       in={true}
       timeout={{ enter: 200 }}
     >
-      <ListItem
+      <ListItemButton
         selected={selectedToken?.address === token.address}
-        button
         onClick={(e) => handleSelectToken(token, e)}
       >
         <ListItemIcon>
@@ -424,7 +424,7 @@ const TokenItem = ({
             <ExternalLinkIcon />
           </Link>
         </ListItemText>
-      </ListItem>
+      </ListItemButton>
     </Slide>
   );
 };
