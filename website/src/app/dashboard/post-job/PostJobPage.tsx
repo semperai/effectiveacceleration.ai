@@ -33,7 +33,7 @@ import { Input } from '@/components/Input';
 import { TokenSelector } from '@/components/TokenSelector';
 import { Token, tokens } from '@/tokens';
 import { Radio, RadioGroup } from '@/components/Radio';
-import { Listbox, ListboxOption } from '@/components/Listbox';
+import { Listbox, ListboxOption, ListboxLabel } from '@/components/Listbox';
 import { Job, publishToIpfs } from 'effectiveacceleration-contracts';
 import { zeroAddress } from 'viem';
 import useUsers from '@/hooks/useUsers';
@@ -238,8 +238,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
     const [selectedToken, setSelectedToken] = useState<Token | undefined>(
       tokens[0]
     );
-    const multipleApplicantsValues = ['No', 'Yes'];
-    const arbitratorRequiredValues = ['No', 'Yes'];
+    const noYes = ['No', 'Yes'];
     const [showSummary, setShowSummary] = useState(false);
     const [title, setTitle] = useState<string>('');
     const [deliveryMethod, setDeliveryMethod] = useState(
@@ -248,11 +247,11 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
     const [description, setDescription] = useState<string>('');
     const [amount, setAmount] = useState('');
     const [deadline, setDeadline] = useState<number>();
-    const [multipleApplicants, setMultipleApplicants] = useState(
-      multipleApplicantsValues[1]
+    const [imFeelingLucky, setImFeelingLucky] = useState(
+      noYes[0]
     );
     const [arbitratorRequired, setArbitratorRequired] = useState(
-      arbitratorRequiredValues[1]
+      noYes[1]
     );
     const [selectedUnitTime, setselectedUnitTime] = useState<ComboBoxOption>(
       unitsDeliveryTime[2]
@@ -343,7 +342,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
         args: [
           title,
           contentHash as `0x${string}`,
-          multipleApplicants === 'Yes',
+          imFeelingLucky === 'No',
           [selectedCategory.id, ...tags.map((tag) => tag.name)],
           selectedToken?.id! as `0x${string}`,
           ethers.parseUnits(amount, selectedToken?.decimals!),
@@ -366,7 +365,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
         id: createdJobId ? createdJobId : '0',
         title: title,
         content: description,
-        multipleApplicants: multipleApplicants === 'Yes',
+        imFeelingLucky: imFeelingLucky === 'No',
         tags: [selectedCategory?.id as string, ...tags.map((tag) => tag.name)],
         token: `0x${selectedToken?.id}` as `0x${string}`,
         maxTime: deadline as number,
@@ -527,7 +526,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
     const formInputs: JobFormInputData[] = [
       { label: 'Job Title', inputInfo: title },
       { label: 'Description', inputInfo: description },
-      { label: 'Multiple Applicants', inputInfo: multipleApplicants },
+      { label: 'I\'m feeling lucky', inputInfo: imFeelingLucky },
       { label: 'Category', inputInfo: selectedCategory?.name },
       { label: 'Tags', inputInfo: tags.map((tag) => tag.name).join(', ') },
       {
@@ -697,26 +696,31 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                     </div>
                   )}
                 </Field>
-                <Field className='flex flex-row items-center justify-between'>
-                  <Label className='items-center'>Multiple Applicants</Label>
-                  <RadioGroup
-                    className='!mt-0 flex'
-                    value={multipleApplicants}
-                    onChange={setMultipleApplicants}
-                    aria-label='Server size'
-                  >
-                    {multipleApplicantsValues.map((option) => (
-                      <Field
-                        className='!mt-0 ml-5 flex items-center'
-                        key={option}
-                      >
-                        <Radio className='mr-2' color='default' value={option}>
-                          <span>{option}</span>
-                        </Radio>
-                        <Label>{option}</Label>
-                      </Field>
-                    ))}
-                  </RadioGroup>
+                <Field>
+                  <div className='flex flex-row items-center justify-between'>
+                    <Label className='items-center'>I&apos;m feeling lucky</Label>
+                    <RadioGroup
+                      className='!mt-0 flex'
+                      value={imFeelingLucky}
+                      onChange={setImFeelingLucky}
+                      aria-label='Server size'
+                    >
+                      {noYes.map((option) => (
+                        <Field
+                          className='!mt-0 ml-5 flex items-center'
+                          key={option}
+                        >
+                          <Radio className='mr-2' color='default' value={option}>
+                            <span>{option}</span>
+                          </Radio>
+                          <Label>{option}</Label>
+                        </Field>
+                      ))}
+                    </RadioGroup>
+                  </div>
+                  <Description>
+                    Enabling this allows worker to automatically start the job without you approving them first.
+                  </Description>
                 </Field>
                 <Field>
                   <Label>Category</Label>
@@ -728,13 +732,14 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                       setSelectedCategory(c);
                       setCategoryError('');
                     }}
-                    className='rounded-md border border-gray-300 shadow-sm'
                   >
                     {jobMeceTags.map(
                       (category, index) =>
                         index > 0 && (
                           <ListboxOption key={index} value={category}>
-                            {`${jobMeceTags[index].name}`}
+                            <ListboxLabel>
+                              {jobMeceTags[index].name}
+                            </ListboxLabel>
                           </ListboxOption>
                         )
                     )}
@@ -748,10 +753,10 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                 <Field>
                   <Label>Tags</Label>
                   <TagsInput tags={tags} setTags={setTags} />
+                  <Description>
+                    Tags help workers find your job post. Select tags that best describe the job and its requirements.
+                  </Description>
                 </Field>
-                <p className='text-xs text-gray-500'>
-                  Tags help workers find your job post. Select tags that best describe the job and its requirements.
-                </p>
               </FieldGroup>
               <FieldGroup className='flex-1'>
                 <div className='flex flex-row justify-between gap-5'>
@@ -794,7 +799,9 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                         {paymentTokenError}
                       </div>
                     )}
-                    <Description></Description>
+                    <Description>
+                      Your funds will be locked until the job is completed. Or, if you cancel the job posting, available for withdraw after a 24 hour period.
+                    </Description>
                   </Field>
                   <Field className='flex-1'>
                     <Label>Payment Token</Label>
@@ -839,65 +846,65 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                     </div>
                   </Field>
                 </div>
-                <p className="text-xs text-gray-500">
-                  Your funds will be locked until the job is completed. Or, if you cancel the job posting, available for withdraw after a 24 hour period.
-                </p>
                 <Field>
                   <Label>Delivery Method</Label>
                   <Listbox
                     placeholder='Delivery Method'
                     value={deliveryMethod}
                     onChange={(e) => setDeliveryMethod(e)}
-                    className='rounded-md border border-gray-300 shadow-sm'
                   >
                     {deliveryMethods.map((method, index) => (
                       <ListboxOption key={index} value={method.value}>
-                        {`${deliveryMethods[index].label}`}
+                        <ListboxLabel>
+                          {deliveryMethods[index].label}
+                        </ListboxLabel>
                       </ListboxOption>
                     ))}
                   </Listbox>
+                  <Description>
+                    What delivery method should the worker use? For digital items usually IPFS is the correct choice. For jobs that do not involve a digital deliverable (such as posting online), digital proof can be used. For physical items such as selling computer equipment use courier.
+                  </Description>
                 </Field>
-                <p className="text-xs text-gray-500">
-                  What delivery method should the worker use? For digital items usually IPFS is the correct choice. For jobs that do not involve a digital deliverable (such as posting online), digital proof can be used. For physical items such as selling computer equipment use courier.
-                </p>
-                <Field className='flex flex-row items-center justify-between'>
-                  <Label className='mb-0 items-center pb-0 !font-bold'>
-                    Arbitrator Required
-                  </Label>
-                  <RadioGroup
-                    className='!mt-0 flex'
-                    value={arbitratorRequired}
-                    onChange={(value) => {
-                      setArbitratorRequired(value);
-                      if (value === 'No') {
-                        setSelectedArbitratorAddress(zeroAddress);
-                      } else {
-                        if (
-                          !selectedArbitratorAddress ||
-                          selectedArbitratorAddress === zeroAddress
-                        ) {
-                          setArbitratorError('Please select an arbitrator');
+                <Field>
+                  <div className='flex flex-row items-center justify-between'>
+                    <Label className='mb-0 items-center pb-0 !font-bold'>
+                      Arbitrator Required
+                    </Label>
+                    <RadioGroup
+                      className='!mt-0 flex'
+                      value={arbitratorRequired}
+                      onChange={(value) => {
+                        setArbitratorRequired(value);
+                        if (value === 'No') {
+                          setSelectedArbitratorAddress(zeroAddress);
+                        } else {
+                          if (
+                            !selectedArbitratorAddress ||
+                            selectedArbitratorAddress === zeroAddress
+                          ) {
+                            setArbitratorError('Please select an arbitrator');
+                          }
                         }
-                      }
-                    }}
-                    aria-label='Arbitrator Required'
-                  >
-                    {multipleApplicantsValues.map((option) => (
-                      <Field
-                        className='!mt-0 ml-5 flex items-center'
-                        key={option}
-                      >
-                        <Radio color='default' className='mr-2' value={option}>
-                          <span>{option}</span>
-                        </Radio>
-                        <Label>{option}</Label>
-                      </Field>
-                    ))}
-                  </RadioGroup>
+                      }}
+                      aria-label='Arbitrator Required'
+                    >
+                      {noYes.map((option) => (
+                        <Field
+                          className='!mt-0 ml-5 flex items-center'
+                          key={option}
+                        >
+                          <Radio color='default' className='mr-2' value={option}>
+                            <span>{option}</span>
+                          </Radio>
+                          <Label>{option}</Label>
+                        </Field>
+                      ))}
+                    </RadioGroup>
+                  </div>
+                  <Description>
+                    Without an arbitrator, disputes on job completion must be handled by the creator and worker directly. Arbitrators are third-party entities that can help resolve disputes.
+                  </Description>
                 </Field>
-                <p className='text-xs text-gray-500'>
-                  Without an arbitrator, disputes on job completion must be handled by the creator and worker directly. Arbitrators are third-party entities that can help resolve disputes.
-                </p>
                 {arbitratorRequired === 'Yes' && (
                   <>
                     <Field>
@@ -909,7 +916,6 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                           setSelectedArbitratorAddress(e);
                           setArbitratorError('');
                         }}
-                        className='rounded-md border border-gray-300 shadow-sm'
                       >
                         {arbitratorAddresses.map(
                           (arbitratorAddress, index) =>
@@ -918,11 +924,13 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                                 key={index}
                                 value={arbitratorAddress}
                               >
-                                <span className="">{arbitratorNames[index]}</span>
-                                {' '}
-                                <span className="text-sm text-gray-500 ml-4">{shortenText({ text: arbitratorAddress, maxLength: 11 })}</span>
-                                {' '}
-                                <span className="bold ml-4">{+arbitratorFees[index] / 100}%</span>
+                                <ListboxLabel>
+                                  <span className="">{arbitratorNames[index]}</span>
+                                  {' '}
+                                  <span className="text-sm text-gray-500 ml-4">{shortenText({ text: arbitratorAddress, maxLength: 11 })}</span>
+                                  {' '}
+                                  <span className="bold ml-4">{+arbitratorFees[index] / 100}%</span>
+                                </ListboxLabel>
                               </ListboxOption>
                             )
                         )}
@@ -932,10 +940,10 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                           {arbitratorError}
                         </div>
                       )}
+                      <Description>
+                        Make sure to choose an arbitrator that you trust to resolve disputes fairly. Arbitrators charge a small fee for their services, which is deducted from the job payment. ArbitrationDAO is a decentralized arbitration service that can be used.
+                      </Description>
                     </Field>
-                    <p className='text-xs text-gray-500'>
-                      Make sure to choose an arbitrator that you trust to resolve disputes fairly. Arbitrators charge a small fee for their services, which is deducted from the job payment. ArbitrationDAO is a decentralized arbitration service that can be used.
-                    </p>
                   </>
                 )}
 
@@ -943,13 +951,13 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                   <Field className='flex-1'>
                     <Label>
                       Maximum delivery time{' '}
-                      {selectedUnitTime ? `in ${selectedUnitTime.name}` : ''}
+                      in {selectedUnitTime.name}
                     </Label>
                     <div className='scroll-mt-20' ref={jobDeadlineRef} />
                     <Input
                       name='deadline'
                       type='number'
-                      placeholder={`Maximum delivery time ${selectedUnitTime ? `in ${selectedUnitTime.name}` : ''}`}
+                      placeholder={`Maximum delivery time in ${selectedUnitTime.name}`}
                       value={deadline}
                       min={1}
                       step={1}
@@ -980,13 +988,14 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                       placeholder='Time Units'
                       value={selectedUnitTime}
                       onChange={(e) => setselectedUnitTime(e)}
-                      className='rounded-md border border-gray-300 shadow-sm'
                     >
                       {unitsDeliveryTime.map(
                         (timeUnit, index) =>
                           index > 0 && (
                             <ListboxOption key={index} value={timeUnit}>
-                              {unitsDeliveryTime[index].name}
+                              <ListboxLabel>
+                                {unitsDeliveryTime[index].name}
+                              </ListboxLabel>
                             </ListboxOption>
                           )
                       )}
