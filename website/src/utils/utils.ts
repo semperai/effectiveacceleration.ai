@@ -39,9 +39,31 @@ export const convertToSeconds = (deadline: number, unit: string): number => {
   }
 };
 
-export const convertSecondsToDays = (seconds: number): number => {
-  return seconds / (60 * 60 * 24);
-};
+export const getUnitAndValueFromSeconds = (seconds: number): {
+  unit: string;
+  value: number;
+} => {
+  const years = seconds / (60 * 60 * 24 * 7 * 4 * 12);
+  const months = seconds / (60 * 60 * 24 * 7 * 4);
+  const weeks = seconds / (60 * 60 * 24 * 7);
+  const days = seconds / (60 * 60 * 24);
+  const hours = seconds / (60 * 60);
+  const minutes = seconds / 60;
+
+  if (years % 1 === 0) {
+    return { unit: 'years', value: years };
+  } else if (months % 1 === 0) {
+    return { unit: 'months', value: months };
+  } else if (weeks % 1 === 0) {
+    return { unit: 'weeks', value: weeks };
+  } else if (days % 1 === 0) {
+    return { unit: 'days', value: days };
+  } else if (hours % 1 === 0) {
+    return { unit: 'hours', value: hours };
+  } else {
+    return { unit: 'minutes', value: minutes };
+  }
+}
 
 
 export const unitsDeliveryTime = [

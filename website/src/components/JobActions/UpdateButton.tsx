@@ -22,7 +22,7 @@ import { zeroAddress } from 'viem';
 import { formatUnits, parseUnits } from 'ethers';
 import { Radio, RadioGroup } from '../Radio';
 import { jobMeceTags } from '@/utils/jobMeceTags';
-import { convertSecondsToDays, convertToSeconds, unitsDeliveryTime } from '@/utils/utils';
+import { getUnitAndValueFromSeconds, convertToSeconds, unitsDeliveryTime } from '@/utils/utils';
 import { ComboBoxOption } from '@/service/FormsTypes';
 import CustomSelect from '../CustomSelect';
 
@@ -90,7 +90,7 @@ export function UpdateButton({
   }>();
   const [categoryError, setCategoryError] = useState<string>('');
   const [deadline, setDeadline] = useState<number>();
-  const [selectedUnitTime, setselectedUnitTime] = useState<ComboBoxOption>(
+  const [selectedUnitTime, setSelectedUnitTime] = useState<ComboBoxOption>(
     unitsDeliveryTime[2]
   );
   const [deadlineError, setDeadlineError] = useState<string>('');
@@ -144,7 +144,13 @@ export function UpdateButton({
       setSelectedCategory(
         jobMeceTags.find((category) => category.id === job.tags[0])
       );
-      setMaxTime(convertSecondsToDays(job?.maxTime));
+      let { unit, value } = getUnitAndValueFromSeconds(job?.maxTime);
+      if (unit && value) {
+        value = Math.ceil(value);
+        setMaxTime(value);
+        const unitDelivery = unitsDeliveryTime.find((option) => option.name === unit);
+        setSelectedUnitTime(unitDelivery || unitsDeliveryTime[0]);
+      }
     }
   }, [job]);
 
@@ -365,14 +371,13 @@ export function UpdateButton({
                     <div className='flex flex-row justify-between gap-5'>
                   <Field className='flex-1'>
                     <Label>
-                      Max delivery time{' '}
-                      {selectedUnitTime ? `in ${selectedUnitTime.name}` : ''}
+                      Max delivery time in {selectedUnitTime.name}
                     </Label>
                     <div className='scroll-mt-20' />
                     <Input
                       name='deadline'
                       type='number'
-                      placeholder={`Maximum delivery time ${selectedUnitTime ? `in ${selectedUnitTime.name}` : ''}`}
+                      placeholder={`Maximum delivery time in ${selectedUnitTime.name}`}
                       value={maxTime}
                       min={1}
                       step={1}
@@ -407,7 +412,7 @@ export function UpdateButton({
                         const selectedValue = isNaN(Number(value)) ? value : Number(value);
                         const selectedOption = unitsDeliveryTime.find(option => option.id === selectedValue);
                         if (selectedOption) {
-                          setselectedUnitTime(selectedOption);
+                          setSelectedUnitTime(selectedOption);
                         }
                       }}
                     >
