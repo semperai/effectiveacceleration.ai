@@ -7,8 +7,9 @@ import { useEffect, useState } from 'react';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-import { Textarea } from '../Textarea';
-import { Input } from '../Input';
+import { Textarea } from '@/components/Textarea';
+import { Listbox, ListboxOption, ListboxLabel } from '@/components/Listbox';
+import { Description, Field, Fieldset, FieldGroup } from '@/components/Fieldset';
 
 export type ReviewButtonProps = {
   address: `0x${string}` | undefined;
@@ -91,7 +92,7 @@ export function ReviewButton({
         className={'w-full'}
       >
         <CheckIcon className='-ml-0.5 mr-1.5 h-5 w-5' aria-hidden='true' />
-        Leave A Review
+        Leave a Review
       </Button>
       <Transition appear show={isOpen} as={Fragment}>
         <Dialog as='div' className='relative z-10' onClose={closeModal}>
@@ -126,26 +127,51 @@ export function ReviewButton({
                     Leave A Review
                   </Dialog.Title>
                   <div className='mb-3 mt-5 flex flex-col gap-5'>
-                    <Textarea
-                      rows={4}
-                      value={review}
-                      onChange={(e) => setReview(e.target.value)}
-                      placeholder='Review (optional)'
-                      className='mt-5'
-                    />
-                    <Input
-                      value={rating}
-                      onChange={(e) => setRating(Number(e.target.value))}
-                      placeholder='Rating'
-                      className='mt-5'
-                    />
-                    <Button disabled={buttonDisabled} onClick={buttonClick}>
-                      <CheckIcon
-                        className='-ml-0.5 mr-1.5 h-5 w-5'
-                        aria-hidden='true'
-                      />
-                      Confirm
-                    </Button>
+                    <Fieldset className='w-full'>
+                      <FieldGroup>
+                        <Field>
+                          <Description>
+                            Please leave a review and rating for the worker. This will help others to understand the quality of work.
+                          </Description>
+                          <Textarea
+                            rows={4}
+                            value={review}
+                            onChange={(e) => setReview(e.target.value)}
+                            placeholder='Review (optional)'
+                            className='mt-5'
+                          />
+                        </Field>
+                        <Field>
+                          <Listbox value={rating} onChange={setRating} className='mt-5'>
+                            <ListboxOption value={5}>
+                              <ListboxLabel>5 stars - No issues</ListboxLabel>
+                            </ListboxOption>
+                            <ListboxOption value={4}>
+                              <ListboxLabel>4 stars - Minor issues</ListboxLabel>
+                            </ListboxOption>
+                            <ListboxOption value={3}>
+                              <ListboxLabel>3 stars - Lot&apos;s of issues</ListboxLabel>
+                            </ListboxOption>
+                            <ListboxOption value={2}>
+                              <ListboxLabel>2 stars - Severe problems</ListboxLabel>
+                            </ListboxOption>
+                            <ListboxOption value={1}>
+                              <ListboxLabel>1 stars - Malicious or criminal</ListboxLabel>
+                            </ListboxOption>
+                            <ListboxOption value={0}>
+                              <ListboxLabel>Abstain from rating</ListboxLabel>
+                            </ListboxOption>
+                          </Listbox>
+                        </Field>
+                      </FieldGroup>
+                      <Button disabled={buttonDisabled} onClick={buttonClick} className="mt-5">
+                        <CheckIcon
+                          className='-ml-0.5 mr-1.5 h-5 w-5'
+                          aria-hidden='true'
+                        />
+                        Confirm
+                      </Button>
+                    </Fieldset>
                   </div>
                 </Dialog.Panel>
               </Transition.Child>
