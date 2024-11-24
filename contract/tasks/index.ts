@@ -725,25 +725,44 @@ task("job:start", "Start job / pick applicant")
 task("job:message", "Post a message in a job thread")
 .addParam("jobid", "Job ID")
 .addParam("message", "Message")
-.setAction(async ({ jobid, message }, hre) => {
+.addOptionalParam("worker", "Worker address (set if you are the owner, if you are a worker leave unset)")
+.setAction(async ({ jobid, message, worker }, hre) => {
   const marketplace = await getMarketplace(hre);
   const marketplaceData = await getMarketplaceData(hre);
 
   const job = await marketplace.jobs(jobid);
-  const owner = job.jobRoles.owner;
+  if (! job) {
+    console.log("Job not found");
+    process.exit(1);
+  }
+
   const accounts = await hre.ethers.getSigners();
-  const worker = accounts[0];
-  const workerSessionKey = await getSessionKey(worker, await marketplaceData.publicKeys(owner.address), jobid);
+  if (! worker) {
+    const owner = job[2][0]; // job.jobRoles.owner
+    const worker = accounts[0];
+    const sessionKey = await getSessionKey(worker, await marketplaceData.publicKeys(owner), jobid);
 
-  const { hash } = await publishToIpfs(message, workerSessionKey);
+    const { hash } = await publishToIpfs(message, sessionKey);
 
-  const tx = await marketplace.postThreadMessage(jobid, hash, owner.address);
-  const receipt = await tx.wait();
+    const tx = await marketplace.postThreadMessage(jobid, hash, owner);
+    const receipt = await tx.wait();
+    console.log("Transaction hash:", receipt.hash);
+  } else {
+    const owner = job[2][0]; // job.jobRoles.owner
+    const creator = accounts[0];
+    if (owner !== creator.address) {
+      console.log("You are not the owner of this job");
+      process.exit(1);
+    }
+    const sessionKey = await getSessionKey(creator, await marketplaceData.publicKeys(worker), jobid);
 
-  console.log("Transaction hash:", receipt.hash);
+    const { hash } = await publishToIpfs(message, sessionKey);
+
+    const tx = await marketplace.postThreadMessage(jobid, hash, worker);
+    const receipt = await tx.wait();
+    console.log("Transaction hash:", receipt.hash);
+  }
 });
-
-
 
 task("job:close", "Close a job post")
 .addParam("jobid", "Job ID")
