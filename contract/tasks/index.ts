@@ -870,8 +870,8 @@ task("job:deliver", "Provide job result / deliverable")
 
 task("job:approve", "Approve a job result")
 .addParam("jobid", "Job ID")
-.addParam("rating", "Rating 1-5 score of the worker. Set to 0 for no review")
-.addParam("review", "Review text")
+.addOptionalParam("rating", "Rating 1-5 score of the worker. Set to 0 for no review", '0')
+.addOptionalParam("review", "Review text", "")
 .setAction(async ({ jobid, rating, review }, hre) => {
   const marketplace = await getMarketplace(hre);
 
