@@ -425,12 +425,10 @@ task("arbitrator:update", "Update arbitrator")
 
 task("arbitrator:refuse", "Refuse arbitration")
 .addParam("jobid", "Job ID")
-.setAction(async ({ jobId }, hre) => {
+.setAction(async ({ jobid }, hre) => {
   const marketplace = await getMarketplace(hre);
-  const arbitrator = await getUserAddress(hre);
 
-  const tx = await marketplace.refuseArbitration(BigInt(jobId));
-
+  const tx = await marketplace.refuseArbitration(jobid);
   const receipt = await tx.wait();
 
   console.log("Transaction hash:", receipt.transactionHash);
@@ -446,9 +444,6 @@ task("arbitrator:arbitrate", "Arbitrate a job")
   const marketplaceData = await getMarketplaceData(hre);
 
   // TODO encrypt reason
-  // const otherCompressedPublicKey = await marketplaceData.connect(user1).publicKeys(user2.address);
-  // const sessionKey = await getSessionKey(user1, otherCompressedPublicKey, jobId);
-  // ...
   throw new Error("Not implemented");
 
 
