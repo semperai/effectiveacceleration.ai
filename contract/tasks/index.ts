@@ -437,20 +437,21 @@ task("arbitrator:refuse", "Refuse arbitration")
 
 task("arbitrator:arbitrate", "Arbitrate a job")
 .addParam("jobid", "Job ID")
-.addParam("ownerShare", "Buyer share in bips")
-.addParam("workerShare", "Worker share in bips")
+.addParam("owner", "Buyer share in bips")
+.addParam("worker", "Worker share in bips")
 .addParam("reason", "Reason")
-.setAction(async ({ jobId, ownerShare, workerShare, reason }, hre) => {
+.setAction(async ({ jobid, owner, worker, reason }, hre) => {
   const marketplace = await getMarketplace(hre);
   const marketplaceData = await getMarketplaceData(hre);
 
-  // TODO encrypt reason
+  // TODO get the encrypted session key from the job
+  // decrypt it with the arbitrator private key
+  // then use it to encrypt the reason
+
   throw new Error("Not implemented");
 
-
-
   const reasonHash = (await publishToIpfs(reason)).hash;
-  const tx = await marketplace.arbitrate(BigInt(jobId), ownerShare, workerShare, reasonHash);
+  const tx = await marketplace.arbitrate(jobid, owner, worker, reasonHash);
   const receipt = await tx.wait();
   console.log("Transaction hash:", receipt.hash);
 });
