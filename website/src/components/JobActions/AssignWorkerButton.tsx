@@ -138,7 +138,7 @@ export function AssignWorkerButton({
                     </span>
                     <span>
                       <b>Max Time:</b>{' '}
-                      {moment.duration(job?.maxTime, 'days').humanize()}{' '}
+                      {moment.duration(job?.maxTime, 'seconds').humanize()}{' '}
                     </span>
                     <span>
                       <b>Amount:</b>{' '}
