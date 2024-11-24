@@ -346,9 +346,9 @@ task("marketplace:seed", "Seed local marketplace instance")
     const sessionKeyOA = await getSessionKey(owner, (await marketplaceData.connect(owner).arbitrators(arbitrator.address)).publicKey, jobId);
 
     const encryptedContent = hexlify(encryptUtf8Data(disputeContent, sessionKeyOA));
-    const encrypedSessionKey = hexlify(encryptBinaryData(getBytes(sessionKeyOW), sessionKeyOA));
+    const encryptedSessionKey = hexlify(encryptBinaryData(getBytes(sessionKeyOW), sessionKeyOA));
 
-    await marketplace.connect(owner).dispute(jobId, encrypedSessionKey, encryptedContent);
+    await marketplace.connect(owner).dispute(jobId, encryptedSessionKey, encryptedContent);
 
     // arbitrator arbitrates
     const creatorShare = 0.8 * 100 * 100;
@@ -600,7 +600,7 @@ task("job:publish", "Publish a job post")
     });
     if (! ok) {
       console.log("Aborted");
-      process.exit(1);
+      process.exit(0);
     }
     const tx = await tokenContract.approve(await marketplace.getAddress(), hre.ethers.MaxUint256);
     const receipt = await tx.wait();
@@ -689,7 +689,7 @@ task("job:update", "Update a job post")
     });
     if (! ok) {
       console.log("Aborted");
-      process.exit(1);
+      process.exit(0);
     }
     const tx = await tokenContract.approve(await marketplace.getAddress(), hre.ethers.MaxUint256);
     const receipt = await tx.wait();
@@ -738,14 +738,67 @@ task("job:whitelist", "Update a job post whitelist")
 
 task("job:start", "Start job / pick applicant")
 .addParam("jobid", "Job ID")
-.addParam("worker", "Worker address")
+.addOptionalParam("worker", "Worker address")
 .setAction(async ({ jobid, worker }, hre) => {
   const marketplace = await getMarketplace(hre);
+  const marketplaceData = await getMarketplaceData(hre);
 
-  const tx = await marketplace.payStartJob(jobid, worker);
-  const receipt = await tx.wait();
+  if (worker) {
+    console.log("Starting job with worker", worker);
+    const tx = await marketplace.payStartJob(jobid, worker);
+    const receipt = await tx.wait();
 
-  console.log("Transaction hash:", receipt.hash);
+    console.log("Transaction hash:", receipt.hash);
+  } else {
+    const accounts = await hre.ethers.getSigners();
+    const user = accounts[0];
+    console.log("Taking job as worker", user.address);
+
+    const revision = await marketplaceData.eventsLength(jobid);
+
+    const job = await marketplace.jobs(jobid);
+    const token = job[7];
+    const tokenContract = await hre.ethers.getContractAt("FakeToken", token);
+    const decimals = await tokenContract.decimals();
+    const amount = job[6]; // job.amount
+    const amountHuman = hre.ethers.formatUnits(amount, decimals);
+    const deadline = job[8]; // job.deadline
+    const arbitrator = job[2][1]; // job.jobRoles.arbitrator
+
+    const title = job[3]; // job.title
+    const cid = hashToCid(job[4]);
+    const content = await getFromIpfs(cid);
+
+    console.log("Job ID:", jobid);
+    console.log("Title:", title);
+    console.log("Content:", content);
+    console.log("Token:", token);
+    console.log("Amount:", amountHuman);
+    console.log("Deadline:", deadline.toString());
+    console.log("Arbitrator:", arbitrator); // job.arbitrator
+
+    const ok = await yesno({
+      question: "Do you want to take this job?",
+    });
+
+    if (! ok) {
+      process.exit(0);
+    }
+
+    const revisionCmp = await marketplaceData.eventsLength(jobid);
+
+    if (revision !== revisionCmp) {
+      console.log("Job has been updated, please try again");
+      process.exit(1);
+    }
+
+    const signature = await user.signMessage(getBytes(keccak256(AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobid]))));
+
+    const tx = await marketplace.takeJob(jobid, signature);
+    const receipt = await tx.wait();
+
+    console.log("Transaction hash:", receipt.hash);
+  }
 });
 
 task("job:message", "Post a message in a job thread")
