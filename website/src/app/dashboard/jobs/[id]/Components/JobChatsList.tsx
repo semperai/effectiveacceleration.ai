@@ -50,7 +50,7 @@ const JobChatsList = ({
               <div className='items-left flex flex-[4] flex-col'>
                 <span>{value.name}</span>
                 <p className='... max-w-56 truncate text-sm text-darkBlueFont'>
-                  {value.bio ? value.bio : 'Unregistered Account'}
+                  {value.bio}
                 </p>
               </div>
               <div className='flex flex-1'>
