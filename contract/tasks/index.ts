@@ -16,6 +16,8 @@ import {
   encryptBinaryData,
   hashToCid,
 } from '../src/utils/encryption';
+import { decodeCustomJobEvent } from '../src/utils/decodeEvents';
+import { JobEventType, jobEventTypeToString } from '../src/interfaces';
 import "@nomicfoundation/hardhat-ethers";
 import { base58 } from '@scure/base';
 
@@ -463,62 +465,52 @@ task("arbitrator:decode", "Decode encrypted data")
 .setAction(async ({ jobid }, hre) => {
   const marketplaceData = await getMarketplaceData(hre);
 
-  const jobEventTypes = [
-    'Created',
-    'Taken',
-    'Paid',
-    'Updated',
-    'Signed',
-    'Completed',
-    'Delivered',
-    'Closed',
-    'Reopened',
-    'Rated',
-    'Refunded',
-    'Disputed',
-    'Arbitrated',
-    'ArbitrationRefused',
-    'WhitelistedWorkerAdded',
-    'WhitelistedWorkerRemoved',
-    'CollateralWithdrawn',
-    'WorkerMessage',
-    'OwnerMessage',
-  ];
-
   const events = await marketplaceData.getEvents(jobid, 0, 0);
   for (let data of events) {
-    const eventType = jobEventTypes[data[0]];
-    const eventAddress = data[1];
-    const eventData = data[2];
+    const eventType      = Number(data[0]);
+    const eventAddress   = data[1];
+    const eventData      = data[2];
     const eventTimestamp = data[3];
 
-    console.log(`${eventAddress} [${eventType}] ${eventTimestamp}`);
+    const bytes = getBytes(eventData);
+    const decoded = decodeCustomJobEvent(eventType, bytes) as any;
 
-    let bytes = getBytes(eventData);
+    const json = JSON.stringify(decoded, (key, value) =>
+      typeof value === 'bigint' ? value.toString() + 'n' : value);
+
+    console.log(`[${jobEventTypeToString(eventType)}] ${eventTimestamp} ${eventAddress}`);
+    console.log(json);
+
     switch (eventType) {
-      case 'Created':
-        let offset = 0;
-        let len = bytes[0];
-        offset += 1;
-
-        const title = hre.ethers.toUtf8String(bytes.slice(offset, len + offset));
-        offset += len;
-
-        const contentHash = hre.ethers.hexlify(bytes.slice(offset, offset + 32));
-        offset += 32;
-
-        const cid = hashToCid(contentHash);
+      case JobEventType.Created: {
+        const cid = hashToCid(decoded.contentHash);
         const content = await getFromIpfs(cid);
-
-        console.log(title);
-        console.log(cid);
         console.log(content);
-
         break;
+      }
+      case JobEventType.Updated: {
+        const cid = hashToCid(decoded.contentHash);
+        const content = await getFromIpfs(cid);
+        console.log(content);
+        break;
+      }
+      case JobEventType.WorkerMessage: {
+        const cid = hashToCid(decoded.contentHash);
+        const content = await getFromIpfs(cid);
+        console.log(content);
+        break;
+      }
+      case JobEventType.OwnerMessage: {
+        const cid = hashToCid(decoded.contentHash);
+        const content = await getFromIpfs(cid);
+        console.log(content);
+        break;
+      }
       default:
-        console.log(bytes);
         break;
     }
+
+    console.log("");
   }
 });
 
@@ -779,6 +771,56 @@ task("job:dispute", "Raise a dispute on a job")
   const encrypedSessionKey = hexlify(encryptBinaryData(getBytes(sessionKeyOW), sessionKeyOA));
 
   const tx = await marketplace.dispute(jobid, encrypedSessionKey, encryptedContent);
+  const receipt = await tx.wait();
+
+  console.log("Transaction hash:", receipt.transactionHash);
+});
+
+task("job:deliver", "Provide job result / deliverable")
+.addParam("jobid", "Job ID")
+.addParam("result", "Result (uploaded to ipfs)")
+.setAction(async ({ jobid, result }, hre) => {
+  const marketplace = await getMarketplace(hre);
+
+  const { hash } = await publishToIpfs(result);
+  const tx = await marketplace.deliverResult(jobid, hash);
+  const receipt = await tx.wait();
+
+  console.log("Transaction hash:", receipt.transactionHash);
+});
+
+task("job:approve", "Approve a job result")
+.addParam("jobid", "Job ID")
+.addParam("rating", "Rating 1-5 score of the worker. Set to 0 for no review")
+.addParam("review", "Review text")
+.setAction(async ({ jobid, rating, review }, hre) => {
+  const marketplace = await getMarketplace(hre);
+
+  const tx = await marketplace.approveResult(jobid, rating, review);
+  const receipt = await tx.wait();
+
+  console.log("Transaction hash:", receipt.transactionHash);
+});
+
+task("job:review", "Review job creator")
+.addParam("jobid", "Job ID")
+.addParam("rating", "Rating 1-5 score of the creator. Set to 0 for no review")
+.addParam("review", "Review text")
+.setAction(async ({ jobid, rating, review }, hre) => {
+  const marketplace = await getMarketplace(hre);
+
+  const tx = await marketplace.review(jobid, rating, review);
+  const receipt = await tx.wait();
+
+  console.log("Transaction hash:", receipt.transactionHash);
+});
+
+task("job:refund", "Refund job")
+.addParam("jobid", "Job ID")
+.setAction(async ({ jobid }, hre) => {
+  const marketplace = await getMarketplace(hre);
+
+  const tx = await marketplace.refund(jobid);
   const receipt = await tx.wait();
 
   console.log("Transaction hash:", receipt.transactionHash);
