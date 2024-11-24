@@ -24,17 +24,17 @@ export const tokens: Token[] = [
     decimals: 6,
   },
   {
-    id: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
-    name: 'Wrapped Ether',
-    symbol: 'WETH',
-    icon: 'https://assets.coingecko.com/coins/images/279/standard/ethereum.png',
-    decimals: 18,
-  },
-  {
     id: '0x4a24B101728e07A52053c13FB4dB2BcF490CAbc3',
     name: 'Arbius',
     symbol: 'AIUS',
     icon: 'https://assets.coingecko.com/coins/images/35246/standard/arbius-200x-logo.png',
+    decimals: 18,
+  },
+  {
+    id: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+    name: 'Wrapped Ether',
+    symbol: 'WETH',
+    icon: 'https://assets.coingecko.com/coins/images/279/standard/ethereum.png',
     decimals: 18,
   },
 ];
