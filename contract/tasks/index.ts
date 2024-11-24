@@ -649,41 +649,67 @@ task("job:publish", "Publish a job post")
 
 task("job:update", "Update a job post")
 .addParam("jobid", "Job ID")
-.addParam("title", "Title")
-.addParam("content", "Content")
-.addOptionalParam("tags", "Tags")
+.addParam("title", "Title of job")
+.addParam("content", "Content / job description")
+.addOptionalParam("tags", "Tags (separated by comma)", "")
 .addParam("amount", "Amount of tokens")
-.addParam("maxTime", "Max time in seconds")
-.addOptionalParam("arbitrator", "Arbitrator address")
-.addOptionalParam("whitelist", "Whitelist workers")
+.addParam("deadline", "Max time in seconds", "3600")
+.addOptionalParam("arbitrator", "Arbitrator address", ZeroAddress)
+.addOptionalParam("whitelist", "Whitelist workers (true / false)", "false")
 .setAction(async ({
-  jobId,
+  jobid,
   title,
   content,
   tags,
   amount,
-  maxTime,
+  deadline,
   arbitrator,
   whitelist
 }, hre) => {
   const marketplace = await getMarketplace(hre);
   const owner = await getUserAddress(hre);
   
+  console.log("Updating job post with address", await getUserAddress(hre));
+
+  const job = await marketplace.jobs(jobid);
+  const token = job[7];
+  const tokenContract = await hre.ethers.getContractAt("FakeToken", token);
+  const decimals = await tokenContract.decimals();
+  const amountInWei = hre.ethers.parseUnits(amount, decimals);
+
+  const allowance = await tokenContract.allowance(
+    await getUserAddress(hre),
+    await marketplace.getAddress()
+  );
+
+  if (allowance < amountInWei) {
+    console.log("Insufficient allowance, approving max tokens (y/n)");
+    const ok = await yesno({
+      question: "Are you sure?",
+    });
+    if (! ok) {
+      console.log("Aborted");
+      process.exit(1);
+    }
+    const tx = await tokenContract.approve(await marketplace.getAddress(), hre.ethers.MaxUint256);
+    const receipt = await tx.wait();
+    console.log("Transaction hash:", receipt.hash);
+  }
+
   const contentHash = (await publishToIpfs(content)).hash;
 
-  if (! tags) tags = '';
-  if (! arbitrator) arbitrator = ZeroAddress;
-  if (! whitelist)  whitelist = false;
-  
+  const tagsArray = tags === '' ? ['DO'] : tags.split(',');
+  const whitelistWorkers = whitelist === 'true' ? true : false;
+
   const tx = await marketplace.updateJobPost(
-    BigInt(jobId),
+    BigInt(jobid),
     title,
     contentHash,
-    tags.split(','),
-    BigInt(amount),
-    BigInt(maxTime),
+    tagsArray,
+    amountInWei,
+    BigInt(deadline),
     arbitrator,
-    true,
+    whitelistWorkers,
   );
   
   const receipt = await tx.wait();
