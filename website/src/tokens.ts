@@ -24,13 +24,6 @@ export const tokens: Token[] = [
     decimals: 6,
   },
   {
-    id: Config.fakeTokenAddress,
-    name: 'Test',
-    symbol: 'TTK',
-    icon: 'https://assets.coingecko.com/coins/images/31188/standard/IMG_6480.png',
-    decimals: 18,
-  },
-  {
     id: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
     name: 'Wrapped Ether',
     symbol: 'WETH',
