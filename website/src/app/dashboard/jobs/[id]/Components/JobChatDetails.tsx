@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/Button';
 import { shortenText } from '@/utils/utils';
 import clsx from 'clsx';
@@ -225,8 +226,10 @@ const JobChatDetails = ({
           <div className='my-2 flex justify-between'>
             <span>Arbitrator Address</span>
             <span>
-              {shortenText({ text: job?.roles.arbitrator, maxLength: 12 }) ||
-                ''}
+              <Link href={`/dashboard/arbitrators/${job?.roles.arbitrator}`}>
+                {shortenText({ text: job?.roles.arbitrator, maxLength: 12 }) ||
+                  ''}
+              </Link>
             </span>
           </div>
         </div>
