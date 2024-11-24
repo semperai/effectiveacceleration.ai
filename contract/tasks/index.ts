@@ -20,6 +20,7 @@ import { decodeCustomJobEvent } from '../src/utils/decodeEvents';
 import { JobEventType, jobEventTypeToString } from '../src/interfaces';
 import "@nomicfoundation/hardhat-ethers";
 import { base58 } from '@scure/base';
+import yesno from 'yesno';
 
 
 async function getMarketplace(hre: HardhatRuntimeEnvironment) {
@@ -402,7 +403,7 @@ task("arbitrator:register", "Register as arbitrator")
 
   const receipt = await tx.wait();
 
-  console.log("Transaction hash:", receipt.transactionHash);
+  console.log("Transaction hash:", receipt.hash);
 });
 
 task("arbitrator:update", "Update arbitrator")
@@ -420,7 +421,7 @@ task("arbitrator:update", "Update arbitrator")
 
   const receipt = await tx.wait();
 
-  console.log("Transaction hash:", receipt.transactionHash);
+  console.log("Transaction hash:", receipt.hash);
 });
 
 task("arbitrator:refuse", "Refuse arbitration")
@@ -431,7 +432,7 @@ task("arbitrator:refuse", "Refuse arbitration")
   const tx = await marketplace.refuseArbitration(jobid);
   const receipt = await tx.wait();
 
-  console.log("Transaction hash:", receipt.transactionHash);
+  console.log("Transaction hash:", receipt.hash);
 });
 
 task("arbitrator:arbitrate", "Arbitrate a job")
@@ -451,7 +452,7 @@ task("arbitrator:arbitrate", "Arbitrate a job")
   const reasonHash = (await publishToIpfs(reason)).hash;
   const tx = await marketplace.arbitrate(BigInt(jobId), ownerShare, workerShare, reasonHash);
   const receipt = await tx.wait();
-  console.log("Transaction hash:", receipt.transactionHash);
+  console.log("Transaction hash:", receipt.hash);
 });
 
 task("arbitrator:decode", "Decode encrypted data")
@@ -534,7 +535,7 @@ task("user:register", "Register as user")
 
   const receipt = await tx.wait();
 
-  console.log("Transaction hash:", receipt.transactionHash);
+  console.log("Transaction hash:", receipt.hash);
 });
 
 task("user:update", "Update user")
@@ -552,60 +553,98 @@ task("user:update", "Update user")
 
   const receipt = await tx.wait();
 
-  console.log("Transaction hash:", receipt.transactionHash);
+  console.log("Transaction hash:", receipt.hash);
 });
 
 task("job:publish", "Publish a job post")
-.addParam("title", "Title")
-.addParam("content", "Content")
-.addParam("multipleApplicants", "Allow multiple applicants")
-.addOptionalParam("tags", "Tags")
-.addParam("token", "Token address")
+.addParam("title", "Title of job")
+.addParam("content", "Content / job description")
+.addOptionalParam("lucky", "I'm feeling lucky (allow worker to decide to start immediately)", "false")
+.addOptionalParam("tags", "Tags (separated by comma)", "")
+.addOptionalParam("token", "Token address (default USDC)", "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")
 .addParam("amount", "Amount of tokens")
-.addParam("maxTime", "Max time in seconds")
-.addParam("deliveryMethod", "Delivery method")
-.addOptionalParam("arbitrator", "Arbitrator address")
-.addOptionalParam("whitelist", "Whitelist", "")
+.addParam("deadline", "Max time in seconds", "3600")
+.addOptionalParam("delivery", "Delivery method", "ipfs")
+.addOptionalParam("arbitrator", "Arbitrator address", ZeroAddress)
+.addOptionalParam("whitelist", "Whitelist addresses (separated by comma)", "")
 .setAction(async ({
   title,
   content,
-  multipleApplicants,
+  lucky,
   tags,
   token,
   amount,
-  maxTime,
-  deliveryMethod,
+  deadline,
+  delivery,
   arbitrator,
   whitelist
 }, hre) => {
   const marketplace = await getMarketplace(hre);
-  const owner = await getUserAddress(hre);
-  
-  const contentHash = (await publishToIpfs(content)).hash;
+  const marketplaceData = await getMarketplaceData(hre);
 
-  if (! tags) tags = '';
-  if (! arbitrator) arbitrator = ZeroAddress;
-  if (! whitelist)  whitelist = false;
-  
+  console.log("Publishing job post with address", await getUserAddress(hre));
+
+  const tokenContract = await hre.ethers.getContractAt("FakeToken", token);
+  const decimals = await tokenContract.decimals();
+  const amountInWei = hre.ethers.parseUnits(amount, decimals);
+
+  const allowance = await tokenContract.allowance(
+    await getUserAddress(hre),
+    await marketplace.getAddress()
+  );
+
+  if (allowance < amountInWei) {
+    console.log("Insufficient allowance, approving max tokens (y/n)");
+    const ok = await yesno({
+      question: "Are you sure?",
+    });
+    if (! ok) {
+      console.log("Aborted");
+      process.exit(1);
+    }
+    const tx = await tokenContract.approve(await marketplace.getAddress(), hre.ethers.MaxUint256);
+    const receipt = await tx.wait();
+    console.log("Transaction hash:", receipt.hash);
+  }
+
+  const contentHash = (await publishToIpfs(content)).hash;
+  console.log("Content hash:", contentHash);
+
+  // if lucky is true, multiple applicants is false
+  const multipleApplicants = lucky === 'true' ? false : true;
+
+  const tagsArray = tags === '' ? ['DO'] : tags.split(',');
+  const whitelistArray = whitelist === '' ? [] : whitelist.split(',');
+
   const tx = await marketplace.publishJobPost(
     title,
     contentHash,
-    multipleApplicants === 'true',
-    tags.split(','),
+    multipleApplicants,
+    tagsArray,
     token,
-    BigInt(amount),
-    BigInt(maxTime),
-    deliveryMethod,
+    amountInWei,
+    BigInt(deadline),
+    delivery,
     arbitrator,
-    whitelist.split(','),
+    whitelistArray,
   );
-  
-  const receipt = await tx.wait();
-  
-  console.log("Transaction hash:", receipt.transactionHash);
 
-  const jobId = await marketplace.jobCount();
-  console.log("Job ID:", jobId);
+  const receipt = await tx.wait();
+
+  console.log("Transaction hash:", receipt.hash);
+
+  for (let log of receipt.logs) {
+    const parsed1 = marketplace.interface.parseLog(log);
+    const parsed2 = marketplaceData.interface.parseLog(log);
+
+    const parsed = parsed1 || parsed2;
+    if (! parsed) continue;
+
+    if (parsed.name === 'JobEvent') {
+      const jobId = parsed.args.jobId.toString();
+      console.log("Job ID:", jobId);
+    }
+  }
 });
 
 task("job:update", "Update a job post")
@@ -649,7 +688,7 @@ task("job:update", "Update a job post")
   
   const receipt = await tx.wait();
   
-  console.log("Transaction hash:", receipt.transactionHash);
+  console.log("Transaction hash:", receipt.hash);
 });
 
 task("job:whitelist", "Update a job post whitelist")
@@ -668,7 +707,7 @@ task("job:whitelist", "Update a job post whitelist")
 
   const receipt = await tx.wait();
   
-  console.log("Transaction hash:", receipt.transactionHash);
+  console.log("Transaction hash:", receipt.hash);
 });
 
 task("job:start", "Start job / pick applicant")
@@ -680,7 +719,7 @@ task("job:start", "Start job / pick applicant")
   const tx = await marketplace.payStartJob(jobid, worker);
   const receipt = await tx.wait();
 
-  console.log("Transaction hash:", receipt.transactionHash);
+  console.log("Transaction hash:", receipt.hash);
 });
 
 task("job:message", "Post a message in a job thread")
@@ -701,7 +740,7 @@ task("job:message", "Post a message in a job thread")
   const tx = await marketplace.postThreadMessage(jobid, hash, owner.address);
   const receipt = await tx.wait();
 
-  console.log("Transaction hash:", receipt.transactionHash);
+  console.log("Transaction hash:", receipt.hash);
 });
 
 
@@ -716,7 +755,7 @@ task("job:close", "Close a job post")
 
   const receipt = await tx.wait();
   
-  console.log("Transaction hash:", receipt.transactionHash);
+  console.log("Transaction hash:", receipt.hash);
 });
 
 task("job:withdraw", "Withdraw job collateral")
@@ -729,7 +768,7 @@ task("job:withdraw", "Withdraw job collateral")
 
   const receipt = await tx.wait();
   
-  console.log("Transaction hash:", receipt.transactionHash);
+  console.log("Transaction hash:", receipt.hash);
 });
 
 task("job:reopen", "Reopen a job post")
@@ -742,7 +781,7 @@ task("job:reopen", "Reopen a job post")
 
   const receipt = await tx.wait();
   
-  console.log("Transaction hash:", receipt.transactionHash);
+  console.log("Transaction hash:", receipt.hash);
 });
 
 task("job:dispute", "Raise a dispute on a job")
@@ -768,7 +807,7 @@ task("job:dispute", "Raise a dispute on a job")
   const tx = await marketplace.dispute(jobid, encrypedSessionKey, encryptedContent);
   const receipt = await tx.wait();
 
-  console.log("Transaction hash:", receipt.transactionHash);
+  console.log("Transaction hash:", receipt.hash);
 });
 
 task("job:deliver", "Provide job result / deliverable")
@@ -781,7 +820,7 @@ task("job:deliver", "Provide job result / deliverable")
   const tx = await marketplace.deliverResult(jobid, hash);
   const receipt = await tx.wait();
 
-  console.log("Transaction hash:", receipt.transactionHash);
+  console.log("Transaction hash:", receipt.hash);
 });
 
 task("job:approve", "Approve a job result")
@@ -794,7 +833,7 @@ task("job:approve", "Approve a job result")
   const tx = await marketplace.approveResult(jobid, rating, review);
   const receipt = await tx.wait();
 
-  console.log("Transaction hash:", receipt.transactionHash);
+  console.log("Transaction hash:", receipt.hash);
 });
 
 task("job:review", "Review job creator")
@@ -807,7 +846,7 @@ task("job:review", "Review job creator")
   const tx = await marketplace.review(jobid, rating, review);
   const receipt = await tx.wait();
 
-  console.log("Transaction hash:", receipt.transactionHash);
+  console.log("Transaction hash:", receipt.hash);
 });
 
 task("job:refund", "Refund job")
@@ -818,5 +857,5 @@ task("job:refund", "Refund job")
   const tx = await marketplace.refund(jobid);
   const receipt = await tx.wait();
 
-  console.log("Transaction hash:", receipt.transactionHash);
+  console.log("Transaction hash:", receipt.hash);
 });
