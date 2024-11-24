@@ -23,8 +23,9 @@ export function ArbitrateButton({
   sessionKeys,
   ...rest
 }: ArbitrateButtonProps & React.ComponentPropsWithoutRef<'div'>) {
-  const [ownerShare, setOwnerShare] = useState<number>(0);
-  const [workerShare, setWorkerShare] = useState<number>(0);
+  const [sharesSlider, setSharesSlider] = useState<number>(0.5);
+  const [ownerShare, setOwnerShare] = useState<number>(5000);
+  const [workerShare, setWorkerShare] = useState<number>(5000);
   const [message, setMessage] = useState<string>('');
   const { data: hash, error, writeContract } = useWriteContract();
 
@@ -62,8 +63,8 @@ export function ArbitrateButton({
       alert('Empty message');
       return;
     }
-    if (workerShare + ownerShare !== 100) {
-      alert('Shares must sum to 100');
+    if (workerShare + ownerShare !== 10000) {
+      alert('Shares must sum to 10000');
       return;
     }
 
@@ -78,8 +79,8 @@ export function ArbitrateButton({
       functionName: 'arbitrate',
       args: [
         job.id!,
-        ownerShare * 100,
-        workerShare * 100,
+        ownerShare,
+        workerShare,
         contentHash as `0x${string}`,
       ],
     });
@@ -140,10 +141,44 @@ export function ArbitrateButton({
                   </Dialog.Title>
                   <div className='mb-3 mt-5 flex flex-col gap-5'>
                     <Field>
+                      <Label>Shares owner / worker</Label>
+                      <label className="block mb-2 text-sm font-medium text-gray-900">Shares owner / worker</label>
+                      <input
+                        type="range"
+                        value={sharesSlider}
+                        min="0"
+                        max="1"
+                        step="0.00001"
+                        className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer range-lg"
+                        onChange={(e) => {
+                          const v = Number(e.target.value);
+                          const ownerShare = Math.floor(v * 10000);
+
+                          setOwnerShare(ownerShare);
+                          setWorkerShare(10000 - ownerShare);
+
+                          setSharesSlider(v);
+                        }}
+                      />
+                    </Field>
+
+                    <Field>
                       <Label>Creator share</Label>
                       <Input
                         value={ownerShare}
-                        onChange={(e) => setOwnerShare(Number(e.target.value))}
+                        type='number'
+                        min='0'
+                        max='10000'
+                        step='1'
+                        onChange={(e) => {
+                          const v = Number(e.target.value);
+                          const ownerShare = Math.floor(v);
+
+                          setOwnerShare(ownerShare);
+                          setWorkerShare(10000 - ownerShare);
+
+                          setSharesSlider(v / 10000);
+                        }}
                         placeholder='Owner Share %'
                       />
                     </Field>
@@ -151,7 +186,20 @@ export function ArbitrateButton({
                       <Label>Worker share</Label>
                       <Input
                         value={workerShare}
-                        onChange={(e) => setWorkerShare(Number(e.target.value))}
+                        type='number'
+                        min='0'
+                        max='10000'
+                        step='1'
+                        onChange={(e) => {
+                          const v = Number(e.target.value);
+                          const workerShare = Math.floor(v);
+                          const ownerShare = 10000 - workerShare;
+
+                          setWorkerShare(workerShare);
+                          setOwnerShare(ownerShare);
+
+                          setSharesSlider(ownerShare / 10000);
+                        }}
                         placeholder='Worker Share %'
                       />
                     </Field>
