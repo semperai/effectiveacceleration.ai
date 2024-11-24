@@ -153,7 +153,6 @@ export function AssignWorkerButton({
                     <span>
                       <b>Tags:</b>{' '}
                       {job?.tags
-                        .slice(1)
                         .map((value, index) => (
                           <span key={index}>{value}</span>
                         ))}
