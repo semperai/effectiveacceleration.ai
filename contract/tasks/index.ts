@@ -890,22 +890,49 @@ task("job:dispute", "Raise a dispute on a job")
   const marketplaceData = await getMarketplaceData(hre);
 
   const accounts = await hre.ethers.getSigners();
-  const owner = accounts[0];
+  const user = accounts[0];
 
   const job = await marketplace.jobs(jobid);
-  const worker = job.jobRoles.worker;
-  const arbitrator = job.arbitrator;
+  const owner = job[2][0]; // job.jobRoles.owner
+  const arbitrator = job[2][1]; // job.jobRoles.arbitrator
+  const worker = job[2][2]; // job.jobRoles.worker
 
-  const sessionKeyOW = await getSessionKey(owner, await marketplaceData.publicKeys(worker.address), jobid);
-  const sessionKeyOA = await getSessionKey(owner, (await marketplaceData.arbitrators(arbitrator.address)).publicKey, jobid);
+  if (arbitrator === ZeroAddress) {
+    console.log("No arbitrator set for this job");
+    process.exit(1);
+  }
 
-  const encryptedContent = hexlify(encryptUtf8Data(message, sessionKeyOA));
-  const encrypedSessionKey = hexlify(encryptBinaryData(getBytes(sessionKeyOW), sessionKeyOA));
+  if (user.address === owner) {
+    console.log("Owner raising dispute");
 
-  const tx = await marketplace.dispute(jobid, encrypedSessionKey, encryptedContent);
-  const receipt = await tx.wait();
+    const disputeContent = message;
+    const sessionKeyOW = await getSessionKey(user, await marketplaceData.publicKeys(worker), jobid);
+    const sessionKeyOA = await getSessionKey(user, (await marketplaceData.arbitrators(arbitrator)).publicKey, jobid);
 
-  console.log("Transaction hash:", receipt.hash);
+    const encryptedContent = hexlify(encryptUtf8Data(disputeContent, sessionKeyOA));
+    const encryptedSessionKey = hexlify(encryptBinaryData(getBytes(sessionKeyOW), sessionKeyOA));
+
+    const tx = await marketplace.dispute(jobid, encryptedSessionKey, encryptedContent);
+    const receipt = await tx.wait();
+
+    console.log("Transaction hash:", receipt.hash);
+  } else if (user.address === worker) {
+    console.log("Worker raising dispute");
+
+    const sessionKeyWO = await getSessionKey(user, await marketplaceData.publicKeys(owner), jobid);
+    const sessionKeyWA = await getSessionKey(user, (await marketplaceData.arbitrators(arbitrator)).publicKey, jobid);
+
+    const encryptedContent = hexlify(encryptUtf8Data(message, sessionKeyWA));
+    const encryptedSessionKey = hexlify(encryptBinaryData(getBytes(sessionKeyWO), sessionKeyWA));
+
+    const tx = await marketplace.dispute(jobid, encryptedSessionKey, encryptedContent);
+    const receipt = await tx.wait();
+
+    console.log("Transaction hash:", receipt.hash);
+  } else {
+    console.log("You are not the owner or worker of this job");
+    process.exit(1);
+  }
 });
 
 task("job:deliver", "Provide job result / deliverable")
