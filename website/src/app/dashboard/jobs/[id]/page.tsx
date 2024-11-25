@@ -12,7 +12,9 @@ import { shortenText } from '@/utils/utils';
 import { clsx } from 'clsx';
 import {
   Job,
+  JobEventType,
   JobMessageEvent,
+  JobArbitratedEvent,
   JobState,
 } from 'effectiveacceleration-contracts';
 import { useParams } from 'next/navigation';
@@ -162,13 +164,12 @@ export default function JobPage() {
           events.filter(
             (event) =>
               event.address_ === selectedWorker.toLowerCase() ||
-              (event.details as JobMessageEvent)?.recipientAddress ===
-                selectedWorker
+              (event.details as JobMessageEvent)?.recipientAddress === selectedWorker ||
+              (event.details as JobArbitratedEvent)?.workerAddress === selectedWorker 
           )
         )
       : setEventMessages(events);
   }, [events, selectedWorker]);
-
   // TODO - this should be centered
   if (isLoadingError) {
     return (
