@@ -12,6 +12,8 @@ Effective Acceleration is a monorepo:
 
 - **/docs** frontend you see on docs.arbius.ai
 
+- **/ipfs-service** backend service for storing and retrieving files on IPFS
+
 ## Documentation
 
 View the full documentation at https://docs.effectiveacceleration.ai/
