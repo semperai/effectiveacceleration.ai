@@ -77,7 +77,7 @@ export function UpdateButton({
   const [maxJobTimeError, setMaxJobTimeError] = useState('');
   const [tags, setTags] = useState<string[]>(job.tags.slice(1));
   const [amount, setAmount] = useState<string>(
-    formatUnits(job.amount, tokensMap[job.token].decimals)
+    formatUnits(job.amount, tokensMap[job.token]?.decimals)
   );
   const [maxTime, setMaxTime] = useState<number>(0);
   const [selectedCategory, setSelectedCategory] = useState<{
@@ -185,7 +185,7 @@ export function UpdateButton({
     if (!titleValidationMessage && !tagsValidationMessage && !amountValidationMessage && !maxJobTimeValidationMessage && !descriptionValidationMessage) {
       const { hash: contentHash } = await publishToIpfs(content);
       const tokenDecimals = tokensMap[job.token]?.decimals;
-      const rawAmount = parseUnits(amount, tokensMap[job.token].decimals);
+      const rawAmount = parseUnits(amount, tokensMap[job.token]?.decimals);
       // Proceed with form submission
       console.log('Form is valid');
       const deadlineInSeconds = maxTime ? convertToSeconds(maxTime, selectedUnitTime.name) : 0;
@@ -353,7 +353,7 @@ export function UpdateButton({
                           alt=''
                           className='mr-1 h-[2em] w-auto flex-none'
                         />
-                        <span>{tokensMap[job.token].symbol}</span>
+                        <span>{tokensMap[job.token]?.symbol}</span>
                       </div>
                       {amountError && (
                         <div className='text-xs' style={{ color: 'red' }}>
