@@ -14,12 +14,12 @@ const EventProfileImage = ({ user }: { user: User | Arbitrator }) => {
 
   return (
     <>
-      {isImgValid && user?.avatar ? (
+      {isImgValid && user.avatar !== ' ' && user.avatar ? (
         <div className='relative flex h-10 w-10 items-center overflow-hidden rounded-full bg-primary p-2 align-middle'>
           <Image
             className='h-full w-full object-cover'
             fill
-            src={user.avatar as string | StaticImport}
+            src={user?.avatar as string | StaticImport}
             alt={'Profile picture'}
             onError={handleImageError}
           />
@@ -29,11 +29,6 @@ const EventProfileImage = ({ user }: { user: User | Arbitrator }) => {
           {user?.name && user?.name[0].toUpperCase()}
         </span>
       )}
-      {/* <img
-        className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-400 ring-8 ring-white"
-        src={user?.avatar}
-        alt=""
-      /> */}
     </>
   );
 };
