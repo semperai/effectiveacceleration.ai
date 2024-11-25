@@ -1,14 +1,13 @@
-import { useState, useEffect } from 'react';
+import ERC20Abi from '@/abis/ERC20.json';
+import { Button } from '@/components/Button';
+import { ethers } from 'ethers';
+import { useState } from 'react';
 import {
   useAccount,
   useReadContract,
-  useWriteContract,
   useWaitForTransactionReceipt,
+  useWriteContract,
 } from 'wagmi';
-import { ethers } from 'ethers';
-import Config from 'effectiveacceleration-contracts/scripts/config.json';
-import ERC20Abi from '@/abis/ERC20.json';
-import { Button } from '@/components/Button';
 
 export function ApproveButton({
   token,

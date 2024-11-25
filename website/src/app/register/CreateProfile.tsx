@@ -3,21 +3,18 @@ import { Button } from '@/components/Button';
 import { Field, FieldGroup, Label } from '@/components/Fieldset';
 import { Input } from '@/components/Input';
 import { Textarea } from '@/components/Textarea';
+import UploadAvatar from '@/components/UploadAvatar';
+import useUser from '@/hooks/useUser';
+import Config from 'effectiveacceleration-contracts/scripts/config.json';
+import { MARKETPLACE_DATA_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceDataV1';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react';
-import { BsPersonPlus } from 'react-icons/bs';
 import {
   useAccount,
   useWaitForTransactionReceipt,
   useWriteContract,
 } from 'wagmi';
-import { MARKETPLACE_DATA_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceDataV1';
-import Config from 'effectiveacceleration-contracts/scripts/config.json';
-import { useSearchParams } from 'next/navigation';
-import { UserButton } from '@/components/UserActions/UserButton';
-import useUser from '@/hooks/useUser';
-import { useRouter } from 'next/navigation';
-import UploadAvatar from '@/components/UploadAvatar';
 import { PostJobParams } from '../dashboard/post-job/PostJobPage';
 
 const ipfsGatewayUrl = process.env.NEXT_PUBLIC_IPFS_GATEWAY_URL ?? '';
@@ -27,7 +24,6 @@ const CreateProfile = ({
 }: {
   encryptionPublicKey: `0x${string}`;
 }) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [avatar, setAvatar] = useState<string | undefined>('');
   const [avatarFileUrl, setAvatarFileUrl] = useState<string | undefined>('');
   const [userName, setName] = useState<string>('');

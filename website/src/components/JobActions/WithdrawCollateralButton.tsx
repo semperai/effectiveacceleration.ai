@@ -1,8 +1,7 @@
 import { Button } from '@/components/Button';
-import { CheckIcon } from '@heroicons/react/20/solid';
 import { Job } from 'effectiveacceleration-contracts';
-import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
 import Config from 'effectiveacceleration-contracts/scripts/config.json';
+import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
 import { useEffect, useState } from 'react';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 
@@ -18,7 +17,7 @@ export function WithdrawCollateralButton({
 }: WithdrawCollateralButtonProps & React.ComponentPropsWithoutRef<'div'>) {
   const { data: hash, error, writeContract } = useWriteContract();
 
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+  const { isSuccess: isConfirmed } =
     useWaitForTransactionReceipt({
       hash,
     });

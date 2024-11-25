@@ -1,7 +1,6 @@
-import { Input } from '@/components/Input';
 import { Tag } from '@/service/FormsTypes';
 import clsx from 'clsx';
-import React, { useState, KeyboardEvent } from 'react';
+import React, { KeyboardEvent, useState } from 'react';
 import { IoIosClose } from 'react-icons/io';
 
 const TagsInput: React.FC<{ tags: Tag[]; setTags: (tags: Tag[]) => void }> = ({

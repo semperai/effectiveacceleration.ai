@@ -1,9 +1,9 @@
-import { type EventProps } from './index';
-import moment from 'moment';
-import { JobSignedEvent } from 'effectiveacceleration-contracts';
-import { getAddress } from 'viem';
 import useUser from '@/hooks/useUser';
+import { JobSignedEvent } from 'effectiveacceleration-contracts';
+import moment from 'moment';
+import { getAddress } from 'viem';
 import EventProfileImage from './Components/EventProfileImage';
+import { type EventProps } from './index';
 
 export function SignedEvent({
   event,

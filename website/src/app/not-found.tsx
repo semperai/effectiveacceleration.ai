@@ -1,7 +1,7 @@
 import { Layout } from '@/components/FullLayout';
 import { Link } from '@/components/Link';
-import Image from 'next/image';
 import BackgroundImage from '@/images/lost.webp';
+import Image from 'next/image';
 
 export default function NotFound() {
   return (

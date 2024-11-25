@@ -2,12 +2,9 @@ import React from 'react';
 
 import {
   Job,
-  JobEventType,
   JobEventWithDiffs,
-  JobState,
-  User,
+  User
 } from 'effectiveacceleration-contracts/dist/src/interfaces';
-import { AssignWorkerButton } from '@/components/JobActions/AssignWorkerButton';
 import Image from 'next/image';
 
 interface ResultAcceptedProps {

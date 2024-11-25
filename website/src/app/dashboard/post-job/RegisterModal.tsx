@@ -1,8 +1,6 @@
-import { Transition } from '@headlessui/react';
-import React from 'react';
-import { Dialog } from '@headlessui/react';
-import { Fragment } from 'react';
 import { Button } from '@/components/Button';
+import { Dialog, Transition } from '@headlessui/react';
+import { Fragment } from 'react';
 
 const RegisterModal = ({
   closeRegisterModal,

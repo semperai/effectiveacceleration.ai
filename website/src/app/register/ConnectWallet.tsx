@@ -1,24 +1,8 @@
 'use client';
 import { Button } from '@/components/Button';
-import React from 'react';
-import { Field, Label, Radio, RadioGroup } from '@headlessui/react';
-import { useState } from 'react';
-import { useAccount, useSignMessage } from 'wagmi';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { ethers, hashMessage, recoverAddress } from 'ethers';
-import { recoverPublicKey } from 'viem';
-import { useRef } from 'react';
-import Image from 'next/image';
 
 const ConnectWallet = () => {
-  const connectButtonRef = useRef<HTMLButtonElement>(null);
-
-  const handleButtonClick = () => {
-    if (connectButtonRef.current) {
-      connectButtonRef.current.click();
-    }
-  };
-
   return (
     <div className='flex w-full max-w-md transform flex-col justify-center self-center overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all'>
       <div className='my-16 flex flex-col justify-center self-center'>

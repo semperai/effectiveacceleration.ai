@@ -1,12 +1,9 @@
 'use client';
 
-import React, { ReactNode, useEffect, useMemo, useState } from 'react';
-import { useParams, usePathname } from 'next/navigation';
-import Link from 'next/link';
-import { PiHouseSimple } from 'react-icons/pi';
-import { useAccount } from 'wagmi';
-import useJob from '@/hooks/useJob';
 import { useJobUserRole } from '@/hooks/useJobUserRole';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import React, { ReactNode } from 'react';
 
 type TBreadCrumbProps = {
   separator: ReactNode;

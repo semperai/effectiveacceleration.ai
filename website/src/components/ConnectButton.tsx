@@ -1,12 +1,11 @@
 'use client';
-import Image from 'next/image';
 import { ConnectButton as RainbowConnectButton } from '@rainbow-me/rainbowkit';
-import { useAccount, useContractRead } from 'wagmi';
 import clsx from 'clsx';
 import { PiWallet } from 'react-icons/pi';
+import { useAccount } from 'wagmi';
 
 export function ConnectButton() {
-  const { address, isConnected } = useAccount();
+  const { address } = useAccount();
 
   return (
     <RainbowConnectButton.Custom>

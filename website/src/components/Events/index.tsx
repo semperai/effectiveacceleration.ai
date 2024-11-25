@@ -3,24 +3,24 @@ import {
   JobEventWithDiffs,
 } from 'effectiveacceleration-contracts';
 import React from 'react';
-import { CommentEvent } from './CommentEvent';
+import { ArbitratedEvent } from './ArbitratedEvent';
+import { ArbitrationRefusedEvent } from './ArbitrationRefusedEvent';
 import { AssignedEvent } from './AssignmentEvent';
-import { UpdateEvent } from './UpdateEvent';
+import { ClosedEvent } from './ClosedEvent';
+import { CollateralWithdrawnEvent } from './CollateralWithdrawnEvent';
+import { CommentEvent } from './CommentEvent';
+import { CompletedEvent } from './CompletedEvent';
 import { CreateEvent } from './CreateEvent';
-import { WhitelistAddEvent } from './WhitelistAddEvent';
-import { WhitelistRemoveEvent } from './WhitelistRemoveEvent';
-import { SignedEvent } from './SignedEvent';
-import { TakenEvent } from './TakenEvent';
 import { DeliveredEvent } from './DeliveredEvent';
 import { DisputedEvent } from './DisputedEvent';
-import { ArbitratedEvent } from './ArbitratedEvent';
-import { RefundEvent } from './RefundEvent';
-import { ArbitrationRefusedEvent } from './ArbitrationRefusedEvent';
-import { CompletedEvent } from './CompletedEvent';
-import { ClosedEvent } from './ClosedEvent';
-import { ReopenedEvent } from './ReopenedEvent';
-import { CollateralWithdrawnEvent } from './CollateralWithdrawnEvent';
 import { RatedEvent } from './RatedEvent';
+import { RefundEvent } from './RefundEvent';
+import { ReopenedEvent } from './ReopenedEvent';
+import { SignedEvent } from './SignedEvent';
+import { TakenEvent } from './TakenEvent';
+import { UpdateEvent } from './UpdateEvent';
+import { WhitelistAddEvent } from './WhitelistAddEvent';
+import { WhitelistRemoveEvent } from './WhitelistRemoveEvent';
 
 export type EventProps = {
   event: JobEventWithDiffs;

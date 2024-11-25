@@ -18,7 +18,7 @@ export function RefundButton({
 }: RefundButtonProps & React.ComponentPropsWithoutRef<'div'>) {
   const { data: hash, error, writeContract } = useWriteContract();
 
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+  const { isSuccess: isConfirmed } =
     useWaitForTransactionReceipt({
       hash,
     });

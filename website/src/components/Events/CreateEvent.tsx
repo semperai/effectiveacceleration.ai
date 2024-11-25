@@ -1,10 +1,10 @@
-import { type EventProps } from './index';
-import moment from 'moment';
-import { Fragment } from 'react';
 import { Badge } from '@/components/Badge';
 import useUser from '@/hooks/useUser';
+import moment from 'moment';
+import { Fragment } from 'react';
 import { getAddress } from 'viem';
 import EventProfileImage from './Components/EventProfileImage';
+import { type EventProps } from './index';
 
 export function CreateEvent({
   event,

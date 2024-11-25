@@ -1,10 +1,10 @@
 'use client';
-import React, { Suspense, useEffect, useRef } from 'react';
 import { Layout } from '@/components/Dashboard/Layout';
-import PostJob from './PostJobPage';
-import { useWatchContractEvent } from 'wagmi';
 import Config from 'effectiveacceleration-contracts/scripts/config.json';
 import { MARKETPLACE_DATA_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceDataV1';
+import { Suspense, useRef } from 'react';
+import { useWatchContractEvent } from 'wagmi';
+import PostJob from './PostJobPage';
 
 const PostJobPage = () => {
   const postJobPageRef = useRef<{ jobIdCache: (jobId: bigint) => void }>(null);

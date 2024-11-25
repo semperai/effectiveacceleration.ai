@@ -1,13 +1,11 @@
-import { type Metadata } from 'next';
-import Head from 'next/head';
-import { Inter } from 'next/font/google';
-import localFont from 'next/font/local';
+import '@/app/globals.css';
+import { Providers } from '@/app/providers';
+import '@/styles/tailwind.css';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import clsx from 'clsx';
+import { type Metadata } from 'next';
 import { Plus_Jakarta_Sans } from 'next/font/google';
-import { Providers } from '@/app/providers';
-import '@/app/globals.css';
-import '@/styles/tailwind.css';
+import Head from 'next/head';
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],

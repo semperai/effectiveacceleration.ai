@@ -1,48 +1,32 @@
 import { Button } from '@/components/Button';
+import { ConnectButton } from '@/components/ConnectButton';
+import useArbitrator from '@/hooks/useArbitrator';
+import { useEthersSigner } from '@/hooks/useEthersSigner';
+import useUser from '@/hooks/useUser';
+import { isImageValid } from '@/utils/ImageValidity';
+import { Dialog, Transition } from '@headlessui/react';
 import { CheckIcon, UserIcon } from '@heroicons/react/20/solid';
 import {
-  getEncryptionSigningKey,
-  Job,
-  JobEventWithDiffs,
-  publishToIpfs,
-  User,
+  getEncryptionSigningKey
 } from 'effectiveacceleration-contracts';
-import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
 import Config from 'effectiveacceleration-contracts/scripts/config.json';
-import { useEffect, useState } from 'react';
+import { MARKETPLACE_DATA_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceDataV1';
+import { StaticImport } from 'next/dist/shared/lib/get-img-props';
+import Image from 'next/image';
+import { Fragment, useEffect, useState } from 'react';
 import {
   useAccount,
   useWaitForTransactionReceipt,
   useWriteContract,
 } from 'wagmi';
-import { Dialog, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
-import { Listbox, ListboxOption } from '../Listbox';
-import useUsersByAddresses from '@/hooks/useUsersByAddresses';
-import useUsers from '@/hooks/useUsers';
-import { Textarea } from '../Textarea';
-import useArbitrators from '@/hooks/useArbitrators';
 import { Field, Label } from '../Fieldset';
 import { Input } from '../Input';
-import { tokenIcon, tokensMap } from '@/tokens';
-import { zeroAddress } from 'viem';
-import { formatUnits, parseUnits } from 'ethers';
-import { Radio, RadioGroup } from '../Radio';
-import useUser from '@/hooks/useUser';
-import useArbitrator from '@/hooks/useArbitrator';
-import { MARKETPLACE_DATA_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceDataV1';
-import { useEthersSigner } from '@/hooks/useEthersSigner';
-import { ConnectButton } from '@/components/ConnectButton';
-import Image from 'next/image';
-import { StaticImport } from 'next/dist/shared/lib/get-img-props';
 import UploadAvatar from '../UploadAvatar';
-import { isImageValid } from '@/utils/ImageValidity';
 
 export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
   const viewAsValues = ['User', 'Arbitrator'];
-  const [viewAs, setViewAs] = useState<string>(viewAsValues[0]);
   const signer = useEthersSigner();
-  const { address, connector } = useAccount();
+  const { address } = useAccount();
   const { data: user } = useUser(address!);
   const { data: arbitrator } = useArbitrator(address!);
   const users = [user, arbitrator];
@@ -54,7 +38,6 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
   const [newAvatar, setNewAvatar] = useState<string | undefined>('');
   const [nameError, setNameError] = useState<string>('');
   const [bioError, setBioError] = useState<string>('');
-  const [avatarError, setAvatarError] = useState<string>();
   const [fee, setFee] = useState<number>();
   const [isImgValid, setIsImgValid] = useState<boolean>(false);
 

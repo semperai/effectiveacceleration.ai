@@ -1,7 +1,7 @@
-import React, { Dispatch, SetStateAction } from 'react';
-import Image from 'next/image';
 import { Job } from 'effectiveacceleration-contracts';
 import { User } from 'effectiveacceleration-contracts/dist/src/interfaces';
+import Image from 'next/image';
+import { Dispatch, SetStateAction } from 'react';
 
 const JobChatsList = ({
   users,

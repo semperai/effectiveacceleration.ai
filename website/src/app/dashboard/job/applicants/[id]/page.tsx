@@ -1,11 +1,10 @@
 'use client';
 
-import React from 'react';
-import { useParams } from 'next/navigation.js';
-import jobs from './dummyData';
+import { Button } from '@/components/Button';
 import { Layout } from '@/components/Dashboard/Layout';
 import Image from 'next/image.js';
-import { Button } from '@/components/Button';
+import { useParams } from 'next/navigation.js';
+import jobs from './dummyData';
 
 const JobInformationPage = () => {
   const { id } = useParams();

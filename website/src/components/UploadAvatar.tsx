@@ -1,6 +1,6 @@
-import React, { useRef, useState } from 'react';
-import { Field } from './Fieldset';
+import React, { useRef } from 'react';
 import { BsPersonPlus } from 'react-icons/bs';
+import { Field } from './Fieldset';
 
 const ipfsGatewayUrl = process.env.NEXT_PUBLIC_IPFS_GATEWAY_URL ?? '';
 

@@ -1,8 +1,8 @@
-import { type EventProps } from './index';
+import useUser from '@/hooks/useUser';
 import moment from 'moment';
 import { getAddress } from 'viem';
-import useUser from '@/hooks/useUser';
 import EventProfileImage from './Components/EventProfileImage';
+import { type EventProps } from './index';
 
 export function WhitelistRemoveEvent({
   event,

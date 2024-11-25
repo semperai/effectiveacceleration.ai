@@ -1,17 +1,17 @@
 'use client';
+import useDimensions from '@/hooks/useDimensions';
+import { ComboBoxOption } from '@/service/FormsTypes';
 import {
-  Combobox as HeadlessCombobox,
   ComboboxButton,
   ComboboxInput,
   ComboboxOption,
   ComboboxOptions,
+  Combobox as HeadlessCombobox,
 } from '@headlessui/react';
-import { CheckIcon, ChevronDownIcon } from '@heroicons/react/20/solid';
-import { GoChevronDown } from 'react-icons/go';
+import { CheckIcon } from '@heroicons/react/20/solid';
 import clsx from 'clsx';
 import { useEffect, useRef, useState } from 'react';
-import useDimensions from '@/hooks/useDimensions';
-import { ComboBoxOption } from '@/service/FormsTypes';
+import { GoChevronDown } from 'react-icons/go';
 
 export type ComboboxProps<T> = {
   value?: T;

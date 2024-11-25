@@ -22,7 +22,7 @@ const SignInMessage = ({
 
     try {
       const message = 'Effective Acceleration';
-      const signature = await signMessageAsync({ message });
+      await signMessageAsync({ message });
 
       // Create an ethers.js signer from the walletClient
       const provider = new ethers.BrowserProvider(walletClient as any);

@@ -1,32 +1,26 @@
 'use client';
 
 import { Layout } from '@/components/Dashboard/Layout';
-import { Text } from '@/components/Text';
-import { useParams } from 'next/navigation';
-import useJobEventsWithDiffs from '@/hooks/useJobEventsWithDiffs';
-import useJob from '@/hooks/useJob';
-import { useAccount } from 'wagmi';
-import { clsx } from 'clsx';
-import useUsersByAddresses from '@/hooks/useUsersByAddresses';
-import { SetStateAction, useEffect, useState, useRef } from 'react';
-import useUser from '@/hooks/useUser';
-import JobChat from './Components/JobChat';
-import JobChatsList from './Components/JobChatsList';
-import JobChatDetails from './Components/JobChatDetails';
 import EventProfileImage from '@/components/Events/Components/EventProfileImage';
-import { zeroAddress } from 'viem';
-import { JobUserRoles } from '@/service/Interfaces';
+import { Text } from '@/components/Text';
+import useJob from '@/hooks/useJob';
+import useJobEventsWithDiffs from '@/hooks/useJobEventsWithDiffs';
+import useUser from '@/hooks/useUser';
+import useUsersByAddresses from '@/hooks/useUsersByAddresses';
+import { LOCAL_JOBS_OWNER_CACHE, LOCAL_JOBS_WORKER_CACHE } from '@/utils/constants';
+import { shortenText } from '@/utils/utils';
+import { clsx } from 'clsx';
 import {
+  Job,
   JobMessageEvent,
   JobState,
-  Job,
 } from 'effectiveacceleration-contracts';
-import JobStatus from './Components/JobStatus';
-import { LOCAL_JOBS_WORKER_CACHE } from '@/utils/constants';
-import { LOCAL_JOBS_OWNER_CACHE } from '@/utils/constants';
-import { shortenText } from '@/utils/utils';
-import Image from 'next/image';
-import { StaticImport } from 'next/dist/shared/lib/get-img-props';
+import { useParams } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
+import { useAccount } from 'wagmi';
+import JobChat from './Components/JobChat';
+import JobChatDetails from './Components/JobChatDetails';
+import JobChatsList from './Components/JobChatsList';
 
 function updateJobCache(
   storedJobs: string | null,
@@ -232,7 +226,9 @@ export default function JobPage() {
                       Customer
                     </label>
                     <div className='mt-1 flex items-center space-x-2'>
-                      <EventProfileImage user={jobOwnerData} />
+                      {jobOwnerData && (
+                        <EventProfileImage user={jobOwnerData} />
+                      )}
 
                       {(() => {
                         if (jobOwnerData?.name) {
@@ -265,7 +261,6 @@ export default function JobPage() {
                address={address}
                addresses={addresses}
                sessionKeys={sessionKeys}
-               jobUsersData={jobUsersData}
              />
            )}
           </div>

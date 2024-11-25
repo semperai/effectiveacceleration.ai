@@ -2,9 +2,9 @@
 
 import { Layout } from '@/components/Dashboard/Layout';
 import { Link } from '@/components/Link';
+import useArbitrator from '@/hooks/useArbitrator';
 import { ChevronRightIcon } from '@heroicons/react/20/solid';
 import { useParams } from 'next/navigation';
-import useArbitrator from '@/hooks/useArbitrator';
 
 export default function ArbitratorPage() {
   const address = useParams().address as string;

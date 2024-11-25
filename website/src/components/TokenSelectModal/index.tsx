@@ -1,9 +1,9 @@
-import React from 'react';
-import { mockTokens } from '@/components/TokenDialog/Dependencies/mockTokens';
 import TokenDialog from '@/components/TokenDialog';
 import arbitrumTokens from '@/components/TokenDialog/Dependencies/arbitrumTokens.json';
-import Unicrow from '@unicrowio/sdk';
 import mainnetTokens from '@/components/TokenDialog/Dependencies/mainnetTokens.json';
+import { mockTokens } from '@/components/TokenDialog/Dependencies/mockTokens';
+import Unicrow from '@unicrowio/sdk';
+import React from 'react';
 
 interface IArbitrumToken {
   logoURI?: string;

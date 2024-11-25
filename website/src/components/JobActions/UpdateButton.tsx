@@ -1,30 +1,26 @@
 import { Button } from '@/components/Button';
+import useArbitrators from '@/hooks/useArbitrators';
+import { ComboBoxOption } from '@/service/FormsTypes';
+import { tokenIcon, tokensMap } from '@/tokens';
+import { jobMeceTags } from '@/utils/jobMeceTags';
+import { convertToSeconds, getUnitAndValueFromSeconds, unitsDeliveryTime } from '@/utils/utils';
+import { Dialog, Transition } from '@headlessui/react';
 import { CheckIcon } from '@heroicons/react/20/solid';
 import {
   Job,
-  JobEventWithDiffs,
-  publishToIpfs,
-  User,
+  publishToIpfs
 } from 'effectiveacceleration-contracts';
-import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
 import Config from 'effectiveacceleration-contracts/scripts/config.json';
-import { ChangeEvent, useEffect, useState } from 'react';
+import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
+import { formatUnits, parseUnits } from 'ethers';
+import { ChangeEvent, Fragment, useEffect, useState } from 'react';
+import { zeroAddress } from 'viem';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
-import { Dialog, ListboxOptions, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
-import { Listbox, ListboxOption } from '@/components/Listbox';
-import { Textarea } from '../Textarea';
-import useArbitrators from '@/hooks/useArbitrators';
+import CustomSelect from '../CustomSelect';
 import { Field, Label } from '../Fieldset';
 import { Input } from '../Input';
-import { tokenIcon, tokensMap } from '@/tokens';
-import { zeroAddress } from 'viem';
-import { formatUnits, parseUnits } from 'ethers';
 import { Radio, RadioGroup } from '../Radio';
-import { jobMeceTags } from '@/utils/jobMeceTags';
-import { getUnitAndValueFromSeconds, convertToSeconds, unitsDeliveryTime } from '@/utils/utils';
-import { ComboBoxOption } from '@/service/FormsTypes';
-import CustomSelect from '../CustomSelect';
+import { Textarea } from '../Textarea';
 
 
 export type UpdateButtonProps = {
@@ -88,8 +84,6 @@ export function UpdateButton({
     id: string;
     name: string;
   }>();
-  const [categoryError, setCategoryError] = useState<string>('');
-  const [deadline, setDeadline] = useState<number>();
   const [selectedUnitTime, setSelectedUnitTime] = useState<ComboBoxOption>(
     unitsDeliveryTime[2]
   );
@@ -168,18 +162,18 @@ export function UpdateButton({
       minLength: 5,
     });
     setDescriptionError(descriptionValidationMessage);
-  
+
     const tagsValidationMessage = tags
       .map((tag) => validateField(tag, { required: true }))
       .find((message) => message !== '');
     setTagsError(tagsValidationMessage || '');
-  
+
     const amountValidationMessage = validateField(amount, {
       required: true,
       custom: (value) => (parseFloat(value) > 0 ? '' : 'Amount must be greater than 0'),
     });
     setAmountError(amountValidationMessage);
-  
+
     const maxJobTimeValidationMessage = validateField(maxTime.toString(), {
       required: true,
       custom: (value) => (parseFloat(value) > 0 ? '' : 'Amount must be greater than 0'),

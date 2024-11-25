@@ -1,19 +1,16 @@
 import { Button } from '@/components/Button';
-import { CheckIcon } from '@heroicons/react/20/solid';
+import { Dialog, Transition } from '@headlessui/react';
 import {
   encryptBinaryData,
   encryptUtf8Data,
-  Job,
-  publishToIpfs,
+  Job
 } from 'effectiveacceleration-contracts';
-import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
 import Config from 'effectiveacceleration-contracts/scripts/config.json';
-import { useEffect, useState } from 'react';
-import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
-import { Dialog, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
-import { Textarea } from '../Textarea';
+import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
 import { getBytes, hexlify } from 'ethers';
+import { Fragment, useEffect, useState } from 'react';
+import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
+import { Textarea } from '../Textarea';
 
 export type DisputeButtonProps = {
   address: `0x${string}` | undefined;
@@ -30,7 +27,7 @@ export function DisputeButton({
   const [message, setMessage] = useState<string>('');
   const { data: hash, error, writeContract } = useWriteContract();
 
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+  const { isSuccess: isConfirmed } =
     useWaitForTransactionReceipt({
       hash,
     });

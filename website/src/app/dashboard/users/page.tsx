@@ -15,11 +15,6 @@ import {
 import useUsers from '@/hooks/useUsers';
 import useUserRatings from '@/hooks/useUserRatings';
 
-const environments: Record<string, string> = {
-  Preview: 'text-gray-400 bg-gray-400/10 ring-gray-400/20',
-  Production: 'text-indigo-400 bg-indigo-400/10 ring-indigo-400/30',
-};
-
 export default function OpenJobsPage() {
   const { data: users } = useUsers();
   const { data: userRatings } = useUserRatings(

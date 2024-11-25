@@ -1,25 +1,7 @@
 'use client';
-import React, {
-  ChangeEvent,
-  FormEvent,
-  forwardRef,
-  useImperativeHandle,
-  useRef,
-} from 'react';
-import { ethers } from 'ethers';
-import {
-  useAccount,
-  useReadContract,
-  useWaitForTransactionReceipt,
-  useWatchContractEvent,
-  useWriteContract,
-} from 'wagmi';
 import ERC20Abi from '@/abis/ERC20.json';
-import Config from 'effectiveacceleration-contracts/scripts/config.json';
-import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
-import { useEffect, useState } from 'react';
-import { Layout } from '@/components/Dashboard/Layout';
 import { Button } from '@/components/Button';
+import { ConnectButton } from '@/components/ConnectButton';
 import {
   Description,
   Field,
@@ -27,36 +9,45 @@ import {
   Fieldset,
   Label,
 } from '@/components/Fieldset';
+import { Input } from '@/components/Input';
+import { Listbox, ListboxLabel, ListboxOption } from '@/components/Listbox';
+import { Radio, RadioGroup } from '@/components/Radio';
+import TagsInput from '@/components/TagsInput';
 import { Text } from '@/components/Text';
 import { Textarea } from '@/components/Textarea';
-import { Input } from '@/components/Input';
 import { TokenSelector } from '@/components/TokenSelector';
-import { Token, tokens } from '@/tokens';
-import { Radio, RadioGroup } from '@/components/Radio';
-import { Listbox, ListboxOption, ListboxLabel } from '@/components/Listbox';
-import { Job, publishToIpfs } from 'effectiveacceleration-contracts';
-import { zeroAddress } from 'viem';
-import useUsers from '@/hooks/useUsers';
 import useArbitrators from '@/hooks/useArbitrators';
-import { ComboBox } from '@/components/ComboBox';
-import { ComboBoxOption, JobFormInputData, Tag } from '@/service/FormsTypes';
-import Image from 'next/image';
-import Link from 'next/link';
-import moment from 'moment';
-import TagsInput from '@/components/TagsInput';
-import { ConnectButton } from '@/components/ConnectButton';
-import { BsInfoCircle } from 'react-icons/bs';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { MARKETPLACE_DATA_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceDataV1';
-import { LocalStorageJob } from '@/service/JobsService';
-import useUnsavedChangesWarning from '@/hooks/useUnsavedChangesWarning';
-import { LOCAL_JOBS_OWNER_CACHE } from '@/utils/constants';
-import { shortenText } from '@/utils/utils';
 import useUser from '@/hooks/useUser';
-import RegisterModal from './RegisterModal';
-import LoadingModal from './LoadingModal';
+import useUsers from '@/hooks/useUsers';
+import { ComboBoxOption, JobFormInputData, Tag } from '@/service/FormsTypes';
+import { Token, tokens } from '@/tokens';
+import { LOCAL_JOBS_OWNER_CACHE } from '@/utils/constants';
 import { jobMeceTags } from '@/utils/jobMeceTags';
-import { convertToSeconds, unitsDeliveryTime } from '@/utils/utils';
+import { convertToSeconds, shortenText, unitsDeliveryTime } from '@/utils/utils';
+import { publishToIpfs } from 'effectiveacceleration-contracts';
+import Config from 'effectiveacceleration-contracts/scripts/config.json';
+import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
+import { ethers } from 'ethers';
+import moment from 'moment';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import React, {
+  ChangeEvent,
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState
+} from 'react';
+import { zeroAddress } from 'viem';
+import {
+  useAccount,
+  useReadContract,
+  useWaitForTransactionReceipt,
+  useWriteContract
+} from 'wagmi';
+import LoadingModal from './LoadingModal';
+import RegisterModal from './RegisterModal';
 
 const deliveryMethods = [
   {
@@ -282,7 +273,6 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
     const searchParams = useSearchParams();
     const { address, isConnected } = useAccount();
     const { data: user } = useUser(address!);
-    const { data: workers } = useUsers();
     const { data: arbitrators } = useArbitrators();
     const arbitratorAddresses = [
       zeroAddress,

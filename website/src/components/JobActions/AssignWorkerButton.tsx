@@ -1,18 +1,14 @@
 import { Button } from '@/components/Button';
-import { CheckIcon } from '@heroicons/react/20/solid';
-import { Job, User } from 'effectiveacceleration-contracts';
-import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
-import Config from 'effectiveacceleration-contracts/scripts/config.json';
-import { useEffect, useState } from 'react';
-import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
-import { Dialog, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
 import useUsers from '@/hooks/useUsers';
-import { Listbox, ListboxOption } from '../Listbox';
 import { formatTokenNameAndAmount } from '@/tokens';
-import moment from 'moment';
 import { jobMeceTags } from '@/utils/jobMeceTags';
-import clsx from 'clsx';
+import { Dialog, Transition } from '@headlessui/react';
+import { Job } from 'effectiveacceleration-contracts';
+import Config from 'effectiveacceleration-contracts/scripts/config.json';
+import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
+import moment from 'moment';
+import { Fragment, useEffect, useState } from 'react';
+import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 
 export type AssignWorkerButtonProps = {
   address: `0x${string}` | undefined;
@@ -27,15 +23,10 @@ export function AssignWorkerButton({
   ...rest
 }: AssignWorkerButtonProps & React.ComponentPropsWithoutRef<'div'>) {
   const { data: users } = useUsers();
-  const excludes = [address];
-  const userList = users.filter((user) => !excludes.includes(user.address_));
-  const [selectedUserAddress, setSelectedUserAddress] = useState<
-    `0x${string}` | undefined
-  >(undefined);
   const jobMeceTag = jobMeceTags.find((tag) => tag.id === job?.tags[0])?.name;
   const { data: hash, error, writeContract } = useWriteContract();
 
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+  const { isSuccess: isConfirmed } =
     useWaitForTransactionReceipt({
       hash,
     });

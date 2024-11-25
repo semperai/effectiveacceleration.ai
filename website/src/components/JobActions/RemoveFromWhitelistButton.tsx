@@ -1,14 +1,13 @@
 import { Button } from '@/components/Button';
-import { CheckIcon } from '@heroicons/react/20/solid';
-import { Job, JobEventWithDiffs, User } from 'effectiveacceleration-contracts';
-import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
-import Config from 'effectiveacceleration-contracts/scripts/config.json';
-import { useEffect, useState } from 'react';
-import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
-import { Dialog, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
-import { Listbox, ListboxOption } from '../Listbox';
 import useUsersByAddresses from '@/hooks/useUsersByAddresses';
+import { Dialog, Transition } from '@headlessui/react';
+import { CheckIcon } from '@heroicons/react/20/solid';
+import { Job } from 'effectiveacceleration-contracts';
+import Config from 'effectiveacceleration-contracts/scripts/config.json';
+import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
+import { Fragment, useEffect, useState } from 'react';
+import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
+import { Listbox, ListboxOption } from '../Listbox';
 
 export type RemoveFromWhitelistButtonProps = {
   address: `0x${string}` | undefined;
@@ -32,7 +31,7 @@ export function RemoveFromWhitelistButton({
   >(undefined);
   const { data: hash, error, writeContract } = useWriteContract();
 
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+  const { isSuccess: isConfirmed } =
     useWaitForTransactionReceipt({
       hash,
     });

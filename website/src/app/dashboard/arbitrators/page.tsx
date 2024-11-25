@@ -1,9 +1,7 @@
 'use client';
 
-import { clsx } from 'clsx';
 import { Layout } from '@/components/Dashboard/Layout';
 import { Link } from '@/components/Link';
-import { ChevronRightIcon } from '@heroicons/react/20/solid';
 import {
   Pagination,
   PaginationGap,
@@ -13,11 +11,8 @@ import {
   PaginationPrevious,
 } from '@/components/Pagination';
 import useArbitrators from '@/hooks/useArbitrators';
-
-const environments: Record<string, string> = {
-  Preview: 'text-gray-400 bg-gray-400/10 ring-gray-400/20',
-  Production: 'text-indigo-400 bg-indigo-400/10 ring-indigo-400/30',
-};
+import { ChevronRightIcon } from '@heroicons/react/20/solid';
+import { clsx } from 'clsx';
 
 export default function OpenJobsPage() {
   const { data: arbitrators } = useArbitrators();

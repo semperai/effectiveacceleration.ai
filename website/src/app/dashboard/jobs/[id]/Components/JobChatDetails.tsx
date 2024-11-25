@@ -1,16 +1,14 @@
-import React from 'react';
-import Link from 'next/link';
 import { Button } from '@/components/Button';
+import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
+import { jobMeceTags } from '@/utils/jobMeceTags';
 import { shortenText } from '@/utils/utils';
-import clsx from 'clsx';
 import {
   CurrencyDollarIcon,
   LinkIcon,
   UserIcon,
 } from '@heroicons/react/20/solid';
-import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
-import moment from 'moment';
 import LinearProgress from '@mui/material/LinearProgress';
+import clsx from 'clsx';
 import {
   Job,
   JobEventType,
@@ -18,11 +16,11 @@ import {
   JobState,
   User,
 } from 'effectiveacceleration-contracts/dist/src/interfaces';
-import JobButtonActions from './JobButtonActions';
+import moment from 'moment';
+import Link from 'next/link';
 import { zeroAddress, zeroHash } from 'viem';
-import JobStatus from './JobStatus';
+import JobButtonActions from './JobButtonActions';
 import JobStatusWrapper from './JobStatusWrapper';
-import { jobMeceTags } from '@/utils/jobMeceTags';
 
 const JobChatDetails = ({
   job,

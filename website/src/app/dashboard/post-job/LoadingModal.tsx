@@ -1,8 +1,5 @@
-import { Transition } from '@headlessui/react';
-import React from 'react';
-import { Dialog } from '@headlessui/react';
+import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-import { Button } from '@/components/Button';
 import { AiOutlineLoading } from 'react-icons/ai';
 
 const LoadingModal = ({

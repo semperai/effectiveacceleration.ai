@@ -1,7 +1,5 @@
 import React from 'react';
-import Link from 'next/link';
 
-import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
 import {
   Job,
   JobEventType,
@@ -9,16 +7,13 @@ import {
   JobState,
   User,
 } from 'effectiveacceleration-contracts/dist/src/interfaces';
-import { zeroAddress, zeroHash } from 'viem';
-import { Button } from '@/components/Button';
-import { ApproveButton } from '@/components/JobActions/ApproveButton';
-import { AssignWorkerButton } from '@/components/JobActions/AssignWorkerButton';
+import { zeroHash } from 'viem';
+import ArbitratedStatus from './StatusStates/ArbitratedStatus';
+import AssignWorker from './StatusStates/AssignWorker';
+import DisputeStarted from './StatusStates/DisputeStarted';
 import ResultAccepted from './StatusStates/ResultAccepted';
 import ResultVerification from './StatusStates/ResultVerification';
-import AssignWorker from './StatusStates/AssignWorker';
 import WorkerAccepted from './StatusStates/WorkerAccepted';
-import DisputeStarted from './StatusStates/DisputeStarted';
-import ArbitratedStatus from './StatusStates/ArbitratedStatus';
 
 interface JobStatusProps {
   events: JobEventWithDiffs[];

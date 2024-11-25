@@ -1,9 +1,9 @@
-import { type EventProps } from './index';
-import moment from 'moment';
 import useUser from '@/hooks/useUser';
 import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
+import moment from 'moment';
 import { getAddress } from 'viem';
 import EventProfileImage from './Components/EventProfileImage';
+import { type EventProps } from './index';
 
 export function CollateralWithdrawnEvent({
   event,

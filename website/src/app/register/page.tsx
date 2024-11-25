@@ -1,15 +1,13 @@
 'use client';
-import React, { useEffect } from 'react';
+import DefaultNavBar from '@/components/DefaultNavBar';
+import useUser from '@/hooks/useUser';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import React, { useEffect } from 'react';
 import { useAccount } from 'wagmi';
-import useUser from '@/hooks/useUser';
-import DefaultNavBar from '@/components/DefaultNavBar';
-import PostJobPage from '@/app/dashboard/post-job/PostJobPage';
 import ConnectWallet from './ConnectWallet';
-import SignInMessage from './SignInMessage';
 import CreateProfile from './CreateProfile';
-import ENSConnect from './ENSConnect';
+import SignInMessage from './SignInMessage';
 
 export default function RegisterPage() {
   const router = useRouter();

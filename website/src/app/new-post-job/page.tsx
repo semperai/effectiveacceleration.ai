@@ -1,8 +1,6 @@
-import React from 'react';
+import DefaultNavBar from '@/components/DefaultNavBar';
 import { Suspense } from 'react';
 import PostJobPage from '../dashboard/post-job/PostJobPage';
-import Image from 'next/image';
-import DefaultNavBar from '@/components/DefaultNavBar';
 
 const page = () => {
   return (

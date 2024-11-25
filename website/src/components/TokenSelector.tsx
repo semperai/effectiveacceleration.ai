@@ -1,9 +1,9 @@
-import clsx from 'clsx';
 import { Avatar } from '@/components/Avatar';
-import { ChevronDownIcon } from '@heroicons/react/20/solid';
-import { Dialog, Transition } from '@headlessui/react';
-import { Fragment, useState } from 'react';
 import { Token, tokens } from '@/tokens';
+import { Dialog, Transition } from '@headlessui/react';
+import { ChevronDownIcon } from '@heroicons/react/20/solid';
+import clsx from 'clsx';
+import { Fragment, useState } from 'react';
 
 function TokenButton({
   onClick,

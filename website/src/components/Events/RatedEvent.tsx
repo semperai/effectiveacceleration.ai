@@ -1,10 +1,10 @@
-import { type EventProps } from './index';
-import moment from 'moment';
-import { JobRatedEvent } from 'effectiveacceleration-contracts';
 import useUser from '@/hooks/useUser';
-import { getAddress } from 'viem';
 import { ChatBubbleLeftEllipsisIcon } from '@heroicons/react/20/solid';
+import { JobRatedEvent } from 'effectiveacceleration-contracts';
+import moment from 'moment';
+import { getAddress } from 'viem';
 import EventProfileImage from './Components/EventProfileImage';
+import { type EventProps } from './index';
 
 export function RatedEvent({
   event,

@@ -5,7 +5,6 @@ import {
   JobState,
 } from 'effectiveacceleration-contracts';
 import JobStatus from './JobStatus';
-import { zeroAddress } from 'viem';
 
 interface JobStatusWrapperProps {
   job: Job; // Replace JobType with the actual type of job
@@ -19,10 +18,7 @@ interface JobStatusWrapperProps {
 const JobStatusWrapper: React.FC<JobStatusWrapperProps> = ({
   job,
   events,
-  address,
   zeroHash,
-  addresses,
-  sessionKeys,
 }) => {
   const lastEventType = events[events.length - 1]?.type_;
 

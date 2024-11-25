@@ -1,11 +1,11 @@
 'use client';
 
-import '@rainbow-me/rainbowkit/styles.css';
 import { getDefaultConfig, RainbowKitProvider } from '@rainbow-me/rainbowkit';
-import { WagmiProvider } from 'wagmi';
-import { hardhat, arbitrum, arbitrumSepolia } from 'wagmi/chains';
-import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
+import '@rainbow-me/rainbowkit/styles.css';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { defineChain } from 'viem';
+import { WagmiProvider } from 'wagmi';
+import { arbitrum, arbitrumSepolia, hardhat } from 'wagmi/chains';
 
 declare module 'wagmi' {
   interface Register {

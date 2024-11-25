@@ -1,10 +1,10 @@
-import { ChatBubbleLeftEllipsisIcon } from '@heroicons/react/20/solid';
-import { type EventProps } from './index';
-import moment from 'moment';
-import { JobDisputedEvent } from 'effectiveacceleration-contracts';
-import { getAddress } from 'viem';
 import useUser from '@/hooks/useUser';
+import { ChatBubbleLeftEllipsisIcon } from '@heroicons/react/20/solid';
+import { JobDisputedEvent } from 'effectiveacceleration-contracts';
+import moment from 'moment';
+import { getAddress } from 'viem';
 import EventProfileImage from './Components/EventProfileImage';
+import { type EventProps } from './index';
 
 export function DisputedEvent({
   event,

@@ -1,17 +1,13 @@
 import { Button } from '@/components/Button';
-import { CheckIcon, PencilIcon } from '@heroicons/react/20/solid';
-import { Job, publishToIpfs } from 'effectiveacceleration-contracts';
-import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
-import Config from 'effectiveacceleration-contracts/scripts/config.json';
-import { useEffect, useState } from 'react';
-import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
-import { Dialog, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
-import { Listbox, ListboxOption } from '../Listbox';
-import { Textarea } from '../Textarea';
-import { zeroAddress } from 'viem';
 import useUsersByAddresses from '@/hooks/useUsersByAddresses';
+import { Job, publishToIpfs } from 'effectiveacceleration-contracts';
+import Config from 'effectiveacceleration-contracts/scripts/config.json';
+import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
+import { useEffect, useState } from 'react';
 import { PiPaperPlaneRight } from 'react-icons/pi';
+import { zeroAddress } from 'viem';
+import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
+import { Textarea } from '../Textarea';
 
 export type PostMessageButtonProps = {
   address: `0x${string}` | undefined;
@@ -30,22 +26,12 @@ export function PostMessageButton({
   ...rest
 }: PostMessageButtonProps & React.ComponentPropsWithoutRef<'div'>) {
   const [message, setMessage] = useState<string>('');
-  const excludes = [address];
-  const userAddresses = [
-    zeroAddress,
-    ...(addresses?.filter((user) => !excludes.includes(user)) ?? []),
-  ];
-  const { data: users } = useUsersByAddresses(
-    // addresses?.filter((user) => !excludes.includes(user) ?? []) as string[]
-    addresses?.filter((user) => !excludes.includes(user)) || []);
-  const [selectedUserAddress, setSelectedUserAddress] =
-    useState<`0x${string}`>(zeroAddress);
   const selectedUserRecipient =
     recipient === address ? job.roles.creator : recipient;
 
   const { data: hash, error, writeContract } = useWriteContract();
 
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+  const { isSuccess: isConfirmed } =
     useWaitForTransactionReceipt({
       hash,
     });

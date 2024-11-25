@@ -1,16 +1,12 @@
 import { Button } from '@/components/Button';
-import { CheckIcon } from '@heroicons/react/20/solid';
-import { Job } from 'effectiveacceleration-contracts';
-import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
-import Config from 'effectiveacceleration-contracts/scripts/config.json';
-import { useEffect, useState } from 'react';
-import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import { Dialog, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
-import { Textarea } from '../Textarea';
-import { Input } from '../Input';
 import { Rating } from '@mui/material';
-import { skip } from 'node:test';
+import { Job } from 'effectiveacceleration-contracts';
+import Config from 'effectiveacceleration-contracts/scripts/config.json';
+import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
+import { Fragment, useEffect, useState } from 'react';
+import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
+import { Textarea } from '../Textarea';
 
 export type ApproveButtonProps = {
   address: `0x${string}` | undefined;

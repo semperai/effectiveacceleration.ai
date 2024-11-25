@@ -1,19 +1,14 @@
-import React from 'react';
 import Image from 'next/image';
+import React from 'react';
 
-import {
-  Job,
-  JobArbitratedEvent,
-  JobEventType,
-  JobEventWithDiffs,
-  JobState,
-  User,
-} from 'effectiveacceleration-contracts/dist/src/interfaces';
-import { formatTokenNameAndAmount } from '@/tokens';
-import JobChatStatus from './JobChatStatus';
 import { renderEvent } from '@/components/Events';
 import logoDark from '@/images/logo-light.png';
-import { zeroAddress } from 'viem';
+import {
+  Job,
+  JobEventWithDiffs,
+  User
+} from 'effectiveacceleration-contracts/dist/src/interfaces';
+import JobChatStatus from './JobChatStatus';
 
 interface ResultAcceptedProps {
   job: Job;
