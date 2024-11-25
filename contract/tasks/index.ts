@@ -1043,3 +1043,57 @@ task("eacc:whitelist", "Update EACC whitelist")
 
   console.log("Transaction hash:", receipt.hash);
 });
+
+task("eacc:multisend", "Multisend EACC tokens")
+.addParam("file", "CSV file with address and amount")
+.setAction(async ({ file }, hre) => {
+  const eacc = await getEACCToken(hre);
+
+  const data = fs.readFileSync(file, 'utf8');
+  const lines = data.split('\n');
+  if (lines[lines.length - 1] === '') {
+    lines.pop();
+  }
+  let amounts: { address: string, amount: string }[] = [];
+
+  // check file first
+  let i=1;
+  for (let line of lines) {
+    const [address, amount] = line.split(',');
+    if (! address || ! amount) {
+      console.log("Invalid line", i, line);
+      process.exit(1);
+    }
+
+    const parsed = parseFloat(amount);
+    if (parsed <= 0 || isNaN(parsed) || parsed.toString() !== amount) {
+      console.log("Invalid amount", amount);
+      console.log("On line", i, line);
+      process.exit(1);
+    }
+
+    ++i;
+  }
+
+  async function sendBatch(amounts: { address: string, amount: string }[]) {
+    console.log("Sending batch of ", amounts.length);
+    const tx = await eacc.multitransfer(amounts.map(a => a.address), amounts.map(a => hre.ethers.parseEther(a.amount)));
+    const receipt = await tx.wait();
+    console.log("Transaction hash:", receipt.hash);
+  }
+
+  for (let line of lines) {
+    const [address, amount] = line.split(',');
+
+    amounts.push({ address, amount });
+
+    if (amounts.length > 100) {
+      await sendBatch(amounts);
+      amounts = [];
+    }
+  }
+
+  if (amounts.length > 0) {
+    await sendBatch(amounts);
+  }
+});

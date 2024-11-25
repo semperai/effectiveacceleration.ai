@@ -23,8 +23,8 @@ async function main() {
   );
 
   const eaccToken = await EACCToken.deploy(
-    "name",
-    "symbol",
+    "Effective Acceleration",
+    "e/acc",
     ethers.parseEther("6969696969"),
     treasury,
     arbiusToken,
