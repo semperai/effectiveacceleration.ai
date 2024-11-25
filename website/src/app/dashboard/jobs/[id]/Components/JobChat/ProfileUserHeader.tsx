@@ -24,9 +24,10 @@ const ProfileUserHeader: React.FC<ResultAcceptedProps> = ({
 }) => {
   const isWorker: boolean = address === selectedWorker;
   const isCreator: boolean = address === job.roles.creator;
+  console.log(selectedWorker, 'SELECTED WORKER')
   return (
     <>
-      {selectedWorker && eventMessages.length > 0 && (isWorker || isCreator) && job?.state !== JobState.Closed ? (
+      {selectedWorker !== ' ' && selectedWorker && eventMessages.length > 0 && (isWorker || isCreator) && job?.state !== JobState.Closed ? (
         <div>
           <div className='min-h-[100px]'>
             <div className='align-center justify-between border border-gray-100 p-4'>

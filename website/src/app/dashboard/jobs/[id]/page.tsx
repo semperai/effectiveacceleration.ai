@@ -165,7 +165,9 @@ export default function JobPage() {
             (event) =>
               event.address_ === selectedWorker.toLowerCase() ||
               (event.details as JobMessageEvent)?.recipientAddress === selectedWorker ||
-              (event.details as JobArbitratedEvent)?.workerAddress === selectedWorker 
+              (event.details as JobArbitratedEvent)?.workerAddress === selectedWorker ||
+              event.type_ === JobEventType.Closed ||
+              event.type_ === JobEventType.Reopened 
           )
         )
       : setEventMessages(events);
