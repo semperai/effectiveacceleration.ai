@@ -41,21 +41,25 @@ function ArticleHeader({ id, date }: { id: string; date: string | Date }) {
   return (
     <header className='relative mb-10 xl:mb-0'>
       <div className='pointer-events-none absolute z-50 flex h-4 items-center gap-x-2'>
-        <Link href={`#${id}`} className='inline-flex'>
-          <FormattedDate
-            date={date}
-            className='hidden xl:pointer-events-auto xl:block xl:text-2xs/4 xl:font-medium xl:text-white/50'
-          />
-        </Link>
-      </div>
-      <ContentWrapper>
-        <div className='flex'>
+        {date && (
           <Link href={`#${id}`} className='inline-flex'>
             <FormattedDate
               date={date}
-              className='text-2xs/4 font-medium text-gray-500 xl:hidden dark:text-white/50'
+              className='hidden xl:pointer-events-auto xl:block xl:text-2xs/4 xl:font-medium xl:text-white/50'
             />
           </Link>
+        )}
+      </div>
+      <ContentWrapper>
+        <div className='flex'>
+          {date && (
+            <Link href={`#${id}`} className='inline-flex'>
+              <FormattedDate
+                date={date}
+                className='text-2xs/4 font-medium text-gray-500 xl:hidden dark:text-white/50'
+              />
+            </Link>
+          )}
         </div>
       </ContentWrapper>
     </header>
