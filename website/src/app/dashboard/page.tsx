@@ -8,7 +8,7 @@ export default function IndexPage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.push('/dashboard/owner-job-list');
+    router.push('/dashboard/welcome');
   }, [router]);
 
   return (
