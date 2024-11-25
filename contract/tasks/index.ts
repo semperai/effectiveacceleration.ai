@@ -67,6 +67,28 @@ async function getMarketplaceData(hre: HardhatRuntimeEnvironment) {
   process.exit(1);
 }
 
+async function getEACCToken(hre: HardhatRuntimeEnvironment) {
+  const EACCToken = await hre.ethers.getContractFactory("EACCToken");
+
+  if (hre.network.name === 'hardhat') {
+    console.log('You are on hardhat network, try localhost');
+    process.exit(1);
+  }
+
+  if (hre.network.name === 'localhost') {
+    const eacc = await EACCToken.attach(LocalConfig.eaccTokenAddress);
+    return eacc;
+  }
+
+  if (hre.network.name === 'arbitrum') {
+    const eacc = await EACCToken.attach(Config.eaccTokenAddress);
+    return eacc;
+  }
+
+  console.log(`Unknown network ${hre.network.name}`);
+  process.exit(1);
+}
+
 async function getUserAddress(hre: HardhatRuntimeEnvironment) {
   const accounts = await hre.ethers.getSigners();
   return accounts[0].address;
@@ -981,6 +1003,42 @@ task("job:refund", "Refund job")
   const marketplace = await getMarketplace(hre);
 
   const tx = await marketplace.refund(jobid);
+  const receipt = await tx.wait();
+
+  console.log("Transaction hash:", receipt.hash);
+});
+
+task("eacc:info", "Get EACC info")
+.setAction(async ({ }, hre) => {
+  const eacc = await getEACCToken(hre);
+
+  console.log('eacc', await eacc.getAddress());
+  console.log('treasury', await eacc.treasury());
+  console.log('arbiusToken', await eacc.arbiusToken());
+  console.log('router', await eacc.router());
+  console.log('tax', hre.ethers.formatEther(await eacc.tax()));
+});
+
+task("eacc:settax", "Set EACC tax")
+.addParam("tax", "Tax %")
+.setAction(async ({ tax }, hre) => {
+  const eacc = await getEACCToken(hre);
+
+  // convert percentage to ether
+  const amount = hre.ethers.parseUnits(tax, 16);
+  const tx = await eacc.setTax(amount);
+  const receipt = await tx.wait();
+
+  console.log("Transaction hash:", receipt.hash);
+});
+
+task("eacc:whitelist", "Update EACC whitelist")
+.addParam("address", "Address")
+.addParam("whitelist", "Whitelist (true / false)")
+.setAction(async ({ address, whitelist }, hre) => {
+  const eacc = await getEACCToken(hre);
+
+  const tx = await eacc.updateWhitelist(address, whitelist === 'true');
   const receipt = await tx.wait();
 
   console.log("Transaction hash:", receipt.hash);
