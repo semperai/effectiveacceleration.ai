@@ -13,6 +13,7 @@ import useUser from '@/hooks/useUser';
 import JobChat from './Components/JobChat';
 import JobChatsList from './Components/JobChatsList';
 import JobChatDetails from './Components/JobChatDetails';
+import EventProfileImage from '@/components/Events/Components/EventProfileImage';
 import { zeroAddress } from 'viem';
 import { JobUserRoles } from '@/service/Interfaces';
 import {
@@ -231,13 +232,7 @@ export default function JobPage() {
                       Customer
                     </label>
                     <div className='mt-1 flex items-center space-x-2'>
-                      <Image
-                        className='rounded-full object-cover'
-                        height={50}
-                        width={50}
-                        src={jobOwnerData?.avatar as string | StaticImport}
-                        alt='Profile picture'
-                      />
+                      <EventProfileImage user={jobOwnerData} />
 
                       {(() => {
                         if (jobOwnerData?.name) {
