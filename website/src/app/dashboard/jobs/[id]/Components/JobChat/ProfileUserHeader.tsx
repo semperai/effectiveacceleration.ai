@@ -3,6 +3,7 @@ import React from 'react';
 import {
   Job,
   JobEventWithDiffs,
+  JobState,
   User
 } from 'effectiveacceleration-contracts/dist/src/interfaces';
 import Image from 'next/image';
@@ -25,7 +26,7 @@ const ProfileUserHeader: React.FC<ResultAcceptedProps> = ({
   const isCreator: boolean = address === job.roles.creator;
   return (
     <>
-      {selectedWorker && eventMessages.length > 0 && (isWorker || isCreator) ? (
+      {selectedWorker && eventMessages.length > 0 && (isWorker || isCreator) && job?.state !== JobState.Closed ? (
         <div>
           <div className='min-h-[100px]'>
             <div className='align-center justify-between border border-gray-100 p-4'>
