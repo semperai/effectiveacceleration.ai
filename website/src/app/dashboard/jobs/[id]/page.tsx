@@ -199,7 +199,7 @@ export default function JobPage() {
     <Layout borderless>
       <div className='grid min-h-customHeader grid-cols-1'>
         <div className='grid min-h-customHeader grid-cols-4'>
-          {(isOwner || isArbitrator) && job?.state === JobState.Open && (
+          {isOwner && job?.state === JobState.Open && (
             <div className='col-span-1 max-h-customHeader overflow-y-auto border border-gray-100 bg-white p-3'>
               <JobChatsList
                 users={users}
@@ -209,49 +209,11 @@ export default function JobPage() {
             </div>
           )}
 
-          {isWorker && (
-            <div className='col-span-1 max-h-customHeader bg-white p-5'>
-              <h1>{job.title}</h1>
-              <span>{job.content}</span>
-            </div>
-          )}
-
-          {isGuest && (()=> {
-            const jobOwnerData = jobUsersData ? jobUsersData[job.roles.creator] : null;
-            const ownerAddress = jobOwnerData?.address_ as `0x${string}` | undefined;
-            return (
-              <>
-                <div className='col-span-1 max-h-customHeader bg-white p-5'>
-                  <h1 className='font-bold'>{job.title}</h1>
-                  <span>{job.content}</span>
-                  <div className='mt-4'>
-                    <label className='block text-sm font-medium text-gray-700'>
-                      Customer
-                    </label>
-                    <div className='mt-1 flex items-center space-x-2'>
-                      {jobOwnerData && (
-                        <EventProfileImage user={jobOwnerData} />
-                      )}
-
-                      {(() => {
-                        if (jobOwnerData?.name) {
-                          return <span>{jobOwnerData.name}</span>;
-                        } else if (ownerAddress) {
-                          return <span>{shortenText({ text: ownerAddress, maxLength: 12 }) || ''}</span>;
-                        } else {
-                          return <></>;
-                        }
-                      })()}
-                    </div>
-                  </div>
-                </div>
-              </>
-            );
-          })()}
-
           <div
            className={clsx(
-            ((isOwner || isArbitrator) && job.state === JobState.Taken) || (isArbitrator && job.state === JobState.Closed) ? 'col-span-3' : 'col-span-2',
+            (job.state === JobState.Open && !isOwner) ||
+            (job.state === JobState.Taken && (isOwner || isArbitrator)) ||
+            job.state === JobState.Closed ? 'col-span-3' : 'col-span-2',
             'max-h-customHeader bg-white',
            )}
           >

@@ -136,7 +136,7 @@ export function DisputeButton({
                         as='h3'
                         className='text-lg font-bold leading-6 text-gray-900'
                       >
-                        Raising a dispute
+                        Raise a dispute
                       </Dialog.Title>
                       <span className='text-sm'>
                         Please fill in the form below for the arbitrator to
