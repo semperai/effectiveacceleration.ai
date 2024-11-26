@@ -63,7 +63,7 @@ const JobChatDetails = ({
         />
       )}
       <div className='border border-gray-100 p-4'>
-        {job && address === job.roles.creator && (
+        {job && (
           <>
             <div>
               <span className='font-bold'>{job?.title}</span>
