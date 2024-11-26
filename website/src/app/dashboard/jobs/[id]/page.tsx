@@ -251,7 +251,7 @@ export default function JobPage() {
 
           <div
            className={clsx(
-            (isOwner || isArbitrator) && job.state === JobState.Taken ? 'col-span-3' : 'col-span-2',
+            ((isOwner || isArbitrator) && job.state === JobState.Taken) || (isArbitrator && job.state === JobState.Closed) ? 'col-span-3' : 'col-span-2',
             'max-h-customHeader bg-white',
            )}
           >
