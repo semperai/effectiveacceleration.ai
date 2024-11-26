@@ -65,7 +65,6 @@ export function PostMessageButton({
   async function buttonClick() {
     if (! user) {
       router.push('/register');
-      console.log('User not registered');
       return;
     }
 
