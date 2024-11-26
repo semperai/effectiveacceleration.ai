@@ -310,6 +310,7 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
           throw new Error("Job must be created before it can be refunded");
         }
 
+        job.disputed = false;
         job.state = JobState.Open;
         job.escrowId = 0n;
         job.allowedWorkers = job.allowedWorkers?.filter(address => address !== job!.roles.worker);
@@ -357,6 +358,7 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: bigint, job?:
 
         const jobArbitrated = decodeJobArbitratedEvent(event.data_);
         event.details = jobArbitrated;
+        job.disputed = false;
         job.state = JobState.Closed;
         job.collateralOwed = job.collateralOwed += jobArbitrated.creatorAmount;
 

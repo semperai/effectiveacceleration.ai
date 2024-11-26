@@ -2489,6 +2489,11 @@ describe("Marketplace Unit Tests", () => {
         ).not.to.be.reverted;
       }
 
+      {
+        const job = await marketplace.jobs(jobId);
+        expect(job.disputed).to.equal(false);
+      }
+
       await expect(
         marketplace.connect(user2).deliverResult(jobId, resultHash)
       ).not.to.be.reverted;
@@ -2639,6 +2644,9 @@ describe("Marketplace Unit Tests", () => {
         marketplace.connect(user1).dispute(jobId, sessionKey, content)
       ).to.be.not.reverted;
 
+      const job = await marketplace.jobs(jobId);
+      expect(job.disputed).to.equal(true);
+
       // can not dispute twice
       await expect(
         marketplace.connect(user2).dispute(jobId, sessionKey, content)
@@ -2782,6 +2790,9 @@ describe("Marketplace Unit Tests", () => {
       await expect(
         marketplace.connect(arbitrator).arbitrate(jobId, creatorShare, workerShare, reasonHash)
       ).to.be.not.reverted;
+
+      const job = await marketplace.jobs(jobId);
+      expect(job.disputed).to.be.false;
     });
 
     it("arbitrate 80-20", async () => {
@@ -2855,7 +2866,7 @@ describe("Marketplace Unit Tests", () => {
       const job = await marketplace.jobs(jobId);
 
       expect(job.state).to.equal(JobState.Closed);
-      expect(job.disputed).to.be.true;
+      expect(job.disputed).to.be.false;
 
       const arbitratorData = await marketplaceData.arbitrators(arbitrator.address);
       expect(arbitratorData.settledCount).to.equal(1);
@@ -2934,7 +2945,7 @@ describe("Marketplace Unit Tests", () => {
       const job = await marketplace.jobs(jobId);
 
       expect(job.state).to.equal(JobState.Closed);
-      expect(job.disputed).to.be.true;
+      expect(job.disputed).to.be.false;
 
       const arbitratorData = await marketplaceData.arbitrators(arbitrator.address);
       expect(arbitratorData.settledCount).to.equal(1);
@@ -3013,7 +3024,7 @@ describe("Marketplace Unit Tests", () => {
       const job = await marketplace.jobs(jobId);
 
       expect(job.state).to.equal(JobState.Closed);
-      expect(job.disputed).to.be.true;
+      expect(job.disputed).to.be.false;
 
       const arbitratorData = await marketplaceData.arbitrators(arbitrator.address);
       expect(arbitratorData.settledCount).to.equal(1);

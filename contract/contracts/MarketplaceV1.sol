@@ -920,6 +920,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
     function _refund(uint256 jobId_, bool byWorker) internal {
         JobPost storage job = jobs[jobId_];
         require(job.state == uint8(JobState.Taken), "job in invalid state");
+        job.disputed = false;
 
         IUnicrow unicrow = IUnicrow(unicrowAddress);
 
@@ -1016,6 +1017,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         JobPost storage job = jobs[jobId_];
         require(job.state == uint8(JobState.Taken), "job in invalid state");
         require(job.disputed, "not disputed");
+        job.disputed = false;
         job.state = uint8(JobState.Closed);
 
         IUnicrowArbitrator unicrowArbitrator = IUnicrowArbitrator(
