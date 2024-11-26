@@ -11,11 +11,13 @@ interface IUnicrow {
    * @notice If the balance claiming transaction fails due to the token's contract error or malicious behavior, 
    * @notice   it is not possible to try to claim the balance again.
    * @dev Escrow ID is generated automatically by the contract
+   * @param sender An address from which the amount  will be deposited (it may be different to a buyer if e.g. another smart contract is paying on behalf of an end user)
    * @param input Escrow input (seller, marketplace, currency, and challenge period information)
    * @param arbitrator Arbitrator address (submit zero address to not set an arbitrator)
    * @param arbitratorFee Arbitrator Fee
    */
   function pay(
+    address sender,
     EscrowInput memory input,
     address arbitrator,
     uint16 arbitratorFee
