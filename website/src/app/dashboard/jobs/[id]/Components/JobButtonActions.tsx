@@ -86,7 +86,7 @@ const JobButtonActions = ({
               <WithdrawCollateralButton
                 address={address}
                 job={job}
-              ></WithdrawCollateralButton>
+              />
             )}
           {job.state === JobState.Open &&
             address === job.roles.creator &&
@@ -95,7 +95,7 @@ const JobButtonActions = ({
                 address={address}
                 job={job}
                 whitelist={whitelistedWorkers}
-              ></WhitelistButton>
+              />
             )}
           {job.state === JobState.Open &&
             address === job.roles.creator &&
@@ -106,7 +106,7 @@ const JobButtonActions = ({
                 address={address}
                 job={job}
                 whitelist={whitelistedWorkers}
-              ></RemoveFromWhitelistButton>
+              />
             )}
           {job.state === JobState.Open && address === job.roles.creator && (
             <UpdateButton address={address} job={job} />
@@ -123,7 +123,7 @@ const JobButtonActions = ({
                 address={address}
                 job={job}
                 events={events}
-              ></AcceptButton>
+              />
             )}
           {job.state === JobState.Taken &&
             address === job.roles.worker &&
@@ -132,7 +132,7 @@ const JobButtonActions = ({
                 address={address}
                 job={job}
                 sessionKeys={sessionKeys}
-              ></DeliverResultButton>
+              />
             )}
 
           {/* arbitrator actions */}
@@ -141,11 +141,11 @@ const JobButtonActions = ({
               address={address}
               job={job}
               sessionKeys={sessionKeys}
-            ></ArbitrateButton>
+            />
           )}
           {job.state !== JobState.Closed &&
             address === job.roles.arbitrator && (
-              <RefuseArbitrationButton job={job}></RefuseArbitrationButton>
+              <RefuseArbitrationButton job={job} />
             )}
         </div>
       )}
