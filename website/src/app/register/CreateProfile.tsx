@@ -146,7 +146,12 @@ const CreateProfile = ({
         <span className='text-sm text-primary'>
           * Name and avatar can be changed later
         </span>
-        <Button onClick={submit}>Create Profile</Button>
+        <Button
+          onClick={submit}
+          disabled={userName === ''}
+        >
+          Create Profile
+        </Button>
       </div>
     </div>
   );
