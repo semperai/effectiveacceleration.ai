@@ -251,7 +251,7 @@ export default function JobPage() {
 
           <div
            className={clsx(
-            job?.state === JobState.Open && address === job.roles.creator ? 'col-span-2' : 'col-span-3',
+            isOwner && job.state === JobState.Taken ? 'col-span-3' : 'col-span-2',
             'max-h-customHeader bg-white',
            )}
           >
