@@ -53,11 +53,6 @@ export function DeliverResultButton({
   const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
 
   async function buttonClick() {
-    if (message.length === 0) {
-      alert('Empty result');
-      return;
-    }
-
     setButtonDisabled(true);
 
     const sessionKey = sessionKeys[`${address}-${job.roles.creator}`];

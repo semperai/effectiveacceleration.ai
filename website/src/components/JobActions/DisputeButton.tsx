@@ -57,11 +57,6 @@ export function DisputeButton({
   const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
 
   async function buttonClick() {
-    if (message.length === 0) {
-      alert('Empty result');
-      return;
-    }
-
     setButtonDisabled(true);
 
     const arbitratorSessionKey =
@@ -156,7 +151,7 @@ export function DisputeButton({
                         rows={4}
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
-                        placeholder='Message'
+                        placeholder='Please thoroughly explain the issues you are facing with the job so the arbitrator can make an informed decision.'
                         className='mt-2'
                       />
                     </div>
@@ -171,7 +166,7 @@ export function DisputeButton({
                       </Button>
                       <Button
                         className={'w-full'}
-                        disabled={buttonDisabled}
+                        disabled={buttonDisabled || message === ''}
                         onClick={buttonClick}
                       >
                         Confirm
