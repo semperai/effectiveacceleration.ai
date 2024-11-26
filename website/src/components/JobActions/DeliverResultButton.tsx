@@ -130,10 +130,10 @@ export function DeliverResultButton({
                       rows={4}
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
-                      placeholder='Message'
+                      placeholder='Please write a message providing the deliverable for the job. Include links etc'
                       className='mt-5'
                     />
-                    <Button disabled={buttonDisabled} onClick={buttonClick}>
+                    <Button disabled={buttonDisabled || message === ''} onClick={buttonClick}>
                       <CheckIcon
                         className='-ml-0.5 mr-1.5 h-5 w-5'
                         aria-hidden='true'
