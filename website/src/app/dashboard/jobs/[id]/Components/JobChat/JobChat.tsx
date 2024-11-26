@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import React from 'react';
+import { Button } from '@/components/Button';
 
 import { renderEvent } from '@/components/Events';
 import logoDark from '@/images/logo-light.png';
@@ -9,6 +10,7 @@ import {
   User
 } from 'effectiveacceleration-contracts/dist/src/interfaces';
 import JobChatStatus from './JobChatStatus';
+import useUser from '@/hooks/useUser';
 
 interface ResultAcceptedProps {
   job: Job;
@@ -24,6 +26,7 @@ const JobChatEvents: React.FC<ResultAcceptedProps> = ({
   events,
   address,
 }) => {
+  const { data: user } = useUser(address);
   const numberOfWorkers = Object.keys(users).length - 1; // -1 to exclude the creator;
   return (
     <div className='row-span-4 max-h-customHeader overflow-y-auto border border-gray-100 bg-softBlue'>
@@ -76,6 +79,13 @@ const JobChatEvents: React.FC<ResultAcceptedProps> = ({
           {job.roles.creator !== address && job.roles.worker !== address && job.roles.arbitrator !== address && (
             <div className='text-center'>
               Apply to this job by chatting with the creator
+            </div>
+          )}
+          {!user && (
+            <div className='text-center'>
+              <Button href="/register">
+                Sign in to chat with the creator
+              </Button>
             </div>
           )}
         </div>
