@@ -12,7 +12,7 @@ let marketplaceFeeAddress = "0xF20D0ebD8223DfF22cFAf05F0549021525015577";
 
 let unicrowAddress = "0x78AEe48cCEBCcEe05F550849A7C7Baa1e0837a6D";
 let unicrowDisputeAddress = "0xdC14E36ac67Cd3B8eE25a9c2309EcE6087e93225";
-let unicrowArbitratorAddress = "0xdC14E36ac67Cd3B8eE25a9c2309EcE6087e93225";
+let unicrowArbitratorAddress = "0xde62AD20611Fe51179Eb8B66c4627B3495C9B1c2";
 let unicrowClaimAddress = "0x5902AF8be15c80794C3229aD4E68aa69845Cc5fC"
 
 async function main() {
