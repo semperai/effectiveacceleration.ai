@@ -81,11 +81,16 @@ const JobChatEvents: React.FC<ResultAcceptedProps> = ({
               Apply to this job by chatting with the creator
             </div>
           )}
-          {!user && (
+          {!user && address !== job.roles.arbitrator && (
             <div className='text-center'>
               <Button href="/register">
                 Sign in to chat with the creator
               </Button>
+            </div>
+          )}
+          {address === job.roles.arbitrator && (
+            <div className='text-center'>
+              You are the arbitrator for this job, you will get a notification if there is a dispute
             </div>
           )}
         </div>
