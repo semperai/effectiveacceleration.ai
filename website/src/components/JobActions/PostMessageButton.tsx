@@ -27,7 +27,7 @@ export function PostMessageButton({
   ...rest
 }: PostMessageButtonProps & React.ComponentPropsWithoutRef<'div'>) {
   const router = useRouter();
-  const user = useUser(address);
+  const { data: user } = useUser(address);
   const [message, setMessage] = useState<string>('');
   const selectedUserRecipient =
     recipient === address ? job.roles.creator : recipient;
@@ -63,7 +63,7 @@ export function PostMessageButton({
   const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
 
   async function buttonClick() {
-    if (! user.data) {
+    if (! user) {
       router.push('/register');
       console.log('User not registered');
       return;
