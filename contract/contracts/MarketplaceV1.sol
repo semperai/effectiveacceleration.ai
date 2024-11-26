@@ -183,9 +183,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         emit VersionChanged(version_);
     }
 
-    function setTreasuryAddress(
-        address treasuryAddress_
-    ) public onlyOwner {
+    function setTreasuryAddress(address treasuryAddress_) public onlyOwner {
         treasuryAddress = treasuryAddress_;
         emit TreasuryAddressChanged(treasuryAddress_);
     }
@@ -297,7 +295,11 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             token_.code.length > 0 && IERC20(token_).balanceOf(msg.sender) > 0,
             "invalid token"
         );
-        SafeERC20.forceApprove(IERC20(token_), address(this), type(uint256).max);
+        SafeERC20.forceApprove(
+            IERC20(token_),
+            address(this),
+            type(uint256).max
+        );
 
         uint256 deliveyMethodLength = bytes(deliveryMethod_).length;
         require(
@@ -387,7 +389,10 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         if (job.amount != amount_) {
             if (amount_ > job.amount) {
                 uint256 difference = amount_ - job.amount;
-                require(difference >= job.collateralOwed, "Invalid collateral-adjusted amount increase");
+                require(
+                    difference >= job.collateralOwed,
+                    "Invalid collateral-adjusted amount increase"
+                );
 
                 SafeERC20.safeTransferFrom(
                     IERC20(job.token),
@@ -499,7 +504,9 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      * @notice If it's been more than 24 hrs since the job was posted, the collateral will be automatically returned.
      * @notice Otherwise the buyer must withdraw the collateral separately.
      */
-    function closeJob(uint256 jobId_) public whenNotPaused onlyJobCreator(jobId_) {
+    function closeJob(
+        uint256 jobId_
+    ) public whenNotPaused onlyJobCreator(jobId_) {
         require(jobs[jobId_].state == uint8(JobState.Open), "not open");
         JobPost storage job = jobs[jobId_];
         job.state = uint8(JobState.Closed);
@@ -542,11 +549,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         require(job.collateralOwed > 0, "No collateral to withdraw");
 
         uint256 amount = job.collateralOwed;
-        SafeERC20.safeTransfer(
-            IERC20(job.token),
-            job.roles.creator,
-            amount
-        );
+        SafeERC20.safeTransfer(IERC20(job.token), job.roles.creator, amount);
         job.collateralOwed = 0; // Reset the owed amount
 
         publishJobEvent(
@@ -560,7 +563,9 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         );
     }
 
-    function reopenJob(uint256 jobId_) public whenNotPaused onlyJobCreator(jobId_) {
+    function reopenJob(
+        uint256 jobId_
+    ) public whenNotPaused onlyJobCreator(jobId_) {
         JobPost storage job = jobs[jobId_];
 
         require(job.state == uint8(JobState.Closed), "not closed");
@@ -592,13 +597,20 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         );
     }
 
-    function postThreadMessage(uint256 jobId_, bytes32 contentHash_, address recipient) public whenNotPaused {
+    function postThreadMessage(
+        uint256 jobId_,
+        bytes32 contentHash_,
+        address recipient
+    ) public whenNotPaused {
         require(jobs[jobId_].state != uint8(JobState.Closed), "job closed");
         require(msg.sender != recipient, "can't message yourself");
 
         bool isOwner = jobs[jobId_].roles.creator == msg.sender;
         if (!isOwner) {
-            require(marketplaceData.userRegistered(msg.sender), "not registered");
+            require(
+                marketplaceData.userRegistered(msg.sender),
+                "not registered"
+            );
 
             if (jobs[jobId_].state == uint8(JobState.Taken)) {
                 // only assigned workers can message on the job if it is taken
@@ -619,7 +631,10 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             recipient = jobs[jobId_].roles.creator;
         } else {
             // restrict messaging only to registered users
-            require(marketplaceData.userRegistered(recipient), "not registered");
+            require(
+                marketplaceData.userRegistered(recipient),
+                "not registered"
+            );
         }
 
         publishJobEvent(
@@ -644,7 +659,10 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      * @param jobId_ id of the job
      * @param signature_ worker's signature of all the job parameters
      */
-    function takeJob(uint256 jobId_, bytes calldata signature_) public whenNotPaused {
+    function takeJob(
+        uint256 jobId_,
+        bytes calldata signature_
+    ) public whenNotPaused {
         require(marketplaceData.userRegistered(msg.sender), "not registered");
         require(
             msg.sender != jobs[jobId_].roles.creator,
@@ -698,7 +716,11 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             IUnicrow unicrow = IUnicrow(unicrowAddress);
 
             IERC20 token = IERC20(job.token);
-            SafeERC20.forceApprove(IERC20(token), unicrowAddress, type(uint256).max);
+            SafeERC20.forceApprove(
+                IERC20(token),
+                unicrowAddress,
+                type(uint256).max
+            );
             EscrowInput memory escrowInput = EscrowInput(
                 address(0),
                 msg.sender, // worker address
@@ -756,7 +778,11 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
         IUnicrow unicrow = IUnicrow(unicrowAddress);
 
         IERC20 token = IERC20(job.token);
-        SafeERC20.forceApprove(IERC20(token), address(unicrowAddress), type(uint256).max);
+        SafeERC20.forceApprove(
+            IERC20(token),
+            address(unicrowAddress),
+            type(uint256).max
+        );
         EscrowInput memory escrowInput = EscrowInput(
             address(0),
             worker_,
@@ -917,7 +943,9 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
             jobId_,
             JobEventData({
                 type_: uint8(JobEventType.Refunded),
-                address_: byWorker ? abi.encodePacked(job.roles.worker) : abi.encodePacked(job.roles.arbitrator),
+                address_: byWorker
+                    ? abi.encodePacked(job.roles.worker)
+                    : abi.encodePacked(job.roles.arbitrator),
                 data_: bytes(""),
                 timestamp_: 0
             })
@@ -1028,7 +1056,9 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      *      funds from potentially illicit transactions. However, perhaps it might be better for the arbitrator to keep the fee to prevent spam?
      *      More in Notion
      */
-    function refuseArbitration(uint256 jobId_) public whenNotPaused onlyArbitrator(jobId_) {
+    function refuseArbitration(
+        uint256 jobId_
+    ) public whenNotPaused onlyArbitrator(jobId_) {
         JobPost storage job = jobs[jobId_];
         require(job.state != uint8(JobState.Closed), "job in invalid state");
         job.roles.arbitrator = address(0);
