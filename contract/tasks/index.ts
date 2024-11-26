@@ -732,7 +732,7 @@ task("job:update", "Update a job post")
   console.log("Updating job post with address", await getUserAddress(hre));
 
   const job = await marketplace.jobs(jobid);
-  const token = job[7];
+  const token = job.token;
   const tokenContract = await hre.ethers.getContractAt("FakeToken", token);
   const decimals = await tokenContract.decimals();
   const amountInWei = hre.ethers.parseUnits(amount, decimals);
@@ -817,16 +817,16 @@ task("job:start", "Start job / pick applicant")
     const revision = await marketplaceData.eventsLength(jobid);
 
     const job = await marketplace.jobs(jobid);
-    const token = job[7];
+    const token = job.token;
     const tokenContract = await hre.ethers.getContractAt("FakeToken", token);
     const decimals = await tokenContract.decimals();
-    const amount = job[6]; // job.amount
+    const amount = job.amount;
     const amountHuman = hre.ethers.formatUnits(amount, decimals);
-    const deadline = job[8]; // job.deadline
-    const arbitrator = job[2][1]; // job.jobRoles.arbitrator
+    const deadline = job.deadline;
+    const arbitrator = job.roles.arbitrator;
 
-    const title = job[3]; // job.title
-    const cid = hashToCid(job[4]);
+    const title = job.title;
+    const cid = hashToCid(job.contentHash);
     const content = await getFromIpfs(cid);
 
     console.log("Job ID:", jobid);
@@ -877,7 +877,7 @@ task("job:message", "Post a message in a job thread")
 
   const accounts = await hre.ethers.getSigners();
   if (! worker) {
-    const owner = job[2][0]; // job.jobRoles.owner
+    const owner = job.roles[0]; // owner
     const worker = accounts[0];
     const sessionKey = await getSessionKey(worker, await marketplaceData.publicKeys(owner), jobid);
 
@@ -887,7 +887,7 @@ task("job:message", "Post a message in a job thread")
     const receipt = await tx.wait();
     console.log("Transaction hash:", receipt.hash);
   } else {
-    const owner = job[2][0]; // job.jobRoles.owner
+    const owner = job.roles[0]; // owner
     const creator = accounts[0];
     if (owner !== creator.address) {
       console.log("You are not the owner of this job");
@@ -953,9 +953,9 @@ task("job:dispute", "Raise a dispute on a job")
   const user = accounts[0];
 
   const job = await marketplace.jobs(jobid);
-  const owner = job[2][0]; // job.jobRoles.owner
-  const arbitrator = job[2][1]; // job.jobRoles.arbitrator
-  const worker = job[2][2]; // job.jobRoles.worker
+  const owner = job.roles.creator;
+  const arbitrator = job.roles.arbitrator;
+  const worker = job.roles.worker;
 
   if (arbitrator === ZeroAddress) {
     console.log("No arbitrator set for this job");
