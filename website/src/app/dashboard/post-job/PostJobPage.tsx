@@ -1,4 +1,5 @@
 'use client';
+import { AddToHomescreen } from '@/components/AddToHomescreen';
 import ERC20Abi from '@/abis/ERC20.json';
 import { Button } from '@/components/Button';
 import { ConnectButton } from '@/components/ConnectButton';
@@ -1094,6 +1095,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
             />
           </>
         )}
+        <AddToHomescreen />
       </div>
     );
   }

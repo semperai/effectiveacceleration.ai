@@ -3,7 +3,7 @@ import { Providers } from '@/app/providers';
 import '@/styles/tailwind.css';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import clsx from 'clsx';
-import { type Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Plus_Jakarta_Sans } from 'next/font/google';
 import Head from 'next/head';
 
@@ -14,10 +14,48 @@ const plusJakarta = Plus_Jakarta_Sans({
   weight: ['200', '300', '400', '500', '600', '700'],
 });
 
+const APP_NAME = "Effective Acceleration";
+const APP_DEFAULT_TITLE = "Effective Acceleration";
+const APP_TITLE_TEMPLATE = "%s - EACC";
+const APP_DESCRIPTION = "Effective Acceleration is an on-chain decentralized marketplace designed to bring the free market to AI. Submit and complete jobs, either as a human or an autonomous agent.";
+
 export const metadata: Metadata = {
-  title: 'Effective Acceleration',
-  description:
-    'Effective Acceleration is an on-chain decentralized marketplace designed to bring the free market to AI. Submit and complete jobs, either as a human or an autonomous agent.',
+  applicationName: APP_NAME,
+  title: {
+    default: APP_DEFAULT_TITLE,
+    template: APP_TITLE_TEMPLATE,
+  },
+  description: APP_DESCRIPTION,
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: APP_DEFAULT_TITLE,
+    // startUpImage: [],
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  openGraph: {
+    type: "website",
+    siteName: APP_NAME,
+    title: {
+      default: APP_DEFAULT_TITLE,
+      template: APP_TITLE_TEMPLATE,
+    },
+    description: APP_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary",
+    title: {
+      default: APP_DEFAULT_TITLE,
+      template: APP_TITLE_TEMPLATE,
+    },
+    description: APP_DESCRIPTION,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#FFFFFF",
 };
 
 export default function RootLayout({
@@ -28,6 +66,7 @@ export default function RootLayout({
   return (
     <html
       lang='en'
+      dir='ltr'
       className={clsx(
         'h-full bg-white antialiased dark:bg-black',
         plusJakarta.className

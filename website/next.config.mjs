@@ -1,9 +1,15 @@
 import { withSentryConfig } from '@sentry/nextjs';
+import withSerwistInit from "@serwist/next";
 import nextMDX from '@next/mdx';
 
 import { recmaPlugins } from './mdx/recma.mjs';
 import { rehypePlugins } from './mdx/rehype.mjs';
 import { remarkPlugins } from './mdx/remark.mjs';
+
+const withSerwist = withSerwistInit({
+  swSrc: "src/sw.ts",
+  swDest: "public/sw.js",
+});
 
 const withMDX = nextMDX({
   extension: /\.mdx?$/,
@@ -37,7 +43,7 @@ const nextConfig = {
   },
 };
 
-export default withSentryConfig(withMDX(nextConfig), {
+export default withSerwist(withSentryConfig(withMDX(nextConfig), {
   // For all available options, see:
   // https://github.com/getsentry/sentry-webpack-plugin#options
 
@@ -75,4 +81,4 @@ export default withSentryConfig(withMDX(nextConfig), {
   // https://docs.sentry.io/product/crons/
   // https://vercel.com/docs/cron-jobs
   automaticVercelMonitors: true,
-});
+}));
