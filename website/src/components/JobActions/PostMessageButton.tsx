@@ -1,5 +1,6 @@
 import { Button } from '@/components/Button';
-import useUsersByAddresses from '@/hooks/useUsersByAddresses';
+import { useRouter } from 'next/navigation';
+import useUser from '@/hooks/useUser';
 import { Job, publishToIpfs } from 'effectiveacceleration-contracts';
 import Config from 'effectiveacceleration-contracts/scripts/config.json';
 import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
@@ -25,6 +26,8 @@ export function PostMessageButton({
   sessionKeys,
   ...rest
 }: PostMessageButtonProps & React.ComponentPropsWithoutRef<'div'>) {
+  const router = useRouter();
+  const user = useUser(address);
   const [message, setMessage] = useState<string>('');
   const selectedUserRecipient =
     recipient === address ? job.roles.creator : recipient;
@@ -60,8 +63,9 @@ export function PostMessageButton({
   const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
 
   async function buttonClick() {
-    if (message.length === 0) {
-      alert('Empty result');
+    if (! user.data) {
+      router.push('/register');
+      console.log('User not registered');
       return;
     }
 
@@ -84,11 +88,11 @@ export function PostMessageButton({
               rows={1}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder='Type new message'
+              placeholder='Type a new message'
               className='w-full !rounded'
             />
             <Button
-              disabled={buttonDisabled}
+              disabled={buttonDisabled || message.length === 0}
               onClick={buttonClick}
               color='lightBlue'
             >
