@@ -57,10 +57,6 @@ export function ArbitrateButton({
   const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
 
   async function buttonClick() {
-    if (message.length === 0) {
-      alert('Empty message');
-      return;
-    }
     if (workerShare + ownerShare !== 10000) {
       alert('Shares must sum to 10000');
       return;
@@ -205,10 +201,13 @@ export function ArbitrateButton({
                       rows={4}
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
-                      placeholder='Message'
+                      placeholder='Please write a message describing your reasoning for your decision'
                       className='mt-5'
                     />
-                    <Button disabled={buttonDisabled} onClick={buttonClick}>
+                    <Button
+                      disabled={buttonDisabled || message === ''}
+                      onClick={buttonClick}
+                    >
                       Confirm
                     </Button>
                   </div>
