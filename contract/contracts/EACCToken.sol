@@ -33,11 +33,15 @@ contract EACCToken is ERC20, ERC20Permit, ERC20Votes, Ownable {
     uint256 public minimumTokensBeforeSwap;
 
     event TaxSet(uint256 tax);
-    event TokenWithdrawn(address indexed addr, address indexed token, uint256 amount);
+    event TokenWithdrawn(
+        address indexed addr,
+        address indexed token,
+        uint256 amount
+    );
     event WhitelistUpdated(address indexed addr, bool whitelisted);
     event MinimumTokensBeforeSwapUpdated(uint256 amount);
 
-    modifier lockSwap {
+    modifier lockSwap() {
         require(!lock, "Swap locked");
         lock = true;
         _;
@@ -109,7 +113,10 @@ contract EACCToken is ERC20, ERC20Permit, ERC20Votes, Ownable {
     /// @notice Updates the whitelist
     /// @param _addr the address to update
     /// @param _whitelisted the new value
-    function updateWhitelist(address _addr, bool _whitelisted) public onlyOwner {
+    function updateWhitelist(
+        address _addr,
+        bool _whitelisted
+    ) public onlyOwner {
         require(_addr != address(0), "Invalid address");
         whitelist[_addr] = _whitelisted;
         emit WhitelistUpdated(_addr, _whitelisted);
@@ -147,13 +154,15 @@ contract EACCToken is ERC20, ERC20Permit, ERC20Votes, Ownable {
         path[0] = address(this);
         path[1] = address(arbiusToken);
 
-        try router.swapExactTokensForTokens(
-            _amount,
-            0, // Accept any amount of aius
-            path,
-            treasury,
-            block.timestamp
-        ) returns (uint256[] memory) {
+        try
+            router.swapExactTokensForTokens(
+                _amount,
+                0, // Accept any amount of aius
+                path,
+                treasury,
+                block.timestamp
+            )
+        returns (uint256[] memory) {
             // Swap successful
         } catch {
             // If swap fails, keep the tokens in the contract for manual withdrawal
@@ -175,7 +184,7 @@ contract EACCToken is ERC20, ERC20Permit, ERC20Votes, Ownable {
             whitelist[_from] ||
             whitelist[_to] ||
             _from == address(0) || // Skip tax on minting
-            _to == address(0)      // Skip tax on burning
+            _to == address(0) // Skip tax on burning
         ) {
             super._update(_from, _to, _amount);
             return;
