@@ -579,6 +579,43 @@ task("user:update", "Update user")
   console.log("Transaction hash:", receipt.hash);
 });
 
+task("job:info", "Get job info")
+.addParam("jobid", "Job ID")
+.setAction(async ({ jobid }, hre) => {
+  const marketplace = await getMarketplace(hre);
+  const marketplaceData = await getMarketplaceData(hre);
+
+  const job = await marketplace.jobs(jobid);
+
+  let jobState = '';
+  switch (job.state.toString()) {
+    case '0': jobState = 'Open'; break;
+    case '1': jobState = 'Taken'; break;
+    case '2': jobState = 'Closed'; break;
+    default: jobState = 'Unknown'; break;
+  }
+
+  console.log('state', jobState);
+  console.log('whitelistWorkers', job.whitelistWorkers);
+  console.log('roles.creator', job.roles.creator);
+  console.log('roles.arbitrator', job.roles.arbitrator);
+  console.log('roles.worker', job.roles.worker);
+  console.log('title', job.title);
+  console.log('tags', job.tags);
+  console.log('contentHash', job.contentHash);
+  console.log('multipleApplicants', job.multipleApplicants);
+  console.log('amount', hre.ethers.formatUnits(job.amount, 18)); // TODO decimals on token
+  console.log('token', job.token);
+  console.log('timestamp', job.timestamp.toString());
+  console.log('maxTime', job.maxTime.toString());
+  console.log('deliveryMethod', job.deliveryMethod);
+  console.log('collateralOwed', hre.ethers.formatUnits(job.collateralOwed, 18)); // TODO decimals on token
+  console.log('escrowId', job.escrowId.toString());
+  console.log('resultHash', job.resultHash);
+  console.log('rating', job.rating);
+  console.log('disputed', job.disputed);
+});
+
 task("job:publish", "Publish a job post")
 .addParam("title", "Title of job")
 .addParam("content", "Content / job description")
