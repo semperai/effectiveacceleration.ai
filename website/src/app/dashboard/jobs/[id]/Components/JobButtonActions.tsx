@@ -45,12 +45,13 @@ const JobButtonActions = ({
             job.roles.arbitrator !== zeroAddress &&
             address !== job.roles.arbitrator &&
             addresses.length &&
+            !job.disputed &&
             Object.keys(sessionKeys).length > 0 && (
               <DisputeButton
                 address={address}
                 sessionKeys={sessionKeys}
                 job={job}
-              ></DisputeButton>
+              />
             )}
           {/* {job.state !== JobState.Closed && address !== job.roles.arbitrator && addresses.length && Object.keys(sessionKeys).length > 0 &&
           <div className='row-span-1 flex flex-1 border border-gray-100'>
