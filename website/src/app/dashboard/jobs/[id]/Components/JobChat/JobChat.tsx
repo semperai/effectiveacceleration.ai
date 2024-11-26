@@ -57,19 +57,26 @@ const JobChatEvents: React.FC<ResultAcceptedProps> = ({
           />
         </>
       ) : (
-        <div className='flex h-full max-h-customHeader items-center justify-center'>
-          {numberOfWorkers === 0 ? (
-            <span className='text-center'>
-              A chat with the applying workers will appear here
-            </span>
-          ) : (
+        <div className='flex flex-col h-full max-h-customHeader items-center justify-center gap-4'>
+          <div>
             <Image
               className='max-h-[35px] max-w-[150px] text-center'
               src={logoDark}
-              alt='Worker'
+              alt=''
               width={150}
               height={150}
             />
+          </div>
+
+          {job.roles.creator === address && (
+            <div className='text-center'>
+              A chat with the applying workers will appear here
+            </div>
+          )}
+          {job.roles.creator !== address && job.roles.worker !== address && job.roles.arbitrator !== address && (
+            <div className='text-center'>
+              Apply to this job by chatting with the creator
+            </div>
           )}
         </div>
       )}
