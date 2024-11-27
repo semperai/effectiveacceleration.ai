@@ -110,47 +110,45 @@ export function AssignWorkerButton({
                 leaveFrom='opacity-100 scale-100'
                 leaveTo='opacity-0 scale-95'
               >
-                <Dialog.Panel className='w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all'>
-                  <Dialog.Title
-                    as='h3'
-                    className='mb-4 text-lg font-medium leading-6'
-                  >
-                    Review job details
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-8 text-left align-middle shadow-xl transition-all">
+                  <Dialog.Title as="h3" className="text-xl font-semibold text-gray-900 mb-6">
+                    Review Job Details
                   </Dialog.Title>
-                  <div className='flex flex-col'>
-                    <span>
-                      <b>Title:</b> {job.title}
-                    </span>
-                    <span>
-                      <b>Content:</b> {job.content}
-                    </span>
-                    <span>
-                      <b>delivery Method:</b> {job.deliveryMethod}
-                    </span>
-                    <span>
-                      <b>Max Time:</b>{' '}
-                      {moment.duration(job?.maxTime, 'seconds').humanize()}{' '}
-                    </span>
-                    <span>
-                      <b>Amount:</b>{' '}
-                      {formatTokenNameAndAmount(job.token, job.amount)}
-                    </span>
-                    <span>
-                      <b>Worker:</b> {selectedWorker}
-                    </span>
-                    <span>
-                      <b>Category:</b> {jobMeceTag}
-                    </span>
-                    <span>
-                      <b>Tags:</b>{' '}
-                      {job?.tags
-                        .map((value, index) => (
-                          <span key={index}>{value}</span>
-                        ))}
-                    </span>
+
+                  <div className="space-y-4">
+                    {/* Job Details Grid */}
+                    <div className="grid grid-cols-1 gap-4 text-sm">
+                      {[
+                        { label: "Title", value: job.title },
+                        { label: "Content", value: job.content },
+                        { label: "Delivery Method", value: job.deliveryMethod },
+                        { label: "Max Time", value: moment.duration(job?.maxTime, 'seconds').humanize() },
+                        { label: "Amount", value: formatTokenNameAndAmount(job.token, job.amount) },
+                        { label: "Worker", value: selectedWorker },
+                        { label: "Category", value: jobMeceTag },
+                        {
+                          label: "Tags",
+                          value: job?.tags.map((tag, index) => (
+                            <span key={index} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-2">
+                              {tag}
+                            </span>
+                          ))
+                        }
+                      ].map(({ label, value }) => (
+                        <div key={label} className="flex flex-col">
+                          <dt className="text-gray-500 font-medium mb-1">{label}</dt>
+                          <dd className="text-gray-900">{value}</dd>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className='mb-3 mt-5 flex flex-col gap-5'>
-                    <Button disabled={buttonDisabled} onClick={buttonClick}>
+
+                  <div className="mt-8">
+                    <Button
+                      disabled={buttonDisabled}
+                      onClick={buttonClick}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                    >
                       Confirm
                     </Button>
                   </div>
