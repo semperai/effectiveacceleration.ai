@@ -6,6 +6,7 @@ import {
   Job,
   JobState,
 } from 'effectiveacceleration-contracts/dist/src/interfaces';
+import { JobFilter } from '@/components/Dashboard/JobsTables/JobFilter';
 
 export const OpenJobsFeed = () => {
   const { data: jobs } = useJobs();
@@ -26,6 +27,7 @@ export const OpenJobsFeed = () => {
 
   return (
     <div>
+      <JobFilter />
       <OpenJobs
         filteredJobs={filteredJobs}
         localJobs={filteredJobs}
