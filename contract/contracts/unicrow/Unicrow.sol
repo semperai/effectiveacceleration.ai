@@ -111,6 +111,7 @@ contract Unicrow is ReentrancyGuard, IUnicrow, Context {
 
     /// @inheritdoc IUnicrow
     function pay(
+        address sender,
         EscrowInput calldata input,
         address arbitrator,
         uint16 arbitratorFee
@@ -118,8 +119,7 @@ contract Unicrow is ReentrancyGuard, IUnicrow, Context {
         // Get current escrow id from the incremental counter
         uint256 escrowId = escrowIdCounter.current();
 
-        // If the buyer was set to zero address in the input, set buyer to msg.sender
-        address buyer = input.buyer == address(0) ? msg.sender : input.buyer;
+        address buyer = input.buyer;
 
         // Amount of the payment in ERC20 tokens
         uint amount = input.amount;
@@ -127,8 +127,8 @@ contract Unicrow is ReentrancyGuard, IUnicrow, Context {
         // Make sure there's something left for the seller :-)
         require(arbitratorFee + input.marketplaceFee + protocolFee < 10000, "1-026");
 
-        // Payment can't use address(0)
-        require(escrows[escrowId].buyer == address(0), "0-001");
+        // Buyer cannot be empty
+        require(buyer != address(0), "0-001");
 
         // Seller cannot be empty
         require(input.seller != address(0), "0-002");
@@ -154,7 +154,7 @@ contract Unicrow is ReentrancyGuard, IUnicrow, Context {
             // If the payment was made in ERC20 and not ETH, execute the transfer
             SafeERC20.safeTransferFrom(
                 IERC20(input.currency),
-                msg.sender,
+                sender,
                 address(this),
                 amount
             );
