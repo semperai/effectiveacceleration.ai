@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import JobsTable from '../JobsTable'
 import {LocalStorageJob, TInProgressTable, TOpenJobTable} from '@/service/JobsService';
 import { useReactTable, getCoreRowModel, createColumnHelper } from '@tanstack/react-table'
-import useJobs from '@/hooks/useJobs';
+import useJobs from '@/hooks/subsquid/useJobs';
 import { Job, JobState } from '@effectiveacceleration/contracts';
 import Link from 'next/link';
 

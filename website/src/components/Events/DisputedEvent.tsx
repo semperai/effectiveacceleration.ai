@@ -5,7 +5,7 @@ import { type EventProps } from './index';
 import moment from 'moment';
 import { JobDisputedEvent } from '@effectiveacceleration/contracts';
 import { getAddress } from 'viem';
-import useUser from '@/hooks/useUser';
+import useUser from '@/hooks/subsquid/useUser';
 
 export function DisputedEvent({event, ...rest}: EventProps & React.ComponentPropsWithoutRef<'div'>) {
   const address = getAddress(event.address_);

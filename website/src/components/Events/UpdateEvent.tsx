@@ -3,7 +3,7 @@ import moment from 'moment';
 import { Fragment } from 'react'
 import { Badge } from '@/components/Badge'
 import { getAddress } from 'viem';
-import useUser from '@/hooks/useUser';
+import useUser from '@/hooks/subsquid/useUser';
 
 export function UpdateEvent({event, ...rest}: EventProps & React.ComponentPropsWithoutRef<'div'>) {
   const address = getAddress(event.job.roles.creator);

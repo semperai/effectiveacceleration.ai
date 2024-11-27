@@ -7,21 +7,21 @@ import JobProgress from './JobsTablesData/JobProgress';
 import CompletedJobs from './JobsTablesData/CompletedJobs';
 import DisputedJobs from './JobsTablesData/DisputedJobs';
 import CancelledJobs from './JobsTablesData/CancelledJobs';
-import useJobs from '@/hooks/useJobs';
-import useUsersByAddresses from '@/hooks/useUsersByAddresses';
+import useJobs from '@/hooks/subsquid/useJobs';
+import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
 import DevelopAllJobs from './JobsTablesData/DevelopAllJobs';
 import { Job, JobEventType, JobState } from '@effectiveacceleration/contracts';
 import { LocalStorageJob } from '@/service/JobsService';
-import useJobsByIds from '@/hooks/useJobsByIds';
+import useJobsByIds from '@/hooks/subsquid/useJobsByIds';
 import { LOCAL_JOBS_CACHE } from '@/utils/constants';
 import { useAccount } from 'wagmi';
 
 const DashboardTabs = () => {
   const { data: jobs } = useJobs();
   const { address } = useAccount();
-  const { data: users } = useUsersByAddresses(jobs.map(job => job.roles.creator));
+  const { data: users } = useUsersByAddresses(jobs?.map(job => job.roles.creator) ?? []);
   const [localJobs, setLocalJobs] = useState<Job[]>([]);
-  const [jobIds, setJobIds] = useState<bigint[]>([]);
+  const [jobIds, setJobIds] = useState<string[]>([]);
   const {data: selectedJobs } = useJobsByIds(jobIds)
   const [filteredOpenJobs, setOpenFilteredJobs] = useState<Job[]>([]);
   const [filteredJobsInProgress, setFilteredJobsInProgress] = useState<Job[]>([]);
@@ -36,15 +36,15 @@ const DashboardTabs = () => {
     const storedJobs = localStorage.getItem(userJobCache);
     if (storedJobs) {
       const parsedJobs = JSON.parse(storedJobs);
-      const jobIdsArray = Array.from(new Set(parsedJobs.map((job: Job) => job.id)));
+      const jobIdsArray = [...new Set<string>(parsedJobs.map((job: Job) => job.id))];
       setLocalJobs(parsedJobs);
-      setJobIds(jobIdsArray as bigint[]);
+      setJobIds(jobIdsArray);
     }
     setMounted(true);
   }, [address]);
 
   const filteredJobsMemo = useMemo(() => {
-    if (selectedJobs.length === 0) return { open: [], inProgress: [], completed: [], cancelled: [], disputed: []};
+    if (selectedJobs?.length === 0) return { open: [], inProgress: [], completed: [], cancelled: [], disputed: []};
 
     const filteredOpenJobs: Job[] = [];
     const filteredJobsInProgress: Job[] = [];
@@ -52,7 +52,7 @@ const DashboardTabs = () => {
     const filteredCancelledJobs: Job[] = [];
     const filteredDisputedJobs: Job[] = [];
     
-    selectedJobs.forEach((job, index) => {
+    selectedJobs?.forEach((job, index) => {
       if (job.state === JobState.Open) {
         filteredOpenJobs.push(job);
       } else if (job.state === JobState.Taken) {
@@ -98,7 +98,7 @@ const DashboardTabs = () => {
               Develop: All Jobs</Tab>
         </TabList>
         <TabPanel>
-          <OpenJobs filteredJobs={filteredOpenJobs} selectedJobs={selectedJobs}  localJobs={localJobs}/>
+          <OpenJobs filteredJobs={filteredOpenJobs} selectedJobs={selectedJobs ?? []}  localJobs={localJobs}/>
         </TabPanel>
         <TabPanel>
           <JobProgress filteredJobs={filteredJobsInProgress} localJobs={localJobs}/>
@@ -113,7 +113,7 @@ const DashboardTabs = () => {
           <CancelledJobs filteredJobs={filteredCancelledJobs} localJobs={localJobs}/>
         </TabPanel>
         <TabPanel>
-          <DevelopAllJobs jobs={jobs}/>
+          <DevelopAllJobs jobs={jobs ?? []}/>
         </TabPanel>
       </Tabs>
     )}

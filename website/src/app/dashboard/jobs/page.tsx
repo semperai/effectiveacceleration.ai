@@ -13,9 +13,9 @@ import {
   PaginationPage,
   PaginationPrevious,
 } from '@/components/Pagination'
-import useJobs from '@/hooks/useJobs';
+import useJobs from '@/hooks/subsquid/useJobs';
 import moment from 'moment'
-import useUsersByAddresses from '@/hooks/useUsersByAddresses';
+import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
 
 const environments: Record<string, string> = {
   Preview: 'text-gray-400 bg-gray-400/10 ring-gray-400/20',
@@ -24,12 +24,12 @@ const environments: Record<string, string> = {
 
 export default function OpenJobsPage() {
   const { data: jobs } = useJobs();
-  const { data: users } = useUsersByAddresses(jobs.map(job => job.roles.creator));
+  const { data: users } = useUsersByAddresses(jobs?.map(job => job.roles.creator) ?? []);
   console.log(users, 'ALL USERS')
   return (
     <Layout>
       <h1 className="text-xl font-medium mb-8 ml-2">Open Jobs</h1>
-      {jobs.map((job, idx) => (
+      {jobs?.map((job, idx) => (
         <li key={idx} className="relative flex items-center space-x-4 px-2 py-4 hover:bg-zinc-50 dark:hover:bg-zinc-950 transition ease-in-out rounded-md">
           <div className="min-w-0 flex-auto">
             <div className="flex items-center gap-x-3">
@@ -45,7 +45,7 @@ export default function OpenJobsPage() {
               </h2>
             </div>
             <div className="mt-3 flex items-center gap-x-2.5 text-xs leading-5 text-gray-600 dark:text-gray-400">
-              <p className="truncate">{users[job.roles.creator]?.name}</p>
+              <p className="truncate">{users?.[job.roles.creator]?.name}</p>
               <svg viewBox="0 0 2 2" className="h-0.5 w-0.5 flex-none fill-gray-300">
                 <circle cx={1} cy={1} r={1} />
               </svg>

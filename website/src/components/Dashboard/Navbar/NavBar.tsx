@@ -10,7 +10,7 @@ import { MdOutlineArrowForwardIos } from 'react-icons/md'
 import { PiBellSimple } from 'react-icons/pi'
 import { useAccount, useReadContract } from 'wagmi'
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import useUser from '@/hooks/useUser'
+import useUser from '@/hooks/subsquid/useUser'
 import {
   UserIcon,
 } from '@heroicons/react/20/solid'

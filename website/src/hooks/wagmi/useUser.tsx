@@ -1,4 +1,4 @@
-import useUsersByAddresses from "@/hooks/useUsersByAddresses";
+import useUsersByAddresses from "@/hooks/wagmi/useUsersByAddresses";
 import { User } from "@effectiveacceleration/contracts";
 import { useMemo } from "react";
 import { zeroAddress } from "viem";

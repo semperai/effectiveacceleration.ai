@@ -1,6 +1,6 @@
 import { type EventProps } from './index';
 import moment from 'moment';
-import useArbitrator from '@/hooks/useArbitrator';
+import useArbitrator from '@/hooks/subsquid/useArbitrator';
 import { getAddress } from 'viem';
 
 export function ArbitrationRefusedEvent({event, ...rest}: EventProps & React.ComponentPropsWithoutRef<'div'>) {

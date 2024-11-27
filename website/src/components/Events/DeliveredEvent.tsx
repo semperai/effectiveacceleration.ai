@@ -1,7 +1,7 @@
 import { type EventProps } from './index';
 import moment from 'moment';
 import { getAddress } from 'viem';
-import useUser from '@/hooks/useUser';
+import useUser from '@/hooks/subsquid/useUser';
 import { ChatBubbleLeftEllipsisIcon } from '@heroicons/react/20/solid';
 
 export function DeliveredEvent({event, ...rest}: EventProps & React.ComponentPropsWithoutRef<'div'>) {

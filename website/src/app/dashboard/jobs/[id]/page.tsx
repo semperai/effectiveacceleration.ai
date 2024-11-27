@@ -3,12 +3,12 @@
 import { Layout } from '@/components/Dashboard/Layout'
 import { Text } from '@/components/Text'
 import { useParams } from 'next/navigation';
-import useJobEventsWithDiffs from '@/hooks/useJobEventsWithDiffs';
-import useJob from '@/hooks/useJob';
+import useJobEventsWithDiffs from '@/hooks/subsquid/useJobEventsWithDiffs';
+import useJob from '@/hooks/subsquid/useJob';
 import { useAccount } from 'wagmi';
-import useUsersByAddresses from '@/hooks/useUsersByAddresses';
+import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
 import { SetStateAction, useEffect, useState } from 'react';
-import useUser from '@/hooks/useUser';
+import useUser from '@/hooks/subsquid/useUser';
 import OwnerView from './Components/UserRolesView/OwnerView';
 import ArbitratorView from './Components/UserRolesView/ArbitratorView';
 import GuestView from './Components/UserRolesView/GuestView';
@@ -20,16 +20,16 @@ import JobStatus from './Components/JobStatus';
 
 export default function JobPage() {
   const id = useParams().id as string;
-  const jobId = BigInt(id);
+  const jobId = id;
   const { address } = useAccount();
-  const { data: job, isLoadingError, ...rest } = useJob(jobId);
+  const { data: job, error, ...rest } = useJob(jobId);
   const { data: events, addresses, arbitratorAddresses, sessionKeys } = useJobEventsWithDiffs(jobId);
   const { data: users } = useUsersByAddresses(addresses);
   const { data: jobUsersData } = useUsersByAddresses([address!, job?.roles.creator!, job?.roles.worker!, job?.roles.arbitrator!]);
   const whitelistedWorkers = events.at(-1)?.job.allowedWorkers ?? [];
   const [selectedWorker, setSelectedWorker] = useState<string>('');
   const [eventMessages, setEventMessages] = useState(events);
-  console.log(job,events, 'JOB')
+  // console.log(job,events, 'JOB', addresses)
   useEffect(() => {
     if (job?.state === JobState.Taken || job?.state === JobState.Closed) {
       setSelectedWorker(job.roles.worker);
@@ -42,7 +42,7 @@ export default function JobPage() {
     : setEventMessages(events);
   }, [events, selectedWorker])
 
-  if (isLoadingError) {
+  if (error) {
     return (
       <div className='mt-5'>
         <Layout>
@@ -62,13 +62,13 @@ export default function JobPage() {
 
   const renderRoleBasedView = () => {
     if (address && job?.roles.creator.includes(address)) {
-      return <OwnerView users={users} job={job} setSelectedWorker={setSelectedWorker} events={events} address={address} addresses={addresses} sessionKeys={sessionKeys} jobUsersData={jobUsersData} whitelistedWorkers={whitelistedWorkers} selectedWorker={selectedWorker} eventMessages={eventMessages} ></OwnerView>
+      return <OwnerView users={users ?? {}} job={job} setSelectedWorker={setSelectedWorker} events={events} address={address} addresses={addresses} sessionKeys={sessionKeys} jobUsersData={jobUsersData} whitelistedWorkers={whitelistedWorkers} selectedWorker={selectedWorker} eventMessages={eventMessages} ></OwnerView>
     } else if (address && job?.roles.worker.includes(address)) {
-      return <WorkerView users={users} job={job} setSelectedWorker={setSelectedWorker} events={events} address={address} addresses={addresses} sessionKeys={sessionKeys} jobUsersData={jobUsersData} whitelistedWorkers={whitelistedWorkers} selectedWorker={selectedWorker} eventMessages={eventMessages} ></WorkerView>
+      return <WorkerView users={users ?? {}} job={job} setSelectedWorker={setSelectedWorker} events={events} address={address} addresses={addresses} sessionKeys={sessionKeys} jobUsersData={jobUsersData} whitelistedWorkers={whitelistedWorkers} selectedWorker={selectedWorker} eventMessages={eventMessages} ></WorkerView>
     } else if (address && job?.roles.arbitrator.includes(address)) {
-      return <ArbitratorView users={users} job={job} setSelectedWorker={setSelectedWorker} events={events} address={address} addresses={addresses} sessionKeys={sessionKeys} jobUsersData={jobUsersData} whitelistedWorkers={whitelistedWorkers} selectedWorker={selectedWorker} eventMessages={eventMessages} ></ArbitratorView>
+      return <ArbitratorView users={users ?? {}} job={job} setSelectedWorker={setSelectedWorker} events={events} address={address} addresses={addresses} sessionKeys={sessionKeys} jobUsersData={jobUsersData} whitelistedWorkers={whitelistedWorkers} selectedWorker={selectedWorker} eventMessages={eventMessages} ></ArbitratorView>
     } else {
-      return <GuestView users={users} job={job} setSelectedWorker={setSelectedWorker} events={events} address={address} addresses={addresses} sessionKeys={sessionKeys} jobUsersData={jobUsersData} whitelistedWorkers={whitelistedWorkers} selectedWorker={selectedWorker} eventMessages={eventMessages} ></GuestView>
+      return <GuestView users={users ?? {}} job={job} setSelectedWorker={setSelectedWorker} events={events} address={address} addresses={addresses} sessionKeys={sessionKeys} jobUsersData={jobUsersData} whitelistedWorkers={whitelistedWorkers} selectedWorker={selectedWorker} eventMessages={eventMessages} ></GuestView>
     }
   } 
 

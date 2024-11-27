@@ -24,8 +24,8 @@ import { Radio, RadioGroup } from '@/components/Radio'
 import { Listbox, ListboxOption } from '@/components/Listbox'
 import { Job, publishToIpfs } from '@effectiveacceleration/contracts'
 import { zeroAddress } from 'viem'
-import useUsers from '@/hooks/useUsers'
-import useArbitrators from '@/hooks/useArbitrators'
+import useUsers from '@/hooks/subsquid/useUsers'
+import useArbitrators from '@/hooks/subsquid/useArbitrators'
 import { ComboBox } from '@/components/ComboBox'
 import { ComboBoxOption, JobFormInputData, Tag } from '@/service/FormsTypes'
 import JobSummary from './JobSummary'
@@ -39,7 +39,7 @@ import { LocalStorageJob } from '@/service/JobsService'
 import useUnsavedChangesWarning from '@/hooks/useUnsavedChangesWarning'
 import { LOCAL_JOBS_CACHE } from "@/utils/constants";
 import { shortenText } from '@/utils/utils'
-import useUser from '@/hooks/useUser'
+import useUser from '@/hooks/subsquid/useUser'
 import RegisterModal from './RegisterModal'
 import LoadingModal from './LoadingModal'
 
@@ -151,7 +151,7 @@ const validateField = (value: string, validation: FieldValidation): string => {
 
 
 interface PostJobPageProps {
-  onJobIdCache: (jobId: bigint) => void;
+  onJobIdCache: (jobId: string) => void;
 }
 
 const unitsDeliveryTime = [
@@ -174,7 +174,7 @@ const categories = [
   { id: "NDO", name: "Non-Digital Others" },
 ]
 
-const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((props, ref) => {
+const PostJobPage = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>((props, ref) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { address } = useAccount();
@@ -282,7 +282,7 @@ const PostJobPage = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>((pro
     });
   }
 
-  const jobIdCache = (jobId?: bigint) => {
+  const jobIdCache = (jobId?: string) => {
     const createdJobId = jobId?.toString()
     const createdJobs = JSON.parse(localStorage.getItem(userJobCache) || '[]');
 

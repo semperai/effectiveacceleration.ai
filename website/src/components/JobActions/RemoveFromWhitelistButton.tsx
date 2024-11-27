@@ -8,7 +8,7 @@ import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { Dialog, Transition } from '@headlessui/react'
 import { Fragment } from 'react'
 import { Listbox, ListboxOption } from '../Listbox';
-import useUsersByAddresses from '@/hooks/useUsersByAddresses';
+import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
 
 
 export type RemoveFromWhitelistButtonProps = {
@@ -20,7 +20,7 @@ export type RemoveFromWhitelistButtonProps = {
 export function RemoveFromWhitelistButton({address, job, whitelist, ...rest}: RemoveFromWhitelistButtonProps & React.ComponentPropsWithoutRef<'div'>) {
   const {data: users} = useUsersByAddresses(whitelist);
   const excludes = [address];
-  const userList = Object.values(users).filter(user => !excludes.includes(user.address_));
+  const userList = Object.values(users ?? {}).filter(user => !excludes.includes(user.address_));
   const [selectedUserAddress, setSelectedUserAddress] = useState<string | undefined>(undefined);
   const {
     data: hash,

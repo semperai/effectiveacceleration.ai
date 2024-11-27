@@ -7,7 +7,7 @@ import Config from '@effectiveacceleration/contracts/scripts/config.json'
 import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1'
 
 const Page = () => {
-  const postJobPageRef = useRef<{ jobIdCache: (jobId: bigint) => void }>(null);
+  const postJobPageRef = useRef<{ jobIdCache: (jobId: string) => void }>(null);
 
   useWatchContractEvent({
     address: Config.marketplaceDataAddress,
@@ -17,7 +17,7 @@ const Page = () => {
       try {
       console.log(jobEvent, 'This is a Job Event emitted from Marketplace_Data_v1_Abi');
         if (postJobPageRef.current) {
-          postJobPageRef.current.jobIdCache(jobEvent[0].args.jobId as bigint);
+          postJobPageRef.current.jobIdCache(String(jobEvent[0].args.jobId as bigint));
         }
       } catch (error) {
           console.error('Error processing job event:', error);

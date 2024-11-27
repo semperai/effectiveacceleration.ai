@@ -8,18 +8,18 @@ import { useAccount, useWaitForTransactionReceipt, useWriteContract } from "wagm
 import { Dialog, Transition } from '@headlessui/react'
 import { Fragment } from 'react'
 import { Listbox, ListboxOption } from '../Listbox';
-import useUsersByAddresses from '@/hooks/useUsersByAddresses';
-import useUsers from '@/hooks/useUsers';
+import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
+import useUsers from '@/hooks/subsquid/useUsers';
 import { Textarea } from '../Textarea';
-import useArbitrators from '@/hooks/useArbitrators';
+import useArbitrators from '@/hooks/subsquid/useArbitrators';
 import { Field, Label } from '../Fieldset';
 import { Input } from '../Input';
 import { tokenIcon, tokensMap } from '@/tokens';
 import { zeroAddress } from 'viem';
 import { formatUnits, parseUnits } from 'ethers';
 import { Radio, RadioGroup } from '../Radio';
-import useUser from '@/hooks/useUser';
-import useArbitrator from '@/hooks/useArbitrator';
+import useUser from '@/hooks/subsquid/useUser';
+import useArbitrator from '@/hooks/subsquid/useArbitrator';
 import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
 import { useEthersSigner } from '@/hooks/useEthersSigner';
 import { ConnectButton } from '@rainbow-me/rainbowkit';

@@ -12,7 +12,7 @@ import {
   PaginationPage,
   PaginationPrevious,
 } from '@/components/Pagination'
-import useArbitrators from '@/hooks/useArbitrators';
+import useArbitrators from '@/hooks/subsquid/useArbitrators';
 
 const environments: Record<string, string> = {
   Preview: 'text-gray-400 bg-gray-400/10 ring-gray-400/20',
@@ -25,7 +25,7 @@ export default function OpenJobsPage() {
   return (
     <Layout>
       <h1 className="text-xl font-medium mb-8 ml-2">Arbitrators</h1>
-      {arbitrators.map((arbitrator, idx) => (
+      {arbitrators?.map((arbitrator, idx) => (
         <li key={idx} className="relative flex items-center space-x-4 px-2 py-4 hover:bg-zinc-50 dark:hover:bg-zinc-950 transition ease-in-out rounded-md">
           <div className="min-w-0 flex-auto">
             <div className="flex items-center gap-x-3">

@@ -11,7 +11,7 @@ import { MARKETPLACE_DATA_V1_ABI } from "@effectiveacceleration/contracts/wagmi/
 import Config from "@effectiveacceleration/contracts/scripts/config.json";
 import { useSearchParams } from 'next/navigation'
 import { UserButton } from '@/components/UserActions/UserButton'
-import useUser from '@/hooks/useUser'
+import useUser from '@/hooks/subsquid/useUser'
 import { useRouter } from 'next/navigation';
 import UploadAvatar from '@/components/UploadAvatar'
 import { PostJobParams } from '../dashboard/post-job/PostJobPage'

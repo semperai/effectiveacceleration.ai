@@ -1,7 +1,7 @@
 import { type EventProps } from './index';
 import moment from 'moment';
 import { JobRatedEvent } from '@effectiveacceleration/contracts';
-import useUser from '@/hooks/useUser';
+import useUser from '@/hooks/subsquid/useUser';
 import { getAddress } from 'viem';
 import { ChatBubbleLeftEllipsisIcon } from '@heroicons/react/20/solid';
 

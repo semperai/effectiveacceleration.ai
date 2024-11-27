@@ -8,10 +8,10 @@ import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { Dialog, Transition } from '@headlessui/react'
 import { Fragment } from 'react'
 import { Listbox, ListboxOption } from '../Listbox';
-import useUsersByAddresses from '@/hooks/useUsersByAddresses';
-import useUsers from '@/hooks/useUsers';
+import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
+import useUsers from '@/hooks/subsquid/useUsers';
 import { Textarea } from '../Textarea';
-import useArbitrators from '@/hooks/useArbitrators';
+import useArbitrators from '@/hooks/subsquid/useArbitrators';
 import { Field, Label } from '../Fieldset';
 import { Input } from '../Input';
 import { tokenIcon, tokensMap } from '@/tokens';
@@ -37,7 +37,7 @@ export function UpdateButton({address, job, ...rest}: UpdateButtonProps & React.
   const [content, setContent] = useState<string>(job.content!);
   const {data: arbitrators} = useArbitrators();
   const excludes = [address];
-  const userList = [{ address_: zeroAddress, name: "None" }, ...Object.values(arbitrators).filter(user => !excludes.includes(user.address_))];
+  const userList = [{ address_: zeroAddress, name: "None" }, ...Object.values(arbitrators ?? {}).filter(user => !excludes.includes(user.address_))];
   const [selectedArbitratorAddress, setSelectedArbitratorAddress] = useState<string>(job.roles.arbitrator);
   const {
     data: hash,

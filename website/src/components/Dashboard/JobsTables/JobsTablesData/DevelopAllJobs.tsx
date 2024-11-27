@@ -3,7 +3,7 @@ import JobsTable from '../JobsTable'
 import { TOpenJobTable} from '@/service/JobsService';
 import { useReactTable, getCoreRowModel, createColumnHelper } from '@tanstack/react-table';
 import { Checkbox } from '@/components/Checkbox';
-import useJobs from '@/hooks/useJobs';
+import useJobs from '@/hooks/subsquid/useJobs';
 import { Job } from '@effectiveacceleration/contracts';
 
 const DevelopAllJobs = ({jobs}: {jobs: Job[]}) => {

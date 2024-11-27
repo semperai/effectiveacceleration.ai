@@ -2,7 +2,7 @@ import { type EventProps } from './index';
 import moment from 'moment';
 import { Fragment } from 'react'
 import { Badge } from '@/components/Badge'
-import useUser from '@/hooks/useUser';
+import useUser from '@/hooks/subsquid/useUser';
 import { getAddress } from 'viem';
 
 export function CreateEvent({event, ...rest}: EventProps & React.ComponentPropsWithoutRef<'div'>) {

@@ -5,13 +5,13 @@ import { useAccount, useReadContract, useReadContracts } from "wagmi";
 import { getFromIpfs, Job, User } from "@effectiveacceleration/contracts";
 import JSON5 from "@mainnet-pat/json5-bigint";
 
-type CacheCheck = { targetJobId: bigint, checkedItem: string }
+type CacheCheck = { targetJobId: string, checkedItem: string }
 
-export default function useJobsByIds(targetIds: bigint[]) {
+export default function useJobsByIds(targetIds: string[]) {
   const [Jobs, setJobs] = useState<Job[]>([]);
   const { address } = useAccount();
-  const [cachedItems, setCachedItems] = useState<{ targetJobId: bigint, checkedItem: string }[]>([]);
-  const [missedItems, setMissedItems] = useState<{ targetJobId: bigint, checkedItem: string }[]>([]);
+  const [cachedItems, setCachedItems] = useState<{ targetJobId: string, checkedItem: string }[]>([]);
+  const [missedItems, setMissedItems] = useState<{ targetJobId: string, checkedItem: string }[]>([]);
 
   useEffect(() => {
     const checkedItems = targetIds.map((targetJobId) => {

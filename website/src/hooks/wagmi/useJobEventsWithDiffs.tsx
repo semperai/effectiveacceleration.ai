@@ -3,14 +3,14 @@ import Config from "@effectiveacceleration/contracts/scripts/config.json";
 import { useState, useEffect, useMemo } from "react";
 import { useAccount, useReadContract } from "wagmi";
 import { getSessionKey, JobEventType, computeJobStateDiffs, fetchEventContents, JobDisputedEvent, decryptJobDisputedEvent } from "@effectiveacceleration/contracts";
-import { useEthersSigner } from "./useEthersSigner";
+import { useEthersSigner } from "../useEthersSigner";
 import usePublicKeys from "./usePublicKeys";
 import { useWatchContractEvent } from 'wagmi'
 import { JobEventWithDiffs, JobEvent } from "@effectiveacceleration/contracts";
 import { getAddress, ZeroAddress } from "ethers";
 import useArbitratorPublicKeys from "./useArbitratorPublicKeys";
 
-export default function useJobEventsWithDiffs(jobId: bigint) {
+export default function useJobEventsWithDiffs(jobId: string) {
   const [jobEventsWithDiffs, setJobEventsWithDiffs] = useState<JobEventWithDiffs[]>([]);
   const [finalEvents, setFinalEvents] = useState<JobEventWithDiffs[]>([]);
   const [logEvents, setLogEvents] = useState<JobEvent[]>([]);
@@ -29,7 +29,7 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
     abi:          MARKETPLACE_DATA_V1_ABI,
     address:      Config.marketplaceDataAddress,
     functionName: 'getEvents',
-    args:         [jobId, 0n, 0n],
+    args:         [BigInt(jobId), 0n, 0n],
   });
 
   const rawJobEventsData = result.data as JobEvent[];
@@ -45,7 +45,7 @@ export default function useJobEventsWithDiffs(jobId: bigint) {
     address: Config.marketplaceDataAddress,
     eventName: 'JobEvent',
     onLogs: async (logs) => {
-      const filtered = logs.filter(log => log.args.jobId === jobId &&
+      const filtered = logs.filter(log => String(log.args.jobId) === jobId &&
         rawJobEventsData?.findIndex((other) => other.type_ === log.args.eventData?.type_ && other.timestamp_ === log.args.eventData?.timestamp_) === -1 &&
         logEvents.findIndex((other) => other.type_ === log.args.eventData?.type_ && other.timestamp_ === log.args.eventData?.timestamp_) === -1
       );

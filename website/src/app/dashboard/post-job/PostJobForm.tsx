@@ -24,8 +24,8 @@ import { Radio, RadioGroup } from '@/components/Radio'
 import { Listbox, ListboxOption } from '@/components/Listbox'
 import { Job, publishToIpfs } from '@effectiveacceleration/contracts'
 import { zeroAddress } from 'viem'
-import useUsers from '@/hooks/useUsers'
-import useArbitrators from '@/hooks/useArbitrators'
+import useUsers from '@/hooks/subsquid/useUsers'
+import useArbitrators from '@/hooks/subsquid/useArbitrators'
 import { ComboBox } from '@/components/ComboBox'
 import { ComboBoxOption, JobFormInputData, Tag } from '@/service/FormsTypes'
 import JobSummary from './JobSummary'
@@ -243,8 +243,8 @@ function PostJobForm() {
     });
   }
 
-  const jobIdCache = (jobId: bigint) => {
-    const createdJobId = jobId.toString()
+  const jobIdCache = (jobId: string) => {
+    const createdJobId = jobId
     const createdJobs = JSON.parse(localStorage.getItem(userJobCache) || '[]');
 
     // newJob Should correspond to type "Job" but bigInts are not JSON stringifiable

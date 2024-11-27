@@ -10,7 +10,7 @@ import { Fragment } from 'react'
 import { Listbox, ListboxOption } from '../Listbox';
 import { Textarea } from '../Textarea';
 import { zeroAddress } from 'viem';
-import useUsersByAddresses from '@/hooks/useUsersByAddresses';
+import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
 import { PiPaperPlaneRight } from "react-icons/pi";
 
 

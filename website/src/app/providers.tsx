@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { ThemeProvider } from 'next-themes'
 
@@ -22,6 +22,10 @@ import {
   QueryClient,
 } from "@tanstack/react-query";
 import { defineChain } from 'viem';
+
+import { ApolloClient, InMemoryCache, ApolloProvider, NormalizedCacheObject } from '@apollo/client';
+import { persistCache, LocalStorageWrapper, CachePersistor } from 'apollo3-cache-persist';
+import { useEffect, useState } from 'react';
 
 declare module 'wagmi' {
   interface Register {
@@ -62,9 +66,74 @@ export const config = getDefaultConfig({
 
 const queryClient = new QueryClient();
 
+const bigintPolicy = {
+  read: (value: string) => BigInt(value),
+}
+
+const cacheConfig = {
+  typePolicies: {
+    Job: {
+      fields: {
+        amount: bigintPolicy,
+        collateralOwed: bigintPolicy,
+        escrowId: bigintPolicy,
+      },
+    },
+    Review: {
+      fields: {
+        jobId: bigintPolicy,
+      },
+    },
+    JobCreatedEvent: {
+      fields: {
+        amount: bigintPolicy,
+      },
+    },
+    JobUpdatedEvent: {
+      fields: {
+        amount: bigintPolicy,
+      },
+    },
+    JobArbitratedEvent: {
+      fields: {
+        creatorAmount: bigintPolicy,
+        workerAmount: bigintPolicy,
+        arbitratorAmount: bigintPolicy,
+      },
+    },
+  },
+};
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  const [apolloClient, setApolloClient] = useState<ApolloClient<NormalizedCacheObject>>();
+
+  useEffect(() => {
+    async function init() {
+      const cache = new InMemoryCache(cacheConfig);
+      let newPersistor = new CachePersistor({
+        cache,
+        storage: new LocalStorageWrapper(window.sessionStorage),
+        debug: false,
+        trigger: 'write',
+      });
+      await newPersistor.restore();
+      setApolloClient(
+        new ApolloClient({
+          uri: process.env.NEXT_PUBLIC_SUBSQUID_API_URL,
+          cache,
+        })
+      );
+    }
+
+    init().catch(console.error);
+  }, []);;
+
+  if (!apolloClient) {
+    return null;
+  }
+
   return (
+  <ApolloProvider client={apolloClient}>
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider
@@ -80,5 +149,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
-  )
+  </ApolloProvider>
+)
 }

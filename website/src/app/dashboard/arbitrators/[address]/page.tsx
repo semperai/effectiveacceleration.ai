@@ -6,11 +6,12 @@ import {
   ChevronRightIcon,
 } from '@heroicons/react/20/solid'
 import { useParams } from 'next/navigation';
-import useArbitrator from '@/hooks/useArbitrator';
+import useArbitrator from '@/hooks/subsquid/useArbitrator';
 
 
 export default function ArbitratorPage() {
   const address = useParams().address as string;
+  console.log(address);
 
   const { data: arbitrator } = useArbitrator(address);
 

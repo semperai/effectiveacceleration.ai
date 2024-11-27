@@ -1,7 +1,7 @@
 import { type EventProps } from './index';
 import moment from 'moment';
 import { JobArbitratedEvent } from '@effectiveacceleration/contracts';
-import useArbitrator from '@/hooks/useArbitrator';
+import useArbitrator from '@/hooks/subsquid/useArbitrator';
 import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
 import { getAddress } from 'viem';
 

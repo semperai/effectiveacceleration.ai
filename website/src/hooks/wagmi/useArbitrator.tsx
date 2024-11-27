@@ -1,4 +1,4 @@
-import useArbitratorsByAddresses from "@/hooks/useArbitratorsByAddresses";
+import useArbitratorsByAddresses from "@/hooks/wagmi/useArbitratorsByAddresses";
 import { Arbitrator } from "@effectiveacceleration/contracts";
 import { useMemo } from "react";
 import { zeroAddress } from "viem";
