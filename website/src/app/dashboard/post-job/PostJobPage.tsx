@@ -524,6 +524,10 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
         ) {
           arbitratorValidationMessage = 'Please select an arbitrator';
         }
+
+        if (selectedArbitratorAddress === address) {
+          arbitratorValidationMessage = 'You cannot be your own arbitrator';
+        }
       }
 
       const deadlineValidationMessage = validateField(
@@ -972,9 +976,15 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
                       <Listbox
                         placeholder='Select Arbitrator'
                         value={selectedArbitratorAddress}
-                        onChange={(e) => {
-                          setSelectedArbitratorAddress(e);
-                          setArbitratorError('');
+                        onChange={(addr) => {
+                          setSelectedArbitratorAddress(addr);
+
+                          if (addr == address) {
+                            setArbitratorError('You cannot be your own arbitrator');
+                            return;
+                          } else {
+                            setArbitratorError('');
+                          }
                         }}
                       >
                         {arbitratorAddresses.map(
