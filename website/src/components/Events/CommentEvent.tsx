@@ -9,7 +9,7 @@ import moment from 'moment';
 
 import EventProfileImage from './Components/EventProfileImage';
 import { type EventProps } from './index';
-import { JobMessageEvent } from 'effectiveacceleration-contracts';
+import { JobMessageEvent } from '@effectiveacceleration/contracts';
 
 type CommentEventProps = EventProps & ComponentPropsWithoutRef<'div'>;
 
