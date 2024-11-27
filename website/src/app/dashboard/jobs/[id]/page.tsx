@@ -124,7 +124,7 @@ type JobSidebarProps = {
   addresses: string[];
   sessionKeys: Record<string, string>;
   users: Record<string, User>;
-  jobMeceTag?: { id: string; name: string };
+  jobMeceTag: string;
   timePassed: boolean;
   adjustedProgressValue: number;
   whitelistedWorkers: string[];
@@ -532,7 +532,7 @@ export default function JobPage() {
             addresses={addresses}
             sessionKeys={sessionKeys}
             users={users ?? {}}
-            jobMeceTag={jobMeceTag}
+            jobMeceTag={jobMeceTag ?? ''}
             timePassed={timePassed}
             adjustedProgressValue={adjustedProgressValue}
             whitelistedWorkers={whitelistedWorkers}
