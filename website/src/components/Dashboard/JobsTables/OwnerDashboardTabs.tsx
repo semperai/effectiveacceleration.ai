@@ -7,16 +7,16 @@ import { OwnerProgressJobs } from './OwnerProgressJobs';
 import { OwnerCompletedJobs } from './OwnerCompletedJobs';
 import { DisputedJobs } from './DisputedJobs';
 import { OwnerCancelledJobs } from './OwnerCancelledJobs';
-import useJobs from '@/hooks/useJobs';
-import useUsersByAddresses from '@/hooks/useUsersByAddresses';
+import useJobs from '@/hooks/subsquid/useJobs';
+import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
 import DevelopAllJobs from './JobsTablesData/DevelopAllJobs';
 import {
   Job,
   JobEventType,
   JobState,
-} from 'effectiveacceleration-contracts/dist/src/interfaces';
+} from '@effectiveacceleration/contracts';
 import { LocalStorageJob } from '@/service/JobsService';
-import useJobsByIds from '@/hooks/useJobsByIds';
+import useJobsByIds from '@/hooks/subsquid/useJobsByIds';
 import { LOCAL_JOBS_OWNER_CACHE } from '@/utils/constants';
 import { useAccount } from 'wagmi';
 
@@ -33,7 +33,7 @@ export const OwnerDashboardTabs = () => {
   const { data: jobs } = useJobs();
   const { address } = useAccount();
   const [localJobs, setLocalJobs] = useState<Job[]>([]);
-  const [jobIds, setJobIds] = useState<bigint[]>([]);
+  const [jobIds, setJobIds] = useState<string[]>([]);
   const { data: selectedJobs } = useJobsByIds(jobIds);
   const [filteredOpenJobs, setOpenFilteredJobs] = useState<Job[]>([]);
   const [filteredJobsInProgress, setFilteredJobsInProgress] = useState<Job[]>(
@@ -53,16 +53,16 @@ export const OwnerDashboardTabs = () => {
     if (storedJobs) {
       const parsedJobs = JSON.parse(storedJobs);
       const jobIdsArray = Array.from(
-        new Set(parsedJobs.map((job: Job) => job.id))
+        new Set<string>(parsedJobs.map((job: Job) => job.id))
       );
       setLocalJobs(parsedJobs);
-      setJobIds(jobIdsArray as bigint[]);
+      setJobIds(jobIdsArray);
     }
     setMounted(true);
   }, [address]);
 
   const filteredJobsMemo = useMemo(() => {
-    if (selectedJobs.length === 0)
+    if (selectedJobs?.length === 0)
       return {
         open: [],
         inProgress: [],
@@ -77,7 +77,7 @@ export const OwnerDashboardTabs = () => {
     const filteredCancelledJobs: Job[] = [];
     const filteredDisputedJobs: Job[] = [];
 
-    selectedJobs.forEach((job, index) => {
+    selectedJobs?.forEach((job, index) => {
       const localJob = localJobs.find((localJob) => localJob.id === job.id);
       if (job.state === JobState.Open) {
         filteredOpenJobs.push(job);
@@ -117,7 +117,7 @@ export const OwnerDashboardTabs = () => {
     setFilteredCompletedJobs(filteredJobsMemo.completed);
     setFilteredCancelledJobs(filteredJobsMemo.cancelled);
     setFilteredDisputedJobs(filteredJobsMemo.disputed);
-    if (selectedJobs.length > 0 && isFirstUpdate.current) {
+    if (selectedJobs && selectedJobs.length > 0 && isFirstUpdate.current) {
       setTabsKey((prevKey) => prevKey + 1);
       isFirstUpdate.current = false;
     }
@@ -173,7 +173,7 @@ export const OwnerDashboardTabs = () => {
             />
           </TabPanel>
           <TabPanel>
-            <DevelopAllJobs jobs={jobs} />
+            <DevelopAllJobs jobs={jobs ?? []} />
           </TabPanel>
         </Tabs>
       )}

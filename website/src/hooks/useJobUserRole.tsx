@@ -1,6 +1,6 @@
 import { useParams, usePathname } from 'next/navigation';
 import { useAccount } from 'wagmi';
-import useJob from './useJob';
+import useJob from './subsquid/useJob';
 import { useMemo } from 'react';
 
 export const useJobUserRole = () => {
@@ -9,8 +9,8 @@ export const useJobUserRole = () => {
   const isJobPage: boolean = pathNames.includes('jobs');
   const { address } = useAccount();
   const id = useParams().id as string;
-  const jobId = BigInt(id || 0n);
-  const { data: job, isLoadingError, ...rest } = useJob(jobId);
+  const jobId = id ?? "0";
+  const { data: job, ...rest } = useJob(jobId);
 
   const role = useMemo(() => {
     if (!job) return 'guest';

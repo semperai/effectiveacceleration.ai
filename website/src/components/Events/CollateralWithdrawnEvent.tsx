@@ -1,4 +1,4 @@
-import useUser from '@/hooks/useUser';
+import useUser from '@/hooks/subsquid/useUser';
 import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
 import moment from 'moment';
 import { getAddress } from 'viem';

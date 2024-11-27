@@ -6,12 +6,12 @@ import {
   JobEventWithDiffs,
   JobState,
   User,
-} from 'effectiveacceleration-contracts/dist/src/interfaces';
+} from '@effectiveacceleration/contracts';
 import { AssignWorkerButton } from '@/components/JobActions/AssignWorkerButton';
 
 interface ResultAcceptedProps {
   job: Job;
-  address: `0x${string}` | undefined;
+  address: string | undefined;
 }
 
 const DisputeStarted: React.FC<ResultAcceptedProps> = ({ job, address }) => {

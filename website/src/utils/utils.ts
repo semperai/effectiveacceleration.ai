@@ -2,7 +2,7 @@ export function shortenText({
   text,
   maxLength,
 }: {
-  text: string | `0x${string}` | undefined;
+  text: string | string | undefined;
   maxLength: number;
 }): string {
   if (!text) {

@@ -3,13 +3,14 @@ import clsx from 'clsx';
 import { useAccount } from 'wagmi';
 import { type ComponentPropsWithoutRef } from 'react';
 import { PiChatCircleDotsFill } from 'react-icons/pi';
+import useUser from '@/hooks/subsquid/useUser';
 import { getAddress } from 'viem';
 import moment from 'moment';
 
 import useUser from '@/hooks/useUser';
 import EventProfileImage from './Components/EventProfileImage';
 import { type EventProps } from './index';
-import { type JobMessageEvent } from 'effectiveacceleration-contracts';
+import { JobMessageEvent } from 'effectiveacceleration-contracts';
 
 type CommentEventProps = EventProps & ComponentPropsWithoutRef<'div'>;
 
@@ -20,7 +21,7 @@ export function CommentEvent({ event, ...rest }: CommentEventProps) {
   const details = event.details as JobMessageEvent;
 
   const { data: user } = useUser(address);
-  const { data: recipient } = useUser(details.recipientAddress as `0x${string}`);
+  const { data: recipient } = useUser(details.recipientAddress);
 
   const date = moment(event.timestamp_ * 1000).fromNow();
 

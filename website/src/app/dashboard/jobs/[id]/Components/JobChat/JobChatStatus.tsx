@@ -6,7 +6,7 @@ import {
   JobEventWithDiffs,
   JobState,
   User,
-} from 'effectiveacceleration-contracts/dist/src/interfaces';
+} from '@effectiveacceleration/contracts';
 import { zeroHash } from 'viem';
 import ArbitratedStatus from './StatusStates/ArbitratedStatus';
 import AssignWorker from './StatusStates/AssignWorker';
@@ -20,7 +20,7 @@ interface JobStatusProps {
   users: Record<string, User>;
   selectedWorker: string;
   job: Job;
-  address: `0x${string}` | undefined;
+  address: string | undefined;
 }
 
 const JobChatStatus: React.FC<JobStatusProps> = ({

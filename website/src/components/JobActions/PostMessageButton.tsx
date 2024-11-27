@@ -1,9 +1,9 @@
 import { Button } from '@/components/Button';
 import { useRouter } from 'next/navigation';
-import useUser from '@/hooks/useUser';
-import { Job, publishToIpfs } from 'effectiveacceleration-contracts';
-import Config from 'effectiveacceleration-contracts/scripts/config.json';
-import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
+import useUser from '@/hooks/subsquid/useUser';
+import { Job, publishToIpfs } from '@effectiveacceleration/contracts';
+import Config from '@effectiveacceleration/contracts/scripts/config.json';
+import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { useEffect, useState } from 'react';
 import { PiPaperPlaneRight } from 'react-icons/pi';
 import { zeroAddress } from 'viem';
@@ -11,9 +11,9 @@ import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import { Textarea } from '../Textarea';
 
 export type PostMessageButtonProps = {
-  address: `0x${string}` | undefined;
-  recipient: `0x${string}`;
-  addresses: `0x${string}`[] | undefined;
+  address: string | undefined;
+  recipient: string;
+  addresses: string[] | undefined;
   sessionKeys: Record<string, string>;
   job: Job;
 };
@@ -27,7 +27,7 @@ export function PostMessageButton({
   ...rest
 }: PostMessageButtonProps & React.ComponentPropsWithoutRef<'div'>) {
   const router = useRouter();
-  const { data: user } = useUser(address);
+  const { data: user } = useUser(address!);
   const [message, setMessage] = useState<string>('');
   const selectedUserRecipient =
     recipient === address ? job.roles.creator : recipient;
@@ -73,9 +73,9 @@ export function PostMessageButton({
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress as `0x${string}`,
+      address: Config.marketplaceAddress,
       functionName: 'postThreadMessage',
-      args: [job.id!, contentHash as any, selectedUserRecipient],
+      args: [BigInt(job.id!), contentHash, selectedUserRecipient],
     });
   }
   return (

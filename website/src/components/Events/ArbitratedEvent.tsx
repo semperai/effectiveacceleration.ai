@@ -1,6 +1,6 @@
-import useArbitrator from '@/hooks/useArbitrator';
+import useArbitrator from '@/hooks/subsquid/useArbitrator';
 import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
-import { JobArbitratedEvent } from 'effectiveacceleration-contracts';
+import { JobArbitratedEvent } from '@effectiveacceleration/contracts';
 import moment from 'moment';
 import { getAddress } from 'viem';
 import EventProfileImage from './Components/EventProfileImage';

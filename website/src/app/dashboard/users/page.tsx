@@ -12,19 +12,19 @@ import {
   PaginationPage,
   PaginationPrevious,
 } from '@/components/Pagination';
-import useUsers from '@/hooks/useUsers';
-import useUserRatings from '@/hooks/useUserRatings';
+import useUsers from '@/hooks/subsquid/useUsers';
+import useUserRatings from '@/hooks/subsquid/useUserRatings';
 
 export default function OpenJobsPage() {
   const { data: users } = useUsers();
   const { data: userRatings } = useUserRatings(
-    users?.map((user) => user.address_)
+    users?.map((user) => user.address_) ?? []
   );
 
   return (
     <Layout>
       <h1 className='mb-8 ml-2 text-xl font-medium'>Users</h1>
-      {users.map((user, idx) => (
+      {users?.map((user, idx) => (
         <li
           key={idx}
           className='relative flex items-center space-x-4 rounded-md px-2 py-4 transition ease-in-out hover:bg-zinc-50 dark:hover:bg-zinc-950'
@@ -62,7 +62,7 @@ export default function OpenJobsPage() {
               </p>
               <p className='whitespace-nowrap'>
                 <span className='text-orange-500 dark:text-orange-400'>
-                  {(userRatings[user.address_]?.averageRating ?? 0) / 10000}
+                  {(userRatings?.[user.address_]?.averageRating ?? 0) / 10000}
                 </span>{' '}
                 average rating
               </p>

@@ -1,13 +1,13 @@
 import { Button } from '@/components/Button';
 import { CheckIcon } from '@heroicons/react/20/solid';
-import { Job } from 'effectiveacceleration-contracts';
-import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
-import Config from 'effectiveacceleration-contracts/scripts/config.json';
+import { Job } from '@effectiveacceleration/contracts';
+import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
+import Config from '@effectiveacceleration/contracts/scripts/config.json';
 import { useEffect, useState } from 'react';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 
 export type CloseButtonProps = {
-  address: `0x${string}` | undefined;
+  address: string | undefined;
   job: Job;
 };
 
@@ -51,9 +51,9 @@ export function CloseButton({
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress as `0x${string}`,
+      address: Config.marketplaceAddress,
       functionName: 'closeJob',
-      args: [job.id!],
+      args: [BigInt(job.id!)],
     });
   }
 

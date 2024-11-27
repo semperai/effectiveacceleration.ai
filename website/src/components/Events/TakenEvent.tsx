@@ -1,4 +1,4 @@
-import useUser from '@/hooks/useUser';
+import useUser from '@/hooks/subsquid/useUser';
 import { toBigInt } from 'ethers';
 import moment from 'moment';
 import { getAddress } from 'viem';

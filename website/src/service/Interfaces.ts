@@ -3,7 +3,7 @@ import {
   JobEvent,
   JobEventWithDiffs,
   User,
-} from 'effectiveacceleration-contracts/dist/src/interfaces';
+} from '@effectiveacceleration/contracts';
 import { Dispatch, SetStateAction } from 'react';
 
 export interface JobViewProps {
@@ -11,7 +11,7 @@ export interface JobViewProps {
   selectedWorker: string;
   events: JobEventWithDiffs[];
   job: Job;
-  address: `0x${string}` | undefined;
+  address: string | undefined;
   sessionKeys: Record<string, string>;
   addresses: string[];
   jobUsersData?: Record<string, User>;

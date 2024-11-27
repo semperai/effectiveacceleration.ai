@@ -1,0 +1,26 @@
+diff --git a/node_modules/@subsquid/openreader/lib/dialect/opencrud/where.js b/node_modules/@subsquid/openreader/lib/dialect/opencrud/where.js
+index 1326c13..483c9b2 100644
+--- a/node_modules/@subsquid/openreader/lib/dialect/opencrud/where.js
++++ b/node_modules/@subsquid/openreader/lib/dialect/opencrud/where.js
+@@ -127,6 +127,6 @@ const WHERE_KEY_REGEX = (() => {
+         "in",
+         "not_in",
+     ];
+-    return new RegExp(`^([^_]*)_(${ops.join('|')})$`);
++    return new RegExp(`^(.*)_(${ops.join('|')})$`);
+ })();
+ //# sourceMappingURL=where.js.map
+\ No newline at end of file
+diff --git a/node_modules/@subsquid/openreader/lib/model.tools.js b/node_modules/@subsquid/openreader/lib/model.tools.js
+index fffc56c..249d73a 100644
+--- a/node_modules/@subsquid/openreader/lib/model.tools.js
++++ b/node_modules/@subsquid/openreader/lib/model.tools.js
+@@ -130,7 +130,7 @@ function validateModel(model) {
+ }
+ exports.validateModel = validateModel;
+ const TYPE_NAME_REGEX = /^[A-Z][a-zA-Z0-9]*$/;
+-const PROP_NAME_REGEX = /^[a-z][a-zA-Z0-9]*$/;
++const PROP_NAME_REGEX = /^[a-z][a-zA-Z0-9_]*$/;
+ function validateNames(model) {
+     for (let name in model) {
+         let item = model[name];

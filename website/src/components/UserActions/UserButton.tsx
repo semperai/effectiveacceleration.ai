@@ -1,16 +1,16 @@
 import { Button } from '@/components/Button';
 import { ConnectButton } from '@/components/ConnectButton';
-import useArbitrator from '@/hooks/useArbitrator';
+import useArbitrator from '@/hooks/subsquid/useArbitrator';
 import { useEthersSigner } from '@/hooks/useEthersSigner';
-import useUser from '@/hooks/useUser';
+import useUser from '@/hooks/subsquid/useUser';
 import { isImageValid } from '@/utils/ImageValidity';
 import { Dialog, Transition } from '@headlessui/react';
 import { CheckIcon, UserIcon } from '@heroicons/react/20/solid';
 import {
   getEncryptionSigningKey
-} from 'effectiveacceleration-contracts';
-import Config from 'effectiveacceleration-contracts/scripts/config.json';
-import { MARKETPLACE_DATA_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceDataV1';
+} from '@effectiveacceleration/contracts';
+import Config from '@effectiveacceleration/contracts/scripts/config.json';
+import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
 import { StaticImport } from 'next/dist/shared/lib/get-img-props';
 import Image from 'next/image';
 import { Fragment, useEffect, useState } from 'react';
@@ -111,7 +111,7 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
 
     const w = writeContract({
       abi: MARKETPLACE_DATA_V1_ABI,
-      address: Config.marketplaceDataAddress as `0x${string}`,
+      address: Config.marketplaceDataAddress,
       functionName: methodName,
       args: [name!, bio!, avatarFileUrl!],
     });
@@ -126,10 +126,10 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
     if (userIndex === 0) {
       const w = writeContract({
         abi: MARKETPLACE_DATA_V1_ABI,
-        address: Config.marketplaceDataAddress as `0x${string}`,
+        address: Config.marketplaceDataAddress,
         functionName: 'registerUser',
         args: [
-          encryptionPublicKey as `0x${string}`,
+          encryptionPublicKey,
           name!,
           bio!,
           avatarFileUrl!,
@@ -138,10 +138,10 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
     } else {
       const w = writeContract({
         abi: MARKETPLACE_DATA_V1_ABI,
-        address: Config.marketplaceDataAddress as `0x${string}`,
+        address: Config.marketplaceDataAddress,
         functionName: 'registerArbitrator',
         args: [
-          encryptionPublicKey as `0x${string}`,
+          encryptionPublicKey,
           name!,
           bio!,
           avatarFileUrl!,

@@ -7,8 +7,8 @@ import {
   Job,
   JobEventType,
   JobState,
-} from 'effectiveacceleration-contracts/dist/src/interfaces';
-import useUser from '@/hooks/useUser';
+} from '@effectiveacceleration/contracts';
+import useUser from '@/hooks/subsquid/useUser';
 import { useAccount } from 'wagmi';
 
 const getValidJobsCount = (title: string, localJobs?: Job[]): number => {

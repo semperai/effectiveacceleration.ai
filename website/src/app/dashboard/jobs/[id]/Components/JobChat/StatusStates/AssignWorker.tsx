@@ -6,7 +6,7 @@ import {
   JobEventWithDiffs,
   JobState,
   User,
-} from 'effectiveacceleration-contracts/dist/src/interfaces';
+} from '@effectiveacceleration/contracts';
 import { AssignWorkerButton } from '@/components/JobActions/AssignWorkerButton';
 
 interface ResultAcceptedProps {
@@ -14,7 +14,7 @@ interface ResultAcceptedProps {
   events: JobEventWithDiffs[];
   users: Record<string, User>;
   selectedWorker: string;
-  address: `0x${string}` | undefined;
+  address: string | undefined;
 }
 
 const AssignWorker: React.FC<ResultAcceptedProps> = ({

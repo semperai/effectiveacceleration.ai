@@ -3,7 +3,7 @@ import {
   JobEventType,
   JobEventWithDiffs,
   JobState,
-} from 'effectiveacceleration-contracts';
+} from '@effectiveacceleration/contracts';
 import JobStatus from './JobStatus';
 
 interface JobStatusWrapperProps {

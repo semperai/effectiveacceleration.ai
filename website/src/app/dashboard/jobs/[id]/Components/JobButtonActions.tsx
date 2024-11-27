@@ -15,7 +15,7 @@ import {
   Job,
   JobEventWithDiffs,
   JobState,
-} from 'effectiveacceleration-contracts';
+} from '@effectiveacceleration/contracts';
 import { zeroAddress, zeroHash } from 'viem';
 
 const JobButtonActions = ({
@@ -28,7 +28,7 @@ const JobButtonActions = ({
   timePassed,
 }: {
   job: Job | undefined;
-  address: `0x${string}` | undefined;
+  address: string | undefined;
   sessionKeys: Record<string, string>;
   addresses: string[];
   events: JobEventWithDiffs[];

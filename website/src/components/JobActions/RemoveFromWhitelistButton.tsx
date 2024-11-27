@@ -1,16 +1,16 @@
 import { Button } from '@/components/Button';
-import useUsersByAddresses from '@/hooks/useUsersByAddresses';
+import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
 import { Dialog, Transition } from '@headlessui/react';
 import { CheckIcon } from '@heroicons/react/20/solid';
-import { Job } from 'effectiveacceleration-contracts';
-import Config from 'effectiveacceleration-contracts/scripts/config.json';
-import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
+import { Job } from '@effectiveacceleration/contracts';
+import Config from '@effectiveacceleration/contracts/scripts/config.json';
+import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { Fragment, useEffect, useState } from 'react';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import { Listbox, ListboxOption } from '../Listbox';
 
 export type RemoveFromWhitelistButtonProps = {
-  address: `0x${string}` | undefined;
+  address: string | undefined;
   job: Job;
   whitelist: string[];
 };
@@ -23,11 +23,11 @@ export function RemoveFromWhitelistButton({
 }: RemoveFromWhitelistButtonProps & React.ComponentPropsWithoutRef<'div'>) {
   const { data: users } = useUsersByAddresses(whitelist);
   const excludes = [address];
-  const userList = Object.values(users).filter(
+  const userList = Object.values(users ?? []).filter(
     (user) => !excludes.includes(user.address_)
   );
   const [selectedUserAddress, setSelectedUserAddress] = useState<
-    `0x${string}` | undefined
+    string | undefined
   >(undefined);
   const { data: hash, error, writeContract } = useWriteContract();
 
@@ -65,9 +65,9 @@ export function RemoveFromWhitelistButton({
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress as `0x${string}`,
+      address: Config.marketplaceAddress,
       functionName: 'updateJobWhitelist',
-      args: [job.id!, [], [selectedUserAddress!]],
+      args: [BigInt(job.id!), [], [selectedUserAddress!]],
     });
   }
 

@@ -4,14 +4,14 @@ import { Listbox, ListboxLabel, ListboxOption } from '@/components/Listbox';
 import { Textarea } from '@/components/Textarea';
 import { Dialog, Transition } from '@headlessui/react';
 import { CheckIcon } from '@heroicons/react/20/solid';
-import { Job } from 'effectiveacceleration-contracts';
-import Config from 'effectiveacceleration-contracts/scripts/config.json';
-import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
+import { Job } from '@effectiveacceleration/contracts';
+import Config from '@effectiveacceleration/contracts/scripts/config.json';
+import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { Fragment, useEffect, useState } from 'react';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 
 export type ReviewButtonProps = {
-  address: `0x${string}` | undefined;
+  address: string | undefined;
   job: Job;
 };
 
@@ -66,9 +66,9 @@ export function ReviewButton({
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress as `0x${string}`,
+      address: Config.marketplaceAddress,
       functionName: 'review',
-      args: [job.id!, rating, review],
+      args: [BigInt(job.id!), rating, review],
     });
   }
 

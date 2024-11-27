@@ -10,7 +10,7 @@ import {
   PaginationPage,
   PaginationPrevious,
 } from '@/components/Pagination';
-import useArbitrators from '@/hooks/useArbitrators';
+import useArbitrators from '@/hooks/subsquid/useArbitrators';
 import { ChevronRightIcon } from '@heroicons/react/20/solid';
 import { clsx } from 'clsx';
 
@@ -20,7 +20,7 @@ export default function OpenJobsPage() {
   return (
     <Layout>
       <h1 className='mb-8 ml-2 text-xl font-medium'>Arbitrators</h1>
-      {arbitrators.map((arbitrator, idx) => (
+      {arbitrators?.map((arbitrator, idx) => (
         <li
           key={idx}
           className='relative flex items-center space-x-4 rounded-md px-2 py-4 transition ease-in-out hover:bg-zinc-50 dark:hover:bg-zinc-950'

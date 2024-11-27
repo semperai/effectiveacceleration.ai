@@ -1,7 +1,7 @@
 import {
   JobEventType,
   JobEventWithDiffs,
-} from 'effectiveacceleration-contracts';
+} from '@effectiveacceleration/contracts';
 import React from 'react';
 import { ArbitratedEvent } from './ArbitratedEvent';
 import { ArbitrationRefusedEvent } from './ArbitrationRefusedEvent';

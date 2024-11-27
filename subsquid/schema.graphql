@@ -1,0 +1,154 @@
+type Marketplace @entity {
+  marketplaceData: String!
+  version: Int!
+  unicrowAddress: String!
+  unicrowDisputeAddress: String!
+  unicrowArbitratorAddress: String!
+  treasuryAddress: String!
+  unicrowMarketplaceFee: Int!
+  paused: Boolean!
+  owner: String!
+
+  jobCount: Int!
+  userCount: Int!
+  arbitratorCount: Int!
+}
+
+type JobRoles {
+  creator: String!
+  worker: String!
+  arbitrator: String!
+}
+
+type Job @entity {
+  id: ID! @index
+  state: Int!
+  whitelistWorkers: Boolean!
+  roles: JobRoles!
+  title: String!
+  tags: [String!]!
+  contentHash: String!
+  content: String!
+  multipleApplicants: Boolean!
+  amount: BigInt!
+  token: String!
+  timestamp: Int!
+  maxTime: Int!
+  deliveryMethod: String!
+  collateralOwed: BigInt!
+  escrowId: BigInt!
+  resultHash: String!
+  rating: Int!
+  disputed: Boolean!
+  allowedWorkers: [String!]!
+  eventCount: Int!
+
+  events: [JobEvent!]! @derivedFrom(field: "job")
+  lastJobEvent: JobEvent
+}
+
+type JobEvent @entity {
+  jobId: BigInt!
+  type_: Int!
+  address_: String!
+  data_: String!
+  timestamp_: Int!
+  details: CustomJobEvent
+
+  job: Job!
+}
+
+type Arbitrator @entity {
+  address_: String! @index
+  publicKey: String!
+  name: String!
+  bio: String!
+  avatar: String!
+  fee: Int!
+  settledCount: Int!
+  refusedCount: Int!
+  timestamp: Int!
+}
+
+type User @entity {
+  address_: String! @index
+  publicKey: String!
+  name: String!
+  bio: String!
+  avatar: String!
+  reputationUp: Int!
+  reputationDown: Int!
+  averageRating: Int!
+  numberOfReviews: Int!
+  timestamp: Int!
+
+  reviews: [Review!]! @derivedFrom(field: "userLoaded")
+  myReviews: [Review!]! @derivedFrom(field: "reviewerLoaded")
+}
+
+type Review @entity {
+  user: String! @index
+  reviewer: String! @index
+  jobId: BigInt! @index
+  rating: Int!
+  text: String!
+  timestamp: Int!
+
+  userLoaded: User!
+  reviewerLoaded: User!
+}
+
+union CustomJobEvent =  JobCreatedEvent | JobUpdatedEvent | JobSignedEvent | JobRatedEvent | JobDisputedEvent | JobArbitratedEvent | JobMessageEvent
+
+type JobCreatedEvent {
+  title: String!
+  contentHash: String!
+  multipleApplicants: Boolean!
+  tags: [String!]!
+  token: String!
+  amount: BigInt!
+  maxTime: Int!
+  deliveryMethod: String!
+  arbitrator: String!
+  whitelistWorkers: Boolean!
+}
+
+type JobUpdatedEvent {
+  title: String!
+  contentHash: String!
+  tags: [String!]!
+  amount: BigInt!
+  maxTime: Int!
+  arbitrator: String!
+  whitelistWorkers: Boolean!
+}
+
+type JobSignedEvent {
+  revision: Int!
+  signatire: String!
+}
+
+type JobRatedEvent {
+  rating: Int!
+  review: String!
+}
+
+type JobDisputedEvent {
+  encryptedSessionKey: String!
+  encryptedContent: String!
+}
+
+type JobArbitratedEvent {
+  creatorShare: Int!
+  creatorAmount: BigInt!
+  workerShare: Int!
+  workerAmount: BigInt!
+  reasonHash: String!
+  workerAddress: String!
+  arbitratorAmount: BigInt!
+}
+
+type JobMessageEvent {
+  contentHash: String!
+  recipientAddress: String!
+}

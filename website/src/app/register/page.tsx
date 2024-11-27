@@ -1,6 +1,6 @@
 'use client';
 import DefaultNavBar from '@/components/DefaultNavBar';
-import useUser from '@/hooks/useUser';
+import useUser from '@/hooks/subsquid/useUser';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
@@ -12,9 +12,9 @@ import SignInMessage from './SignInMessage';
 export default function RegisterPage() {
   const router = useRouter();
   const { address, isConnected } = useAccount();
-  const { data: user } = useUser(address as `0x${string}`);
+  const { data: user } = useUser(address as string);
   const [encryptionPublicKey, setEncryptionPublicKey] =
-    React.useState<`0x${string}`>(`0x`);
+    React.useState<string>(`0x`);
 
   useEffect(() => {
     if (address && typeof user !== 'undefined') {

@@ -8,16 +8,16 @@ import {
   Job,
   JobEventWithDiffs,
   User
-} from 'effectiveacceleration-contracts/dist/src/interfaces';
+} from '@effectiveacceleration/contracts/dist/src/interfaces';
 import JobChatStatus from './JobChatStatus';
-import useUser from '@/hooks/useUser';
+import useUser from '@/hooks/subsquid/useUser';
 
 interface ResultAcceptedProps {
   job: Job;
   events: JobEventWithDiffs[];
   users: Record<string, User>;
   selectedWorker: string;
-  address: `0x${string}` | undefined;
+  address: string | undefined;
 }
 const JobChatEvents: React.FC<ResultAcceptedProps> = ({
   job,
@@ -26,7 +26,7 @@ const JobChatEvents: React.FC<ResultAcceptedProps> = ({
   events,
   address,
 }) => {
-  const { data: user } = useUser(address);
+  const { data: user } = useUser(address!);
   const numberOfWorkers = Object.keys(users).length - 1; // -1 to exclude the creator;
   return (
     <div className='row-span-4 max-h-customHeader overflow-y-auto border border-gray-100 bg-softBlue'>
