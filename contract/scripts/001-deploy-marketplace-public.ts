@@ -21,11 +21,16 @@ async function main() {
 
   console.log("Deploying contracts with the account:", deployer.address);
 
-  // const { unicrow, unicrowDispute, unicrowArbitrator, unicrowClaim } = await deployUnicrowSuite();
-
   const Marketplace = await ethers.getContractFactory(
     "MarketplaceV1"
   );
+
+  /*
+  const marketplace = await upgrades.upgradeProxy("0x405AcFbD1400A168fDd4aDA2D214e8Ae5FF7a624", Marketplace) as unknown as Marketplace;
+  await marketplace.waitForDeployment();
+  console.log("Marketplace deployed to:", await marketplace.getAddress());
+  process.exit(0);
+  */
 
   const marketplace = (await upgrades.deployProxy(Marketplace, [
     unicrowAddress,
