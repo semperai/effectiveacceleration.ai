@@ -1,27 +1,11 @@
 'use client';
 
-import { ThemeProvider } from 'next-themes'
-
+import { getDefaultConfig, RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import '@rainbow-me/rainbowkit/styles.css';
-
-
-import {
-  getDefaultConfig,
-  lightTheme,
-  darkTheme,
-  RainbowKitProvider,
-} from '@rainbow-me/rainbowkit';
-import { WagmiProvider } from 'wagmi';
-import {
-  hardhat,
-  arbitrum,
-  arbitrumSepolia
-} from 'wagmi/chains';
-import {
-  QueryClientProvider,
-  QueryClient,
-} from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { defineChain } from 'viem';
+import { WagmiProvider } from 'wagmi';
+import { arbitrum, arbitrumSepolia, hardhat } from 'wagmi/chains';
 
 import { ApolloClient, InMemoryCache, ApolloProvider, NormalizedCacheObject } from '@apollo/client';
 import { persistCache, LocalStorageWrapper, CachePersistor } from 'apollo3-cache-persist';
@@ -29,7 +13,7 @@ import { useEffect, useState } from 'react';
 
 declare module 'wagmi' {
   interface Register {
-    config: typeof config
+    config: typeof config;
   }
 }
 const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL;
@@ -47,20 +31,26 @@ export const staging = /*#__PURE__*/ defineChain({
     default: { http: [rpcUrl ? rpcUrl : 'https://localhost:8545/rpc'] },
     // default: { http: ['https://localhost:8545/rpc'] },
   },
-contracts: {
+  contracts: {
     multicall3: {
       address: '0xca11bde05977b3631167028862be2a173976ca11',
       blockCreated: 12,
     },
   },
-  iconUrl: "https://coin-images.coingecko.com/coins/images/35246/large/arbius-200x-logo.png?1707987961",
+  iconUrl:
+    'https://coin-images.coingecko.com/coins/images/35246/large/arbius-200x-logo.png?1707987961',
   iconBackground: '#fff',
-})
+});
+
+const initialChain = arbitrum;
 
 export const config = getDefaultConfig({
   appName: 'Effective Acceleration',
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!,
-  chains: [staging, hardhat, arbitrum, arbitrumSepolia],
+  chains:
+    process.env.NODE_ENV === 'production'
+      ? [arbitrum]
+      : [staging, hardhat, arbitrum, arbitrumSepolia],
   ssr: true, // If your dApp uses server side rendering (SSR)
 }) as any;
 
@@ -136,19 +126,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
   <ApolloProvider client={apolloClient}>
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider
-          initialChain={arbitrumSepolia}
-          theme={{
-            lightMode: lightTheme(),
-            darkMode: darkTheme(),
-          }}
-        >
-          <ThemeProvider defaultTheme="light" attribute="class" disableTransitionOnChange>
-            {children}
-          </ThemeProvider>
+        <RainbowKitProvider initialChain={initialChain}>
+          {children}
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
   </ApolloProvider>
-)
+  );
 }

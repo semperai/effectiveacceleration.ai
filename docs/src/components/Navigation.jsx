@@ -194,6 +194,7 @@ export const navigation = [
   {
     title: 'Contract',
     links: [
+      { title: 'Contract', href: '/' },
     ],
   },
   {
@@ -201,7 +202,6 @@ export const navigation = [
     links: [
       { title: 'Security', href: '/security' },
       { title: 'Contracts', href: '/ca' },
-      { title: 'Whitepaper', href: 'https://effectiveacceleration.ai/paper.pdf' },
       { title: 'Logo', href: '/effectiveacceleration-logo.zip' },
     ],
   },

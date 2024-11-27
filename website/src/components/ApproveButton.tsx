@@ -1,15 +1,13 @@
-import { useState, useEffect } from 'react';
+import ERC20Abi from '@/abis/ERC20.json';
+import { Button } from '@/components/Button';
+import { ethers } from 'ethers';
+import { useState } from 'react';
 import {
   useAccount,
   useReadContract,
-  useWriteContract,
   useWaitForTransactionReceipt,
+  useWriteContract,
 } from 'wagmi';
-import { ethers } from 'ethers'
-import Config from '@effectiveacceleration/contracts/scripts/config.json'
-import ERC20Abi from '@/abis/ERC20.json';
-import { Button } from '@/components/Button';
-
 
 export function ApproveButton({
   token,
@@ -20,7 +18,7 @@ export function ApproveButton({
   to: string;
   updateNeedsAllowance: (a: boolean) => void;
 }) {
-  const { address } = useAccount()
+  const { address } = useAccount();
   const [showApprove, setShowApprove] = useState(false);
   const [approveButtonDisabled, setApproveButtonDisabled] = useState(false);
 
@@ -32,16 +30,13 @@ export function ApproveButton({
     address: token,
     abi: ERC20Abi,
     functionName: 'allowance',
-    args: [
-      address,
-      to,
-    ],
+    args: [address, to],
   });
 
   const {
     data: approveHash,
     isPending: approveIsPending,
-    writeContract: approveWrite
+    writeContract: approveWrite,
   } = useWriteContract();
 
   const {
@@ -50,7 +45,7 @@ export function ApproveButton({
     isLoading: approveTxIsLoading,
   } = useWaitForTransactionReceipt({
     hash: approveHash,
-  })
+  });
 
   function clickApprove() {
     async function f() {
@@ -65,13 +60,13 @@ export function ApproveButton({
         ],
       });
 
-      setApproveButtonDisabled(false)
+      setApproveButtonDisabled(false);
     }
 
     f();
   }
 
-    /*
+  /*
   useEffect(() => {
     if (approveTxData) {
       setShowApprove(false);
@@ -89,14 +84,10 @@ export function ApproveButton({
   });
   */
 
-
   return (
-    <div className={(! showApprove) ? 'hidden' : ''}>
-      <Button
-        disabled={approveButtonDisabled}
-        onClick={clickApprove}
-      >
-          {approveTxIsLoading ? 'Waiting...' : 'Approve'}
+    <div className={!showApprove ? 'hidden' : ''}>
+      <Button disabled={approveButtonDisabled} onClick={clickApprove}>
+        {approveTxIsLoading ? 'Waiting...' : 'Approve'}
       </Button>
     </div>
   );

@@ -13,7 +13,7 @@ export default function useReviews(targetAddress: string) {
     abi:          MARKETPLACE_DATA_V1_ABI,
     address:      Config.marketplaceDataAddress,
     functionName: 'getReviews',
-    args:         [targetAddress, 0n, 0n],
+    args: [targetAddress, 0n, 0n],
   });
 
   const reviewsData = result.data as Review[];

@@ -14,7 +14,7 @@ export default function useUsers() {
     abi:          MARKETPLACE_DATA_V1_ABI,
     address:      Config.marketplaceDataAddress,
     functionName: 'getUsers',
-    args:         [0n, 0n],
+    args: [0n, 0n],
   });
 
   const usersData = result.data as User[];
@@ -23,7 +23,10 @@ export default function useUsers() {
   useEffect(() => {
     if (usersData) {
       for (const user of usersData) {
-        localStorage.setItem(`userPublicKey-${user.address_}`, user.publicKey as string);
+        localStorage.setItem(
+          `userPublicKey-${user.address_}`,
+          user.publicKey as string
+        );
         sessionStorage.setItem(`user-${user.address_}`, JSON5.stringify(user));
       }
       setUsers(usersData);

@@ -1,14 +1,14 @@
-import styled, { css } from "styled-components";
+import styled, { css } from 'styled-components';
 
 interface IButtonProps {
   fullWidth?: boolean;
-  variant?: "primary" | "secondary" | "tertiary";
+  variant?: 'primary' | 'secondary' | 'tertiary';
 }
 
 export const Button = styled.button<IButtonProps>`
   border: 0;
   cursor: pointer;
-  font-family: "Work Sans", sans-serif;
+  font-family: 'Work Sans', sans-serif;
   height: 48px;
   outline: none;
   font-size: 14px;
@@ -19,7 +19,9 @@ export const Button = styled.button<IButtonProps>`
   line-height: 22px;
   white-space: nowrap;
   border-radius: 12px;
-  transition: background-color 0.3s ease, border-color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease;
   border: 2px solid transparent;
   background-color: #6259ff;
   color: #ffffff;
@@ -27,7 +29,9 @@ export const Button = styled.button<IButtonProps>`
   &:enabled {
     &:hover {
       background-color: #564ee1;
-      box-shadow: 0px 2px 4px -1px #8b8ced52, 0px 2px 2px 0px #8b8ced52;
+      box-shadow:
+        0px 2px 4px -1px #8b8ced52,
+        0px 2px 2px 0px #8b8ced52;
     }
 
     &:active {
@@ -42,7 +46,7 @@ export const Button = styled.button<IButtonProps>`
   }
 
   ${({ variant }) => {
-    if (variant === "secondary") {
+    if (variant === 'secondary') {
       return css`
         &:disabled {
           background-color: #c3c6d133;
@@ -53,7 +57,9 @@ export const Button = styled.button<IButtonProps>`
           color: #6259ff;
 
           &:hover {
-            box-shadow: 0px 2px 4px -1px #e1dfff52, 0px 2px 2px 0px #e1dfff52;
+            box-shadow:
+              0px 2px 4px -1px #e1dfff52,
+              0px 2px 2px 0px #e1dfff52;
             background-color: #dcdafb;
           }
 
@@ -65,7 +71,7 @@ export const Button = styled.button<IButtonProps>`
       `;
     }
 
-    if (variant === "tertiary") {
+    if (variant === 'tertiary') {
       return css`
         &:disabled {
           background-color: transparent;
@@ -79,7 +85,9 @@ export const Button = styled.button<IButtonProps>`
 
           &:hover {
             color: #6259ff;
-            box-shadow: 0px 2px 4px -1px #e1dfff52, 0px 2px 2px 0px #e1dfff52;
+            box-shadow:
+              0px 2px 4px -1px #e1dfff52,
+              0px 2px 2px 0px #e1dfff52;
             border-color: #6259ff;
             background-color: rgba(98, 89, 255, 0.05);
           }
@@ -106,8 +114,8 @@ export const Button = styled.button<IButtonProps>`
     `}
 
     ${(props) =>
-      props.role === "inline" &&
-      css`
+    props.role === 'inline' &&
+    css`
       padding: 0 6px;
       height: auto;
     `}

@@ -20,14 +20,14 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: string, job?:
           job = {roles:{}} as Job;
           job.id = jobId;
           job.title = jobCreated.title;
-          job.contentHash = jobCreated.contentHash as `0x${string}`;
+          job.contentHash = jobCreated.contentHash as string;
           job.multipleApplicants = jobCreated.multipleApplicants;
           job.tags = jobCreated.tags;
-          job.token = jobCreated.token as `0x${string}`;
+          job.token = jobCreated.token as string;
           job.amount = jobCreated.amount;
           job.maxTime = jobCreated.maxTime;
           job.deliveryMethod = jobCreated.deliveryMethod;
-          job.roles.arbitrator = jobCreated.arbitrator as `0x${string}`;
+          job.roles.arbitrator = jobCreated.arbitrator as string;
           job.whitelistWorkers = jobCreated.whitelistWorkers;
 
           // defaults
@@ -36,10 +36,10 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: string, job?:
           job.state = JobState.Open;
           job.escrowId = 0n;
           job.rating = 0;
-          job.roles.creator = getAddress(event.address_) as `0x${string}`;
-          job.roles.worker = ZeroAddress as `0x${string}`;
+          job.roles.creator = getAddress(event.address_) as string;
+          job.roles.worker = ZeroAddress as string;
           job.timestamp = event.timestamp_;
-          job.resultHash = ZeroHash as `0x${string}`;
+          job.resultHash = ZeroHash as string;
           job.allowedWorkers = [];
         }
 
@@ -83,7 +83,7 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: string, job?:
           throw new Error("Job must be created before it can be taken");
         }
 
-        job.roles.worker = getAddress(event.address_) as `0x${string}`;
+        job.roles.worker = getAddress(event.address_) as string;
         job.state = JobState.Taken;
         job.escrowId = toBigInt(event.data_);
 
@@ -106,7 +106,7 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: string, job?:
           throw new Error("Job must be created before it can be paid");
         }
 
-        job.roles.worker = getAddress(event.address_) as `0x${string}`;
+        job.roles.worker = getAddress(event.address_) as string;
         job.state = JobState.Taken;
         job.escrowId = toBigInt(event.data_);
 
@@ -131,10 +131,10 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: string, job?:
 
         const jobUpdated = decodeJobUpdatedEvent(event.data_);
         job.title = jobUpdated.title;
-        job.contentHash = jobUpdated.contentHash as `0x${string}`;
+        job.contentHash = jobUpdated.contentHash as string;
         job.tags = jobUpdated.tags;
         job.maxTime = jobUpdated.maxTime;
-        job.roles.arbitrator = jobUpdated.arbitrator as `0x${string}`;
+        job.roles.arbitrator = jobUpdated.arbitrator as string;
         job.whitelistWorkers = jobUpdated.whitelistWorkers;
 
         event.details = jobUpdated;
@@ -261,7 +261,7 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: string, job?:
         }
 
         job.state = JobState.Open;
-        job.resultHash = ZeroHash as `0x${string}`;
+        job.resultHash = ZeroHash as string;
         job.timestamp  = event.timestamp_;
 
         if (job.collateralOwed < job.amount) {
@@ -312,10 +312,11 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: string, job?:
           throw new Error("Job must be created before it can be refunded");
         }
 
+        job.disputed = false;
         job.state = JobState.Open;
         job.escrowId = 0n;
         job.allowedWorkers = job.allowedWorkers?.filter(address => address !== job!.roles.worker);
-        job.roles.worker = ZeroAddress as `0x${string}`;
+        job.roles.worker = ZeroAddress as string;
 
         result.push({
           ...event,
@@ -359,6 +360,7 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: string, job?:
 
         const jobArbitrated = decodeJobArbitratedEvent(event.data_);
         event.details = jobArbitrated;
+        job.disputed = false;
         job.state = JobState.Closed;
         job.collateralOwed = job.collateralOwed += jobArbitrated.creatorAmount;
 
@@ -380,7 +382,7 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: string, job?:
           throw new Error("Job must be created before it can be refused arbitration");
         }
 
-        job.roles.arbitrator = ZeroAddress as `0x${string}`;
+        job.roles.arbitrator = ZeroAddress as string;
 
         result.push({
           ...event,
@@ -418,7 +420,7 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: string, job?:
           throw new Error("Job must be created before workers can be whitelisted");
         }
 
-        job.allowedWorkers = job.allowedWorkers?.filter(address => address !== getAddress(event.address_) as `0x${string}`);
+        job.allowedWorkers = job.allowedWorkers?.filter(address => address !== getAddress(event.address_) as string);
 
         result.push({
           ...event,

@@ -1,11 +1,10 @@
-import { Layout } from '@/components/Dashboard/Layout'
-import React from 'react'
-import DashboardTabs from '@/components/Dashboard/JobsTables/DashboardTabs'
+import { OwnerDashboardTabs } from '@/components/Dashboard/JobsTables/OwnerDashboardTabs';
+import { Layout } from '@/components/Dashboard/Layout';
 
 export default function OwnerJobListPage() {
-return (
+  return (
     <Layout>
-      <DashboardTabs></DashboardTabs>
+      <OwnerDashboardTabs />
     </Layout>
   );
 }

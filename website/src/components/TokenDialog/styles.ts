@@ -1,5 +1,5 @@
-import styled, { css } from "styled-components";
-import { DialogContent } from "@mui/material";
+import styled, { css } from 'styled-components';
+import { DialogContent } from '@mui/material';
 
 const InputFieldStyles = css`
   padding: 9px 12px;
@@ -250,10 +250,10 @@ export const StyledDialogContent = styled(DialogContent)<{
     padding: 0;
     height: ${(props) =>
       props.$isAddCustomToken
-        ? "81px"
+        ? '81px'
         : props.$noTokensFound
-        ? "246px"
-        : "330px"};
+          ? '246px'
+          : '330px'};
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -392,7 +392,7 @@ export const AddTokenWrapper = styled.div<{
   cursor: pointer;
   color: black};
   position: relative;
-  height: ${(props) => (props.isAddCustomToken ? "unset" : "84px")};
+  height: ${(props) => (props.isAddCustomToken ? 'unset' : '84px')};
 
   & > button {
     width: 100%;
@@ -404,18 +404,18 @@ export const AddTokenWrapper = styled.div<{
     ${(props) =>
       props.isAddCustomToken
         ? css`
-        text-align: left; // now, the add token text becomes a subtitle
-        font-size: 18px;
-        font-weight: 700;
-        color: #444C5E;
-      `
+            text-align: left; // now, the add token text becomes a subtitle
+            font-size: 18px;
+            font-weight: 700;
+            color: #444c5e;
+          `
         : css`
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      padding: 32px 0;
-      `}
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 32px 0;
+          `}
   }
 
   .MuiInputBase-root {

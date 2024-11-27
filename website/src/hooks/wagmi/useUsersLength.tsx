@@ -12,7 +12,7 @@ export default function useUsersLength() {
     abi:          MARKETPLACE_DATA_V1_ABI,
     address:      Config.marketplaceDataAddress,
     functionName: 'usersLength',
-    args:         [],
+    args: [],
   });
 
   const usersLengthData = result.data as bigint;

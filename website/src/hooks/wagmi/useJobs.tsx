@@ -13,7 +13,7 @@ export default function useJobs() {
     abi:          MARKETPLACE_DATA_V1_ABI,
     address:      Config.marketplaceDataAddress,
     functionName: 'getJobs',
-    args:         [0n, 0n],
+    args: [0n, 0n],
   });
 
   const jobsData = result.data as Job[];
@@ -22,10 +22,12 @@ export default function useJobs() {
   useEffect(() => {
     (async () => {
       if (jobsData) {
-        await Promise.allSettled(jobsData.map(async (job) => {
-          const content = await getFromIpfs(job.contentHash);
-          job.content = content;
-        }));
+        await Promise.allSettled(
+          jobsData.map(async (job) => {
+            const content = await getFromIpfs(job.contentHash);
+            job.content = content;
+          })
+        );
 
         jobsData.forEach((job: Job, id) => {
           job.id = String(id);

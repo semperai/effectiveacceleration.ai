@@ -12,7 +12,7 @@ export default function usePublicKey(targetAddress: string) {
     abi:          MARKETPLACE_DATA_V1_ABI,
     address:      Config.marketplaceDataAddress,
     functionName: 'publicKeys',
-    args:         [targetAddress],
+    args: [targetAddress],
   });
 
   const publicKeyData = result.data;

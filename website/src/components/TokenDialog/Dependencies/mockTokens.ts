@@ -1,4 +1,4 @@
-import { fake } from "./preferredArbitrumTokens";
+import { fake } from './preferredArbitrumTokens';
 
 interface IArbitrumToken {
   logoURI?: string;
@@ -13,35 +13,34 @@ interface IArbitrumToken {
   l1GatewayAddress?: string;
 }
 
-
 export const mockTokens = (tokens: IArbitrumToken[]) => {
   if (tokens.length === 0) return tokens;
 
-  if (process.env.NODE_ENV !== "development") return tokens;
+  if (process.env.NODE_ENV !== 'development') return tokens;
 
   return tokens.map((token) => {
-    if (token.symbol === "ETH") {
+    if (token.symbol === 'ETH') {
       return {
         ...token,
         address: fake.ETH_ADDRESS,
       };
     }
 
-    if (token.symbol === "USDT") {
+    if (token.symbol === 'USDT') {
       return {
         ...token,
         address: fake.USDT_ADDRESS,
       };
     }
 
-    if (token.symbol === "USDC") {
+    if (token.symbol === 'USDC') {
       return {
         ...token,
         address: fake.USDC_ADDRESS,
       };
     }
 
-    if (token.symbol === "DAI") {
+    if (token.symbol === 'DAI') {
       return {
         ...token,
         address: fake.DAI_ADDRESS,

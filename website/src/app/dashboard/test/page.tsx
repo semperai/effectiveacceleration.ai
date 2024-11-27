@@ -1,12 +1,12 @@
-'use client'
+'use client';
 import React from 'react';
 import { useState } from 'react';
 import TokenSelectModal from '@/components/TokenSelectModal';
 import TokenDialog from '@/components/TokenDialog';
 import { mockTokens } from '@/components/TokenDialog/Dependencies/mockTokens';
-import arbitrumTokens from  '@/components/TokenDialog/Dependencies/arbitrumTokens.json'
+import arbitrumTokens from '@/components/TokenDialog/Dependencies/arbitrumTokens.json';
 import { Layout } from '@/components/Dashboard/Layout';
-import Unicrow from "@unicrowio/sdk";
+import Unicrow from '@unicrowio/sdk';
 
 export interface IArbitrumToken {
   logoURI?: string;
@@ -22,15 +22,12 @@ export interface IArbitrumToken {
 }
 
 const Test = () => {
-    const [preferredTokens, setPreferredTokens] = useState<
-    IArbitrumToken[]
-  >([]);
-  const [selectedToken, setSelectedToken] = useState<IArbitrumToken>(
-    // arbitrumTokens?.tokens[0],
-  );
+  const [preferredTokens, setPreferredTokens] = useState<IArbitrumToken[]>([]);
+  const [selectedToken, setSelectedToken] = useState<IArbitrumToken>();
+  // arbitrumTokens?.tokens[0],
   const [tokenSelectionDialogOpen, setTokenSelectionDialogOpen] =
-  useState(false);
-const [selectableTokens, setSelectableTokens] = useState<any>();
+    useState(false);
+  const [selectableTokens, setSelectableTokens] = useState<any>();
   return (
     <Layout>
       aa

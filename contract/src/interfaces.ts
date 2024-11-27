@@ -71,6 +71,28 @@ export enum JobEventType {
   OwnerMessage = 18,
 }
 
+export const jobEventTypeToString = (eventType: JobEventType) => [
+  'Created',
+  'Taken',
+  'Paid',
+  'Updated',
+  'Signed',
+  'Completed',
+  'Delivered',
+  'Closed',
+  'Reopened',
+  'Rated',
+  'Refunded',
+  'Disputed',
+  'Arbitrated',
+  'ArbitrationRefused',
+  'WhitelistedWorkerAdded',
+  'WhitelistedWorkerRemoved',
+  'CollateralWithdrawn',
+  'WorkerMessage',
+  'OwnerMessage',
+][eventType];
+
 export type JobCreatedEvent = {
   title: string;
   contentHash: string;

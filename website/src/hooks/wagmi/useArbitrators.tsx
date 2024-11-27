@@ -14,7 +14,7 @@ export default function useArbitrators() {
     abi:          MARKETPLACE_DATA_V1_ABI,
     address:      Config.marketplaceDataAddress,
     functionName: 'getArbitrators',
-    args:         [0n, 0n],
+    args: [0n, 0n],
   });
 
   const arbitratorsData = result.data as Arbitrator[];
@@ -23,8 +23,14 @@ export default function useArbitrators() {
   useEffect(() => {
     if (arbitratorsData) {
       for (const arbitrator of arbitratorsData) {
-        localStorage.setItem(`arbitratorPublicKey-${arbitrator.address_}`, arbitrator.publicKey as string);
-        sessionStorage.setItem(`arbitrator-${arbitrator.address_}`, JSON5.stringify(arbitrator));
+        localStorage.setItem(
+          `arbitratorPublicKey-${arbitrator.address_}`,
+          arbitrator.publicKey as string
+        );
+        sessionStorage.setItem(
+          `arbitrator-${arbitrator.address_}`,
+          JSON5.stringify(arbitrator)
+        );
       }
       setArbitrators(arbitratorsData);
     }

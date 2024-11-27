@@ -12,7 +12,7 @@ export default function useArbitratorsLength() {
     abi:          MARKETPLACE_DATA_V1_ABI,
     address:      Config.marketplaceDataAddress,
     functionName: 'arbitratorsLength',
-    args:         [],
+    args: [],
   });
 
   const arbitratorsLengthData = result.data as bigint;
@@ -24,5 +24,8 @@ export default function useArbitratorsLength() {
     }
   }, [arbitratorsLengthData]);
 
-  return useMemo(() => ({ data: arbitratorsLength, ...rest }), [arbitratorsLength, rest]);
+  return useMemo(
+    () => ({ data: arbitratorsLength, ...rest }),
+    [arbitratorsLength, rest]
+  );
 }

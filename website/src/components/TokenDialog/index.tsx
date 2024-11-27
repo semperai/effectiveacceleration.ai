@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 
-import React from "react";
+import React from 'react';
 import {
   Dialog,
   ListItem,
@@ -13,28 +13,29 @@ import {
   List,
   ClickAwayListener,
   Slide,
-} from "@mui/material";
+  ListItemButton,
+} from '@mui/material';
 import {
-    ContainerListPreferredTokens,
-    StyledDialogTitle,
-    ContainerSearchInput,
-    StyledDialogContent,
-    DialogWrapper,
-    AddTokenWrapper,
-  } from "./styles";
-import Link from "next/link";
-import { ethers } from "ethers";
-import lscacheModule from "./Dependencies/lscache";
-import { CloseOutlined, SearchOutlined } from "@mui/icons-material";
+  ContainerListPreferredTokens,
+  StyledDialogTitle,
+  ContainerSearchInput,
+  StyledDialogContent,
+  DialogWrapper,
+  AddTokenWrapper,
+} from './styles';
+import Link from 'next/link';
+import { ethers } from 'ethers';
+import lscacheModule from './Dependencies/lscache';
+import { CloseOutlined, SearchOutlined } from '@mui/icons-material';
 
-import { uniqueBy } from "./Dependencies/uniqueBy";
-import { Button } from "@/components/Button";
-import { EthereumIcon } from "./Dependencies/Icons/EthereumIcon";
-import {  ExternalLinkIcon  } from "./Dependencies/Icons/ExternalLinkIcon";
-import {  PinIcon } from "./Dependencies/Icons/PinIcon";
-import { toast } from "./Dependencies/toast";
-import Unicrow from "@unicrowio/sdk";
-import { reduceAddress } from "./Dependencies/addressFormatter";
+import { uniqueBy } from './Dependencies/uniqueBy';
+import { Button } from '@/components/Button';
+import { EthereumIcon } from './Dependencies/Icons/EthereumIcon';
+import { ExternalLinkIcon } from './Dependencies/Icons/ExternalLinkIcon';
+import { PinIcon } from './Dependencies/Icons/PinIcon';
+import { toast } from './Dependencies/toast';
+import Unicrow from '@unicrowio/sdk';
+import { reduceAddress } from './Dependencies/addressFormatter';
 
 interface IArbitrumToken {
   logoURI?: string;
@@ -61,16 +62,17 @@ const TokenDialog = ({
   closeCallback: (arg0: IArbitrumToken) => void;
 }) => {
   const [selectedToken, setSelectedToken] = React.useState<IArbitrumToken>(
-    initiallySelectedToken,
+    initiallySelectedToken
   );
   const [favoriteTokens, setFavoriteTokens] =
     React.useState<IArbitrumToken[]>(preferredTokenList);
-  const [filteredTokens, setFilteredTokens] = React.useState<IArbitrumToken[]>();
+  const [filteredTokens, setFilteredTokens] =
+    React.useState<IArbitrumToken[]>();
   const [customTokens, setCustomTokens] = React.useState<IArbitrumToken[]>(
-    lscacheModule.get("custom-tokens") || [],
+    lscacheModule.get('custom-tokens') || []
   );
-  const [searchValue, setSearchValue] = React.useState<string>("");
-  const [customTokenValue, setAddTokenValue] = React.useState<string>("");
+  const [searchValue, setSearchValue] = React.useState<string>('');
+  const [customTokenValue, setAddTokenValue] = React.useState<string>('');
   const [provider, setProvider] = React.useState<any>(null);
   const [sortedTokensList, setSortedTokensList] = React.useState([]);
   const [isAddCustomToken, setAddCustomToken] = React.useState(false);
@@ -84,7 +86,7 @@ const TokenDialog = ({
 
   const handleSelectToken = (token: IArbitrumToken, event: any) => {
     // DIV = preferred token (chip) or TokenItem, BUTTON = close button
-    if (["DIV", "BUTTON"].includes(event.target.nodeName)) {
+    if (['DIV', 'BUTTON'].includes(event.target.nodeName)) {
       setSelectedToken(token);
       closeCallback(token);
     }
@@ -92,33 +94,33 @@ const TokenDialog = ({
 
   const addCustomToken = () => {
     if (!Unicrow.helpers.isValidAddress(customTokenValue)) {
-      toast("Please provide a valid address", "error");
+      toast('Please provide a valid address', 'error');
       return;
     }
 
     const newToken = {
-      symbol: "UNK",
+      symbol: 'UNK',
       name: `UNKNOWN (${reduceAddress(customTokenValue)})`,
       address: customTokenValue,
     } as IArbitrumToken;
 
     const newList = Array.from(new Set([...customTokens, newToken]));
-    lscacheModule.set("custom-tokens", newList, Infinity);
+    lscacheModule.set('custom-tokens', newList, Infinity);
     setCustomTokens(newList);
     setFilteredTokens([...filteredTokens!, newToken]);
     setAddCustomToken(false);
   };
 
   const addFavoriteTokens = (token: IArbitrumToken) => {
-    const newList = uniqueBy("address", [...favoriteTokens, token], "symbol");
+    const newList = uniqueBy('address', [...favoriteTokens, token], 'symbol');
     updateFavoriteTokens(newList);
   };
 
   const deleteTokenFromFavorites = (token: IArbitrumToken) => {
     const newList = uniqueBy(
-      "address",
+      'address',
       [...favoriteTokens.filter((t) => t.address !== token.address)],
-      "symbol",
+      'symbol'
     );
 
     updateFavoriteTokens(newList);
@@ -126,8 +128,8 @@ const TokenDialog = ({
 
   const updateFavoriteTokens = (newList: IArbitrumToken[]) => {
     setFavoriteTokens(newList);
-    lscacheModule.remove("preferred-tokens");
-    lscacheModule.set("preferred-tokens", newList, Infinity);
+    lscacheModule.remove('preferred-tokens');
+    lscacheModule.set('preferred-tokens', newList, Infinity);
   };
 
   const handleTokenListScroll = (e: any) => {
@@ -136,14 +138,14 @@ const TokenDialog = ({
     const atBottom = t.scrollHeight - t.scrollTop === t.clientHeight;
 
     if (atTop) {
-      t.classList.add("hidden-before");
-      t.classList.remove("hidden-after");
+      t.classList.add('hidden-before');
+      t.classList.remove('hidden-after');
     } else if (atBottom) {
-      t.classList.add("hidden-after");
-      t.classList.remove("hidden-before");
+      t.classList.add('hidden-after');
+      t.classList.remove('hidden-before');
     } else {
-      t.classList.remove("hidden-after");
-      t.classList.remove("hidden-before");
+      t.classList.remove('hidden-after');
+      t.classList.remove('hidden-before');
     }
   };
 
@@ -172,14 +174,18 @@ const TokenDialog = ({
     //   ...customTokens,
     // ];
     const list = [
-      ...(Array.isArray(sortedTokensList) && sortedTokensList.length > 0 ? sortedTokensList : Array.isArray(tokensList) ? tokensList : []),
+      ...(Array.isArray(sortedTokensList) && sortedTokensList.length > 0
+        ? sortedTokensList
+        : Array.isArray(tokensList)
+          ? tokensList
+          : []),
       ...(Array.isArray(customTokens) ? customTokens : []),
     ];
-    console.log(sortedTokensList, 'sortedTokensList')
-    console.log(tokensList, 'tokensList')
+    console.log(sortedTokensList, 'sortedTokensList');
+    console.log(tokensList, 'tokensList');
     const _value = `${searchValue}`.toLowerCase();
 
-    if (_value !== "") {
+    if (_value !== '') {
       const newList = [];
       for (const token of list) {
         const _searchText =
@@ -235,15 +241,15 @@ const TokenDialog = ({
           <Chip
             key={token.address}
             avatar={
-              token.name === "ETH" ? <EthereumIcon /> : AvatarNonEth(token)
+              token.name === 'ETH' ? <EthereumIcon /> : AvatarNonEth(token)
             }
             label={token.symbol}
             clickable
             color={
-              token.address === selectedToken?.address ? "primary" : "default"
+              token.address === selectedToken?.address ? 'primary' : 'default'
             }
             onDelete={() => deleteTokenFromFavorites(token)}
-            variant="outlined"
+            variant='outlined'
             onClick={(e) => handleSelectToken(token, e)}
           />
         ))}
@@ -255,13 +261,13 @@ const TokenDialog = ({
     value.length > 0 && (
       <IconButton
         onClick={() => {
-          setSearchValue("");
+          setSearchValue('');
           setAddCustomToken(false);
         }}
-        title="Clear"
+        title='Clear'
         onMouseDown={(e) => e.preventDefault()}
-        color="secondary"
-        size="large"
+        color='secondary'
+        size='large'
       >
         <CloseOutlined />
       </IconButton>
@@ -272,19 +278,19 @@ const TokenDialog = ({
       <Dialog
         open={true}
         onClose={() => closeCallback(selectedToken)}
-        aria-labelledby="simple-dialog-title"
+        aria-labelledby='simple-dialog-title'
         maxWidth={false}
-        scroll="paper"
+        scroll='paper'
       >
         <DialogWrapper>
-          <StyledDialogTitle id="simple-dialog-title">
+          <StyledDialogTitle id='simple-dialog-title'>
             <div>
               <h2>Select a Token</h2>
 
               <IconButton
-                aria-label="close"
+                aria-label='close'
                 onClick={(e) => handleSelectToken(selectedToken, e)}
-                size="large"
+                size='large'
               >
                 <CloseOutlined />
               </IconButton>
@@ -295,9 +301,9 @@ const TokenDialog = ({
 
           <ContainerSearchInput>
             <Input
-              type="text"
-              placeholder="Search name or paste address"
-              title="Search"
+              type='text'
+              placeholder='Search name or paste address'
+              title='Search'
               fullWidth
               autoFocus
               value={searchValue}
@@ -308,21 +314,21 @@ const TokenDialog = ({
               endAdornment={
                 <>
                   {InputResetButton(searchValue)}
-                  <SearchOutlined color="secondary" />
+                  <SearchOutlined color='secondary' />
                 </>
               }
             />
           </ContainerSearchInput>
 
           <StyledDialogContent
-            className="hidden-before"
+            className='hidden-before'
             onScroll={handleTokenListScroll}
             $isAddCustomToken={isAddCustomToken}
             $noTokensFound={noTokensFound}
           >
             <List>
               {noTokensFound ? (
-                <li className="text-black">No results found.</li>
+                <li className='text-black'>No results found.</li>
               ) : (
                 filteredTokens.map((token) => (
                   <TokenItem
@@ -345,14 +351,14 @@ const TokenDialog = ({
                 setAddCustomToken(true);
               }}
             >
-              Add Token {!isAddCustomToken && "+"}
+              Add Token {!isAddCustomToken && '+'}
             </p>
             {isAddCustomToken && (
               <>
                 <Input
-                  type="text"
-                  placeholder="Search name or paste address"
-                  title="Search"
+                  type='text'
+                  placeholder='Search name or paste address'
+                  title='Search'
                   fullWidth
                   autoFocus
                   value={customTokenValue}
@@ -383,13 +389,12 @@ const TokenItem = ({
   return (
     <Slide
       key={token.address}
-      direction="down"
+      direction='down'
       in={true}
       timeout={{ enter: 200 }}
     >
-      <ListItem
+      <ListItemButton
         selected={selectedToken?.address === token.address}
-        button
         onClick={(e) => handleSelectToken(token, e)}
       >
         <ListItemIcon>
@@ -401,25 +406,25 @@ const TokenItem = ({
         </ListItemIcon>
 
         <ListItemText disableTypography>
-          <span className="token">
+          <span className='token'>
             <span>{token.name}</span>
-            <span className="balance">
-              {token?.balance ? token.balance : ""}
+            <span className='balance'>
+              {token?.balance ? token.balance : ''}
             </span>
           </span>
 
-          <span className="pin" onClick={() => addFavoriteTokens(token)}>
+          <span className='pin' onClick={() => addFavoriteTokens(token)}>
             <PinIcon />
           </span>
           <Link
             href={`https://arbiscan.io/token/${token.address}`}
-            target="_blank"
-            rel="noreferrer nofollow"
+            target='_blank'
+            rel='noreferrer nofollow'
           >
             <ExternalLinkIcon />
           </Link>
         </ListItemText>
-      </ListItem>
+      </ListItemButton>
     </Slide>
   );
 };
