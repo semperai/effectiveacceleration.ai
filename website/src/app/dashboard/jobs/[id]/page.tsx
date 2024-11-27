@@ -341,6 +341,7 @@ export default function JobPage() {
                       color='borderlessGray'
                       className='mt-2 w-full'
                       tooltipContent='Copy link to clipboard'
+                      popoverContent='Copied!'
                       onClick={async () => {
                         const url = window.location.href;
                         await navigator.clipboard.writeText(url);
