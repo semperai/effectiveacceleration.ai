@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/Button';
+import { TooltipButton } from '@/components/TooltipButton';
 import { Layout } from '@/components/Dashboard/Layout';
 import { PostMessageButton } from '@/components/JobActions/PostMessageButton';
 import { Text } from '@/components/Text';
@@ -336,13 +337,21 @@ export default function JobPage() {
                     timePassed={timePassed}
                   />
                   <div>
-                    <Button color={'borderlessGray'} className={'mt-2 w-full'}>
+                    <TooltipButton
+                      color='borderlessGray'
+                      className='mt-2 w-full'
+                      tooltipContent='Copy link to clipboard'
+                      onClick={async () => {
+                        const url = window.location.href;
+                        await navigator.clipboard.writeText(url);
+                      }}
+                    >
                       <LinkIcon
                         className='-ml-0.5 mr-1.5 h-5 w-5 text-primary'
                         aria-hidden='true'
                       />
                       Share
-                    </Button>
+                    </TooltipButton>
                   </div>
                 </div>
               </div>
