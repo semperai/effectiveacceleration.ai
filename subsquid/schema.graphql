@@ -44,6 +44,7 @@ type Job @entity {
   eventCount: Int!
 
   events: [JobEvent!]! @derivedFrom(field: "job")
+  lastJobEvent: JobEvent
 }
 
 type JobEvent @entity {

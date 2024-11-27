@@ -1,10 +1,11 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, IntColumn as IntColumn_, BooleanColumn as BooleanColumn_, StringColumn as StringColumn_, BigIntColumn as BigIntColumn_, OneToMany as OneToMany_} from "@subsquid/typeorm-store"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, IntColumn as IntColumn_, BooleanColumn as BooleanColumn_, StringColumn as StringColumn_, BigIntColumn as BigIntColumn_, OneToMany as OneToMany_, ManyToOne as ManyToOne_, Index as Index_} from "@subsquid/typeorm-store"
 import * as marshal from "./marshal"
 import {JobRoles} from "./_jobRoles"
 import {JobEvent} from "./jobEvent.model"
+import {Job as IJob} from "@effectiveacceleration/contracts";
 
 @Entity_()
-export class Job {
+export class Job implements IJob {
     constructor(props?: Partial<Job>) {
         Object.assign(this, props)
     }
@@ -74,4 +75,8 @@ export class Job {
 
     @OneToMany_(() => JobEvent, e => e.job)
     events!: JobEvent[]
+
+    @Index_()
+    @ManyToOne_(() => JobEvent, {nullable: true})
+    lastJobEvent!: JobEvent | undefined
 }

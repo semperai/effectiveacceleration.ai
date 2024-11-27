@@ -1,11 +1,12 @@
-module.exports = class Data1732103023747 {
-    name = 'Data1732103023747'
+module.exports = class Data1732621049750 {
+    name = 'Data1732621049750'
 
     async up(db) {
         await db.query(`CREATE TABLE "marketplace" ("id" character varying NOT NULL, "marketplace_data" text NOT NULL, "version" integer NOT NULL, "unicrow_address" text NOT NULL, "unicrow_dispute_address" text NOT NULL, "unicrow_arbitrator_address" text NOT NULL, "treasury_address" text NOT NULL, "unicrow_marketplace_fee" integer NOT NULL, "paused" boolean NOT NULL, "owner" text NOT NULL, "job_count" integer NOT NULL, "user_count" integer NOT NULL, "arbitrator_count" integer NOT NULL, CONSTRAINT "PK_d9c9a956a1a45b27b56db53bfc8" PRIMARY KEY ("id"))`)
         await db.query(`CREATE TABLE "job_event" ("id" character varying NOT NULL, "job_id" character varying NOT NULL, "type_" integer NOT NULL, "address_" text NOT NULL, "data_" text NOT NULL, "timestamp_" integer NOT NULL, "details" jsonb, CONSTRAINT "PK_d4439f70bd53ce8a8a2a9a783c7" PRIMARY KEY ("id"))`)
         await db.query(`CREATE INDEX "IDX_86e9dff9bc845b831415e36ca4" ON "job_event" ("job_id") `)
-        await db.query(`CREATE TABLE "job" ("id" character varying NOT NULL, "state" integer NOT NULL, "whitelist_workers" boolean NOT NULL, "roles" jsonb NOT NULL, "title" text NOT NULL, "tags" text array NOT NULL, "content_hash" text NOT NULL, "content" text NOT NULL, "multiple_applicants" boolean NOT NULL, "amount" numeric NOT NULL, "token" text NOT NULL, "timestamp" integer NOT NULL, "max_time" integer NOT NULL, "delivery_method" text NOT NULL, "collateral_owed" numeric NOT NULL, "escrow_id" numeric NOT NULL, "result_hash" text NOT NULL, "rating" integer NOT NULL, "disputed" boolean NOT NULL, "allowed_workers" text array NOT NULL, "event_count" integer NOT NULL, CONSTRAINT "PK_98ab1c14ff8d1cf80d18703b92f" PRIMARY KEY ("id"))`)
+        await db.query(`CREATE TABLE "job" ("id" character varying NOT NULL, "state" integer NOT NULL, "whitelist_workers" boolean NOT NULL, "roles" jsonb NOT NULL, "title" text NOT NULL, "tags" text array NOT NULL, "content_hash" text NOT NULL, "content" text NOT NULL, "multiple_applicants" boolean NOT NULL, "amount" numeric NOT NULL, "token" text NOT NULL, "timestamp" integer NOT NULL, "max_time" integer NOT NULL, "delivery_method" text NOT NULL, "collateral_owed" numeric NOT NULL, "escrow_id" numeric NOT NULL, "result_hash" text NOT NULL, "rating" integer NOT NULL, "disputed" boolean NOT NULL, "allowed_workers" text array NOT NULL, "event_count" integer NOT NULL, "last_job_event_id" character varying, CONSTRAINT "PK_98ab1c14ff8d1cf80d18703b92f" PRIMARY KEY ("id"))`)
+        await db.query(`CREATE INDEX "IDX_dad4a91055a12f13adb8808789" ON "job" ("last_job_event_id") `)
         await db.query(`CREATE TABLE "arbitrator" ("id" character varying NOT NULL, "address_" text NOT NULL, "public_key" text NOT NULL, "name" text NOT NULL, "bio" text NOT NULL, "avatar" text NOT NULL, "fee" integer NOT NULL, "settled_count" integer NOT NULL, "refused_count" integer NOT NULL, "timestamp" integer NOT NULL, CONSTRAINT "PK_7897f406c323f90687a8ab79270" PRIMARY KEY ("id"))`)
         await db.query(`CREATE INDEX "IDX_601b2215ce2dcc35f960fd7ac2" ON "arbitrator" ("address_") `)
         await db.query(`CREATE TABLE "review" ("id" character varying NOT NULL, "user" text NOT NULL, "reviewer" text NOT NULL, "job_id" numeric NOT NULL, "rating" integer NOT NULL, "text" text NOT NULL, "timestamp" integer NOT NULL, "user_loaded_id" character varying, "reviewer_loaded_id" character varying, CONSTRAINT "PK_2e4299a343a81574217255c00ca" PRIMARY KEY ("id"))`)
@@ -26,6 +27,7 @@ module.exports = class Data1732103023747 {
         await db.query(`DROP TABLE "job_event"`)
         await db.query(`DROP INDEX "public"."IDX_86e9dff9bc845b831415e36ca4"`)
         await db.query(`DROP TABLE "job"`)
+        await db.query(`DROP INDEX "public"."IDX_dad4a91055a12f13adb8808789"`)
         await db.query(`DROP TABLE "arbitrator"`)
         await db.query(`DROP INDEX "public"."IDX_601b2215ce2dcc35f960fd7ac2"`)
         await db.query(`DROP TABLE "review"`)

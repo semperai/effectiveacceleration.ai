@@ -38,5 +38,5 @@ COPY --from=builder /squid/schema.graphql schema.graphql
 ADD commands.json .
 RUN echo -e "loglevel=silent\\nupdate-notifier=false" > /squid/.npmrc
 RUN npm i -g @subsquid/commands && mv $(which squid-commands) /usr/local/bin/sqd
-ADD .env .
+ADD .env.local .
 ENV PROCESSOR_PROMETHEUS_PORT 3000

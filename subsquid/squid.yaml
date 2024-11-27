@@ -1,7 +1,7 @@
 manifestVersion: subsquid.io/v0.1
 name: subsquid
 version: 1
-description: The very first evm squid from manifest
+description: effectiveacceleration.ai
 build: 
 deploy:
   addons:

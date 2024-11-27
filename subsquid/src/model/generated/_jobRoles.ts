@@ -1,7 +1,8 @@
 import assert from "assert"
 import * as marshal from "./marshal"
+import {JobRoles as IJobRoles} from "@effectiveacceleration/contracts";
 
-export class JobRoles {
+export class JobRoles implements IJobRoles {
     private _creator!: string
     private _worker!: string
     private _arbitrator!: string

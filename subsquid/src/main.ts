@@ -1,6 +1,10 @@
 // main.js
 // This is the main executable of the squid indexer.
-import 'dotenv/config';
+import { config } from 'dotenv';
+config({
+  debug: false,
+  path: './.env.local',
+});
 
 // EvmBatchProcessor is the class responsible for data retrieval and processing.
 import { EvmBatchProcessor } from "@subsquid/evm-processor";
@@ -752,6 +756,7 @@ processor.run(db, async (ctx) => {
             }
 
             job.eventCount += 1;
+            job.lastJobEvent = jobEvent;
             eventList.push(jobEvent);
             break;
           }
