@@ -52,6 +52,15 @@ const getValidJobsCount = (title: string, localJobs?: Job[]): number => {
   }
 };
 
+interface JobsTableProps<T> {
+  table: Table<T>;
+  title: string;
+  localJobs?: Job[];
+  filteredJobs?: Job[];
+  emptyMessage?: JSX.Element | string;
+  emptySubtext?: JSX.Element | string;
+}
+
 function JobsTable<T>({
   table,
   title,
@@ -59,14 +68,7 @@ function JobsTable<T>({
   filteredJobs,
   emptyMessage,
   emptySubtext,
-}: {
-  table: Table<T>;
-  title: string;
-  localJobs?: Job[];
-  filteredJobs?: Job[];
-  emptyMessage?: JSX.Element | string;
-  emptySubtext?: JSX.Element | string;
-}) {
+}: JobsTableProps<T>) {
   const [loading, setLoading] = useState(true);
   const [jobCount, setJobCount] = useState(0);
   const [dataRow, setDataRow] = useState(false);
@@ -79,104 +81,114 @@ function JobsTable<T>({
   }, [localJobs]);
 
   useEffect(() => {
-    if ( filteredJobs ) {
+    if (filteredJobs) {
       setLoading(false);
       setDataRow(true);
     }
-    if (table.getRowModel().rows.length === 0 && localJobs?.length === 0)
-      return;
+    if (table.getRowModel().rows.length === 0 && localJobs?.length === 0) return;
     setLoading(false);
     setDataRow(true);
   }, [table, dataRow]);
 
+  if (!user && localJobs?.length === 0 && title === 'RemoveForNow') {
+    return (
+      <div className="rounded-2xl bg-white p-8 shadow-lg">
+        <div className="flex min-h-[300px] flex-col items-center justify-center text-center">
+          <h2 className="mb-6 text-2xl font-semibold text-gray-900">
+            To see jobs, connect your wallet
+          </h2>
+          <Button href="/register" className="px-6">
+            Register
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (jobCount === 0) {
+    return (
+      <div className="rounded-2xl bg-white p-8 shadow-lg">
+        <div className="flex min-h-[300px] flex-col items-center justify-center text-center">
+          <h2 className="mb-4 text-xl font-semibold text-gray-900">
+            {emptyMessage}
+          </h2>
+          <p className="text-gray-500">{emptySubtext}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <>
-      {!user && localJobs?.length === 0 && title === 'RemoveForNow' ? (
-        <div className='flex h-[300px] w-full items-center justify-center rounded-2xl bg-white p-5 text-center [box-shadow:0px_0px_8px_lightgray]'>
-          <div>
-            <h2 className='mb-4 text-xl font-semibold'>
-              To see jobs, connect your wallet
-            </h2>
-            <Button href={'/register'}>Register</Button>
-          </div>
-        </div>
-      ) : jobCount === 0 ? (
-        <div className='flex h-[300px] w-full items-center justify-center rounded-2xl bg-white p-5 text-center [box-shadow:0px_0px_8px_lightgray]'>
-          <div>
-            <h2 className='mb-4 text-xl font-semibold'>
-              {emptyMessage}
-            </h2>
-            <p className='text-gray-500'>{emptySubtext}</p>
-          </div>
-        </div>
-      ) : (
-        <div className='rounded-2xl bg-white [box-shadow:0px_0px_8px_lightgray]'>
-          <div className='p-5'>
-            <h1 className='text-xl font-semibold'>{title}</h1>
-          </div>
-          <table className='w-full'>
-            <thead className=''>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr
-                  className='flex w-full justify-between bg-gray-100 px-5 py-3'
-                  key={headerGroup.id}
-                >
-                  {headerGroup.headers.map((header, index) => (
-                    <th
-                      className={`flex-1 text-left ${title === 'Opens Jobs' ? 'max-w-6' : ''} ${index === headerGroup.headers.length - 1 ? 'text-right' : ''}`}
-                      key={header.id}
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody>
-              {loading
-                ? Array.from({ length: jobCount }).map((_, index) => (
-                    <tr
-                      key={index}
-                      className='flex w-full justify-between border-b border-gray-200 p-5 last:border-0'
-                    >
-                      <td className='flex-1'>
-                        <Skeleton
-                          variant='rectangular'
-                          width='100%'
-                          height={40}
-                        />
+    <div className="overflow-hidden rounded-2xl bg-white shadow-lg">
+      <div className="border-b border-gray-200 px-6 py-4">
+        <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr
+                key={headerGroup.id}
+                className="border-b border-gray-200 bg-gray-50"
+              >
+                {headerGroup.headers.map((header, index) => (
+                  <th
+                    key={header.id}
+                    className={`px-6 py-3 text-left text-sm font-medium text-gray-500 ${
+                      title === 'Opens Jobs' ? 'max-w-6' : ''
+                    } ${
+                      index === headerGroup.headers.length - 1 ? 'text-right' : ''
+                    }`}
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+
+          <tbody className="divide-y divide-gray-200">
+            {loading
+              ? Array.from({ length: jobCount }).map((_, index) => (
+                  <tr key={index}>
+                    <td className="px-6 py-4">
+                      <Skeleton className="h-8 w-full rounded" />
+                    </td>
+                  </tr>
+                ))
+              : table.getRowModel().rows.map((row) => (
+                  <tr
+                    key={row.id}
+                    className="hover:bg-gray-50 transition-colors duration-150"
+                  >
+                    {row.getVisibleCells().map((cell, index) => (
+                      <td
+                        key={cell.id}
+                        className={`px-6 py-4 text-sm text-gray-900 ${
+                          index === row.getVisibleCells().length - 1
+                            ? 'text-right'
+                            : ''
+                        }`}
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
                       </td>
-                      {/* Add more Skeleton cells as needed */}
-                    </tr>
-                  ))
-                : table.getRowModel().rows.map((row) => (
-                    <tr
-                      className='flex w-full justify-between border-b border-gray-200 p-5 last:border-0'
-                      key={row.id}
-                    >
-                      {row.getVisibleCells().map((cell, index) => (
-                        <td
-                          className={`flex-1 ${index === row.getVisibleCells().length - 1 ? 'text-right' : ''}`}
-                          key={cell.id}
-                        >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </>
+                    ))}
+                  </tr>
+                ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }
+
 export default JobsTable;
