@@ -7,7 +7,6 @@ import useUser from '@/hooks/subsquid/useUser';
 import { getAddress } from 'viem';
 import moment from 'moment';
 
-import useUser from '@/hooks/useUser';
 import EventProfileImage from './Components/EventProfileImage';
 import { type EventProps } from './index';
 import { JobMessageEvent } from 'effectiveacceleration-contracts';

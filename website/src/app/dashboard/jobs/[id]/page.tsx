@@ -4,14 +4,23 @@ import { Layout } from '@/components/Dashboard/Layout';
 import { PostMessageButton } from '@/components/JobActions/PostMessageButton';
 import { Text } from '@/components/Text';
 import { TooltipButton } from '@/components/TooltipButton';
-import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
 import useJob from '@/hooks/subsquid/useJob';
 import useJobEventsWithDiffs from '@/hooks/subsquid/useJobEventsWithDiffs';
 import useUser from '@/hooks/subsquid/useUser';
 import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
+import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
 import { LOCAL_JOBS_OWNER_CACHE, LOCAL_JOBS_WORKER_CACHE } from '@/utils/constants';
 import { jobMeceTags } from '@/utils/jobMeceTags';
 import { shortenText } from '@/utils/utils';
+import {
+  Job,
+  JobArbitratedEvent,
+  JobEventType,
+  JobEventWithDiffs,
+  JobMessageEvent,
+  JobState,
+  User,
+} from '@effectiveacceleration/contracts';
 import {
   CurrencyDollarIcon,
   LinkIcon,
@@ -19,16 +28,6 @@ import {
 } from '@heroicons/react/20/solid';
 import LinearProgress from '@mui/material/LinearProgress';
 import { clsx } from 'clsx';
-import {
-  JobArbitratedEvent,
-  JobEventType,
-  JobMessageEvent
-} from '@effectiveacceleration/contracts';
-import {
-  Job,
-  JobEventWithDiffs,
-  JobState
-} from '@effectiveacceleration/contracts';
 import moment from 'moment';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -124,8 +123,8 @@ type JobSidebarProps = {
   events: JobEventWithDiffs[];
   addresses: string[];
   sessionKeys: Record<string, string>;
-  users: Record<string, any>;
-  jobMeceTag: string;
+  users: Record<string, User>;
+  jobMeceTag?: { id: string; name: string };
   timePassed: boolean;
   adjustedProgressValue: number;
   whitelistedWorkers: string[];
@@ -346,7 +345,7 @@ const JobSidebar = ({
           <div>
             <h4 className="font-medium text-gray-900 mb-2">Tags</h4>
             <div className="flex flex-wrap gap-2">
-              {job?.tags.slice(1).map((value) => (
+              {job?.tags.slice(1).map((value: string) => (
                 <Tag key={value}>{value}</Tag>
               ))}
             </div>
@@ -378,7 +377,7 @@ export default function JobPage() {
 
   // Calculate the time passed since the job was closed
   const timestamp = events
-    ?.filter((event) => event.type_ === JobEventType.Closed)
+    ?.filter((event: JobEventWithDiffs) => event.type_ === JobEventType.Closed)
     .slice(-1)[0]?.timestamp_;
   const hoursPassed = moment().diff(moment(timestamp! * 1000), 'hours'); // hours passed since the job was closed
   const timePassed = hoursPassed >= 24; // If 24 hours have passed since the job was closed
@@ -436,7 +435,7 @@ export default function JobPage() {
     selectedWorker
       ? setEventMessages(
           events.filter(
-            (event) =>
+            (event: JobEventWithDiffs) =>
               event.address_ === selectedWorker.toLowerCase() ||
               (event.details as JobMessageEvent)?.recipientAddress === selectedWorker ||
               (event.details as JobArbitratedEvent)?.workerAddress === selectedWorker ||
@@ -467,7 +466,6 @@ export default function JobPage() {
   const isOwner = address && job?.roles.creator.includes(address);
   const isWorker = !isOwner && address && job?.roles.worker.includes(address);
   const isArbitrator = !isOwner && !isWorker && address && job?.roles.arbitrator.includes(address);
-  const isGuest = !isOwner && !isWorker && !isArbitrator;
 
   return (
     <Layout borderless>
@@ -533,8 +531,8 @@ export default function JobPage() {
             events={eventMessages as JobEventWithDiffs[]}
             addresses={addresses}
             sessionKeys={sessionKeys}
-            users={users}
-            jobMeceTag={jobMeceTag as string}
+            users={users ?? {}}
+            jobMeceTag={jobMeceTag}
             timePassed={timePassed}
             adjustedProgressValue={adjustedProgressValue}
             whitelistedWorkers={whitelistedWorkers}
