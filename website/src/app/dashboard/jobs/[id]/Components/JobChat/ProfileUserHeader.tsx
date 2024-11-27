@@ -5,14 +5,14 @@ import {
   JobEventWithDiffs,
   JobState,
   User
-} from 'effectiveacceleration-contracts/dist/src/interfaces';
+} from '@effectiveacceleration/contracts';
 import Image from 'next/image';
 
 interface ResultAcceptedProps {
   users: Record<string, User>;
   selectedWorker: string;
   eventMessages: JobEventWithDiffs[];
-  address: `0x${string}` | undefined;
+  address: string | undefined;
   job: Job;
 }
 const ProfileUserHeader: React.FC<ResultAcceptedProps> = ({

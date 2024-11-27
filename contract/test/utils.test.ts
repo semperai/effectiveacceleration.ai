@@ -96,8 +96,8 @@ describe("utils", () => {
       const signerSigningKey = await getEncryptionSigningKey(signer);
       const otherSigningKey = await getEncryptionSigningKey(other);
 
-      const sessionKey = await getSessionKey(signer, otherSigningKey.compressedPublicKey, 0);
-      const otherSessionKey = await getSessionKey(other, signerSigningKey.compressedPublicKey, 0);
+      const sessionKey = await getSessionKey(signer, otherSigningKey.compressedPublicKey, 0n);
+      const otherSessionKey = await getSessionKey(other, signerSigningKey.compressedPublicKey, 0n);
       expect(sessionKey).equal(otherSessionKey);
     });
   });

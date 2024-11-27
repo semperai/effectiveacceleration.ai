@@ -7,16 +7,16 @@ import { WorkerApplicationsJobs } from './WorkerApplicationsJobs';
 import { WorkerProgressJobs } from './WorkerProgressJobs';
 import { WorkerCompletedJobs } from './WorkerCompletedJobs';
 import { DisputedJobs } from './DisputedJobs';
-import useJobs from '@/hooks/useJobs';
-import useUsersByAddresses from '@/hooks/useUsersByAddresses';
+import useJobs from '@/hooks/subsquid/useJobs';
+import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
 import DevelopAllJobs from './JobsTablesData/DevelopAllJobs';
 import {
   Job,
   JobEventType,
   JobState,
-} from 'effectiveacceleration-contracts/dist/src/interfaces';
+} from '@effectiveacceleration/contracts';
 import { LocalStorageJob } from '@/service/JobsService';
-import useJobsByIds from '@/hooks/useJobsByIds';
+import useJobsByIds from '@/hooks/subsquid/useJobsByIds';
 import { LOCAL_JOBS_WORKER_CACHE } from '@/utils/constants';
 import { useAccount } from 'wagmi';
 
@@ -26,10 +26,10 @@ export const WorkerDashboardTabs = () => {
   const { data: jobs } = useJobs();
   const { address } = useAccount();
   const { data: users } = useUsersByAddresses(
-    jobs.map((job) => job.roles.creator)
+    jobs?.map((job) => job.roles.creator) ?? []
   );
   const [localJobs, setLocalJobs] = useState<Job[]>([]);
-  const [jobIds, setJobIds] = useState<bigint[]>([]);
+  const [jobIds, setJobIds] = useState<string[]>([]);
   const { data: selectedJobs } = useJobsByIds(jobIds);
   const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
   const [filteredJobsApplications, setFilteredJobsApplications] = useState<Job[]>(
@@ -47,22 +47,22 @@ export const WorkerDashboardTabs = () => {
     if (storedJobs) {
       const parsedJobs = JSON.parse(storedJobs);
       const jobIdsArray = Array.from(
-        new Set(parsedJobs.map((job: Job) => job.id))
+        new Set<string>(parsedJobs.map((job: Job) => job.id))
       );
       setLocalJobs(parsedJobs);
-      setJobIds(jobIdsArray as bigint[]);
+      setJobIds(jobIdsArray);
     }
     setMounted(true);
   }, [address]);
   
   const filteredJobsMemo = useMemo(() => {
-    if (selectedJobs.length === 0)
+    if (selectedJobs?.length === 0)
       return { open: [], aplications: [], started: [], completed: [] };
     const filteredOpenJobs: Job[] = [];
     const filteredJobsApplications: Job[] = [];
     const filteredStartedJobs: Job[] = [];
     const filteredCompletedJobs: Job[] = [];
-    selectedJobs.forEach((job, index) => {
+    selectedJobs?.forEach((job, index) => {
       const localJob = localJobs.find((localJob) => localJob.id === job.id);
       if (job.state === JobState.Open) {
         // Applications
@@ -94,7 +94,7 @@ export const WorkerDashboardTabs = () => {
     setFilteredJobsApplications(filteredJobsMemo.aplications);
     setFilteredStartedJobs(filteredJobsMemo.started);
     setFilteredCompletedJobs(filteredJobsMemo.completed);
-    if (selectedJobs.length > 0 && isFirstUpdate.current) {
+    if (selectedJobs && selectedJobs.length > 0 && isFirstUpdate.current) {
       setTabsKey((prevKey) => prevKey + 1);
       isFirstUpdate.current = false;
     }
@@ -120,7 +120,7 @@ export const WorkerDashboardTabs = () => {
           </TabList>
           <TabPanel>
             <OpenJobs
-              filteredJobs={jobs.filter((job) => job.state === 0)}
+              filteredJobs={jobs?.filter((job) => job.state === 0) ?? []}
               localJobs={localJobs}
             />
           </TabPanel>

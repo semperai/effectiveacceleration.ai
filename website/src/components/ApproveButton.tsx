@@ -14,8 +14,8 @@ export function ApproveButton({
   to,
   updateNeedsAllowance,
 }: {
-  token: `0x${string}`;
-  to: `0x${string}`;
+  token: string;
+  to: string;
   updateNeedsAllowance: (a: boolean) => void;
 }) {
   const { address } = useAccount();

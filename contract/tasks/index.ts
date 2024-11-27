@@ -118,7 +118,7 @@ task("timetravel", "go into the future")
 task("gen-wallet", "Creates a new wallet", async (taskArgs, hre) => {
   const wallet = hre.ethers.Wallet.createRandom();
   console.log('address', wallet.address);
-  console.log('mnemonic', wallet.mnemonic.phrase);
+  console.log('mnemonic', wallet.mnemonic?.phrase);
   console.log('privateKey', wallet.privateKey);
 });
 
@@ -256,7 +256,7 @@ task("marketplace:seed", "Seed local marketplace instance")
       [worker.address]
     );
 
-    const jobId = 0;
+    const jobId = 0n;
 
     await marketplace.connect(owner).updateJobPost(
       0n,
@@ -281,7 +281,7 @@ task("marketplace:seed", "Seed local marketplace instance")
 
     // worker delivers the result
     const result = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
-    const workerSessionKey = await getSessionKey(worker, await marketplaceData.connect(worker).publicKeys(owner.address), jobid);
+    const workerSessionKey = await getSessionKey(worker, await marketplaceData.connect(worker).publicKeys(owner.address), jobId);
     const { hash: resultHash } = await publishToIpfs(result, workerSessionKey);
 
     await marketplace.connect(worker).deliverResult(0n, resultHash);
@@ -304,7 +304,7 @@ task("marketplace:seed", "Seed local marketplace instance")
       []
     );
 
-    const jobId = 1;
+    const jobId = 1n;
 
     // worker reads the post data
     const workerSessionKey = await getSessionKey(worker, await marketplaceData.connect(worker).publicKeys(owner.address), jobId);
@@ -333,7 +333,7 @@ task("marketplace:seed", "Seed local marketplace instance")
       arbitrator.address,
       []
     );
-    const jobId = 2;
+    const jobId = 2n;
 
     // worker reads the post data
     const workerSessionKey = await getSessionKey(worker, await marketplaceData.connect(worker).publicKeys(owner.address), jobId);

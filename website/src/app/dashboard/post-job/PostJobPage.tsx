@@ -17,17 +17,17 @@ import TagsInput from '@/components/TagsInput';
 import { Text } from '@/components/Text';
 import { Textarea } from '@/components/Textarea';
 import { TokenSelector } from '@/components/TokenSelector';
-import useArbitrators from '@/hooks/useArbitrators';
-import useUser from '@/hooks/useUser';
-import useUsers from '@/hooks/useUsers';
+import useArbitrators from '@/hooks/subsquid/useArbitrators';
+import useUser from '@/hooks/subsquid/useUser';
+import useUsers from '@/hooks/subsquid/useUsers';
 import { ComboBoxOption, JobFormInputData, Tag } from '@/service/FormsTypes';
 import { Token, tokens } from '@/tokens';
 import { LOCAL_JOBS_OWNER_CACHE } from '@/utils/constants';
 import { jobMeceTags } from '@/utils/jobMeceTags';
 import { convertToSeconds, shortenText, unitsDeliveryTime } from '@/utils/utils';
-import { publishToIpfs } from 'effectiveacceleration-contracts';
-import Config from 'effectiveacceleration-contracts/scripts/config.json';
-import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
+import { publishToIpfs } from '@effectiveacceleration/contracts';
+import Config from '@effectiveacceleration/contracts/scripts/config.json';
+import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { ethers } from 'ethers';
 import moment from 'moment';
 import Link from 'next/link';
@@ -93,9 +93,9 @@ interface FieldValidation {
 }
 
 async function setupAndGiveAllowance(
-  spenderAddress: `0x${string}` | undefined,
+  spenderAddress: string | undefined,
   amount: string,
-  tokenAddress: `0x${string}` | undefined
+  tokenAddress: string | undefined
 ) {
   return new Promise<void>(async (resolve, reject) => {
     try {
@@ -276,7 +276,7 @@ const JobSummary = ({
 };
 
 
-const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
+const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
   (props, ref) => {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -377,7 +377,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
     const { data: balanceData } = useReadContract({
       account: address,
       abi: ERC20Abi,
-      address: selectedToken?.id as `0x${string}` | undefined,
+      address: selectedToken?.id as string | undefined,
       functionName: 'balanceOf',
       args: [address!],
     });
@@ -390,31 +390,31 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
 
       const { hash: contentHash } = await publishToIpfs(description);
       const allowanceResponse = await setupAndGiveAllowance(
-        Config.marketplaceAddress as `0x${string}`,
+        Config.marketplaceAddress as string,
         amount,
-        selectedToken?.id as `0x${string}` | undefined
+        selectedToken?.id as string | undefined
       );
       const deadlineInSeconds = deadline ? convertToSeconds(deadline, selectedUnitTime.name) : 0;
       const w = writeContract({
         abi: MARKETPLACE_V1_ABI,
-        address: Config.marketplaceAddress as `0x${string}`,
+        address: Config.marketplaceAddress as string,
         functionName: 'publishJobPost',
         args: [
           title,
-          contentHash as `0x${string}`,
+          contentHash as string,
           imFeelingLucky === 'No',
           [selectedCategory.id, ...tags.map((tag) => tag.name)],
-          selectedToken?.id! as `0x${string}`,
+          selectedToken?.id! as string,
           ethers.parseUnits(amount, selectedToken?.decimals!),
           deadlineInSeconds,
           deliveryMethod,
-          selectedArbitratorAddress as `0x${string}`,
-          selectedWorkerAddress ? [selectedWorkerAddress as `0x${string}`] : [],
+          selectedArbitratorAddress as string,
+          selectedWorkerAddress ? [selectedWorkerAddress as string] : [],
         ],
       });
     }
 
-    const jobIdCache = (jobId?: bigint) => {
+    const jobIdCache = (jobId?: string) => {
       const createdJobId = jobId?.toString();
       const createdJobs = JSON.parse(
         localStorage.getItem(userJobCache) || '[]'
@@ -427,23 +427,23 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: bigint) => void }, {}>(
         content: description,
         imFeelingLucky: imFeelingLucky === 'No',
         tags: [selectedCategory?.id as string, ...tags.map((tag) => tag.name)],
-        token: `0x${selectedToken?.id}` as `0x${string}`,
+        token: `0x${selectedToken?.id}` as string,
         maxTime: deadline as number,
         deliveryMethod: deliveryMethod,
         roles: {
-          creator: address as `0x${string}`,
-          arbitrator: selectedArbitratorAddress as `0x${string}`,
-          worker: selectedWorkerAddress as `0x${string}`,
+          creator: address as string,
+          arbitrator: selectedArbitratorAddress as string,
+          worker: selectedWorkerAddress as string,
         },
         state: 0,
         whitelistWorkers: false,
-        contentHash: hash as `0x${string}`,
+        contentHash: hash as string,
         amount: amount,
         disputed: false,
         timestamp: Date.now(),
         collateralOwed: 0,
         escrowId: 0,
-        resultHash: hash as `0x${string}`,
+        resultHash: hash as string,
         rating: 0,
       };
       createdJobs.push(newJob);

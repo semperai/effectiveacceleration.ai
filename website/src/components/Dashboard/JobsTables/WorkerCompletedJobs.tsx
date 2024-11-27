@@ -7,7 +7,7 @@ import {
   createColumnHelper,
 } from '@tanstack/react-table';
 import { columnBuilder } from '@/components/TablesCommon';
-import { Job } from 'effectiveacceleration-contracts/dist/src/interfaces';
+import { Job } from '@effectiveacceleration/contracts';
 import Link from 'next/link';
 import { shortenText } from '@/utils/utils';
 

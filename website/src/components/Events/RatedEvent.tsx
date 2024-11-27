@@ -1,6 +1,6 @@
-import useUser from '@/hooks/useUser';
+import useUser from '@/hooks/subsquid/useUser';
 import { ChatBubbleLeftEllipsisIcon } from '@heroicons/react/20/solid';
-import { JobRatedEvent } from 'effectiveacceleration-contracts';
+import { JobRatedEvent } from '@effectiveacceleration/contracts';
 import moment from 'moment';
 import { getAddress } from 'viem';
 import EventProfileImage from './Components/EventProfileImage';

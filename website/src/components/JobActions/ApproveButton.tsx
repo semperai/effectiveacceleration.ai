@@ -1,15 +1,15 @@
 import { Button } from '@/components/Button';
 import { Dialog, Transition } from '@headlessui/react';
 import { Rating } from '@mui/material';
-import { Job } from 'effectiveacceleration-contracts';
-import Config from 'effectiveacceleration-contracts/scripts/config.json';
-import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
+import { Job } from '@effectiveacceleration/contracts';
+import Config from '@effectiveacceleration/contracts/scripts/config.json';
+import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { Fragment, useEffect, useState } from 'react';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import { Textarea } from '../Textarea';
 
 export type ApproveButtonProps = {
-  address: `0x${string}` | undefined;
+  address: string | undefined;
   job: Job;
 };
 
@@ -68,9 +68,9 @@ export function ApproveButton({
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress as `0x${string}`,
+      address: Config.marketplaceAddress,
       functionName: 'approveResult',
-      args: [job.id!, skipReview ? 0 : rating, skipReview ? '' : review],
+      args: [BigInt(job.id!), skipReview ? 0 : rating, skipReview ? '' : review],
     });
   }
 

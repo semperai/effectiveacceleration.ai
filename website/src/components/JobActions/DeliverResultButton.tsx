@@ -1,15 +1,15 @@
 import { Button } from '@/components/Button';
 import { Dialog, Transition } from '@headlessui/react';
 import { CheckIcon } from '@heroicons/react/20/solid';
-import { Job, publishToIpfs } from 'effectiveacceleration-contracts';
-import Config from 'effectiveacceleration-contracts/scripts/config.json';
-import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
+import { Job, publishToIpfs } from '@effectiveacceleration/contracts';
+import Config from '@effectiveacceleration/contracts/scripts/config.json';
+import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { Fragment, useEffect, useState } from 'react';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import { Textarea } from '../Textarea';
 
 export type DeliverResultButtonProps = {
-  address: `0x${string}` | undefined;
+  address: string | undefined;
   sessionKeys: Record<string, string>;
   job: Job;
 };
@@ -60,9 +60,9 @@ export function DeliverResultButton({
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress as `0x${string}`,
+      address: Config.marketplaceAddress,
       functionName: 'deliverResult',
-      args: [job.id!, contentHash as `0x${string}`],
+      args: [BigInt(job.id!), contentHash],
     });
   }
 

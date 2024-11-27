@@ -1,8 +1,8 @@
 import { Button } from '@/components/Button';
 import { CheckIcon } from '@heroicons/react/20/solid';
-import { Job, JobEventWithDiffs } from 'effectiveacceleration-contracts';
-import Config from 'effectiveacceleration-contracts/scripts/config.json';
-import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
+import { Job, JobEventWithDiffs } from '@effectiveacceleration/contracts';
+import Config from '@effectiveacceleration/contracts/scripts/config.json';
+import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { ethers } from 'ethers';
 import { useEffect, useState } from 'react';
 import {
@@ -12,7 +12,7 @@ import {
 } from 'wagmi';
 
 export type AcceptButtonProps = {
-  address: `0x${string}` | undefined;
+  address: string | undefined;
   events: JobEventWithDiffs[];
   job: Job;
 };
@@ -74,9 +74,9 @@ export function AcceptButton({
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress as `0x${string}`,
+      address: Config.marketplaceAddress,
       functionName: 'takeJob',
-      args: [job.id!, signature],
+      args: [BigInt(job.id!), signature],
     });
   }
 

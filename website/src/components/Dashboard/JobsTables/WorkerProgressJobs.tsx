@@ -11,11 +11,11 @@ import {
   createColumnHelper,
 } from '@tanstack/react-table';
 import { columnBuilder } from '@/components/TablesCommon';
-import useJobs from '@/hooks/useJobs';
+import useJobs from '@/hooks/subsquid/useJobs';
 import {
   Job,
   JobState,
-} from 'effectiveacceleration-contracts/dist/src/interfaces';
+} from '@effectiveacceleration/contracts';
 import Link from 'next/link';
 
 const columnHelper = createColumnHelper<TOpenJobTable>();

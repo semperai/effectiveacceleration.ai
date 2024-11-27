@@ -5,10 +5,10 @@ import { TooltipButton } from '@/components/TooltipButton';
 import { Layout } from '@/components/Dashboard/Layout';
 import { PostMessageButton } from '@/components/JobActions/PostMessageButton';
 import { Text } from '@/components/Text';
-import useJob from '@/hooks/useJob';
-import useJobEventsWithDiffs from '@/hooks/useJobEventsWithDiffs';
-import useUser from '@/hooks/useUser';
-import useUsersByAddresses from '@/hooks/useUsersByAddresses';
+import useJob from '@/hooks/subsquid/useJob';
+import useJobEventsWithDiffs from '@/hooks/subsquid/useJobEventsWithDiffs';
+import useUser from '@/hooks/subsquid/useUser';
+import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
 import { LOCAL_JOBS_OWNER_CACHE, LOCAL_JOBS_WORKER_CACHE } from '@/utils/constants';
 import { jobMeceTags } from '@/utils/jobMeceTags';
 import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
@@ -24,12 +24,12 @@ import {
   JobArbitratedEvent,
   JobEventType,
   JobMessageEvent
-} from 'effectiveacceleration-contracts';
+} from '@effectiveacceleration/contracts';
 import {
   Job,
   JobEventWithDiffs,
   JobState
-} from 'effectiveacceleration-contracts/dist/src/interfaces';
+} from '@effectiveacceleration/contracts';
 import moment from 'moment';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -49,7 +49,7 @@ function updateJobCache(
   job: Job,
   events: any[],
   id: string,
-  address?: `0x${string}` | undefined
+  address?: string | undefined
 ) {
   const updateOrAddJob = (
     parsedJobs: Job[],
@@ -121,9 +121,9 @@ function updateJobCache(
 
 export default function JobPage() {
   const id = useParams().id as string;
-  const jobId = BigInt(id);
+  const jobId = id;
   const { address } = useAccount();
-  const { data: job, isLoadingError, ...rest } = useJob(jobId);
+  const { data: job, error, ...rest } = useJob(jobId);
   const {
     data: events,
     addresses,
@@ -217,7 +217,7 @@ export default function JobPage() {
       : setEventMessages(events);
   }, [events, selectedWorker]);
   // TODO - this should be centered
-  if (isLoadingError) {
+  if (error) {
     return (
       <Layout>
         <Text>Job not found</Text>
@@ -251,7 +251,7 @@ export default function JobPage() {
           {isOwner && job?.state === JobState.Open && (
             <div className='col-span-1 max-h-customHeader overflow-y-auto border border-gray-100 bg-white p-3'>
               <JobChatsList
-                users={users}
+                users={users ?? {}}
                 job={job}
                 setSelectedWorker={setSelectedWorker}
               />
@@ -269,14 +269,14 @@ export default function JobPage() {
            {job && (
              <div className='grid min-h-customHeader grid-rows-[74px_70%_10%]'>
                <ProfileUserHeader
-                 users={users}
+                 users={users ?? {}}
                  selectedWorker={selectedWorker}
                  eventMessages={eventMessages}
                  address={address}
                  job={job}
                />
                <JobChatEvents
-                 users={users}
+                 users={users ?? {}}
                  selectedWorker={selectedWorker}
                  events={eventMessages as JobEventWithDiffs[]}
                  job={job}
@@ -291,7 +291,7 @@ export default function JobPage() {
                      <div className='row-span-1 flex flex-1 border border-gray-100'>
                        <PostMessageButton
                          address={address}
-                         recipient={selectedWorker as `0x${string}`}
+                         recipient={selectedWorker as string}
                          addresses={addresses as any}
                          sessionKeys={sessionKeys}
                          job={job}
@@ -399,7 +399,7 @@ export default function JobPage() {
                   className='mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-300'
                   aria-hidden='true'
                 />
-                last updated by {users[job?.roles.creator!]?.name}{' '}
+                last updated by {users?.[job?.roles.creator!]?.name}{' '}
                 {moment(job?.timestamp! * 1000).fromNow()}
               </div>
             </div>

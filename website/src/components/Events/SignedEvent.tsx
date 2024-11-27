@@ -1,5 +1,5 @@
-import useUser from '@/hooks/useUser';
-import { JobSignedEvent } from 'effectiveacceleration-contracts';
+import useUser from '@/hooks/subsquid/useUser';
+import { JobSignedEvent } from '@effectiveacceleration/contracts';
 import moment from 'moment';
 import { getAddress } from 'viem';
 import EventProfileImage from './Components/EventProfileImage';

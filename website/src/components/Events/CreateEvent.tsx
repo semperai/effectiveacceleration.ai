@@ -1,5 +1,5 @@
 import { Badge } from '@/components/Badge';
-import useUser from '@/hooks/useUser';
+import useUser from '@/hooks/subsquid/useUser';
 import moment from 'moment';
 import { Fragment } from 'react';
 import { getAddress } from 'viem';

@@ -1,11 +1,11 @@
 'use client';
 import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { OpenJobs } from './OpenJobs';
-import useJobs from '@/hooks/useJobs';
+import useJobs from '@/hooks/subsquid/useJobs';
 import {
   Job,
   JobState,
-} from 'effectiveacceleration-contracts/dist/src/interfaces';
+} from '@effectiveacceleration/contracts';
 import { JobFilter } from '@/components/Dashboard/JobsTables/JobFilter';
 
 export const OpenJobsFeed = () => {
@@ -15,7 +15,7 @@ export const OpenJobsFeed = () => {
   useEffect(() => {
     const filteredJobs: Job[] = [];
 
-    jobs.forEach((job, index) => {
+    jobs?.forEach((job, index) => {
       if (job.state === JobState.Open) {
         filteredJobs.push(job);
       }

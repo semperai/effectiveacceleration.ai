@@ -1,6 +1,6 @@
-import useUser from '@/hooks/useUser';
+import useUser from '@/hooks/subsquid/useUser';
 import { ChatBubbleLeftEllipsisIcon } from '@heroicons/react/20/solid';
-import { JobMessageEvent } from 'effectiveacceleration-contracts';
+import { JobMessageEvent } from '@effectiveacceleration/contracts';
 import moment from 'moment';
 import { getAddress } from 'viem';
 import EventProfileImage from './Components/EventProfileImage';
@@ -16,7 +16,7 @@ export function CommentEvent({
   const date = moment(event.timestamp_ * 1000).fromNow();
   const details = event.details as JobMessageEvent;
   const { data: recipient } = useUser(
-    details.recipientAddress as `0x${string}`
+    details.recipientAddress
   );
   const recipientHref = `/dashboard/users/${details.recipientAddress}`;
 

@@ -5,17 +5,17 @@ import { Link } from '@/components/Link';
 import { ChevronRightIcon } from '@heroicons/react/20/solid';
 import { useParams } from 'next/navigation';
 import moment from 'moment';
-import useUser from '@/hooks/useUser';
-import useReviews from '@/hooks/useReviews';
-import useUsersByAddresses from '@/hooks/useUsersByAddresses';
+import useUser from '@/hooks/subsquid/useUser';
+import useReviews from '@/hooks/subsquid/useReviews';
+import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
 
 export default function JobPage() {
   const address = useParams().address as string;
 
-  const { data: user } = useUser(address as `0x${string}`);
-  const { data: reviews } = useReviews(address as `0x${string}`);
+  const { data: user } = useUser(address as string);
+  const { data: reviews } = useReviews(address as string);
   const { data: users } = useUsersByAddresses(
-    reviews?.map((review) => review.reviewer)
+    reviews?.map((review) => review.reviewer) ?? []
   );
 
   return (
@@ -67,10 +67,10 @@ export default function JobPage() {
           <h2 className='mt-2 text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight dark:text-gray-100'>
             Reviews
           </h2>
-          {reviews.map((review, index) => (
+          {reviews?.map((review, index) => (
             <div key={index}>
               <p>
-                {users[review.reviewer]?.name} left a review for Job Id{' '}
+                {users?.[review.reviewer]?.name} left a review for Job Id{' '}
                 {review.jobId.toString()}{' '}
                 <span className='whitespace-nowrap'>
                   {moment(review.timestamp * 1000).fromNow()}

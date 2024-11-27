@@ -135,7 +135,7 @@ export const getEncryptionSigningKey = async (signer: Signer | JsonRpcSigner): P
   return new SigningKey(hashedSignature);
 }
 
-export const getSessionKey = async (signer: Signer | JsonRpcSigner, otherCompressedPublicKey: string, jobId: number | bigint): Promise<string> => {
+export const getSessionKey = async (signer: Signer | JsonRpcSigner, otherCompressedPublicKey: string, jobId: string | bigint): Promise<string> => {
   if (getBytes(otherCompressedPublicKey).length !== 33) {
     throw new Error("Invalid public key, must be compressed");
   }

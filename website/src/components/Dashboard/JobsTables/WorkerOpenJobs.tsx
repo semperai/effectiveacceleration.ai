@@ -8,11 +8,11 @@ import {
 } from '@tanstack/react-table';
 import { columnBuilder } from '@/components/TablesCommon';
 import { Checkbox } from '@/components/Checkbox';
-import useJobs from '@/hooks/useJobs';
+import useJobs from '@/hooks/subsquid/useJobs';
 import {
   Job,
   JobState,
-} from 'effectiveacceleration-contracts/dist/src/interfaces';
+} from '@effectiveacceleration/contracts';
 import Link from 'next/link';
 import clsx from 'clsx';
 import EditIcon from '@/components/Icons/EditIcon';

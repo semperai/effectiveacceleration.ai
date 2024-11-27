@@ -1,15 +1,18 @@
 'use client';
 
-import { Layout } from '@/components/Dashboard/Layout';
-import { Link } from '@/components/Link';
-import useArbitrator from '@/hooks/useArbitrator';
-import { ChevronRightIcon } from '@heroicons/react/20/solid';
+import { Layout } from '@/components/Dashboard/Layout'
+import { Link } from '@/components/Link'
+import {
+  ChevronRightIcon,
+} from '@heroicons/react/20/solid'
 import { useParams } from 'next/navigation';
+import useArbitrator from '@/hooks/subsquid/useArbitrator';
 
 export default function ArbitratorPage() {
   const address = useParams().address as string;
+  console.log(address);
 
-  const { data: arbitrator } = useArbitrator(address as `0x${string}`);
+  const { data: arbitrator } = useArbitrator(address);
 
   return (
     <Layout>

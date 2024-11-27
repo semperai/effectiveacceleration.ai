@@ -7,8 +7,8 @@ import {
   createColumnHelper,
 } from '@tanstack/react-table';
 import { Checkbox } from '@/components/Checkbox';
-import useJobs from '@/hooks/useJobs';
-import { Job } from 'effectiveacceleration-contracts/dist/src/interfaces';
+import useJobs from '@/hooks/subsquid/useJobs';
+import { Job } from '@effectiveacceleration/contracts/dist/src/interfaces';
 
 const DevelopAllJobs = ({ jobs }: { jobs: Job[] }) => {
   return (

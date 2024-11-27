@@ -1,5 +1,5 @@
 import { Button } from '@/components/Button';
-import useArbitrators from '@/hooks/useArbitrators';
+import useArbitrators from '@/hooks/subsquid/useArbitrators';
 import { ComboBoxOption } from '@/service/FormsTypes';
 import { tokenIcon, tokensMap } from '@/tokens';
 import { jobMeceTags } from '@/utils/jobMeceTags';
@@ -9,9 +9,9 @@ import { CheckIcon } from '@heroicons/react/20/solid';
 import {
   Job,
   publishToIpfs
-} from 'effectiveacceleration-contracts';
-import Config from 'effectiveacceleration-contracts/scripts/config.json';
-import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
+} from '@effectiveacceleration/contracts';
+import Config from '@effectiveacceleration/contracts/scripts/config.json';
+import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { formatUnits, parseUnits } from 'ethers';
 import { ChangeEvent, Fragment, useEffect, useState } from 'react';
 import { zeroAddress } from 'viem';
@@ -24,7 +24,7 @@ import { Textarea } from '../Textarea';
 
 
 export type UpdateButtonProps = {
-  address: `0x${string}` | undefined;
+  address: string | undefined;
   job: Job;
 };
 
@@ -98,12 +98,12 @@ export function UpdateButton({
   const excludes = [address];
   const userList = [
     { address_: zeroAddress, name: 'None' },
-    ...Object.values(arbitrators).filter(
+    ...Object.values(arbitrators ?? {}).filter(
       (user) => !excludes.includes(user.address_)
     ),
   ];
   const [selectedArbitratorAddress, setSelectedArbitratorAddress] =
-    useState<`0x${string}`>(job.roles.arbitrator);
+    useState<string>(job.roles.arbitrator);
   const { data: hash, error, writeContract } = useWriteContract();
 
   const { isLoading: isConfirming, isSuccess: isConfirmed } =
@@ -192,12 +192,12 @@ export function UpdateButton({
 
       const w = writeContract({
         abi: MARKETPLACE_V1_ABI,
-        address: Config.marketplaceAddress as `0x${string}`,
+        address: Config.marketplaceAddress,
         functionName: 'updateJobPost',
         args: [
-          job.id!,
+          BigInt(job.id!),
           title,
-          contentHash as `0x${string}`,
+          contentHash,
           [selectedCategory?.id || '', ...tags.map((tag) => tag)],
           rawAmount,
           deadlineInSeconds,
@@ -428,7 +428,7 @@ export function UpdateButton({
                       <CustomSelect
                         name="arbitrator"
                         value={selectedArbitratorAddress}
-                        onChange={(value) => setSelectedArbitratorAddress(value as `0x${string}`)}
+                        onChange={(value) => setSelectedArbitratorAddress(value as string)}
                       >
                         {userList.map((user, index) => (
                           <option key={index} value={user.address_}>

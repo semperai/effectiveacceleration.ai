@@ -1,4 +1,4 @@
-import { getEncryptionSigningKey } from 'effectiveacceleration-contracts';
+import { getEncryptionSigningKey } from '@effectiveacceleration/contracts';
 import { BrowserProvider, JsonRpcSigner } from 'ethers';
 import { useMemo } from 'react';
 import type { Account, Chain, Client, Transport } from 'viem';

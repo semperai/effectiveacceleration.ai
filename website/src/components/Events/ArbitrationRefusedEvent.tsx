@@ -1,4 +1,4 @@
-import useArbitrator from '@/hooks/useArbitrator';
+import useArbitrator from '@/hooks/subsquid/useArbitrator';
 import moment from 'moment';
 import { getAddress } from 'viem';
 import EventProfileImage from './Components/EventProfileImage';
@@ -12,7 +12,7 @@ export function ArbitrationRefusedEvent({
     ?.oldValue as string;
   const address = getAddress(prevWorker);
   const href = `/dashboard/users/${address}`;
-  const { data: arbitrator } = useArbitrator(prevWorker as `0x${string}`);
+  const { data: arbitrator } = useArbitrator(prevWorker);
   const date = moment(event.timestamp_ * 1000).fromNow();
 
   return (

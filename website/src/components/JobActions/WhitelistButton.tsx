@@ -1,19 +1,19 @@
 import { Button } from '@/components/Button';
-import useUsers from '@/hooks/useUsers';
+import useUsers from '@/hooks/subsquid/useUsers';
 import { Dialog, Transition } from '@headlessui/react';
 import { CheckIcon } from '@heroicons/react/20/solid';
-import { Job } from 'effectiveacceleration-contracts';
-import Config from 'effectiveacceleration-contracts/scripts/config.json';
-import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
+import { Job } from '@effectiveacceleration/contracts';
+import Config from '@effectiveacceleration/contracts/scripts/config.json';
+import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { Fragment, useEffect, useState } from 'react';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import { Listbox, ListboxOption } from '../Listbox';
 
 export type WhitelistButtonProps = {
-  address: `0x${string}` | undefined;
-  job: Job;
-  whitelist: string[];
-};
+  address: string | undefined,
+  job: Job,
+  whitelist: string[],
+}
 
 export function WhitelistButton({
   address,
@@ -23,9 +23,9 @@ export function WhitelistButton({
 }: WhitelistButtonProps & React.ComponentPropsWithoutRef<'div'>) {
   const { data: users } = useUsers();
   const excludes = [address, ...whitelist];
-  const userList = users.filter((user) => !excludes.includes(user.address_));
+  const userList = users?.filter((user) => !excludes.includes(user.address_));
   const [selectedUserAddress, setSelectedUserAddress] = useState<
-    `0x${string}` | undefined
+    string | undefined
   >(undefined);
   const { data: hash, error, writeContract } = useWriteContract();
 
@@ -63,9 +63,9 @@ export function WhitelistButton({
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress as `0x${string}`,
+      address: Config.marketplaceAddress,
       functionName: 'updateJobWhitelist',
-      args: [job.id!, [selectedUserAddress!], []],
+      args: [BigInt(job.id!), [selectedUserAddress!], []],
     });
   }
 
@@ -130,7 +130,7 @@ export function WhitelistButton({
                       className='z-10 rounded-md border border-gray-300 shadow-sm'
                       placeholder='Select an option'
                     >
-                      {userList.map((user, index) => (
+                      {userList?.map((user, index) => (
                         <ListboxOption key={index} value={user.address_}>
                           {user.name}
                         </ListboxOption>

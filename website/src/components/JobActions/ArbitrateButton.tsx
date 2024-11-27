@@ -1,8 +1,8 @@
 import { Button } from '@/components/Button';
 import { Dialog, Transition } from '@headlessui/react';
-import { Job, publishToIpfs } from 'effectiveacceleration-contracts';
-import Config from 'effectiveacceleration-contracts/scripts/config.json';
-import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
+import { Job, publishToIpfs } from '@effectiveacceleration/contracts';
+import Config from '@effectiveacceleration/contracts/scripts/config.json';
+import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { Fragment, useEffect, useState } from 'react';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import { Field, Label } from '../Fieldset';
@@ -10,10 +10,10 @@ import { Input } from '../Input';
 import { Textarea } from '../Textarea';
 
 export type ArbitrateButtonProps = {
-  address: `0x${string}` | undefined;
-  sessionKeys: Record<string, string>;
-  job: Job;
-};
+  address: string | undefined,
+  sessionKeys: Record<string, string>,
+  job: Job,
+}
 
 export function ArbitrateButton({
   address,
@@ -69,13 +69,13 @@ export function ArbitrateButton({
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress as `0x${string}`,
+      address: Config.marketplaceAddress,
       functionName: 'arbitrate',
       args: [
-        job.id!,
+        BigInt(job.id!),
         ownerShare,
         workerShare,
-        contentHash as `0x${string}`,
+        contentHash,
       ],
     });
   }

@@ -1,6 +1,6 @@
 import { type EventProps } from './index';
 import moment from 'moment';
-import useUser from '@/hooks/useUser';
+import useUser from '@/hooks/subsquid/useUser';
 import { getAddress } from 'viem';
 import EventProfileImage from './Components/EventProfileImage';
 

@@ -4,9 +4,9 @@ import { Field, FieldGroup, Label } from '@/components/Fieldset';
 import { Input } from '@/components/Input';
 import { Textarea } from '@/components/Textarea';
 import UploadAvatar from '@/components/UploadAvatar';
-import useUser from '@/hooks/useUser';
-import Config from 'effectiveacceleration-contracts/scripts/config.json';
-import { MARKETPLACE_DATA_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceDataV1';
+import useUser from '@/hooks/subsquid/useUser';
+import Config from '@effectiveacceleration/contracts/scripts/config.json';
+import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react';
@@ -22,7 +22,7 @@ const ipfsGatewayUrl = process.env.NEXT_PUBLIC_IPFS_GATEWAY_URL ?? '';
 const CreateProfile = ({
   encryptionPublicKey,
 }: {
-  encryptionPublicKey: `0x${string}`;
+  encryptionPublicKey: string;
 }) => {
   const [avatar, setAvatar] = useState<string | undefined>('');
   const [avatarFileUrl, setAvatarFileUrl] = useState<string | undefined>('');
@@ -84,10 +84,10 @@ const CreateProfile = ({
     try {
       const w = writeContract({
         abi: MARKETPLACE_DATA_V1_ABI,
-        address: Config.marketplaceDataAddress as `0x${string}`,
+        address: Config.marketplaceDataAddress as string,
         functionName: 'registerUser',
         args: [
-          encryptionPublicKey as `0x${string}`,
+          encryptionPublicKey as string,
           userName,
           userBio,
           avatarFileUrl,

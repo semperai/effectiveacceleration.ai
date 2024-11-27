@@ -1,12 +1,12 @@
 import { Button } from '@/components/Button';
-import { Job } from 'effectiveacceleration-contracts';
-import Config from 'effectiveacceleration-contracts/scripts/config.json';
-import { MARKETPLACE_V1_ABI } from 'effectiveacceleration-contracts/wagmi/MarketplaceV1';
+import { Job } from '@effectiveacceleration/contracts';
+import Config from '@effectiveacceleration/contracts/scripts/config.json';
+import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { useEffect, useState } from 'react';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 
 export type ReopenButtonProps = {
-  address: `0x${string}` | undefined;
+  address: string | undefined;
   job: Job;
 };
 
@@ -50,9 +50,9 @@ export function ReopenButton({
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress as `0x${string}`,
+      address: Config.marketplaceAddress,
       functionName: 'reopenJob',
-      args: [job.id!],
+      args: [BigInt(job.id!)],
     });
   }
 

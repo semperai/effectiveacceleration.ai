@@ -6,7 +6,7 @@ import {
   JobEventType,
   JobEventWithDiffs,
   User,
-} from 'effectiveacceleration-contracts/dist/src/interfaces';
+} from '@effectiveacceleration/contracts';
 
 interface ResultAcceptedProps {
   job: Job;

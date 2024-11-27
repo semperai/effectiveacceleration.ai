@@ -9,7 +9,7 @@ import { GoPerson } from 'react-icons/go';
 import { MdOutlineArrowForwardIos } from 'react-icons/md';
 import { PiBellSimple } from 'react-icons/pi';
 import { useAccount, useReadContract } from 'wagmi';
-import useUser from '@/hooks/useUser';
+import useUser from '@/hooks/subsquid/useUser';
 import { UserIcon } from '@heroicons/react/20/solid';
 import { UserButton } from '@/components/UserActions/UserButton';
 const Navbar = ({
@@ -24,7 +24,7 @@ const Navbar = ({
   const { data: notificationsLengthData } = useReadContract({
     account: address,
     // abi:          MarketplaceArtifact.abi,
-    // address: Config.marketplaceAddress as `0x${string}`,
+    // address: Config.marketplaceAddress as string,
     address: `0x6EAdb61bce217A9FBA5A1d91427ae2F7A8CCBac6`,
     functionName: 'notificationsLength',
     args: [address],

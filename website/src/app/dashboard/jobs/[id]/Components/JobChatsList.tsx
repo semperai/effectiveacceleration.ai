@@ -1,5 +1,4 @@
-import { Job } from 'effectiveacceleration-contracts';
-import { User } from 'effectiveacceleration-contracts/dist/src/interfaces';
+import { Job, User } from '@effectiveacceleration/contracts';
 import Image from 'next/image';
 import { Dispatch, SetStateAction } from 'react';
 
