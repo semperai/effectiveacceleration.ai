@@ -200,6 +200,17 @@ const validateField = (value: string, validation: FieldValidation): string => {
   return '';
 };
 
+interface JobSummaryProps {
+  formInputs: JobFormInputData[];
+  submitJob: () => void;
+  isPending: boolean;
+  isConfirmed: boolean;
+  isConfirming: boolean;
+  postButtonDisabled: boolean;
+  handleSummary: () => void;
+}
+
+
 const JobSummary = ({
   formInputs,
   submitJob,
@@ -208,59 +219,56 @@ const JobSummary = ({
   isConfirming,
   postButtonDisabled,
   handleSummary,
-}: {
-  formInputs: JobFormInputData[];
-  isPending: boolean;
-  isConfirming: boolean;
-  isConfirmed: boolean;
-  postButtonDisabled: boolean;
-  submitJob: () => void;
-  handleSummary: () => void;
-}) => {
+}: JobSummaryProps) => {
+  const getButtonText = () => {
+    if (isConfirmed) return "Transaction confirmed";
+    if (isConfirming) return "Waiting for confirmation...";
+    if (isPending) return "Posting...";
+    return "Post Job";
+  };
+
   return (
-    <div>
-      <div className='mb-6'>
-        <h1 className='mb-1 text-3xl font-bold'>Summary</h1>
-        <span className='text-darkBlueFont'>
+    <div className="max-w-4xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Summary</h1>
+        <p className="text-gray-600">
           Before you submit your job, please double check your answers.
-        </span>
+        </p>
       </div>
-      <div className='flex flex-col rounded-3xl bg-white p-8 shadow-md'>
-        <table className='w-full'>
-          <tbody>
-            {formInputs.map(
-              (inputData, index) =>
-                inputData.inputInfo && (
-                  <tr key={index} className='mb-8 flex'>
-                    <td className='w-1/2 font-bold'>{inputData.label}</td>
-                    <td className='flex grow-[2]'>{inputData.inputInfo}</td>
-                  </tr>
-                )
-            )}
-          </tbody>
-        </table>
+
+      <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+        <div className="divide-y divide-gray-200">
+          {formInputs.map((inputData, index) =>
+            inputData.inputInfo ? (
+              <div key={index} className="py-4 first:pt-0 last:pb-0">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="text-sm font-medium text-gray-500">
+                    {inputData.label}
+                  </div>
+                  <div className="md:col-span-2 text-sm text-gray-900">
+                    {inputData.inputInfo}
+                  </div>
+                </div>
+              </div>
+            ) : null
+          )}
+        </div>
       </div>
-      <div className='mb-40 mt-5 flex justify-end'>
+
+      <div className="flex justify-end gap-4 pb-16">
         <Button
-          color={'cancelBorder'}
-          className={'mr-5'}
+          outline
           onClick={handleSummary}
+          className="px-6"
         >
           Go back
         </Button>
-        <Button disabled={postButtonDisabled || isPending} onClick={submitJob}>
-          {(() => {
-            if (isConfirmed) {
-              return <>Transaction confirmed</>;
-            }
-            if (isConfirming) {
-              return <>Waiting for confirmation...</>;
-            }
-            if (isPending) {
-              return <>Posting...</>;
-            }
-            return <>Post Job</>;
-          })()}
+        <Button
+          disabled={postButtonDisabled || isPending}
+          onClick={submitJob}
+          className="px-6 bg-blue-600 hover:bg-blue-700 text-white disabled:bg-blue-300"
+        >
+          {getButtonText()}
         </Button>
       </div>
     </div>
@@ -515,6 +523,10 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
           selectedArbitratorAddress === zeroAddress
         ) {
           arbitratorValidationMessage = 'Please select an arbitrator';
+        }
+
+        if (selectedArbitratorAddress === address) {
+          arbitratorValidationMessage = 'You cannot be your own arbitrator';
         }
       }
 
@@ -964,9 +976,15 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
                       <Listbox
                         placeholder='Select Arbitrator'
                         value={selectedArbitratorAddress}
-                        onChange={(e) => {
-                          setSelectedArbitratorAddress(e);
-                          setArbitratorError('');
+                        onChange={(addr) => {
+                          setSelectedArbitratorAddress(addr);
+
+                          if (addr == address) {
+                            setArbitratorError('You cannot be your own arbitrator');
+                            return;
+                          } else {
+                            setArbitratorError('');
+                          }
                         }}
                       >
                         {arbitratorAddresses.map(
