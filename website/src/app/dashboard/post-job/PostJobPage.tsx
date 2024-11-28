@@ -465,14 +465,6 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
       jobIdCache,
     }));
 
-    function closeRegisterModal() {
-      setIsRegisterModalOpen(false);
-    }
-
-    function closeLoadingModal() {
-      setIsRegisterModalOpen(false);
-    }
-
     const handleInputChange =
       (
         setter: React.Dispatch<React.SetStateAction<string>>,
@@ -1102,11 +1094,11 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
         )}
         <RegisterModal
           open={isRegisterModalOpen}
-          close={closeRegisterModal}
+          close={() => { setIsRegisterModalOpen(false); }}
         />
         <LoadingModal
           open={isLoadingModalOpen}
-          close={closeLoadingModal}
+          close={() => { setIsLoadingModalOpen(false); }}
         />
         <AddToHomescreen />
       </div>
