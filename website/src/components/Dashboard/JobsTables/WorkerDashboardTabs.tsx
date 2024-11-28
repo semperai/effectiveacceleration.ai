@@ -99,7 +99,7 @@ export const WorkerDashboardTabs = () => {
     <div>
       {mounted && (
         <Tabs defaultValue='Open Jobs'>
-          <TabsList className='flex items-center flex-wrap h-auto md:gap-4 gap-6'>
+          <TabsList className='flex items-center flex-wrap h-auto md:gap-4 gap-6 mb-8 mb-4 md:mb-8'>
             <TabsTrigger value='Open Jobs'>Open Jobs</TabsTrigger>
             <TabsTrigger value='Applications'>Applications</TabsTrigger>
             <TabsTrigger value='Started Jobs'>Started Jobs</TabsTrigger>
