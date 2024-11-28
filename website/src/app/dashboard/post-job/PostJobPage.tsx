@@ -340,7 +340,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
     const jobAmountRef = useRef<HTMLDivElement>(null);
     const jobDeadlineRef = useRef<HTMLDivElement>(null);
     const jobArbitratorRef = useRef<HTMLDivElement>(null);
-    const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+    const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(true);
     const [isLoadingModalOpen, setIsLoadingModalOpen] = useState(false);
     const userJobCache = `${address}${LOCAL_JOBS_OWNER_CACHE}`;
     const unregisteredUserLabel = `${address}-unregistered-job-cache`;
@@ -1087,29 +1087,27 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
                 )}
               </div>
             )}
-            <RegisterModal
-              closeRegisterModal={closeRegisterModal}
-              isRegisterModalOpen={isRegisterModalOpen}
-            />
           </Fieldset>
         )}
         {showSummary && (
-          <>
-            <JobSummary
-              handleSummary={handleSummary}
-              formInputs={formInputs}
-              submitJob={postJobClick}
-              isPending={isPending}
-              isConfirming={isConfirming}
-              isConfirmed={isConfirmed}
-              postButtonDisabled={postButtonDisabled}
-            />
-            <LoadingModal
-              open={isLoadingModalOpen}
-              close={closeLoadingModal}
-            />
-          </>
+          <JobSummary
+            handleSummary={handleSummary}
+            formInputs={formInputs}
+            submitJob={postJobClick}
+            isPending={isPending}
+            isConfirming={isConfirming}
+            isConfirmed={isConfirmed}
+            postButtonDisabled={postButtonDisabled}
+          />
         )}
+        <RegisterModal
+          open={isRegisterModalOpen}
+          close={closeRegisterModal}
+        />
+        <LoadingModal
+          open={isLoadingModalOpen}
+          close={closeLoadingModal}
+        />
         <AddToHomescreen />
       </div>
     );
