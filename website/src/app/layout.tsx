@@ -26,6 +26,7 @@ export const metadata: Metadata = {
     template: APP_TITLE_TEMPLATE,
   },
   description: APP_DESCRIPTION,
+  metadataBase: process.env.NEXT_PUBLIC_SITE_URL,
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -43,7 +44,7 @@ export const metadata: Metadata = {
       template: APP_TITLE_TEMPLATE,
     },
     description: APP_DESCRIPTION,
-    images: ['https://staging.effectiveacceleration.ai/og.webp'],
+    images: ['og.webp'],
   },
   twitter: {
     card: "summary_large_image",
@@ -53,7 +54,7 @@ export const metadata: Metadata = {
     },
     description: APP_DESCRIPTION,
     site: '@eaccmarket',
-    images: ['https://staging.effectiveacceleration.ai/og.webp'],
+    images: ['og.webp'],
   },
 };
 
