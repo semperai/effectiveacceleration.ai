@@ -23,6 +23,60 @@ import { Field, Label } from '../Fieldset';
 import { Input } from '../Input';
 import UploadAvatar from '../UploadAvatar';
 
+interface NavButtonProps {
+  name: string | undefined;
+  avatar: string | undefined;
+  openModal: () => void;
+}
+
+const NavButton = ({
+  name,
+  avatar,
+  openModal,
+}: NavButtonProps) => {
+  const [isImgValid, setIsImgValid] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (avatar) {
+      isImageValid(avatar)
+        .then((isValid) => setIsImgValid(isValid))
+        .catch((error) => {
+          console.error('Error checking image URL:', error);
+          setIsImgValid(false);
+        });
+    }
+  }, [avatar]);
+
+  return (
+      <button
+        onClick={() => openModal()}
+        className='relative flex h-10 w-10 items-center overflow-hidden rounded-full bg-primary p-2 align-middle'
+      >
+        {avatar === '' ||
+        avatar === undefined ||
+        avatar === null ||
+        !isImgValid ? (
+          <span className='inline-block h-6 w-6 text-white'>
+            {name && name[0].toUpperCase()}
+            {!name && (
+              <UserIcon
+                className='mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-300'
+                aria-hidden='true'
+              />
+            )}
+          </span>
+        ) : (
+          <Image
+            className='h-full w-full object-cover'
+            fill
+            src={avatar as string | StaticImport}
+            alt={'Profile picture'}
+          ></Image>
+        )}
+      </button>
+  );
+}
+
 export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
   const viewAsValues = ['User', 'Arbitrator'];
   const signer = useEthersSigner();
@@ -39,7 +93,15 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
   const [nameError, setNameError] = useState<string>('');
   const [bioError, setBioError] = useState<string>('');
   const [fee, setFee] = useState<number>();
-  const [isImgValid, setIsImgValid] = useState<boolean>(false);
+  const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
+  const [open, setOpen] = useState(false);
+
+  const { data: hash, error, writeContract } = useWriteContract();
+
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({
+      hash,
+    });
 
   useEffect(() => {
     const avatarUrl = users[userIndex]?.avatar;
@@ -55,12 +117,6 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
     setFee(arbitrator?.fee ?? 0);
   }, [user, arbitrator]);
 
-  const { data: hash, error, writeContract } = useWriteContract();
-
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
-    useWaitForTransactionReceipt({
-      hash,
-    });
 
   useEffect(() => {
     if (isConfirmed || error) {
@@ -87,22 +143,9 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
       sessionStorage.removeItem(`arbitrator-${address}`);
 
       setButtonDisabled(false);
-      closeModal();
+      setOpen(false);
     }
   }, [isConfirmed, error]);
-
-  useEffect(() => {
-    if (avatar) {
-      isImageValid(avatar)
-        .then((isValid) => setIsImgValid(isValid))
-        .catch((error) => {
-          console.error('Error checking image URL:', error);
-          setIsImgValid(false);
-        });
-    }
-  }, [avatar]);
-
-  const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
 
   async function updateButtonClick() {
     setButtonDisabled(true);
@@ -151,50 +194,39 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
     }
   }
 
-  let [isOpen, setIsOpen] = useState(false);
-
-  function closeModal() {
-    setIsOpen(false);
-  }
-
-  function openModal() {
-    setIsOpen(true);
-  }
-
-  function validateName() {
-    if (!name || name.length === 0) {
-      setNameError('Name is required');
-      return;
-    }
-    if (name.length >= 20) {
-      setNameError('Name is too long (20 characters max)');
-      return;
-    }
-
-    setNameError('');
-  }
-
-  function validateBio() {
-    // could have not loaded yet
-    // 0 length is ok
-    if (!bio) {
-      setBioError('');
-      return;
-    }
-
-    if (bio.length >= 255) {
-      setBioError('Bio is too long (255 characters max)');
-      return;
-    }
-
-    setBioError('');
-  }
-
   useEffect(() => {
-    validateName();
-    validateBio();
+    const nameErrorEncountered = (() => {
+      if (!name || name.length === 0) {
+        setNameError('Name is required');
+        return true;
+      }
+      if (name.length >= 20) {
+        setNameError('Name is too long (20 characters max)');
+        return true;
+      }
 
-    if (nameError || bioError) {
+      setNameError('');
+      return false;
+    })();
+
+    const bioErrorEncountered = (() => {
+      // could have not loaded yet
+      // 0 length is ok
+      if (!bio) {
+        setBioError('');
+        return false;
+      }
+
+      if (bio.length >= 255) {
+        setBioError('Bio is too long (255 characters max)');
+        return true;
+      }
+
+      setBioError('');
+      return false;
+    })();
+
+    if (nameErrorEncountered || bioErrorEncountered) {
       setButtonDisabled(true);
     } else {
       setButtonDisabled(false);
@@ -203,34 +235,9 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
 
   return (
     <>
-      <button
-        onClick={() => openModal()}
-        className='relative flex h-10 w-10 items-center overflow-hidden rounded-full bg-primary p-2 align-middle'
-      >
-        {avatar === '' ||
-        avatar === undefined ||
-        avatar === null ||
-        !isImgValid ? (
-          <span className='inline-block h-6 w-6 text-white'>
-            {name && name[0].toUpperCase()}
-            {!name && (
-              <UserIcon
-                className='mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-300'
-                aria-hidden='true'
-              />
-            )}
-          </span>
-        ) : (
-          <Image
-            className='h-full w-full object-cover'
-            fill
-            src={avatar as string | StaticImport}
-            alt={'Profile picture'}
-          ></Image>
-        )}
-      </button>
-      <Transition appear show={isOpen} as={Fragment}>
-        <Dialog as='div' className='relative z-10' onClose={closeModal}>
+      <NavButton name={name} avatar={avatar} openModal={() => setOpen(true)} />
+      <Transition appear show={open} as={Fragment}>
+        <Dialog as='div' className='relative z-10' onClose={() => setOpen(false)}>
           <Transition.Child
             as={Fragment}
             enter='ease-out duration-300'
