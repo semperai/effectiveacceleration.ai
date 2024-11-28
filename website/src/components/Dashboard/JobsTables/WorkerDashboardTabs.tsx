@@ -1,12 +1,11 @@
 'use client';
 import React, { useEffect, useMemo, useState, useRef } from 'react';
-import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
-import 'react-tabs/style/react-tabs.css';
 import { OpenJobs } from './OpenJobs';
 import { WorkerApplicationsJobs } from './WorkerApplicationsJobs';
 import { WorkerProgressJobs } from './WorkerProgressJobs';
 import { WorkerCompletedJobs } from './WorkerCompletedJobs';
 import { DisputedJobs } from './DisputedJobs';
+import { JobsTableSkeleton } from './JobsTable';
 import useJobs from '@/hooks/subsquid/useJobs';
 import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
 import DevelopAllJobs from './JobsTablesData/DevelopAllJobs';
@@ -19,8 +18,12 @@ import { LocalStorageJob } from '@/service/JobsService';
 import useJobsByIds from '@/hooks/subsquid/useJobsByIds';
 import { LOCAL_JOBS_WORKER_CACHE } from '@/utils/constants';
 import { useAccount } from 'wagmi';
-
-const tabs = ['Open Jobs', 'Applications', 'Started Jobs', 'Completed Jobs'];
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/Tabs"
 
 export const WorkerDashboardTabs = () => {
   const { data: jobs } = useJobs();
@@ -37,10 +40,7 @@ export const WorkerDashboardTabs = () => {
   );
   const [filteredStartedJobs, setFilteredStartedJobs] = useState<Job[]>([]);
   const [filteredCompletedJobs, setFilteredCompletedJobs] = useState<Job[]>([]);
-  const [tabsKey, setTabsKey] = useState(0);
-  const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [mounted, setMounted] = useState(false);
-  const isFirstUpdate = useRef(true);
   const workerJobCache = `${address}${LOCAL_JOBS_WORKER_CACHE}`;
   useEffect(() => {
     const storedJobs = localStorage.getItem(workerJobCache);
@@ -94,54 +94,49 @@ export const WorkerDashboardTabs = () => {
     setFilteredJobsApplications(filteredJobsMemo.aplications);
     setFilteredStartedJobs(filteredJobsMemo.started);
     setFilteredCompletedJobs(filteredJobsMemo.completed);
-    if (selectedJobs && selectedJobs.length > 0 && isFirstUpdate.current) {
-      setTabsKey((prevKey) => prevKey + 1);
-      isFirstUpdate.current = false;
-    }
   }, [filteredJobsMemo]);
   return (
     <div>
       {mounted && (
-        <Tabs
-          key={tabsKey}
-          selectedIndex={activeTabIndex}
-          onSelect={(index) => setActiveTabIndex(index)}
-        >
-          <TabList className='mb-7 flex flex-col gap-4 border-b-2 border-gray-100 md:flex-row'>
-            {tabs.map((tab, idx) => (
-              <Tab
-                selectedClassName='!border-lightPurple border-b-2 !text-lightPurple'
-                className='relative top-[2px] cursor-pointer whitespace-nowrap py-2 font-medium text-darkBlueFont outline-none'
-                key={tab}
-              >
-                {tab}
-              </Tab>
-            ))}
-          </TabList>
-          <TabPanel>
-            <OpenJobs
-              filteredJobs={jobs?.filter((job) => job.state === 0) ?? []}
-              localJobs={localJobs}
-            />
-          </TabPanel>
-          <TabPanel>
-            <WorkerApplicationsJobs
-              filteredJobs={filteredJobsApplications}
-              localJobs={localJobs}
-            />
-          </TabPanel>
-          <TabPanel>
-            <WorkerProgressJobs
-              filteredJobs={filteredStartedJobs}
-              localJobs={localJobs}
-            />
-          </TabPanel>
-          <TabPanel>
-            <WorkerCompletedJobs
-              filteredJobs={filteredCompletedJobs}
-              localJobs={localJobs}
-            />
-          </TabPanel>
+        <Tabs defaultValue='Open Jobs'>
+          <TabsList className='w-full'>
+            <TabsTrigger value='Open Jobs'>Open Jobs</TabsTrigger>
+            <TabsTrigger value='Applications'>Applications</TabsTrigger>
+            <TabsTrigger value='Started Jobs'>Started Jobs</TabsTrigger>
+            <TabsTrigger value='Completed Jobs'>Completed Jobs</TabsTrigger>
+          </TabsList>
+          <TabsContent value='Open Jobs'>
+            {mounted ? (
+              <OpenJobs
+                filteredJobs={jobs?.filter((job) => job.state === 0) ?? []}
+                localJobs={localJobs}
+              />
+            ) : ( <JobsTableSkeleton /> )}
+          </TabsContent>
+          <TabsContent value='Applications'>
+            {mounted ? (
+              <WorkerApplicationsJobs
+                filteredJobs={filteredJobsApplications}
+                localJobs={localJobs}
+              />
+            ) : ( <JobsTableSkeleton /> )}
+          </TabsContent>
+          <TabsContent value='Started Jobs'>
+            {mounted ? (
+              <WorkerProgressJobs
+                filteredJobs={filteredStartedJobs}
+                localJobs={localJobs}
+              />
+            ) : ( <JobsTableSkeleton /> )}
+          </TabsContent>
+          <TabsContent value='Completed Jobs'>
+            {mounted ? (
+              <WorkerCompletedJobs
+                filteredJobs={filteredCompletedJobs}
+                localJobs={localJobs}
+              />
+            ) : ( <JobsTableSkeleton /> )}
+          </TabsContent>
         </Tabs>
       )}
     </div>
