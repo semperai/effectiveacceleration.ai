@@ -409,7 +409,7 @@ const Hero = () => {
             <ArrowRight className='h-4 w-4' />
           </Link>
           <Link
-            href='/dashboard/open-jobs-list'
+            href='/dashboard/open-job-list'
             className='rounded-lg border border-white px-6 py-3 font-semibold text-white transition-colors hover:bg-white/10'
           >
             Find Work
