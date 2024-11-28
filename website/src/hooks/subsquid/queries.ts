@@ -18,7 +18,7 @@ export const GET_ARBITRATORS = gql`
 `;
 
 export const GET_ARBITRATOR_BY_ADDRESS = gql`
-  query GetArbitrator($arbitratorAddress: String!) {
+  query GetArbitratorByAddress($arbitratorAddress: String!) {
     arbitrators(where: { address__eq: $arbitratorAddress }) {
       ${ArbitratorFields}
     }
@@ -26,7 +26,7 @@ export const GET_ARBITRATOR_BY_ADDRESS = gql`
 `;
 
 export const GET_ARBITRATORS_BY_ADDRESSES = gql`
-  query GetArbitrators($arbitratorAddresses: [String!]) {
+  query GetArbitratorsByAddresses($arbitratorAddresses: [String!]) {
     arbitrators(where: { address__in: $arbitratorAddresses }) {
       ${ArbitratorFields}
     }
@@ -43,7 +43,7 @@ export const GET_ARBITRATOR_PUBLIC_KEYS = gql`
 `;
 
 export const GET_JOB_BY_ID = gql`
-  query GetJob($jobId: String!) {
+  query GetJobById($jobId: String!) {
     jobs(where: { id_eq: $jobId }) {
       ${JobFields}
     }
@@ -51,7 +51,7 @@ export const GET_JOB_BY_ID = gql`
 `;
 
 export const GET_JOBS_BY_IDS = gql`
-  query GetJobs($jobIds: [String!]) {
+  query GetJobsByIds($jobIds: [String!]) {
     jobs(orderBy: timestamp_ASC, where: { id_in: $jobIds }) {
       ${JobFields}
     }
@@ -67,7 +67,7 @@ export const GET_JOBS = gql`
 `;
 
 export const GET_OPEN_JOBS = gql`
-  query GetJobs($jobId: String!, $offset: Int!, $limit: Int!) {
+  query GetOpenJobs($offset: Int!, $limit: Int!) {
     jobs(orderBy: timestamp_ASC, offset: $offset, limit: $limit, where: { state_eq: 0 }) {
       ${JobFields}
     }
@@ -84,7 +84,7 @@ export const GET_USERS = gql`
 
 
 export const GET_USER_BY_ADDRESS = gql`
-  query GetUser($userAddress: String!) {
+  query GetUserByAddress($userAddress: String!) {
     users(where: { address__eq: $userAddress }) {
       ${UserFields}
     }

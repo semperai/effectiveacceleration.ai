@@ -10,6 +10,7 @@ import { arbitrum, arbitrumSepolia, hardhat } from 'wagmi/chains';
 import { ApolloClient, InMemoryCache, ApolloProvider, NormalizedCacheObject } from '@apollo/client';
 import { persistCache, LocalStorageWrapper, CachePersistor } from 'apollo3-cache-persist';
 import { useEffect, useState } from 'react';
+import { useMediaDownloadHandler } from '@/hooks/useMediaDownloadHandler';
 
 declare module 'wagmi' {
   interface Register {
@@ -95,6 +96,8 @@ const cacheConfig = {
 };
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  useMediaDownloadHandler();
+
   const [apolloClient, setApolloClient] = useState<ApolloClient<NormalizedCacheObject>>();
 
   useEffect(() => {
@@ -116,7 +119,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     }
 
     init().catch(console.error);
-  }, []);;
+  }, []);
 
   if (!apolloClient) {
     return null;
