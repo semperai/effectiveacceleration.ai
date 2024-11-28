@@ -113,7 +113,7 @@ export const OwnerDashboardTabs = () => {
 
   return (
     <Tabs defaultValue='Open Jobs'>
-      <TabsList className='w-full'>
+      <TabsList className='flex items-center flex-wrap h-auto md:gap-4 gap-6'>
         <TabsTrigger value='Open Jobs'>Open Jobs</TabsTrigger>
         <TabsTrigger value='In Progress'>In Progress</TabsTrigger>
         <TabsTrigger value='Completed'>Completed</TabsTrigger>
