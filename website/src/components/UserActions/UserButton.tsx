@@ -6,9 +6,7 @@ import useUser from '@/hooks/subsquid/useUser';
 import { isImageValid } from '@/utils/ImageValidity';
 import { Dialog, Transition } from '@headlessui/react';
 import { CheckIcon, UserIcon } from '@heroicons/react/20/solid';
-import {
-  getEncryptionSigningKey
-} from '@effectiveacceleration/contracts';
+import { getEncryptionSigningKey } from '@effectiveacceleration/contracts';
 import Config from '@effectiveacceleration/contracts/scripts/config.json';
 import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
 import { StaticImport } from 'next/dist/shared/lib/get-img-props';
@@ -29,11 +27,7 @@ interface NavButtonProps {
   openModal: () => void;
 }
 
-const NavButton = ({
-  name,
-  avatar,
-  openModal,
-}: NavButtonProps) => {
+const NavButton = ({ name, avatar, openModal }: NavButtonProps) => {
   const [isImgValid, setIsImgValid] = useState<boolean>(false);
 
   useEffect(() => {
@@ -75,7 +69,7 @@ const NavButton = ({
       )}
     </button>
   );
-}
+};
 
 export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
   const viewAsValues = ['User', 'Arbitrator'];
@@ -116,7 +110,6 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
     setAvatar(avatarUrl);
     setFee(arbitrator?.fee ?? 0);
   }, [user, arbitrator]);
-
 
   useEffect(() => {
     if (isConfirmed || error) {
@@ -171,25 +164,14 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
         abi: MARKETPLACE_DATA_V1_ABI,
         address: Config.marketplaceDataAddress,
         functionName: 'registerUser',
-        args: [
-          encryptionPublicKey,
-          name!,
-          bio!,
-          avatarFileUrl!,
-        ],
+        args: [encryptionPublicKey, name!, bio!, avatarFileUrl!],
       });
     } else {
       const w = writeContract({
         abi: MARKETPLACE_DATA_V1_ABI,
         address: Config.marketplaceDataAddress,
         functionName: 'registerArbitrator',
-        args: [
-          encryptionPublicKey,
-          name!,
-          bio!,
-          avatarFileUrl!,
-          fee!,
-        ],
+        args: [encryptionPublicKey, name!, bio!, avatarFileUrl!, fee!],
       });
     }
   }
@@ -237,7 +219,11 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
     <>
       <NavButton name={name} avatar={avatar} openModal={() => setOpen(true)} />
       <Transition appear show={open} as={Fragment}>
-        <Dialog as='div' className='relative z-10' onClose={() => setOpen(false)}>
+        <Dialog
+          as='div'
+          className='relative z-10'
+          onClose={() => setOpen(false)}
+        >
           <Transition.Child
             as={Fragment}
             enter='ease-out duration-300'

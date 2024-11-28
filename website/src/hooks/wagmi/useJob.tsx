@@ -1,14 +1,24 @@
-import { getFromIpfs, Job } from "@effectiveacceleration/contracts";
-import { MARKETPLACE_DATA_V1_ABI } from "@effectiveacceleration/contracts/wagmi/MarketplaceDataV1";
-import Config from "@effectiveacceleration/contracts/scripts/config.json";
-import { useParams } from "next/navigation";
-import { useState, useEffect, useMemo } from "react";
-import { useAccount, useReadContract, useWatchContractEvent } from "wagmi";
-import { LOCAL_JOBS_CACHE } from "@/utils/constants";
+import { getFromIpfs, Job } from '@effectiveacceleration/contracts';
+import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
+import Config from '@effectiveacceleration/contracts/scripts/config.json';
+import { useParams } from 'next/navigation';
+import { useState, useEffect, useMemo } from 'react';
+import { useAccount, useReadContract, useWatchContractEvent } from 'wagmi';
+import { LOCAL_JOBS_CACHE } from '@/utils/constants';
 
-const updateLocalJobStorage = ({id, jobEvent, jobData, address}: {id: bigint, jobEvent: any, jobData: Job, address: string | undefined}) => {
-  const userJobCache = `${address}${LOCAL_JOBS_CACHE}`
-  console.log(jobEvent, 'JOB EVENT')
+const updateLocalJobStorage = ({
+  id,
+  jobEvent,
+  jobData,
+  address,
+}: {
+  id: bigint;
+  jobEvent: any;
+  jobData: Job;
+  address: string | undefined;
+}) => {
+  const userJobCache = `${address}${LOCAL_JOBS_CACHE}`;
+  console.log(jobEvent, 'JOB EVENT');
   // Update local storage job with new job state and event.
   const storedJobs = localStorage.getItem(userJobCache);
   if (storedJobs) {
@@ -39,9 +49,9 @@ export default function useJob(id: bigint) {
   const { address } = useAccount();
 
   const result = useReadContract({
-    account:      address,
-    abi:          MARKETPLACE_DATA_V1_ABI,
-    address:      Config.marketplaceDataAddress,
+    account: address,
+    abi: MARKETPLACE_DATA_V1_ABI,
+    address: Config.marketplaceDataAddress,
     functionName: 'getJob',
     args: [id],
   });

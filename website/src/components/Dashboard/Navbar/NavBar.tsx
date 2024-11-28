@@ -20,55 +20,56 @@ const Navbar = ({ setSidebarOpen }: NavbarProps) => {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-40 w-full">
-      <div className="relative">
+    <header className='sticky top-0 z-40 w-full'>
+      <div className='relative'>
         {/* Backdrop blur overlay */}
-        <div className="absolute inset-0 bg-white/80 backdrop-blur-md dark:bg-black/80" />
+        <div className='absolute inset-0 bg-white/80 backdrop-blur-md dark:bg-black/80' />
 
         {/* Navbar content */}
-        <div className="relative flex h-16 items-center gap-x-4 border-b border-gray-200 px-4 shadow-sm dark:border-gray-800 sm:gap-x-6 sm:px-6 lg:px-8">
+        <div className='relative flex h-16 items-center gap-x-4 border-b border-gray-200 px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8 dark:border-gray-800'>
           {/* Mobile menu button */}
           <button
-            type="button"
+            type='button'
             onClick={() => setSidebarOpen(true)}
-            className="lg:hidden"
+            className='lg:hidden'
           >
-            <span className="sr-only">Open sidebar</span>
-            <Bars3Icon className="h-6 w-6 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100" />
+            <span className='sr-only'>Open sidebar</span>
+            <Bars3Icon className='h-6 w-6 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100' />
           </button>
 
           {/* Vertical divider - mobile only */}
-          <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 lg:hidden" aria-hidden="true" />
+          <div
+            className='h-6 w-px bg-gray-200 lg:hidden dark:bg-gray-700'
+            aria-hidden='true'
+          />
 
           {/* Main navbar content */}
-          <div className="flex flex-1 items-center justify-between gap-x-4 lg:gap-x-6">
+          <div className='flex flex-1 items-center justify-between gap-x-4 lg:gap-x-6'>
             {/* Breadcrumbs */}
-            <div className="flex-1">
+            <div className='flex-1'>
               <BreadCrumbs
                 separator={
-                  <MdOutlineArrowForwardIos
-                    className="h-4 w-4 text-gray-300 dark:text-gray-600"
-                  />
+                  <MdOutlineArrowForwardIos className='h-4 w-4 text-gray-300 dark:text-gray-600' />
                 }
-                activeClasses="text-primary"
-                containerClasses="flex items-center"
-                listClasses="hover:underline mx-2 font-medium text-sm text-gray-600 dark:text-gray-300 transition-colors"
+                activeClasses='text-primary'
+                containerClasses='flex items-center'
+                listClasses='hover:underline mx-2 font-medium text-sm text-gray-600 dark:text-gray-300 transition-colors'
                 capitalizeLinks
               />
             </div>
 
             {/* Right side actions */}
-            <div className="flex items-center gap-x-4">
+            <div className='flex items-center gap-x-4'>
               {/* Notifications */}
-              <div className="relative">
+              <div className='relative'>
                 <button
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors"
+                  className='flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700'
                   aria-label={`${notificationsCount} notifications`}
                 >
-                  <PiBellSimple className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+                  <PiBellSimple className='h-5 w-5 text-gray-600 dark:text-gray-300' />
 
                   {notificationsCount > 0 && (
-                    <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white">
+                    <span className='bg-red-500 absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full text-xs font-medium text-white'>
                       {notificationsCount.toString()}
                     </span>
                   )}

@@ -9,7 +9,10 @@ import useJobEventsWithDiffs from '@/hooks/subsquid/useJobEventsWithDiffs';
 import useUser from '@/hooks/subsquid/useUser';
 import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
 import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
-import { LOCAL_JOBS_OWNER_CACHE, LOCAL_JOBS_WORKER_CACHE } from '@/utils/constants';
+import {
+  LOCAL_JOBS_OWNER_CACHE,
+  LOCAL_JOBS_WORKER_CACHE,
+} from '@/utils/constants';
 import { jobMeceTags } from '@/utils/jobMeceTags';
 import { shortenText } from '@/utils/utils';
 import {
@@ -27,7 +30,7 @@ import {
   UserIcon,
 } from '@heroicons/react/20/solid';
 import LinearProgress from '@mui/material/LinearProgress';
-import { Loader2 } from "lucide-react";
+import { Loader2 } from 'lucide-react';
 import { clsx } from 'clsx';
 import moment from 'moment';
 import Link from 'next/link';
@@ -131,7 +134,7 @@ type JobSidebarProps = {
   whitelistedWorkers: string[];
   formatTokenNameAndAmount: (token: string, amount: bigint) => string;
   tokenIcon: (token: string) => string;
-}
+};
 
 const JobSidebar = ({
   job,
@@ -147,43 +150,49 @@ const JobSidebar = ({
   formatTokenNameAndAmount,
   tokenIcon,
 }: JobSidebarProps) => {
-  const InfoSection = ({ title, children, className = "" }: {
+  const InfoSection = ({
+    title,
+    children,
+    className = '',
+  }: {
     title?: string;
     children: React.ReactNode;
     className?: string;
   }) => (
     <div className={`border-b border-gray-100 p-6 ${className}`}>
       {title && (
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
+        <h3 className='mb-4 text-lg font-semibold text-gray-900'>{title}</h3>
       )}
       {children}
     </div>
   );
 
-  const DetailRow = ({ label, value, icon: Icon }: {
+  const DetailRow = ({
+    label,
+    value,
+    icon: Icon,
+  }: {
     label: string;
     value: React.ReactNode;
     icon?: React.ElementType;
   }) => (
-    <div className="flex items-center justify-between py-2">
-      <span className="text-gray-600">{label}</span>
-      <div className="flex items-center gap-2 text-gray-900">
-        {Icon && <Icon className="h-5 w-5 text-gray-400" />}
+    <div className='flex items-center justify-between py-2'>
+      <span className='text-gray-600'>{label}</span>
+      <div className='flex items-center gap-2 text-gray-900'>
+        {Icon && <Icon className='h-5 w-5 text-gray-400' />}
         {value}
       </div>
     </div>
   );
 
-  const Tag = ({ children }: {
-    children: React.ReactNode;
-  }) => (
-    <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700 m-1">
+  const Tag = ({ children }: { children: React.ReactNode }) => (
+    <span className='m-1 inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700'>
       {children}
     </span>
   );
 
   return (
-    <div className="h-full overflow-y-auto bg-white divide-y divide-gray-100 rounded-lg shadow-sm">
+    <div className='h-full divide-y divide-gray-100 overflow-y-auto rounded-lg bg-white shadow-sm'>
       {job && address && events && (
         <JobStatusWrapper
           job={job}
@@ -198,13 +207,13 @@ const JobSidebar = ({
       <InfoSection>
         {job && (
           <>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            <h2 className='mb-2 text-xl font-semibold text-gray-900'>
               {job.title}
             </h2>
-            <p className="text-gray-600 text-sm">{job.content}</p>
+            <p className='text-sm text-gray-600'>{job.content}</p>
           </>
         )}
-        <div className="mt-6 space-y-3">
+        <div className='mt-6 space-y-3'>
           <JobButtonActions
             job={job}
             addresses={addresses}
@@ -216,46 +225,39 @@ const JobSidebar = ({
           />
           <TooltipButton
             outline
-            className="w-full flex items-center justify-center gap-2"
+            className='flex w-full items-center justify-center gap-2'
             tooltipContent='Copy link to clipboard'
             popoverContent='Copied!'
             onClick={async () => {
               await navigator.clipboard.writeText(window.location.href);
             }}
           >
-            <LinkIcon className="h-4 w-4" />
+            <LinkIcon className='h-4 w-4' />
             Share
           </TooltipButton>
         </div>
       </InfoSection>
 
-      <InfoSection title="Project Details">
+      <InfoSection title='Project Details'>
         <DetailRow
-          label="Price"
+          label='Price'
           value={
             job && (
-              <div className="flex items-center gap-2">
+              <div className='flex items-center gap-2'>
                 {formatTokenNameAndAmount(job.token, job.amount)}
-                <img
-                  src={tokenIcon(job.token)}
-                  alt=""
-                  className="h-4 w-4"
-                />
+                <img src={tokenIcon(job.token)} alt='' className='h-4 w-4' />
               </div>
             )
           }
           icon={CurrencyDollarIcon}
         />
         <DetailRow
-          label="Multiple Applicants"
-          value={job?.multipleApplicants ? "Allowed" : "Not Allowed"}
+          label='Multiple Applicants'
+          value={job?.multipleApplicants ? 'Allowed' : 'Not Allowed'}
         />
-        <DetailRow
-          label="Delivery Method"
-          value={job?.deliveryMethod}
-        />
-        <div className="flex items-center gap-2 mt-4 text-sm text-gray-500">
-          <UserIcon className="h-5 w-5 text-gray-400" />
+        <DetailRow label='Delivery Method' value={job?.deliveryMethod} />
+        <div className='mt-4 flex items-center gap-2 text-sm text-gray-500'>
+          <UserIcon className='h-5 w-5 text-gray-400' />
           <span>
             last updated by {users[job?.roles.creator!]?.name}{' '}
             {moment(job?.timestamp! * 1000).fromNow()}
@@ -263,74 +265,79 @@ const JobSidebar = ({
         </div>
       </InfoSection>
 
-      {job?.state === JobState.Closed && address === job.roles.creator && job.collateralOwed > 0n && (
-        <InfoSection title="Collateral Withdrawal">
-          <div className="space-y-4">
-            <div className="text-sm text-gray-600">
-              {(() => {
-                if (!job || job.timestamp === undefined) return;
-                const ts = moment.unix(job.timestamp);
-                return ts.add(24, 'hours').isAfter(moment())
-                  ? ts.from(moment(), true)
-                  : 'Ready to withdraw';
-              })()}
+      {job?.state === JobState.Closed &&
+        address === job.roles.creator &&
+        job.collateralOwed > 0n && (
+          <InfoSection title='Collateral Withdrawal'>
+            <div className='space-y-4'>
+              <div className='text-sm text-gray-600'>
+                {(() => {
+                  if (!job || job.timestamp === undefined) return;
+                  const ts = moment.unix(job.timestamp);
+                  return ts.add(24, 'hours').isAfter(moment())
+                    ? ts.from(moment(), true)
+                    : 'Ready to withdraw';
+                })()}
+              </div>
+              <LinearProgress
+                value={timePassed ? 100 : adjustedProgressValue}
+                className='w-full'
+              />
+              <DetailRow
+                label='Collateral'
+                value={
+                  job && (
+                    <div className='flex items-center gap-2'>
+                      {formatTokenNameAndAmount(job.token, job.amount)}
+                      <img
+                        src={tokenIcon(job.token)}
+                        alt=''
+                        className='h-4 w-4'
+                      />
+                    </div>
+                  )
+                }
+                icon={CurrencyDollarIcon}
+              />
             </div>
-            <LinearProgress
-              value={timePassed ? 100 : adjustedProgressValue}
-              className="w-full"
-            />
-            <DetailRow
-              label="Collateral"
-              value={
-                job && (
-                  <div className="flex items-center gap-2">
-                    {formatTokenNameAndAmount(job.token, job.amount)}
-                    <img
-                      src={tokenIcon(job.token)}
-                      alt=""
-                      className="h-4 w-4"
-                    />
-                  </div>
-                )
-              }
-              icon={CurrencyDollarIcon}
-            />
-          </div>
-        </InfoSection>
-      )}
+          </InfoSection>
+        )}
 
-      {job?.state === JobState.Taken && job.resultHash === zeroHash &&
-       address === job.roles.creator && events.length > 0 && (
-        <InfoSection title="Delivery Status">
-          <div className="space-y-4">
-            <DetailRow
-              label="Time Remaining"
-              value={moment.duration(job?.maxTime, 'seconds').humanize()}
-            />
-            <LinearProgress value={5} className="w-full" />
-          </div>
-        </InfoSection>
-      )}
+      {job?.state === JobState.Taken &&
+        job.resultHash === zeroHash &&
+        address === job.roles.creator &&
+        events.length > 0 && (
+          <InfoSection title='Delivery Status'>
+            <div className='space-y-4'>
+              <DetailRow
+                label='Time Remaining'
+                value={moment.duration(job?.maxTime, 'seconds').humanize()}
+              />
+              <LinearProgress value={5} className='w-full' />
+            </div>
+          </InfoSection>
+        )}
 
       {job?.state === JobState.Open && (
         <InfoSection>
           <DetailRow
-            label="Max Delivery Time"
+            label='Max Delivery Time'
             value={moment.duration(job?.maxTime, 'seconds').humanize()}
           />
         </InfoSection>
       )}
 
       {job?.roles.arbitrator !== zeroAddress && (
-        <InfoSection title="Addresses">
+        <InfoSection title='Addresses'>
           <DetailRow
-            label="Arbitrator Address"
+            label='Arbitrator Address'
             value={
-              <Link 
+              <Link
                 href={`/dashboard/arbitrators/${job?.roles.arbitrator}`}
-                className="text-blue-600 hover:text-blue-700"
+                className='text-blue-600 hover:text-blue-700'
               >
-                {shortenText({ text: job?.roles.arbitrator, maxLength: 12 }) || ''}
+                {shortenText({ text: job?.roles.arbitrator, maxLength: 12 }) ||
+                  ''}
               </Link>
             }
           />
@@ -338,17 +345,17 @@ const JobSidebar = ({
       )}
 
       <InfoSection>
-        <div className="space-y-4">
+        <div className='space-y-4'>
           <div>
-            <h4 className="font-medium text-gray-900 mb-2">Category</h4>
+            <h4 className='mb-2 font-medium text-gray-900'>Category</h4>
             <Tag>{jobMeceTag}</Tag>
           </div>
           <div>
-            <h4 className="font-medium text-gray-900 mb-2">Tags</h4>
-            <div className="flex flex-wrap gap-2">
-              {job?.tags.slice(1).map((value: string) => (
-                <Tag key={value}>{value}</Tag>
-              ))}
+            <h4 className='mb-2 font-medium text-gray-900'>Tags</h4>
+            <div className='flex flex-wrap gap-2'>
+              {job?.tags
+                .slice(1)
+                .map((value: string) => <Tag key={value}>{value}</Tag>)}
             </div>
           </div>
         </div>
@@ -359,55 +366,50 @@ const JobSidebar = ({
 
 const JobPostSkeleton = () => {
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-6 bg-white rounded-lg shadow-sm animate-pulse">
+    <div className='mx-auto max-w-2xl animate-pulse space-y-6 rounded-lg bg-white p-6 shadow-sm'>
       {/* Company logo and name skeleton */}
-      <div className="flex items-center space-x-4">
-        <div className="w-16 h-16 bg-gray-200 rounded-lg" />
-        <div className="space-y-2 flex-1">
-          <div className="h-4 bg-gray-200 rounded w-1/3" />
-          <div className="h-3 bg-gray-200 rounded w-1/4" />
+      <div className='flex items-center space-x-4'>
+        <div className='h-16 w-16 rounded-lg bg-gray-200' />
+        <div className='flex-1 space-y-2'>
+          <div className='h-4 w-1/3 rounded bg-gray-200' />
+          <div className='h-3 w-1/4 rounded bg-gray-200' />
         </div>
       </div>
 
       {/* Job title skeleton */}
-      <div className="space-y-2">
-        <div className="h-6 bg-gray-200 rounded w-3/4" />
-        <div className="h-4 bg-gray-200 rounded w-1/2" />
+      <div className='space-y-2'>
+        <div className='h-6 w-3/4 rounded bg-gray-200' />
+        <div className='h-4 w-1/2 rounded bg-gray-200' />
       </div>
 
       {/* Tags skeleton */}
-      <div className="flex flex-wrap gap-2">
+      <div className='flex flex-wrap gap-2'>
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-8 bg-gray-200 rounded-full w-24" />
+          <div key={i} className='h-8 w-24 rounded-full bg-gray-200' />
         ))}
       </div>
 
       {/* Description skeleton */}
-      <div className="space-y-3">
+      <div className='space-y-3'>
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-4 bg-gray-200 rounded w-full" />
+          <div key={i} className='h-4 w-full rounded bg-gray-200' />
         ))}
       </div>
 
       {/* Loading spinner */}
-      <div className="flex justify-center pt-4">
-        <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />
+      <div className='flex justify-center pt-4'>
+        <Loader2 className='h-6 w-6 animate-spin text-blue-500' />
       </div>
     </div>
   );
 };
-
 
 export default function JobPage() {
   const id = useParams().id as string;
   const jobId = id;
   const { address } = useAccount();
   const { data: job, error, ...rest } = useJob(jobId);
-  const {
-    data: events,
-    addresses,
-    sessionKeys,
-  } = useJobEventsWithDiffs(jobId);
+  const { data: events, addresses, sessionKeys } = useJobEventsWithDiffs(jobId);
   const { data: users } = useUsersByAddresses(addresses);
   const whitelistedWorkers = events.at(-1)?.job.allowedWorkers ?? [];
   const [selectedWorker, setSelectedWorker] = useState<string>('');
@@ -438,7 +440,6 @@ export default function JobPage() {
     (address === job?.roles.creator && selectedWorker) ||
     (address === job?.roles.creator && job?.state === JobState.Taken);
   const shouldShowPostMessageButton =
-
     job?.state !== JobState.Closed &&
     addresses.length &&
     Object.keys(sessionKeys).length > 0;
@@ -474,30 +475,34 @@ export default function JobPage() {
     ) {
       setSelectedWorker(address);
     }
-  if (job?.state === JobState.Open) {
-    setEventMessages(
-      events.filter(
-        (event: JobEventWithDiffs) =>
-          event.address_ === selectedWorker?.toLowerCase() ||
-          (event.details as JobMessageEvent)?.recipientAddress === selectedWorker
-      )
-    );
-  } else if (job?.state === JobState.Taken || job?.state === JobState.Closed) {
-    let lastIndex = -1;
+    if (job?.state === JobState.Open) {
+      setEventMessages(
+        events.filter(
+          (event: JobEventWithDiffs) =>
+            event.address_ === selectedWorker?.toLowerCase() ||
+            (event.details as JobMessageEvent)?.recipientAddress ===
+              selectedWorker
+        )
+      );
+    } else if (
+      job?.state === JobState.Taken ||
+      job?.state === JobState.Closed
+    ) {
+      let lastIndex = -1;
 
-    for (let i = events.length - 1; i >= 0; i--) {
-      if (events[i].type_ === 2) {
-        lastIndex = i;
-        break;
+      for (let i = events.length - 1; i >= 0; i--) {
+        if (events[i].type_ === 2) {
+          lastIndex = i;
+          break;
+        }
       }
+
+      const filteredEvents = lastIndex !== -1 ? events.slice(lastIndex) : [];
+
+      setEventMessages(filteredEvents);
+    } else {
+      setEventMessages(events);
     }
-
-    const filteredEvents = lastIndex !== -1 ? events.slice(lastIndex) : [];
-
-    setEventMessages(filteredEvents);
-  } else {
-    setEventMessages(events);
-  }
   }, [events, selectedWorker]);
   // TODO - this should be centered
   if (error) {
@@ -509,7 +514,7 @@ export default function JobPage() {
   }
 
   // TODO should determine if loading and show loading spinner
-  if (! job) {
+  if (!job) {
     return (
       <Layout>
         <JobPostSkeleton />
@@ -519,7 +524,8 @@ export default function JobPage() {
 
   const isOwner = address && job?.roles.creator.includes(address);
   const isWorker = !isOwner && address && job?.roles.worker.includes(address);
-  const isArbitrator = !isOwner && !isWorker && address && job?.roles.arbitrator.includes(address);
+  const isArbitrator =
+    !isOwner && !isWorker && address && job?.roles.arbitrator.includes(address);
 
   return (
     <Layout borderless>
@@ -536,48 +542,50 @@ export default function JobPage() {
           )}
 
           <div
-           className={clsx(
-            (job.state === JobState.Open && !isOwner) ||
-            job.state === JobState.Taken ||
-            job.state === JobState.Closed ? 'col-span-3' : 'col-span-2',
-            'max-h-customHeader bg-white',
-           )}
+            className={clsx(
+              (job.state === JobState.Open && !isOwner) ||
+                job.state === JobState.Taken ||
+                job.state === JobState.Closed
+                ? 'col-span-3'
+                : 'col-span-2',
+              'max-h-customHeader bg-white'
+            )}
           >
-           {job && (
-             <div className='grid min-h-customHeader grid-rows-[74px_70%_10%]'>
-               <ProfileUserHeader
-                 users={users ?? {}}
-                 selectedWorker={selectedWorker}
-                 eventMessages={eventMessages}
-                 address={address}
-                 job={job}
-               />
-               <JobChatEvents
-                 users={users ?? {}}
-                 selectedWorker={selectedWorker}
-                 events={eventMessages as JobEventWithDiffs[]}
-                 job={job}
-                 address={address}
-               />
-               {job &&
-                 (isJobOpenForWorker ||
-                   isWorker ||
-                   isUserCreatorWithSelectedWorkerOrTaken) &&
-                 shouldShowPostMessageButton && (
-                   <>
-                     <div className='row-span-1 flex flex-1 border border-gray-100'>
-                       <PostMessageButton
-                         address={address}
-                         recipient={selectedWorker as string}
-                         addresses={addresses as any}
-                         sessionKeys={sessionKeys}
-                         job={job}
-                       />
-                     </div>
-                   </>
-                 )}
-             </div>
-           )}
+            {job && (
+              <div className='grid min-h-customHeader grid-rows-[74px_70%_10%]'>
+                <ProfileUserHeader
+                  users={users ?? {}}
+                  selectedWorker={selectedWorker}
+                  eventMessages={eventMessages}
+                  address={address}
+                  job={job}
+                />
+                <JobChatEvents
+                  users={users ?? {}}
+                  selectedWorker={selectedWorker}
+                  events={eventMessages as JobEventWithDiffs[]}
+                  job={job}
+                  address={address}
+                />
+                {job &&
+                  (isJobOpenForWorker ||
+                    isWorker ||
+                    isUserCreatorWithSelectedWorkerOrTaken) &&
+                  shouldShowPostMessageButton && (
+                    <>
+                      <div className='row-span-1 flex flex-1 border border-gray-100'>
+                        <PostMessageButton
+                          address={address}
+                          recipient={selectedWorker as string}
+                          addresses={addresses as any}
+                          sessionKeys={sessionKeys}
+                          job={job}
+                        />
+                      </div>
+                    </>
+                  )}
+              </div>
+            )}
           </div>
           <JobSidebar
             job={job}

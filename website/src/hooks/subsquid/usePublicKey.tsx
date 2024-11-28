@@ -1,4 +1,4 @@
-import useUser from "./useUser";
+import useUser from './useUser';
 
 export default function usePublicKey(targetAddress: string) {
   const { data, ...rest } = useUser(targetAddress);

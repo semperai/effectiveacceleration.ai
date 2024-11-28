@@ -9,7 +9,7 @@ export const useJobUserRole = () => {
   const isJobPage: boolean = pathNames.includes('jobs');
   const { address } = useAccount();
   const id = useParams().id as string;
-  const jobId = id ?? "0";
+  const jobId = id ?? '0';
   const { data: job, ...rest } = useJob(jobId);
 
   const role = useMemo(() => {

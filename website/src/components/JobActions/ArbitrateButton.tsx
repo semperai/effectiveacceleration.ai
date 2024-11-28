@@ -10,10 +10,10 @@ import { Input } from '../Input';
 import { Textarea } from '../Textarea';
 
 export type ArbitrateButtonProps = {
-  address: string | undefined,
-  sessionKeys: Record<string, string>,
-  job: Job,
-}
+  address: string | undefined;
+  sessionKeys: Record<string, string>;
+  job: Job;
+};
 
 export function ArbitrateButton({
   address,
@@ -71,12 +71,7 @@ export function ArbitrateButton({
       abi: MARKETPLACE_V1_ABI,
       address: Config.marketplaceAddress,
       functionName: 'arbitrate',
-      args: [
-        BigInt(job.id!),
-        ownerShare,
-        workerShare,
-        contentHash,
-      ],
+      args: [BigInt(job.id!), ownerShare, workerShare, contentHash],
     });
   }
 
@@ -136,14 +131,16 @@ export function ArbitrateButton({
                   <div className='mb-3 mt-5 flex flex-col gap-5'>
                     <Field>
                       <Label>Shares owner / worker</Label>
-                      <label className="block mb-2 text-sm font-medium text-gray-900">Shares owner / worker</label>
+                      <label className='mb-2 block text-sm font-medium text-gray-900'>
+                        Shares owner / worker
+                      </label>
                       <input
-                        type="range"
+                        type='range'
                         value={sharesSlider}
-                        min="0"
-                        max="1"
-                        step="0.00001"
-                        className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer range-lg"
+                        min='0'
+                        max='1'
+                        step='0.00001'
+                        className='range-lg h-3 w-full cursor-pointer appearance-none rounded-lg bg-gray-200'
                         onChange={(e) => {
                           const v = Number(e.target.value);
                           const ownerShare = Math.floor(v * 10000);

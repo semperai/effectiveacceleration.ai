@@ -1,7 +1,7 @@
-import { JobEvent } from '@effectiveacceleration/contracts'
-import { useMemo } from 'react'
-import { useQuery } from '@apollo/client'
-import { GET_JOB_EVENTS } from './queries'
+import { JobEvent } from '@effectiveacceleration/contracts';
+import { useMemo } from 'react';
+import { useQuery } from '@apollo/client';
+import { GET_JOB_EVENTS } from './queries';
 
 export default function useJobEvents(jobId: string) {
   const { data, ...rest } = useQuery(GET_JOB_EVENTS, {
@@ -9,7 +9,10 @@ export default function useJobEvents(jobId: string) {
   });
 
   return useMemo(
-    () => ({ data: data ? (data?.jobEvents as JobEvent[]) : undefined, ...rest }),
-    [jobId, data, rest],
+    () => ({
+      data: data ? (data?.jobEvents as JobEvent[]) : undefined,
+      ...rest,
+    }),
+    [jobId, data, rest]
   );
 }

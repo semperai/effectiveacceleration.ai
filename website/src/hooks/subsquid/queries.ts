@@ -1,5 +1,12 @@
-import { gql } from "@apollo/client";
-import { ArbitratorFields, JobEventFields, JobFields, MarketplaceFields, ReviewFields, UserFields } from "./fields";
+import { gql } from '@apollo/client';
+import {
+  ArbitratorFields,
+  JobEventFields,
+  JobFields,
+  MarketplaceFields,
+  ReviewFields,
+  UserFields,
+} from './fields';
 
 export const GET_MARKETPLACES = gql`
   query GetMarketplaces {
@@ -81,7 +88,6 @@ export const GET_USERS = gql`
     }
   }
 `;
-
 
 export const GET_USER_BY_ADDRESS = gql`
   query GetUserByAddress($userAddress: String!) {

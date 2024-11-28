@@ -31,7 +31,6 @@ const ResultVerification: React.FC<ResultAcceptedProps> = ({
 
   const workerName = users[selectedWorker]?.name || 'user';
 
-
   return (
     <div className='w-full content-center py-16 text-center'>
       <span className='block justify-center pb-2 text-primary'>

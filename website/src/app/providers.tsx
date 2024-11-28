@@ -7,8 +7,17 @@ import { defineChain } from 'viem';
 import { WagmiProvider } from 'wagmi';
 import { arbitrum, arbitrumSepolia, hardhat } from 'wagmi/chains';
 
-import { ApolloClient, InMemoryCache, ApolloProvider, NormalizedCacheObject } from '@apollo/client';
-import { persistCache, LocalStorageWrapper, CachePersistor } from 'apollo3-cache-persist';
+import {
+  ApolloClient,
+  InMemoryCache,
+  ApolloProvider,
+  NormalizedCacheObject,
+} from '@apollo/client';
+import {
+  persistCache,
+  LocalStorageWrapper,
+  CachePersistor,
+} from 'apollo3-cache-persist';
 import { useEffect, useState } from 'react';
 import { useMediaDownloadHandler } from '@/hooks/useMediaDownloadHandler';
 
@@ -59,7 +68,7 @@ const queryClient = new QueryClient();
 
 const bigintPolicy = {
   read: (value: string) => BigInt(value),
-}
+};
 
 const cacheConfig = {
   typePolicies: {
@@ -98,7 +107,8 @@ const cacheConfig = {
 export function Providers({ children }: { children: React.ReactNode }) {
   useMediaDownloadHandler();
 
-  const [apolloClient, setApolloClient] = useState<ApolloClient<NormalizedCacheObject>>();
+  const [apolloClient, setApolloClient] =
+    useState<ApolloClient<NormalizedCacheObject>>();
 
   useEffect(() => {
     async function init() {
@@ -126,14 +136,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }
 
   return (
-  <ApolloProvider client={apolloClient}>
-    <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider initialChain={initialChain}>
-          {children}
-        </RainbowKitProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
-  </ApolloProvider>
+    <ApolloProvider client={apolloClient}>
+      <WagmiProvider config={config}>
+        <QueryClientProvider client={queryClient}>
+          <RainbowKitProvider initialChain={initialChain}>
+            {children}
+          </RainbowKitProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
+    </ApolloProvider>
   );
 }

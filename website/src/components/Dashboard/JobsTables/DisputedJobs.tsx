@@ -26,20 +26,18 @@ export const DisputedJobs = ({
   filteredJobs: Job[];
   localJobs: Job[];
 }) => {
-  const defaultData: TDisputedTable[] = filteredJobs.map(
-    (job) => ({
-      jobName: <span className='font-bold'>{job.title}</span>,
-      arbitrationStatus: <span className=''>ArbitrationStatus</span>,
-      disputedAmount: <span className='font-md'>{job?.amount}</span>,
-      timeSpentDispute: (
-        <Link href={`/dashboard/jobs/${job.id?.toString()}`}>
-          <span className='font-md font-semibold text-primary underline'>
-            View Details
-          </span>
-        </Link>
-      ),
-    })
-  );
+  const defaultData: TDisputedTable[] = filteredJobs.map((job) => ({
+    jobName: <span className='font-bold'>{job.title}</span>,
+    arbitrationStatus: <span className=''>ArbitrationStatus</span>,
+    disputedAmount: <span className='font-md'>{job?.amount}</span>,
+    timeSpentDispute: (
+      <Link href={`/dashboard/jobs/${job.id?.toString()}`}>
+        <span className='font-md font-semibold text-primary underline'>
+          View Details
+        </span>
+      </Link>
+    ),
+  }));
 
   const [data, setData] = useState(() => defaultData);
 
@@ -60,7 +58,7 @@ export const DisputedJobs = ({
       localJobs={localJobs}
       title='Disputed Jobs'
       emptyMessage='You do not have any disputed jobs'
-      emptySubtext='That&apos;s a good thing!'
+      emptySubtext="That's a good thing!"
     />
   );
 };

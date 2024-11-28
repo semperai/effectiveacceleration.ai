@@ -84,10 +84,7 @@ const JobButtonActions = ({
             address === job.roles.creator &&
             job.collateralOwed > 0n &&
             timePassed && (
-              <WithdrawCollateralButton
-                address={address}
-                job={job}
-              />
+              <WithdrawCollateralButton address={address} job={job} />
             )}
           {job.state === JobState.Open &&
             address === job.roles.creator &&
@@ -120,11 +117,7 @@ const JobButtonActions = ({
           {job.state === JobState.Open &&
             address === job.roles.worker &&
             events.length > 0 && (
-              <AcceptButton
-                address={address}
-                job={job}
-                events={events}
-              />
+              <AcceptButton address={address} job={job} events={events} />
             )}
           {job.state === JobState.Taken &&
             address === job.roles.worker &&

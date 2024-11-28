@@ -4,7 +4,7 @@ import {
   Job,
   JobEventWithDiffs,
   JobState,
-  User
+  User,
 } from '@effectiveacceleration/contracts';
 import Image from 'next/image';
 
@@ -27,7 +27,11 @@ const ProfileUserHeader: React.FC<ResultAcceptedProps> = ({
 
   return (
     <>
-      {selectedWorker !== ' ' && selectedWorker && eventMessages.length > 0 && (isWorker || isCreator) && job?.state !== JobState.Closed ? (
+      {selectedWorker !== ' ' &&
+      selectedWorker &&
+      eventMessages.length > 0 &&
+      (isWorker || isCreator) &&
+      job?.state !== JobState.Closed ? (
         <div>
           <div className='min-h-[100px]'>
             <div className='align-center justify-between border border-gray-100 p-4'>

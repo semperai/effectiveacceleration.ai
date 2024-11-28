@@ -7,7 +7,7 @@ import logoDark from '@/images/logo-light.png';
 import {
   Job,
   JobEventWithDiffs,
-  User
+  User,
 } from '@effectiveacceleration/contracts/dist/src/interfaces';
 import JobChatStatus from './JobChatStatus';
 import useUser from '@/hooks/subsquid/useUser';
@@ -60,7 +60,7 @@ const JobChatEvents: React.FC<ResultAcceptedProps> = ({
           />
         </>
       ) : (
-        <div className='flex flex-col h-full max-h-customHeader items-center justify-center gap-4'>
+        <div className='flex h-full max-h-customHeader flex-col items-center justify-center gap-4'>
           <div>
             <Image
               className='max-h-[35px] max-w-[150px] text-center'
@@ -76,21 +76,22 @@ const JobChatEvents: React.FC<ResultAcceptedProps> = ({
               A chat with the applying workers will appear here
             </div>
           )}
-          {job.roles.creator !== address && job.roles.worker !== address && job.roles.arbitrator !== address && (
-            <div className='text-center'>
-              Apply to this job by chatting with the creator
-            </div>
-          )}
+          {job.roles.creator !== address &&
+            job.roles.worker !== address &&
+            job.roles.arbitrator !== address && (
+              <div className='text-center'>
+                Apply to this job by chatting with the creator
+              </div>
+            )}
           {!user && address !== job.roles.arbitrator && (
             <div className='text-center'>
-              <Button href="/register">
-                Sign in to chat with the creator
-              </Button>
+              <Button href='/register'>Sign in to chat with the creator</Button>
             </div>
           )}
           {address === job.roles.arbitrator && (
             <div className='text-center'>
-              You are the arbitrator for this job, you will get a notification if there is a dispute
+              You are the arbitrator for this job, you will get a notification
+              if there is a dispute
             </div>
           )}
         </div>

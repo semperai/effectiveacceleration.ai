@@ -11,7 +11,7 @@ export const MarketplaceFields = `
       jobCount
       userCount
       arbitratorCount
-`
+`;
 
 export const JobFields = `
       id
@@ -71,7 +71,7 @@ export const ReviewFields = `
       rating
       text
       timestamp
-`
+`;
 
 export const JobEventFields = `
       id
@@ -79,4 +79,4 @@ export const JobEventFields = `
       data_
       type_
       timestamp_
-`
+`;

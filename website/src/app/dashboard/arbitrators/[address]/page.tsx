@@ -1,10 +1,8 @@
 'use client';
 
-import { Layout } from '@/components/Dashboard/Layout'
-import { Link } from '@/components/Link'
-import {
-  ChevronRightIcon,
-} from '@heroicons/react/20/solid'
+import { Layout } from '@/components/Dashboard/Layout';
+import { Link } from '@/components/Link';
+import { ChevronRightIcon } from '@heroicons/react/20/solid';
 import { useParams } from 'next/navigation';
 import useArbitrator from '@/hooks/subsquid/useArbitrator';
 

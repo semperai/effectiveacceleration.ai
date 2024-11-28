@@ -8,21 +8,12 @@ import { OwnerCancelledJobs } from './OwnerCancelledJobs';
 import { JobsTableSkeleton } from './JobsTable';
 import useJobs from '@/hooks/subsquid/useJobs';
 import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
-import {
-  Job,
-  JobEventType,
-  JobState,
-} from '@effectiveacceleration/contracts';
+import { Job, JobEventType, JobState } from '@effectiveacceleration/contracts';
 import { LocalStorageJob } from '@/service/JobsService';
 import useJobsByIds from '@/hooks/subsquid/useJobsByIds';
 import { LOCAL_JOBS_OWNER_CACHE } from '@/utils/constants';
 import { useAccount } from 'wagmi';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/Tabs"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/Tabs';
 
 export const OwnerDashboardTabs = () => {
   const { data: jobs } = useJobs();
@@ -113,7 +104,7 @@ export const OwnerDashboardTabs = () => {
 
   return (
     <Tabs defaultValue='Open Jobs'>
-      <TabsList className='flex items-center flex-wrap h-auto md:gap-4 gap-6 mb-4 md:mb-8'>
+      <TabsList className='mb-4 flex h-auto flex-wrap items-center gap-6 md:mb-8 md:gap-4'>
         <TabsTrigger value='Open Jobs'>Open Jobs</TabsTrigger>
         <TabsTrigger value='In Progress'>In Progress</TabsTrigger>
         <TabsTrigger value='Completed'>Completed</TabsTrigger>
@@ -122,11 +113,10 @@ export const OwnerDashboardTabs = () => {
       </TabsList>
       <TabsContent value='Open Jobs'>
         {mounted ? (
-          <OpenJobs
-            filteredJobs={filteredOpenJobs}
-            localJobs={localJobs}
-          />
-        ) : ( <JobsTableSkeleton /> )}
+          <OpenJobs filteredJobs={filteredOpenJobs} localJobs={localJobs} />
+        ) : (
+          <JobsTableSkeleton />
+        )}
       </TabsContent>
       <TabsContent value='In Progress'>
         {mounted ? (
@@ -134,7 +124,9 @@ export const OwnerDashboardTabs = () => {
             filteredJobs={filteredJobsInProgress}
             localJobs={localJobs}
           />
-        ) : ( <JobsTableSkeleton /> )}
+        ) : (
+          <JobsTableSkeleton />
+        )}
       </TabsContent>
       <TabsContent value='Completed'>
         {mounted ? (
@@ -142,7 +134,9 @@ export const OwnerDashboardTabs = () => {
             filteredJobs={filteredCompletedJobs}
             localJobs={localJobs}
           />
-        ) : ( <JobsTableSkeleton /> )}
+        ) : (
+          <JobsTableSkeleton />
+        )}
       </TabsContent>
       <TabsContent value='Disputed'>
         {mounted ? (
@@ -150,7 +144,9 @@ export const OwnerDashboardTabs = () => {
             filteredJobs={filteredDisputedJobs}
             localJobs={localJobs}
           />
-        ) : ( <JobsTableSkeleton /> )}
+        ) : (
+          <JobsTableSkeleton />
+        )}
       </TabsContent>
       <TabsContent value='Closed'>
         {mounted ? (
@@ -158,7 +154,9 @@ export const OwnerDashboardTabs = () => {
             filteredJobs={filteredCancelledJobs}
             localJobs={localJobs}
           />
-        ) : ( <JobsTableSkeleton /> )}
+        ) : (
+          <JobsTableSkeleton />
+        )}
       </TabsContent>
     </Tabs>
   );

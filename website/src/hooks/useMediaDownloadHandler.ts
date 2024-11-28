@@ -1,5 +1,5 @@
-import { safeGetMediaFromIpfs } from "@effectiveacceleration/contracts";
-import { useEffect } from "react";
+import { safeGetMediaFromIpfs } from '@effectiveacceleration/contracts';
+import { useEffect } from 'react';
 
 export const useMediaDownloadHandler = () => {
   useEffect(() => {
@@ -11,7 +11,7 @@ export const useMediaDownloadHandler = () => {
           enumerable: false,
           configurable: false,
           writable: false,
-          value: {}
+          value: {},
         });
       }
 
@@ -33,7 +33,10 @@ export const useMediaDownloadHandler = () => {
           a.remove();
         };
 
-        const { mimeType, mediaBytes } = await safeGetMediaFromIpfs(cid!, sessionKey as any);
+        const { mimeType, mediaBytes } = await safeGetMediaFromIpfs(
+          cid!,
+          sessionKey as any
+        );
 
         if (!mediaBytes.length) {
           alert('File is encrypted and you do not have the decryption key');
@@ -43,16 +46,20 @@ export const useMediaDownloadHandler = () => {
         const blob = new Blob([mediaBytes], { type: mimeType });
         const url = URL.createObjectURL(blob);
         downloadURL(url, filename);
-        setTimeout(function() {
+        setTimeout(function () {
           return URL.revokeObjectURL(url);
         }, 1000);
-      }
+      };
 
-      history.replaceState(null, document.title, location.pathname + location.search);
+      history.replaceState(
+        null,
+        document.title,
+        location.pathname + location.search
+      );
       download();
     };
 
     // trigger on initial load
     window.onhashchange({} as any);
   }, []);
-}
+};

@@ -1,7 +1,7 @@
-import { Job } from '@effectiveacceleration/contracts'
-import { useMemo } from 'react'
-import { useQuery } from '@apollo/client'
-import { GET_OPEN_JOBS } from './queries'
+import { Job } from '@effectiveacceleration/contracts';
+import { useMemo } from 'react';
+import { useQuery } from '@apollo/client';
+import { GET_OPEN_JOBS } from './queries';
 
 export default function useOpenJobs(offset: number = 0, limit: number = 0) {
   const { data, ...rest } = useQuery(GET_OPEN_JOBS, {
@@ -10,6 +10,6 @@ export default function useOpenJobs(offset: number = 0, limit: number = 0) {
 
   return useMemo(
     () => ({ data: data ? (data?.jobs as Job[]) : undefined, ...rest }),
-    [offset, limit, data, rest],
+    [offset, limit, data, rest]
   );
 }

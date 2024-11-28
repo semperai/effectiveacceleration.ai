@@ -70,7 +70,11 @@ export function ApproveButton({
       abi: MARKETPLACE_V1_ABI,
       address: Config.marketplaceAddress,
       functionName: 'approveResult',
-      args: [BigInt(job.id!), skipReview ? 0 : rating, skipReview ? '' : review],
+      args: [
+        BigInt(job.id!),
+        skipReview ? 0 : rating,
+        skipReview ? '' : review,
+      ],
     });
   }
 

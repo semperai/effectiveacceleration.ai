@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import useUsersByAddresses from "../wagmi/useUsersByAddresses";
+import { useState, useEffect } from 'react';
+import useUsersByAddresses from '../wagmi/useUsersByAddresses';
 
 export default function usePublicKeys(targetAddresses: string[]) {
   const [publicKeys, setPublicKeys] = useState<Record<string, string>>({});

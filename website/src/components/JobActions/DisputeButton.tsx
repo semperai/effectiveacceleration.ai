@@ -3,7 +3,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import {
   encryptBinaryData,
   encryptUtf8Data,
-  Job
+  Job,
 } from '@effectiveacceleration/contracts';
 import Config from '@effectiveacceleration/contracts/scripts/config.json';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
@@ -27,10 +27,9 @@ export function DisputeButton({
   const [message, setMessage] = useState<string>('');
   const { data: hash, error, writeContract } = useWriteContract();
 
-  const { isSuccess: isConfirmed } =
-    useWaitForTransactionReceipt({
-      hash,
-    });
+  const { isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+    hash,
+  });
 
   useEffect(() => {
     if (isConfirmed || error) {
@@ -76,11 +75,7 @@ export function DisputeButton({
       abi: MARKETPLACE_V1_ABI,
       address: Config.marketplaceAddress,
       functionName: 'dispute',
-      args: [
-        BigInt(job.id!),
-        encryptedSessionKey,
-        encryptedContent,
-      ],
+      args: [BigInt(job.id!), encryptedSessionKey, encryptedContent],
     });
   }
 

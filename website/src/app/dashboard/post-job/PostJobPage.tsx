@@ -24,7 +24,11 @@ import { ComboBoxOption, JobFormInputData, Tag } from '@/service/FormsTypes';
 import { Token, tokens } from '@/tokens';
 import { LOCAL_JOBS_OWNER_CACHE } from '@/utils/constants';
 import { jobMeceTags } from '@/utils/jobMeceTags';
-import { convertToSeconds, shortenText, unitsDeliveryTime } from '@/utils/utils';
+import {
+  convertToSeconds,
+  shortenText,
+  unitsDeliveryTime,
+} from '@/utils/utils';
 import { publishToIpfs } from '@effectiveacceleration/contracts';
 import Config from '@effectiveacceleration/contracts/scripts/config.json';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
@@ -38,14 +42,14 @@ import React, {
   useEffect,
   useImperativeHandle,
   useRef,
-  useState
+  useState,
 } from 'react';
 import { zeroAddress } from 'viem';
 import {
   useAccount,
   useReadContract,
   useWaitForTransactionReceipt,
-  useWriteContract
+  useWriteContract,
 } from 'wagmi';
 import LoadingModal from './LoadingModal';
 import RegisterModal from './RegisterModal';
@@ -210,7 +214,6 @@ interface JobSummaryProps {
   handleSummary: () => void;
 }
 
-
 const JobSummary = ({
   formInputs,
   submitJob,
@@ -221,31 +224,31 @@ const JobSummary = ({
   handleSummary,
 }: JobSummaryProps) => {
   const getButtonText = () => {
-    if (isConfirmed) return "Transaction confirmed";
-    if (isConfirming) return "Waiting for confirmation...";
-    if (isPending) return "Posting...";
-    return "Post Job";
+    if (isConfirmed) return 'Transaction confirmed';
+    if (isConfirming) return 'Waiting for confirmation...';
+    if (isPending) return 'Posting...';
+    return 'Post Job';
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Summary</h1>
-        <p className="text-gray-600">
+    <div className='mx-auto max-w-4xl'>
+      <div className='mb-8'>
+        <h1 className='mb-2 text-3xl font-bold text-gray-900'>Summary</h1>
+        <p className='text-gray-600'>
           Before you submit your job, please double check your answers.
         </p>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
-        <div className="divide-y divide-gray-200">
+      <div className='mb-8 rounded-2xl bg-white p-8 shadow-lg'>
+        <div className='divide-y divide-gray-200'>
           {formInputs.map((inputData, index) =>
             inputData.inputInfo ? (
-              <div key={index} className="py-4 first:pt-0 last:pb-0">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="text-sm font-medium text-gray-500">
+              <div key={index} className='py-4 first:pt-0 last:pb-0'>
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+                  <div className='text-sm font-medium text-gray-500'>
                     {inputData.label}
                   </div>
-                  <div className="md:col-span-2 text-sm text-gray-900">
+                  <div className='text-sm text-gray-900 md:col-span-2'>
                     {inputData.inputInfo}
                   </div>
                 </div>
@@ -255,18 +258,14 @@ const JobSummary = ({
         </div>
       </div>
 
-      <div className="flex justify-end gap-4 pb-16">
-        <Button
-          outline
-          onClick={handleSummary}
-          className="px-6"
-        >
+      <div className='flex justify-end gap-4 pb-16'>
+        <Button outline onClick={handleSummary} className='px-6'>
           Go back
         </Button>
         <Button
           disabled={postButtonDisabled || isPending}
           onClick={submitJob}
-          className="px-6 bg-blue-600 hover:bg-blue-700 text-white disabled:bg-blue-300"
+          className='bg-blue-600 px-6 text-white hover:bg-blue-700 disabled:bg-blue-300'
         >
           {getButtonText()}
         </Button>
@@ -274,7 +273,6 @@ const JobSummary = ({
     </div>
   );
 };
-
 
 const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
   (props, ref) => {
@@ -307,12 +305,8 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
     const [description, setDescription] = useState<string>('');
     const [amount, setAmount] = useState('');
     const [deadline, setDeadline] = useState<number>();
-    const [imFeelingLucky, setImFeelingLucky] = useState(
-      noYes[0]
-    );
-    const [arbitratorRequired, setArbitratorRequired] = useState(
-      noYes[1]
-    );
+    const [imFeelingLucky, setImFeelingLucky] = useState(noYes[0]);
+    const [arbitratorRequired, setArbitratorRequired] = useState(noYes[1]);
     const [selectedUnitTime, setselectedUnitTime] = useState<ComboBoxOption>(
       unitsDeliveryTime[2]
     );
@@ -345,7 +339,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
     const userJobCache = `${address}${LOCAL_JOBS_OWNER_CACHE}`;
     const unregisteredUserLabel = `${address}-unregistered-job-cache`;
     const { data: hash, error, isPending, writeContract } = useWriteContract();
-    console.log(selectedUnitTime, selectedCategory)
+    console.log(selectedUnitTime, selectedCategory);
     const { isLoading: isConfirming, isSuccess: isConfirmed } =
       useWaitForTransactionReceipt({
         hash,
@@ -393,7 +387,9 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
         amount,
         selectedToken?.id as string | undefined
       );
-      const deadlineInSeconds = deadline ? convertToSeconds(deadline, selectedUnitTime.name) : 0;
+      const deadlineInSeconds = deadline
+        ? convertToSeconds(deadline, selectedUnitTime.name)
+        : 0;
       const w = writeContract({
         abi: MARKETPLACE_V1_ABI,
         address: Config.marketplaceAddress as string,
@@ -579,7 +575,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
     const formInputs: JobFormInputData[] = [
       { label: 'Job Title', inputInfo: title },
       { label: 'Description', inputInfo: description },
-      { label: 'I\'m feeling lucky', inputInfo: imFeelingLucky },
+      { label: "I'm feeling lucky", inputInfo: imFeelingLucky },
       { label: 'Category', inputInfo: selectedCategory?.name },
       { label: 'Tags', inputInfo: tags.map((tag) => tag.name).join(', ') },
       {
@@ -751,7 +747,9 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
                 </Field>
                 <Field>
                   <div className='flex flex-row items-center justify-between'>
-                    <Label className='items-center'>I&apos;m feeling lucky</Label>
+                    <Label className='items-center'>
+                      I&apos;m feeling lucky
+                    </Label>
                     <RadioGroup
                       className='!mt-0 flex'
                       value={imFeelingLucky}
@@ -763,7 +761,11 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
                           className='!mt-0 ml-5 flex items-center'
                           key={option}
                         >
-                          <Radio className='mr-2' color='default' value={option}>
+                          <Radio
+                            className='mr-2'
+                            color='default'
+                            value={option}
+                          >
                             <span>{option}</span>
                           </Radio>
                           <Label>{option}</Label>
@@ -772,7 +774,8 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
                     </RadioGroup>
                   </div>
                   <Description>
-                    Enabling this allows worker to automatically start the job without you approving them first.
+                    Enabling this allows worker to automatically start the job
+                    without you approving them first.
                   </Description>
                 </Field>
                 <Field>
@@ -807,7 +810,8 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
                   <Label>Tags</Label>
                   <TagsInput tags={tags} setTags={setTags} />
                   <Description>
-                    Tags help workers find your job post. Select tags that best describe the job and its requirements.
+                    Tags help workers find your job post. Select tags that best
+                    describe the job and its requirements.
                   </Description>
                 </Field>
               </FieldGroup>
@@ -853,7 +857,9 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
                       </div>
                     )}
                     <Description>
-                      Your funds will be locked until the job is completed. Or, if you cancel the job posting, available for withdraw after a 24 hour period.
+                      Your funds will be locked until the job is completed. Or,
+                      if you cancel the job posting, available for withdraw
+                      after a 24 hour period.
                     </Description>
                   </Field>
                   <Field className='flex-1'>
@@ -915,7 +921,11 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
                     ))}
                   </Listbox>
                   <Description>
-                    What delivery method should the worker use? For digital items usually IPFS is the correct choice. For jobs that do not involve a digital deliverable (such as posting online), digital proof can be used. For physical items such as selling computer equipment use courier.
+                    What delivery method should the worker use? For digital
+                    items usually IPFS is the correct choice. For jobs that do
+                    not involve a digital deliverable (such as posting online),
+                    digital proof can be used. For physical items such as
+                    selling computer equipment use courier.
                   </Description>
                 </Field>
                 <Field>
@@ -946,7 +956,11 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
                           className='!mt-0 ml-5 flex items-center'
                           key={option}
                         >
-                          <Radio color='default' className='mr-2' value={option}>
+                          <Radio
+                            color='default'
+                            className='mr-2'
+                            value={option}
+                          >
                             <span>{option}</span>
                           </Radio>
                           <Label>{option}</Label>
@@ -955,7 +969,9 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
                     </RadioGroup>
                   </div>
                   <Description>
-                    Without an arbitrator, disputes on job completion must be handled by the creator and worker directly. Arbitrators are third-party entities that can help resolve disputes.
+                    Without an arbitrator, disputes on job completion must be
+                    handled by the creator and worker directly. Arbitrators are
+                    third-party entities that can help resolve disputes.
                   </Description>
                 </Field>
                 {arbitratorRequired === 'Yes' && (
@@ -969,7 +985,9 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
                           setSelectedArbitratorAddress(addr);
 
                           if (addr == address) {
-                            setArbitratorError('You cannot be your own arbitrator');
+                            setArbitratorError(
+                              'You cannot be your own arbitrator'
+                            );
                             return;
                           } else {
                             setArbitratorError('');
@@ -984,11 +1002,18 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
                                 value={arbitratorAddress}
                               >
                                 <ListboxLabel>
-                                  <span className="">{arbitratorNames[index]}</span>
-                                  {' '}
-                                  <span className="text-sm text-gray-500 ml-4">{shortenText({ text: arbitratorAddress, maxLength: 11 })}</span>
-                                  {' '}
-                                  <span className="bold ml-4">{+arbitratorFees[index] / 100}%</span>
+                                  <span className=''>
+                                    {arbitratorNames[index]}
+                                  </span>{' '}
+                                  <span className='ml-4 text-sm text-gray-500'>
+                                    {shortenText({
+                                      text: arbitratorAddress,
+                                      maxLength: 11,
+                                    })}
+                                  </span>{' '}
+                                  <span className='bold ml-4'>
+                                    {+arbitratorFees[index] / 100}%
+                                  </span>
                                 </ListboxLabel>
                               </ListboxOption>
                             )
@@ -1000,7 +1025,11 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
                         </div>
                       )}
                       <Description>
-                        Make sure to choose an arbitrator that you trust to resolve disputes fairly. Arbitrators charge a small fee for their services, which is deducted from the job payment. ArbitrationDAO is a decentralized arbitration service that can be used.
+                        Make sure to choose an arbitrator that you trust to
+                        resolve disputes fairly. Arbitrators charge a small fee
+                        for their services, which is deducted from the job
+                        payment. ArbitrationDAO is a decentralized arbitration
+                        service that can be used.
                       </Description>
                     </Field>
                   </>
@@ -1009,8 +1038,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
                 <div className='flex flex-row justify-between gap-5'>
                   <Field className='flex-1'>
                     <Label>
-                      Maximum delivery time{' '}
-                      in {selectedUnitTime.name}
+                      Maximum delivery time in {selectedUnitTime.name}
                     </Label>
                     <div className='scroll-mt-20' ref={jobDeadlineRef} />
                     <Input
@@ -1074,9 +1102,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
                     {isPending ? 'Posting...' : 'Continue'}
                   </Button>
                 )}
-                {!isConnected && (
-                  <ConnectButton />
-                )}
+                {!isConnected && <ConnectButton />}
               </div>
             )}
           </Fieldset>
@@ -1094,11 +1120,15 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
         )}
         <RegisterModal
           open={isRegisterModalOpen}
-          close={() => { setIsRegisterModalOpen(false); }}
+          close={() => {
+            setIsRegisterModalOpen(false);
+          }}
         />
         <LoadingModal
           open={isLoadingModalOpen}
-          close={() => { setIsLoadingModalOpen(false); }}
+          close={() => {
+            setIsLoadingModalOpen(false);
+          }}
         />
         <AddToHomescreen />
       </div>

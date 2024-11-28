@@ -10,10 +10,10 @@ import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import { Listbox, ListboxOption } from '../Listbox';
 
 export type WhitelistButtonProps = {
-  address: string | undefined,
-  job: Job,
-  whitelist: string[],
-}
+  address: string | undefined;
+  job: Job;
+  whitelist: string[];
+};
 
 export function WhitelistButton({
   address,
@@ -29,10 +29,9 @@ export function WhitelistButton({
   >(undefined);
   const { data: hash, error, writeContract } = useWriteContract();
 
-  const { isSuccess: isConfirmed } =
-    useWaitForTransactionReceipt({
-      hash,
-    });
+  const { isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+    hash,
+  });
 
   useEffect(() => {
     if (isConfirmed || error) {

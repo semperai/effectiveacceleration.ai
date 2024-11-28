@@ -1,9 +1,11 @@
-import { UserRating } from "@effectiveacceleration/contracts";
-import { useEffect, useMemo, useState } from "react";
-import useUsersByAddresses from "./useUsersByAddresses";
+import { UserRating } from '@effectiveacceleration/contracts';
+import { useEffect, useMemo, useState } from 'react';
+import useUsersByAddresses from './useUsersByAddresses';
 
 export default function useUserRating(userAddresses: string[]) {
-  const [userRatings, setUserRatings] = useState<Record<string, UserRating>>({});
+  const [userRatings, setUserRatings] = useState<Record<string, UserRating>>(
+    {}
+  );
 
   const { data, ...rest } = useUsersByAddresses(userAddresses);
 
@@ -21,5 +23,8 @@ export default function useUserRating(userAddresses: string[]) {
     }
   }, [data]);
 
-  return useMemo(() => ({ data: data ? userRatings : undefined, ...rest }), [userAddresses, data, rest]);
+  return useMemo(
+    () => ({ data: data ? userRatings : undefined, ...rest }),
+    [userAddresses, data, rest]
+  );
 }

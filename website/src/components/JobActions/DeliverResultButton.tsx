@@ -23,10 +23,9 @@ export function DeliverResultButton({
   const [message, setMessage] = useState<string>('');
   const { data: hash, error, writeContract } = useWriteContract();
 
-  const { isSuccess: isConfirmed } =
-    useWaitForTransactionReceipt({
-      hash,
-    });
+  const { isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+    hash,
+  });
 
   useEffect(() => {
     if (isConfirmed || error) {
@@ -128,7 +127,10 @@ export function DeliverResultButton({
                       placeholder='Please write a message providing the deliverable for the job. Include links etc'
                       className='mt-5'
                     />
-                    <Button disabled={buttonDisabled || message === ''} onClick={buttonClick}>
+                    <Button
+                      disabled={buttonDisabled || message === ''}
+                      onClick={buttonClick}
+                    >
                       <CheckIcon
                         className='-ml-0.5 mr-1.5 h-5 w-5'
                         aria-hidden='true'

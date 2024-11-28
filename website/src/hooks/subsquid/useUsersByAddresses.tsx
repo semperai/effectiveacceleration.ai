@@ -1,13 +1,15 @@
-import { User } from '@effectiveacceleration/contracts'
-import { useEffect, useMemo, useState } from 'react'
-import { useQuery } from '@apollo/client'
-import { GET_USERS_BY_ADDRESSES } from './queries'
+import { User } from '@effectiveacceleration/contracts';
+import { useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@apollo/client';
+import { GET_USERS_BY_ADDRESSES } from './queries';
 
 export default function useUsersByAddresses(userAddresses: string[]) {
   const [users, setUsers] = useState<Record<string, User>>({});
 
   const { data, ...rest } = useQuery(GET_USERS_BY_ADDRESSES, {
-    variables: { userAddresses: userAddresses?.filter(address => address) ?? [] },
+    variables: {
+      userAddresses: userAddresses?.filter((address) => address) ?? [],
+    },
   });
 
   useEffect(() => {
@@ -23,6 +25,6 @@ export default function useUsersByAddresses(userAddresses: string[]) {
 
   return useMemo(
     () => ({ data: data ? users : undefined, ...rest }),
-    [userAddresses, data, rest],
+    [userAddresses, data, rest]
   );
 }

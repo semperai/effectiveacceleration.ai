@@ -84,21 +84,20 @@ const SharedMenu = () => {
                   <Link
                     href={item.href}
                     className={clsx(
-                      'text-white group flex gap-x-3 rounded-full p-2 text-sm font-semibold leading-6 relative',
+                      'group relative flex gap-x-3 rounded-full p-2 text-sm font-semibold leading-6 text-white',
                       pathname == item.href
                         ? 'bg-indigo-200 bg-opacity-30'
                         : 'hover:bg-indigo-500/20',
                       item.href == '/dashboard/post-job'
-                        ? 'bg-gradient-to-r from-fuchsia-500/70 to-fuchsia-600/70 shadow-lg font-bold hover:from-fuchsia-500/80 hover:to-fuchsia-600/80 overflow-hidden'
-                        : '',
+                        ? 'overflow-hidden bg-gradient-to-r from-fuchsia-500/70 to-fuchsia-600/70 font-bold shadow-lg hover:from-fuchsia-500/80 hover:to-fuchsia-600/80'
+                        : ''
                     )}
                   >
                     {item.icon}
                     {item.name}
 
                     <div className='absolute inset-0 overflow-hidden rounded-xl'>
-                      <div className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/[.03] to-transparent transition-transform duration-500 group-hover:translate-x-[100%]" />
-
+                      <div className='absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/[.03] to-transparent transition-transform duration-500 group-hover:translate-x-[100%]' />
                     </div>
                   </Link>
                 </li>
@@ -109,7 +108,7 @@ const SharedMenu = () => {
       </nav>
     </>
   );
-}
+};
 
 const Sidebar = ({
   sidebarOpen,

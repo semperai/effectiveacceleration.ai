@@ -84,12 +84,7 @@ const CreateProfile = ({
         abi: MARKETPLACE_DATA_V1_ABI,
         address: Config.marketplaceDataAddress as string,
         functionName: 'registerUser',
-        args: [
-          encryptionPublicKey as string,
-          userName,
-          userBio,
-          avatarFileUrl,
-        ],
+        args: [encryptionPublicKey as string, userName, userBio, avatarFileUrl],
       });
     } catch (error) {
       console.error('Error writing contract: ', error);
@@ -144,10 +139,7 @@ const CreateProfile = ({
         <span className='text-sm text-primary'>
           * Name and avatar can be changed later
         </span>
-        <Button
-          onClick={submit}
-          disabled={userName === ''}
-        >
+        <Button onClick={submit} disabled={userName === ''}>
           Create Profile
         </Button>
       </div>

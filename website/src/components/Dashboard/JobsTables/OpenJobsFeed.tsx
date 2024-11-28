@@ -2,10 +2,7 @@
 import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { OpenJobs } from './OpenJobs';
 import useJobs from '@/hooks/subsquid/useJobs';
-import {
-  Job,
-  JobState,
-} from '@effectiveacceleration/contracts';
+import { Job, JobState } from '@effectiveacceleration/contracts';
 import { JobFilter } from '@/components/Dashboard/JobsTables/JobFilter';
 
 export const OpenJobsFeed = () => {
@@ -22,16 +19,12 @@ export const OpenJobsFeed = () => {
     });
 
     setFilteredJobs(filteredJobs);
-
   }, [jobs]);
 
   return (
     <div>
       <JobFilter />
-      <OpenJobs
-        filteredJobs={filteredJobs}
-        localJobs={filteredJobs}
-      />
+      <OpenJobs filteredJobs={filteredJobs} localJobs={filteredJobs} />
     </div>
   );
 };

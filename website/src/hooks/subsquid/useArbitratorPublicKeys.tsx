@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useQuery } from '@apollo/client'
-import { GET_ARBITRATORS_BY_ADDRESSES } from './queries'
+import { useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@apollo/client';
+import { GET_ARBITRATORS_BY_ADDRESSES } from './queries';
 
-export default function useArbitratorsByAddresses(arbitratorAddresses: string[]) {
+export default function useArbitratorsByAddresses(
+  arbitratorAddresses: string[]
+) {
   const [resultMap, setResultMap] = useState<Record<string, string>>({});
 
   const { data, ...rest } = useQuery(GET_ARBITRATORS_BY_ADDRESSES, {
@@ -22,6 +24,6 @@ export default function useArbitratorsByAddresses(arbitratorAddresses: string[])
 
   return useMemo(
     () => ({ data: data ? resultMap : undefined, ...rest }),
-    [arbitratorAddresses, data, rest],
+    [arbitratorAddresses, data, rest]
   );
 }

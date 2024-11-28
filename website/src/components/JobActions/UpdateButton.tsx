@@ -3,13 +3,14 @@ import useArbitrators from '@/hooks/subsquid/useArbitrators';
 import { ComboBoxOption } from '@/service/FormsTypes';
 import { tokenIcon, tokensMap } from '@/tokens';
 import { jobMeceTags } from '@/utils/jobMeceTags';
-import { convertToSeconds, getUnitAndValueFromSeconds, unitsDeliveryTime } from '@/utils/utils';
+import {
+  convertToSeconds,
+  getUnitAndValueFromSeconds,
+  unitsDeliveryTime,
+} from '@/utils/utils';
 import { Dialog, Transition } from '@headlessui/react';
 import { CheckIcon } from '@heroicons/react/20/solid';
-import {
-  Job,
-  publishToIpfs
-} from '@effectiveacceleration/contracts';
+import { Job, publishToIpfs } from '@effectiveacceleration/contracts';
 import Config from '@effectiveacceleration/contracts/scripts/config.json';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { formatUnits, parseUnits } from 'ethers';
@@ -21,7 +22,6 @@ import { Field, Label } from '../Fieldset';
 import { Input } from '../Input';
 import { Radio, RadioGroup } from '../Radio';
 import { Textarea } from '../Textarea';
-
 
 export type UpdateButtonProps = {
   address: string | undefined;
@@ -142,12 +142,13 @@ export function UpdateButton({
       if (unit && value) {
         value = Math.ceil(value);
         setMaxTime(value);
-        const unitDelivery = unitsDeliveryTime.find((option) => option.name === unit);
+        const unitDelivery = unitsDeliveryTime.find(
+          (option) => option.name === unit
+        );
         setSelectedUnitTime(unitDelivery || unitsDeliveryTime[0]);
       }
     }
   }, [job]);
-
 
   const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
 
@@ -165,25 +166,34 @@ export function UpdateButton({
 
     const amountValidationMessage = validateField(amount, {
       required: true,
-      custom: (value) => (parseFloat(value) > 0 ? '' : 'Amount must be greater than 0'),
+      custom: (value) =>
+        parseFloat(value) > 0 ? '' : 'Amount must be greater than 0',
     });
     setAmountError(amountValidationMessage);
 
     const maxJobTimeValidationMessage = validateField(maxTime.toString(), {
       required: true,
-      custom: (value) => (parseFloat(value) > 0 ? '' : 'Amount must be greater than 0'),
+      custom: (value) =>
+        parseFloat(value) > 0 ? '' : 'Amount must be greater than 0',
     });
     setMaxJobTimeError(maxJobTimeValidationMessage);
     setTitleError(titleValidationMessage);
     setButtonDisabled(true);
 
-    if (!titleValidationMessage && !tagsValidationMessage && !amountValidationMessage && !maxJobTimeValidationMessage) {
+    if (
+      !titleValidationMessage &&
+      !tagsValidationMessage &&
+      !amountValidationMessage &&
+      !maxJobTimeValidationMessage
+    ) {
       const { hash: contentHash } = await publishToIpfs(content);
       const tokenDecimals = tokensMap[job.token]?.decimals;
       const rawAmount = parseUnits(amount, tokensMap[job.token]?.decimals);
       // Proceed with form submission
       console.log('Form is valid');
-      const deadlineInSeconds = maxTime ? convertToSeconds(maxTime, selectedUnitTime.name) : 0;
+      const deadlineInSeconds = maxTime
+        ? convertToSeconds(maxTime, selectedUnitTime.name)
+        : 0;
 
       const w = writeContract({
         abi: MARKETPLACE_V1_ABI,
@@ -286,27 +296,35 @@ export function UpdateButton({
                       />
                     </Field>
                     <Field>
-                    <Label>Category</Label>
+                      <Label>Category</Label>
                       <br />
                       <CustomSelect
-                        name="category"
+                        name='category'
                         value={selectedCategory}
                         onChange={(value) => {
-                          setSelectedCategory(value as { id: string; name: string });
+                          setSelectedCategory(
+                            value as { id: string; name: string }
+                          );
                         }}
                         className='rounded-md border border-gray-300 shadow-sm'
                       >
-                        {jobMeceTags.map((category, index) =>
-                          index > 0 && (
-                            <option key={index} value={category.id}>
-                              {category.name}
-                            </option>
-                          )
+                        {jobMeceTags.map(
+                          (category, index) =>
+                            index > 0 && (
+                              <option key={index} value={category.id}>
+                                {category.name}
+                              </option>
+                            )
                         )}
                       </CustomSelect>
-                  </Field>
+                    </Field>
                     <Field>
-                      <Label>Tags <span style={{ fontSize: '0.8em', color: '#888' }}>(comma separated)</span></Label>
+                      <Label>
+                        Tags{' '}
+                        <span style={{ fontSize: '0.8em', color: '#888' }}>
+                          (comma separated)
+                        </span>
+                      </Label>
                       <Input
                         value={tags.join(', ')}
                         onChange={(e) =>
@@ -353,72 +371,78 @@ export function UpdateButton({
                     </Field>
 
                     <div className='flex flex-row justify-between gap-5'>
-                  <Field className='flex-1'>
-                    <Label>
-                      Max delivery time in {selectedUnitTime.name}
-                    </Label>
-                    <div className='scroll-mt-20' />
-                    <Input
-                      name='deadline'
-                      type='number'
-                      placeholder={`Maximum delivery time in ${selectedUnitTime.name}`}
-                      value={maxTime}
-                      min={1}
-                      step={1}
-                      onChange={(e) => {
-                        let deadline = parseInt(e.target.value);
-                        if (deadline < 0) {
-                          deadline = -deadline;
-                        }
-                        setMaxTime(deadline);
-                        if (deadline === 0 || e.target.value === '') {
-                          setDeadlineError('Please enter a valid deadline');
-                        } else {
-                          if (deadlineError) {
-                            setDeadlineError('');
-                          }
-                        }
-                      }}
-                    />
-                    {deadlineError && (
-                      <div className='text-xs' style={{ color: 'red' }}>
-                        {deadlineError}
-                      </div>
-                    )}
-                  </Field>
-                  <Field className='flex-1'>
-                    <Label>Units</Label>
-                    <br />
-                    <CustomSelect
-                      name="units"
-                      value={selectedUnitTime.id}
-                      onChange={(value) => {
-                        const selectedValue = isNaN(Number(value)) ? value : Number(value);
-                        const selectedOption = unitsDeliveryTime.find(option => option.id === selectedValue);
-                        if (selectedOption) {
-                          setSelectedUnitTime(selectedOption);
-                        }
-                      }}
-                    >
-                      {unitsDeliveryTime.map((unit, index) => (
-                        <option key={index} value={unit.id}>
-                          {unit.name}
-                        </option>
-                      ))}
-                    </CustomSelect>
-                    {maxJobTimeError && (
-                        <div className='text-xs' style={{ color: 'red' }}>
-                          {maxJobTimeError}
-                        </div>
-                      )}
-                  </Field>
-                </div>
+                      <Field className='flex-1'>
+                        <Label>
+                          Max delivery time in {selectedUnitTime.name}
+                        </Label>
+                        <div className='scroll-mt-20' />
+                        <Input
+                          name='deadline'
+                          type='number'
+                          placeholder={`Maximum delivery time in ${selectedUnitTime.name}`}
+                          value={maxTime}
+                          min={1}
+                          step={1}
+                          onChange={(e) => {
+                            let deadline = parseInt(e.target.value);
+                            if (deadline < 0) {
+                              deadline = -deadline;
+                            }
+                            setMaxTime(deadline);
+                            if (deadline === 0 || e.target.value === '') {
+                              setDeadlineError('Please enter a valid deadline');
+                            } else {
+                              if (deadlineError) {
+                                setDeadlineError('');
+                              }
+                            }
+                          }}
+                        />
+                        {deadlineError && (
+                          <div className='text-xs' style={{ color: 'red' }}>
+                            {deadlineError}
+                          </div>
+                        )}
+                      </Field>
+                      <Field className='flex-1'>
+                        <Label>Units</Label>
+                        <br />
+                        <CustomSelect
+                          name='units'
+                          value={selectedUnitTime.id}
+                          onChange={(value) => {
+                            const selectedValue = isNaN(Number(value))
+                              ? value
+                              : Number(value);
+                            const selectedOption = unitsDeliveryTime.find(
+                              (option) => option.id === selectedValue
+                            );
+                            if (selectedOption) {
+                              setSelectedUnitTime(selectedOption);
+                            }
+                          }}
+                        >
+                          {unitsDeliveryTime.map((unit, index) => (
+                            <option key={index} value={unit.id}>
+                              {unit.name}
+                            </option>
+                          ))}
+                        </CustomSelect>
+                        {maxJobTimeError && (
+                          <div className='text-xs' style={{ color: 'red' }}>
+                            {maxJobTimeError}
+                          </div>
+                        )}
+                      </Field>
+                    </div>
                     <Field>
                       <Label>Arbitrator</Label>
                       <CustomSelect
-                        name="arbitrator"
+                        name='arbitrator'
                         value={selectedArbitratorAddress}
-                        onChange={(value) => setSelectedArbitratorAddress(value as string)}
+                        onChange={(value) =>
+                          setSelectedArbitratorAddress(value as string)
+                        }
                       >
                         {userList.map((user, index) => (
                           <option key={index} value={user.address_}>

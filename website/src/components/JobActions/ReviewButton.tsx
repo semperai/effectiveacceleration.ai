@@ -1,5 +1,10 @@
 import { Button } from '@/components/Button';
-import { Description, Field, FieldGroup, Fieldset } from '@/components/Fieldset';
+import {
+  Description,
+  Field,
+  FieldGroup,
+  Fieldset,
+} from '@/components/Fieldset';
 import { Listbox, ListboxLabel, ListboxOption } from '@/components/Listbox';
 import { Textarea } from '@/components/Textarea';
 import { Dialog, Transition } from '@headlessui/react';
@@ -130,7 +135,9 @@ export function ReviewButton({
                       <FieldGroup>
                         <Field>
                           <Description>
-                            Please leave a review and rating for the worker. This will help others to understand the quality of work.
+                            Please leave a review and rating for the worker.
+                            This will help others to understand the quality of
+                            work.
                           </Description>
                           <Textarea
                             rows={4}
@@ -141,21 +148,33 @@ export function ReviewButton({
                           />
                         </Field>
                         <Field>
-                          <Listbox value={rating} onChange={setRating} className='mt-5'>
+                          <Listbox
+                            value={rating}
+                            onChange={setRating}
+                            className='mt-5'
+                          >
                             <ListboxOption value={5}>
                               <ListboxLabel>5 stars - No issues</ListboxLabel>
                             </ListboxOption>
                             <ListboxOption value={4}>
-                              <ListboxLabel>4 stars - Minor issues</ListboxLabel>
+                              <ListboxLabel>
+                                4 stars - Minor issues
+                              </ListboxLabel>
                             </ListboxOption>
                             <ListboxOption value={3}>
-                              <ListboxLabel>3 stars - Lot&apos;s of issues</ListboxLabel>
+                              <ListboxLabel>
+                                3 stars - Lot&apos;s of issues
+                              </ListboxLabel>
                             </ListboxOption>
                             <ListboxOption value={2}>
-                              <ListboxLabel>2 stars - Severe problems</ListboxLabel>
+                              <ListboxLabel>
+                                2 stars - Severe problems
+                              </ListboxLabel>
                             </ListboxOption>
                             <ListboxOption value={1}>
-                              <ListboxLabel>1 stars - Malicious or criminal</ListboxLabel>
+                              <ListboxLabel>
+                                1 stars - Malicious or criminal
+                              </ListboxLabel>
                             </ListboxOption>
                             <ListboxOption value={0}>
                               <ListboxLabel>Abstain from rating</ListboxLabel>
@@ -163,7 +182,11 @@ export function ReviewButton({
                           </Listbox>
                         </Field>
                       </FieldGroup>
-                      <Button disabled={buttonDisabled} onClick={buttonClick} className="mt-5">
+                      <Button
+                        disabled={buttonDisabled}
+                        onClick={buttonClick}
+                        className='mt-5'
+                      >
                         <CheckIcon
                           className='-ml-0.5 mr-1.5 h-5 w-5'
                           aria-hidden='true'

@@ -9,16 +9,13 @@ import {
 import { columnBuilder } from '@/components/TablesCommon';
 import { Checkbox } from '@/components/Checkbox';
 import useJobs from '@/hooks/subsquid/useJobs';
-import {
-  Job,
-  JobState,
-} from '@effectiveacceleration/contracts';
+import { Job, JobState } from '@effectiveacceleration/contracts';
 import Link from 'next/link';
 import clsx from 'clsx';
 import EditIcon from '@/components/Icons/EditIcon';
 
 const columnHelper = createColumnHelper<TOpenJobTable>();
-const columns= [
+const columns = [
   columnBuilder(columnHelper, 'jobName', 'Job Name'),
   columnBuilder(columnHelper, 'description', 'Description'),
   columnBuilder(columnHelper, 'tag', 'Tag'),
@@ -32,25 +29,23 @@ export const OpenJobs = ({
   filteredJobs: Job[];
   localJobs: Job[];
 }) => {
-  const defaultData: TOpenJobTable[] = filteredJobs.map(
-    (job) => ({
-      jobName: <span className='font-bold'>{job.title}</span>,
-      description: <span className='font-md'>{job.content ?? ''}</span>,
-      tag: (
-        <span className='rounded-full bg-[#E1FFEF] px-3 py-2 text-sm text-[#23B528]'>
-          {job.tags[1] ?? ''}
+  const defaultData: TOpenJobTable[] = filteredJobs.map((job) => ({
+    jobName: <span className='font-bold'>{job.title}</span>,
+    description: <span className='font-md'>{job.content ?? ''}</span>,
+    tag: (
+      <span className='rounded-full bg-[#E1FFEF] px-3 py-2 text-sm text-[#23B528]'>
+        {job.tags[1] ?? ''}
+      </span>
+    ),
+    actions: (
+      <Link href={`/dashboard/jobs/${job.id?.toString()}`}>
+        <span className='font-md font-semibold text-primary underline'>
+          <EditIcon className='mr-4 inline' />
+          View Details
         </span>
-      ),
-      actions: (
-        <Link href={`/dashboard/jobs/${job.id?.toString()}`}>
-          <span className='font-md font-semibold text-primary underline'>
-            <EditIcon className='mr-4 inline' />
-            View Details
-          </span>
-        </Link>
-      ),
-    })
-  );
+      </Link>
+    ),
+  }));
 
   const [data, setData] = useState(() => defaultData);
 

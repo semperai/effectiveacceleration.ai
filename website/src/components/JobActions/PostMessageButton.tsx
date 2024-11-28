@@ -34,10 +34,9 @@ export function PostMessageButton({
 
   const { data: hash, error, writeContract } = useWriteContract();
 
-  const { isSuccess: isConfirmed } =
-    useWaitForTransactionReceipt({
-      hash,
-    });
+  const { isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+    hash,
+  });
 
   useEffect(() => {
     if (isConfirmed || error) {
@@ -63,7 +62,7 @@ export function PostMessageButton({
   const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
 
   async function buttonClick() {
-    if (! user) {
+    if (!user) {
       router.push('/register');
       return;
     }

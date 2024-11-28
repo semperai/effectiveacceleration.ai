@@ -25,24 +25,22 @@ export const WorkerApplicationsJobs = ({
   filteredJobs: Job[];
   localJobs: Job[];
 }) => {
-  const defaultData: TOpenJobTable[] = filteredJobs.map(
-    (job) => ({
-      jobName: <span className='font-bold'>{job.title}</span>,
-      description: <span className='font-md'>{job.roles.worker ?? ''}</span>,
-      tag: (
-        <span className='rounded-full bg-[#E1FFEF] px-3 py-2 text-[#23B528]'>
-          {job.tags[1] ?? ''}
+  const defaultData: TOpenJobTable[] = filteredJobs.map((job) => ({
+    jobName: <span className='font-bold'>{job.title}</span>,
+    description: <span className='font-md'>{job.roles.worker ?? ''}</span>,
+    tag: (
+      <span className='rounded-full bg-[#E1FFEF] px-3 py-2 text-[#23B528]'>
+        {job.tags[1] ?? ''}
+      </span>
+    ),
+    actions: (
+      <Link href={`/dashboard/jobs/${job.id?.toString()}`}>
+        <span className='font-md font-semibold text-primary underline'>
+          View Details
         </span>
-      ),
-      actions: (
-        <Link href={`/dashboard/jobs/${job.id?.toString()}`}>
-          <span className='font-md font-semibold text-primary underline'>
-            View Details
-          </span>
-        </Link>
-      ),
-    })
-  );
+      </Link>
+    ),
+  }));
 
   const [data, setData] = useState(() => defaultData);
   const table = useReactTable({

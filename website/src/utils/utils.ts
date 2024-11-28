@@ -39,7 +39,9 @@ export const convertToSeconds = (deadline: number, unit: string): number => {
   }
 };
 
-export const getUnitAndValueFromSeconds = (seconds: number): {
+export const getUnitAndValueFromSeconds = (
+  seconds: number
+): {
   unit: string;
   value: number;
 } => {
@@ -63,8 +65,7 @@ export const getUnitAndValueFromSeconds = (seconds: number): {
   } else {
     return { unit: 'minutes', value: minutes };
   }
-}
-
+};
 
 export const unitsDeliveryTime = [
   { id: 0, name: 'minutes' },

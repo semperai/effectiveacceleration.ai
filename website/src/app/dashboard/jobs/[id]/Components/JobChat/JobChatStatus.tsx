@@ -70,8 +70,7 @@ const JobChatStatus: React.FC<JobStatusProps> = ({
 
       {job.state === JobState.Taken &&
         job.resultHash === zeroHash &&
-        (address === job.roles.creator ||
-        address === job.roles.worker) &&
+        (address === job.roles.creator || address === job.roles.worker) &&
         events.length > 0 && <WorkerAccepted job={job} address={address} />}
 
       {job.state === JobState.Taken && job.disputed === true && (

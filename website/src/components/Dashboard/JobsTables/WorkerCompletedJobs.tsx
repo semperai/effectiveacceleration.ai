@@ -26,29 +26,27 @@ export const WorkerCompletedJobs = ({
   filteredJobs: Job[];
   localJobs: Job[];
 }) => {
-  const defaultData: TCompletedTable[] = filteredJobs.map(
-    (job) => ({
-      jobName: <span className='font-bold'>{job.title}</span>,
-      status: (
-        <span className='rounded-full bg-[#E1FFEF] px-3 py-2 text-[#23B528]'>
-          Completed
+  const defaultData: TCompletedTable[] = filteredJobs.map((job) => ({
+    jobName: <span className='font-bold'>{job.title}</span>,
+    status: (
+      <span className='rounded-full bg-[#E1FFEF] px-3 py-2 text-[#23B528]'>
+        Completed
+      </span>
+    ),
+    timeTaken: <span>{job.maxTime}</span>,
+    completedBy: (
+      <span className='font-md'>
+        {shortenText({ text: job?.roles.worker, maxLength: 20 }) || ''}
+      </span>
+    ),
+    actions: (
+      <Link href={`/dashboard/jobs/${job.id?.toString()}`}>
+        <span className='font-md font-semibold text-primary underline'>
+          View Details
         </span>
-      ),
-      timeTaken: <span>{job.maxTime}</span>,
-      completedBy: (
-        <span className='font-md'>
-          {shortenText({ text: job?.roles.worker, maxLength: 20 }) || ''}
-        </span>
-      ),
-      actions: (
-        <Link href={`/dashboard/jobs/${job.id?.toString()}`}>
-          <span className='font-md font-semibold text-primary underline'>
-            View Details
-          </span>
-        </Link>
-      ),
-    })
-  );
+      </Link>
+    ),
+  }));
 
   const [data, setData] = useState(() => defaultData);
   const table = useReactTable({

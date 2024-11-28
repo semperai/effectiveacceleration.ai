@@ -14,7 +14,13 @@ interface CustomSelectProps {
   children: React.ReactNode;
 }
 
-const CustomSelect: React.FC<CustomSelectProps> = ({ name, value, onChange, className, children }) => {
+const CustomSelect: React.FC<CustomSelectProps> = ({
+  name,
+  value,
+  onChange,
+  className,
+  children,
+}) => {
   return (
     <select
       name={name}
@@ -24,15 +30,15 @@ const CustomSelect: React.FC<CustomSelectProps> = ({ name, value, onChange, clas
         onChange(selectedValue);
       }}
       className={clsx([
-        'relative !mt-1.1 block w-full text-darkBlueFont text-sm',
+        'relative !mt-1.1 block w-full text-sm text-darkBlueFont',
         'rounded-[calc(theme(borderRadius.xl)-1px)] bg-white shadow',
         'dark:bg-transparent',
-        'focus:ring-primary focus:ring-inset focus:ring-transparent',
-        'disabled:opacity-50 disabled:bg-zinc-950/5 disabled:shadow-none',
+        'focus:ring-inset focus:ring-primary focus:ring-transparent',
+        'disabled:bg-zinc-950/5 disabled:opacity-50 disabled:shadow-none',
         'invalid:shadow-red-500/10',
-        'border border-gray-300 shadow-sm z-99 mt-2',
+        'z-99 mt-2 border border-gray-300 shadow-sm',
         'h-10',
-        className
+        className,
       ])}
     >
       {children}

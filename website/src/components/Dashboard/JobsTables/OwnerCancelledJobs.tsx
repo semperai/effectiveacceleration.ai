@@ -27,24 +27,22 @@ export const OwnerCancelledJobs = ({
   filteredJobs: Job[];
   localJobs: Job[];
 }) => {
-  const defaultData: TCancelledTable[] = filteredJobs.map(
-    (job) => ({
-      jobName: <span className='font-bold'>{job.title}</span>,
-      reason: <span className=''>Reason</span>,
-      assignedTo: (
-        <span className='font-md'>
-          {shortenText({ text: job?.roles.worker, maxLength: 20 }) || ''}
+  const defaultData: TCancelledTable[] = filteredJobs.map((job) => ({
+    jobName: <span className='font-bold'>{job.title}</span>,
+    reason: <span className=''>Reason</span>,
+    assignedTo: (
+      <span className='font-md'>
+        {shortenText({ text: job?.roles.worker, maxLength: 20 }) || ''}
+      </span>
+    ),
+    actionsTaken: (
+      <Link href={`/dashboard/jobs/${job.id?.toString()}`}>
+        <span className='font-md font-semibold text-primary underline'>
+          View Details
         </span>
-      ),
-      actionsTaken: (
-        <Link href={`/dashboard/jobs/${job.id?.toString()}`}>
-          <span className='font-md font-semibold text-primary underline'>
-            View Details
-          </span>
-        </Link>
-      ),
-    })
-  );
+      </Link>
+    ),
+  }));
 
   const [data, setData] = useState(() => defaultData);
 

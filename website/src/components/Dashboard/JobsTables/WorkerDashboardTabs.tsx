@@ -9,21 +9,12 @@ import { JobsTableSkeleton } from './JobsTable';
 import useJobs from '@/hooks/subsquid/useJobs';
 import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
 import DevelopAllJobs from './JobsTablesData/DevelopAllJobs';
-import {
-  Job,
-  JobEventType,
-  JobState,
-} from '@effectiveacceleration/contracts';
+import { Job, JobEventType, JobState } from '@effectiveacceleration/contracts';
 import { LocalStorageJob } from '@/service/JobsService';
 import useJobsByIds from '@/hooks/subsquid/useJobsByIds';
 import { LOCAL_JOBS_WORKER_CACHE } from '@/utils/constants';
 import { useAccount } from 'wagmi';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/Tabs"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/Tabs';
 
 export const WorkerDashboardTabs = () => {
   const { data: jobs } = useJobs();
@@ -35,9 +26,9 @@ export const WorkerDashboardTabs = () => {
   const [jobIds, setJobIds] = useState<string[]>([]);
   const { data: selectedJobs } = useJobsByIds(jobIds);
   const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
-  const [filteredJobsApplications, setFilteredJobsApplications] = useState<Job[]>(
-    []
-  );
+  const [filteredJobsApplications, setFilteredJobsApplications] = useState<
+    Job[]
+  >([]);
   const [filteredStartedJobs, setFilteredStartedJobs] = useState<Job[]>([]);
   const [filteredCompletedJobs, setFilteredCompletedJobs] = useState<Job[]>([]);
   const [mounted, setMounted] = useState(false);
@@ -54,7 +45,7 @@ export const WorkerDashboardTabs = () => {
     }
     setMounted(true);
   }, [address]);
-  
+
   const filteredJobsMemo = useMemo(() => {
     if (selectedJobs?.length === 0)
       return { open: [], aplications: [], started: [], completed: [] };
@@ -99,7 +90,7 @@ export const WorkerDashboardTabs = () => {
     <div>
       {mounted && (
         <Tabs defaultValue='Open Jobs'>
-          <TabsList className='flex items-center flex-wrap h-auto md:gap-4 gap-6 mb-8 mb-4 md:mb-8'>
+          <TabsList className='mb-4 mb-8 flex h-auto flex-wrap items-center gap-6 md:mb-8 md:gap-4'>
             <TabsTrigger value='Open Jobs'>Open Jobs</TabsTrigger>
             <TabsTrigger value='Applications'>Applications</TabsTrigger>
             <TabsTrigger value='Started Jobs'>Started Jobs</TabsTrigger>
@@ -111,7 +102,9 @@ export const WorkerDashboardTabs = () => {
                 filteredJobs={jobs?.filter((job) => job.state === 0) ?? []}
                 localJobs={localJobs}
               />
-            ) : ( <JobsTableSkeleton /> )}
+            ) : (
+              <JobsTableSkeleton />
+            )}
           </TabsContent>
           <TabsContent value='Applications'>
             {mounted ? (
@@ -119,7 +112,9 @@ export const WorkerDashboardTabs = () => {
                 filteredJobs={filteredJobsApplications}
                 localJobs={localJobs}
               />
-            ) : ( <JobsTableSkeleton /> )}
+            ) : (
+              <JobsTableSkeleton />
+            )}
           </TabsContent>
           <TabsContent value='Started Jobs'>
             {mounted ? (
@@ -127,7 +122,9 @@ export const WorkerDashboardTabs = () => {
                 filteredJobs={filteredStartedJobs}
                 localJobs={localJobs}
               />
-            ) : ( <JobsTableSkeleton /> )}
+            ) : (
+              <JobsTableSkeleton />
+            )}
           </TabsContent>
           <TabsContent value='Completed Jobs'>
             {mounted ? (
@@ -135,7 +132,9 @@ export const WorkerDashboardTabs = () => {
                 filteredJobs={filteredCompletedJobs}
                 localJobs={localJobs}
               />
-            ) : ( <JobsTableSkeleton /> )}
+            ) : (
+              <JobsTableSkeleton />
+            )}
           </TabsContent>
         </Tabs>
       )}

@@ -3,11 +3,7 @@ import { Table, flexRender } from '@tanstack/react-table';
 import React, { useEffect, useState } from 'react';
 import { Skeleton } from '@mui/material';
 import { Button } from '@/components/Button';
-import {
-  Job,
-  JobEventType,
-  JobState,
-} from '@effectiveacceleration/contracts';
+import { Job, JobEventType, JobState } from '@effectiveacceleration/contracts';
 import useUser from '@/hooks/subsquid/useUser';
 import { useAccount } from 'wagmi';
 
@@ -85,19 +81,20 @@ function JobsTable<T>({
       setLoading(false);
       setDataRow(true);
     }
-    if (table.getRowModel().rows.length === 0 && localJobs?.length === 0) return;
+    if (table.getRowModel().rows.length === 0 && localJobs?.length === 0)
+      return;
     setLoading(false);
     setDataRow(true);
   }, [table, dataRow]);
 
   if (!user && localJobs?.length === 0 && title === 'RemoveForNow') {
     return (
-      <div className="rounded-2xl bg-white p-8 shadow-lg">
-        <div className="flex min-h-[300px] flex-col items-center justify-center text-center">
-          <h2 className="mb-6 text-2xl font-semibold text-gray-900">
+      <div className='rounded-2xl bg-white p-8 shadow-lg'>
+        <div className='flex min-h-[300px] flex-col items-center justify-center text-center'>
+          <h2 className='mb-6 text-2xl font-semibold text-gray-900'>
             To see jobs, connect your wallet
           </h2>
-          <Button href="/register" className="px-6">
+          <Button href='/register' className='px-6'>
             Register
           </Button>
         </div>
@@ -107,30 +104,30 @@ function JobsTable<T>({
 
   if (jobCount === 0) {
     return (
-      <div className="rounded-2xl bg-white p-8 shadow-lg">
-        <div className="flex min-h-[300px] flex-col items-center justify-center text-center">
-          <h2 className="mb-4 text-xl font-semibold text-gray-900">
+      <div className='rounded-2xl bg-white p-8 shadow-lg'>
+        <div className='flex min-h-[300px] flex-col items-center justify-center text-center'>
+          <h2 className='mb-4 text-xl font-semibold text-gray-900'>
             {emptyMessage}
           </h2>
-          <p className="text-gray-500">{emptySubtext}</p>
+          <p className='text-gray-500'>{emptySubtext}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl bg-white shadow-lg">
-      <div className="border-b border-gray-200 px-6 py-4">
-        <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
+    <div className='overflow-hidden rounded-2xl bg-white shadow-lg'>
+      <div className='border-b border-gray-200 px-6 py-4'>
+        <h1 className='text-xl font-semibold text-gray-900'>{title}</h1>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full">
+      <div className='overflow-x-auto'>
+        <table className='w-full'>
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr
                 key={headerGroup.id}
-                className="border-b border-gray-200 bg-gray-50"
+                className='border-b border-gray-200 bg-gray-50'
               >
                 {headerGroup.headers.map((header, index) => (
                   <th
@@ -138,7 +135,9 @@ function JobsTable<T>({
                     className={`px-6 py-3 text-left text-sm font-medium text-gray-500 ${
                       title === 'Opens Jobs' ? 'max-w-6' : ''
                     } ${
-                      index === headerGroup.headers.length - 1 ? 'text-right' : ''
+                      index === headerGroup.headers.length - 1
+                        ? 'text-right'
+                        : ''
                     }`}
                   >
                     {header.isPlaceholder
@@ -153,19 +152,19 @@ function JobsTable<T>({
             ))}
           </thead>
 
-          <tbody className="divide-y divide-gray-200">
+          <tbody className='divide-y divide-gray-200'>
             {loading
               ? Array.from({ length: jobCount }).map((_, index) => (
                   <tr key={index}>
-                    <td className="px-6 py-4">
-                      <Skeleton className="h-8 w-full rounded" />
+                    <td className='px-6 py-4'>
+                      <Skeleton className='h-8 w-full rounded' />
                     </td>
                   </tr>
                 ))
               : table.getRowModel().rows.map((row) => (
                   <tr
                     key={row.id}
-                    className="hover:bg-gray-50 transition-colors duration-150"
+                    className='transition-colors duration-150 hover:bg-gray-50'
                   >
                     {row.getVisibleCells().map((cell, index) => (
                       <td
@@ -193,54 +192,54 @@ function JobsTable<T>({
 
 export const JobsTableSkeleton = ({ rows = 5 }) => {
   return (
-    <div className="w-full animate-pulse">
+    <div className='w-full animate-pulse'>
       {/* Table Header */}
-      <div className="border-b border-gray-200 bg-gray-50">
-        <div className="grid grid-cols-10 gap-4 px-6 py-4">
-          <div className="col-span-4">
-            <div className="h-4 w-24 bg-gray-200 rounded" />
+      <div className='border-b border-gray-200 bg-gray-50'>
+        <div className='grid grid-cols-10 gap-4 px-6 py-4'>
+          <div className='col-span-4'>
+            <div className='h-4 w-24 rounded bg-gray-200' />
           </div>
-          <div className="col-span-2">
-            <div className="h-4 w-16 bg-gray-200 rounded" />
+          <div className='col-span-2'>
+            <div className='h-4 w-16 rounded bg-gray-200' />
           </div>
-          <div className="col-span-2">
-            <div className="h-4 w-20 bg-gray-200 rounded" />
+          <div className='col-span-2'>
+            <div className='h-4 w-20 rounded bg-gray-200' />
           </div>
-          <div className="col-span-2">
-            <div className="h-4 w-20 bg-gray-200 rounded" />
+          <div className='col-span-2'>
+            <div className='h-4 w-20 rounded bg-gray-200' />
           </div>
         </div>
       </div>
 
       {/* Table Body */}
-      <div className="divide-y divide-gray-200 bg-white">
+      <div className='divide-y divide-gray-200 bg-white'>
         {[...Array(rows)].map((_, index) => (
           <div
             key={index}
-            className="grid grid-cols-10 gap-4 px-6 py-4 relative overflow-hidden"
+            className='relative grid grid-cols-10 gap-4 overflow-hidden px-6 py-4'
           >
             {/* Title and Description */}
-            <div className="col-span-4 space-y-2">
-              <div className="h-4 w-3/4 bg-gray-200 rounded" />
-              <div className="h-3 w-1/2 bg-gray-100 rounded" />
+            <div className='col-span-4 space-y-2'>
+              <div className='h-4 w-3/4 rounded bg-gray-200' />
+              <div className='h-3 w-1/2 rounded bg-gray-100' />
             </div>
             {/* Budget */}
-            <div className="col-span-2">
-              <div className="h-4 w-16 bg-gray-200 rounded" />
+            <div className='col-span-2'>
+              <div className='h-4 w-16 rounded bg-gray-200' />
             </div>
             {/* Timeline */}
-            <div className="col-span-2">
-              <div className="h-4 w-20 bg-gray-200 rounded" />
+            <div className='col-span-2'>
+              <div className='h-4 w-20 rounded bg-gray-200' />
             </div>
             {/* Actions */}
-            <div className="col-span-2 flex space-x-2">
-              <div className="h-8 w-8 bg-gray-200 rounded" />
-              <div className="h-8 w-8 bg-gray-200 rounded" />
+            <div className='col-span-2 flex space-x-2'>
+              <div className='h-8 w-8 rounded bg-gray-200' />
+              <div className='h-8 w-8 rounded bg-gray-200' />
             </div>
 
             {/* Shimmer Effect */}
-            <div className="absolute top-0 -inset-x-4 h-full transform-gpu">
-              <div className="h-full w-8 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+            <div className='absolute -inset-x-4 top-0 h-full transform-gpu'>
+              <div className='animate-shimmer h-full w-8 bg-gradient-to-r from-transparent via-white/20 to-transparent' />
             </div>
           </div>
         ))}
@@ -248,6 +247,5 @@ export const JobsTableSkeleton = ({ rows = 5 }) => {
     </div>
   );
 };
-
 
 export default JobsTable;
