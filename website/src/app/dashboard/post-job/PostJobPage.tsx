@@ -340,7 +340,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
     const jobAmountRef = useRef<HTMLDivElement>(null);
     const jobDeadlineRef = useRef<HTMLDivElement>(null);
     const jobArbitratorRef = useRef<HTMLDivElement>(null);
-    const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(true);
+    const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
     const [isLoadingModalOpen, setIsLoadingModalOpen] = useState(false);
     const userJobCache = `${address}${LOCAL_JOBS_OWNER_CACHE}`;
     const unregisteredUserLabel = `${address}-unregistered-job-cache`;
