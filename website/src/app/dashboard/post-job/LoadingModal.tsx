@@ -2,55 +2,74 @@ import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { AiOutlineLoading } from 'react-icons/ai';
 
-const LoadingModal = ({
-  closeLoadingModal,
-  isLoadingModalOpen,
-}: {
-  closeLoadingModal: () => void;
-  isLoadingModalOpen: boolean;
-}) => {
-  return (
-    <>
-      <Transition appear show={isLoadingModalOpen} as={Fragment}>
-        <Dialog as='div' className='relative z-10' onClose={closeLoadingModal}>
-          <Transition.Child
-            as={Fragment}
-            enter='ease-out duration-300'
-            enterFrom='opacity-0'
-            enterTo='opacity-100'
-            leave='ease-in duration-200'
-            leaveFrom='opacity-100'
-            leaveTo='opacity-0'
-          >
-            <div className='fixed inset-0 bg-black bg-opacity-25' />
-          </Transition.Child>
+interface LoadingModalProps {
+  open: boolean;
+  close: () => void;
+  title?: string;
+}
 
-          <div className='fixed inset-0 overflow-y-auto'>
-            <div className='flex min-h-full items-center justify-center p-4 text-center'>
-              <Transition.Child
-                as={Fragment}
-                enter='ease-out duration-300'
-                enterFrom='opacity-0 scale-95'
-                enterTo='opacity-100 scale-100'
-                leave='ease-in duration-200'
-                leaveFrom='opacity-100 scale-100'
-                leaveTo='opacity-0 scale-95'
-              >
-                <Dialog.Panel className='w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all'>
+const LoadingModal = ({
+  open,
+  close,
+  title = 'Your job is being uploaded, please wait...'
+}: LoadingModalProps) => {
+  return (
+    <Transition appear show={open} as={Fragment}>
+      <Dialog
+        as="div"
+        className="relative z-50"
+        onClose={close}
+      >
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" />
+        </Transition.Child>
+
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel className="w-full max-w-md transform rounded-2xl bg-white p-8 shadow-xl transition-all">
+                <div className="flex flex-col items-center gap-6">
                   <Dialog.Title
-                    as='h3'
-                    className='text-lg font-medium leading-6 text-gray-900'
+                    as="h3"
+                    className="text-lg font-semibold text-gray-900 text-center"
                   >
-                    Your job is being uploaded, please wait...
+                    {title}
                   </Dialog.Title>
-                  <AiOutlineLoading className='animate-loading duration-1500 infinite animate-spin ease-linear' />
-                </Dialog.Panel>
-              </Transition.Child>
-            </div>
+
+                  <div className="relative">
+                    <div className="w-12 h-12 rounded-full border-4 border-blue-100 animate-pulse" />
+                    <AiOutlineLoading
+                      className="absolute top-0 left-0 w-12 h-12 animate-spin text-blue-600"
+                      aria-hidden="true"
+                    />
+                  </div>
+
+                  <p className="text-sm text-gray-500">
+                    This may take a few moments...
+                  </p>
+                </div>
+              </Dialog.Panel>
+            </Transition.Child>
           </div>
-        </Dialog>
-      </Transition>
-    </>
+        </div>
+      </Dialog>
+    </Transition>
   );
 };
 

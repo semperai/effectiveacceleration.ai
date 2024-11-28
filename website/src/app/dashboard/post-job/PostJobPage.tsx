@@ -1105,8 +1105,8 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
               postButtonDisabled={postButtonDisabled}
             />
             <LoadingModal
-              closeLoadingModal={closeLoadingModal}
-              isLoadingModalOpen={isLoadingModalOpen}
+              open={isLoadingModalOpen}
+              close={closeLoadingModal}
             />
           </>
         )}
