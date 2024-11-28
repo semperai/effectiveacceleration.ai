@@ -17,8 +17,6 @@ import {
 } from 'wagmi';
 import { PostJobParams } from '../dashboard/post-job/PostJobPage';
 
-const ipfsGatewayUrl = process.env.NEXT_PUBLIC_IPFS_GATEWAY_URL ?? '';
-
 const CreateProfile = ({
   encryptionPublicKey,
 }: {
