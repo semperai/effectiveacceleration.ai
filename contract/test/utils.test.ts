@@ -4,7 +4,8 @@ import { expect } from "chai";
 import chai from "chai";
 import chaiAsPromised from 'chai-as-promised';
 import { ZeroHash } from "ethers";
-import { hashToCid, cidToHash, publishToIpfs, getFromIpfs, getEncryptionSigningKey, getSessionKey } from "../src/utils/encryption";
+import { hashToCid, cidToHash, publishToIpfs, getFromIpfs, getEncryptionSigningKey, getSessionKey, publishMediaToIpfs, getMediaFromIpfs } from "../src/utils/encryption";
+import { utf8ToBytes } from "@noble/ciphers/utils";
 
 chai.use(chaiAsPromised);
 
@@ -78,6 +79,45 @@ describe("utils", () => {
     it("should get an encrypted message from ipfs", async () => {
       const message = await getFromIpfs(encryptedCid, ZeroHash);
       expect(message).to.equal("encrypted");
+    });
+  });
+
+  const testFileContents = "src/index.ts";
+  describe("publishMediaToIpfs", () => {
+    it("should publish a media file to ipfs", async () => {
+      const { hash, cid } = await publishMediaToIpfs("text/plain", utf8ToBytes(testFileContents));
+      expect(hash).to.equal("0xc4d5fbc909dee24b0fd432cc9e3c04c84dfbf317cd2b24119ea2b536791b8c39");
+      expect(cid).to.equal("Qmbb1sCuEt9gnsGjXVU3axYJ3mew2NSEUdFPc1ckCD8aWC");
+    });
+
+    it("should publish an encrypted media file to ipfs", async () => {
+      const { hash, cid } = await publishMediaToIpfs("text/plain", utf8ToBytes(testFileContents), ZeroHash);
+      expect(hash.length).to.equal(66);
+      expect(cid).to.match(/^Qm/);
+      encryptedCid = cid;
+    });
+
+    it("should throw an error if media data is empty", async () => {
+      await expect(publishMediaToIpfs("text/plain", new Uint8Array())).to.be.rejectedWith("empty data");
+    });
+
+    it("should throw an error if media mime type is wrong is empty", async () => {
+      await expect(publishMediaToIpfs("", Uint8Array.from([1]))).to.be.rejectedWith("wrong mime type");
+      await expect(publishMediaToIpfs("text", Uint8Array.from([1]))).to.be.rejectedWith("wrong mime type");
+    });
+  });
+
+  describe("getFromIpfs", () => {
+    it("should get an unencrypted message from ipfs", async () => {
+      const hash = "QmQ8LWNYRHdz3JEnA12A2KkpKBwEbcpmzWfGDWj3KMapwW";
+      const message = await getFromIpfs(hash, undefined);
+      expect(message).to.equal("unencrypted");
+    });
+
+    it("should get an encrypted message from ipfs", async () => {
+      const { mimeType, mediaBytes } = await getMediaFromIpfs(encryptedCid, ZeroHash);
+      expect(mimeType).to.equal("text/plain");
+      expect(mediaBytes).to.deep.equal(utf8ToBytes(testFileContents));
     });
   });
 

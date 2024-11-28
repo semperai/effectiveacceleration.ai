@@ -35,12 +35,10 @@ export const encryptUtf8Data = (data: string, sessionKey: string | undefined): U
   return encryptBinaryData(utf8ToBytes(data), sessionKey);
 }
 
-export const publishToIpfs = async (message: string, sessionKey: string | undefined = undefined): Promise<{
+export const publishToIpfsRaw = async (encodedData: string): Promise<{
   hash: string;
   cid: string;
 }> => {
-  const encodedData: string = encodeBase64(encryptUtf8Data(message, sessionKey));
-
   const host = process.env.IPFS_UPLOAD_SERVICE_URL ?? process.env.NEXT_PUBLIC_IPFS_UPLOAD_SERVICE_URL ?? "http://localhost:8000";
 
   const response = await fetch(host, {
@@ -60,6 +58,30 @@ export const publishToIpfs = async (message: string, sessionKey: string | undefi
 
   const { hash, cid } = await response.json();
   return { hash, cid };
+}
+
+export const publishToIpfs = async (message: string, sessionKey: string | undefined = undefined): Promise<{
+  hash: string;
+  cid: string;
+}> => {
+  const encodedData: string = encodeBase64(encryptUtf8Data(message, sessionKey));
+  return publishToIpfsRaw(encodedData);
+}
+
+export const publishMediaToIpfs = async (mimeType: string, mediaBytes: Uint8Array, sessionKey: string | undefined = undefined): Promise<{
+  hash: string;
+  cid: string;
+}> => {
+  if (mimeType.length === 0 || mimeType.indexOf("/") === -1) {
+    throw new Error("wrong mime type");
+  }
+  if (mediaBytes.length === 0) {
+    throw new Error("empty data");
+  }
+
+  const binary = getBytes(AbiCoder.defaultAbiCoder().encode(["string", "bytes"], [mimeType, mediaBytes]));
+  const encodedData: string = encodeBase64(encryptBinaryData(binary, sessionKey));
+  return publishToIpfsRaw(encodedData);
 }
 
 export const decryptBinaryData = (data: Uint8Array, sessionKey: string | undefined): Uint8Array => {
@@ -118,6 +140,26 @@ export const safeGetFromIpfs = async (cidOrHash: string, sessionKey: string | un
     return decryptUtf8Data(decodedData, sessionKey);
   } catch (error: any) {
     return `<encrypted message>`;
+  }
+}
+
+export const getMediaFromIpfs = async (cidOrHash: string, sessionKey: string | undefined = undefined): Promise<{
+  mimeType: string;
+  mediaBytes: Uint8Array;
+}> => {
+  const decodedData = decryptBinaryData(decodeBase64(await getFromIpfsRaw(cidOrHash)), sessionKey);
+  const [mimeType, mediaBytes] = AbiCoder.defaultAbiCoder().decode(["string", "bytes"], getBytes(decodedData));
+  return { mimeType, mediaBytes: getBytes(mediaBytes) };
+}
+
+export const safeGetMediaFromIpfs = async (cidOrHash: string, sessionKey: string | undefined = undefined): Promise<{
+  mimeType: string;
+  mediaBytes: Uint8Array;
+}> => {
+  try {
+    return await getMediaFromIpfs(cidOrHash, sessionKey);
+  } catch (error: any) {
+    return { mimeType: "", mediaBytes: new Uint8Array() };
   }
 }
 
