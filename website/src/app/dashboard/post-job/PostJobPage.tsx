@@ -655,6 +655,10 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
       if (user && (savedJob || extractedParams.title)) {
         initializeForm(savedJob || extractedParams);
       }
+
+      if (! user) {
+        setIsRegisterModalOpen(true);
+      }
     }, [searchParams, address, user]);
 
     const initializeForm = (job: PostJobParams) => {

@@ -43,14 +43,17 @@ export const metadata: Metadata = {
       template: APP_TITLE_TEMPLATE,
     },
     description: APP_DESCRIPTION,
+    images: ['https://staging.effectiveacceleration.ai/og.webp'],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: {
       default: APP_DEFAULT_TITLE,
       template: APP_TITLE_TEMPLATE,
     },
     description: APP_DESCRIPTION,
+    site: '@eaccmarket',
+    images: ['https://staging.effectiveacceleration.ai/og.webp'],
   },
 };
 
