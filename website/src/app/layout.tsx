@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     template: APP_TITLE_TEMPLATE,
   },
   description: APP_DESCRIPTION,
-  metadataBase: process.env.NEXT_PUBLIC_SITE_URL,
+  metadataBase: process.env.NEXT_PUBLIC_SITE_URL || 'https://effectiveacceleration.ai',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
