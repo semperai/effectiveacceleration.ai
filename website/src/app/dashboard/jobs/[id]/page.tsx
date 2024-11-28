@@ -27,6 +27,7 @@ import {
   UserIcon,
 } from '@heroicons/react/20/solid';
 import LinearProgress from '@mui/material/LinearProgress';
+import { Loader2 } from "lucide-react";
 import { clsx } from 'clsx';
 import moment from 'moment';
 import Link from 'next/link';
@@ -356,6 +357,47 @@ const JobSidebar = ({
   );
 };
 
+const JobPostSkeleton = () => {
+  return (
+    <div className="max-w-2xl mx-auto p-6 space-y-6 bg-white rounded-lg shadow-sm animate-pulse">
+      {/* Company logo and name skeleton */}
+      <div className="flex items-center space-x-4">
+        <div className="w-16 h-16 bg-gray-200 rounded-lg" />
+        <div className="space-y-2 flex-1">
+          <div className="h-4 bg-gray-200 rounded w-1/3" />
+          <div className="h-3 bg-gray-200 rounded w-1/4" />
+        </div>
+      </div>
+
+      {/* Job title skeleton */}
+      <div className="space-y-2">
+        <div className="h-6 bg-gray-200 rounded w-3/4" />
+        <div className="h-4 bg-gray-200 rounded w-1/2" />
+      </div>
+
+      {/* Tags skeleton */}
+      <div className="flex flex-wrap gap-2">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-8 bg-gray-200 rounded-full w-24" />
+        ))}
+      </div>
+
+      {/* Description skeleton */}
+      <div className="space-y-3">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="h-4 bg-gray-200 rounded w-full" />
+        ))}
+      </div>
+
+      {/* Loading spinner */}
+      <div className="flex justify-center pt-4">
+        <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />
+      </div>
+    </div>
+  );
+};
+
+
 export default function JobPage() {
   const id = useParams().id as string;
   const jobId = id;
@@ -458,7 +500,7 @@ export default function JobPage() {
   if (! job) {
     return (
       <Layout>
-        <></>
+        <JobPostSkeleton />
       </Layout>
     );
   }
