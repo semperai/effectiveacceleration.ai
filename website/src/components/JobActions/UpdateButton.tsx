@@ -157,11 +157,6 @@ export function UpdateButton({
       required: true,
       minLength: 3,
     });
-    const descriptionValidationMessage = validateField(content, {
-      required: true,
-      minLength: 5,
-    });
-    setDescriptionError(descriptionValidationMessage);
 
     const tagsValidationMessage = tags
       .map((tag) => validateField(tag, { required: true }))
@@ -182,7 +177,7 @@ export function UpdateButton({
     setTitleError(titleValidationMessage);
     setButtonDisabled(true);
 
-    if (!titleValidationMessage && !tagsValidationMessage && !amountValidationMessage && !maxJobTimeValidationMessage && !descriptionValidationMessage) {
+    if (!titleValidationMessage && !tagsValidationMessage && !amountValidationMessage && !maxJobTimeValidationMessage) {
       const { hash: contentHash } = await publishToIpfs(content);
       const tokenDecimals = tokensMap[job.token]?.decimals;
       const rawAmount = parseUnits(amount, tokensMap[job.token]?.decimals);
@@ -289,11 +284,6 @@ export function UpdateButton({
                         placeholder='Message'
                         className='mt-5'
                       />
-                      {descriptionError && (
-                        <div className='text-xs' style={{ color: 'red' }}>
-                          {descriptionError}
-                        </div>
-                      )}
                     </Field>
                     <Field>
                     <Label>Category</Label>

@@ -1,93 +1,87 @@
-'use client';
-import BreadCrumbs from '@/components/BreadCrumbs';
-import { Bars3Icon, BellIcon } from '@heroicons/react/24/outline';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
-import { FaArrowRight } from 'react-icons/fa6';
-import { GoPerson } from 'react-icons/go';
+import { useAccount } from 'wagmi';
+import { Bars3Icon } from '@heroicons/react/24/outline';
 import { MdOutlineArrowForwardIos } from 'react-icons/md';
 import { PiBellSimple } from 'react-icons/pi';
-import { useAccount, useReadContract } from 'wagmi';
-import useUser from '@/hooks/subsquid/useUser';
-import { UserIcon } from '@heroicons/react/20/solid';
+
+import BreadCrumbs from '@/components/BreadCrumbs';
 import { UserButton } from '@/components/UserActions/UserButton';
-const Navbar = ({
-  setSidebarOpen,
-}: {
+import useUser from '@/hooks/subsquid/useUser';
+
+interface NavbarProps {
   setSidebarOpen: (value: boolean) => void;
-}) => {
+}
+
+const Navbar = ({ setSidebarOpen }: NavbarProps) => {
   const { address } = useAccount();
   const [notificationsCount, setNotificationsCount] = useState(BigInt(0));
   const pathname = usePathname();
-  // TODO update for new contract
-  const { data: notificationsLengthData } = useReadContract({
-    account: address,
-    // abi:          MarketplaceArtifact.abi,
-    // address: Config.marketplaceAddress as string,
-    address: `0x6EAdb61bce217A9FBA5A1d91427ae2F7A8CCBac6`,
-    functionName: 'notificationsLength',
-    args: [address],
-  });
 
-  useEffect(() => {
-    if (notificationsLengthData) {
-      setNotificationsCount(notificationsLengthData as bigint);
-    }
-  }, [notificationsLengthData]);
   return (
-    <>
-      {/* <div className='border-b border-gray-200 dark:border-gray-900'> */}
-      <div className='sticky top-0 z-40 flex h-20 shrink-0 items-center gap-x-4 bg-white/80 px-4 shadow-sm backdrop-blur-lg sm:h-16 sm:gap-x-6 sm:px-6 lg:px-8 dark:bg-black/80'>
-        <button
-          type='button'
-          className='-m-2.5 p-2.5 text-gray-700 lg:hidden'
-          onClick={() => setSidebarOpen(true)}
-        >
-          <span className='sr-only'>Open sidebar</span>
-          <Bars3Icon className='h-6 w-6' aria-hidden='true' />
-        </button>
+    <header className="sticky top-0 z-40 w-full">
+      <div className="relative">
+        {/* Backdrop blur overlay */}
+        <div className="absolute inset-0 bg-white/80 backdrop-blur-md dark:bg-black/80" />
 
-        {/* Separator */}
-        <div className='h-6 w-px bg-gray-900/10 lg:hidden' aria-hidden='true' />
+        {/* Navbar content */}
+        <div className="relative flex h-16 items-center gap-x-4 border-b border-gray-200 px-4 shadow-sm dark:border-gray-800 sm:gap-x-6 sm:px-6 lg:px-8">
+          {/* Mobile menu button */}
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(true)}
+            className="lg:hidden"
+          >
+            <span className="sr-only">Open sidebar</span>
+            <Bars3Icon className="h-6 w-6 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100" />
+          </button>
 
-        <div className='flex flex-1 flex-wrap gap-x-4 self-stretch md:flex-nowrap lg:gap-x-6'>
-          <div className='relative flex flex-1 items-center'>
-            <BreadCrumbs
-              separator={
-                <MdOutlineArrowForwardIos className='self-center text-gray-200' />
-              }
-              activeClasses='text-primary'
-              containerClasses='flex'
-              listClasses='hover:underline mx-2 font-bold text-sm'
-              capitalizeLinks
-            />
-          </div>
-          <div className='flex items-center gap-x-4 lg:gap-x-3'>
-            <Link
-              href='#'
-              className='-m-2.5 p-2.5 text-gray-400 hover:text-gray-500'
-            >
-              <span className='sr-only'>View notifications</span>
-              <span className='relative'>
-                {notificationsCount > 0 && (
-                  <span className='bg-red-400 absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full text-xs text-white'>
-                    {notificationsCount.toString()}
-                  </span>
-                )}
-                {/* <BellIcon className="h-6 w-6" aria-hidden="true" /> */}
-              </span>
-            </Link>
+          {/* Vertical divider - mobile only */}
+          <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 lg:hidden" aria-hidden="true" />
 
-            <button className='rounded-full bg-gray-200 p-2'>
-              <PiBellSimple className='text-2xl' />
-            </button>
+          {/* Main navbar content */}
+          <div className="flex flex-1 items-center justify-between gap-x-4 lg:gap-x-6">
+            {/* Breadcrumbs */}
+            <div className="flex-1">
+              <BreadCrumbs
+                separator={
+                  <MdOutlineArrowForwardIos
+                    className="h-4 w-4 text-gray-300 dark:text-gray-600"
+                  />
+                }
+                activeClasses="text-primary"
+                containerClasses="flex items-center"
+                listClasses="hover:underline mx-2 font-medium text-sm text-gray-600 dark:text-gray-300 transition-colors"
+                capitalizeLinks
+              />
+            </div>
 
-            <UserButton />
+            {/* Right side actions */}
+            <div className="flex items-center gap-x-4">
+              {/* Notifications */}
+              <div className="relative">
+                <button
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors"
+                  aria-label={`${notificationsCount} notifications`}
+                >
+                  <PiBellSimple className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+
+                  {notificationsCount > 0 && (
+                    <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white">
+                      {notificationsCount.toString()}
+                    </span>
+                  )}
+                </button>
+              </div>
+
+              {/* User menu */}
+              <UserButton />
+            </div>
           </div>
         </div>
       </div>
-    </>
+    </header>
   );
 };
 

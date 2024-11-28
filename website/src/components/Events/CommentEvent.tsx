@@ -1,65 +1,69 @@
+import Link from 'next/link';
+import clsx from 'clsx';
+import { useAccount } from 'wagmi';
+import { type ComponentPropsWithoutRef } from 'react';
+import { PiChatCircleDotsFill } from 'react-icons/pi';
 import useUser from '@/hooks/subsquid/useUser';
-import { ChatBubbleLeftEllipsisIcon } from '@heroicons/react/20/solid';
-import { JobMessageEvent } from '@effectiveacceleration/contracts';
-import moment from 'moment';
 import { getAddress } from 'viem';
+import moment from 'moment';
+
 import EventProfileImage from './Components/EventProfileImage';
 import { type EventProps } from './index';
+import { JobMessageEvent } from '@effectiveacceleration/contracts';
 
-export function CommentEvent({
-  event,
-  ...rest
-}: EventProps & React.ComponentPropsWithoutRef<'div'>) {
+type CommentEventProps = EventProps & ComponentPropsWithoutRef<'div'>;
+
+export function CommentEvent({ event, ...rest }: CommentEventProps) {
+  const { address: currentUserAddress } = useAccount();
+
   const address = getAddress(event.address_);
-  const href = `/dashboard/users/${address}`;
-  const { data: user } = useUser(address);
-  const date = moment(event.timestamp_ * 1000).fromNow();
   const details = event.details as JobMessageEvent;
-  const { data: recipient } = useUser(
-    details.recipientAddress
-  );
-  const recipientHref = `/dashboard/users/${details.recipientAddress}`;
+
+  const { data: user } = useUser(address);
+  const { data: recipient } = useUser(details.recipientAddress);
+
+  const date = moment(event.timestamp_ * 1000).fromNow();
+
+  const isOwnMessage = currentUserAddress === details.recipientAddress;
 
   return (
-    <>
-      <div className='relative'>
-        {user && <EventProfileImage user={user} />}
-        <span className='absolute -bottom-0.5 -right-1 rounded-tl bg-white px-0.5 py-px'>
-          <ChatBubbleLeftEllipsisIcon
-            className='h-5 w-5 text-gray-400 dark:text-gray-600'
-            aria-hidden='true'
+    <div className={clsx("flex items-start space-x-4 p-4 rounded-lg hover:bg-gray-50 transition-colors w-full", isOwnMessage ? 'bg-gray-50' : 'bg-gray-100')}>
+      <div className="relative flex-shrink-0">
+        {user && (
+          <Link href={`/dashboard/users/${address}`}>
+            <EventProfileImage user={user} />
+          </Link>
+        )}
+        <span className="absolute -bottom-0.5 -right-1 bg-white rounded-full p-0.5 shadow-sm">
+          <PiChatCircleDotsFill
+            className="h-5 w-5 text-blue-500"
+            aria-hidden="true"
           />
         </span>
       </div>
-      <div className='min-w-0 flex-1'>
-        <div>
-          <div className='text-sm'>
-            <a
-              href={href}
-              className='font-medium text-gray-900 dark:text-gray-100'
+
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between">
+          <div className="text-sm">
+            <Link
+              href={`/dashboard/users/${address}`}
+              className="font-semibold text-gray-900 hover:text-blue-600 transition-colors"
               title={address}
             >
-              {user?.name}
-            </a>
+              {user?.name || 'Anonymous'}
+            </Link>
           </div>
-          <p className='mt-0.5 text-sm text-gray-500 dark:text-gray-400'>
-            Commented {date}
-          </p>
-          <p className='mt-0.5 text-sm text-gray-500 dark:text-gray-400'>
-            Recipient:
-            <a
-              href={recipientHref}
-              className='ml-1 font-medium text-gray-900 dark:text-gray-100'
-              title={recipient?.address_}
-            >
-              {recipient?.name}
-            </a>
-          </p>
+          <span className="text-xs text-gray-500">{date}</span>
         </div>
-        <div className='mt-2 text-sm text-gray-700 dark:text-gray-500'>
-          <p>{details.content}</p>
+
+        <div className="mt-2">
+          <p className="text-sm text-gray-700 leading-relaxed">
+            {details.content}
+          </p>
         </div>
       </div>
-    </>
+    </div>
   );
 }
+
+export default CommentEvent;

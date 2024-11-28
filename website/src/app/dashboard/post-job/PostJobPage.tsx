@@ -340,7 +340,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
     const jobAmountRef = useRef<HTMLDivElement>(null);
     const jobDeadlineRef = useRef<HTMLDivElement>(null);
     const jobArbitratorRef = useRef<HTMLDivElement>(null);
-    const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+    const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(true);
     const [isLoadingModalOpen, setIsLoadingModalOpen] = useState(false);
     const userJobCache = `${address}${LOCAL_JOBS_OWNER_CACHE}`;
     const unregisteredUserLabel = `${address}-unregistered-job-cache`;
@@ -354,7 +354,6 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
     useEffect(() => {
       if (
         title == '' ||
-        description == '' ||
         amount == '0' ||
         deadline == 0 ||
         selectedToken == undefined
@@ -363,7 +362,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
       } else {
         setPostButtonDisabled(false);
       }
-    }, [title, description, amount, deadline, selectedToken, error]);
+    }, [title, amount, deadline, selectedToken, error]);
 
     const handleSummary = () => {
       if (!user) {
@@ -501,10 +500,10 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
 
       // Validate all fields before submission
       const titleValidationMessage = validateField(title, { minLength: 3 });
-      const descriptionValidationMessage = validateField(description, {
-        required: true,
-        minLength: 10,
-      });
+      // const descriptionValidationMessage = validateField(description, {
+      //   required: true,
+      //   minLength: 10,
+      // });
       const categoryValidationMessage = validateField(
         selectedCategory?.name || '',
         { required: true }
@@ -538,14 +537,12 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
         }
       );
       setTitleError(titleValidationMessage);
-      setDescriptionError(descriptionValidationMessage);
       setCategoryError(categoryValidationMessage);
       setPaymentTokenError(paymentTokenValidationMessage);
       setArbitratorError(arbitratorValidationMessage);
       setDeadlineError(deadlineValidationMessage);
       if (
         !titleValidationMessage &&
-        !descriptionValidationMessage &&
         !categoryValidationMessage &&
         !paymentTokenValidationMessage &&
         !arbitratorValidationMessage &&
@@ -561,11 +558,11 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
           return;
         }
 
-        if (descriptionValidationMessage) {
-          jobDescriptionRef.current?.focus();
-          jobDescriptionRef.current?.scrollIntoView({ behavior: 'smooth' });
-          return;
-        }
+        // if (descriptionValidationMessage) {
+        //   jobDescriptionRef.current?.focus();
+        //   jobDescriptionRef.current?.scrollIntoView({ behavior: 'smooth' });
+        //   return;
+        // }
 
         if (categoryValidationMessage) {
           jobCategoryRef.current?.focus();
@@ -1090,29 +1087,27 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
                 )}
               </div>
             )}
-            <RegisterModal
-              closeRegisterModal={closeRegisterModal}
-              isRegisterModalOpen={isRegisterModalOpen}
-            />
           </Fieldset>
         )}
         {showSummary && (
-          <>
-            <JobSummary
-              handleSummary={handleSummary}
-              formInputs={formInputs}
-              submitJob={postJobClick}
-              isPending={isPending}
-              isConfirming={isConfirming}
-              isConfirmed={isConfirmed}
-              postButtonDisabled={postButtonDisabled}
-            />
-            <LoadingModal
-              closeLoadingModal={closeLoadingModal}
-              isLoadingModalOpen={isLoadingModalOpen}
-            />
-          </>
+          <JobSummary
+            handleSummary={handleSummary}
+            formInputs={formInputs}
+            submitJob={postJobClick}
+            isPending={isPending}
+            isConfirming={isConfirming}
+            isConfirmed={isConfirmed}
+            postButtonDisabled={postButtonDisabled}
+          />
         )}
+        <RegisterModal
+          open={isRegisterModalOpen}
+          close={closeRegisterModal}
+        />
+        <LoadingModal
+          open={isLoadingModalOpen}
+          close={closeLoadingModal}
+        />
         <AddToHomescreen />
       </div>
     );

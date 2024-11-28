@@ -14,6 +14,8 @@ Effective Acceleration is a monorepo:
 
 - **/ipfs-service** backend service for storing and retrieving files on IPFS
 
+- **/subsquid** backend service for managing subgraph queries
+
 ## Documentation
 
 View the full documentation at https://docs.effectiveacceleration.ai/
