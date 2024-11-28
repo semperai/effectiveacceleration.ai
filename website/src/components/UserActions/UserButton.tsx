@@ -48,32 +48,32 @@ const NavButton = ({
   }, [avatar]);
 
   return (
-      <button
-        onClick={() => openModal()}
-        className='relative flex h-10 w-10 items-center overflow-hidden rounded-full bg-primary p-2 align-middle'
-      >
-        {avatar === '' ||
-        avatar === undefined ||
-        avatar === null ||
-        !isImgValid ? (
-          <span className='inline-block h-6 w-6 text-white'>
-            {name && name[0].toUpperCase()}
-            {!name && (
-              <UserIcon
-                className='mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-300'
-                aria-hidden='true'
-              />
-            )}
-          </span>
-        ) : (
-          <Image
-            className='h-full w-full object-cover'
-            fill
-            src={avatar as string | StaticImport}
-            alt={'Profile picture'}
-          ></Image>
-        )}
-      </button>
+    <button
+      onClick={() => openModal()}
+      className='relative flex h-10 w-10 items-center overflow-hidden rounded-full bg-primary p-2 align-middle'
+    >
+      {avatar === '' ||
+      avatar === undefined ||
+      avatar === null ||
+      !isImgValid ? (
+        <span className='inline-block h-6 w-6 text-white'>
+          {name && name[0].toUpperCase()}
+          {!name && (
+            <UserIcon
+              className='mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-300'
+              aria-hidden='true'
+            />
+          )}
+        </span>
+      ) : (
+        <Image
+          className='h-full w-full object-cover'
+          fill
+          src={avatar as string | StaticImport}
+          alt={'Profile picture'}
+        ></Image>
+      )}
+    </button>
   );
 }
 
