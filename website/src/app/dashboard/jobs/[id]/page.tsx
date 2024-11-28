@@ -474,18 +474,30 @@ export default function JobPage() {
     ) {
       setSelectedWorker(address);
     }
-    selectedWorker
-      ? setEventMessages(
-          events.filter(
-            (event: JobEventWithDiffs) =>
-              event.address_ === selectedWorker.toLowerCase() ||
-              (event.details as JobMessageEvent)?.recipientAddress === selectedWorker ||
-              (event.details as JobArbitratedEvent)?.workerAddress === selectedWorker ||
-              event.type_ === JobEventType.Closed ||
-              event.type_ === JobEventType.Reopened
-          )
-        )
-      : setEventMessages(events);
+  if (job?.state === JobState.Open) {
+    setEventMessages(
+      events.filter(
+        (event: JobEventWithDiffs) =>
+          event.address_ === selectedWorker?.toLowerCase() ||
+          (event.details as JobMessageEvent)?.recipientAddress === selectedWorker
+      )
+    );
+  } else if (job?.state === JobState.Taken || job?.state === JobState.Closed) {
+    let lastIndex = -1;
+
+    for (let i = events.length - 1; i >= 0; i--) {
+      if (events[i].type_ === 2) {
+        lastIndex = i;
+        break;
+      }
+    }
+
+    const filteredEvents = lastIndex !== -1 ? events.slice(lastIndex) : [];
+
+    setEventMessages(filteredEvents);
+  } else {
+    setEventMessages(events);
+  }
   }, [events, selectedWorker]);
   // TODO - this should be centered
   if (error) {
