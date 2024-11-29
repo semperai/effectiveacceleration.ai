@@ -1,11 +1,9 @@
-import { useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { useAccount } from 'wagmi';
 import { Bars3Icon } from '@heroicons/react/24/outline';
 import { MdOutlineArrowForwardIos } from 'react-icons/md';
-import { PiBellSimple } from 'react-icons/pi';
 
 import BreadCrumbs from '@/components/BreadCrumbs';
+import { NotificationsButton } from './NotificationsButton';
 import { UserButton } from './UserButton';
 
 interface NavbarProps {
@@ -14,7 +12,6 @@ interface NavbarProps {
 }
 
 const Navbar = ({ setSidebarOpen, noSidebar }: NavbarProps) => {
-  const [notificationsCount, setNotificationsCount] = useState(BigInt(0));
 
   return (
     <header className='sticky top-0 z-40 w-full'>
@@ -57,23 +54,7 @@ const Navbar = ({ setSidebarOpen, noSidebar }: NavbarProps) => {
 
             {/* Right side actions */}
             <div className='flex items-center gap-x-4'>
-              {/* Notifications */}
-              <div className='relative'>
-                <button
-                  className='flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700'
-                  aria-label={`${notificationsCount} notifications`}
-                >
-                  <PiBellSimple className='h-5 w-5 text-gray-600 dark:text-gray-300' />
-
-                  {notificationsCount > 0 && (
-                    <span className='bg-red-500 absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full text-xs font-medium text-white'>
-                      {notificationsCount.toString()}
-                    </span>
-                  )}
-                </button>
-              </div>
-
-              {/* User menu */}
+              <NotificationsButton />
               <UserButton />
             </div>
           </div>
