@@ -55,6 +55,8 @@ const MARKETPLACE_CONTRACT_ADDRESS = Config.marketplaceAddress.toLowerCase();
 const MARKETPLACEDATA_CONTRACT_ADDRESS =
   Config.marketplaceDataAddress.toLowerCase();
 
+console.log("Using rpc endpoint:", process.env.RPC_ARBITRUM_ONE_HTTP ?? process.env.RPC_ENDPOINT);
+
 // First we configure data retrieval.
 const processor = new EvmBatchProcessor()
   // // SQD Network gateways are the primary source of blockchain data in
@@ -66,8 +68,7 @@ const processor = new EvmBatchProcessor()
   // // (including unfinalized blocks) in real time. It can also be used to
   // //   - make direct RPC queries to get extra data during indexing
   // //   - sync a squid without a gateway (slow)
-  // .setRpcEndpoint('https://rpc.ankr.com/eth')
-  .setRpcEndpoint(process.env.RPC_ENDPOINT)
+  .setRpcEndpoint(process.env.RPC_ARBITRUM_ONE_HTTP ?? process.env.RPC_ENDPOINT)
   // The processor needs to know how many newest blocks it should mark as "hot".
   // If it detects a blockchain fork, it will roll back any changes to the
   // database made due to orphaned blocks, then re-run the processing for the
