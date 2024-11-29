@@ -316,10 +316,10 @@
   resolved "https://registry.yarnpkg.com/@ecies/ciphers/-/ciphers-0.2.1.tgz#a3119516fb55d27ed2d21c497b1c4988f0b4ca02"
   integrity sha512-ezMihhjW24VNK/2qQR7lH8xCQY24nk0XHF/kwJ1OuiiY5iEwQXOcKVSy47fSoHPRG8gVGXcK5SgtONDk5xMwtQ==
 
-"@effectiveacceleration/contracts@^1.0.10":
-  version "1.0.10"
-  resolved "https://registry.yarnpkg.com/@effectiveacceleration/contracts/-/contracts-1.0.10.tgz#41c6929deae9b8e13b7019a4bfbb7988afbcd8b3"
-  integrity sha512-KBaBsLlN2Tfxq5oER5GHyt4IaLQI7k/vJRzDULs1WWWa85SOdRDOFZsK/In1MfVhqbf62a19Iq2S5azahE0urw==
+"@effectiveacceleration/contracts@^1.0.11":
+  version "1.0.11"
+  resolved "https://registry.yarnpkg.com/@effectiveacceleration/contracts/-/contracts-1.0.11.tgz#522fac398429b70023c37fb9e497dcd9200a3771"
+  integrity sha512-lbsKQGIPRqih62/spNUYNmkhoduymfjrToBdAXE1hXE0S1cJlEEPlXdaDt6GeWmNdZ7kWlbI0NtSyu64FUSDqg==
   dependencies:
     "@noble/ciphers" "^0.5.3"
     viem "^2.21.51"
