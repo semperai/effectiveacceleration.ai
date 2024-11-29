@@ -5,7 +5,8 @@ import { useEthersSigner } from '@/hooks/useEthersSigner';
 import useUser from '@/hooks/subsquid/useUser';
 import { isImageValid } from '@/utils/ImageValidity';
 import { Dialog, Transition } from '@headlessui/react';
-import { CheckIcon, UserIcon } from '@heroicons/react/20/solid';
+import { CheckIcon } from '@heroicons/react/20/solid';
+import { PiUser } from 'react-icons/pi';
 import { getEncryptionSigningKey } from '@effectiveacceleration/contracts';
 import Config from '@effectiveacceleration/contracts/scripts/config.json';
 import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
@@ -44,28 +45,23 @@ const NavButton = ({ name, avatar, openModal }: NavButtonProps) => {
   return (
     <button
       onClick={() => openModal()}
-      className='relative flex h-10 w-10 items-center overflow-hidden rounded-full bg-primary p-2 align-middle'
+      className='flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 transition-colors hover:bg-gray-200'
     >
       {avatar === '' ||
       avatar === undefined ||
       avatar === null ||
       !isImgValid ? (
-        <span className='inline-block h-6 w-6 text-white'>
-          {name && name[0].toUpperCase()}
-          {!name && (
-            <UserIcon
-              className='mr-1.5 h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-300'
-              aria-hidden='true'
-            />
-          )}
-        </span>
+        <PiUser
+          className='h-5 w-5 flex-shrink-0 text-gray-600'
+          aria-hidden='true'
+        />
       ) : (
         <Image
           className='h-full w-full object-cover'
           fill
           src={avatar as string | StaticImport}
           alt={'Profile picture'}
-        ></Image>
+        />
       )}
     </button>
   );
@@ -313,10 +309,10 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
                         {user && userIndex === 0 && (
                           <Field>
                             <p className='whitespace-nowrap'>
-                              <span className='text-green-500 dark:text-green-400'>
+                              <span className='text-green-500'>
                                 +{user.reputationUp}
                               </span>
-                              <span className='text-red-500 dark:text-red-400'>
+                              <span className='text-red-500'>
                                 -{user.reputationDown}
                               </span>{' '}
                               reputation
@@ -326,10 +322,10 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
                         {arbitrator && userIndex === 1 && (
                           <Field>
                             <p className='whitespace-nowrap'>
-                              <span className='text-green-500 dark:text-green-400'>
+                              <span className='text-green-500'>
                                 +{arbitrator.settledCount}
                               </span>
-                              <span className='text-red-500 dark:text-red-400'>
+                              <span className='text-red-500'>
                                 -{arbitrator.refusedCount}
                               </span>{' '}
                               reputation
