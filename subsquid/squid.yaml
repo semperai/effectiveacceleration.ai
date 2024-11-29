@@ -8,6 +8,8 @@ deploy:
     postgres: 
     rpc:
       - eth.http
+      - arbitrum-one.http
+      - arbitrum-sepolia.http
   processor:
     cmd:
       - sqd
@@ -16,3 +18,13 @@ deploy:
     cmd:
       - sqd
       - serve:prod
+scale:
+  dedicated: true
+  addons:
+    postgres:
+      profile: small
+  processor:
+    profile: small
+  api:
+    profile: small
+    replicas: 2
