@@ -14,7 +14,6 @@ import {
   NormalizedCacheObject,
 } from '@apollo/client';
 import {
-  persistCache,
   LocalStorageWrapper,
   CachePersistor,
 } from 'apollo3-cache-persist';

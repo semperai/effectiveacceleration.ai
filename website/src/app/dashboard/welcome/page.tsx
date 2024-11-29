@@ -349,12 +349,12 @@ const FeatureCards = () => {
             <p className='text-gray-600'>
               Create, deploy, and invest in AI agents using any programming
               language or platform. Powered by platforms like{' '}
-              <a
+              <Link
                 href='https://arbius.ai'
                 className='text-blue-600 hover:underline'
               >
                 Arbius
-              </a>{' '}
+              </Link>{' '}
               for compute resources.
             </p>
           </CardContent>
