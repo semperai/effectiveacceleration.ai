@@ -109,6 +109,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function init() {
       const cache = new InMemoryCache(cacheConfig);
+      /*
       let newPersistor = new CachePersistor({
         cache,
         storage: new LocalStorageWrapper(window.sessionStorage),
@@ -116,6 +117,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         trigger: 'write',
       });
       await newPersistor.restore();
+      */
       setApolloClient(
         new ApolloClient({
           uri: process.env.NEXT_PUBLIC_SUBSQUID_API_URL,
