@@ -74,7 +74,7 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
   // TODO maybe this shouldn't be triggered...
   // we also have force redirect
   // arguably this is more informative though
-  if (true) {
+  if (user) {
     return <RegisteredUserView />;
   }
 
