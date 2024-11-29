@@ -10,6 +10,7 @@ export const Toaster = ({ ...props }: ToasterProps) => {
       className='toaster group'
       position='bottom-left'
       expand={true}
+      richColors
       toastOptions={{
         classNames: {
           toast:
