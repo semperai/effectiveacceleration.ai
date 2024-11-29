@@ -4,7 +4,7 @@ import { Address, Hash } from 'viem';
 import { useEffect, useCallback, useRef } from 'react';
 
 type WriteContractConfig = {
-  abi: any[];
+  abi: any;
   address: Address;
   functionName: string;
   args: any[];
