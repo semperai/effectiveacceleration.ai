@@ -115,7 +115,7 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
     );
 
     const updatedUser = {
-      ...user,
+      ...(user ?? {}),
       address_: address,
       publicKey: encryptionPublicKey,
       name: formState.userName,
@@ -126,6 +126,7 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
     sessionStorage.setItem(`user-${address}`, JSON.stringify(updatedUser));
 
     // Redirect based on whether there's a pending job post
+    // TODO should't this redirect to last page before coming to register page
     const hasUnfinishedJob = jobsAfterSignUp[0]?.title;
     router.push(hasUnfinishedJob ? '/dashboard/post-job' : '/dashboard');
   };
@@ -201,7 +202,7 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
 
         <div className='flex flex-col gay-y-4 pt-8'>
           <h1 className='text-2xl font-extrabold'>Create a Profile</h1>
-  
+
           <FieldGroup className='my-2 flex-1 space-y-6'>
             <div className='space-y-2'>
               <span className='text-sm text-gray-600'>
@@ -215,7 +216,7 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
                 }
               />
             </div>
-  
+
             <Field>
               <Label>Your Name</Label>
               <Input
@@ -226,7 +227,7 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
                 required
               />
             </Field>
-  
+
             <Field>
               <Label>About Yourself</Label>
               <Textarea
@@ -238,11 +239,11 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
               />
             </Field>
           </FieldGroup>
-  
+
           <span className='text-sm text-primary'>
             * Name and avatar can be changed later
           </span>
-  
+
           <Button
             onClick={handleSubmit}
             disabled={!formState.userName || formState.isSubmitting}
