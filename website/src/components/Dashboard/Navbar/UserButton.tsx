@@ -13,14 +13,11 @@ import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/
 import { StaticImport } from 'next/dist/shared/lib/get-img-props';
 import Image from 'next/image';
 import { Fragment, useEffect, useState } from 'react';
-import {
-  useAccount,
-  useWaitForTransactionReceipt,
-  useWriteContract,
-} from 'wagmi';
+import { useAccount } from 'wagmi';
 import { Field, Label } from '@/components/Fieldset';
 import { Input } from '@/components/Input';
 import UploadAvatar from '@/components/UploadAvatar';
+import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 
 interface NavButtonProps {
   name: string | undefined;
@@ -86,12 +83,7 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
   const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
   const [open, setOpen] = useState(false);
 
-  const { data: hash, error, writeContract } = useWriteContract();
-
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
-    useWaitForTransactionReceipt({
-      hash,
-    });
+  const { writeContractWithNotifications, isConfirming, isConfirmed } = useWriteContractWithNotifications();
 
   useEffect(() => {
     const avatarUrl = users[userIndex]?.avatar;
@@ -107,41 +99,12 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
     setFee(arbitrator?.fee ?? 0);
   }, [user, arbitrator]);
 
-  useEffect(() => {
-    if (isConfirmed || error) {
-      if (avatar !== newAvatar) {
-        setAvatar(newAvatar);
-      }
-      if (error) {
-        const revertReason = error.message.match(
-          `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-        )?.[1];
-        if (revertReason) {
-          alert(
-            error.message.match(
-              `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-            )?.[1]
-          );
-        } else {
-          console.log(error, error.message);
-          alert('Unknown error occurred');
-        }
-      }
-
-      sessionStorage.removeItem(`user-${address}`);
-      sessionStorage.removeItem(`arbitrator-${address}`);
-
-      setButtonDisabled(false);
-      setOpen(false);
-    }
-  }, [isConfirmed, error]);
-
   async function updateButtonClick() {
     setButtonDisabled(true);
 
     const methodName = userIndex === 0 ? 'updateUser' : 'updateArbitrator';
 
-    const w = writeContract({
+    await writeContractWithNotifications({
       abi: MARKETPLACE_DATA_V1_ABI,
       address: Config.marketplaceDataAddress,
       functionName: methodName,
@@ -156,14 +119,14 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
       .compressedPublicKey;
 
     if (userIndex === 0) {
-      const w = writeContract({
+      await writeContractWithNotifications({
         abi: MARKETPLACE_DATA_V1_ABI,
         address: Config.marketplaceDataAddress,
         functionName: 'registerUser',
         args: [encryptionPublicKey, name!, bio!, avatarFileUrl!],
       });
     } else {
-      const w = writeContract({
+      await writeContractWithNotifications({
         abi: MARKETPLACE_DATA_V1_ABI,
         address: Config.marketplaceDataAddress,
         functionName: 'registerArbitrator',
