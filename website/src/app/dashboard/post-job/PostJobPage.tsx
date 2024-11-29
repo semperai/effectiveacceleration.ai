@@ -736,7 +736,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
                     onChange={handleInputChange(
                       setDescription,
                       setDescriptionError,
-                      { required: true, minLength: 10 }
+                      { required: false }
                     )}
                   />
                   {descriptionError && (

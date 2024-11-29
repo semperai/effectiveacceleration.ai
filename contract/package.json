@@ -1,7 +1,7 @@
 {
   "name": "@effectiveacceleration/contracts",
-  "version": "1.0.9",
-  "description": "arbius",
+  "version": "1.0.10",
+  "description": "Effective Acceleration contracts",
   "author": "Kasumi Null <kasumi.null@yandex.com>",
   "license": "MIT",
   "main": "dist/src/index.js",
