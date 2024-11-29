@@ -1,0 +1,12 @@
+{
+  "ownerAddress": "0x98427EB0A7AC42229901922F533E63210B5dD53f",
+  "marketplaceFeeAddress": "0x000000000000000000000000000000000000beef",
+  "marketplaceAddress": "0x52EA368D8a722713a0acaA7b538Db8f5aEB75cE9",
+  "marketplaceDataAddress": "0x9AC17beEf8e0507A31C58841B8ff4a9503cF65eC",
+  "fakeTokenAddress": "0x53743D547c87d81d6A066A41B421E9b7588DEeB9",
+  "unicrowAddress": "0x6d98b03C09EaD582a77C093bdb2d3E85683Aa956",
+  "unicrowDisputeAddress": "0x3dC5d22716599e7FcD1bbB1752544D9dfa7e719E",
+  "unicrowArbitratorAddress": "0xdB400Dd10a4A645c2C1429b3A48F1449E7e4F64A",
+  "unicrowClaimAddress": "0x7761D841D83c5Aeb876DB2b110798C668cd83872",
+  "multicall3Address": "0xca11bde05977b3631167028862be2a173976ca11"
+}
