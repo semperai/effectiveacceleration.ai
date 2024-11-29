@@ -10,10 +10,10 @@ import { Textarea } from '@/components/Textarea';
 import { Dialog, Transition } from '@headlessui/react';
 import { CheckIcon } from '@heroicons/react/20/solid';
 import { Job } from '@effectiveacceleration/contracts';
-import Config from '@effectiveacceleration/contracts/scripts/config.json';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { Fragment, useEffect, useState } from 'react';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
+import { useConfig } from '@/hooks/useConfig';
 
 export type ReviewButtonProps = {
   address: string | undefined;
@@ -25,6 +25,7 @@ export function ReviewButton({
   job,
   ...rest
 }: ReviewButtonProps & React.ComponentPropsWithoutRef<'div'>) {
+  const Config = useConfig();
   const [review, setReview] = useState<string>('');
   const [rating, setRating] = useState<number>(0);
   const { data: hash, error, writeContract } = useWriteContract();
@@ -71,7 +72,7 @@ export function ReviewButton({
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress,
+      address: Config!.marketplaceAddress,
       functionName: 'review',
       args: [BigInt(job.id!), rating, review],
     });

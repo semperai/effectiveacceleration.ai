@@ -12,10 +12,21 @@ import {
   InMemoryCache,
   ApolloProvider,
   NormalizedCacheObject,
+  InMemoryCacheConfig,
 } from '@apollo/client';
 import { LocalStorageWrapper, CachePersistor } from 'apollo3-cache-persist';
 import { useEffect, useState } from 'react';
 import { useMediaDownloadHandler } from '@/hooks/useMediaDownloadHandler';
+
+declare module 'abitype' {
+  export interface Register {
+    addressType: string;
+    bytesType: {
+      inputs: string;
+      outputs: string;
+    }
+  }
+}
 
 declare module 'wagmi' {
   interface Register {
@@ -55,7 +66,7 @@ export const config = getDefaultConfig({
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!,
   chains:
     process.env.NODE_ENV === 'production'
-      ? [arbitrum]
+      ? [arbitrum, arbitrumSepolia]
       : [staging, hardhat, arbitrum, arbitrumSepolia],
   ssr: true, // If your dApp uses server side rendering (SSR)
 }) as any;
@@ -66,7 +77,7 @@ const bigintPolicy = {
   read: (value: string) => BigInt(value),
 };
 
-const cacheConfig = {
+const cacheConfig: InMemoryCacheConfig = {
   typePolicies: {
     Job: {
       fields: {
@@ -76,6 +87,11 @@ const cacheConfig = {
       },
     },
     Review: {
+      fields: {
+        jobId: bigintPolicy,
+      },
+    },
+    JobEvent: {
       fields: {
         jobId: bigintPolicy,
       },
@@ -109,15 +125,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function init() {
       const cache = new InMemoryCache(cacheConfig);
-      /*
-      let newPersistor = new CachePersistor({
-        cache,
-        storage: new LocalStorageWrapper(window.sessionStorage),
-        debug: false,
-        trigger: 'write',
-      });
-      await newPersistor.restore();
-      */
+      // let newPersistor = new CachePersistor({
+      //   cache,
+      //   storage: new LocalStorageWrapper(window.sessionStorage),
+      //   debug: true,
+      //   trigger: 'write',
+      // });
+      // await newPersistor.restore();
       setApolloClient(
         new ApolloClient({
           uri: process.env.NEXT_PUBLIC_SUBSQUID_API_URL,
@@ -128,6 +142,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
     init().catch(console.error);
   }, []);
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      await apolloClient?.cache.reset();
+    }, 1000 * 60 * 1);
+    return () => clearInterval(interval);
+  }, [apolloClient]);
+
 
   if (!apolloClient) {
     return null;

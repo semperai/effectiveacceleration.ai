@@ -1,13 +1,14 @@
 import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
-import Config from '@effectiveacceleration/contracts/scripts/config.json';
 import { useState, useEffect, useMemo } from 'react';
 import { useAccount, useReadContracts } from 'wagmi';
 import { User, UserRating } from '@effectiveacceleration/contracts';
 import JSON5 from '@mainnet-pat/json5-bigint';
+import { useConfig } from '../useConfig';
 
 type CacheCheck = { targetAddress: string; checkedItem: string };
 
 export default function useUserRatings(targetAddresses: string[]) {
+  const Config = useConfig();
   const [userRatings, setUserRatings] = useState<Record<string, UserRating>>(
     {}
   );
@@ -39,11 +40,11 @@ export default function useUserRatings(targetAddresses: string[]) {
     contracts: missedItems.map((item) => ({
       account: address,
       abi: MARKETPLACE_DATA_V1_ABI,
-      address: Config.marketplaceDataAddress,
+      address: Config!.marketplaceDataAddress,
       functionName: 'getUserRating',
       args: [item.targetAddress],
     })),
-    multicallAddress: Config.multicall3Address,
+    multicallAddress: Config?.multicall3Address,
   });
 
   const userRatingsData = result.data;

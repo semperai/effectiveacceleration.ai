@@ -1,13 +1,14 @@
 import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
-import Config from '@effectiveacceleration/contracts/scripts/config.json';
 import { useState, useEffect, useMemo } from 'react';
 import { useAccount, useReadContract, useReadContracts } from 'wagmi';
 import { getFromIpfs, Job, User } from '@effectiveacceleration/contracts';
 import JSON5 from '@mainnet-pat/json5-bigint';
+import { useConfig } from '../useConfig';
 
 type CacheCheck = { targetJobId: string; checkedItem: string };
 
 export default function useJobsByIds(targetIds: string[]) {
+  const Config = useConfig();
   const [Jobs, setJobs] = useState<Job[]>([]);
   const { address } = useAccount();
   const [cachedItems, setCachedItems] = useState<
@@ -38,12 +39,12 @@ export default function useJobsByIds(targetIds: string[]) {
     contracts: missedItems.map((item, index) => ({
       account: address,
       abi: MARKETPLACE_DATA_V1_ABI,
-      address: Config.marketplaceDataAddress,
+      address: Config!.marketplaceDataAddress,
       functionName: 'getJob',
       args: [item.targetJobId],
       id: targetIds[index],
     })),
-    multicallAddress: Config.multicall3Address,
+    multicallAddress: Config?.multicall3Address,
   });
 
   const jobsData = result.data;

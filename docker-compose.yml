@@ -34,5 +34,5 @@ services:
       IPFS_GATEWAY_URL: "http://ipfs:8080"
       IPFS_UPLOAD_SERVICE_SECRET: "lovy4mnv9oeBbgl;a"
       IPFS_UPLOAD_SERVICE_URL: "http://ipfs-service:8000"
-      CHAIN_ID: 31338
+      CHAIN_ID: 31337
     restart: always

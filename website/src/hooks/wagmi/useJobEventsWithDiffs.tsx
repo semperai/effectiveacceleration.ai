@@ -1,5 +1,4 @@
 import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
-import Config from '@effectiveacceleration/contracts/scripts/config.json';
 import { useState, useEffect, useMemo } from 'react';
 import { useAccount, useReadContract } from 'wagmi';
 import {
@@ -16,8 +15,10 @@ import { useWatchContractEvent } from 'wagmi';
 import { JobEventWithDiffs, JobEvent } from '@effectiveacceleration/contracts';
 import { getAddress, ZeroAddress } from 'ethers';
 import useArbitratorPublicKeys from './useArbitratorPublicKeys';
+import { useConfig } from '../useConfig';
 
 export default function useJobEventsWithDiffs(jobId: string) {
+  const Config = useConfig();
   const [jobEventsWithDiffs, setJobEventsWithDiffs] = useState<
     JobEventWithDiffs[]
   >([]);
@@ -36,7 +37,7 @@ export default function useJobEventsWithDiffs(jobId: string) {
   const result = useReadContract({
     account: address,
     abi: MARKETPLACE_DATA_V1_ABI,
-    address: Config.marketplaceDataAddress,
+    address: Config!.marketplaceDataAddress,
     functionName: 'getEvents',
     args: [BigInt(jobId), 0n, 0n],
   });
@@ -51,7 +52,7 @@ export default function useJobEventsWithDiffs(jobId: string) {
 
   useWatchContractEvent({
     abi: MARKETPLACE_DATA_V1_ABI,
-    address: Config.marketplaceDataAddress,
+    address: Config!.marketplaceDataAddress,
     eventName: 'JobEvent',
     onLogs: async (logs) => {
       const filtered = logs.filter(

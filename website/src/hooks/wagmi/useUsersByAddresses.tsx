@@ -1,13 +1,14 @@
 import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
-import Config from '@effectiveacceleration/contracts/scripts/config.json';
 import { useState, useEffect, useMemo } from 'react';
 import { useAccount, useReadContracts } from 'wagmi';
 import { User } from '@effectiveacceleration/contracts';
 import JSON5 from '@mainnet-pat/json5-bigint';
+import { useConfig } from '../useConfig';
 
 type CacheCheck = { targetAddress: string; checkedItem: string };
 
 export default function useUsersByAddresses(targetAddresses: string[]) {
+  const Config = useConfig();
   const [users, setUsers] = useState<Record<string, User>>({});
   const { address } = useAccount();
   const [cachedItems, setCachedItems] = useState<
@@ -36,11 +37,11 @@ export default function useUsersByAddresses(targetAddresses: string[]) {
     contracts: missedItems.map((item) => ({
       account: address,
       abi: MARKETPLACE_DATA_V1_ABI,
-      address: Config.marketplaceDataAddress,
+      address: Config!.marketplaceDataAddress,
       functionName: 'getUser',
       args: [item.targetAddress],
     })),
-    multicallAddress: Config.multicall3Address,
+    multicallAddress: Config?.multicall3Address,
   });
 
   const usersData = result.data;

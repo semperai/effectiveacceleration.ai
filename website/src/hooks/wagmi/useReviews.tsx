@@ -1,17 +1,18 @@
 import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
-import Config from '@effectiveacceleration/contracts/scripts/config.json';
 import { useState, useEffect } from 'react';
 import { useAccount, useReadContract } from 'wagmi';
 import { Review } from '@effectiveacceleration/contracts';
+import { useConfig } from '../useConfig';
 
 export default function useReviews(targetAddress: string) {
+  const Config = useConfig();
   const [reviews, setReviews] = useState<Review[]>([]);
   const { address } = useAccount();
 
   const result = useReadContract({
     account: address,
     abi: MARKETPLACE_DATA_V1_ABI,
-    address: Config.marketplaceDataAddress,
+    address: Config!.marketplaceDataAddress,
     functionName: 'getReviews',
     args: [targetAddress, 0n, 0n],
   });

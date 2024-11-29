@@ -13,7 +13,7 @@ import { TypeormDatabase } from "@subsquid/typeorm-store";
 
 import * as marketplaceAbi from "./abi/MarketplaceV1";
 import * as marketplaceDataAbi from "./abi/MarketplaceDataV1";
-import Config from "@effectiveacceleration/contracts/scripts/config.json";
+import { Config } from "@effectiveacceleration/contracts";
 
 import {
   JobEvent,
@@ -51,11 +51,12 @@ import { get } from 'http';
 // const MARKETPLACEDATA_CONTRACT_ADDRESS =
 //   "0xB43014F1328dd3732f60C06107F1b5a03eea60AF".toLowerCase();
 
-const MARKETPLACE_CONTRACT_ADDRESS = Config.marketplaceAddress.toLowerCase();
-const MARKETPLACEDATA_CONTRACT_ADDRESS =
-  Config.marketplaceDataAddress.toLowerCase();
+const networkName = process.env.NETWORK ?? "Hardhat";
+const RpcNetworkName = networkName.toUpperCase().replace(" ", "_");
+const MARKETPLACE_CONTRACT_ADDRESS = Config(networkName).marketplaceAddress.toLowerCase();
+const MARKETPLACEDATA_CONTRACT_ADDRESS = Config(networkName).marketplaceDataAddress.toLowerCase();
 
-console.log("Using rpc endpoint:", process.env.RPC_ARBITRUM_ONE_HTTP ?? process.env.RPC_ENDPOINT);
+console.log("Using rpc endpoint:", process.env[`RPC_${RpcNetworkName}_HTTP`] ?? process.env.RPC_ENDPOINT);
 
 // First we configure data retrieval.
 const processor = new EvmBatchProcessor()
@@ -68,7 +69,7 @@ const processor = new EvmBatchProcessor()
   // // (including unfinalized blocks) in real time. It can also be used to
   // //   - make direct RPC queries to get extra data during indexing
   // //   - sync a squid without a gateway (slow)
-  .setRpcEndpoint(process.env.RPC_ARBITRUM_ONE_HTTP ?? process.env.RPC_ENDPOINT)
+  .setRpcEndpoint(process.env[`RPC_${RpcNetworkName}_HTTP`] ?? process.env.RPC_ENDPOINT)
   // The processor needs to know how many newest blocks it should mark as "hot".
   // If it detects a blockchain fork, it will roll back any changes to the
   // database made due to orphaned blocks, then re-run the processing for the

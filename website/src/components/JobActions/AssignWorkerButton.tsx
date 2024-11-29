@@ -4,11 +4,11 @@ import { formatTokenNameAndAmount } from '@/tokens';
 import { jobMeceTags } from '@/utils/jobMeceTags';
 import { Dialog, Transition } from '@headlessui/react';
 import { Job } from '@effectiveacceleration/contracts';
-import Config from '@effectiveacceleration/contracts/scripts/config.json';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import moment from 'moment';
 import { Fragment, useEffect, useState } from 'react';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
+import { useConfig } from '@/hooks/useConfig';
 
 export type AssignWorkerButtonProps = {
   address: string | undefined;
@@ -22,6 +22,7 @@ export function AssignWorkerButton({
   selectedWorker,
   ...rest
 }: AssignWorkerButtonProps & React.ComponentPropsWithoutRef<'div'>) {
+  const Config = useConfig();
   const { data: users } = useUsers();
   const jobMeceTag = jobMeceTags.find((tag) => tag.id === job?.tags[0])?.name;
   const { data: hash, error, writeContract } = useWriteContract();
@@ -58,7 +59,7 @@ export function AssignWorkerButton({
     setButtonDisabled(true);
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress,
+      address: Config!.marketplaceAddress,
       functionName: 'payStartJob',
       args: [BigInt(job.id!), selectedWorker],
     });

@@ -1,13 +1,13 @@
 import { Button } from '@/components/Button';
 import { Dialog, Transition } from '@headlessui/react';
 import { Job, publishToIpfs } from '@effectiveacceleration/contracts';
-import Config from '@effectiveacceleration/contracts/scripts/config.json';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { Fragment, useEffect, useState } from 'react';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import { Field, Label } from '../Fieldset';
 import { Input } from '../Input';
 import { Textarea } from '../Textarea';
+import { useConfig } from '@/hooks/useConfig';
 
 export type ArbitrateButtonProps = {
   address: string | undefined;
@@ -21,6 +21,7 @@ export function ArbitrateButton({
   sessionKeys,
   ...rest
 }: ArbitrateButtonProps & React.ComponentPropsWithoutRef<'div'>) {
+  const Config = useConfig();
   const [sharesSlider, setSharesSlider] = useState<number>(0.5);
   const [ownerShare, setOwnerShare] = useState<number>(5000);
   const [workerShare, setWorkerShare] = useState<number>(5000);
@@ -69,7 +70,7 @@ export function ArbitrateButton({
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress,
+      address: Config!.marketplaceAddress,
       functionName: 'arbitrate',
       args: [BigInt(job.id!), ownerShare, workerShare, contentHash],
     });
