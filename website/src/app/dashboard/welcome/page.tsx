@@ -422,14 +422,16 @@ const Hero = () => {
 
 export default function WelcomePage() {
   return (
-    <Layout borderless>
+    <Layout borderless noSidebar>
       <div className='relative h-96 bg-gradient-to-r from-blue-600 to-indigo-700'>
         <Hero />
-        <SecurityFeatures />
-        <TokenSection />
-        <FeatureCards />
-        <Stats />
-        <AIArbitrationDAO />
+        <div className='lg:mx-40'>
+          <SecurityFeatures />
+          <TokenSection />
+          <FeatureCards />
+          <Stats />
+          <AIArbitrationDAO />
+        </div>
         <DeveloperCTA />
       </div>
     </Layout>
