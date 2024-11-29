@@ -1,7 +1,6 @@
 import { Button } from '@/components/Button';
 import { CheckIcon } from '@heroicons/react/20/solid';
 import { Job, JobEventWithDiffs } from '@effectiveacceleration/contracts';
-import Config from '@effectiveacceleration/contracts/scripts/config.json';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { ethers } from 'ethers';
 import { useEffect, useState } from 'react';
@@ -10,6 +9,7 @@ import {
   useWaitForTransactionReceipt,
   useWriteContract,
 } from 'wagmi';
+import { useConfig } from '@/hooks/useConfig';
 
 export type AcceptButtonProps = {
   address: string | undefined;
@@ -25,6 +25,7 @@ export function AcceptButton({
 }: AcceptButtonProps & React.ComponentPropsWithoutRef<'div'>) {
   const { signMessageAsync } = useSignMessage();
   const { data: hash, error, writeContract } = useWriteContract();
+  const Config = useConfig();
 
   const { isLoading: isConfirming, isSuccess: isConfirmed } =
     useWaitForTransactionReceipt({
@@ -74,7 +75,7 @@ export function AcceptButton({
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress,
+      address: Config!.marketplaceAddress,
       functionName: 'takeJob',
       args: [BigInt(job.id!), signature],
     });

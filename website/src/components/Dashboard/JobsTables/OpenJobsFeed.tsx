@@ -1,30 +1,16 @@
 'use client';
-import React, { useEffect, useMemo, useState, useRef } from 'react';
+import React, {  } from 'react';
 import { OpenJobs } from './OpenJobs';
-import useJobs from '@/hooks/subsquid/useJobs';
-import { Job, JobState } from '@effectiveacceleration/contracts';
 import { JobFilter } from '@/components/Dashboard/JobsTables/JobFilter';
+import useOpenJobs from '@/hooks/subsquid/useOpenJobs';
 
 export const OpenJobsFeed = () => {
-  const { data: jobs } = useJobs();
-  const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
-
-  useEffect(() => {
-    const filteredJobs: Job[] = [];
-
-    jobs?.forEach((job, index) => {
-      if (job.state === JobState.Open) {
-        filteredJobs.push(job);
-      }
-    });
-
-    setFilteredJobs(filteredJobs);
-  }, [jobs]);
+  const { data: jobs } = useOpenJobs();
 
   return (
     <div>
       <JobFilter />
-      <OpenJobs filteredJobs={filteredJobs} localJobs={filteredJobs} />
+      <OpenJobs filteredJobs={jobs ?? []} localJobs={jobs ?? []} />
     </div>
   );
 };

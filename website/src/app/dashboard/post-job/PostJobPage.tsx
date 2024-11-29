@@ -30,7 +30,6 @@ import {
   unitsDeliveryTime,
 } from '@/utils/utils';
 import { publishToIpfs } from '@effectiveacceleration/contracts';
-import Config from '@effectiveacceleration/contracts/scripts/config.json';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { ethers } from 'ethers';
 import moment from 'moment';
@@ -47,6 +46,7 @@ import React, {
 import { zeroAddress } from 'viem';
 import {
   useAccount,
+  useConfig,
   useReadContract,
   useWaitForTransactionReceipt,
   useWriteContract,
@@ -276,6 +276,7 @@ const JobSummary = ({
 
 const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
   (props, ref) => {
+    const Config = useConfig();
     const router = useRouter();
     const searchParams = useSearchParams();
     const { address, isConnected } = useAccount();
@@ -392,7 +393,7 @@ const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
         : 0;
       const w = writeContract({
         abi: MARKETPLACE_V1_ABI,
-        address: Config.marketplaceAddress as string,
+        address: Config!.marketplaceAddress,
         functionName: 'publishJobPost',
         args: [
           title,

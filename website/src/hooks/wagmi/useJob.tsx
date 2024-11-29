@@ -1,10 +1,10 @@
 import { getFromIpfs, Job } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
-import Config from '@effectiveacceleration/contracts/scripts/config.json';
 import { useParams } from 'next/navigation';
 import { useState, useEffect, useMemo } from 'react';
 import { useAccount, useReadContract, useWatchContractEvent } from 'wagmi';
 import { LOCAL_JOBS_CACHE } from '@/utils/constants';
+import { useConfig } from '../useConfig';
 
 const updateLocalJobStorage = ({
   id,
@@ -43,6 +43,7 @@ const updateLocalJobStorage = ({
 };
 
 export default function useJob(id: bigint) {
+  const Config = useConfig();
   const [job, setJob] = useState<Job | undefined>(undefined);
   const [blockNumber, setBlockNumber] = useState<any>(undefined);
   const [lastJobEvent, setLastJobEvent] = useState<any>(null);
@@ -51,7 +52,7 @@ export default function useJob(id: bigint) {
   const result = useReadContract({
     account: address,
     abi: MARKETPLACE_DATA_V1_ABI,
-    address: Config.marketplaceDataAddress,
+    address: Config!.marketplaceDataAddress,
     functionName: 'getJob',
     args: [id],
   });
@@ -62,7 +63,7 @@ export default function useJob(id: bigint) {
   const { data: _, ...rest } = result;
 
   useWatchContractEvent({
-    address: Config.marketplaceDataAddress,
+    address: Config!.marketplaceDataAddress,
     abi: MARKETPLACE_DATA_V1_ABI,
     eventName: 'JobEvent',
     onLogs: async (jobEvent) => {

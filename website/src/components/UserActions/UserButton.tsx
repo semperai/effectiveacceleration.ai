@@ -7,7 +7,6 @@ import { isImageValid } from '@/utils/ImageValidity';
 import { Dialog, Transition } from '@headlessui/react';
 import { CheckIcon, UserIcon } from '@heroicons/react/20/solid';
 import { getEncryptionSigningKey } from '@effectiveacceleration/contracts';
-import Config from '@effectiveacceleration/contracts/scripts/config.json';
 import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
 import { StaticImport } from 'next/dist/shared/lib/get-img-props';
 import Image from 'next/image';
@@ -20,6 +19,7 @@ import {
 import { Field, Label } from '../Fieldset';
 import { Input } from '../Input';
 import UploadAvatar from '../UploadAvatar';
+import { useConfig } from '@/hooks/useConfig';
 
 interface NavButtonProps {
   name: string | undefined;
@@ -72,6 +72,7 @@ const NavButton = ({ name, avatar, openModal }: NavButtonProps) => {
 };
 
 export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
+  const Config = useConfig();
   const viewAsValues = ['User', 'Arbitrator'];
   const signer = useEthersSigner();
   const { address } = useAccount();
@@ -147,7 +148,7 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
 
     const w = writeContract({
       abi: MARKETPLACE_DATA_V1_ABI,
-      address: Config.marketplaceDataAddress,
+      address: Config!.marketplaceDataAddress,
       functionName: methodName,
       args: [name!, bio!, avatarFileUrl!],
     });
@@ -162,14 +163,14 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
     if (userIndex === 0) {
       const w = writeContract({
         abi: MARKETPLACE_DATA_V1_ABI,
-        address: Config.marketplaceDataAddress,
+        address: Config!.marketplaceDataAddress,
         functionName: 'registerUser',
         args: [encryptionPublicKey, name!, bio!, avatarFileUrl!],
       });
     } else {
       const w = writeContract({
         abi: MARKETPLACE_DATA_V1_ABI,
-        address: Config.marketplaceDataAddress,
+        address: Config!.marketplaceDataAddress,
         functionName: 'registerArbitrator',
         args: [encryptionPublicKey, name!, bio!, avatarFileUrl!, fee!],
       });

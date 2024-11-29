@@ -1,12 +1,13 @@
-import Config from '@effectiveacceleration/contracts/scripts/config.json';
 import { useState, useEffect } from 'react';
 import { useAccount, useReadContracts } from 'wagmi';
 import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
 import { Arbitrator } from '@effectiveacceleration/contracts';
+import { useConfig } from '../useConfig';
 
 type CacheCheck = { targetAddress: string; checkedItem: string };
 
 export default function useArbitratorPublicKeys(targetAddresses: string[]) {
+  const Config = useConfig();
   const [publicKeys, setPublicKeys] = useState<Record<string, string>>({});
   const { address } = useAccount();
   const [cachedItems, setCachedItems] = useState<
@@ -38,11 +39,11 @@ export default function useArbitratorPublicKeys(targetAddresses: string[]) {
     contracts: missedItems.map((item) => ({
       account: address,
       abi: MARKETPLACE_DATA_V1_ABI,
-      address: Config.marketplaceDataAddress,
+      address: Config!.marketplaceDataAddress,
       functionName: 'getArbitrator',
       args: [item.targetAddress],
     })),
-    multicallAddress: Config.multicall3Address,
+    multicallAddress: Config?.multicall3Address,
   });
 
   const arbitratorsData = result.data;

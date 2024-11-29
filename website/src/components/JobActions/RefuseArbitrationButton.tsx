@@ -1,6 +1,6 @@
 import { Button } from '@/components/Button';
+import { useConfig } from '@/hooks/useConfig';
 import { Job } from '@effectiveacceleration/contracts';
-import Config from '@effectiveacceleration/contracts/scripts/config.json';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { useEffect, useState } from 'react';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
@@ -13,6 +13,7 @@ export function RefuseArbitrationButton({
   job,
   ...rest
 }: RefuseArbitrationButtonProps & React.ComponentPropsWithoutRef<'div'>) {
+  const Config = useConfig();
   const { data: hash, error, writeContract } = useWriteContract();
 
   const { isLoading: isConfirming, isSuccess: isConfirmed } =
@@ -48,7 +49,7 @@ export function RefuseArbitrationButton({
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress,
+      address: Config!.marketplaceAddress,
       functionName: 'refuseArbitration',
       args: [BigInt(job.id!)],
     });

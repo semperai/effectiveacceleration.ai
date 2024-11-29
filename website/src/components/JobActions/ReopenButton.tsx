@@ -1,6 +1,6 @@
 import { Button } from '@/components/Button';
+import { useConfig } from '@/hooks/useConfig';
 import { Job } from '@effectiveacceleration/contracts';
-import Config from '@effectiveacceleration/contracts/scripts/config.json';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { useEffect, useState } from 'react';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
@@ -15,6 +15,7 @@ export function ReopenButton({
   job,
   ...rest
 }: ReopenButtonProps & React.ComponentPropsWithoutRef<'div'>) {
+  const Config = useConfig();
   const { data: hash, error, writeContract } = useWriteContract();
 
   const { isLoading: isConfirming, isSuccess: isConfirmed } =
@@ -50,7 +51,7 @@ export function ReopenButton({
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress,
+      address: Config!.marketplaceAddress,
       functionName: 'reopenJob',
       args: [BigInt(job.id!)],
     });

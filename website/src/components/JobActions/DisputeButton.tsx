@@ -5,12 +5,12 @@ import {
   encryptUtf8Data,
   Job,
 } from '@effectiveacceleration/contracts';
-import Config from '@effectiveacceleration/contracts/scripts/config.json';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { getBytes, hexlify } from 'ethers';
 import { Fragment, useEffect, useState } from 'react';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import { Textarea } from '../Textarea';
+import { useConfig } from '@/hooks/useConfig';
 
 export type DisputeButtonProps = {
   address: string | undefined;
@@ -24,6 +24,7 @@ export function DisputeButton({
   sessionKeys,
   ...rest
 }: DisputeButtonProps & React.ComponentPropsWithoutRef<'div'>) {
+  const Config = useConfig();
   const [message, setMessage] = useState<string>('');
   const { data: hash, error, writeContract } = useWriteContract();
 
@@ -73,7 +74,7 @@ export function DisputeButton({
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress,
+      address: Config!.marketplaceAddress,
       functionName: 'dispute',
       args: [BigInt(job.id!), encryptedSessionKey, encryptedContent],
     });

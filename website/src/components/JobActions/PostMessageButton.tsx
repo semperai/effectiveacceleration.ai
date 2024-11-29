@@ -2,13 +2,13 @@ import { Button } from '@/components/Button';
 import { useRouter } from 'next/navigation';
 import useUser from '@/hooks/subsquid/useUser';
 import { Job, publishToIpfs } from '@effectiveacceleration/contracts';
-import Config from '@effectiveacceleration/contracts/scripts/config.json';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { useEffect, useState } from 'react';
 import { PiPaperPlaneRight } from 'react-icons/pi';
 import { zeroAddress } from 'viem';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import { Textarea } from '../Textarea';
+import { useConfig } from '@/hooks/useConfig';
 
 export type PostMessageButtonProps = {
   address: string | undefined;
@@ -26,6 +26,7 @@ export function PostMessageButton({
   sessionKeys,
   ...rest
 }: PostMessageButtonProps & React.ComponentPropsWithoutRef<'div'>) {
+  const Config = useConfig();
   const router = useRouter();
   const { data: user } = useUser(address!);
   const [message, setMessage] = useState<string>('');
@@ -72,7 +73,7 @@ export function PostMessageButton({
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress,
+      address: Config!.marketplaceAddress,
       functionName: 'postThreadMessage',
       args: [BigInt(job.id!), contentHash, selectedUserRecipient],
     });

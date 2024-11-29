@@ -11,7 +11,7 @@ import {
 import { Dialog, Transition } from '@headlessui/react';
 import { CheckIcon } from '@heroicons/react/20/solid';
 import { Job, publishToIpfs } from '@effectiveacceleration/contracts';
-import Config from '@effectiveacceleration/contracts/scripts/config.json';
+
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { formatUnits, parseUnits } from 'ethers';
 import { ChangeEvent, Fragment, useEffect, useState } from 'react';
@@ -22,6 +22,7 @@ import { Field, Label } from '../Fieldset';
 import { Input } from '../Input';
 import { Radio, RadioGroup } from '../Radio';
 import { Textarea } from '../Textarea';
+import { useConfig } from '@/hooks/useConfig';
 
 export type UpdateButtonProps = {
   address: string | undefined;
@@ -69,6 +70,7 @@ export function UpdateButton({
   job,
   ...rest
 }: UpdateButtonProps & React.ComponentPropsWithoutRef<'div'>) {
+  const Config = useConfig();
   const [title, setTitle] = useState<string>(job.title);
   const [titleError, setTitleError] = useState('');
   const [descriptionError, setDescriptionError] = useState('');
@@ -197,7 +199,7 @@ export function UpdateButton({
 
       const w = writeContract({
         abi: MARKETPLACE_V1_ABI,
-        address: Config.marketplaceAddress,
+        address: Config!.marketplaceAddress,
         functionName: 'updateJobPost',
         args: [
           BigInt(job.id!),

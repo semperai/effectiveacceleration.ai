@@ -7,7 +7,6 @@ import { Input } from '@/components/Input';
 import { Textarea } from '@/components/Textarea';
 import UploadAvatar from '@/components/UploadAvatar';
 import useUser from '@/hooks/subsquid/useUser';
-import Config from '@effectiveacceleration/contracts/scripts/config.json';
 import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
 import { AlertCircle } from 'lucide-react';
 import Image from 'next/image';
@@ -21,6 +20,7 @@ import {
 import { PostJobParams } from '../dashboard/post-job/PostJobPage';
 import { Alert, AlertDescription } from '@/components/Alert';
 import RegisterSidebarImage from '@/images/register-sidebar-man.jpg';
+import { useConfig } from '@/hooks/useConfig';
 
 const RegisteredUserView = () => {
   const router = useRouter();
@@ -51,6 +51,7 @@ interface CreateProfileProps {
 const CreateProfile: React.FC<CreateProfileProps> = ({
   encryptionPublicKey,
 }) => {
+  const Config = useConfig();
   // State management
   const [formState, setFormState] = useState({
     avatar: '',
@@ -159,7 +160,7 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
     try {
       await writeContract({
         abi: MARKETPLACE_DATA_V1_ABI,
-        address: Config.marketplaceDataAddress as string,
+        address: Config!.marketplaceDataAddress,
         functionName: 'registerUser',
         args: [
           encryptionPublicKey,

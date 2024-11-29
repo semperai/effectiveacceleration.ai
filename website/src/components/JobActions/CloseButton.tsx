@@ -2,9 +2,9 @@ import { Button } from '@/components/Button';
 import { CheckIcon } from '@heroicons/react/20/solid';
 import { Job } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
-import Config from '@effectiveacceleration/contracts/scripts/config.json';
 import { useEffect, useState } from 'react';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
+import { useConfig } from '@/hooks/useConfig';
 
 export type CloseButtonProps = {
   address: string | undefined;
@@ -16,6 +16,7 @@ export function CloseButton({
   job,
   ...rest
 }: CloseButtonProps & React.ComponentPropsWithoutRef<'div'>) {
+  const Config = useConfig();
   const { data: hash, error, writeContract } = useWriteContract();
 
   const { isSuccess: isConfirmed } = useWaitForTransactionReceipt({
@@ -50,7 +51,7 @@ export function CloseButton({
 
     const w = writeContract({
       abi: MARKETPLACE_V1_ABI,
-      address: Config.marketplaceAddress,
+      address: Config!.marketplaceAddress,
       functionName: 'closeJob',
       args: [BigInt(job.id!)],
     });
