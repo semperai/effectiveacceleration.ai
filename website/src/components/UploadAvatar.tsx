@@ -4,15 +4,17 @@ import { Field } from './Fieldset';
 
 const ipfsGatewayUrl = process.env.NEXT_PUBLIC_IPFS_GATEWAY_URL ?? '';
 
+interface UploadAvatarProps {
+  avatar: string | undefined;
+  setAvatar: (value: string | undefined) => void;
+  setAvatarFileUrl: (value: string | undefined) => void;
+}
+
 const UploadAvatar = ({
   avatar,
   setAvatar,
   setAvatarFileUrl,
-}: {
-  avatar: string | undefined;
-  setAvatar: React.Dispatch<React.SetStateAction<string | undefined>>;
-  setAvatarFileUrl: React.Dispatch<React.SetStateAction<string | undefined>>;
-}) => {
+}: UploadAvatarProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const uploadToIPFS = async (file: File): Promise<void> => {
@@ -39,9 +41,7 @@ const UploadAvatar = ({
   };
 
   const handleAvatarClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
+    fileInputRef.current?.click();
   };
 
   const handleFileChange = async (

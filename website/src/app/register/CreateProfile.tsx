@@ -1,4 +1,5 @@
 'use client';
+
 import { Button } from '@/components/Button';
 import { Field, FieldGroup, Label } from '@/components/Fieldset';
 import { Input } from '@/components/Input';
@@ -7,86 +8,120 @@ import UploadAvatar from '@/components/UploadAvatar';
 import useUser from '@/hooks/subsquid/useUser';
 import Config from '@effectiveacceleration/contracts/scripts/config.json';
 import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
+import { AlertCircle } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   useAccount,
   useWaitForTransactionReceipt,
   useWriteContract,
 } from 'wagmi';
 import { PostJobParams } from '../dashboard/post-job/PostJobPage';
+import { Alert, AlertDescription } from '@/components/Alert';
 
-const CreateProfile = ({
-  encryptionPublicKey,
-}: {
+interface CreateProfileProps {
   encryptionPublicKey: string;
+}
+
+const CreateProfile: React.FC<CreateProfileProps> = ({
+  encryptionPublicKey,
 }) => {
-  const [avatar, setAvatar] = useState<string | undefined>('');
-  const [avatarFileUrl, setAvatarFileUrl] = useState<string | undefined>('');
-  const [userName, setName] = useState<string>('');
-  const [userBio, setBio] = useState<string>('');
+  // State management
+  const [formState, setFormState] = useState({
+    avatar: undefined as string | undefined,
+    avatarFileUrl: undefined as string | undefined,
+    userName: '',
+    userBio: '',
+    error: '',
+    isSubmitting: false,
+  });
+
+  // Hooks
   const { address } = useAccount();
   const { data: user } = useUser(address!);
-  const userCopy = { ...user };
   const router = useRouter();
+  const { data: hash, error, writeContract } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess: isConfirmed } =
+    useWaitForTransactionReceipt({ hash });
+
   const unregisteredUserLabel = `${address}-unregistered-job-cache`;
 
-  const { data: hash, error, writeContract } = useWriteContract();
+  // Form update handlers
+  const updateFormField = (field: keyof typeof formState, value: string | undefined) => {
+    setFormState((prev) => ({ ...prev, [field]: value }));
+  };
 
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
-    useWaitForTransactionReceipt({
-      hash,
-    });
-
+  // Handle contract interaction results
   useEffect(() => {
-    if (isConfirmed || error) {
-      if (error) {
-        const revertReason = error.message.match(
-          `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-        )?.[1];
-        if (revertReason) {
-          alert(
-            error.message.match(
-              `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-            )?.[1]
-          );
-        } else {
-          console.log(error, error.message);
-          alert('Unknown error occurred');
-        }
-      }
-      if (isConfirmed) {
-        const jobsAfterSignUp = JSON.parse(
-          sessionStorage.getItem(unregisteredUserLabel) || '[]'
-        );
-        const savedJob: PostJobParams = jobsAfterSignUp[0];
-        userCopy.address_ = address;
-        userCopy.publicKey = encryptionPublicKey;
-        userCopy.name = userName;
-        userCopy.bio = userBio;
-        userCopy.avatar = avatarFileUrl;
-        sessionStorage.setItem(`user-${address}`, JSON.stringify(userCopy));
-        // If savedJob.title exist then this unregistered user is comming from posting a job
-        if (savedJob?.title) {
-          router.push('/dashboard/post-job');
-          return;
-        }
-        router.push('/dashboard');
-      }
+    if (!isConfirmed && !error) return;
+
+    if (error) {
+      const revertReason = error.message.match(
+        /The contract function ".*" reverted with the following reason:\n(.*)\n.*/
+      )?.[1];
+      setFormState((prev) => ({
+        ...prev,
+        error: revertReason || 'An unknown error occurred',
+        isSubmitting: false,
+      }));
+      return;
+    }
+
+    if (isConfirmed) {
+      handleSuccessfulSubmission();
     }
   }, [isConfirmed, error]);
 
-  const submit = () => {
-    if (avatarFileUrl === undefined) return;
+  // Handle successful profile creation
+  const handleSuccessfulSubmission = () => {
+    const jobsAfterSignUp: PostJobParams[] = JSON.parse(
+      sessionStorage.getItem(unregisteredUserLabel) || '[]'
+    );
+
+    const updatedUser = {
+      ...user,
+      address_: address,
+      publicKey: encryptionPublicKey,
+      name: formState.userName,
+      bio: formState.userBio,
+      avatar: formState.avatarFileUrl,
+    };
+
+    sessionStorage.setItem(`user-${address}`, JSON.stringify(updatedUser));
+
+    // Redirect based on whether there's a pending job post
+    const hasUnfinishedJob = jobsAfterSignUp[0]?.title;
+    router.push(hasUnfinishedJob ? '/dashboard/post-job' : '/dashboard');
+  };
+
+  // Submit handler
+  const handleSubmit = async () => {
+    if (!formState.userName) {
+      setFormState((prev) => ({ ...prev, error: 'Please set a name' }));
+      return;
+    }
+
+    setFormState((prev) => ({ ...prev, isSubmitting: true, error: '' }));
+
     try {
-      const w = writeContract({
+      await writeContract({
         abi: MARKETPLACE_DATA_V1_ABI,
         address: Config.marketplaceDataAddress as string,
         functionName: 'registerUser',
-        args: [encryptionPublicKey as string, userName, userBio, avatarFileUrl],
+        args: [
+          encryptionPublicKey,
+          formState.userName,
+          formState.userBio,
+          formState.avatarFileUrl,
+        ],
       });
     } catch (error) {
+      setFormState((prev) => ({
+        ...prev,
+        error: 'Failed to create profile. Please try again.',
+        isSubmitting: false,
+      }));
       console.error('Error writing contract: ', error);
     }
   };
@@ -94,53 +129,71 @@ const CreateProfile = ({
   return (
     <div className='flex flex-row self-center shadow-xl'>
       <Image
-        className='z-10 rounded-l-md'
-        src={'/registerImage.jpg'}
-        height={50}
+        className='z-10 rounded-l-md object-cover'
+        src='/registerImage.jpg'
+        height={500}
         width={350}
-        alt={''}
-      ></Image>
-      <div className='flex w-full max-w-md transform flex-col justify-center gap-y-2 self-center overflow-hidden rounded-md rounded-l-none bg-white p-6 text-left align-middle transition-all'>
-        <h1 className='text-xl font-extrabold'>Create a Profile</h1>
-        <FieldGroup className='my-2 flex-1'>
-          <span className='mb-4'>
-            Add an avatar to stand out from the crowd
-          </span>
-          <UploadAvatar
-            avatar={avatar}
-            setAvatar={setAvatar}
-            setAvatarFileUrl={setAvatarFileUrl}
-          />
+        alt='Registration welcome image'
+        priority
+      />
+
+      <div className='flex w-full max-w-md transform flex-col justify-center gap-y-4 self-center overflow-hidden rounded-md rounded-l-none bg-white p-8 text-left align-middle transition-all'>
+        <h1 className='text-2xl font-extrabold'>Create a Profile</h1>
+
+        {formState.error && (
+          <Alert variant='destructive'>
+            <AlertCircle className='h-4 w-4' />
+            <AlertDescription>{formState.error}</AlertDescription>
+          </Alert>
+        )}
+
+        <FieldGroup className='my-2 flex-1 space-y-6'>
+          <div className='space-y-2'>
+            <span className='text-sm text-gray-600'>
+              Add an avatar to stand out from the crowd
+            </span>
+            <UploadAvatar
+              avatar={formState.avatar}
+              setAvatar={(value) => updateFormField('avatar', value)}
+              setAvatarFileUrl={(value) =>
+                updateFormField('avatarFileUrl', value)
+              }
+            />
+          </div>
+
           <Field>
             <Label>Your Name</Label>
             <Input
               name='name'
-              value={userName}
-              placeholder='Name'
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setName(e.target.value)
-              }
+              value={formState.userName}
+              placeholder='Enter your name'
+              onChange={(e) => updateFormField('userName', e.target.value)}
+              required
             />
-            {/* {titleError && <div className='text-xs' style={{ color: 'red' }}>{titleError}</div>} */}
           </Field>
+
           <Field>
             <Label>About Yourself</Label>
             <Textarea
-              name='title'
-              value={userBio}
-              placeholder='About Yourself'
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                setBio(e.target.value)
-              }
+              name='bio'
+              value={formState.userBio}
+              placeholder='Tell us about yourself...'
+              onChange={(e) => updateFormField('userBio', e.target.value)}
+              rows={4}
             />
-            {/* {titleError && <div className='text-xs' style={{ color: 'red' }}>{titleError}</div>} */}
           </Field>
         </FieldGroup>
+
         <span className='text-sm text-primary'>
           * Name and avatar can be changed later
         </span>
-        <Button onClick={submit} disabled={userName === ''}>
-          Create Profile
+
+        <Button
+          onClick={handleSubmit}
+          disabled={!formState.userName || formState.isSubmitting}
+          className='w-full'
+        >
+          {formState.isSubmitting ? 'Creating Profile...' : 'Create Profile'}
         </Button>
       </div>
     </div>
