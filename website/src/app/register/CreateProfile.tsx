@@ -104,6 +104,23 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
       return;
     }
 
+    if (formState.userName.length >= 20) {
+      setFormState((prev) => ({
+        ...prev,
+        error: 'Name must be less than 20 characters',
+      }));
+      return;
+    }
+
+    if (formState.userBio.length >= 255) {
+      setFormState((prev) => ({
+        ...prev,
+        error: 'Bio must be less than 255 characters',
+      }));
+      return;
+    }
+
+
     setFormState((prev) => ({ ...prev, isSubmitting: true, error: '' }));
 
     try {
