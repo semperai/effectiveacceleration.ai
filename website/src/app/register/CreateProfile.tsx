@@ -1,5 +1,6 @@
 'use client';
 
+import clsx from 'clsx';
 import { Button } from '@/components/Button';
 import { Field, FieldGroup, Label } from '@/components/Fieldset';
 import { Input } from '@/components/Input';
@@ -19,6 +20,7 @@ import {
 } from 'wagmi';
 import { PostJobParams } from '../dashboard/post-job/PostJobPage';
 import { Alert, AlertDescription } from '@/components/Alert';
+import RegisterSidebarImage from '@/images/register-sidebar-man.jpg';
 
 interface CreateProfileProps {
   encryptionPublicKey: string;
@@ -29,8 +31,8 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
 }) => {
   // State management
   const [formState, setFormState] = useState({
-    avatar: undefined as string | undefined,
-    avatarFileUrl: undefined as string | undefined,
+    avatar: '',
+    avatarFileUrl: '',
     userName: '',
     userBio: '',
     error: '',
@@ -48,7 +50,7 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
   const unregisteredUserLabel = `${address}-unregistered-job-cache`;
 
   // Form update handlers
-  const updateFormField = (field: keyof typeof formState, value: string | undefined) => {
+  const updateFormField = (field: keyof typeof formState, value: string) => {
     setFormState((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -129,8 +131,8 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
   return (
     <div className='flex flex-row self-center shadow-xl'>
       <Image
-        className='z-10 rounded-l-md object-cover'
-        src='/registerImage.jpg'
+        className='hidden md:block z-10 rounded-l-md object-cover mix-blend-overlay animate-pulse'
+        src={RegisterSidebarImage}
         height={500}
         width={350}
         alt='Registration welcome image'
@@ -154,9 +156,9 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
             </span>
             <UploadAvatar
               avatar={formState.avatar}
-              setAvatar={(value) => updateFormField('avatar', value)}
+              setAvatar={(value) => updateFormField('avatar', value as string)}
               setAvatarFileUrl={(value) =>
-                updateFormField('avatarFileUrl', value)
+                updateFormField('avatarFileUrl', value as string)
               }
             />
           </div>
