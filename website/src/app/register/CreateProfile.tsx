@@ -88,12 +88,16 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
     if (!isConfirmed && !error) return;
 
     if (error) {
+      // TODO handle revert reasons better
       const revertReason = error.message.match(
         /The contract function ".*" reverted with the following reason:\n(.*)\n.*/
       )?.[1];
+      const deniedReason = error.message.match(
+        /User denied transaction signature/
+      )?.[0];
       setFormState((prev) => ({
         ...prev,
-        error: revertReason || 'An unknown error occurred',
+        error: revertReason || deniedReason || 'An unknown error occurred',
         isSubmitting: false,
       }));
       return;
@@ -184,64 +188,69 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
         priority
       />
 
-      <div className='flex w-full max-w-md transform flex-col justify-center gap-y-4 self-center overflow-hidden rounded-md rounded-l-none bg-white p-8 text-left align-middle transition-all'>
-        <h1 className='text-2xl font-extrabold'>Create a Profile</h1>
-
+      <div className='relative flex w-full max-w-md transform flex-col justify-center gap-y-4 self-center overflow-hidden rounded-md rounded-l-none bg-white p-8 text-left align-middle transition-all min-h-[600px]'>
+        {/* Position alerts absolutely above the content */}
         {formState.error && (
-          <Alert variant='destructive'>
-            <AlertCircle className='h-4 w-4' />
-            <AlertDescription>{formState.error}</AlertDescription>
-          </Alert>
+          <div className="absolute top-4 left-4 right-4">
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{formState.error}</AlertDescription>
+            </Alert>
+          </div>
         )}
 
-        <FieldGroup className='my-2 flex-1 space-y-6'>
-          <div className='space-y-2'>
-            <span className='text-sm text-gray-600'>
-              Add an avatar to stand out from the crowd
-            </span>
-            <UploadAvatar
-              avatar={formState.avatar}
-              setAvatar={(value) => updateFormField('avatar', value as string)}
-              setAvatarFileUrl={(value) =>
-                updateFormField('avatarFileUrl', value as string)
-              }
-            />
-          </div>
-
-          <Field>
-            <Label>Your Name</Label>
-            <Input
-              name='name'
-              value={formState.userName}
-              placeholder='Enter your name'
-              onChange={(e) => updateFormField('userName', e.target.value)}
-              required
-            />
-          </Field>
-
-          <Field>
-            <Label>About Yourself</Label>
-            <Textarea
-              name='bio'
-              value={formState.userBio}
-              placeholder='Tell us about yourself...'
-              onChange={(e) => updateFormField('userBio', e.target.value)}
-              rows={4}
-            />
-          </Field>
-        </FieldGroup>
-
-        <span className='text-sm text-primary'>
-          * Name and avatar can be changed later
-        </span>
-
-        <Button
-          onClick={handleSubmit}
-          disabled={!formState.userName || formState.isSubmitting}
-          className='w-full'
-        >
-          {formState.isSubmitting ? 'Creating Profile...' : 'Create Profile'}
-        </Button>
+        <div className='flex flex-col gay-y-4 pt-8'>
+          <h1 className='text-2xl font-extrabold'>Create a Profile</h1>
+  
+          <FieldGroup className='my-2 flex-1 space-y-6'>
+            <div className='space-y-2'>
+              <span className='text-sm text-gray-600'>
+                Add an avatar to stand out from the crowd
+              </span>
+              <UploadAvatar
+                avatar={formState.avatar}
+                setAvatar={(value) => updateFormField('avatar', value as string)}
+                setAvatarFileUrl={(value) =>
+                  updateFormField('avatarFileUrl', value as string)
+                }
+              />
+            </div>
+  
+            <Field>
+              <Label>Your Name</Label>
+              <Input
+                name='name'
+                value={formState.userName}
+                placeholder='Enter your name'
+                onChange={(e) => updateFormField('userName', e.target.value)}
+                required
+              />
+            </Field>
+  
+            <Field>
+              <Label>About Yourself</Label>
+              <Textarea
+                name='bio'
+                value={formState.userBio}
+                placeholder='Tell us about yourself...'
+                onChange={(e) => updateFormField('userBio', e.target.value)}
+                rows={4}
+              />
+            </Field>
+          </FieldGroup>
+  
+          <span className='text-sm text-primary'>
+            * Name and avatar can be changed later
+          </span>
+  
+          <Button
+            onClick={handleSubmit}
+            disabled={!formState.userName || formState.isSubmitting}
+            className='w-full'
+          >
+            {formState.isSubmitting ? 'Creating Profile...' : 'Create Profile'}
+          </Button>
+        </div>
       </div>
     </div>
   );
