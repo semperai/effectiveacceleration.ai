@@ -22,6 +22,28 @@ import { PostJobParams } from '../dashboard/post-job/PostJobPage';
 import { Alert, AlertDescription } from '@/components/Alert';
 import RegisterSidebarImage from '@/images/register-sidebar-man.jpg';
 
+const RegisteredUserView = () => {
+  const router = useRouter();
+
+  return (
+    <div className='flex w-full max-w-md transform flex-col justify-center self-center overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all'>
+      <div className='my-16 flex flex-col justify-center self-center'>
+        <h1 className='text-center text-xl font-extrabold'>
+          Already Registered
+        </h1>
+
+        <span className='text-center'>
+          You already have a registered profile. You can view and edit your
+          profile by clicking your profile picture in the dashboard. If you want
+          to register with a different account, be sure to switch your connected
+          wallet.
+        </span>
+      </div>
+      <Button onClick={() => router.push('/dashboard')}>Go to Dashboard</Button>
+    </div>
+  );
+};
+
 interface CreateProfileProps {
   encryptionPublicKey: string;
 }
@@ -48,6 +70,13 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
     useWaitForTransactionReceipt({ hash });
 
   const unregisteredUserLabel = `${address}-unregistered-job-cache`;
+
+  // TODO maybe this shouldn't be triggered...
+  // we also have force redirect
+  // arguably this is more informative though
+  if (true) {
+    return <RegisteredUserView />;
+  }
 
   // Form update handlers
   const updateFormField = (field: keyof typeof formState, value: string) => {
@@ -120,7 +149,6 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
       return;
     }
 
-
     setFormState((prev) => ({ ...prev, isSubmitting: true, error: '' }));
 
     try {
@@ -148,7 +176,7 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
   return (
     <div className='flex flex-row self-center shadow-xl'>
       <Image
-        className='hidden md:block z-10 rounded-l-md object-cover mix-blend-overlay animate-pulse'
+        className='z-10 hidden animate-pulse rounded-l-md object-cover mix-blend-overlay md:block'
         src={RegisterSidebarImage}
         height={500}
         width={350}
