@@ -6,6 +6,7 @@ import clsx from 'clsx';
 import type { Metadata, Viewport } from 'next';
 import { Plus_Jakarta_Sans } from 'next/font/google';
 import Head from 'next/head';
+import { ToastProvider } from '@/providers/ToastProvider';
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -107,6 +108,7 @@ export default function RootLayout({
             gaId={process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID!}
           />
         )}
+        <ToastProvider />
       </body>
     </html>
   );
