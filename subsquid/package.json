@@ -21,7 +21,7 @@
   ],
   "main": "lib/index.js",
   "dependencies": {
-    "@effectiveacceleration/contracts": "^1.0.4",
+    "@effectiveacceleration/contracts": "^1.0.10",
     "@subsquid/evm-abi": "^0.3.0",
     "@subsquid/evm-processor": "^1.19.1",
     "@subsquid/graphql-server": "^4.6.0",
