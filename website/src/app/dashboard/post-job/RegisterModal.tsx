@@ -48,6 +48,7 @@ const RegisterModal = ({
                   </p>
                   <Button
                     href='/register'
+                    target='_blank'
                     className='w-full justify-center py-2.5 text-center'
                   >
                     Register now
