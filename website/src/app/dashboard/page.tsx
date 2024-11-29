@@ -12,7 +12,7 @@ export default function IndexPage() {
   }, [router]);
 
   return (
-    <Layout>
+    <Layout noSidebar>
       <></>
     </Layout>
   );
