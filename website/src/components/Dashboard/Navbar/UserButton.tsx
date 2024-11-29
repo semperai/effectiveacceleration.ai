@@ -17,9 +17,9 @@ import {
   useWaitForTransactionReceipt,
   useWriteContract,
 } from 'wagmi';
-import { Field, Label } from '../Fieldset';
-import { Input } from '../Input';
-import UploadAvatar from '../UploadAvatar';
+import { Field, Label } from '@/components/Fieldset';
+import { Input } from '@/components/Input';
+import UploadAvatar from '@/components/UploadAvatar';
 
 interface NavButtonProps {
   name: string | undefined;

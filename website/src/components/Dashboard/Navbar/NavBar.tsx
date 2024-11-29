@@ -6,7 +6,7 @@ import { MdOutlineArrowForwardIos } from 'react-icons/md';
 import { PiBellSimple } from 'react-icons/pi';
 
 import BreadCrumbs from '@/components/BreadCrumbs';
-import { UserButton } from '@/components/UserActions/UserButton';
+import { UserButton } from './UserButton';
 
 interface NavbarProps {
   setSidebarOpen: (value: boolean) => void;
