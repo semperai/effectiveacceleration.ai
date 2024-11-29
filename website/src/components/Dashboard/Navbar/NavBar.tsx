@@ -12,7 +12,6 @@ interface NavbarProps {
 }
 
 const Navbar = ({ setSidebarOpen, noSidebar }: NavbarProps) => {
-
   return (
     <header className='sticky top-0 z-40 w-full'>
       <div className='relative'>

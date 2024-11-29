@@ -189,18 +189,18 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
         priority
       />
 
-      <div className='relative flex w-full max-w-md transform flex-col justify-center gap-y-4 self-center overflow-hidden rounded-md rounded-l-none bg-white p-8 text-left align-middle transition-all min-h-[600px]'>
+      <div className='relative flex min-h-[600px] w-full max-w-md transform flex-col justify-center gap-y-4 self-center overflow-hidden rounded-md rounded-l-none bg-white p-8 text-left align-middle transition-all'>
         {/* Position alerts absolutely above the content */}
         {formState.error && (
-          <div className="absolute top-4 left-4 right-4">
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
+          <div className='absolute left-4 right-4 top-4'>
+            <Alert variant='destructive'>
+              <AlertCircle className='h-4 w-4' />
               <AlertDescription>{formState.error}</AlertDescription>
             </Alert>
           </div>
         )}
 
-        <div className='flex flex-col gay-y-4 pt-8'>
+        <div className='gay-y-4 flex flex-col pt-8'>
           <h1 className='text-2xl font-extrabold'>Create a Profile</h1>
 
           <FieldGroup className='my-2 flex-1 space-y-6'>
@@ -210,7 +210,9 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
               </span>
               <UploadAvatar
                 avatar={formState.avatar}
-                setAvatar={(value) => updateFormField('avatar', value as string)}
+                setAvatar={(value) =>
+                  updateFormField('avatar', value as string)
+                }
                 setAvatarFileUrl={(value) =>
                   updateFormField('avatarFileUrl', value as string)
                 }

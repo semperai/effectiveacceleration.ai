@@ -19,10 +19,7 @@ export function Layout({
   return (
     <div>
       {!noSidebar && (
-        <Sidebar
-          sidebarOpen={sidebarOpen}
-          setSidebarOpen={setSidebarOpen}
-        />
+        <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
       )}
       <div className={noSidebar ? '' : 'lg:pl-72'}>
         <Navbar setSidebarOpen={setSidebarOpen} noSidebar={noSidebar} />

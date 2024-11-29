@@ -13,10 +13,7 @@ import {
   ApolloProvider,
   NormalizedCacheObject,
 } from '@apollo/client';
-import {
-  LocalStorageWrapper,
-  CachePersistor,
-} from 'apollo3-cache-persist';
+import { LocalStorageWrapper, CachePersistor } from 'apollo3-cache-persist';
 import { useEffect, useState } from 'react';
 import { useMediaDownloadHandler } from '@/hooks/useMediaDownloadHandler';
 
