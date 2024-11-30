@@ -11,6 +11,7 @@ import { useCallback, useState, useRef } from 'react';
 import { type Address } from 'viem';
 import { useAccount, useReadContract } from 'wagmi';
 import { ApproveButton } from './ApproveButton';
+import { useRouter } from 'next/navigation';
 
 interface SubmitJobButtonProps {
   title: string;
@@ -42,6 +43,7 @@ export const SubmitJobButton = ({
   onError
 }: SubmitJobButtonProps) => {
   const Config = useConfig();
+  const router = useRouter();
   const { address } = useAccount();
   const { showError, showSuccess, showLoading, toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -120,11 +122,19 @@ export const SubmitJobButton = ({
         abi: MARKETPLACE_V1_ABI,
         functionName: 'publishJobPost',
         args,
-        onReceipt: (receipt) => {
+        contracts: {
+          marketplaceAddress: Config.marketplaceAddress,
+          marketplaceDataAddress: Config.marketplaceDataAddress,
+        },
+        onReceipt: (receipt, parsedEvents) => {
           showSuccess('Job post submitted');
-          receipt.logs?.forEach((log) => {
-            console.log(log);
-          });
+          for (const event of parsedEvents) {
+            if (event.eventName === 'JobEvent') {
+              router.push(`/dashboard/jobs/${event.args.jobId}`);
+              return;
+            }
+          }
+          console.log('parsedEvents', parsedEvents);
         },
       });
     } catch (err) {

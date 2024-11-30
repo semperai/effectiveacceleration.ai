@@ -1,5 +1,5 @@
 import { useToast } from '@/hooks/useToast';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Address, decodeEventLog, DecodeEventLogReturnType, Log, TransactionReceipt } from 'viem';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 
@@ -41,6 +41,7 @@ function parseContractEvents(
         }
       } catch (error) {
         // Skip if this log isn't from this contract's events
+        console.log('Skipping log:', error);
         continue;
       }
     }
@@ -73,6 +74,7 @@ export function useWriteContractWithNotifications() {
   const onSuccessCallbackRef = useRef<((receipt: TransactionReceipt, events: ParsedEvent[]) => void) | undefined>();
   const onReceiptCallbackRef = useRef<((receipt: TransactionReceipt, events: ParsedEvent[]) => void) | undefined>();
   const contractsRef = useRef<WriteContractConfig['contracts']>();
+  const [customErrorMessages, setCustomErrorMessages] = useState<WriteContractConfig['customErrorMessages']>({});
 
   const {
     data: receipt,
@@ -136,6 +138,7 @@ export function useWriteContractWithNotifications() {
       successMessage,
     }: WriteContractConfig) => {
       dismissLoadingToast();
+      setCustomErrorMessages(customErrorMessages);
       loadingToastIdRef.current = showLoading('Please confirm the transaction in your wallet...');
 
       // Store callbacks and contracts in refs
@@ -152,15 +155,6 @@ export function useWriteContractWithNotifications() {
         });
       } catch (e) {
         dismissLoadingToast();
-        const error = e as Error;
-        const { type, message } = getRevertReason(error.message);
-        if (type === 'revert' && message) {
-          showError(message);
-        } else if (type === 'denied') {
-          showError(customErrorMessages.userDenied || 'User denied transaction signature');
-        } else {
-          showError(customErrorMessages.default || 'An unknown error occurred');
-        }
       }
     },
     [writeContract, showError, showLoading, toast, getRevertReason]
@@ -201,6 +195,23 @@ export function useWriteContractWithNotifications() {
       loadingToastIdRef.current = showLoading('Confirming transaction...');
     }
   }, [isConfirming]);
+
+  // Handle errors
+  useEffect(() => {
+    if (error) {
+      dismissLoadingToast();
+
+      const { type, message } = getRevertReason(error.message);
+
+      if (type === 'revert' && message) {
+        showError(message);
+      } else if (type === 'denied') {
+        showError(customErrorMessages?.userDenied || 'User denied transaction signature');
+      } else {
+        showError(customErrorMessages?.default || 'An unknown error occurred');
+      }
+    }
+  }, [error]);
 
   // Handle error cleanup
   useEffect(() => {
