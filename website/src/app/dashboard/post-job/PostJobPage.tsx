@@ -558,9 +558,8 @@ const PostJob = () => {
                   <Input
                     name='amount'
                     placeholder='1.00'
-                    type='number'
+                    type='text'
                     value={amount}
-                    min={0}
                     onChange={(e) => validatePaymentAmount(e.target.value)}
                   />
                   {paymentTokenError && (
