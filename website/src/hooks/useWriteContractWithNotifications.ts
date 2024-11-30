@@ -5,7 +5,7 @@ import { useEffect, useCallback, useRef } from 'react';
 
 type WriteContractConfig = {
   abi: any;
-  address: Address;
+  address: Address | undefined;
   functionName: string;
   args: any[];
   onSuccess?: () => void;
