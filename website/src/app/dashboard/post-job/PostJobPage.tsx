@@ -19,38 +19,26 @@ import { Textarea } from '@/components/Textarea';
 import { TokenSelector } from '@/components/TokenSelector';
 import useArbitrators from '@/hooks/subsquid/useArbitrators';
 import useUser from '@/hooks/subsquid/useUser';
-import useUsers from '@/hooks/subsquid/useUsers';
 import { ComboBoxOption, JobFormInputData, Tag } from '@/service/FormsTypes';
 import { Token, tokens } from '@/tokens';
-import { LOCAL_JOBS_OWNER_CACHE } from '@/utils/constants';
 import { jobMeceTags } from '@/utils/jobMeceTags';
 import {
-  convertToSeconds,
   shortenText,
   unitsDeliveryTime,
 } from '@/utils/utils';
-import { publishToIpfs } from '@effectiveacceleration/contracts';
-import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { ethers } from 'ethers';
 import moment from 'moment';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
 import React, {
   ChangeEvent,
-  forwardRef,
   useEffect,
-  useImperativeHandle,
   useRef,
   useState,
 } from 'react';
 import { zeroAddress } from 'viem';
-import {
-  useAccount,
-  useConfig,
-  useReadContract,
-  useWaitForTransactionReceipt,
-  useWriteContract,
-} from 'wagmi';
+import { useAccount, useReadContract } from 'wagmi';
+import { useConfig } from '@/hooks/useConfig';
+import { SubmitJobButton } from './SubmitJobButton';
 import LoadingModal from './LoadingModal';
 import RegisterModal from './RegisterModal';
 
@@ -86,149 +74,48 @@ export interface PostJobParams {
   tags: string[];
 }
 
-interface FieldValidation {
-  required?: boolean;
-  minLength?: number;
-  pattern?: RegExp;
-  mustBeGreaterThanOrEqualTo?: string;
-  mustBeGreaterThan?: string;
-  mustBeLessThanOrEqualTo?: string;
-  custom?: (value: string) => string;
-}
-
-async function setupAndGiveAllowance(
-  spenderAddress: string | undefined,
-  amount: string,
-  tokenAddress: string | undefined
-) {
-  return new Promise<void>(async (resolve, reject) => {
-    try {
-      if (!spenderAddress || !tokenAddress) {
-        throw new Error('Invalid spender or token address');
-      }
-
-      // Get the provider from MetaMask (or another wallet)
-      const provider = new ethers.BrowserProvider(window.ethereum);
-
-      // Request account access if needed
-      await provider.send('eth_requestAccounts', []);
-
-      // Get the signer
-      const signer = await provider.getSigner();
-
-      // Create an instance of the token contract
-      const tokenContract = new ethers.Contract(tokenAddress, ERC20Abi, signer);
-
-      // Get the token decimals
-      const decimals = await tokenContract.decimals();
-
-      // Parse the amount to the correct units
-      const parsedAmount = ethers.parseUnits(amount, decimals);
-
-      // Get the current allowance
-      const ownerAddress = await signer.getAddress();
-      const currentAllowance = await tokenContract.allowance(
-        ownerAddress,
-        spenderAddress
-      );
-
-      // Ensure currentAllowance and parsedAmount are BigInt instances
-      if (
-        typeof currentAllowance === 'bigint' &&
-        typeof parsedAmount === 'bigint'
-      ) {
-        // Check if the current allowance is sufficient
-        if (currentAllowance >= parsedAmount) {
-          if (typeof resolve === 'function') {
-            resolve();
-          } else {
-            console.error('resolve is not a function');
-          }
-          return;
-        }
-      } else {
-        console.error('currentAllowance or parsedAmount is not a valid BigInt');
-      }
-
-      // Call the approve function
-      const tx = await tokenContract.approve(spenderAddress, parsedAmount);
-
-      // Wait for the transaction to be mined
-      const receipt = await tx.wait();
-
-      if (receipt.status === 1) {
-        // Check if the transaction was successful
-        resolve();
-      } else {
-        throw new Error('Transaction failed');
-      }
-    } catch (error) {
-      console.error('Error in setupAndGiveAllowance:', error);
-      reject(error);
-    }
-  });
-}
-
-const validateField = (value: string, validation: FieldValidation): string => {
-  if (validation.minLength && value.length < validation.minLength) {
-    return `Must be at least ${validation.minLength} characters long`;
-  }
-  if (validation.pattern && !validation.pattern.test(value)) {
-    return 'Invalid format';
-  }
-  if (
-    validation.mustBeGreaterThan &&
-    parseFloat(value) <= parseFloat(validation.mustBeGreaterThan)
-  ) {
-    return `Amount must be greater than ${validation.mustBeGreaterThan}`;
-  }
-  if (
-    validation.mustBeGreaterThanOrEqualTo &&
-    parseFloat(value) < parseFloat(validation.mustBeGreaterThanOrEqualTo)
-  ) {
-    return `Insufficient balance of the selected token`;
-  }
-  if (
-    validation.mustBeLessThanOrEqualTo &&
-    parseFloat(value) > parseFloat(validation.mustBeLessThanOrEqualTo)
-  ) {
-    return `Insufficient balance of the selected token`;
-  }
-  if (validation.custom) {
-    return validation.custom(value);
-  }
-  if (validation.required && !value) {
-    return 'This field is required';
-  }
-
-  return '';
-};
-
 interface JobSummaryProps {
-  formInputs: JobFormInputData[];
-  submitJob: () => void;
-  isPending: boolean;
-  isConfirmed: boolean;
-  isConfirming: boolean;
-  postButtonDisabled: boolean;
+  title: string;
+  description: string;
+  imFeelingLucky: string;
+  tags: Tag[];
+  selectedToken: Token | undefined;
+  amount: string;
+  deliveryMethod: string;
+  deadline: number;
+  selectedArbitratorAddress: string | undefined;
+  selectedCategory: { id: string; name: string };
   handleSummary: () => void;
 }
 
 const JobSummary = ({
-  formInputs,
-  submitJob,
-  isPending,
-  isConfirmed,
-  isConfirming,
-  postButtonDisabled,
+  title,
+  description,
+  imFeelingLucky,
+  tags,
+  selectedToken,
+  amount,
+  deliveryMethod,
+  deadline,
+  selectedArbitratorAddress,
+  selectedCategory,
   handleSummary,
 }: JobSummaryProps) => {
-  const getButtonText = () => {
-    if (isConfirmed) return 'Transaction confirmed';
-    if (isConfirming) return 'Waiting for confirmation...';
-    if (isPending) return 'Posting...';
-    return 'Post Job';
-  };
+  const Row = ({ label, children }: {
+    label: string;
+    children?: React.ReactNode;
+  }) => (
+    <div className='py-4 first:pt-0 last:pb-0'>
+      <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+        <div className='text-sm font-medium text-gray-500'>
+          {label}
+        </div>
+        <div className='text-sm text-gray-900 md:col-span-2'>
+          {children}
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className='mx-auto max-w-4xl'>
@@ -241,20 +128,42 @@ const JobSummary = ({
 
       <div className='mb-8 rounded-2xl bg-white p-8 shadow-lg'>
         <div className='divide-y divide-gray-200'>
-          {formInputs.map((inputData, index) =>
-            inputData.inputInfo ? (
-              <div key={index} className='py-4 first:pt-0 last:pb-0'>
-                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                  <div className='text-sm font-medium text-gray-500'>
-                    {inputData.label}
-                  </div>
-                  <div className='text-sm text-gray-900 md:col-span-2'>
-                    {inputData.inputInfo}
-                  </div>
-                </div>
-              </div>
-            ) : null
-          )}
+          <Row label='Job Title'>
+            {title}
+          </Row>
+          <Row label='Description'>
+            {description}
+          </Row>
+          <Row label='Category'>
+            {selectedCategory.name}
+          </Row>
+          <Row label='Token'>
+            <div className='flex items-center gap-2'>
+              <span className='mr-1 inline'>{selectedToken?.id}</span>
+              <span className='mr-1 inline font-bold'>{selectedToken?.symbol}</span>
+              <img className='inline' alt='Chain Icon' height={30} width={30} src={selectedToken?.icon || ''} />
+            </div>
+          </Row>
+          <Row label='Price'>
+            <span className='mr-1 inline'>{amount}</span>
+          </Row>
+          <Row label='Delivery Method'>
+            {deliveryMethod}
+          </Row>
+          <Row label='Deadline'>
+            {moment
+              .duration(
+                deadline,
+                'seconds'
+              )
+              .humanize()}
+          </Row>
+          <Row label='Arbitrator Required'>
+            {selectedArbitratorAddress !== undefined ? 'Yes' : 'No'}
+          </Row>
+          <Row label='Arbitrator Address'>
+            {selectedArbitratorAddress}
+          </Row>
         </div>
       </div>
 
@@ -262,881 +171,646 @@ const JobSummary = ({
         <Button outline onClick={handleSummary} className='px-6'>
           Go back
         </Button>
-        <Button
-          disabled={postButtonDisabled || isPending}
-          onClick={submitJob}
-          className='bg-blue-600 px-6 text-white hover:bg-blue-700 disabled:bg-blue-300'
-        >
-          {getButtonText()}
-        </Button>
+        <SubmitJobButton
+          title={title}
+          description={description}
+          multipleApplicants={imFeelingLucky === 'No'}
+          tags={[selectedCategory.id, ...tags.map((tag) => tag.name)]}
+          token={selectedToken?.id as string}
+          amount={ethers.parseUnits(amount, selectedToken?.decimals!)}
+          deadline={BigInt(deadline)}
+          deliveryMethod={deliveryMethod}
+          arbitrator={selectedArbitratorAddress as string}
+        />
       </div>
     </div>
   );
 };
 
-const PostJob = forwardRef<{ jobIdCache: (jobId: string) => void }, {}>(
-  (props, ref) => {
-    const Config = useConfig();
-    const router = useRouter();
-    const searchParams = useSearchParams();
-    const { address, isConnected } = useAccount();
-    const { data: user } = useUser(address!);
-    const { data: arbitrators } = useArbitrators();
-    const arbitratorAddresses = [
-      zeroAddress,
-      ...(arbitrators?.map((worker) => worker.address_) ?? []),
-    ];
-    const arbitratorNames = [
-      'None',
-      ...(arbitrators?.map((worker) => worker.name) ?? []),
-    ];
-    const arbitratorFees = [
-      '0',
-      ...(arbitrators?.map((worker) => worker.fee) ?? []),
-    ];
-    const [selectedToken, setSelectedToken] = useState<Token | undefined>(
-      tokens[0]
-    );
-    const noYes = ['No', 'Yes'];
-    const [showSummary, setShowSummary] = useState(false);
-    const [title, setTitle] = useState<string>('');
-    const [deliveryMethod, setDeliveryMethod] = useState(
-      deliveryMethods[0].value
-    );
-    const [description, setDescription] = useState<string>('');
-    const [amount, setAmount] = useState('');
-    const [deadline, setDeadline] = useState<number>();
-    const [imFeelingLucky, setImFeelingLucky] = useState(noYes[0]);
-    const [arbitratorRequired, setArbitratorRequired] = useState(noYes[1]);
-    const [selectedUnitTime, setselectedUnitTime] = useState<ComboBoxOption>(
-      unitsDeliveryTime[2]
-    );
+const PostJob = () => {
+  const Config = useConfig();
+  const { address, isConnected } = useAccount();
+  const { data: user } = useUser(address!);
+  const { data: arbitrators } = useArbitrators();
+  const arbitratorAddresses = [
+    zeroAddress,
+    ...(arbitrators?.map((worker) => worker.address_) ?? []),
+  ];
+  const arbitratorNames = [
+    'None',
+    ...(arbitrators?.map((worker) => worker.name) ?? []),
+  ];
+  const arbitratorFees = [
+    '0',
+    ...(arbitrators?.map((worker) => worker.fee) ?? []),
+  ];
+  const [selectedToken, setSelectedToken] = useState<Token | undefined>(
+    tokens[0]
+  );
+  const noYes = ['No', 'Yes'];
+  const [showSummary, setShowSummary] = useState(false);
+  const [title, setTitle] = useState<string>('');
+  const [deliveryMethod, setDeliveryMethod] = useState(
+    deliveryMethods[0].value
+  );
+  const [description, setDescription] = useState<string>('');
+  const [amount, setAmount] = useState('');
+  const [deadline, setDeadline] = useState<number>(1);
+  const [imFeelingLucky, setImFeelingLucky] = useState(noYes[0]);
+  const [arbitratorRequired, setArbitratorRequired] = useState(noYes[1]);
+  const [selectedUnitTime, setselectedUnitTime] = useState<ComboBoxOption>(
+    unitsDeliveryTime[2]
+  );
 
-    const [tags, setTags] = useState<Tag[]>([]);
-    const [selectedCategory, setSelectedCategory] = useState<{
-      id: string;
-      name: string;
-    }>();
-    const [selectedWorkerAddress, setSelectedWorkerAddress] = useState<
-      string | undefined
-    >(undefined);
-    const [selectedArbitratorAddress, setSelectedArbitratorAddress] =
-      useState<string>();
-    const [titleError, setTitleError] = useState<string>('');
-    const [descriptionError, setDescriptionError] = useState<string>('');
-    const [categoryError, setCategoryError] = useState<string>('');
-    const [paymentTokenError, setPaymentTokenError] = useState<string>('');
-    const [arbitratorError, setArbitratorError] = useState<string>('');
-    const [deadlineError, setDeadlineError] = useState<string>('');
-    const [postButtonDisabled, setPostButtonDisabled] = useState(false);
-    const jobTitleRef = useRef<HTMLDivElement>(null);
-    const jobDescriptionRef = useRef<HTMLDivElement>(null);
-    const jobCategoryRef = useRef<HTMLDivElement>(null);
-    const jobAmountRef = useRef<HTMLDivElement>(null);
-    const jobDeadlineRef = useRef<HTMLDivElement>(null);
-    const jobArbitratorRef = useRef<HTMLDivElement>(null);
-    const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
-    const [isLoadingModalOpen, setIsLoadingModalOpen] = useState(false);
-    const userJobCache = `${address}${LOCAL_JOBS_OWNER_CACHE}`;
-    const unregisteredUserLabel = `${address}-unregistered-job-cache`;
-    const { data: hash, error, isPending, writeContract } = useWriteContract();
-    console.log(selectedUnitTime, selectedCategory);
-    const { isLoading: isConfirming, isSuccess: isConfirmed } =
-      useWaitForTransactionReceipt({
-        hash,
-      });
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<{
+    id: string;
+    name: string;
+  }>();
+  const [selectedArbitratorAddress, setSelectedArbitratorAddress] =
+    useState<string>();
+  const [titleError, setTitleError] = useState<string>('');
+  const [descriptionError, setDescriptionError] = useState<string>('');
+  const [categoryError, setCategoryError] = useState<string>('');
+  const [paymentTokenError, setPaymentTokenError] = useState<string>('');
+  const [arbitratorError, setArbitratorError] = useState<string>('');
+  const [deadlineError, setDeadlineError] = useState<string>('');
+  const [continueButtonDisabled, setContinueButtonDisabled] = useState(false);
+  const jobTitleRef = useRef<HTMLDivElement>(null);
+  const jobDescriptionRef = useRef<HTMLDivElement>(null);
+  const jobCategoryRef = useRef<HTMLDivElement>(null);
+  const jobAmountRef = useRef<HTMLDivElement>(null);
+  const jobDeadlineRef = useRef<HTMLDivElement>(null);
+  const jobArbitratorRef = useRef<HTMLDivElement>(null);
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+  const [isLoadingModalOpen, setIsLoadingModalOpen] = useState(false);
 
-    useEffect(() => {
-      if (
-        title == '' ||
-        amount == '0' ||
-        deadline == 0 ||
-        selectedToken == undefined
-      ) {
-        setPostButtonDisabled(true);
-      } else {
-        setPostButtonDisabled(false);
-      }
-    }, [title, amount, deadline, selectedToken, error]);
+  const { data: balanceData } = useReadContract({
+    account: address,
+    abi: ERC20Abi,
+    address: selectedToken?.id as string | undefined,
+    functionName: 'balanceOf',
+    args: [address],
+  });
 
-    const handleSummary = () => {
-      if (!user) {
-        setIsRegisterModalOpen(true);
-        jobIdCache();
-        return;
-      }
-      setShowSummary(!showSummary);
-    };
-
-    const { data: balanceData } = useReadContract({
-      account: address,
-      abi: ERC20Abi,
-      address: selectedToken?.id as string | undefined,
-      functionName: 'balanceOf',
-      args: [address!],
-    });
-
-    async function postJobClick() {
-      if (!deadline) return;
-      if (!amount) return;
-      if (!selectedCategory) return;
-      setPostButtonDisabled(true);
-
-      const { hash: contentHash } = await publishToIpfs(description);
-      const allowanceResponse = await setupAndGiveAllowance(
-        Config.marketplaceAddress as string,
-        amount,
-        selectedToken?.id as string | undefined
-      );
-      const deadlineInSeconds = deadline
-        ? convertToSeconds(deadline, selectedUnitTime.name)
-        : 0;
-      const w = writeContract({
-        abi: MARKETPLACE_V1_ABI,
-        address: Config!.marketplaceAddress,
-        functionName: 'publishJobPost',
-        args: [
-          title,
-          contentHash as string,
-          imFeelingLucky === 'No',
-          [selectedCategory.id, ...tags.map((tag) => tag.name)],
-          selectedToken?.id! as string,
-          ethers.parseUnits(amount, selectedToken?.decimals!),
-          deadlineInSeconds,
-          deliveryMethod,
-          selectedArbitratorAddress as string,
-          selectedWorkerAddress ? [selectedWorkerAddress as string] : [],
-        ],
-      });
+  const handleSummary = () => {
+    if (!user) {
+      setIsRegisterModalOpen(true);
+      return;
     }
 
-    const jobIdCache = (jobId?: string) => {
-      const createdJobId = jobId?.toString();
-      const createdJobs = JSON.parse(
-        localStorage.getItem(userJobCache) || '[]'
+    setShowSummary(!showSummary);
+  };
+
+  const validateTitle = (value: string) => {
+    setTitle(value);
+
+    if (value === '') {
+      setTitleError('This field is required');
+      return;
+    }
+
+    if (value.length < 3) {
+      setTitleError('Must be at least 3 characters long');
+      return;
+    }
+
+    setTitleError('');
+  }
+
+  const validatePaymentAmount = (paymentAmount: string) => {
+    setAmount(paymentAmount);
+
+    const value = parseFloat(paymentAmount);
+    if (balanceData === null || balanceData === undefined) {
+      setPaymentTokenError('Balance data is not available');
+      return;
+    }
+    const balance = parseFloat(ethers.formatUnits(balanceData as ethers.BigNumberish, selectedToken?.decimals || '0'));
+
+    if (isNaN(value)) {
+      setPaymentTokenError('Please enter a valid amount');
+      return;
+    }
+
+    if (value === 0) {
+      setPaymentTokenError('Please enter a valid amount');
+      return;
+    }
+
+    if (value > balance) {
+      setPaymentTokenError('Insufficient balance of the selected token');
+      return;
+    }
+
+    setPaymentTokenError('');
+  }
+
+  const validateArbitratorRequired = (required: string) => {
+    setArbitratorRequired(required);
+
+    if (required === 'No') {
+      setSelectedArbitratorAddress(zeroAddress);
+      return;
+    }
+
+    // required is 'Yes'
+    if (
+      !selectedArbitratorAddress ||
+      selectedArbitratorAddress === zeroAddress
+    ) {
+      setArbitratorError('Please select an arbitrator');
+      return;
+    }
+
+    setArbitratorError('');
+  }
+
+  const validateArbitrator = (addr: string) => {
+    setSelectedArbitratorAddress(addr);
+
+    if (addr == address) {
+      setArbitratorError(
+        'You cannot be your own arbitrator'
       );
+      return;
+    }
 
-      // newJob Should correspond to type "Job" but bigInts are not JSON stringifiable
-      const newJob: any = {
-        id: createdJobId ? createdJobId : '0',
-        title: title,
-        content: description,
-        imFeelingLucky: imFeelingLucky === 'No',
-        tags: [selectedCategory?.id as string, ...tags.map((tag) => tag.name)],
-        token: `0x${selectedToken?.id}` as string,
-        maxTime: deadline as number,
-        deliveryMethod: deliveryMethod,
-        roles: {
-          creator: address as string,
-          arbitrator: selectedArbitratorAddress as string,
-          worker: selectedWorkerAddress as string,
-        },
-        state: 0,
-        whitelistWorkers: false,
-        contentHash: hash as string,
-        amount: amount,
-        disputed: false,
-        timestamp: Date.now(),
-        collateralOwed: 0,
-        escrowId: 0,
-        resultHash: hash as string,
-        rating: 0,
-      };
-      createdJobs.push(newJob);
-      // Save job to local storage, if unregistered save to session storage
-      // for later retrieval after registration
-      if (user) {
-        localStorage.setItem(userJobCache, JSON.stringify(createdJobs));
-        setTimeout(() => {
-          router.push(`/dashboard/jobs/${createdJobId}`);
-        }, 1000);
-      } else {
-        sessionStorage.setItem(
-          unregisteredUserLabel,
-          JSON.stringify(createdJobs)
-        );
-      }
-    };
+    setArbitratorError('');
+  }
 
-    useImperativeHandle(ref, () => ({
-      jobIdCache,
-    }));
+  const validateDeadline = (deadlineStr: string) => {
+    let deadline = deadlineStr ? parseInt(deadlineStr) : 0;
 
-    const handleInputChange =
-      (
-        setter: React.Dispatch<React.SetStateAction<string>>,
-        errorSetter: React.Dispatch<React.SetStateAction<string>>,
-        validation: FieldValidation
-      ) =>
-      (e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLTextAreaElement>) => {
-        const value = e.target.value;
-        setter(value);
-        const errorMessage = validateField(value, validation);
-        errorSetter(errorMessage);
-      };
+    if (deadline < 0) {
+      deadline = -deadline;
+    }
 
-    const handleSubmit = () => {
-      if (!balanceData) {
-        throw new Error('Balance data is not available');
-      }
-      // Ensure balanceData is of type ethers.BigNumberish
-      const balanceAsString = ethers
-        .formatUnits(
-          balanceData as ethers.BigNumberish,
-          selectedToken?.decimals as number
-        )
-        .toString();
+    if (deadline === 0 || isNaN(deadline)) {
+      setDeadlineError('Please enter a valid deadline');
+      return;
+    }
 
-      // Validate all fields before submission
-      const titleValidationMessage = validateField(title, { minLength: 3 });
-      // const descriptionValidationMessage = validateField(description, {
-      //   required: true,
-      //   minLength: 10,
-      // });
-      const categoryValidationMessage = validateField(
-        selectedCategory?.name || '',
-        { required: true }
-      );
+    setDeadline(deadline);
+    setDeadlineError('');
+  }
 
-      const paymentTokenValidationMessage = validateField(amount, {
-        mustBeLessThanOrEqualTo: balanceAsString,
-        mustBeGreaterThan: '0',
-        required: true,
-      });
+  const validateAllFields = () => {
+    validateTitle(title);
+    validatePaymentAmount(amount);
+    validateArbitratorRequired(arbitratorRequired);
+    validateDeadline(deadline.toString());
 
-      let arbitratorValidationMessage = '';
-      if (arbitratorRequired === 'Yes') {
-        if (
-          !selectedArbitratorAddress ||
-          selectedArbitratorAddress === zeroAddress
-        ) {
-          arbitratorValidationMessage = 'Please select an arbitrator';
-        }
+    if (!selectedCategory) {
+      setCategoryError('Please select a category');
+      return false;
+    }
 
-        if (selectedArbitratorAddress === address) {
-          arbitratorValidationMessage = 'You cannot be your own arbitrator';
-        }
-      }
+    if (titleError || paymentTokenError || arbitratorError || deadlineError) {
+      setContinueButtonDisabled(true);
+      return false;
+    }
 
-      const deadlineValidationMessage = validateField(
-        deadline ? deadline.toString() : '',
-        {
-          mustBeGreaterThan: '0',
-          required: true,
-        }
-      );
-      setTitleError(titleValidationMessage);
-      setCategoryError(categoryValidationMessage);
-      setPaymentTokenError(paymentTokenValidationMessage);
-      setArbitratorError(arbitratorValidationMessage);
-      setDeadlineError(deadlineValidationMessage);
-      if (
-        !titleValidationMessage &&
-        !categoryValidationMessage &&
-        !paymentTokenValidationMessage &&
-        !arbitratorValidationMessage &&
-        !deadlineValidationMessage
-      ) {
-        // Proceed with form submission
-        handleSummary();
-      } else {
-        console.log('Form has errors');
-        if (titleValidationMessage) {
-          jobTitleRef.current?.focus();
-          jobTitleRef.current?.scrollIntoView({ behavior: 'smooth' });
-          return;
-        }
+    setContinueButtonDisabled(false);
+    return true;
+  }
 
-        // if (descriptionValidationMessage) {
-        //   jobDescriptionRef.current?.focus();
-        //   jobDescriptionRef.current?.scrollIntoView({ behavior: 'smooth' });
-        //   return;
-        // }
+  useEffect(() => {
+    validateAllFields();
+  }, [
+    balanceData,
+    title,
+    amount,
+    selectedCategory,
+    selectedToken,
+    arbitratorRequired,
+    selectedArbitratorAddress,
+    deadline
+  ]);
 
-        if (categoryValidationMessage) {
-          jobCategoryRef.current?.focus();
-          jobCategoryRef.current?.scrollIntoView({ behavior: 'smooth' });
-          return;
-        }
+  const handleSubmit = () => {
+    if (!balanceData) {
+      throw new Error('Balance data is not available');
+    }
 
-        if (paymentTokenValidationMessage) {
-          jobAmountRef.current?.focus();
-          jobAmountRef.current?.scrollIntoView({ behavior: 'smooth' });
-          return;
-        }
-
-        if (arbitratorValidationMessage) {
-          jobArbitratorRef.current?.focus();
-          jobArbitratorRef.current?.scrollIntoView({ behavior: 'smooth' });
-          return;
-        }
-      }
-    };
-
-    const formInputs: JobFormInputData[] = [
-      { label: 'Job Title', inputInfo: title },
-      { label: 'Description', inputInfo: description },
-      { label: "I'm feeling lucky", inputInfo: imFeelingLucky },
-      { label: 'Category', inputInfo: selectedCategory?.name },
-      { label: 'Tags', inputInfo: tags.map((tag) => tag.name).join(', ') },
-      {
-        label: 'Token',
-        inputInfo: (
-          <div className='flex items-center'>
-            <span className='mr-1 inline'>{selectedToken?.id}</span>
-            <span className='mr-1 inline font-bold'>
-              {selectedToken?.symbol}
-            </span>
-            <img
-              className='inline'
-              alt='Chain Icon'
-              height={30}
-              width={30}
-              src={selectedToken?.icon || ''}
-            />
-          </div>
-        ),
-      },
-      {
-        label: 'Price',
-        inputInfo: (
-          <>
-            <span className='mr-1 inline'>{amount}</span>
-          </>
-        ),
-      },
-      { label: 'Delivery Method', inputInfo: deliveryMethod },
-      {
-        label: 'Deadline',
-        inputInfo: moment
-          .duration(
-            deadline,
-            selectedUnitTime?.name as moment.unitOfTime.DurationConstructor
-          )
-          .humanize(),
-      },
-      { label: 'Arbitrator Required', inputInfo: arbitratorRequired },
-      { label: 'Arbitrator Address', inputInfo: selectedArbitratorAddress },
-      { label: 'Worker Address', inputInfo: selectedWorkerAddress },
-    ];
-    useEffect(() => {
-      if (isConfirmed || error) {
-        if (error) {
-          console.log(error, error.message);
-          alert(
-            error.message.match(
-              `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-            )?.[1]
-          );
-        }
-        if (isConfirmed) {
-          setIsLoadingModalOpen(true);
-        }
-      }
-    }, [isConfirmed, error]);
-
-    useEffect(() => {
-      // Get session storage to fill form for new signed up users
-      const jobsAfterSignUp = JSON.parse(
-        sessionStorage.getItem(unregisteredUserLabel) || '[]'
-      );
-      const savedJob: PostJobParams = jobsAfterSignUp[0];
-
-      // Get params from URL of users that clicked postNewJob from job page
-      const params = Object.fromEntries(searchParams.entries());
-      const extractedParams: PostJobParams = {
-        ...params,
-        tags: searchParams.getAll('tags'),
-      };
-      // Check if either savedJob or params are true
-      if (user && (savedJob || extractedParams.title)) {
-        initializeForm(savedJob || extractedParams);
-      }
-    }, [searchParams, address, user]);
-
-    const initializeForm = (job: PostJobParams) => {
-      setTitle(job.title || '');
-      setDescription(job.content || '');
-      setTags(
-        job.tags
-          .filter((_, index) => index !== 0)
-          .map((tag: string, index: number) => ({ id: index + 1, name: tag }))
-      );
-      const selectedCategory = jobMeceTags.find(
-        (category) => category.id === job.tags[0]
-      );
-      setSelectedCategory(selectedCategory);
-      setDeliveryMethod(job.deliveryMethod || '');
-      setAmount(job.amount || '');
-      if (job.roles?.arbitrator === zeroAddress) {
-        setArbitratorRequired('No');
-      } else {
-        setArbitratorRequired('Yes');
-        setSelectedArbitratorAddress(job.roles?.arbitrator || '');
-      }
-      setDeadline(parseInt(job.maxTime || '0'));
-      // delete unregisteredUserLabel as this only should be consumed after user regis
-      sessionStorage.removeItem(unregisteredUserLabel);
+    if (validateAllFields()) {
       handleSummary();
-    };
+      return;
+    }
 
-    // show all validations on first render
-    const [initialRenderValidation, setInitialRenderValidation] =
-      useState(false);
-    useEffect(() => {
-      if (!initialRenderValidation) {
-        try {
-          handleSubmit();
-          setInitialRenderValidation(true);
-        } catch (e) {
-          console.error('Error in initial render validation', e);
-        }
-      }
-    }, [balanceData]);
+    if (titleError) {
+      jobTitleRef.current?.focus();
+      jobTitleRef.current?.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
 
-    return (
-      <div>
-        {!showSummary && (
-          <Fieldset className='w-full'>
-            <div className='mb-10'>
-              <h1 className='mb-2 text-3xl font-bold'>Create a Job Post</h1>
-              <span>
-                Complete the form below to post your job and connect with
-                potential candidates.
-              </span>
-            </div>
+    if (descriptionError) {
+      jobDescriptionRef.current?.focus();
+      jobDescriptionRef.current?.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
 
-            <div className='flex w-full flex-col gap-8 lg:flex-row lg:gap-24'>
-              <FieldGroup className='flex-1'>
-                <Field>
-                  <Label>Job Title</Label>
-                  <div className='scroll-mt-20' ref={jobTitleRef} />
-                  <Input
-                    name='title'
-                    value={title}
-                    placeholder='A short descriptive title for the job post'
-                    onChange={handleInputChange(setTitle, setTitleError, {
-                      required: true,
-                      minLength: 3,
-                    })}
-                  />
-                  {titleError && (
-                    <div className='text-xs' style={{ color: 'red' }}>
-                      {titleError}
-                    </div>
-                  )}
-                </Field>
-                <Field>
-                  <Label>Description</Label>
-                  <div className='scroll-mt-20' ref={jobDescriptionRef} />
-                  <Textarea
-                    rows={10}
-                    name='description'
-                    placeholder='Provide a thorough description of the job, omitting any private details which may be revealed in chat. Include the job requirements, deliverables, and any other relevant information. Too simple of a job description may make it difficult for agents to infer what you actually are asking for.'
-                    value={description}
-                    onChange={handleInputChange(
-                      setDescription,
-                      setDescriptionError,
-                      { required: false }
-                    )}
-                  />
-                  {descriptionError && (
-                    <div className='text-xs' style={{ color: 'red' }}>
-                      {descriptionError}
-                    </div>
-                  )}
-                </Field>
-                <Field>
-                  <div className='flex flex-row items-center justify-between'>
-                    <Label className='items-center'>
-                      I&apos;m feeling lucky
-                    </Label>
-                    <RadioGroup
-                      className='!mt-0 flex'
-                      value={imFeelingLucky}
-                      onChange={setImFeelingLucky}
-                      aria-label='Server size'
-                    >
-                      {noYes.map((option) => (
-                        <Field
-                          className='!mt-0 ml-5 flex items-center'
-                          key={option}
-                        >
-                          <Radio
-                            className='mr-2'
-                            color='default'
-                            value={option}
-                          >
-                            <span>{option}</span>
-                          </Radio>
-                          <Label>{option}</Label>
-                        </Field>
-                      ))}
-                    </RadioGroup>
+    if (categoryError) {
+      jobCategoryRef.current?.focus();
+      jobCategoryRef.current?.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+
+    if (paymentTokenError) {
+      jobAmountRef.current?.focus();
+      jobAmountRef.current?.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+
+    if (arbitratorError) {
+      jobArbitratorRef.current?.focus();
+      jobArbitratorRef.current?.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+  };
+
+  return (
+    <div>
+      {!showSummary && (
+        <Fieldset className='w-full'>
+          <div className='mb-10'>
+            <h1 className='mb-2 text-3xl font-bold'>Create a Job Post</h1>
+            <span>
+              Complete the form below to post your job and connect with
+              potential candidates.
+            </span>
+          </div>
+
+          <div className='flex w-full flex-col gap-8 lg:flex-row lg:gap-24'>
+            <FieldGroup className='flex-1'>
+              <Field>
+                <Label>Job Title</Label>
+                <div className='scroll-mt-20' ref={jobTitleRef} />
+                <Input
+                  name='title'
+                  value={title}
+                  placeholder='A short descriptive title for the job post'
+                  required
+                  minLength={3}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => validateTitle(e.target.value)}
+                />
+                {titleError && (
+                  <div className='text-xs' style={{ color: 'red' }}>
+                    {titleError}
                   </div>
-                  <Description>
-                    Enabling this allows worker to automatically start the job
-                    without you approving them first.
-                  </Description>
-                </Field>
-                <Field>
-                  <Label>Category</Label>
-                  <div ref={jobCategoryRef} className='scroll-mt-20' />
-                  <Listbox
-                    placeholder='Select Category'
-                    value={selectedCategory}
-                    onChange={(c) => {
-                      setSelectedCategory(c);
-                      setCategoryError('');
-                    }}
-                  >
-                    {jobMeceTags.map(
-                      (category, index) =>
-                        index > 0 && (
-                          <ListboxOption key={index} value={category}>
-                            <ListboxLabel>
-                              {jobMeceTags[index].name}
-                            </ListboxLabel>
-                          </ListboxOption>
-                        )
-                    )}
-                  </Listbox>
-                  {categoryError && (
-                    <div className='text-xs' style={{ color: 'red' }}>
-                      {categoryError}
-                    </div>
-                  )}
-                </Field>
-                <Field>
-                  <Label>Tags</Label>
-                  <TagsInput tags={tags} setTags={setTags} />
-                  <Description>
-                    Tags help workers find your job post. Select tags that best
-                    describe the job and its requirements.
-                  </Description>
-                </Field>
-              </FieldGroup>
-              <FieldGroup className='flex-1'>
-                <div className='flex flex-row justify-between gap-5'>
-                  <Field className='flex-1'>
-                    <Label>Payment Amount</Label>
-                    <div className='scroll-mt-20' ref={jobAmountRef} />
-                    <Input
-                      name='amount'
-                      placeholder='1.00'
-                      type='number'
-                      value={amount}
-                      min={0}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        const sanitizedValue =
-                          value === ''
-                            ? ''
-                            : parseFloat(value) < 0
-                              ? -value
-                              : value;
-
-                        handleInputChange(setAmount, setPaymentTokenError, {
-                          mustBeLessThanOrEqualTo: ethers.formatUnits(
-                            (balanceData as ethers.BigNumberish) || 0,
-                            selectedToken?.decimals || 0
-                          ),
-                          mustBeGreaterThan: '0',
-                          required: true,
-                        })({
-                          ...e,
-                          target: {
-                            ...e.target,
-                            value: sanitizedValue.toString(),
-                          },
-                        });
-                      }}
-                    />
-                    {paymentTokenError && (
-                      <div className='text-xs' style={{ color: 'red' }}>
-                        {paymentTokenError}
-                      </div>
-                    )}
-                    <Description>
-                      Your funds will be locked until the job is completed. Or,
-                      if you cancel the job posting, available for withdraw
-                      after a 24 hour period.
-                    </Description>
-                  </Field>
-                  <Field className='flex-1'>
-                    <Label>Payment Token</Label>
-                    <div className='flex flex-col gap-y-2'>
-                      <div className='flex items-center gap-x-2'>
-                        <div>
-                          <div className='flex flex-col gap-4'>
-                            <TokenSelector
-                              selectedToken={selectedToken}
-                              onClick={(token: Token) =>
-                                setSelectedToken(token)
-                              }
-                            />
-                          </div>
-                          {selectedToken &&
-                          balanceData !== null &&
-                          balanceData !== undefined ? (
-                            <Text>
-                              Balance:{' '}
-                              {ethers.formatUnits(
-                                balanceData as ethers.BigNumberish,
-                                selectedToken.decimals
-                              )}{' '}
-                              {selectedToken.symbol}
-                            </Text>
-                          ) : (
-                            <Text style={{ color: 'red' }}>
-                              Balance: 0.0 {selectedToken?.symbol}
-                            </Text>
-                          )}
-                        </div>
-                      </div>
-                      <div className='max-w-[200px] truncate text-xs text-gray-500'>
-                        <Link
-                          href={`https://arbiscan.io/address/${selectedToken?.id}`}
-                          target='_blank'
-                          rel='noopener noreferrer'
-                        >
-                          {selectedToken?.id}
-                        </Link>
-                      </div>
-                    </div>
-                  </Field>
-                </div>
-                <Field>
-                  <Label>Delivery Method</Label>
-                  <Listbox
-                    placeholder='Delivery Method'
-                    value={deliveryMethod}
-                    onChange={(e) => setDeliveryMethod(e)}
-                  >
-                    {deliveryMethods.map((method, index) => (
-                      <ListboxOption key={index} value={method.value}>
-                        <ListboxLabel>
-                          {deliveryMethods[index].label}
-                        </ListboxLabel>
-                      </ListboxOption>
-                    ))}
-                  </Listbox>
-                  <Description>
-                    What delivery method should the worker use? For digital
-                    items usually IPFS is the correct choice. For jobs that do
-                    not involve a digital deliverable (such as posting online),
-                    digital proof can be used. For physical items such as
-                    selling computer equipment use courier.
-                  </Description>
-                </Field>
-                <Field>
-                  <div className='flex flex-row items-center justify-between'>
-                    <Label className='mb-0 items-center pb-0 !font-bold'>
-                      Arbitrator Required
-                    </Label>
-                    <RadioGroup
-                      className='!mt-0 flex'
-                      value={arbitratorRequired}
-                      onChange={(value) => {
-                        setArbitratorRequired(value);
-                        if (value === 'No') {
-                          setSelectedArbitratorAddress(zeroAddress);
-                        } else {
-                          if (
-                            !selectedArbitratorAddress ||
-                            selectedArbitratorAddress === zeroAddress
-                          ) {
-                            setArbitratorError('Please select an arbitrator');
-                          }
-                        }
-                      }}
-                      aria-label='Arbitrator Required'
-                    >
-                      {noYes.map((option) => (
-                        <Field
-                          className='!mt-0 ml-5 flex items-center'
-                          key={option}
-                        >
-                          <Radio
-                            color='default'
-                            className='mr-2'
-                            value={option}
-                          >
-                            <span>{option}</span>
-                          </Radio>
-                          <Label>{option}</Label>
-                        </Field>
-                      ))}
-                    </RadioGroup>
-                  </div>
-                  <Description>
-                    Without an arbitrator, disputes on job completion must be
-                    handled by the creator and worker directly. Arbitrators are
-                    third-party entities that can help resolve disputes.
-                  </Description>
-                </Field>
-                {arbitratorRequired === 'Yes' && (
-                  <>
-                    <Field>
-                      <div className='scroll-mt-20' ref={jobArbitratorRef} />
-                      <Listbox
-                        placeholder='Select Arbitrator'
-                        value={selectedArbitratorAddress}
-                        onChange={(addr) => {
-                          setSelectedArbitratorAddress(addr);
-
-                          if (addr == address) {
-                            setArbitratorError(
-                              'You cannot be your own arbitrator'
-                            );
-                            return;
-                          } else {
-                            setArbitratorError('');
-                          }
-                        }}
-                      >
-                        {arbitratorAddresses.map(
-                          (arbitratorAddress, index) =>
-                            index > 0 && (
-                              <ListboxOption
-                                key={index}
-                                value={arbitratorAddress}
-                              >
-                                <ListboxLabel>
-                                  <span className=''>
-                                    {arbitratorNames[index]}
-                                  </span>{' '}
-                                  <span className='ml-4 text-sm text-gray-500'>
-                                    {shortenText({
-                                      text: arbitratorAddress,
-                                      maxLength: 11,
-                                    })}
-                                  </span>{' '}
-                                  <span className='bold ml-4'>
-                                    {+arbitratorFees[index] / 100}%
-                                  </span>
-                                </ListboxLabel>
-                              </ListboxOption>
-                            )
-                        )}
-                      </Listbox>
-                      {arbitratorError && (
-                        <div className='text-xs' style={{ color: 'red' }}>
-                          {arbitratorError}
-                        </div>
-                      )}
-                      <Description>
-                        Make sure to choose an arbitrator that you trust to
-                        resolve disputes fairly. Arbitrators charge a small fee
-                        for their services, which is deducted from the job
-                        payment. ArbitrationDAO is a decentralized arbitration
-                        service that can be used.
-                      </Description>
-                    </Field>
-                  </>
                 )}
-
-                <div className='flex flex-row justify-between gap-5'>
-                  <Field className='flex-1'>
-                    <Label>
-                      Maximum delivery time in {selectedUnitTime.name}
-                    </Label>
-                    <div className='scroll-mt-20' ref={jobDeadlineRef} />
-                    <Input
-                      name='deadline'
-                      type='number'
-                      placeholder={`Maximum delivery time in ${selectedUnitTime.name}`}
-                      value={deadline}
-                      min={1}
-                      step={1}
-                      onChange={(e) => {
-                        let deadline = parseInt(e.target.value);
-                        if (deadline < 0) {
-                          deadline = -deadline;
-                        }
-                        setDeadline(deadline);
-                        if (deadline === 0 || e.target.value === '') {
-                          setDeadlineError('Please enter a valid deadline');
-                        } else {
-                          if (deadlineError) {
-                            setDeadlineError('');
-                          }
-                        }
-                      }}
-                    />
-                    {deadlineError && (
-                      <div className='text-xs' style={{ color: 'red' }}>
-                        {deadlineError}
+              </Field>
+              <Field>
+                <Label>Description</Label>
+                <div className='scroll-mt-20' ref={jobDescriptionRef} />
+                <Textarea
+                  rows={10}
+                  name='description'
+                  placeholder='Provide a thorough description of the job, omitting any private details which may be revealed in chat. Include the job requirements, deliverables, and any other relevant information. Too simple of a job description may make it difficult for agents to infer what you actually are asking for.'
+                  value={description}
+                  onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
+                    // TODO add max length validation
+                    setDescription(e.target.value);
+                  }}
+                />
+                {descriptionError && (
+                  <div className='text-xs' style={{ color: 'red' }}>
+                    {descriptionError}
+                  </div>
+                )}
+              </Field>
+              <Field>
+                <div className='flex flex-row items-center justify-between'>
+                  <Label className='items-center'>
+                    I&apos;m feeling lucky
+                  </Label>
+                  <RadioGroup
+                    className='!mt-0 flex'
+                    value={imFeelingLucky}
+                    onChange={setImFeelingLucky}
+                    aria-label='Server size'
+                  >
+                    {noYes.map((option) => (
+                      <Field
+                        className='!mt-0 ml-5 flex items-center'
+                        key={option}
+                      >
+                        <Radio
+                          className='mr-2'
+                          color='default'
+                          value={option}
+                        >
+                          <span>{option}</span>
+                        </Radio>
+                        <Label>{option}</Label>
+                      </Field>
+                    ))}
+                  </RadioGroup>
+                </div>
+                <Description>
+                  Enabling this allows worker to automatically start the job
+                  without you approving them first.
+                </Description>
+              </Field>
+              <Field>
+                <Label>Category</Label>
+                <div ref={jobCategoryRef} className='scroll-mt-20' />
+                <Listbox
+                  placeholder='Select Category'
+                  value={selectedCategory}
+                  onChange={(category) => {
+                    setSelectedCategory(category);
+                    setCategoryError('');
+                  }}
+                >
+                  {jobMeceTags.map(
+                    (category, index) =>
+                      index > 0 && (
+                        <ListboxOption key={index} value={category}>
+                          <ListboxLabel>
+                            {jobMeceTags[index].name}
+                          </ListboxLabel>
+                        </ListboxOption>
+                      )
+                  )}
+                </Listbox>
+                {categoryError && (
+                  <div className='text-xs' style={{ color: 'red' }}>
+                    {categoryError}
+                  </div>
+                )}
+              </Field>
+              <Field>
+                <Label>Tags</Label>
+                <TagsInput tags={tags} setTags={setTags} />
+                <Description>
+                  Tags help workers find your job post. Select tags that best
+                  describe the job and its requirements.
+                </Description>
+              </Field>
+            </FieldGroup>
+            <FieldGroup className='flex-1'>
+              <div className='flex flex-row justify-between gap-5'>
+                <Field className='flex-1'>
+                  <Label>Payment Amount</Label>
+                  <div className='scroll-mt-20' ref={jobAmountRef} />
+                  <Input
+                    name='amount'
+                    placeholder='1.00'
+                    type='number'
+                    value={amount}
+                    min={0}
+                    onChange={(e) => validatePaymentAmount(e.target.value)}
+                  />
+                  {paymentTokenError && (
+                    <div className='text-xs' style={{ color: 'red' }}>
+                      {paymentTokenError}
+                    </div>
+                  )}
+                  <Description>
+                    Your funds will be locked until the job is completed. Or,
+                    if you cancel the job posting, available for withdraw
+                    after a 24 hour period.
+                  </Description>
+                </Field>
+                <Field className='flex-1'>
+                  <Label>Payment Token</Label>
+                  <div className='flex flex-col gap-y-2'>
+                    <div className='flex items-center gap-x-2'>
+                      <div>
+                        <div className='flex flex-col gap-4'>
+                          <TokenSelector
+                            selectedToken={selectedToken}
+                            onClick={(token: Token) =>
+                              setSelectedToken(token)
+                            }
+                          />
+                        </div>
+                        {selectedToken &&
+                        balanceData !== null &&
+                        balanceData !== undefined ? (
+                          <Text>
+                            Balance:{' '}
+                            {ethers.formatUnits(
+                              balanceData as ethers.BigNumberish,
+                              selectedToken.decimals
+                            )}{' '}
+                            {selectedToken.symbol}
+                          </Text>
+                        ) : (
+                          <Text style={{ color: 'red' }}>
+                            Balance: 0.0 {selectedToken?.symbol}
+                          </Text>
+                        )}
                       </div>
-                    )}
-                  </Field>
-                  <Field className='flex-1'>
-                    <Label>Units</Label>
+                    </div>
+                    <div className='max-w-[200px] truncate text-xs text-gray-500'>
+                      <Link
+                        href={`https://arbiscan.io/address/${selectedToken?.id}`}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                      >
+                        {selectedToken?.id}
+                      </Link>
+                    </div>
+                  </div>
+                </Field>
+              </div>
+              <Field>
+                <Label>Delivery Method</Label>
+                <Listbox
+                  placeholder='Delivery Method'
+                  value={deliveryMethod}
+                  onChange={(e) => setDeliveryMethod(e)}
+                >
+                  {deliveryMethods.map((method, index) => (
+                    <ListboxOption key={index} value={method.value}>
+                      <ListboxLabel>
+                        {deliveryMethods[index].label}
+                      </ListboxLabel>
+                    </ListboxOption>
+                  ))}
+                </Listbox>
+                <Description>
+                  What delivery method should the worker use? For digital
+                  items usually IPFS is the correct choice. For jobs that do
+                  not involve a digital deliverable (such as posting online),
+                  digital proof can be used. For physical items such as
+                  selling computer equipment use courier.
+                </Description>
+              </Field>
+              <Field>
+                <div className='flex flex-row items-center justify-between'>
+                  <Label className='mb-0 items-center pb-0 !font-bold'>
+                    Arbitrator Required
+                  </Label>
+                  <RadioGroup
+                    className='!mt-0 flex'
+                    value={arbitratorRequired}
+                    onChange={(value) => validateArbitratorRequired(value)}
+                    aria-label='Arbitrator Required'
+                  >
+                    {noYes.map((option) => (
+                      <Field
+                        className='!mt-0 ml-5 flex items-center'
+                        key={option}
+                      >
+                        <Radio
+                          color='default'
+                          className='mr-2'
+                          value={option}
+                        >
+                          <span>{option}</span>
+                        </Radio>
+                        <Label>{option}</Label>
+                      </Field>
+                    ))}
+                  </RadioGroup>
+                </div>
+                <Description>
+                  Without an arbitrator, disputes on job completion must be
+                  handled by the creator and worker directly. Arbitrators are
+                  third-party entities that can help resolve disputes.
+                </Description>
+              </Field>
+              {arbitratorRequired === 'Yes' && (
+                <>
+                  <Field>
+                    <div className='scroll-mt-20' ref={jobArbitratorRef} />
                     <Listbox
-                      placeholder='Time Units'
-                      value={selectedUnitTime}
-                      onChange={(e) => setselectedUnitTime(e)}
+                      placeholder='Select Arbitrator'
+                      value={selectedArbitratorAddress}
+                      onChange={(addr) => validateArbitrator(addr)}
                     >
-                      {unitsDeliveryTime.map(
-                        (timeUnit, index) =>
+                      {arbitratorAddresses.map(
+                        (arbitratorAddress, index) =>
                           index > 0 && (
-                            <ListboxOption key={index} value={timeUnit}>
+                            <ListboxOption
+                              key={index}
+                              value={arbitratorAddress}
+                            >
                               <ListboxLabel>
-                                {unitsDeliveryTime[index].name}
+                                <span className=''>
+                                  {arbitratorNames[index]}
+                                </span>{' '}
+                                <span className='ml-4 text-sm text-gray-500'>
+                                  {shortenText({
+                                    text: arbitratorAddress,
+                                    maxLength: 11,
+                                  })}
+                                </span>{' '}
+                                <span className='bold ml-4'>
+                                  {+arbitratorFees[index] / 100}%
+                                </span>
                               </ListboxLabel>
                             </ListboxOption>
                           )
                       )}
                     </Listbox>
+                    {arbitratorError && (
+                      <div className='text-xs' style={{ color: 'red' }}>
+                        {arbitratorError}
+                      </div>
+                    )}
+                    <Description>
+                      Make sure to choose an arbitrator that you trust to
+                      resolve disputes fairly. Arbitrators charge a small fee
+                      for their services, which is deducted from the job
+                      payment. ArbitrationDAO is a decentralized arbitration
+                      service that can be used.
+                    </Description>
                   </Field>
-                </div>
-              </FieldGroup>
-            </div>
-            {!showSummary && (
-              <div className='mb-40 mt-5 flex justify-end'>
-                {isConnected && (
-                  <Button
-                    // disabled={postButtonDisabled || isPending}
-                    // onClick={postJobClick}
-                    onClick={handleSubmit}
-                  >
-                    {isPending ? 'Posting...' : 'Continue'}
-                  </Button>
-                )}
-                {!isConnected && <ConnectButton />}
-              </div>
-            )}
-          </Fieldset>
-        )}
-        {showSummary && (
-          <JobSummary
-            handleSummary={handleSummary}
-            formInputs={formInputs}
-            submitJob={postJobClick}
-            isPending={isPending}
-            isConfirming={isConfirming}
-            isConfirmed={isConfirmed}
-            postButtonDisabled={postButtonDisabled}
-          />
-        )}
-        <RegisterModal
-          open={isRegisterModalOpen}
-          close={() => {
-            setIsRegisterModalOpen(false);
-          }}
-        />
-        <LoadingModal
-          open={isLoadingModalOpen}
-          close={() => {
-            setIsLoadingModalOpen(false);
-          }}
-        />
-        <AddToHomescreen />
-      </div>
-    );
-  }
-);
+                </>
+              )}
 
-PostJob.displayName = 'PostJob';
+              <div className='flex flex-row justify-between gap-5'>
+                <Field className='flex-1'>
+                  <Label>
+                    Maximum delivery time in {selectedUnitTime.name}
+                  </Label>
+                  <div className='scroll-mt-20' ref={jobDeadlineRef} />
+                  <Input
+                    name='deadline'
+                    type='number'
+                    placeholder={`Maximum delivery time in ${selectedUnitTime.name}`}
+                    value={deadline}
+                    min={1}
+                    step={1}
+                    onChange={(e) => validateDeadline(e.target.value)}
+                  />
+                  {deadlineError && (
+                    <div className='text-xs' style={{ color: 'red' }}>
+                      {deadlineError}
+                    </div>
+                  )}
+                </Field>
+                <Field className='flex-1'>
+                  <Label>Units</Label>
+                  <Listbox
+                    placeholder='Time Units'
+                    value={selectedUnitTime}
+                    onChange={(e) => setselectedUnitTime(e)}
+                  >
+                    {unitsDeliveryTime.map(
+                      (timeUnit, index) =>
+                        index > 0 && (
+                          <ListboxOption key={index} value={timeUnit}>
+                            <ListboxLabel>
+                              {unitsDeliveryTime[index].name}
+                            </ListboxLabel>
+                          </ListboxOption>
+                        )
+                    )}
+                  </Listbox>
+                </Field>
+              </div>
+            </FieldGroup>
+          </div>
+          {!showSummary && (
+            <div className='mb-40 mt-5 flex justify-end'>
+              {isConnected && (
+                <Button
+                  disabled={continueButtonDisabled}
+                  onClick={handleSubmit}
+                >
+                  Continue
+                </Button>
+              )}
+              {!isConnected && <ConnectButton />}
+            </div>
+          )}
+        </Fieldset>
+      )}
+      {showSummary && (
+        <JobSummary
+          handleSummary={handleSummary}
+          title={title}
+          description={description}
+          imFeelingLucky={imFeelingLucky}
+          tags={tags}
+          deliveryMethod={deliveryMethod}
+          selectedToken={selectedToken}
+          amount={amount}
+          selectedCategory={selectedCategory as { id: string; name: string }}
+          deadline={deadline}
+          selectedArbitratorAddress={selectedArbitratorAddress}
+        />
+      )}
+      <RegisterModal
+        open={isRegisterModalOpen}
+        close={() => {
+          setIsRegisterModalOpen(false);
+        }}
+      />
+      <LoadingModal
+        open={isLoadingModalOpen}
+        close={() => {
+          setIsLoadingModalOpen(false);
+        }}
+      />
+      <AddToHomescreen />
+    </div>
+  );
+};
 
 export default PostJob;
