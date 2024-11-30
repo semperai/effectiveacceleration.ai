@@ -281,12 +281,13 @@ const PostJob = () => {
   const validatePaymentAmount = (paymentAmount: string) => {
     setAmount(paymentAmount);
 
-    const value = parseFloat(paymentAmount);
     if (balanceData === null || balanceData === undefined) {
       setPaymentTokenError('Balance data is not available');
       return;
     }
+
     const balance = parseFloat(ethers.formatUnits(balanceData as ethers.BigNumberish, selectedToken?.decimals || '0'));
+    const value = parseFloat(paymentAmount);
 
     if (isNaN(value)) {
       setPaymentTokenError('Please enter a valid amount');
