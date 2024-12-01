@@ -153,8 +153,9 @@ export function useWriteContractWithNotifications() {
           functionName,
           args,
         });
-      } catch (e) {
+      } catch (e: any) {
         dismissLoadingToast();
+        showError(`An error occurred: ${e?.message}`);
       }
     },
     [writeContract, showError, showLoading, toast, getRevertReason]
