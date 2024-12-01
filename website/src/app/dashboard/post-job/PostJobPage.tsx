@@ -1,6 +1,6 @@
 'use client';
-import { AddToHomescreen } from '@/components/AddToHomescreen';
 import ERC20Abi from '@/abis/ERC20.json';
+import { AddToHomescreen } from '@/components/AddToHomescreen';
 import { Button } from '@/components/Button';
 import { ConnectButton } from '@/components/ConnectButton';
 import {
@@ -19,7 +19,8 @@ import { Textarea } from '@/components/Textarea';
 import { TokenSelector } from '@/components/TokenSelector';
 import useArbitrators from '@/hooks/subsquid/useArbitrators';
 import useUser from '@/hooks/subsquid/useUser';
-import { ComboBoxOption, JobFormInputData, Tag } from '@/service/FormsTypes';
+import { useConfig } from '@/hooks/useConfig';
+import { ComboBoxOption, Tag } from '@/service/FormsTypes';
 import { Token, tokens } from '@/tokens';
 import { jobMeceTags } from '@/utils/jobMeceTags';
 import {
@@ -37,10 +38,9 @@ import React, {
 } from 'react';
 import { zeroAddress } from 'viem';
 import { useAccount, useReadContract } from 'wagmi';
-import { useConfig } from '@/hooks/useConfig';
-import { SubmitJobButton } from './SubmitJobButton';
 import LoadingModal from './LoadingModal';
 import RegisterModal from './RegisterModal';
+import { SubmitJobButton } from './SubmitJobButton';
 
 const deliveryMethods = [
   {
