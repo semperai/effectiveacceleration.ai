@@ -1,10 +1,12 @@
+import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { CheckIcon } from '@heroicons/react/20/solid';
 import { Job } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { useEffect, useState } from 'react';
-import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
+import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import { useConfig } from '@/hooks/useConfig';
+import { useToast } from '@/hooks/useToast';
 
 export type RefundButtonProps = {
   address: string | undefined;
@@ -17,56 +19,48 @@ export function RefundButton({
   ...rest
 }: RefundButtonProps & React.ComponentPropsWithoutRef<'div'>) {
   const Config = useConfig();
-  const { data: hash, error, writeContract } = useWriteContract();
+  const [isRefunding, setIsRefunding] = useState(false);
+  const { showError } = useToast();
 
-  const { isSuccess: isConfirmed } = useWaitForTransactionReceipt({
-    hash,
-  });
+  const {
+    writeContractWithNotifications,
+    isConfirming,
+    isConfirmed,
+    error
+  } = useWriteContractWithNotifications();
 
-  useEffect(() => {
-    if (isConfirmed || error) {
-      if (error) {
-        const revertReason = error.message.match(
-          `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-        )?.[1];
-        if (revertReason) {
-          alert(
-            error.message.match(
-              `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-            )?.[1]
-          );
-        } else {
-          console.log(error, error.message);
-          alert('Unknown error occurred');
-        }
-      }
-      setButtonDisabled(false);
+  async function handleRefund() {
+    setIsRefunding(true);
+
+    try {
+      await writeContractWithNotifications({
+        abi: MARKETPLACE_V1_ABI,
+        address: Config!.marketplaceAddress,
+        functionName: 'refund',
+        args: [BigInt(job.id!)],
+      });
+    } catch (err: any) {
+      showError(`Error refunding job: ${err.message}`);
+    } finally {
+      setIsRefunding(false);
     }
-  }, [isConfirmed, error]);
-
-  const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
-
-  async function buttonClick() {
-    setButtonDisabled(true);
-
-    const w = writeContract({
-      abi: MARKETPLACE_V1_ABI,
-      address: Config!.marketplaceAddress,
-      functionName: 'refund',
-      args: [BigInt(job.id!)],
-    });
   }
+
+  const buttonText = isRefunding ? 'Refunding...' : 'Refund';
 
   return (
     <>
       <Button
-        disabled={buttonDisabled}
-        onClick={buttonClick}
+        disabled={isRefunding || isConfirming}
+        onClick={handleRefund}
         color={'borderlessGray'}
         className={'w-full'}
       >
+        {(isRefunding || isConfirming) && (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        )}
         <CheckIcon className='-ml-0.5 mr-1.5 h-5 w-5' aria-hidden='true' />
-        Refund
+        {buttonText}
       </Button>
     </>
   );
