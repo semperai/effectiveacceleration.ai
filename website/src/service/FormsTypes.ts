@@ -19,8 +19,3 @@ export type FormInputData = {
   label: string;
   inputInfo: ReactNode | string | undefined;
 };
-
-export type JobFormInputData = {
-  label: string;
-  inputInfo: ReactNode | string | undefined;
-};
