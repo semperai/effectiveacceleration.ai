@@ -39,7 +39,7 @@ const nextConfig = {
     ];
   },
   images: {
-    domains: ['images.unsplash.com', 'localhost', 'eacc-staging.pat.mn'],
+    domains: ['images.unsplash.com', 'localhost', 'eacc-staging.pat.mn', 'ipfs.effectiveacceleration.ai'],
   },
 };
 
