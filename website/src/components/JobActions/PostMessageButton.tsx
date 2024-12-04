@@ -8,6 +8,9 @@ import { PiPaperPlaneRight } from 'react-icons/pi';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import { Textarea } from '../Textarea';
 import { useConfig } from '@/hooks/useConfig';
+import { useToast } from '@/hooks/useToast';
+import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
+import { Loader2 } from 'lucide-react';
 
 export type PostMessageButtonProps = {
   address: string | undefined;
@@ -32,51 +35,42 @@ export function PostMessageButton({
   const selectedUserRecipient =
     recipient === address ? job.roles.creator : recipient;
 
-  const { data: hash, error, writeContract } = useWriteContract();
-
-  const { isSuccess: isConfirmed } = useWaitForTransactionReceipt({
-    hash,
-  });
-
-  useEffect(() => {
-    if (isConfirmed || error) {
-      setMessage('');
-      if (error) {
-        const revertReason = error.message.match(
-          `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-        )?.[1];
-        if (revertReason) {
-          alert(
-            error.message.match(
-              `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-            )?.[1]
-          );
-        } else {
-          console.log(error, error.message);
-          alert('Unknown error occurred');
-        }
-      }
-    }
-  }, [isConfirmed, error]);
-
+    const [isPostingMessage, setIsPostingMessage] = useState(false);
+    const { showError } = useToast();
+  
+    const {
+      writeContractWithNotifications,
+      isConfirming,
+      isConfirmed,
+      error
+    } = useWriteContractWithNotifications();
+    
   const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
 
-  async function buttonClick() {
-    if (!user) {
-      router.push('/register');
-      return;
+  async function handlePostMessage() {
+      console.log('HANDLED POST MESSAGE')
+      if (!user) {
+        router.push('/register');
+        return;
+      }
+  
+      const sessionKey = sessionKeys[`${address}-${selectedUserRecipient}`];
+      const { hash: contentHash } = await publishToIpfs(message, sessionKey);
+
+    try {
+      await writeContractWithNotifications({
+        abi: MARKETPLACE_V1_ABI,
+        address: Config!.marketplaceAddress,
+        functionName: 'postThreadMessage',
+        args: [BigInt(job.id!), contentHash, selectedUserRecipient],
+      });
+    } catch (err: any) {
+      showError(`Error refunding job: ${err.message}`);
+    } finally {
+      setIsPostingMessage(false);
     }
-
-    const sessionKey = sessionKeys[`${address}-${selectedUserRecipient}`];
-    const { hash: contentHash } = await publishToIpfs(message, sessionKey);
-
-    const w = writeContract({
-      abi: MARKETPLACE_V1_ABI,
-      address: Config!.marketplaceAddress,
-      functionName: 'postThreadMessage',
-      args: [BigInt(job.id!), contentHash, selectedUserRecipient],
-    });
   }
+
   return (
     <>
       <div className='w-full'>
@@ -90,10 +84,13 @@ export function PostMessageButton({
               className='w-full !rounded'
             />
             <Button
-              disabled={buttonDisabled || message.length === 0}
-              onClick={buttonClick}
+              disabled={isPostingMessage || isConfirming}
+              onClick={handlePostMessage}
               color='lightBlue'
-            >
+            >        
+              {(isPostingMessage || isConfirming) && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
               <PiPaperPlaneRight className='text-xl text-white' />
             </Button>
           </div>
