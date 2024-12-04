@@ -31,6 +31,7 @@ export type JobRoles = Job['roles'];
 
 export type JobEvent = {
   id?: string,
+  jobId: bigint,
   details?: CustomJobEvent,
 } & GetElementType<DeepWriteable<ReadContractReturnType<typeof MARKETPLACE_DATA_V1_ABI, 'getEvents'>>>;
 
