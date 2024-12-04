@@ -4,6 +4,9 @@ import { Job } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { useEffect, useState } from 'react';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
+import { useToast } from '@/hooks/useToast';
+import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
+import { Loader2 } from 'lucide-react';
 
 export type ReopenButtonProps = {
   address: string | undefined;
@@ -16,56 +19,40 @@ export function ReopenButton({
   ...rest
 }: ReopenButtonProps & React.ComponentPropsWithoutRef<'div'>) {
   const Config = useConfig();
-  const { data: hash, error, writeContract } = useWriteContract();
+  const [isReopening, setIsReopening] = useState(false);
+  const { showError } = useToast();
 
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
-    useWaitForTransactionReceipt({
-      hash,
-    });
+  const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
+    useWriteContractWithNotifications();
 
-  useEffect(() => {
-    if (isConfirmed || error) {
-      if (error) {
-        const revertReason = error.message.match(
-          `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-        )?.[1];
-        if (revertReason) {
-          alert(
-            error.message.match(
-              `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-            )?.[1]
-          );
-        } else {
-          console.log(error, error.message);
-          alert('Unknown error occurred');
-        }
-      }
-      setButtonDisabled(false);
+  async function handleReopen() {
+    setIsReopening(true);
+
+    try {
+      await writeContractWithNotifications({
+        abi: MARKETPLACE_V1_ABI,
+        address: Config!.marketplaceAddress,
+        functionName: 'reopenJob',
+        args: [BigInt(job.id!)],
+      });
+    } catch (err: any) {
+      showError(`Error Reopening job: ${err.message}`);
+    } finally {
+      setIsReopening(false);
     }
-  }, [isConfirmed, error]);
-
-  const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
-
-  async function buttonClick() {
-    setButtonDisabled(true);
-
-    const w = writeContract({
-      abi: MARKETPLACE_V1_ABI,
-      address: Config!.marketplaceAddress,
-      functionName: 'reopenJob',
-      args: [BigInt(job.id!)],
-    });
   }
+
+  const buttonText = isReopening ? 'Reopening...' : 'Reopen';
 
   return (
     <>
       <Button
-        disabled={buttonDisabled}
-        onClick={buttonClick}
+        disabled={isReopening || isConfirming}
+        onClick={handleReopen}
         color={'borderlessGray'}
         className={'w-full'}
       >
-        Restart Job
+        {buttonText}
       </Button>
     </>
   );
