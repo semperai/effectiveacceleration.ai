@@ -192,7 +192,7 @@ const JobSidebar = ({
   );
 
   return (
-    <div className='h-full divide-y divide-gray-100 overflow-y-auto rounded-lg bg-white shadow-sm'>
+    <div className='h-full max-h-customHeader divide-y divide-gray-100 overflow-y-auto rounded-lg bg-white shadow-sm'>
       {job && address && events && (
         <JobStatusWrapper
           job={job}
@@ -552,7 +552,7 @@ export default function JobPage() {
             )}
           >
             {job && (
-              <div className='grid min-h-customHeader grid-rows-[74px_70%_10%]'>
+              <div className='grid max-h-customHeader min-h-customHeader grid-rows-[74px_68%_10%]'>
                 <ProfileUserHeader
                   users={users ?? {}}
                   selectedWorker={selectedWorker}
