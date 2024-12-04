@@ -479,7 +479,7 @@ export default function JobPage() {
       setEventMessages(
         events.filter(
           (event: JobEventWithDiffs) =>
-            event.address_ === selectedWorker?.toLowerCase() ||
+            event.address_ === selectedWorker ||
             (event.details as JobMessageEvent)?.recipientAddress ===
               selectedWorker
         )
