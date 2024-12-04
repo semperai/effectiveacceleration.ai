@@ -5,6 +5,11 @@ import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/Marke
 import { useEffect, useState } from 'react';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import { useConfig } from '@/hooks/useConfig';
+import { useToast } from '@/hooks/useToast';
+import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
+import { Loader2 } from 'lucide-react';
+
+
 
 export type CloseButtonProps = {
   address: string | undefined;
@@ -17,55 +22,48 @@ export function CloseButton({
   ...rest
 }: CloseButtonProps & React.ComponentPropsWithoutRef<'div'>) {
   const Config = useConfig();
-  const { data: hash, error, writeContract } = useWriteContract();
+  const [isClosing, setIsClosing] = useState(false);
+  const { showError } = useToast();
 
-  const { isSuccess: isConfirmed } = useWaitForTransactionReceipt({
-    hash,
-  });
+  const {
+    writeContractWithNotifications,
+    isConfirming,
+    isConfirmed,
+    error
+  } = useWriteContractWithNotifications();
 
-  useEffect(() => {
-    if (isConfirmed || error) {
-      if (error) {
-        const revertReason = error.message.match(
-          `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-        )?.[1];
-        if (revertReason) {
-          alert(
-            error.message.match(
-              `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-            )?.[1]
-          );
-        } else {
-          console.log(error, error.message);
-          alert('Unknown error occurred');
-        }
-      }
-      setButtonDisabled(false);
+
+  async function handleClose() {
+    setIsClosing(true);
+
+    try {
+      await writeContractWithNotifications({
+        abi: MARKETPLACE_V1_ABI,
+        address: Config!.marketplaceAddress,
+        functionName: 'closeJob',
+        args: [BigInt(job.id!)],
+      });
+    } catch (err: any) {
+      showError(`Error closing job: ${err.message}`);
+    } finally {
+      setIsClosing(false);
     }
-  }, [isConfirmed, error]);
-
-  const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
-
-  async function buttonClick() {
-    setButtonDisabled(true);
-
-    const w = writeContract({
-      abi: MARKETPLACE_V1_ABI,
-      address: Config!.marketplaceAddress,
-      functionName: 'closeJob',
-      args: [BigInt(job.id!)],
-    });
   }
+
+  const buttonText = isClosing ? 'Closing...' : 'Close';
 
   return (
     <>
       <Button
-        disabled={buttonDisabled}
-        onClick={buttonClick}
+        disabled={isClosing || isConfirming}
+        onClick={handleClose}
         color={'borderlessGray'}
         className={'w-full'}
       >
-        Close
+        {(isClosing|| isConfirming) && (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        )}
+        {buttonText}
       </Button>
     </>
   );

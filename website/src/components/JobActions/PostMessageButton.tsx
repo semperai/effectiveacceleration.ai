@@ -45,10 +45,7 @@ export function PostMessageButton({
       error
     } = useWriteContractWithNotifications();
     
-  const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
-
   async function handlePostMessage() {
-      console.log('HANDLED POST MESSAGE')
       if (!user) {
         router.push('/register');
         return;
@@ -65,7 +62,7 @@ export function PostMessageButton({
         args: [BigInt(job.id!), contentHash, selectedUserRecipient],
       });
     } catch (err: any) {
-      showError(`Error refunding job: ${err.message}`);
+      showError(`Error posting job message: ${err.message}`);
     } finally {
       setIsPostingMessage(false);
     }
