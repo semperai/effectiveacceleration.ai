@@ -51,7 +51,10 @@ export function ReopenButton({
         onClick={handleReopen}
         color={'borderlessGray'}
         className={'w-full'}
-      >
+      >        
+        {(isReopening || isConfirming) && (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        )}
         {buttonText}
       </Button>
     </>

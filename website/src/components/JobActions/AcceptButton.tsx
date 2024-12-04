@@ -10,6 +10,9 @@ import {
   useWriteContract,
 } from 'wagmi';
 import { useConfig } from '@/hooks/useConfig';
+import { useToast } from '@/hooks/useToast';
+import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
+import { Loader2 } from 'lucide-react';
 
 export type AcceptButtonProps = {
   address: string | undefined;
@@ -24,40 +27,15 @@ export function AcceptButton({
   ...rest
 }: AcceptButtonProps & React.ComponentPropsWithoutRef<'div'>) {
   const { signMessageAsync } = useSignMessage();
-  const { data: hash, error, writeContract } = useWriteContract();
   const Config = useConfig();
+  const [isAccepting, setIsAccepting] = useState(false);
+  const { showError } = useToast();
 
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
-    useWaitForTransactionReceipt({
-      hash,
-    });
+  const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
+    useWriteContractWithNotifications();
 
-  useEffect(() => {
-    if (isConfirmed || error) {
-      if (error) {
-        const revertReason = error.message.match(
-          `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-        )?.[1];
-        if (revertReason) {
-          alert(
-            error.message.match(
-              `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-            )?.[1]
-          );
-        } else {
-          console.log(error, error.message);
-          alert('Unknown error occurred');
-        }
-      }
-      setButtonDisabled(false);
-    }
-  }, [isConfirmed, error]);
-
-  const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
-
-  async function buttonClick() {
-    setButtonDisabled(true);
-
+  async function handleAccept() {
+    setIsAccepting(true);
     const revision = events.length;
     const signature = await signMessageAsync({
       account: address,
@@ -73,24 +51,35 @@ export function AcceptButton({
       },
     });
 
-    const w = writeContract({
-      abi: MARKETPLACE_V1_ABI,
-      address: Config!.marketplaceAddress,
-      functionName: 'takeJob',
-      args: [BigInt(job.id!), signature],
-    });
+    try {
+      await writeContractWithNotifications({
+        abi: MARKETPLACE_V1_ABI,
+        address: Config!.marketplaceAddress,
+        functionName: 'takeJob',
+        args: [BigInt(job.id!), signature],
+      });
+    } catch (err: any) {
+      showError(`Error Accepting job: ${err.message}`);
+    } finally {
+      setIsAccepting(false);
+    }
   }
+
+  const buttonText = isAccepting ? 'Accepting...' : 'Accept';
 
   return (
     <>
       <Button
-        disabled={buttonDisabled}
-        onClick={buttonClick}
+        disabled={isAccepting || isConfirming}
+        onClick={handleAccept}
         color={'borderlessGray'}
         className={'w-full'}
       >
+        {(isAccepting || isConfirming) && (
+          <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+        )}
         <CheckIcon className='-ml-0.5 mr-1.5 h-5 w-5' aria-hidden='true' />
-        Sign Job Scope
+        {buttonText}
       </Button>
     </>
   );
