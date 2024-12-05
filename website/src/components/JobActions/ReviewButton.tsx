@@ -14,6 +14,9 @@ import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/Marke
 import { Fragment, useEffect, useState } from 'react';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import { useConfig } from '@/hooks/useConfig';
+import { useToast } from '@/hooks/useToast';
+import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
+import { Loader2 } from 'lucide-react';
 
 export type ReviewButtonProps = {
   address: string | undefined;
@@ -28,38 +31,18 @@ export function ReviewButton({
   const Config = useConfig();
   const [review, setReview] = useState<string>('');
   const [rating, setRating] = useState<number>(0);
-  const { data: hash, error, writeContract } = useWriteContract();
+  const [isReviewing, setIsReviewing] = useState(false);
+  const { showError } = useToast();
 
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
-    useWaitForTransactionReceipt({
-      hash,
-    });
+  const {
+    writeContractWithNotifications,
+    isConfirming,
+    isConfirmed,
+    error
+  } = useWriteContractWithNotifications();
 
-  useEffect(() => {
-    if (isConfirmed || error) {
-      if (error) {
-        const revertReason = error.message.match(
-          `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-        )?.[1];
-        if (revertReason) {
-          alert(
-            error.message.match(
-              `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-            )?.[1]
-          );
-        } else {
-          console.log(error, error.message);
-          alert('Unknown error occurred');
-        }
-      }
-      setButtonDisabled(false);
-      closeModal();
-    }
-  }, [isConfirmed, error]);
-
-  const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
-
-  async function buttonClick() {
+  async function handleReview() {
+    setIsReviewing(true);
     if (rating === 0 && review.length) {
       alert('If you decide to leave a review, you must also leave a rating.');
       return;
@@ -67,16 +50,23 @@ export function ReviewButton({
       alert('Rating must be between 1 and 5.');
       return;
     }
-
-    setButtonDisabled(true);
-
-    const w = writeContract({
-      abi: MARKETPLACE_V1_ABI,
-      address: Config!.marketplaceAddress,
-      functionName: 'review',
-      args: [BigInt(job.id!), rating, review],
-    });
+    
+    try {
+      await writeContractWithNotifications({
+        abi: MARKETPLACE_V1_ABI,
+        address: Config!.marketplaceAddress,
+        functionName: 'review',
+        args: [BigInt(job.id!), rating, review],
+      });
+    } catch (err: any) {
+      showError(`Error ReviewingisReviewing job: ${err.message}`);
+    } finally {
+      setIsReviewing(false);
+      setIsOpen(false);
+    }
   }
+
+  const buttonText = isReviewing ? 'Reviewing...' : 'Review';
 
   let [isOpen, setIsOpen] = useState(false);
 
@@ -91,7 +81,7 @@ export function ReviewButton({
   return (
     <>
       <Button
-        disabled={buttonDisabled}
+        disabled={isReviewing}
         onClick={() => openModal()}
         color={'borderlessGray'}
         className={'w-full'}
@@ -129,7 +119,7 @@ export function ReviewButton({
                     as='h3'
                     className='text-lg font-medium leading-6 text-gray-900'
                   >
-                    Leave A Review
+                    Leave A Reviewww
                   </Dialog.Title>
                   <div className='mb-3 mt-5 flex flex-col gap-5'>
                     <Fieldset className='w-full'>
@@ -184,15 +174,15 @@ export function ReviewButton({
                         </Field>
                       </FieldGroup>
                       <Button
-                        disabled={buttonDisabled}
-                        onClick={buttonClick}
+                        disabled={isReviewing || isConfirming}
+                        onClick={handleReview}
                         className='mt-5'
                       >
                         <CheckIcon
                           className='-ml-0.5 mr-1.5 h-5 w-5'
                           aria-hidden='true'
                         />
-                        Confirm
+                        {buttonText}
                       </Button>
                     </Fieldset>
                   </div>
