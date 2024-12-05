@@ -23,19 +23,11 @@ import { useConfig } from '@/hooks/useConfig';
 import { ComboBoxOption, Tag } from '@/service/FormsTypes';
 import { Token, tokens } from '@/tokens';
 import { jobMeceTags } from '@/utils/jobMeceTags';
-import {
-  shortenText,
-  unitsDeliveryTime,
-} from '@/utils/utils';
+import { shortenText, unitsDeliveryTime } from '@/utils/utils';
 import { ethers } from 'ethers';
 import moment from 'moment';
 import Link from 'next/link';
-import React, {
-  ChangeEvent,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { zeroAddress } from 'viem';
 import { useAccount, useReadContract } from 'wagmi';
 import LoadingModal from './LoadingModal';
@@ -101,18 +93,17 @@ const JobSummary = ({
   selectedCategory,
   handleSummary,
 }: JobSummaryProps) => {
-  const Row = ({ label, children }: {
+  const Row = ({
+    label,
+    children,
+  }: {
     label: string;
     children?: React.ReactNode;
   }) => (
     <div className='py-4 first:pt-0 last:pb-0'>
       <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-        <div className='text-sm font-medium text-gray-500'>
-          {label}
-        </div>
-        <div className='text-sm text-gray-900 md:col-span-2'>
-          {children}
-        </div>
+        <div className='text-sm font-medium text-gray-500'>{label}</div>
+        <div className='text-sm text-gray-900 md:col-span-2'>{children}</div>
       </div>
     </div>
   );
@@ -128,42 +119,35 @@ const JobSummary = ({
 
       <div className='mb-8 rounded-2xl bg-white p-8 shadow-lg'>
         <div className='divide-y divide-gray-200'>
-          <Row label='Job Title'>
-            {title}
-          </Row>
-          <Row label='Description'>
-            {description}
-          </Row>
-          <Row label='Category'>
-            {selectedCategory.name}
-          </Row>
+          <Row label='Job Title'>{title}</Row>
+          <Row label='Description'>{description}</Row>
+          <Row label='Category'>{selectedCategory.name}</Row>
           <Row label='Token'>
             <div className='flex items-center gap-2'>
               <span className='mr-1 inline'>{selectedToken?.id}</span>
-              <span className='mr-1 inline font-bold'>{selectedToken?.symbol}</span>
-              <img className='inline' alt='Chain Icon' height={30} width={30} src={selectedToken?.icon || ''} />
+              <span className='mr-1 inline font-bold'>
+                {selectedToken?.symbol}
+              </span>
+              <img
+                className='inline'
+                alt='Chain Icon'
+                height={30}
+                width={30}
+                src={selectedToken?.icon || ''}
+              />
             </div>
           </Row>
           <Row label='Price'>
             <span className='mr-1 inline'>{amount}</span>
           </Row>
-          <Row label='Delivery Method'>
-            {deliveryMethod}
-          </Row>
+          <Row label='Delivery Method'>{deliveryMethod}</Row>
           <Row label='Deadline'>
-            {moment
-              .duration(
-                deadline,
-                'seconds'
-              )
-              .humanize()}
+            {moment.duration(deadline, 'seconds').humanize()}
           </Row>
           <Row label='Arbitrator Required'>
             {selectedArbitratorAddress !== undefined ? 'Yes' : 'No'}
           </Row>
-          <Row label='Arbitrator Address'>
-            {selectedArbitratorAddress}
-          </Row>
+          <Row label='Arbitrator Address'>{selectedArbitratorAddress}</Row>
         </div>
       </div>
 
@@ -276,7 +260,7 @@ const PostJob = () => {
     }
 
     setTitleError('');
-  }
+  };
 
   const validatePaymentAmount = (paymentAmount: string) => {
     setAmount(paymentAmount);
@@ -286,7 +270,12 @@ const PostJob = () => {
       return;
     }
 
-    const balance = parseFloat(ethers.formatUnits(balanceData as ethers.BigNumberish, selectedToken?.decimals || '0'));
+    const balance = parseFloat(
+      ethers.formatUnits(
+        balanceData as ethers.BigNumberish,
+        selectedToken?.decimals || '0'
+      )
+    );
     const value = parseFloat(paymentAmount);
 
     if (isNaN(value)) {
@@ -305,7 +294,7 @@ const PostJob = () => {
     }
 
     setPaymentTokenError('');
-  }
+  };
 
   const validateArbitratorRequired = (required: string) => {
     setArbitratorRequired(required);
@@ -325,20 +314,18 @@ const PostJob = () => {
     }
 
     setArbitratorError('');
-  }
+  };
 
   const validateArbitrator = (addr: string) => {
     setSelectedArbitratorAddress(addr);
 
     if (addr == address) {
-      setArbitratorError(
-        'You cannot be your own arbitrator'
-      );
+      setArbitratorError('You cannot be your own arbitrator');
       return;
     }
 
     setArbitratorError('');
-  }
+  };
 
   const validateDeadline = (deadlineStr: string) => {
     let deadline = deadlineStr ? parseInt(deadlineStr) : 0;
@@ -354,7 +341,7 @@ const PostJob = () => {
 
     setDeadline(deadline);
     setDeadlineError('');
-  }
+  };
 
   const validateAllFields = () => {
     validateTitle(title);
@@ -374,7 +361,7 @@ const PostJob = () => {
 
     setContinueButtonDisabled(false);
     return true;
-  }
+  };
 
   useEffect(() => {
     validateAllFields();
@@ -386,7 +373,7 @@ const PostJob = () => {
     selectedToken,
     arbitratorRequired,
     selectedArbitratorAddress,
-    deadline
+    deadline,
   ]);
 
   const handleSubmit = () => {
@@ -453,7 +440,9 @@ const PostJob = () => {
                   placeholder='A short descriptive title for the job post'
                   required
                   minLength={3}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => validateTitle(e.target.value)}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    validateTitle(e.target.value)
+                  }
                 />
                 {titleError && (
                   <div className='text-xs' style={{ color: 'red' }}>
@@ -482,9 +471,7 @@ const PostJob = () => {
               </Field>
               <Field>
                 <div className='flex flex-row items-center justify-between'>
-                  <Label className='items-center'>
-                    I&apos;m feeling lucky
-                  </Label>
+                  <Label className='items-center'>I&apos;m feeling lucky</Label>
                   <RadioGroup
                     className='!mt-0 flex'
                     value={imFeelingLucky}
@@ -496,11 +483,7 @@ const PostJob = () => {
                         className='!mt-0 ml-5 flex items-center'
                         key={option}
                       >
-                        <Radio
-                          className='mr-2'
-                          color='default'
-                          value={option}
-                        >
+                        <Radio className='mr-2' color='default' value={option}>
                           <span>{option}</span>
                         </Radio>
                         <Label>{option}</Label>
@@ -528,9 +511,7 @@ const PostJob = () => {
                     (category, index) =>
                       index > 0 && (
                         <ListboxOption key={index} value={category}>
-                          <ListboxLabel>
-                            {jobMeceTags[index].name}
-                          </ListboxLabel>
+                          <ListboxLabel>{jobMeceTags[index].name}</ListboxLabel>
                         </ListboxOption>
                       )
                   )}
@@ -568,9 +549,9 @@ const PostJob = () => {
                     </div>
                   )}
                   <Description>
-                    Your funds will be locked until the job is completed. Or,
-                    if you cancel the job posting, available for withdraw
-                    after a 24 hour period.
+                    Your funds will be locked until the job is completed. Or, if
+                    you cancel the job posting, available for withdraw after a
+                    24 hour period.
                   </Description>
                 </Field>
                 <Field className='flex-1'>
@@ -581,9 +562,7 @@ const PostJob = () => {
                         <div className='flex flex-col gap-4'>
                           <TokenSelector
                             selectedToken={selectedToken}
-                            onClick={(token: Token) =>
-                              setSelectedToken(token)
-                            }
+                            onClick={(token: Token) => setSelectedToken(token)}
                           />
                         </div>
                         {selectedToken &&
@@ -632,11 +611,11 @@ const PostJob = () => {
                   ))}
                 </Listbox>
                 <Description>
-                  What delivery method should the worker use? For digital
-                  items usually IPFS is the correct choice. For jobs that do
-                  not involve a digital deliverable (such as posting online),
-                  digital proof can be used. For physical items such as
-                  selling computer equipment use courier.
+                  What delivery method should the worker use? For digital items
+                  usually IPFS is the correct choice. For jobs that do not
+                  involve a digital deliverable (such as posting online),
+                  digital proof can be used. For physical items such as selling
+                  computer equipment use courier.
                 </Description>
               </Field>
               <Field>
@@ -655,11 +634,7 @@ const PostJob = () => {
                         className='!mt-0 ml-5 flex items-center'
                         key={option}
                       >
-                        <Radio
-                          color='default'
-                          className='mr-2'
-                          value={option}
-                        >
+                        <Radio color='default' className='mr-2' value={option}>
                           <span>{option}</span>
                         </Radio>
                         <Label>{option}</Label>

@@ -27,12 +27,8 @@ export function DeliverResultButton({
   const [isDelivering, setIsDelivering] = useState(false);
   const { showError } = useToast();
 
-  const {
-    writeContractWithNotifications,
-    isConfirming,
-    isConfirmed,
-    error
-  } = useWriteContractWithNotifications();
+  const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
+    useWriteContractWithNotifications();
 
   async function handleDeliver() {
     setIsDelivering(true);

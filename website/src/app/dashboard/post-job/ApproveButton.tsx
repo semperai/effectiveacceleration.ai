@@ -19,7 +19,7 @@ export const ApproveButton = ({
   token,
   spender,
   onApproveSuccess,
-  onApproveError
+  onApproveError,
 }: ApproveButtonProps) => {
   const { address } = useAccount();
   const [isApproving, setIsApproving] = useState(false);
@@ -28,7 +28,7 @@ export const ApproveButton = ({
     data: allowanceData,
     isError: allowanceIsError,
     isLoading: allowanceIsLoading,
-    refetch: refetchAllowance
+    refetch: refetchAllowance,
   } = useReadContract({
     address: token,
     abi: ERC20Abi,
@@ -39,12 +39,8 @@ export const ApproveButton = ({
     },
   });
 
-  const {
-    writeContractWithNotifications,
-    isConfirming,
-    isConfirmed,
-    error
-  } = useWriteContractWithNotifications();
+  const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
+    useWriteContractWithNotifications();
 
   // Reset approving state when confirmation is complete
   useEffect(() => {
@@ -65,7 +61,7 @@ export const ApproveButton = ({
 
   // Check if token is already approved
   let isApproved = false;
-  if (allowanceData && allowanceData as bigint > 0n) {
+  if (allowanceData && (allowanceData as bigint) > 0n) {
     isApproved = true;
   }
 
@@ -86,7 +82,7 @@ export const ApproveButton = ({
 
   if (allowanceIsError) {
     return (
-      <Alert variant="destructive">
+      <Alert variant='destructive'>
         <AlertDescription>
           Error checking token allowance. Please try again.
         </AlertDescription>
@@ -97,17 +93,17 @@ export const ApproveButton = ({
   const buttonText = isApproved
     ? 'Approved'
     : isApproving || isConfirming
-    ? 'Approving...'
-    : 'Approve';
+      ? 'Approving...'
+      : 'Approve';
 
   return (
     <Button
       onClick={handleApprove}
-      disabled={isApproving || isConfirming || isApproved || allowanceIsLoading }
-      className="min-w-[120px]"
+      disabled={isApproving || isConfirming || isApproved || allowanceIsLoading}
+      className='min-w-[120px]'
     >
       {(isApproving || isConfirming) && (
-        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        <Loader2 className='mr-2 h-4 w-4 animate-spin' />
       )}
       {buttonText}
     </Button>

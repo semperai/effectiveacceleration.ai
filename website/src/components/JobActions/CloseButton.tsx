@@ -9,8 +9,6 @@ import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import { Loader2 } from 'lucide-react';
 
-
-
 export type CloseButtonProps = {
   address: string | undefined;
   job: Job;
@@ -25,13 +23,8 @@ export function CloseButton({
   const [isClosing, setIsClosing] = useState(false);
   const { showError } = useToast();
 
-  const {
-    writeContractWithNotifications,
-    isConfirming,
-    isConfirmed,
-    error
-  } = useWriteContractWithNotifications();
-
+  const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
+    useWriteContractWithNotifications();
 
   async function handleClose() {
     setIsClosing(true);
@@ -60,8 +53,8 @@ export function CloseButton({
         color={'borderlessGray'}
         className={'w-full'}
       >
-        {(isClosing|| isConfirming) && (
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        {(isClosing || isConfirming) && (
+          <Loader2 className='mr-2 h-4 w-4 animate-spin' />
         )}
         {buttonText}
       </Button>

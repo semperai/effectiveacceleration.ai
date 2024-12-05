@@ -8,7 +8,7 @@ import { Fragment, useEffect, useState } from 'react';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import { Listbox, ListboxOption } from '../Listbox';
 import { useConfig } from '@/hooks/useConfig';
-import { Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 
@@ -34,12 +34,8 @@ export function WhitelistButton({
   const [isWhiteListing, setIsWhiteListing] = useState(false);
   const { showError } = useToast();
 
-  const {
-    writeContractWithNotifications,
-    isConfirming,
-    isConfirmed,
-    error
-  } = useWriteContractWithNotifications();
+  const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
+    useWriteContractWithNotifications();
 
   async function handleWhiteList() {
     setIsWhiteListing(true);
@@ -59,7 +55,6 @@ export function WhitelistButton({
   }
 
   const buttonText = isWhiteListing ? 'WhiteListing...' : 'WhiteList';
-
 
   let [isOpen, setIsOpen] = useState(false);
 

@@ -1,6 +1,12 @@
 import { useToast } from '@/hooks/useToast';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Address, decodeEventLog, DecodeEventLogReturnType, Log, TransactionReceipt } from 'viem';
+import {
+  Address,
+  decodeEventLog,
+  DecodeEventLogReturnType,
+  Log,
+  TransactionReceipt,
+} from 'viem';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 
 import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
@@ -30,7 +36,6 @@ function parseContractEvents(
             topics: log.topics,
           }) as DecodeEventLogReturnType<typeof contract.abi>;
 
-
           parsedEvents.push({
             contractName: contract.name,
             eventName: decoded.eventName,
@@ -59,8 +64,14 @@ type WriteContractConfig = {
     marketplaceAddress: Address;
     marketplaceDataAddress: Address;
   };
-  onSuccess?: (receipt: TransactionReceipt, parsedEvents: ParsedEvent[]) => void;
-  onReceipt?: (receipt: TransactionReceipt, parsedEvents: ParsedEvent[]) => void;
+  onSuccess?: (
+    receipt: TransactionReceipt,
+    parsedEvents: ParsedEvent[]
+  ) => void;
+  onReceipt?: (
+    receipt: TransactionReceipt,
+    parsedEvents: ParsedEvent[]
+  ) => void;
   customErrorMessages?: {
     userDenied?: string;
     default?: string;
@@ -71,10 +82,16 @@ type WriteContractConfig = {
 export function useWriteContractWithNotifications() {
   const { showError, showSuccess, showLoading, toast } = useToast();
   const { data: hash, error, writeContract, isError } = useWriteContract();
-  const onSuccessCallbackRef = useRef<((receipt: TransactionReceipt, events: ParsedEvent[]) => void) | undefined>();
-  const onReceiptCallbackRef = useRef<((receipt: TransactionReceipt, events: ParsedEvent[]) => void) | undefined>();
+  const onSuccessCallbackRef = useRef<
+    ((receipt: TransactionReceipt, events: ParsedEvent[]) => void) | undefined
+  >();
+  const onReceiptCallbackRef = useRef<
+    ((receipt: TransactionReceipt, events: ParsedEvent[]) => void) | undefined
+  >();
   const contractsRef = useRef<WriteContractConfig['contracts']>();
-  const [customErrorMessages, setCustomErrorMessages] = useState<WriteContractConfig['customErrorMessages']>({});
+  const [customErrorMessages, setCustomErrorMessages] = useState<
+    WriteContractConfig['customErrorMessages']
+  >({});
 
   const {
     data: receipt,
@@ -96,13 +113,13 @@ export function useWriteContractWithNotifications() {
       {
         address: contractsRef.current.marketplaceAddress,
         abi: MARKETPLACE_V1_ABI,
-        name: 'MarketplaceV1'
+        name: 'MarketplaceV1',
       },
       {
         address: contractsRef.current.marketplaceDataAddress,
         abi: MARKETPLACE_DATA_V1_ABI,
-        name: 'MarketplaceDataV1'
-      }
+        name: 'MarketplaceDataV1',
+      },
     ];
 
     return parseContractEvents(receipt.logs, contracts);
@@ -120,8 +137,10 @@ export function useWriteContractWithNotifications() {
       /The contract function ".*" reverted with the following reason:\n(.*)\n.*/
     );
     const deniedMatch = errorMessage.match(/User denied transaction signature/);
-    if (revertMatch) return { type: 'revert' as const, message: revertMatch[1] };
-    if (deniedMatch) return { type: 'denied' as const, message: deniedMatch[0] };
+    if (revertMatch)
+      return { type: 'revert' as const, message: revertMatch[1] };
+    if (deniedMatch)
+      return { type: 'denied' as const, message: deniedMatch[0] };
     return { type: 'unknown' as const, message: null };
   }, []);
 
@@ -139,7 +158,9 @@ export function useWriteContractWithNotifications() {
     }: WriteContractConfig) => {
       dismissLoadingToast();
       setCustomErrorMessages(customErrorMessages);
-      loadingToastIdRef.current = showLoading('Please confirm the transaction in your wallet...');
+      loadingToastIdRef.current = showLoading(
+        'Please confirm the transaction in your wallet...'
+      );
 
       // Store callbacks and contracts in refs
       onSuccessCallbackRef.current = onSuccess;
@@ -179,7 +200,7 @@ export function useWriteContractWithNotifications() {
 
       // Log parsed events to console
       console.group('Transaction Events');
-      parsedEvents.forEach(event => {
+      parsedEvents.forEach((event) => {
         console.group(`${event.contractName} - ${event.eventName}`);
         console.log('Contract Address:', event.address);
         console.log('Event Arguments:', event.args);
@@ -207,7 +228,9 @@ export function useWriteContractWithNotifications() {
       if (type === 'revert' && message) {
         showError(message);
       } else if (type === 'denied') {
-        showError(customErrorMessages?.userDenied || 'User denied transaction signature');
+        showError(
+          customErrorMessages?.userDenied || 'User denied transaction signature'
+        );
       } else {
         showError(customErrorMessages?.default || 'An unknown error occurred');
       }
@@ -235,6 +258,6 @@ export function useWriteContractWithNotifications() {
     isError,
     isConfirming,
     isConfirmed,
-    receipt
+    receipt,
   };
 }

@@ -24,7 +24,7 @@ import { Textarea } from '../Textarea';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
-import { Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react';
 import { consoleIntegration } from '@sentry/nextjs';
 
 export type UpdateButtonProps = {
@@ -111,15 +111,11 @@ export function UpdateButton({
   const [selectedArbitratorAddress, setSelectedArbitratorAddress] =
     useState<string>(job.roles.arbitrator);
 
-    const [isUpdating, setIsUpdating] = useState(false);
-    const { showError } = useToast();
-  
-    const {
-      writeContractWithNotifications,
-      isConfirming,
-      isConfirmed,
-      error
-    } = useWriteContractWithNotifications();
+  const [isUpdating, setIsUpdating] = useState(false);
+  const { showError } = useToast();
+
+  const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
+    useWriteContractWithNotifications();
 
   useEffect(() => {
     if (job.tags) {
@@ -177,10 +173,9 @@ export function UpdateButton({
       !titleValidationMessage &&
       !tagsValidationMessage &&
       !amountValidationMessage &&
-      !maxJobTimeValidationMessage && 
+      !maxJobTimeValidationMessage &&
       !contentValidationMessage
     ) {
-
       const { hash: contentHash } = await publishToIpfs(content);
       const tokenDecimals = tokensMap[job.token]?.decimals;
       const rawAmount = parseUnits(amount, tokensMap[job.token]?.decimals);
@@ -189,27 +184,27 @@ export function UpdateButton({
       const deadlineInSeconds = maxTime
         ? convertToSeconds(maxTime, selectedUnitTime.name)
         : 0;
-        try {
-          await writeContractWithNotifications({
-            abi: MARKETPLACE_V1_ABI,
-            address: Config!.marketplaceAddress,
-            functionName: 'updateJobPost',
-            args: [
-              BigInt(job.id!),
-              title,
-              contentHash,
-              [selectedCategory?.id || '', ...tags.map((tag) => tag)],
-              rawAmount,
-              deadlineInSeconds,
-              selectedArbitratorAddress,
-              whitelistWorkers === whitelistWorkersValues[0],
-            ],
-          });
-        } catch (err: any) {
-          showError(`Error updating job: ${err.message}`);
-        } finally {
-          setIsUpdating(false);
-        }
+      try {
+        await writeContractWithNotifications({
+          abi: MARKETPLACE_V1_ABI,
+          address: Config!.marketplaceAddress,
+          functionName: 'updateJobPost',
+          args: [
+            BigInt(job.id!),
+            title,
+            contentHash,
+            [selectedCategory?.id || '', ...tags.map((tag) => tag)],
+            rawAmount,
+            deadlineInSeconds,
+            selectedArbitratorAddress,
+            whitelistWorkers === whitelistWorkersValues[0],
+          ],
+        });
+      } catch (err: any) {
+        showError(`Error updating job: ${err.message}`);
+      } finally {
+        setIsUpdating(false);
+      }
     } else {
       setIsUpdating(false);
       console.log('Form has errors');
@@ -479,7 +474,10 @@ export function UpdateButton({
                       </RadioGroup>
                     </Field>
 
-                    <Button disabled={isUpdating || isConfirming} onClick={handleUpdate}>
+                    <Button
+                      disabled={isUpdating || isConfirming}
+                      onClick={handleUpdate}
+                    >
                       <CheckIcon
                         className='-ml-0.5 mr-1.5 h-5 w-5'
                         aria-hidden='true'

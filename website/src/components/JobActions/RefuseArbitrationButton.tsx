@@ -21,12 +21,8 @@ export function RefuseArbitrationButton({
   const [isRefusing, setIsRefusing] = useState(false);
   const { showError } = useToast();
 
-  const {
-    writeContractWithNotifications,
-    isConfirming,
-    isConfirmed,
-    error
-  } = useWriteContractWithNotifications();
+  const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
+    useWriteContractWithNotifications();
 
   async function handleRefuse() {
     setIsRefusing(true);
@@ -56,7 +52,7 @@ export function RefuseArbitrationButton({
         className={'w-full'}
       >
         {(isRefusing || isConfirming) && (
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          <Loader2 className='mr-2 h-4 w-4 animate-spin' />
         )}
         <CheckIcon className='-ml-0.5 mr-1.5 h-5 w-5' aria-hidden='true' />
         {buttonText}

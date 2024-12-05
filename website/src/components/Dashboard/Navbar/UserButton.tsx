@@ -84,7 +84,8 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
   const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
   const [open, setOpen] = useState(false);
 
-  const { writeContractWithNotifications, isConfirming, isConfirmed } = useWriteContractWithNotifications();
+  const { writeContractWithNotifications, isConfirming, isConfirmed } =
+    useWriteContractWithNotifications();
 
   useEffect(() => {
     const avatarUrl = users[userIndex]?.avatar;

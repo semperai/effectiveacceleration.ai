@@ -40,7 +40,7 @@ export const SubmitJobButton = ({
   deliveryMethod,
   arbitrator,
   onSuccess,
-  onError
+  onError,
 }: SubmitJobButtonProps) => {
   const Config = useConfig();
   const router = useRouter();
@@ -62,7 +62,7 @@ export const SubmitJobButton = ({
     data: allowanceData,
     isError: allowanceIsError,
     isLoading: allowanceIsLoading,
-    refetch: refetchAllowance
+    refetch: refetchAllowance,
   } = useReadContract({
     address: token,
     abi: ERC20Abi,
@@ -73,10 +73,8 @@ export const SubmitJobButton = ({
     },
   });
 
-  const {
-    writeContractWithNotifications,
-    isConfirming,
-  } = useWriteContractWithNotifications();
+  const { writeContractWithNotifications, isConfirming } =
+    useWriteContractWithNotifications();
 
   // Handle job submission
   const handleSubmitJob = async () => {
@@ -90,7 +88,9 @@ export const SubmitJobButton = ({
 
       if (description.length > 0) {
         dismissLoadingToast();
-        loadingToastIdRef.current = showLoading('Publishing job post to IPFS...');
+        loadingToastIdRef.current = showLoading(
+          'Publishing job post to IPFS...'
+        );
         try {
           const { hash } = await publishToIpfs(description);
           contentHash = hash;
@@ -147,8 +147,8 @@ export const SubmitJobButton = ({
   // Show loading state while checking allowance
   if (allowanceIsLoading || Config === undefined) {
     return (
-      <Button disabled className="min-w-[120px]">
-        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      <Button disabled className='min-w-[120px]'>
+        <Loader2 className='mr-2 h-4 w-4 animate-spin' />
         Checking approval...
       </Button>
     );
@@ -157,7 +157,7 @@ export const SubmitJobButton = ({
   // Show error state
   if (allowanceIsError) {
     return (
-      <Button color="red" className="min-w-[120px]">
+      <Button color='red' className='min-w-[120px]'>
         Error checking approval
       </Button>
     );
@@ -180,11 +180,11 @@ export const SubmitJobButton = ({
     <Button
       onClick={handleSubmitJob}
       disabled={isSubmitting || isConfirming}
-      className="min-w-[120px]"
+      className='min-w-[120px]'
     >
-      {(isSubmitting || isConfirming) ? (
+      {isSubmitting || isConfirming ? (
         <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          <Loader2 className='mr-2 h-4 w-4 animate-spin' />
           Submitting...
         </>
       ) : (

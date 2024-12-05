@@ -37,12 +37,8 @@ export function RemoveFromWhitelistButton({
   const [isRemoving, setIsRemoving] = useState(false);
   const { showError } = useToast();
 
-  const {
-    writeContractWithNotifications,
-    isConfirming,
-    isConfirmed,
-    error
-  } = useWriteContractWithNotifications();
+  const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
+    useWriteContractWithNotifications();
 
   async function handleRemove() {
     setIsRemoving(true);
@@ -62,7 +58,6 @@ export function RemoveFromWhitelistButton({
   }
 
   const buttonText = isRemoving ? 'Removing...' : 'Remove';
-
 
   let [isOpen, setIsOpen] = useState(false);
 

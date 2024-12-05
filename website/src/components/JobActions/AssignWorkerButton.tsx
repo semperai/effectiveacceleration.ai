@@ -31,12 +31,8 @@ export function AssignWorkerButton({
   const [isAssigning, setIsAssigning] = useState(false);
   const { showError } = useToast();
 
-  const {
-    writeContractWithNotifications,
-    isConfirming,
-    isConfirmed,
-    error
-  } = useWriteContractWithNotifications();
+  const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
+    useWriteContractWithNotifications();
 
   async function handleAssign() {
     setIsAssigning(true);

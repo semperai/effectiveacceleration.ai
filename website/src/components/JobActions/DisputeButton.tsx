@@ -12,7 +12,7 @@ import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import { Textarea } from '../Textarea';
 import { useConfig } from '@/hooks/useConfig';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
-import { Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react';
 import { consoleIntegration } from '@sentry/nextjs';
 import { useToast } from '@/hooks/useToast';
 
@@ -33,28 +33,24 @@ export function DisputeButton({
   const [isDisputing, setIsDisputing] = useState(false);
   const { showError } = useToast();
 
-  const {
-    writeContractWithNotifications,
-    isConfirming,
-    isConfirmed,
-    error
-  } = useWriteContractWithNotifications();
+  const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
+    useWriteContractWithNotifications();
 
   async function handleDispute() {
     setIsDisputing(true);
 
     const arbitratorSessionKey =
-    sessionKeys[`${address}-${job.roles.arbitrator}`];
-  const ownerWorkerSessionKey =
-    address === job.roles.creator
-      ? sessionKeys[`${job.roles.creator}-${job.roles.worker}`]
-      : sessionKeys[`${job.roles.worker}-${job.roles.creator}`];
-  const encryptedContent = hexlify(
-    encryptUtf8Data(message, arbitratorSessionKey)
-  );
-  const encryptedSessionKey = hexlify(
-    encryptBinaryData(getBytes(ownerWorkerSessionKey), arbitratorSessionKey)
-  );
+      sessionKeys[`${address}-${job.roles.arbitrator}`];
+    const ownerWorkerSessionKey =
+      address === job.roles.creator
+        ? sessionKeys[`${job.roles.creator}-${job.roles.worker}`]
+        : sessionKeys[`${job.roles.worker}-${job.roles.creator}`];
+    const encryptedContent = hexlify(
+      encryptUtf8Data(message, arbitratorSessionKey)
+    );
+    const encryptedSessionKey = hexlify(
+      encryptBinaryData(getBytes(ownerWorkerSessionKey), arbitratorSessionKey)
+    );
 
     try {
       await writeContractWithNotifications({

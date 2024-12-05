@@ -8,7 +8,7 @@ import { Field, Label } from '../Fieldset';
 import { Input } from '../Input';
 import { Textarea } from '../Textarea';
 import { useConfig } from '@/hooks/useConfig';
-import { Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 
@@ -33,12 +33,8 @@ export function ArbitrateButton({
   const [isArbitrating, setIsArbitrating] = useState(false);
   const { showError } = useToast();
 
-  const {
-    writeContractWithNotifications,
-    isConfirming,
-    isConfirmed,
-    error
-  } = useWriteContractWithNotifications();
+  const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
+    useWriteContractWithNotifications();
 
   async function handleArbitrate() {
     if (workerShare + ownerShare !== 10000) {

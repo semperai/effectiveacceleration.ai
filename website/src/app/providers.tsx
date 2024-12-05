@@ -24,7 +24,7 @@ declare module 'abitype' {
     bytesType: {
       inputs: string;
       outputs: string;
-    }
+    };
   }
 }
 
@@ -144,12 +144,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const interval = setInterval(async () => {
-      await apolloClient?.cache.reset();
-    }, 1000 * 60 * 1);
+    const interval = setInterval(
+      async () => {
+        await apolloClient?.cache.reset();
+      },
+      1000 * 60 * 1
+    );
     return () => clearInterval(interval);
   }, [apolloClient]);
-
 
   if (!apolloClient) {
     return null;

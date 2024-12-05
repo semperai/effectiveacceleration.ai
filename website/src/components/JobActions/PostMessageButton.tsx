@@ -35,24 +35,20 @@ export function PostMessageButton({
   const selectedUserRecipient =
     recipient === address ? job.roles.creator : recipient;
 
-    const [isPostingMessage, setIsPostingMessage] = useState(false);
-    const { showError } = useToast();
-  
-    const {
-      writeContractWithNotifications,
-      isConfirming,
-      isConfirmed,
-      error
-    } = useWriteContractWithNotifications();
-    
+  const [isPostingMessage, setIsPostingMessage] = useState(false);
+  const { showError } = useToast();
+
+  const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
+    useWriteContractWithNotifications();
+
   async function handlePostMessage() {
-      if (!user) {
-        router.push('/register');
-        return;
-      }
-  
-      const sessionKey = sessionKeys[`${address}-${selectedUserRecipient}`];
-      const { hash: contentHash } = await publishToIpfs(message, sessionKey);
+    if (!user) {
+      router.push('/register');
+      return;
+    }
+
+    const sessionKey = sessionKeys[`${address}-${selectedUserRecipient}`];
+    const { hash: contentHash } = await publishToIpfs(message, sessionKey);
 
     try {
       await writeContractWithNotifications({
@@ -84,9 +80,9 @@ export function PostMessageButton({
               disabled={isPostingMessage || isConfirming}
               onClick={handlePostMessage}
               color='lightBlue'
-            >        
+            >
               {(isPostingMessage || isConfirming) && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
               )}
               <PiPaperPlaneRight className='text-xl text-white' />
             </Button>

@@ -34,12 +34,8 @@ export function ReviewButton({
   const [isReviewing, setIsReviewing] = useState(false);
   const { showError } = useToast();
 
-  const {
-    writeContractWithNotifications,
-    isConfirming,
-    isConfirmed,
-    error
-  } = useWriteContractWithNotifications();
+  const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
+    useWriteContractWithNotifications();
 
   async function handleReview() {
     setIsReviewing(true);
@@ -50,7 +46,7 @@ export function ReviewButton({
       alert('Rating must be between 1 and 5.');
       return;
     }
-    
+
     try {
       await writeContractWithNotifications({
         abi: MARKETPLACE_V1_ABI,
