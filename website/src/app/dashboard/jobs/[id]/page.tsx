@@ -76,6 +76,7 @@ function updateJobCache(
           ...parsedJobs[jobIndex],
           state: job.state,
           lastJobEvent: {
+            jobId: BigInt(job.id!),
             type_: lastEventType,
             address_: '0x0',
             data_: '0x0',
@@ -87,6 +88,7 @@ function updateJobCache(
       parsedJobs.push({
         ...job,
         lastJobEvent: {
+          jobId: BigInt(job.id!),
           type_: lastEventType,
           address_: '0x0',
           data_: '0x0',

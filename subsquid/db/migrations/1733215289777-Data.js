@@ -1,5 +1,5 @@
-module.exports = class Data1732621049750 {
-    name = 'Data1732621049750'
+module.exports = class Data1733215289777 {
+    name = 'Data1733215289777'
 
     async up(db) {
         await db.query(`CREATE TABLE "marketplace" ("id" character varying NOT NULL, "marketplace_data" text NOT NULL, "version" integer NOT NULL, "unicrow_address" text NOT NULL, "unicrow_dispute_address" text NOT NULL, "unicrow_arbitrator_address" text NOT NULL, "treasury_address" text NOT NULL, "unicrow_marketplace_fee" integer NOT NULL, "paused" boolean NOT NULL, "owner" text NOT NULL, "job_count" integer NOT NULL, "user_count" integer NOT NULL, "arbitrator_count" integer NOT NULL, CONSTRAINT "PK_d9c9a956a1a45b27b56db53bfc8" PRIMARY KEY ("id"))`)
@@ -17,6 +17,8 @@ module.exports = class Data1732621049750 {
         await db.query(`CREATE INDEX "IDX_e4f75968107e312b77a7884f51" ON "review" ("reviewer_loaded_id") `)
         await db.query(`CREATE TABLE "user" ("id" character varying NOT NULL, "address_" text NOT NULL, "public_key" text NOT NULL, "name" text NOT NULL, "bio" text NOT NULL, "avatar" text NOT NULL, "reputation_up" integer NOT NULL, "reputation_down" integer NOT NULL, "average_rating" integer NOT NULL, "number_of_reviews" integer NOT NULL, "timestamp" integer NOT NULL, CONSTRAINT "PK_cace4a159ff9f2512dd42373760" PRIMARY KEY ("id"))`)
         await db.query(`CREATE INDEX "IDX_a7a49331c32139b4df92d80213" ON "user" ("address_") `)
+        await db.query(`CREATE TABLE "push_subscription" ("id" SERIAL, "address" text NOT NULL, "endpoint" text NOT NULL, "expiration_time" integer, "keys" jsonb, CONSTRAINT "PK_07fc861c0d2c38c1b830fb9cb5d" PRIMARY KEY ("id"))`)
+        await db.query(`CREATE INDEX "IDX_dbf2099d2875175a69ead0fbe7" ON "push_subscription" ("address") `)
         await db.query(`ALTER TABLE "job_event" ADD CONSTRAINT "FK_86e9dff9bc845b831415e36ca41" FOREIGN KEY ("job_id") REFERENCES "job"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`)
         await db.query(`ALTER TABLE "review" ADD CONSTRAINT "FK_122917f80765ff03165e8adf24d" FOREIGN KEY ("user_loaded_id") REFERENCES "user"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`)
         await db.query(`ALTER TABLE "review" ADD CONSTRAINT "FK_e4f75968107e312b77a7884f510" FOREIGN KEY ("reviewer_loaded_id") REFERENCES "user"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`)
@@ -38,6 +40,8 @@ module.exports = class Data1732621049750 {
         await db.query(`DROP INDEX "public"."IDX_e4f75968107e312b77a7884f51"`)
         await db.query(`DROP TABLE "user"`)
         await db.query(`DROP INDEX "public"."IDX_a7a49331c32139b4df92d80213"`)
+        await db.query(`DROP TABLE "push_subscription"`)
+        await db.query(`DROP INDEX "public"."IDX_dbf2099d2875175a69ead0fbe7"`)
         await db.query(`ALTER TABLE "job_event" DROP CONSTRAINT "FK_86e9dff9bc845b831415e36ca41"`)
         await db.query(`ALTER TABLE "review" DROP CONSTRAINT "FK_122917f80765ff03165e8adf24d"`)
         await db.query(`ALTER TABLE "review" DROP CONSTRAINT "FK_e4f75968107e312b77a7884f510"`)

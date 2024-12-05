@@ -4,7 +4,7 @@ services:
   db:
     image: postgres:15
     environment:
-      POSTGRES_DB: squid
+      POSTGRES_DB: postgres
       POSTGRES_PASSWORD: postgres
     ports:
       - "127.0.0.1:5432:5432"
@@ -16,7 +16,7 @@ services:
     image: marketplace-squid
     build: .
     environment:
-      - DB_NAME=squid
+      - DB_NAME=postgres
       - DB_PORT=5432
       - DB_HOST=db
       - DB_PASS=postgres
@@ -33,7 +33,7 @@ services:
     image: marketplace-squid
     build: .
     environment:
-      - DB_NAME=squid
+      - DB_NAME=postgres
       - DB_PORT=5432
       - DB_HOST=db
       - DB_PASS=postgres
@@ -44,4 +44,3 @@ services:
     depends_on:
       - db
     restart: always
-

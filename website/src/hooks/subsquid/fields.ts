@@ -75,6 +75,7 @@ export const ReviewFields = `
 
 export const JobEventFields = `
       id
+      jobId
       address_
       data_
       type_
