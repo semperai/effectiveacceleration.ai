@@ -4,6 +4,10 @@ import { Job } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { useEffect, useState } from 'react';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
+import { useToast } from '@/hooks/useToast';
+import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
+import { Loader2 } from 'lucide-react';
+import { CheckIcon } from '@heroicons/react/20/solid';
 
 export type WithdrawCollateralButtonProps = {
   address: string | undefined;
@@ -16,55 +20,49 @@ export function WithdrawCollateralButton({
   ...rest
 }: WithdrawCollateralButtonProps & React.ComponentPropsWithoutRef<'div'>) {
   const Config = useConfig();
-  const { data: hash, error, writeContract } = useWriteContract();
+  const [isWithrawing, setIsWithrawing] = useState(false);
+  const { showError } = useToast();
 
-  const { isSuccess: isConfirmed } = useWaitForTransactionReceipt({
-    hash,
-  });
+  const {
+    writeContractWithNotifications,
+    isConfirming,
+    isConfirmed,
+    error
+  } = useWriteContractWithNotifications();
 
-  useEffect(() => {
-    if (isConfirmed || error) {
-      if (error) {
-        const revertReason = error.message.match(
-          `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-        )?.[1];
-        if (revertReason) {
-          alert(
-            error.message.match(
-              `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-            )?.[1]
-          );
-        } else {
-          console.log(error, error.message);
-          alert('Unknown error occurred');
-        }
-      }
-      setButtonDisabled(false);
+  async function handleWithdraw() {
+    setIsWithrawing(true);
+
+    try {
+      await writeContractWithNotifications({
+        abi: MARKETPLACE_V1_ABI,
+        address: Config!.marketplaceAddress,
+        functionName: 'withdrawCollateral',
+        args: [BigInt(job.id!)],
+      });
+    } catch (err: any) {
+      showError(`Error Withrawing job: ${err.message}`);
+    } finally {
+      setIsWithrawing(false);
     }
-  }, [isConfirmed, error]);
-
-  const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
-
-  async function buttonClick() {
-    setButtonDisabled(true);
-
-    const w = writeContract({
-      abi: MARKETPLACE_V1_ABI,
-      address: Config!.marketplaceAddress,
-      functionName: 'withdrawCollateral',
-      args: [BigInt(job.id!)],
-    });
   }
+
+  const buttonText = isWithrawing ? 'Withrawing...' : 'Withraw';
+
 
   return (
     <>
       <Button
-        disabled={buttonDisabled}
-        onClick={buttonClick}
+        disabled={isWithrawing}
+        onClick={handleWithdraw}
         color={'borderlessGray'}
         className={'w-full'}
       >
-        Withdraw Collateral
+        {(isWithrawing || isConfirming) && (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        )}
+        <CheckIcon className='-ml-0.5 mr-1.5 h-5 w-5' aria-hidden='true' />
+        {buttonText}
       </Button>
     </>
   );
