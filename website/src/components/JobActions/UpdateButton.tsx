@@ -12,8 +12,8 @@ import { Dialog, Transition } from '@headlessui/react';
 import { CheckIcon } from '@heroicons/react/20/solid';
 import { Job, publishToIpfs } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
-import { formatUnits, parseUnits } from 'ethers';
-import { ChangeEvent, Fragment, useEffect, useState } from 'react';
+import { formatUnits, parseUnits, ZeroHash } from 'ethers';
+import { ChangeEvent, Fragment, useEffect, useRef, useState, useCallback } from 'react';
 import { zeroAddress } from 'viem';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import CustomSelect from '../CustomSelect';
@@ -112,7 +112,18 @@ export function UpdateButton({
     useState<string>(job.roles.arbitrator);
 
   const [isUpdating, setIsUpdating] = useState(false);
-  const { showError } = useToast();
+  const { showError, showSuccess, showLoading, toast } = useToast();
+
+  const loadingToastIdRef = useRef<string | number | null>(null);
+
+  // Cleanup function for dismissing loading toasts
+  const dismissLoadingToast = useCallback(() => {
+    if (loadingToastIdRef.current !== null) {
+      toast.dismiss(loadingToastIdRef.current);
+      loadingToastIdRef.current = null;
+    }
+  }, [toast]);
+
 
   const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
     useWriteContractWithNotifications();
@@ -143,11 +154,7 @@ export function UpdateButton({
       required: true,
       minLength: 3,
     });
-    const contentValidationMessage = validateField(content, {
-      required: true,
-      minLength: 3,
-    });
-    setContentError(contentValidationMessage);
+
     const tagsValidationMessage = tags
       .map((tag) => validateField(tag, { required: true }))
       .find((message) => message !== '');
@@ -173,10 +180,29 @@ export function UpdateButton({
       !titleValidationMessage &&
       !tagsValidationMessage &&
       !amountValidationMessage &&
-      !maxJobTimeValidationMessage &&
-      !contentValidationMessage
+      !maxJobTimeValidationMessage
     ) {
-      const { hash: contentHash } = await publishToIpfs(content);
+
+      let contentHash = ZeroHash;
+
+      if (content.length > 0) {
+        dismissLoadingToast();
+        loadingToastIdRef.current = showLoading(
+          'Publishing job post to IPFS...'
+        );
+        try {
+          const { hash } = await publishToIpfs(content);
+          contentHash = hash;
+        } catch (err) {
+          dismissLoadingToast();
+          showError('Failed to publish job post to IPFS');
+          setIsUpdating(false);
+          return;
+        }
+        dismissLoadingToast();
+        showSuccess('Job post published to IPFS');
+      }
+
       const tokenDecimals = tokensMap[job.token]?.decimals;
       const rawAmount = parseUnits(amount, tokensMap[job.token]?.decimals);
       // Proceed with form submission
@@ -289,11 +315,6 @@ export function UpdateButton({
                         placeholder='Message'
                         className='mt-5'
                       />
-                      {contentError && (
-                        <div className='text-xs' style={{ color: 'red' }}>
-                          {contentError}
-                        </div>
-                      )}
                     </Field>
                     <Field>
                       <Label>Category</Label>
