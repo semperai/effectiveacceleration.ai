@@ -538,8 +538,11 @@ processor.run(db, async (ctx) => {
 
                 await sendPushNotification(job.roles.worker, jobEvent, ctx);
                 if (arbitratorChanged) {
-                  await sendPushNotification(oldArbitrator, jobEvent, ctx);
-                  await sendPushNotification(job.roles.arbitrator, jobEvent, ctx);
+                  await Promise.all([
+                    sendPushNotification(oldArbitrator, jobEvent, ctx),
+                    sendPushNotification(job.roles.arbitrator, jobEvent, ctx),
+                  ]);
+
                 }
 
                 break;
@@ -567,8 +570,10 @@ processor.run(db, async (ctx) => {
 
                 job.state = JobState.Closed;
 
-                await sendPushNotification(job.roles.worker, jobEvent, ctx);
-                await sendPushNotification(job.roles.arbitrator, jobEvent, ctx);
+                await Promise.all([
+                  sendPushNotification(job.roles.worker, jobEvent, ctx),
+                  sendPushNotification(job.roles.arbitrator, jobEvent, ctx),
+                ]);
 
                 break;
               }
@@ -713,8 +718,10 @@ processor.run(db, async (ctx) => {
 
                 const byWorker = event.address_.toLowerCase() === job.roles.worker.toLowerCase();
 
-                await sendPushNotification(byWorker ? job.roles.creator : job.roles.worker, jobEvent, ctx);
-                await sendPushNotification(job.roles.arbitrator, jobEvent, ctx);
+                await Promise.all([
+                  sendPushNotification(byWorker ? job.roles.creator : job.roles.worker, jobEvent, ctx),
+                  sendPushNotification(job.roles.arbitrator, jobEvent, ctx),
+                ]);
 
                 break;
               }
