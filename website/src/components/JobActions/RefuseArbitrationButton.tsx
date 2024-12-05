@@ -1,9 +1,13 @@
 import { Button } from '@/components/Button';
-import { useConfig } from '@/hooks/useConfig';
 import { Job } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { useEffect, useState } from 'react';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
+import { useConfig } from '@/hooks/useConfig';
+import { useToast } from '@/hooks/useToast';
+import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
+import { Loader2 } from 'lucide-react';
+import { CheckIcon } from '@heroicons/react/20/solid';
 
 export type RefuseArbitrationButtonProps = {
   job: Job;
@@ -14,56 +18,48 @@ export function RefuseArbitrationButton({
   ...rest
 }: RefuseArbitrationButtonProps & React.ComponentPropsWithoutRef<'div'>) {
   const Config = useConfig();
-  const { data: hash, error, writeContract } = useWriteContract();
+  const [isRefusing, setIsRefusing] = useState(false);
+  const { showError } = useToast();
 
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
-    useWaitForTransactionReceipt({
-      hash,
-    });
+  const {
+    writeContractWithNotifications,
+    isConfirming,
+    isConfirmed,
+    error
+  } = useWriteContractWithNotifications();
 
-  useEffect(() => {
-    if (isConfirmed || error) {
-      if (error) {
-        const revertReason = error.message.match(
-          `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-        )?.[1];
-        if (revertReason) {
-          alert(
-            error.message.match(
-              `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-            )?.[1]
-          );
-        } else {
-          console.log(error, error.message);
-          alert('Unknown error occurred');
-        }
-      }
-      setButtonDisabled(false);
+  async function handleRefuse() {
+    setIsRefusing(true);
+
+    try {
+      await writeContractWithNotifications({
+        abi: MARKETPLACE_V1_ABI,
+        address: Config!.marketplaceAddress,
+        functionName: 'refuseArbitration',
+        args: [BigInt(job.id!)],
+      });
+    } catch (err: any) {
+      showError(`Error Refusing job: ${err.message}`);
+    } finally {
+      setIsRefusing(false);
     }
-  }, [isConfirmed, error]);
-
-  const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
-
-  async function buttonClick() {
-    setButtonDisabled(true);
-
-    const w = writeContract({
-      abi: MARKETPLACE_V1_ABI,
-      address: Config!.marketplaceAddress,
-      functionName: 'refuseArbitration',
-      args: [BigInt(job.id!)],
-    });
   }
+
+  const buttonText = isRefusing ? 'Refusing...' : 'Refuse';
 
   return (
     <>
       <Button
-        disabled={buttonDisabled}
-        onClick={buttonClick}
+        disabled={isRefusing}
+        onClick={handleRefuse}
         color={'borderlessGray'}
         className={'w-full'}
       >
-        Refuse Arbitration
+        {(isRefusing || isConfirming) && (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        )}
+        <CheckIcon className='-ml-0.5 mr-1.5 h-5 w-5' aria-hidden='true' />
+        {buttonText}
       </Button>
     </>
   );
