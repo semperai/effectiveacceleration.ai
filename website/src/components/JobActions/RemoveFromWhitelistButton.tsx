@@ -8,6 +8,9 @@ import { Fragment, useEffect, useState } from 'react';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import { Listbox, ListboxOption } from '../Listbox';
 import { useConfig } from '@/hooks/useConfig';
+import { useToast } from '@/hooks/useToast';
+import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
+import { Loader2 } from 'lucide-react';
 
 export type RemoveFromWhitelistButtonProps = {
   address: string | undefined;
@@ -30,46 +33,36 @@ export function RemoveFromWhitelistButton({
   const [selectedUserAddress, setSelectedUserAddress] = useState<
     string | undefined
   >(undefined);
-  const { data: hash, error, writeContract } = useWriteContract();
 
-  const { isSuccess: isConfirmed } = useWaitForTransactionReceipt({
-    hash,
-  });
+  const [isRemoving, setIsRemoving] = useState(false);
+  const { showError } = useToast();
 
-  useEffect(() => {
-    if (isConfirmed || error) {
-      if (error) {
-        const revertReason = error.message.match(
-          `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-        )?.[1];
-        if (revertReason) {
-          alert(
-            error.message.match(
-              `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-            )?.[1]
-          );
-        } else {
-          console.log(error, error.message);
-          alert('Unknown error occurred');
-        }
-      }
-      setButtonDisabled(false);
-      closeModal();
+  const {
+    writeContractWithNotifications,
+    isConfirming,
+    isConfirmed,
+    error
+  } = useWriteContractWithNotifications();
+
+  async function handleRemove() {
+    setIsRemoving(true);
+
+    try {
+      await writeContractWithNotifications({
+        abi: MARKETPLACE_V1_ABI,
+        address: Config!.marketplaceAddress,
+        functionName: 'updateJobWhitelist',
+        args: [BigInt(job.id!), [], [selectedUserAddress!]],
+      });
+    } catch (err: any) {
+      showError(`Error Removing job: ${err.message}`);
+    } finally {
+      setIsRemoving(false);
     }
-  }, [isConfirmed, error]);
-
-  const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
-
-  async function buttonClick() {
-    setButtonDisabled(true);
-
-    const w = writeContract({
-      abi: MARKETPLACE_V1_ABI,
-      address: Config!.marketplaceAddress,
-      functionName: 'updateJobWhitelist',
-      args: [BigInt(job.id!), [], [selectedUserAddress!]],
-    });
   }
+
+  const buttonText = isRemoving ? 'Removing...' : 'Remove';
+
 
   let [isOpen, setIsOpen] = useState(false);
 
@@ -84,7 +77,7 @@ export function RemoveFromWhitelistButton({
   return (
     <>
       <Button
-        disabled={buttonDisabled}
+        disabled={isRemoving || isConfirming}
         onClick={() => openModal()}
         color={'borderlessGray'}
         className={'w-full'}
@@ -137,7 +130,7 @@ export function RemoveFromWhitelistButton({
                         </ListboxOption>
                       ))}
                     </Listbox>
-                    <Button disabled={buttonDisabled} onClick={buttonClick}>
+                    <Button disabled={isRemoving} onClick={handleRemove}>
                       <CheckIcon
                         className='-ml-0.5 mr-1.5 h-5 w-5'
                         aria-hidden='true'

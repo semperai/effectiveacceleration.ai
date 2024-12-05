@@ -11,7 +11,6 @@ import {
 import { Dialog, Transition } from '@headlessui/react';
 import { CheckIcon } from '@heroicons/react/20/solid';
 import { Job, publishToIpfs } from '@effectiveacceleration/contracts';
-
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { formatUnits, parseUnits } from 'ethers';
 import { ChangeEvent, Fragment, useEffect, useState } from 'react';
@@ -23,6 +22,10 @@ import { Input } from '../Input';
 import { Radio, RadioGroup } from '../Radio';
 import { Textarea } from '../Textarea';
 import { useConfig } from '@/hooks/useConfig';
+import { useToast } from '@/hooks/useToast';
+import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
+import { Loader2 } from 'lucide-react'
+import { consoleIntegration } from '@sentry/nextjs';
 
 export type UpdateButtonProps = {
   address: string | undefined;
@@ -89,6 +92,7 @@ export function UpdateButton({
   const [selectedUnitTime, setSelectedUnitTime] = useState<ComboBoxOption>(
     unitsDeliveryTime[2]
   );
+  const [contentError, setContentError] = useState<string>('');
   const [deadlineError, setDeadlineError] = useState<string>('');
   const whitelistWorkersValues = ['Yes', 'No'];
   const [whitelistWorkers, setWhitelistWorkers] = useState<string>(
@@ -106,34 +110,16 @@ export function UpdateButton({
   ];
   const [selectedArbitratorAddress, setSelectedArbitratorAddress] =
     useState<string>(job.roles.arbitrator);
-  const { data: hash, error, writeContract } = useWriteContract();
 
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
-    useWaitForTransactionReceipt({
-      hash,
-    });
-
-  useEffect(() => {
-    if (isConfirmed || error) {
-      if (error) {
-        const revertReason = error.message.match(
-          `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-        )?.[1];
-        if (revertReason) {
-          alert(
-            error.message.match(
-              `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-            )?.[1]
-          );
-        } else {
-          console.log(error, error.message);
-          alert('Unknown error occurred');
-        }
-      }
-      setButtonDisabled(false);
-      closeModal();
-    }
-  }, [isConfirmed, error]);
+    const [isUpdating, setIsUpdating] = useState(false);
+    const { showError } = useToast();
+  
+    const {
+      writeContractWithNotifications,
+      isConfirming,
+      isConfirmed,
+      error
+    } = useWriteContractWithNotifications();
 
   useEffect(() => {
     if (job.tags) {
@@ -154,13 +140,18 @@ export function UpdateButton({
 
   const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
 
-  async function buttonClick() {
+  async function handleUpdate() {
+    setIsUpdating(true);
     // Validate all fields before submission
     const titleValidationMessage = validateField(title, {
       required: true,
       minLength: 3,
     });
-
+    const contentValidationMessage = validateField(content, {
+      required: true,
+      minLength: 3,
+    });
+    setContentError(contentValidationMessage);
     const tagsValidationMessage = tags
       .map((tag) => validateField(tag, { required: true }))
       .find((message) => message !== '');
@@ -186,8 +177,10 @@ export function UpdateButton({
       !titleValidationMessage &&
       !tagsValidationMessage &&
       !amountValidationMessage &&
-      !maxJobTimeValidationMessage
+      !maxJobTimeValidationMessage && 
+      !contentValidationMessage
     ) {
+
       const { hash: contentHash } = await publishToIpfs(content);
       const tokenDecimals = tokensMap[job.token]?.decimals;
       const rawAmount = parseUnits(amount, tokensMap[job.token]?.decimals);
@@ -196,28 +189,33 @@ export function UpdateButton({
       const deadlineInSeconds = maxTime
         ? convertToSeconds(maxTime, selectedUnitTime.name)
         : 0;
-
-      const w = writeContract({
-        abi: MARKETPLACE_V1_ABI,
-        address: Config!.marketplaceAddress,
-        functionName: 'updateJobPost',
-        args: [
-          BigInt(job.id!),
-          title,
-          contentHash,
-          [selectedCategory?.id || '', ...tags.map((tag) => tag)],
-          rawAmount,
-          deadlineInSeconds,
-          selectedArbitratorAddress,
-          whitelistWorkers === whitelistWorkersValues[0],
-        ],
-      });
+        try {
+          await writeContractWithNotifications({
+            abi: MARKETPLACE_V1_ABI,
+            address: Config!.marketplaceAddress,
+            functionName: 'updateJobPost',
+            args: [
+              BigInt(job.id!),
+              title,
+              contentHash,
+              [selectedCategory?.id || '', ...tags.map((tag) => tag)],
+              rawAmount,
+              deadlineInSeconds,
+              selectedArbitratorAddress,
+              whitelistWorkers === whitelistWorkersValues[0],
+            ],
+          });
+        } catch (err: any) {
+          showError(`Error updating job: ${err.message}`);
+        } finally {
+          setIsUpdating(false);
+        }
     } else {
-      setButtonDisabled(false);
+      setIsUpdating(false);
       console.log('Form has errors');
     }
   }
-
+  const buttonText = isUpdating ? 'Refunding...' : 'Refund';
   let [isOpen, setIsOpen] = useState(false);
 
   function closeModal() {
@@ -231,7 +229,7 @@ export function UpdateButton({
   return (
     <>
       <Button
-        disabled={buttonDisabled}
+        disabled={isUpdating || isConfirming}
         onClick={() => openModal()}
         color={'borderlessGray'}
         className={'w-full'}
@@ -296,6 +294,11 @@ export function UpdateButton({
                         placeholder='Message'
                         className='mt-5'
                       />
+                      {contentError && (
+                        <div className='text-xs' style={{ color: 'red' }}>
+                          {contentError}
+                        </div>
+                      )}
                     </Field>
                     <Field>
                       <Label>Category</Label>
@@ -476,7 +479,7 @@ export function UpdateButton({
                       </RadioGroup>
                     </Field>
 
-                    <Button disabled={buttonDisabled} onClick={buttonClick}>
+                    <Button disabled={isUpdating || isConfirming} onClick={handleUpdate}>
                       <CheckIcon
                         className='-ml-0.5 mr-1.5 h-5 w-5'
                         aria-hidden='true'

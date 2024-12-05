@@ -9,6 +9,8 @@ import moment from 'moment';
 import { Fragment, useEffect, useState } from 'react';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import { useConfig } from '@/hooks/useConfig';
+import { useToast } from '@/hooks/useToast';
+import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 
 export type AssignWorkerButtonProps = {
   address: string | undefined;
@@ -25,45 +27,35 @@ export function AssignWorkerButton({
   const Config = useConfig();
   const { data: users } = useUsers();
   const jobMeceTag = jobMeceTags.find((tag) => tag.id === job?.tags[0])?.name;
-  const { data: hash, error, writeContract } = useWriteContract();
 
-  const { isSuccess: isConfirmed } = useWaitForTransactionReceipt({
-    hash,
-  });
+  const [isAssigning, setIsAssigning] = useState(false);
+  const { showError } = useToast();
 
-  useEffect(() => {
-    if (isConfirmed || error) {
-      if (error) {
-        const revertReason = error.message.match(
-          `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-        )?.[1];
-        if (revertReason) {
-          alert(
-            error.message.match(
-              `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-            )?.[1]
-          );
-        } else {
-          console.log(error, error.message);
-          alert('Unknown error occurred');
-        }
-      }
-      setButtonDisabled(false);
-      closeModal();
+  const {
+    writeContractWithNotifications,
+    isConfirming,
+    isConfirmed,
+    error
+  } = useWriteContractWithNotifications();
+
+  async function handleAssign() {
+    setIsAssigning(true);
+
+    try {
+      await writeContractWithNotifications({
+        abi: MARKETPLACE_V1_ABI,
+        address: Config!.marketplaceAddress,
+        functionName: 'payStartJob',
+        args: [BigInt(job.id!), selectedWorker],
+      });
+    } catch (err: any) {
+      showError(`Error Assigning job: ${err.message}`);
+    } finally {
+      setIsAssigning(false);
     }
-  }, [isConfirmed, error]);
-
-  const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
-
-  async function buttonClick() {
-    setButtonDisabled(true);
-    const w = writeContract({
-      abi: MARKETPLACE_V1_ABI,
-      address: Config!.marketplaceAddress,
-      functionName: 'payStartJob',
-      args: [BigInt(job.id!), selectedWorker],
-    });
   }
+
+  const buttonText = isAssigning ? 'Assigning...' : 'Assign';
 
   let [isOpen, setIsOpen] = useState(false);
 
@@ -78,7 +70,7 @@ export function AssignWorkerButton({
   return (
     <>
       <Button
-        disabled={buttonDisabled}
+        disabled={isAssigning}
         onClick={() => openModal()}
         color={'purplePrimary'}
         className={'w-full'}
@@ -164,8 +156,8 @@ export function AssignWorkerButton({
 
                   <div className='mt-8'>
                     <Button
-                      disabled={buttonDisabled}
-                      onClick={buttonClick}
+                      disabled={isAssigning}
+                      onClick={handleAssign}
                       className='w-full rounded-lg bg-blue-600 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-700'
                     >
                       Confirm

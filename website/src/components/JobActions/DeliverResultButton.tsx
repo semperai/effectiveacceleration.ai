@@ -7,6 +7,8 @@ import { Fragment, useEffect, useState } from 'react';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import { Textarea } from '../Textarea';
 import { useConfig } from '@/hooks/useConfig';
+import { useToast } from '@/hooks/useToast';
+import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 
 export type DeliverResultButtonProps = {
   address: string | undefined;
@@ -22,49 +24,35 @@ export function DeliverResultButton({
 }: DeliverResultButtonProps & React.ComponentPropsWithoutRef<'div'>) {
   const Config = useConfig();
   const [message, setMessage] = useState<string>('');
-  const { data: hash, error, writeContract } = useWriteContract();
+  const [isDelivering, setIsDelivering] = useState(false);
+  const { showError } = useToast();
 
-  const { isSuccess: isConfirmed } = useWaitForTransactionReceipt({
-    hash,
-  });
+  const {
+    writeContractWithNotifications,
+    isConfirming,
+    isConfirmed,
+    error
+  } = useWriteContractWithNotifications();
 
-  useEffect(() => {
-    if (isConfirmed || error) {
-      if (error) {
-        const revertReason = error.message.match(
-          `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-        )?.[1];
-        if (revertReason) {
-          alert(
-            error.message.match(
-              `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-            )?.[1]
-          );
-        } else {
-          console.log(error, error.message);
-          alert('Unknown error occurred');
-        }
-      }
-      setButtonDisabled(false);
-      closeModal();
-    }
-  }, [isConfirmed, error]);
-
-  const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
-
-  async function buttonClick() {
-    setButtonDisabled(true);
-
+  async function handleDeliver() {
+    setIsDelivering(true);
     const sessionKey = sessionKeys[`${address}-${job.roles.creator}`];
     const { hash: contentHash } = await publishToIpfs(message, sessionKey);
-
-    const w = writeContract({
-      abi: MARKETPLACE_V1_ABI,
-      address: Config!.marketplaceAddress,
-      functionName: 'deliverResult',
-      args: [BigInt(job.id!), contentHash],
-    });
+    try {
+      await writeContractWithNotifications({
+        abi: MARKETPLACE_V1_ABI,
+        address: Config!.marketplaceAddress,
+        functionName: 'deliverResult',
+        args: [BigInt(job.id!), contentHash],
+      });
+    } catch (err: any) {
+      showError(`Error Delivering job: ${err.message}`);
+    } finally {
+      setIsDelivering(false);
+    }
   }
+
+  const buttonText = isDelivering ? 'Delivering...' : 'Deliver';
 
   let [isOpen, setIsOpen] = useState(false);
 
@@ -79,7 +67,7 @@ export function DeliverResultButton({
   return (
     <>
       <Button
-        disabled={buttonDisabled}
+        disabled={isDelivering}
         onClick={() => openModal()}
         color={'borderlessGray'}
         className={'w-full'}
@@ -129,8 +117,8 @@ export function DeliverResultButton({
                       className='mt-5'
                     />
                     <Button
-                      disabled={buttonDisabled || message === ''}
-                      onClick={buttonClick}
+                      disabled={isDelivering || message === ''}
+                      onClick={handleDeliver}
                     >
                       <CheckIcon
                         className='-ml-0.5 mr-1.5 h-5 w-5'

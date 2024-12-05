@@ -6,10 +6,30 @@ config({
   path: './.env.local',
 });
 
+import webPush from "web-push";
+const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
+
+if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
+  console.log(
+    "You must set the VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY environment variables.",
+    "These must match the same-named variables set in 'notifications' service"
+  );
+  process.exit(1);
+}
+
+// Set the keys used for encrypting the push messages.
+webPush.setVapidDetails(
+  "https://effectiveacceleration.ai",
+  VAPID_PUBLIC_KEY,
+  VAPID_PRIVATE_KEY
+);
+
+
 // EvmBatchProcessor is the class responsible for data retrieval and processing.
-import { EvmBatchProcessor } from "@subsquid/evm-processor";
+import { DataHandlerContext, EvmBatchProcessor } from "@subsquid/evm-processor";
 // TypeormDatabase is the class responsible for data storage.
-import { TypeormDatabase } from "@subsquid/typeorm-store";
+import { Store, TypeormDatabase } from "@subsquid/typeorm-store";
 
 import * as marketplaceAbi from "./abi/MarketplaceV1";
 import * as marketplaceDataAbi from "./abi/MarketplaceDataV1";
@@ -30,6 +50,7 @@ import {
   Review,
   User,
   Arbitrator,
+  PushSubscription,
 } from "./model";
 import {
   decodeJobArbitratedEvent,
@@ -44,7 +65,8 @@ import {
   JobState,
 } from "@effectiveacceleration/contracts";
 import { getAddress, toBigInt, ZeroAddress, ZeroHash } from "ethers";
-import { get } from 'http';
+import JSON5 from "@mainnet-pat/json5-bigint";
+import "@mainnet-pat/json5-bigint/lib/presets/extended";
 
 // const MARKETPLACE_CONTRACT_ADDRESS =
 //   "0x60a1561455c9Bd8fe6B0F05976d7F84ff2eff5a3".toLowerCase();
@@ -125,6 +147,7 @@ processor.run(db, async (ctx) => {
         if (!marketplace) {
           marketplace = new Marketplace({
             id: getAddress(MARKETPLACE_CONTRACT_ADDRESS),
+            marketplaceData: getAddress(MARKETPLACEDATA_CONTRACT_ADDRESS),
             paused: false,
             jobCount: 0,
             userCount: 0,
@@ -438,6 +461,8 @@ processor.run(db, async (ctx) => {
 
                 jobEvent.details = new JobCreatedEvent(jobCreated);
 
+                await sendPushNotification(job.roles.arbitrator, jobEvent, ctx);
+
                 marketplace =
                   marketplace ??
                   await ctx.store.findOneByOrFail(Marketplace, {
@@ -455,6 +480,8 @@ processor.run(db, async (ctx) => {
                 job.state = JobState.Taken;
                 job.escrowId = toBigInt(event.data_);
 
+                await sendPushNotification(job.roles.creator, jobEvent, ctx);
+
                 break;
               }
               case JobEventType.Paid: {
@@ -466,6 +493,8 @@ processor.run(db, async (ctx) => {
                 job.state = JobState.Taken;
                 job.escrowId = toBigInt(event.data_);
 
+                await sendPushNotification(job.roles.worker, jobEvent, ctx);
+
                 break;
               }
               case JobEventType.Updated: {
@@ -474,6 +503,9 @@ processor.run(db, async (ctx) => {
                     "Job must be created before it can be updated"
                   );
                 }
+
+                const oldArbitrator = job.roles.arbitrator;
+                const arbitratorChanged = event.address_.toLowerCase() !== job.roles.arbitrator.toLowerCase();
 
                 const jobUpdated = decodeJobUpdatedEvent(event.data_);
                 job.title = jobUpdated.title;
@@ -504,6 +536,12 @@ processor.run(db, async (ctx) => {
                   job.amount = jobUpdated.amount;
                 }
 
+                await sendPushNotification(job.roles.worker, jobEvent, ctx);
+                if (arbitratorChanged) {
+                  await sendPushNotification(oldArbitrator, jobEvent, ctx);
+                  await sendPushNotification(job.roles.arbitrator, jobEvent, ctx);
+                }
+
                 break;
               }
               case JobEventType.Signed: {
@@ -516,6 +554,8 @@ processor.run(db, async (ctx) => {
                 const jobSigned = decodeJobSignedEvent(event.data_);
                 jobEvent.details = new JobSignedEvent(jobSigned);
 
+                await sendPushNotification(job.roles.creator, jobEvent, ctx);
+
                 break;
               }
               case JobEventType.Completed: {
@@ -526,6 +566,9 @@ processor.run(db, async (ctx) => {
                 }
 
                 job.state = JobState.Closed;
+
+                await sendPushNotification(job.roles.worker, jobEvent, ctx);
+                await sendPushNotification(job.roles.arbitrator, jobEvent, ctx);
 
                 break;
               }
@@ -544,6 +587,8 @@ processor.run(db, async (ctx) => {
                   (await ctx.store.findOneByOrFail(User, { id: userId }))!;
                 user.reputationUp++;
                 userCache[userId] = user;
+
+                await sendPushNotification(job.roles.creator, jobEvent, ctx);
 
                 break;
               }
@@ -621,6 +666,8 @@ processor.run(db, async (ctx) => {
                   })
                 );
 
+                await sendPushNotification(job.roles.worker, jobEvent, ctx);
+
                 break;
               }
               case JobEventType.Refunded: {
@@ -647,6 +694,9 @@ processor.run(db, async (ctx) => {
                 job.roles.worker = ZeroAddress;
                 job.state = JobState.Open;
                 job.escrowId = 0n;
+                job.disputed = false;
+
+                await sendPushNotification(job.roles.creator, jobEvent, ctx);
 
                 break;
               }
@@ -660,6 +710,11 @@ processor.run(db, async (ctx) => {
                 const jobDisputed = decodeJobDisputedEvent(event.data_);
                 jobEvent.details = new JobDisputedEvent(jobDisputed);
                 job.disputed = true;
+
+                const byWorker = event.address_.toLowerCase() === job.roles.worker.toLowerCase();
+
+                await sendPushNotification(byWorker ? job.roles.creator : job.roles.worker, jobEvent, ctx);
+                await sendPushNotification(job.roles.arbitrator, jobEvent, ctx);
 
                 break;
               }
@@ -675,6 +730,7 @@ processor.run(db, async (ctx) => {
                 job.state = JobState.Closed;
                 job.collateralOwed = job.collateralOwed +=
                   jobArbitrated.creatorAmount;
+                job.disputed = false;
 
                 const arbitrator =
                   arbitratorCache[job.roles.arbitrator] ??
@@ -683,6 +739,11 @@ processor.run(db, async (ctx) => {
                   }))!;
                 arbitratorCache[job.roles.arbitrator] = arbitrator;
                 arbitrator.settledCount++;
+
+                await Promise.all([
+                  sendPushNotification(job.roles.creator, jobEvent, ctx),
+                  sendPushNotification(job.roles.worker, jobEvent, ctx),
+                ]);
 
                 break;
               }
@@ -703,6 +764,11 @@ processor.run(db, async (ctx) => {
 
                 job.roles.arbitrator = ZeroAddress;
 
+                await Promise.all([
+                  sendPushNotification(job.roles.creator, jobEvent, ctx),
+                  sendPushNotification(job.roles.worker, jobEvent, ctx),
+                ]);
+
                 break;
               }
               case JobEventType.WhitelistedWorkerAdded: {
@@ -713,6 +779,8 @@ processor.run(db, async (ctx) => {
                 }
 
                 job.allowedWorkers.push(getAddress(event.address_));
+
+                await sendPushNotification(getAddress(event.address_), jobEvent, ctx);
 
                 break;
               }
@@ -726,6 +794,8 @@ processor.run(db, async (ctx) => {
                 job.allowedWorkers = job.allowedWorkers.filter(
                   (address) => address !== getAddress(event.address_)
                 );
+
+                await sendPushNotification(getAddress(event.address_), jobEvent, ctx);
 
                 break;
               }
@@ -750,6 +820,8 @@ processor.run(db, async (ctx) => {
 
                 const jobMessage = decodeJobMessageEvent(event.data_);
                 jobEvent.details = new JobMessageEvent(jobMessage);
+
+                await sendPushNotification(jobEvent.details.recipientAddress, jobEvent, ctx);
 
                 break;
               }
@@ -779,3 +851,44 @@ processor.run(db, async (ctx) => {
   await ctx.store.upsert(eventList);
   await ctx.store.upsert(reviewList);
 });
+
+const sendPushNotification = async (address: string, event: JobEvent, ctx: DataHandlerContext<Store, {}>): Promise<void> => {
+  if (!ctx.isHead) {
+    // do not send push notifications while (re)-syncing
+    return;
+  }
+
+  if (address === ZeroAddress) {
+    // do not even bother to query db for zero address
+    return;
+  }
+
+  const subscriptions = await ctx.store.findBy(PushSubscription, { address });
+  await Promise.all(subscriptions.map(async (subscription) => {
+    // strip raw and decoded data not to exceed the payload max size of 4028 bytes
+    const payload = JSON5.stringify({
+      id: event.id,
+      jobId: event.jobId,
+      type_: event.type_,
+      address_: event.address_,
+      timestamp_: event.timestamp_,
+    });
+    const options: webPush.RequestOptions = {
+      timeout: 10 * 1000, // 10 seconds to fail the request
+      TTL: 10 * 60, // 10 minutes to store our message on the push server
+    };
+
+    for (const i of [1, 2, 3]) {
+      try {
+        await webPush.sendNotification(subscription, payload, options);
+        console.log(`Push notification sent for address: ${address}, job: ${event.jobId}, event: ${event.id}`);
+        break;
+      } catch (e: any) {
+        if (i === 3) {
+          console.error(`Failed to send push notification for address: ${address}, job: ${event.jobId}, event: ${event.id}. Removing subscription due to error: ${e.message}: ${e.statusCode}`);
+          await ctx.store.remove(subscription);
+        }
+      }
+    }
+  }));
+}

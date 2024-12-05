@@ -8,6 +8,9 @@ import { Field, Label } from '../Fieldset';
 import { Input } from '../Input';
 import { Textarea } from '../Textarea';
 import { useConfig } from '@/hooks/useConfig';
+import { Loader2 } from 'lucide-react'
+import { useToast } from '@/hooks/useToast';
+import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 
 export type ArbitrateButtonProps = {
   address: string | undefined;
@@ -26,55 +29,41 @@ export function ArbitrateButton({
   const [ownerShare, setOwnerShare] = useState<number>(5000);
   const [workerShare, setWorkerShare] = useState<number>(5000);
   const [message, setMessage] = useState<string>('');
-  const { data: hash, error, writeContract } = useWriteContract();
 
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
-    useWaitForTransactionReceipt({
-      hash,
-    });
+  const [isArbitrating, setIsArbitrating] = useState(false);
+  const { showError } = useToast();
 
-  useEffect(() => {
-    if (isConfirmed || error) {
-      if (error) {
-        const revertReason = error.message.match(
-          `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-        )?.[1];
-        if (revertReason) {
-          alert(
-            error.message.match(
-              `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-            )?.[1]
-          );
-        } else {
-          console.log(error, error.message);
-          alert('Unknown error occurred');
-        }
-      }
-      setButtonDisabled(false);
-      closeModal();
-    }
-  }, [isConfirmed, error]);
+  const {
+    writeContractWithNotifications,
+    isConfirming,
+    isConfirmed,
+    error
+  } = useWriteContractWithNotifications();
 
-  const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
-
-  async function buttonClick() {
+  async function handleArbitrate() {
     if (workerShare + ownerShare !== 10000) {
       alert('Shares must sum to 10000');
       return;
     }
-
-    setButtonDisabled(true);
-
+    setIsArbitrating(true);
     const sessionKey = sessionKeys[`${address}-${job.roles.creator}`];
     const { hash: contentHash } = await publishToIpfs(message, sessionKey);
 
-    const w = writeContract({
-      abi: MARKETPLACE_V1_ABI,
-      address: Config!.marketplaceAddress,
-      functionName: 'arbitrate',
-      args: [BigInt(job.id!), ownerShare, workerShare, contentHash],
-    });
+    try {
+      await writeContractWithNotifications({
+        abi: MARKETPLACE_V1_ABI,
+        address: Config!.marketplaceAddress,
+        functionName: 'arbitrate',
+        args: [BigInt(job.id!), ownerShare, workerShare, contentHash],
+      });
+    } catch (err: any) {
+      showError(`Error Arbitrating job: ${err.message}`);
+    } finally {
+      setIsArbitrating(false);
+    }
   }
+
+  const buttonText = isArbitrating ? 'Arbitrating...' : 'Arbitrate';
 
   let [isOpen, setIsOpen] = useState(false);
 
@@ -89,7 +78,7 @@ export function ArbitrateButton({
   return (
     <>
       <Button
-        disabled={buttonDisabled}
+        disabled={isArbitrating || isConfirming}
         onClick={() => openModal()}
         color={'borderlessGray'}
         className={'w-full'}
@@ -203,8 +192,8 @@ export function ArbitrateButton({
                       className='mt-5'
                     />
                     <Button
-                      disabled={buttonDisabled || message === ''}
-                      onClick={buttonClick}
+                      disabled={isArbitrating || message === ''}
+                      onClick={handleArbitrate}
                     >
                       Confirm
                     </Button>

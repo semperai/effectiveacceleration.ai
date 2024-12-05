@@ -7,6 +7,9 @@ import { Fragment, useEffect, useState } from 'react';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import { Textarea } from '../Textarea';
 import { useConfig } from '@/hooks/useConfig';
+import { useToast } from '@/hooks/useToast';
+import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
+import { Loader2 } from 'lucide-react';
 
 export type ApproveButtonProps = {
   address: string | undefined;
@@ -22,62 +25,49 @@ export function ApproveButton({
   const [review, setReview] = useState<string>('');
   const [rating, setRating] = useState<number>(0);
 
-  const { data: hash, error, writeContract } = useWriteContract();
+  const [isApproving, setIsApproving] = useState(false);
+  const { showError } = useToast();
 
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
-    useWaitForTransactionReceipt({
-      hash,
-    });
+  const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
+    useWriteContractWithNotifications();
 
-  useEffect(() => {
-    if (isConfirmed || error) {
-      if (error) {
-        const revertReason = error.message.match(
-          `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-        )?.[1];
-        if (revertReason) {
-          alert(
-            error.message.match(
-              `The contract function ".*" reverted with the following reason:\n(.*)\n.*`
-            )?.[1]
-          );
-        } else {
-          console.log(error, error.message);
-          alert('Unknown error occurred');
-        }
-      }
-      setButtonDisabled(false);
-      closeModal();
-    }
-  }, [isConfirmed, error]);
+  async function handleApprove(skipReview?: boolean) {
+    setIsApproving(true);
 
-  const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
-
-  async function buttonClick(skipReview?: boolean) {
     if (!skipReview && rating === 0 && review.length) {
       alert('If you decide to leave a review, you must also leave a rating.');
+      setIsApproving(false);
       return;
     } else if ((!skipReview && rating < 0) || rating > 5) {
       alert('Rating must be between 1 and 5.');
+      setIsApproving(false);
       return;
     } else if (!skipReview && rating === 0) {
       alert('Please leave a rating.');
+      setIsApproving(false);
       return;
     }
 
-    setButtonDisabled(true);
-
-    const w = writeContract({
-      abi: MARKETPLACE_V1_ABI,
-      address: Config!.marketplaceAddress,
-      functionName: 'approveResult',
-      args: [
-        BigInt(job.id!),
-        skipReview ? 0 : rating,
-        skipReview ? '' : review,
-      ],
-    });
+    try {
+      await writeContractWithNotifications({
+        abi: MARKETPLACE_V1_ABI,
+        address: Config!.marketplaceAddress,
+        functionName: 'approveResult',
+        args: [
+          BigInt(job.id!),
+          skipReview ? 0 : rating,
+          skipReview ? '' : review,
+        ],
+      });
+    } catch (err: any) {
+      showError(`Error Approving job: ${err.message}`);
+    } finally {
+      setIsApproving(false);
+      setIsOpen(false);
+    }
   }
+
+  const buttonText = isApproving ? 'Approving...' : 'Approve';
 
   let [isOpen, setIsOpen] = useState(false);
 
@@ -92,7 +82,7 @@ export function ApproveButton({
   return (
     <>
       <Button
-        disabled={buttonDisabled}
+        disabled={isApproving || isConfirming}
         onClick={() => openModal()}
         color={'purplePrimary'}
         className={'w-full'}
@@ -155,15 +145,15 @@ export function ApproveButton({
                       className=''
                     />
                     <Button
-                      disabled={buttonDisabled}
-                      onClick={() => buttonClick(true)}
+                      disabled={isApproving}
+                      onClick={() => handleApprove(true)}
                       color='borderlessGray'
                     >
                       Skip for now
                     </Button>
                     <Button
-                      disabled={buttonDisabled}
-                      onClick={() => buttonClick(false)}
+                      disabled={isApproving}
+                      onClick={() => handleApprove(false)}
                       color='purplePrimary'
                     >
                       Submit Review

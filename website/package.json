@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.11.10",
-    "@effectiveacceleration/contracts": "^1.0.12",
+    "@effectiveacceleration/contracts": "^1.0.13",
     "@emotion/react": "^11.13.5",
     "@emotion/styled": "^11.13.5",
     "@headlessui/react": "^2.2.0",
