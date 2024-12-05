@@ -3,12 +3,13 @@ import { Dialog, Transition } from '@headlessui/react';
 import { CheckIcon } from '@heroicons/react/20/solid';
 import { Job, publishToIpfs } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import { Textarea } from '../Textarea';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
+import { ZeroHash } from 'ethers';
 
 export type DeliverResultButtonProps = {
   address: string | undefined;
@@ -25,15 +26,46 @@ export function DeliverResultButton({
   const Config = useConfig();
   const [message, setMessage] = useState<string>('');
   const [isDelivering, setIsDelivering] = useState(false);
-  const { showError } = useToast();
+  const { showError, showSuccess, showLoading, toast } = useToast();
 
   const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
     useWriteContractWithNotifications();
 
+    const loadingToastIdRef = useRef<string | number | null>(null);
+
+    // Cleanup function for dismissing loading toasts
+    const dismissLoadingToast = useCallback(() => {
+      if (loadingToastIdRef.current !== null) {
+        toast.dismiss(loadingToastIdRef.current);
+        loadingToastIdRef.current = null;
+      }
+    }, [toast]);
+
   async function handleDeliver() {
     setIsDelivering(true);
+
+    let contentHash = ZeroHash;
     const sessionKey = sessionKeys[`${address}-${job.roles.creator}`];
-    const { hash: contentHash } = await publishToIpfs(message, sessionKey);
+    
+    if (message.length > 0) {
+      dismissLoadingToast();
+      loadingToastIdRef.current = showLoading(
+        'Publishing job post to IPFS...'
+      );
+      try {
+        const { hash } = await publishToIpfs(message, sessionKey);
+        contentHash = hash;
+      } catch (err) {
+        dismissLoadingToast();
+        showError('Failed to publish job post to IPFS');
+        setIsDelivering(false);
+        return;
+      }
+      dismissLoadingToast();
+      showSuccess('Job post published to IPFS');
+    }
+
+
     try {
       await writeContractWithNotifications({
         abi: MARKETPLACE_V1_ABI,
