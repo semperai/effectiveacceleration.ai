@@ -22,7 +22,8 @@
   ],
   "main": "lib/index.js",
   "dependencies": {
-    "@effectiveacceleration/contracts": "^1.0.12",
+    "@effectiveacceleration/contracts": "^1.0.13",
+    "@mainnet-pat/json5-bigint": "^2.2.12",
     "@subsquid/evm-abi": "^0.3.0",
     "@subsquid/evm-processor": "^1.19.1",
     "@subsquid/graphql-server": "^4.6.0",
@@ -33,12 +34,14 @@
     "ethers": "^6.13.4",
     "patch-package": "^8.0.0",
     "pg": "^8.12.0",
-    "typeorm": "^0.3.20"
+    "typeorm": "^0.3.20",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@subsquid/evm-typegen": "^4.2.0",
     "@subsquid/typeorm-codegen": "^2.0.1",
     "@types/node": "^20.14.8",
+    "@types/web-push": "^3.6.4",
     "typescript": "~5.5.2"
   }
 }

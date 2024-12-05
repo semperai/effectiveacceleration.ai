@@ -323,6 +323,7 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: string, job?:
           job: structuredClone(job),
           diffs: [
             { field: "state", oldValue: previousJobState?.state, newValue: job.state },
+            { field: "disputed", oldValue: previousJobState?.disputed, newValue: job.disputed },
             ...(previousJobState?.escrowId !== job.escrowId ? [{ field: "escrowId", oldValue: previousJobState?.escrowId, newValue: job.escrowId }] : []),
             { field: "roles.worker", oldValue: previousJobState?.roles.worker, newValue: job.roles.worker },
           ],
@@ -369,6 +370,7 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: string, job?:
           job: structuredClone(job),
           diffs: [
             { field: "state", oldValue: previousJobState?.state, newValue: job.state },
+            { field: "disputed", oldValue: previousJobState?.disputed, newValue: job.disputed },
             ...(previousJobState?.collateralOwed !== job.collateralOwed ? [{ field: "collateralOwed", oldValue: previousJobState?.collateralOwed, newValue: job.collateralOwed }] : []),
           ],
         });

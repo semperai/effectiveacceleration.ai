@@ -152,3 +152,16 @@ type JobMessageEvent {
   contentHash: String!
   recipientAddress: String!
 }
+
+# # Manually added types which are not visible in graphql api
+# type PushSubscription @entity {
+#   address: String! @index
+#   endpoint: String!
+#   expirationTime: Int
+#   keys: PushSubscriptionKeys!
+# }
+
+# type PushSubscriptionKeys {
+#   p256dh: String!
+#   auth: String!
+# }
