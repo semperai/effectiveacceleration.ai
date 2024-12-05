@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import JobsTable from './JobsTable';
 import { LocalStorageJob, TOpenJobTable } from '@/service/JobsService';
 import {
