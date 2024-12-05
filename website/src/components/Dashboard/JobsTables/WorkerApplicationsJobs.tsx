@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import JobsTable from './JobsTable';
-import { TOpenJobTable } from '@/service/JobsService';
+import { TInProgressTable } from '@/service/JobsService';
 import {
   useReactTable,
   getCoreRowModel,
@@ -10,11 +10,11 @@ import { columnBuilder } from '@/components/TablesCommon';
 import { Job } from '@effectiveacceleration/contracts';
 import Link from 'next/link';
 
-const columnHelper = createColumnHelper<TOpenJobTable>();
+const columnHelper = createColumnHelper<TInProgressTable>();
 const columns = [
   columnBuilder(columnHelper, 'jobName', 'Job Name'),
-  columnBuilder(columnHelper, 'description', 'Assigned to'), // TODO these seem wrong
-  columnBuilder(columnHelper, 'tag', 'Progress'), // TODO these seem wrong
+  columnBuilder(columnHelper, 'assignedTo', 'Assigned to'),
+  columnBuilder(columnHelper, 'tags', 'Progress'),
   columnBuilder(columnHelper, 'actions', 'Actions'),
 ];
 
@@ -25,14 +25,14 @@ export const WorkerApplicationsJobs = ({
   filteredJobs: Job[];
   localJobs: Job[];
 }) => {
-  const defaultData: TOpenJobTable[] = filteredJobs.map((job) => ({
+  const defaultData: TInProgressTable[] = filteredJobs.map((job) => ({
     jobName: <span className='font-bold'>{job.title}</span>,
-    description: <span className='font-md'>{job.roles.worker ?? ''}</span>,
-    tag: (
-      <span className='rounded-full bg-[#E1FFEF] px-3 py-2 text-[#23B528]'>
-        {job.tags[1] ?? ''}
+    assignedTo: <span className='font-md'>{job.roles.worker ?? ''}</span>,
+    tags: job.tags.map(tag => (
+      <span className='rounded-full bg-[#E1FFEF] px-3 py-2 text-sm text-[#23B528]'>
+        {tag}
       </span>
-    ),
+    )),
     actions: (
       <Link href={`/dashboard/jobs/${job.id?.toString()}`}>
         <span className='font-md font-semibold text-primary underline'>

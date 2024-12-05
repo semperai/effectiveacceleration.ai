@@ -3,7 +3,6 @@ import JobsTable from './JobsTable';
 import {
   LocalStorageJob,
   TInProgressTable,
-  TOpenJobTable,
 } from '@/service/JobsService';
 import {
   useReactTable,
@@ -15,12 +14,12 @@ import useJobs from '@/hooks/subsquid/useJobs';
 import { Job, JobState } from '@effectiveacceleration/contracts';
 import Link from 'next/link';
 
-const columnHelper = createColumnHelper<TOpenJobTable>();
+const columnHelper = createColumnHelper<TInProgressTable>();
 
 const columns = [
   columnBuilder(columnHelper, 'jobName', 'Job Name'),
-  columnBuilder(columnHelper, 'description', 'Assigned to'), // TODO these seem wrong?
-  columnBuilder(columnHelper, 'tag', 'Progress'),
+  columnBuilder(columnHelper, 'assignedTo', 'Assigned to'),
+  columnBuilder(columnHelper, 'tags', 'Tags'),
   columnBuilder(columnHelper, 'actions', 'Actions'),
 ];
 
@@ -31,14 +30,14 @@ export const OwnerProgressJobs = ({
   filteredJobs: Job[];
   localJobs: Job[];
 }) => {
-  const defaultData: TOpenJobTable[] = filteredJobs.map((job) => ({
+  const defaultData: TInProgressTable[] = filteredJobs.map((job) => ({
     jobName: <span className='font-bold'>{job.title}</span>,
-    description: <span className='font-md'>{job.roles.worker ?? ''}</span>,
-    tag: (
-      <span className='rounded-full bg-[#E1FFEF] px-3 py-2 text-[#23B528]'>
-        {job.tags[1] ?? ''}
+    assignedTo: <span className='font-md'>{job.roles.worker ?? ''}</span>,
+    tags: job.tags.map(tag => (
+      <span className='rounded-full bg-[#E1FFEF] px-3 py-2 text-sm text-[#23B528]'>
+        {tag}
       </span>
-    ),
+    )),
     actions: (
       <Link href={`/dashboard/jobs/${job.id?.toString()}`}>
         <span className='font-md font-semibold text-primary underline'>

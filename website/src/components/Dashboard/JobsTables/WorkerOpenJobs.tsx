@@ -33,11 +33,11 @@ export const WorkerOpenJobs = ({
   const defaultData: TOpenJobTable[] = jobs.reverse().map((job) => ({
     jobName: <span className='font-bold'>{job.title}</span>,
     description: <span className='font-md'>{job.content ?? ''}</span>,
-    tag: (
+    tags: job.tags.map((tag) => (
       <span className='rounded-full bg-[#E1FFEF] px-3 py-2 text-sm text-[#23B528]'>
-        {job.tags[1] ?? ''}
+        {tag}
       </span>
-    ),
+    )),
     actions: (
       <Link href={`/dashboard/jobs/${job.id?.toString()}`}>
         <span className='font-md font-semibold text-primary underline'>

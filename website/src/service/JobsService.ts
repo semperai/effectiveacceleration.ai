@@ -3,15 +3,15 @@ import { ReactNode } from 'react';
 export type TOpenJobTable = {
   jobName: ReactNode;
   description: ReactNode;
-  tag: ReactNode;
+  tags: ReactNode;
   actions: ReactNode;
 };
 
 export type TInProgressTable = {
-  jobName: string;
-  assignedTo: string;
-  progress: number;
-  actions: string;
+  jobName: ReactNode;
+  assignedTo: ReactNode;
+  tags: ReactNode;
+  actions: ReactNode;
 };
 
 export type TCompletedTable = {
