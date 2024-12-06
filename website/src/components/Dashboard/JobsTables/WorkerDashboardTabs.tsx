@@ -17,7 +17,9 @@ import { useAccount } from 'wagmi';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/Tabs';
 
 export const WorkerDashboardTabs = () => {
-  const { data: jobs } = useJobs();
+  const { data: jobs } = useJobs({
+    // fake: true, // TODO
+  });
   const { address } = useAccount();
   const { data: users } = useUsersByAddresses(
     jobs?.map((job) => job.roles.creator) ?? []

@@ -10,17 +10,17 @@ import {
 } from '@tanstack/react-table';
 import { columnBuilder } from '@/components/TablesCommon';
 import Link from 'next/link';
-import EditIcon from '@/components/Icons/EditIcon';
+import { PiCloverBold, PiListBold } from 'react-icons/pi';
+import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
 
 const columnHelper = createColumnHelper<TOpenJobTable>();
 const columns = [
   columnBuilder(columnHelper, 'jobName', 'Job Name'),
+  columnBuilder(columnHelper, 'tags', 'Tags'),
   columnBuilder(columnHelper, 'postedTime', 'Posted'),
   columnBuilder(columnHelper, 'deadline', 'Deadline'),
-
-  columnBuilder(columnHelper, 'description', 'Description'),
-  columnBuilder(columnHelper, 'tags', 'Tags'),
-  columnBuilder(columnHelper, 'actions', 'Actions'),
+  columnBuilder(columnHelper, 'reward', 'Reward'),
+  columnBuilder(columnHelper, 'traits', 'Traits'),
 ];
 
 export const OpenJobs = ({
@@ -31,22 +31,36 @@ export const OpenJobs = ({
   localJobs: Job[];
 }) => {
   const defaultData: TOpenJobTable[] = filteredJobs.map((job) => ({
-    jobName: <span className='font-bold'>{job.title}</span>,
-    description: <span className='font-md'>{job.content ?? ''}</span>,
-    postedTime: <span>{moment(job.timestamp * 1000).fromNow()}</span>,
-    deadline: <span>{' '}</span>,
+    jobName: <Link href={`/dashboard/jobs/${job.id}`} className='font-bold'>{job.title}</Link>,
     tags: job.tags.map((tag) => (
       <span className='rounded-full bg-[#E1FFEF] px-3 py-2 text-sm text-[#23B528]'>
         {tag}
       </span>
     )),
-    actions: (
-      <Link href={`/dashboard/jobs/${job.id?.toString()}`}>
-        <span className='font-md font-semibold text-primary underline'>
-          <EditIcon className='mr-4 inline' />
-          View Details
+    postedTime: (
+      <span>
+        {moment(job.timestamp * 1000).fromNow()}
+      </span>
+    ),
+    deadline: <span>{moment.duration(job.maxTime, 'seconds').humanize()}</span>,
+    reward: (
+      <div className='flex items-center gap-2'>
+        {formatTokenNameAndAmount(job.token, job.amount)}
+        <img src={tokenIcon(job.token)} alt='' className='h-4 w-4' />
+      </div>
+    ),
+    traits: (
+      <>
+        <span className='rounded-full bg-[#EFFFE1] px-3 py-2 text-sm text-[#2823B5]'>
+          {job.deliveryMethod}
         </span>
-      </Link>
+        {!job.multipleApplicants && (
+          <PiCloverBold className='h-4 w-4' />
+        )}
+        {job.whitelistWorkers && (
+          <PiListBold className='h-4 w-4' />
+        )}
+      </>
     ),
   }));
 

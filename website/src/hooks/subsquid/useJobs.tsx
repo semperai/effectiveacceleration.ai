@@ -18,7 +18,7 @@ const DEFAULT: UseJobsProps = {
 
 export default function useJobs(props: UseJobsProps) {
   const { fake, offset, limit } = {...DEFAULT, ...props};
-  if (fake) { data: FAKE_JOBS_DATA };
+  if (fake) return { data: FAKE_JOBS_DATA };
 
   const { data, ...rest } = useQuery(GET_JOBS, {
     variables: { offset, limit: limit === 0 ? 1000 : limit },

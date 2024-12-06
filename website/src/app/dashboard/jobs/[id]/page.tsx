@@ -134,7 +134,6 @@ type JobSidebarProps = {
   timePassed: boolean;
   adjustedProgressValue: number;
   whitelistedWorkers: string[];
-  formatTokenNameAndAmount: (token: string, amount: bigint) => string;
   tokenIcon: (token: string) => string;
 };
 
@@ -149,7 +148,6 @@ const JobSidebar = ({
   timePassed,
   adjustedProgressValue,
   whitelistedWorkers,
-  formatTokenNameAndAmount,
   tokenIcon,
 }: JobSidebarProps) => {
   const InfoSection = ({
@@ -600,7 +598,6 @@ export default function JobPage() {
             timePassed={timePassed}
             adjustedProgressValue={adjustedProgressValue}
             whitelistedWorkers={whitelistedWorkers}
-            formatTokenNameAndAmount={formatTokenNameAndAmount}
             tokenIcon={tokenIcon}
           />
         </div>

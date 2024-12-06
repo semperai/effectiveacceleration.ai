@@ -16,7 +16,9 @@ import { useAccount } from 'wagmi';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/Tabs';
 
 export const OwnerDashboardTabs = () => {
-  const { data: jobs } = useJobs();
+  const { data: jobs } = useJobs({
+    // fake: true, // TODO
+  });
   const { address } = useAccount();
   const [localJobs, setLocalJobs] = useState<Job[]>([]);
   const [jobIds, setJobIds] = useState<string[]>([]);

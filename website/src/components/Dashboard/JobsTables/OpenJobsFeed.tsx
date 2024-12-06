@@ -6,7 +6,7 @@ import useOpenJobs from '@/hooks/subsquid/useOpenJobs';
 
 export const OpenJobsFeed = () => {
   const { data: jobs } = useOpenJobs({
-    fake: true,
+    fake: true, // local testing
   });
 
   return (
