@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import useUser from '@/hooks/subsquid/useUser';
 import { Job, publishToIpfs } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { PiPaperPlaneRight } from 'react-icons/pi';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import { Textarea } from '../Textarea';
@@ -11,6 +11,7 @@ import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import { Loader2 } from 'lucide-react';
+import { ZeroHash } from 'ethers';
 
 export type PostMessageButtonProps = {
   address: string | undefined;
@@ -36,7 +37,19 @@ export function PostMessageButton({
     recipient === address ? job.roles.creator : recipient;
 
   const [isPostingMessage, setIsPostingMessage] = useState(false);
-  const { showError } = useToast();
+  const { showError, showSuccess, showLoading, toast } = useToast();
+
+
+  const loadingToastIdRef = useRef<string | number | null>(null);
+
+  // Cleanup function for dismissing loading toasts
+  const dismissLoadingToast = useCallback(() => {
+    if (loadingToastIdRef.current !== null) {
+      toast.dismiss(loadingToastIdRef.current);
+      loadingToastIdRef.current = null;
+    }
+  }, [toast]);
+
 
   const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
     useWriteContractWithNotifications();
@@ -48,7 +61,25 @@ export function PostMessageButton({
     }
 
     const sessionKey = sessionKeys[`${address}-${selectedUserRecipient}`];
-    const { hash: contentHash } = await publishToIpfs(message, sessionKey);
+    let contentHash = ZeroHash;
+
+    if (message.length > 0) {
+      dismissLoadingToast();
+      loadingToastIdRef.current = showLoading(
+        'Publishing job post to IPFS...'
+      );
+      try {
+        const { hash } = await publishToIpfs(message, sessionKey);
+        contentHash = hash;
+      } catch (err) {
+        dismissLoadingToast();
+        showError('Failed to publish job post to IPFS');
+        setIsPostingMessage(false);
+        return;
+      }
+      dismissLoadingToast();
+      showSuccess('Job post published to IPFS');
+    }
 
     try {
       await writeContractWithNotifications({
