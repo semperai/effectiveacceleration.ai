@@ -13,7 +13,14 @@ import { CheckIcon } from '@heroicons/react/20/solid';
 import { Job, publishToIpfs } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { formatUnits, parseUnits, ZeroHash } from 'ethers';
-import { ChangeEvent, Fragment, useEffect, useRef, useState, useCallback } from 'react';
+import {
+  ChangeEvent,
+  Fragment,
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+} from 'react';
 import { zeroAddress } from 'viem';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import CustomSelect from '../CustomSelect';
@@ -124,7 +131,6 @@ export function UpdateButton({
     }
   }, [toast]);
 
-
   const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
     useWriteContractWithNotifications();
 
@@ -182,7 +188,6 @@ export function UpdateButton({
       !amountValidationMessage &&
       !maxJobTimeValidationMessage
     ) {
-
       let contentHash = ZeroHash;
 
       if (content.length > 0) {

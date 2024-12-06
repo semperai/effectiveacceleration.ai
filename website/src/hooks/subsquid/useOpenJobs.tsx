@@ -14,10 +14,10 @@ const DEFAULT: OpenJobsProps = {
   offset: 0,
   limit: 0,
   fake: false,
-}
+};
 
 export default function useOpenJobs(props: OpenJobsProps = {}) {
-  const { fake, offset, limit } = {...DEFAULT, ...props};
+  const { fake, offset, limit } = { ...DEFAULT, ...props };
   if (fake) return { data: FAKE_JOBS_DATA as Job[] };
 
   const { data, ...rest } = useQuery(GET_OPEN_JOBS, {
@@ -31,13 +31,14 @@ export default function useOpenJobs(props: OpenJobsProps = {}) {
 }
 
 const FAKE_JOB: Job = {
-  id: "8",
+  id: '8',
   allowedWorkers: [],
   amount: 10000n,
   collateralOwed: 0n,
-  content: "Fake data description, you have fake turned on",
-  contentHash: "0xbcdd27a71fd0e848d615ecd55738fc8cc822b78ddfad1bf4816e4101812b4793",
-  deliveryMethod: "ipfs",
+  content: 'Fake data description, you have fake turned on',
+  contentHash:
+    '0xbcdd27a71fd0e848d615ecd55738fc8cc822b78ddfad1bf4816e4101812b4793',
+  deliveryMethod: 'ipfs',
   disputed: false,
   escrowId: 0n,
   maxTime: 1,
@@ -45,9 +46,9 @@ const FAKE_JOB: Job = {
   rating: 0,
   resultHash: ZeroHash,
   roles: {
-    creator: "0x8115F3DBb2DF930cC07b8D910C3bb06b5b9bf573",
-    worker: "0x0000000000000000000000000000000000000000",
-    arbitrator: "0xF6094004F9a90aC739Bd31C05CB05FFc72e3E79d"
+    creator: '0x8115F3DBb2DF930cC07b8D910C3bb06b5b9bf573',
+    worker: '0x0000000000000000000000000000000000000000',
+    arbitrator: '0xF6094004F9a90aC739Bd31C05CB05FFc72e3E79d',
   },
   state: 0,
   tags: ['DT'],
@@ -58,7 +59,7 @@ const FAKE_JOB: Job = {
 };
 
 const FAKE_JOBS_DATA: Job[] = [FAKE_JOB];
-for (let i=0; i<100; ++i) {
+for (let i = 0; i < 100; ++i) {
   FAKE_JOBS_DATA.push({
     ...FAKE_JOB,
     id: i.toString(),

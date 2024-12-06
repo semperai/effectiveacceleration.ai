@@ -43,7 +43,6 @@ export function ArbitrateButton({
     }
   }, [toast]);
 
-
   const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
     useWriteContractWithNotifications();
 
@@ -58,9 +57,7 @@ export function ArbitrateButton({
 
     if (message.length > 0) {
       dismissLoadingToast();
-      loadingToastIdRef.current = showLoading(
-        'Publishing job post to IPFS...'
-      );
+      loadingToastIdRef.current = showLoading('Publishing job post to IPFS...');
       try {
         const { hash } = await publishToIpfs(message, sessionKey);
         contentHash = hash;

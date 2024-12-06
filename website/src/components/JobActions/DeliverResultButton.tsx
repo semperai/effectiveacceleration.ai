@@ -31,27 +31,25 @@ export function DeliverResultButton({
   const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
     useWriteContractWithNotifications();
 
-    const loadingToastIdRef = useRef<string | number | null>(null);
+  const loadingToastIdRef = useRef<string | number | null>(null);
 
-    // Cleanup function for dismissing loading toasts
-    const dismissLoadingToast = useCallback(() => {
-      if (loadingToastIdRef.current !== null) {
-        toast.dismiss(loadingToastIdRef.current);
-        loadingToastIdRef.current = null;
-      }
-    }, [toast]);
+  // Cleanup function for dismissing loading toasts
+  const dismissLoadingToast = useCallback(() => {
+    if (loadingToastIdRef.current !== null) {
+      toast.dismiss(loadingToastIdRef.current);
+      loadingToastIdRef.current = null;
+    }
+  }, [toast]);
 
   async function handleDeliver() {
     setIsDelivering(true);
 
     let contentHash = ZeroHash;
     const sessionKey = sessionKeys[`${address}-${job.roles.creator}`];
-    
+
     if (message.length > 0) {
       dismissLoadingToast();
-      loadingToastIdRef.current = showLoading(
-        'Publishing job post to IPFS...'
-      );
+      loadingToastIdRef.current = showLoading('Publishing job post to IPFS...');
       try {
         const { hash } = await publishToIpfs(message, sessionKey);
         contentHash = hash;
@@ -64,7 +62,6 @@ export function DeliverResultButton({
       dismissLoadingToast();
       showSuccess('Job post published to IPFS');
     }
-
 
     try {
       await writeContractWithNotifications({

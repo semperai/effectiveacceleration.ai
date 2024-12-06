@@ -57,10 +57,8 @@ const ArbitratedStatus: React.FC<ResultAcceptedProps> = ({
         {address === job.roles.worker && (
           <span className='block'>
             The arbitrator refunded your payment. You received &nbsp;
-            {formatTokenNameAndAmount(
-              job.token,
-              arbitratedEvent?.workerAmount
-            )}, arbitrator fee was{' '}
+            {formatTokenNameAndAmount(job.token, arbitratedEvent?.workerAmount)}
+            , arbitrator fee was{' '}
             {formatTokenNameAndAmount(job.token, /* TODO */ BigInt(0))}
           </span>
         )}

@@ -117,11 +117,15 @@ const cacheConfig: InMemoryCacheConfig = {
   },
 };
 
-const Inititalizers = ({ children }: { children: React.ReactNode }): React.JSX.Element => {
+const Inititalizers = ({
+  children,
+}: {
+  children: React.ReactNode;
+}): React.JSX.Element => {
   useRegisterWebPushNotifications();
 
   return <>{children}</>;
-}
+};
 
 export function Providers({ children }: { children: React.ReactNode }) {
   useMediaDownloadHandler();
@@ -169,9 +173,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <WagmiProvider config={config}>
         <QueryClientProvider client={queryClient}>
           <RainbowKitProvider initialChain={initialChain}>
-            <Inititalizers>
-              {children}
-            </Inititalizers>
+            <Inititalizers>{children}</Inititalizers>
           </RainbowKitProvider>
         </QueryClientProvider>
       </WagmiProvider>

@@ -17,8 +17,8 @@ import { Button } from '@/components/Button';
 import Markdown from 'react-markdown';
 import { Textarea } from '@/components/Textarea';
 import useJobEventsWithDiffs from '@/hooks/subsquid/useJobEventsWithDiffs';
-import JSON5 from "@mainnet-pat/json5-bigint";
-import "@mainnet-pat/json5-bigint/lib/presets/extended";
+import JSON5 from '@mainnet-pat/json5-bigint';
+import '@mainnet-pat/json5-bigint/lib/presets/extended';
 import { subscribeToWebPushNotifications } from '@/hooks/useRegisterWebPushNotifications';
 
 export interface IArbitrumToken {
@@ -46,8 +46,10 @@ const Test = () => {
   const [tokenSelectionDialogOpen, setTokenSelectionDialogOpen] =
     useState(false);
   const [selectableTokens, setSelectableTokens] = useState<any>();
-  const { data: jobEvents } = useJobEventsWithDiffs("1");
-  const [subscribeAddress, setSubscribeAddress] = useState<string>("0x66c402694eEe2235E892B950c9b330e5603FEbe1");
+  const { data: jobEvents } = useJobEventsWithDiffs('1');
+  const [subscribeAddress, setSubscribeAddress] = useState<string>(
+    '0x66c402694eEe2235E892B950c9b330e5603FEbe1'
+  );
 
   const publish = useCallback(
     async (file: File) => {
@@ -90,29 +92,36 @@ const Test = () => {
     (event.details as JobCreatedEvent).arbitrator = subscribeAddress;
     console.log(event, event.jobId);
 
-    await fetch(`${process.env.NEXT_PUBLIC_PUSH_SERVICE_URL}/sendNotification`, {
-      method: 'post',
-      headers: {
-        'Content-type': 'application/json'
-      },
-      body: JSON5.stringify({
-        subscription: subscription,
-        payload: JSON5.stringify(event),
-        delay: delay,
-        ttl: ttl,
-      }),
-    });
+    await fetch(
+      `${process.env.NEXT_PUBLIC_PUSH_SERVICE_URL}/sendNotification`,
+      {
+        method: 'post',
+        headers: {
+          'Content-type': 'application/json',
+        },
+        body: JSON5.stringify({
+          subscription: subscription,
+          payload: JSON5.stringify(event),
+          delay: delay,
+          ttl: ttl,
+        }),
+      }
+    );
   }, [jobEvents, subscribeAddress]);
 
   return (
     <Layout>
       aa
       <div className='flex flex-row gap-3'>
-        <Input value={subscribeAddress} onChange={(e) => setSubscribeAddress(e.target.value)} />
-        <Button onClick={() => subscribeToNotifications(subscribeAddress)}>Subscribe address to notifications</Button>
+        <Input
+          value={subscribeAddress}
+          onChange={(e) => setSubscribeAddress(e.target.value)}
+        />
+        <Button onClick={() => subscribeToNotifications(subscribeAddress)}>
+          Subscribe address to notifications
+        </Button>
         <Button onClick={sendTestNotification}>Send test notification</Button>
       </div>
-
       <div className='border-4 border-solid p-5'>
         <strong>File upload test</strong>
         <div>

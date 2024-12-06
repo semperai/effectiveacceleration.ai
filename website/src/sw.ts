@@ -27,12 +27,12 @@ const serwist = new Serwist({
 });
 
 // Register event listener for the 'push' event.
-self.addEventListener('push', function(event) {
+self.addEventListener('push', function (event) {
   const payload = event.data ? event.data.text() : 'no payload';
 
-  const jobEvent = JSON5.parse(payload) as Omit<JobEvent, "data_" | "details">;
+  const jobEvent = JSON5.parse(payload) as Omit<JobEvent, 'data_' | 'details'>;
 
-  let body = "";
+  let body = '';
   switch (jobEvent.type_) {
     case JobEventType.Created:
       // to arbitrator
@@ -99,24 +99,26 @@ self.addEventListener('push', function(event) {
 
   // Keep the service worker alive until the notification is created.
   event.waitUntil(
-    self.registration.showNotification("Effective Acceleration", {
+    self.registration.showNotification('Effective Acceleration', {
       body: body,
       data: jobEvent,
-      icon: "/favicon.svg",
+      icon: '/favicon.svg',
       requireInteraction: true,
     })
   );
 });
 
-self.addEventListener("notificationclick", (event) => {
+self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
   const url = `${self.location.origin}/dashboard/jobs/${event.notification.data.jobId}`;
 
   event.waitUntil(
-    self.clients.matchAll({ type: "window" }).then(async (clientsArr) => {
+    self.clients.matchAll({ type: 'window' }).then(async (clientsArr) => {
       // If a Window tab matching the targeted URL already exists, focus that;
-      const windowClientToFocus = clientsArr.find((windowClient) => windowClient.url === url);
+      const windowClientToFocus = clientsArr.find(
+        (windowClient) => windowClient.url === url
+      );
       if (windowClientToFocus) {
         windowClientToFocus.focus();
         return;
@@ -130,10 +132,10 @@ self.addEventListener("notificationclick", (event) => {
       }
 
       // safari fix
-      const windowClient = clientsArr.find(c => c.focused) ?? clientsArr[0];
+      const windowClient = clientsArr.find((c) => c.focused) ?? clientsArr[0];
       windowClient?.navigate(url);
       windowClient.focus();
-    }),
+    })
   );
 });
 

@@ -39,7 +39,6 @@ export function PostMessageButton({
   const [isPostingMessage, setIsPostingMessage] = useState(false);
   const { showError, showSuccess, showLoading, toast } = useToast();
 
-
   const loadingToastIdRef = useRef<string | number | null>(null);
 
   // Cleanup function for dismissing loading toasts
@@ -49,7 +48,6 @@ export function PostMessageButton({
       loadingToastIdRef.current = null;
     }
   }, [toast]);
-
 
   const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
     useWriteContractWithNotifications();
@@ -65,9 +63,7 @@ export function PostMessageButton({
 
     if (message.length > 0) {
       dismissLoadingToast();
-      loadingToastIdRef.current = showLoading(
-        'Publishing job post to IPFS...'
-      );
+      loadingToastIdRef.current = showLoading('Publishing job post to IPFS...');
       try {
         const { hash } = await publishToIpfs(message, sessionKey);
         contentHash = hash;

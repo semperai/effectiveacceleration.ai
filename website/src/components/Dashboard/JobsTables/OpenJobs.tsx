@@ -31,17 +31,17 @@ export const OpenJobs = ({
   localJobs: Job[];
 }) => {
   const defaultData: TOpenJobTable[] = filteredJobs.map((job) => ({
-    jobName: <Link href={`/dashboard/jobs/${job.id}`} className='font-bold'>{job.title}</Link>,
+    jobName: (
+      <Link href={`/dashboard/jobs/${job.id}`} className='font-bold'>
+        {job.title}
+      </Link>
+    ),
     tags: job.tags.map((tag) => (
       <span className='rounded-full bg-[#E1FFEF] px-3 py-2 text-sm text-[#23B528]'>
         {tag}
       </span>
     )),
-    postedTime: (
-      <span>
-        {moment(job.timestamp * 1000).fromNow()}
-      </span>
-    ),
+    postedTime: <span>{moment(job.timestamp * 1000).fromNow()}</span>,
     deadline: <span>{moment.duration(job.maxTime, 'seconds').humanize()}</span>,
     reward: (
       <div className='flex items-center gap-2'>
@@ -54,12 +54,8 @@ export const OpenJobs = ({
         <span className='rounded-full bg-[#EFFFE1] px-3 py-2 text-sm text-[#2823B5]'>
           {job.deliveryMethod}
         </span>
-        {!job.multipleApplicants && (
-          <PiCloverBold className='h-4 w-4' />
-        )}
-        {job.whitelistWorkers && (
-          <PiListBold className='h-4 w-4' />
-        )}
+        {!job.multipleApplicants && <PiCloverBold className='h-4 w-4' />}
+        {job.whitelistWorkers && <PiListBold className='h-4 w-4' />}
       </>
     ),
   }));
