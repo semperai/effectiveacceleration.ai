@@ -16,7 +16,7 @@ const DEFAULT: UseJobsProps = {
   fake: false,
 }
 
-export default function useJobs(props: UseJobsProps) {
+export default function useJobs(props: UseJobsProps = {}) {
   const { fake, offset, limit } = {...DEFAULT, ...props};
   if (fake) return { data: FAKE_JOBS_DATA };
 
