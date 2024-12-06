@@ -30,7 +30,7 @@ export const WorkerOpenJobs = ({
   jobs: Job[];
   localJobs: Job[];
 }) => {
-  const defaultData: TOpenJobTable[] = jobs.reverse().map((job) => ({
+  const defaultData: TOpenJobTable[] = jobs.map((job) => ({
     jobName: <span className='font-bold'>{job.title}</span>,
     description: <span className='font-md'>{job.content ?? ''}</span>,
     tags: job.tags.map((tag) => (
