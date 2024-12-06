@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Job } from '@effectiveacceleration/contracts';
 import JobsTable from './JobsTable';
+import moment from 'moment';
 import { LocalStorageJob, TOpenJobTable } from '@/service/JobsService';
 import {
   useReactTable,
@@ -7,16 +9,15 @@ import {
   createColumnHelper,
 } from '@tanstack/react-table';
 import { columnBuilder } from '@/components/TablesCommon';
-import { Checkbox } from '@/components/Checkbox';
-import useJobs from '@/hooks/subsquid/useJobs';
-import { Job, JobState } from '@effectiveacceleration/contracts';
 import Link from 'next/link';
-import clsx from 'clsx';
 import EditIcon from '@/components/Icons/EditIcon';
 
 const columnHelper = createColumnHelper<TOpenJobTable>();
 const columns = [
   columnBuilder(columnHelper, 'jobName', 'Job Name'),
+  columnBuilder(columnHelper, 'postedTime', 'Posted'),
+  columnBuilder(columnHelper, 'deadline', 'Deadline'),
+
   columnBuilder(columnHelper, 'description', 'Description'),
   columnBuilder(columnHelper, 'tags', 'Tags'),
   columnBuilder(columnHelper, 'actions', 'Actions'),
@@ -32,7 +33,9 @@ export const OpenJobs = ({
   const defaultData: TOpenJobTable[] = filteredJobs.map((job) => ({
     jobName: <span className='font-bold'>{job.title}</span>,
     description: <span className='font-md'>{job.content ?? ''}</span>,
-    tags: job.tags.map(tag => (
+    postedTime: <span>{moment(job.timestamp * 1000).fromNow()}</span>,
+    deadline: <span>{' '}</span>,
+    tags: job.tags.map((tag) => (
       <span className='rounded-full bg-[#E1FFEF] px-3 py-2 text-sm text-[#23B528]'>
         {tag}
       </span>
