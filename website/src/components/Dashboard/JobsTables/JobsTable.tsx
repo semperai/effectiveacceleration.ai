@@ -14,8 +14,6 @@ const getValidJobsCount = (title: string, localJobs?: Job[]): number => {
   switch (title) {
     case 'Open Jobs':
       return localJobs.filter((job) => job.state === JobState.Open).length;
-    case 'All Jobs':
-      return localJobs.filter((job) => job).length;
     case 'In Progress':
       return localJobs.filter(
         (job) =>

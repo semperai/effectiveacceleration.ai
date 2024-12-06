@@ -64,7 +64,7 @@ export const WorkerOpenJobs = ({
     <JobsTable
       table={table}
       localJobs={localJobs}
-      title='All Jobs'
+      title='Open Jobs'
       emptyMessage='No open jobs'
       emptySubtext='Check the Open Jobs feed to apply for available jobs.'
     />

@@ -8,7 +8,6 @@ import { DisputedJobs } from './DisputedJobs';
 import { JobsTableSkeleton } from './JobsTable';
 import useJobs from '@/hooks/subsquid/useJobs';
 import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
-import DevelopAllJobs from './JobsTablesData/DevelopAllJobs';
 import { Job, JobEventType, JobState } from '@effectiveacceleration/contracts';
 import { LocalStorageJob } from '@/service/JobsService';
 import useJobsByIds from '@/hooks/subsquid/useJobsByIds';
