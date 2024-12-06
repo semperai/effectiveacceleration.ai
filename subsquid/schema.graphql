@@ -155,6 +155,7 @@ type JobMessageEvent {
 
 # # Manually added types which are not visible in graphql api
 # type PushSubscription @entity {
+#   id: Int!
 #   address: String! @index
 #   endpoint: String!
 #   expirationTime: Int

@@ -19,7 +19,7 @@ import { Textarea } from '@/components/Textarea';
 import useJobEventsWithDiffs from '@/hooks/subsquid/useJobEventsWithDiffs';
 import JSON5 from "@mainnet-pat/json5-bigint";
 import "@mainnet-pat/json5-bigint/lib/presets/extended";
-import { subscribeToWebPushNotifications } from '@/hooks/useRegisterWebPushNotifications';
+import { subscribeToWebPushNotifications, unsubscribeFromWebPushNotifications } from '@/hooks/useRegisterWebPushNotifications';
 
 export interface IArbitrumToken {
   logoURI?: string;
@@ -71,6 +71,10 @@ const Test = () => {
     [markdownContent, setMarkdownContent]
   );
 
+  const unsubscribeFromNotifications = useCallback(async () => {
+    await unsubscribeFromWebPushNotifications();
+  }, []);
+
   const subscribeToNotifications = useCallback(async (address: string) => {
     await subscribeToWebPushNotifications(address);
   }, []);
@@ -110,6 +114,7 @@ const Test = () => {
       <div className='flex flex-row gap-3'>
         <Input value={subscribeAddress} onChange={(e) => setSubscribeAddress(e.target.value)} />
         <Button onClick={() => subscribeToNotifications(subscribeAddress)}>Subscribe address to notifications</Button>
+        <Button onClick={unsubscribeFromNotifications}>Unsubscribe</Button>
         <Button onClick={sendTestNotification}>Send test notification</Button>
       </div>
 

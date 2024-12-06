@@ -885,15 +885,28 @@ const sendPushNotification = async (address: string, event: JobEvent, ctx: DataH
       TTL: 10 * 60, // 10 minutes to store our message on the push server
     };
 
-    for (const i of [1, 2, 3]) {
+
+    const tries = 5;
+    for (const i of [...Array(tries).keys()].slice(1)) {
       try {
         await webPush.sendNotification(subscription, payload, options);
         console.log(`Push notification sent for address: ${address}, job: ${event.jobId}, event: ${event.id}`);
         break;
       } catch (e: any) {
-        if (i === 3) {
-          console.error(`Failed to send push notification for address: ${address}, job: ${event.jobId}, event: ${event.id}. Removing subscription due to error: ${e.message}: ${e.statusCode}`);
+        // trhottle the retries
+        if ([503, 201, 202, 429].includes(e.statusCode)) {
+          await new Promise((resolve) => setTimeout(resolve, 1000 * 1.5 ** i));
+        }
+
+        // invalid/expired subscription
+        if ([404, 102, 410, 103, 105, 106].includes(e.statusCode)) {
           await ctx.store.remove(subscription);
+          console.error(`Removing subscription due to error: ${e.message}: ${e.statusCode}`);
+          break;
+        }
+
+        if (i === tries) {
+          console.error(`Failed to send push notification for address: ${address}, job: ${event.jobId}, event: ${event.id}. Error: ${e.message}: ${e.statusCode}`);
         }
       }
     }
