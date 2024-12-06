@@ -22,10 +22,8 @@ const columns = [
 
 export const OwnerCancelledJobs = ({
   filteredJobs,
-  localJobs,
 }: {
   filteredJobs: Job[];
-  localJobs: Job[];
 }) => {
   const defaultData: TCancelledTable[] = filteredJobs.map((job) => ({
     jobName: <span className='font-bold'>{job.title}</span>,
@@ -60,7 +58,6 @@ export const OwnerCancelledJobs = ({
     <JobsTable
       table={table}
       filteredJobs={filteredJobs}
-      localJobs={localJobs}
       title='Cancelled Jobs'
       emptyMessage='No cancelled jobs'
       emptySubtext='You have not cancelled any job posts'

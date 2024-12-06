@@ -21,10 +21,8 @@ const columns = [
 
 export const OwnerCompletedJobs = ({
   filteredJobs,
-  localJobs,
 }: {
   filteredJobs: Job[];
-  localJobs: Job[];
 }) => {
   const defaultData: TCompletedTable[] = filteredJobs.map((job) => ({
     jobName: <span className='font-bold'>{job.title}</span>,
@@ -58,7 +56,7 @@ export const OwnerCompletedJobs = ({
   return (
     <JobsTable
       table={table}
-      localJobs={localJobs}
+      filteredJobs={filteredJobs}
       title='Completed Jobs'
       emptyMessage='No completed jobs found'
       emptySubtext='Why not try creating a new job?'

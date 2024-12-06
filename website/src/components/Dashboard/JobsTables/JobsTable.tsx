@@ -70,11 +70,10 @@ function JobsTable<T>({
   const [dataRow, setDataRow] = useState(false);
   const { address } = useAccount();
   const { data: user } = useUser(address!);
-
+  console.log(filteredJobs, 'FILTEREDS')
   useEffect(() => {
-    if (localJobs?.length === 0) return;
     setJobCount(getValidJobsCount(title, localJobs));
-  }, [localJobs]);
+  }, [filteredJobs]);
 
   useEffect(() => {
     if (filteredJobs) {
@@ -86,7 +85,7 @@ function JobsTable<T>({
     setLoading(false);
     setDataRow(true);
   }, [table, dataRow]);
-
+  console.log(filteredJobs, 'Tablets jobs')
   if (!user && localJobs?.length === 0 && title === 'RemoveForNow') {
     return (
       <div className='rounded-2xl bg-white p-8 shadow-lg'>
@@ -102,7 +101,7 @@ function JobsTable<T>({
     );
   }
 
-  if (jobCount === 0) {
+  if (filteredJobs?.length === 0 || filteredJobs?.length === undefined) {
     return (
       <div className='rounded-2xl bg-white p-8 shadow-lg'>
         <div className='flex min-h-[300px] flex-col items-center justify-center text-center'>

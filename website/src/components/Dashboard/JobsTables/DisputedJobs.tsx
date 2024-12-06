@@ -21,10 +21,8 @@ const columns = [
 
 export const DisputedJobs = ({
   filteredJobs,
-  localJobs,
 }: {
   filteredJobs: Job[];
-  localJobs: Job[];
 }) => {
   const defaultData: TDisputedTable[] = filteredJobs.map((job) => ({
     jobName: <span className='font-bold'>{job.title}</span>,
@@ -55,7 +53,6 @@ export const DisputedJobs = ({
     <JobsTable
       table={tableDisputedTable}
       filteredJobs={filteredJobs}
-      localJobs={localJobs}
       title='Disputed Jobs'
       emptyMessage='You do not have any disputed jobs'
       emptySubtext="That's a good thing!"
