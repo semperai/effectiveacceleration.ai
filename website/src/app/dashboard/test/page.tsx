@@ -88,7 +88,7 @@ const Test = () => {
 
     const event = jobEvents[0];
     (event.details as JobCreatedEvent).arbitrator = subscribeAddress;
-    console.log(event, event.jobId);
+  
 
     await fetch(`${process.env.NEXT_PUBLIC_PUSH_SERVICE_URL}/sendNotification`, {
       method: 'post',

@@ -33,12 +33,12 @@ export const WorkerDashboardTabs = () => {
   useEffect(() => {
     setMounted(true);
   }, [applicationsJobs, completedJobs, takenJobs]);
-  console.log(jobs, applicationsJobs, completedJobs, takenJobs, 'JOBS')
+
   return (
     <div>
       {mounted && (
         <Tabs defaultValue='Open Jobs'>
-          <TabsList className='mb-4 mb-8 flex h-auto flex-wrap items-center gap-6 md:mb-8 md:gap-4'>
+          <TabsList className='mb-4 flex h-auto flex-wrap items-center gap-6 md:mb-8 md:gap-4'>
             <TabsTrigger value='Open Jobs'>Open Jobs</TabsTrigger>
             <TabsTrigger value='Applications'>Applications</TabsTrigger>
             <TabsTrigger value='Started Jobs'>Started Jobs</TabsTrigger>

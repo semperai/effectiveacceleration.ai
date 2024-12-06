@@ -44,84 +44,6 @@ import ProfileUserHeader from './Components/JobChat/ProfileUserHeader';
 import JobChatsList from './Components/JobChatsList';
 import JobStatusWrapper from './Components/JobStatusWrapper';
 
-function updateJobCache(
-  storedJobs: string | null,
-  isOwnerOrWorker: boolean,
-  jobCacheKey: string,
-  job: Job,
-  events: any[],
-  id: string,
-  address?: string | undefined
-) {
-  const updateOrAddJob = (
-    parsedJobs: Job[],
-    job: Job,
-    events: any[],
-    found?: boolean
-  ) => {
-    const jobIndex = parsedJobs.findIndex(
-      (j: Job) => (j.id as unknown as string) === id
-    );
-    const lastEventType = events[events.length - 1]?.type_;
-    if (jobIndex === -1 && found) return;
-    if (jobIndex !== -1) {
-      if (
-        (job.state === JobState.Taken || job.state === JobState.Closed) &&
-        job.roles.worker !== address &&
-        found
-      ) {
-        parsedJobs.splice(jobIndex, 1);
-      } else {
-        parsedJobs[jobIndex] = {
-          ...parsedJobs[jobIndex],
-          state: job.state,
-          lastJobEvent: {
-            jobId: BigInt(job.id!),
-            type_: lastEventType,
-            address_: '0x0',
-            data_: '0x0',
-            timestamp_: 0,
-          },
-        };
-      }
-    } else {
-      parsedJobs.push({
-        ...job,
-        lastJobEvent: {
-          jobId: BigInt(job.id!),
-          type_: lastEventType,
-          address_: '0x0',
-          data_: '0x0',
-          timestamp_: 0,
-        },
-      });
-    }
-    localStorage.setItem(
-      jobCacheKey,
-      JSON.stringify(parsedJobs, (key, value) =>
-        typeof value === 'bigint' ? value.toString() : value
-      )
-    );
-  };
-
-  if (isOwnerOrWorker) {
-    const parsedJobs = storedJobs ? JSON.parse(storedJobs) : [];
-    updateOrAddJob(parsedJobs, job, events);
-  } else if (
-    address &&
-    job.roles.creator !== address &&
-    job.roles.arbitrator !== address &&
-    job.roles.worker !== address
-  ) {
-    const found = events.some(
-      (event) => event.address_ === address.toLowerCase()
-    );
-    if (found) {
-      const parsedJobs = storedJobs ? JSON.parse(storedJobs) : [];
-      updateOrAddJob(parsedJobs, job, events, found);
-    }
-  }
-}
 
 type JobSidebarProps = {
   job: Job;
@@ -445,26 +367,6 @@ export default function JobPage() {
     job?.state !== JobState.Closed &&
     addresses.length &&
     Object.keys(sessionKeys).length > 0;
-
-  useEffect(() => {
-    if (prevJobRef.current === job) return;
-    prevJobRef.current = job;
-    if (!user || !job || !events) return;
-    const workerUser = user?.address_ === job?.roles.worker;
-    const ownerUser = user?.address_ === job?.roles.creator;
-    const ownerStoredJobs = localStorage.getItem(ownerJobCache);
-    const workerStoredJobs = localStorage.getItem(workerJobCache);
-    updateJobCache(ownerStoredJobs, ownerUser, ownerJobCache, job, events, id);
-    updateJobCache(
-      workerStoredJobs,
-      workerUser,
-      workerJobCache,
-      job,
-      events,
-      id,
-      address
-    );
-  }, [job]);
 
   useEffect(() => {
     if (job?.state === JobState.Taken || job?.state === JobState.Closed) {
