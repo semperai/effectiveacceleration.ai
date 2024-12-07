@@ -112,7 +112,7 @@ const JobButtonActions = ({
 
           {/* worker actions */}
           {job.state === JobState.Taken && address === job.roles.worker && (
-            <RefundButton address={address} job={job} />
+            <RefundButton job={job} />
           )}
           {job.state === JobState.Open &&
             address === job.roles.worker &&
