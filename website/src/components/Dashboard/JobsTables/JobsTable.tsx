@@ -7,45 +7,6 @@ import { Job, JobEventType, JobState } from '@effectiveacceleration/contracts';
 import useUser from '@/hooks/subsquid/useUser';
 import { useAccount } from 'wagmi';
 
-const getValidJobsCount = (title: string, localJobs?: Job[]): number => {
-  // Here we use local storaged Jobs because we needed to setup skeleton rows.
-  // We use the lastJobEvent instead of job state because the job state is not correctly updated in the local storage.
-  if (!localJobs) return 0;
-  switch (title) {
-    case 'Open Jobs':
-      return localJobs.filter((job) => job.state === JobState.Open).length;
-    case 'In Progress':
-      return localJobs.filter(
-        (job) =>
-          job.state === JobState.Taken ||
-          job.lastJobEvent?.type_ === JobEventType.Taken ||
-          job.lastJobEvent?.type_ === JobEventType.Delivered ||
-          job.lastJobEvent?.type_ === JobEventType.Paid
-      ).length;
-    case 'Completed Jobs':
-      return localJobs.filter(
-        (job) =>
-          job.lastJobEvent?.type_ === JobEventType.Completed ||
-          job.lastJobEvent?.type_ === JobEventType.Rated ||
-          job.lastJobEvent?.type_ === JobEventType.Arbitrated
-      ).length;
-    case 'Cancelled Jobs':
-      return localJobs.filter(
-        (job) => job.lastJobEvent?.type_ === JobEventType.Closed
-      ).length;
-    case 'Disputed Jobs':
-      return localJobs.filter(
-        (job) => job.lastJobEvent?.type_ === JobEventType.Disputed
-      ).length;
-    case 'Started Jobs':
-      return localJobs.filter((job) => job.state === JobState.Taken).length;
-    case 'Job Aplications':
-      return localJobs.filter((job) => job.state === JobState.Open).length;
-    default:
-      return 0;
-  }
-};
-
 interface JobsTableProps<T> {
   table: Table<T>;
   title: string;
@@ -68,11 +29,6 @@ function JobsTable<T>({
   const [dataRow, setDataRow] = useState(false);
   const { address } = useAccount();
   const { data: user } = useUser(address!);
-
-  useEffect(() => {
-    if (localJobs?.length === 0) return;
-    setJobCount(getValidJobsCount(title, localJobs));
-  }, [localJobs]);
 
   useEffect(() => {
     if (filteredJobs) {
@@ -100,7 +56,7 @@ function JobsTable<T>({
     );
   }
 
-  if (jobCount === 0) {
+  if (filteredJobs?.length === 0 || filteredJobs?.length === undefined) {
     return (
       <div className='rounded-2xl bg-white p-8 shadow-lg'>
         <div className='flex min-h-[300px] flex-col items-center justify-center text-center'>

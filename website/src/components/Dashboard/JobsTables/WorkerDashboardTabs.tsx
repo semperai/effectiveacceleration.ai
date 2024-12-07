@@ -14,6 +14,9 @@ import useJobsByIds from '@/hooks/subsquid/useJobsByIds';
 import { LOCAL_JOBS_WORKER_CACHE } from '@/utils/constants';
 import { useAccount } from 'wagmi';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/Tabs';
+import useWorkerApplications from '@/hooks/subsquid/useWorkerApplications';
+import useWorkerCompletedJobs from '@/hooks/subsquid/useWorkerCompletedJobs';
+import useWorkerTakenJobs from '@/hooks/subsquid/useWorkerTakenJobs';
 
 export const WorkerDashboardTabs = () => {
   const { data: jobs } = useJobs({
@@ -23,75 +26,20 @@ export const WorkerDashboardTabs = () => {
   const { data: users } = useUsersByAddresses(
     jobs?.map((job) => job.roles.creator) ?? []
   );
-  const [localJobs, setLocalJobs] = useState<Job[]>([]);
-  const [jobIds, setJobIds] = useState<string[]>([]);
-  const { data: selectedJobs } = useJobsByIds(jobIds);
-  const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
-  const [filteredJobsApplications, setFilteredJobsApplications] = useState<
-    Job[]
-  >([]);
-  const [filteredStartedJobs, setFilteredStartedJobs] = useState<Job[]>([]);
-  const [filteredCompletedJobs, setFilteredCompletedJobs] = useState<Job[]>([]);
+  const { data: applicationsJobs = [] } = useWorkerApplications(address!);
+  const { data: completedJobs = [] } = useWorkerCompletedJobs(address!);
+  const { data: takenJobs = [] } = useWorkerTakenJobs(address!);
   const [mounted, setMounted] = useState(false);
-  const workerJobCache = `${address}${LOCAL_JOBS_WORKER_CACHE}`;
+
   useEffect(() => {
-    const storedJobs = localStorage.getItem(workerJobCache);
-    if (storedJobs) {
-      const parsedJobs = JSON.parse(storedJobs);
-      const jobIdsArray = Array.from(
-        new Set<string>(parsedJobs.map((job: Job) => job.id))
-      );
-      setLocalJobs(parsedJobs);
-      setJobIds(jobIdsArray);
-    }
     setMounted(true);
-  }, [address]);
+  }, [applicationsJobs, completedJobs, takenJobs]);
 
-  const filteredJobsMemo = useMemo(() => {
-    if (selectedJobs?.length === 0)
-      return { open: [], aplications: [], started: [], completed: [] };
-    const filteredOpenJobs: Job[] = [];
-    const filteredJobsApplications: Job[] = [];
-    const filteredStartedJobs: Job[] = [];
-    const filteredCompletedJobs: Job[] = [];
-    selectedJobs?.forEach((job, index) => {
-      const localJob = localJobs.find((localJob) => localJob.id === job.id);
-      if (job.state === JobState.Open) {
-        // Applications
-        filteredJobsApplications.push(job);
-      } else if (job.state === JobState.Taken && job.roles.worker === address) {
-        // Started Jobs
-        filteredStartedJobs.push(job);
-        // } else if ((job.state === JobState.Closed && job.roles.worker === address) && localJob?.lastJobEvent?.type_ === JobEventType.Completed || localJobs[index]?.lastJobEvent?.type_ === JobEventType.Rated || localJobs[index]?.lastJobEvent?.type_ === JobEventType.Arbitrated) {
-      } else if (
-        (job.state === JobState.Closed &&
-          localJob?.lastJobEvent?.type_ === JobEventType.Completed) ||
-        localJob?.lastJobEvent?.type_ === JobEventType.Rated ||
-        localJob?.lastJobEvent?.type_ === JobEventType.Arbitrated
-      ) {
-        // Completed Jobs
-        filteredCompletedJobs.push(job);
-      }
-    });
-    return {
-      open: filteredOpenJobs,
-      aplications: filteredJobsApplications,
-      started: filteredStartedJobs,
-      completed: filteredCompletedJobs,
-    };
-  }, [jobs, localJobs]);
-
-  useEffect(() => {
-    setFilteredJobs(filteredJobsMemo.open);
-    setFilteredJobsApplications(filteredJobsMemo.aplications);
-    setFilteredStartedJobs(filteredJobsMemo.started);
-    setFilteredCompletedJobs(filteredJobsMemo.completed);
-  }, [filteredJobsMemo]);
   return (
     <div>
       {mounted && (
         <Tabs defaultValue='Open Jobs'>
-          <TabsList className='mb-4 mb-8 flex h-auto flex-wrap items-center gap-6 md:mb-8 md:gap-4'>
+          <TabsList className='mb-4 flex h-auto flex-wrap items-center gap-6 md:mb-8 md:gap-4'>
             <TabsTrigger value='Open Jobs'>Open Jobs</TabsTrigger>
             <TabsTrigger value='Applications'>Applications</TabsTrigger>
             <TabsTrigger value='Started Jobs'>Started Jobs</TabsTrigger>
@@ -101,7 +49,6 @@ export const WorkerDashboardTabs = () => {
             {mounted ? (
               <OpenJobs
                 filteredJobs={jobs?.filter((job) => job.state === 0) ?? []}
-                localJobs={localJobs}
               />
             ) : (
               <JobsTableSkeleton />
@@ -110,8 +57,7 @@ export const WorkerDashboardTabs = () => {
           <TabsContent value='Applications'>
             {mounted ? (
               <WorkerApplicationsJobs
-                filteredJobs={filteredJobsApplications}
-                localJobs={localJobs}
+                filteredJobs={applicationsJobs}
               />
             ) : (
               <JobsTableSkeleton />
@@ -120,8 +66,7 @@ export const WorkerDashboardTabs = () => {
           <TabsContent value='Started Jobs'>
             {mounted ? (
               <WorkerProgressJobs
-                filteredJobs={filteredStartedJobs}
-                localJobs={localJobs}
+                filteredJobs={takenJobs}
               />
             ) : (
               <JobsTableSkeleton />
@@ -130,8 +75,7 @@ export const WorkerDashboardTabs = () => {
           <TabsContent value='Completed Jobs'>
             {mounted ? (
               <WorkerCompletedJobs
-                filteredJobs={filteredCompletedJobs}
-                localJobs={localJobs}
+                filteredJobs={completedJobs}
               />
             ) : (
               <JobsTableSkeleton />

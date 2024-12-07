@@ -24,11 +24,9 @@ const columns = [
 ];
 
 export const OpenJobs = ({
-  filteredJobs,
-  localJobs,
+  filteredJobs
 }: {
   filteredJobs: Job[];
-  localJobs: Job[];
 }) => {
   const defaultData: TOpenJobTable[] = filteredJobs.map((job) => ({
     jobName: (
@@ -76,7 +74,6 @@ export const OpenJobs = ({
     <JobsTable
       table={table}
       filteredJobs={filteredJobs}
-      localJobs={localJobs}
       title='Open Jobs'
       emptyMessage='No open jobs'
       emptySubtext='You do not have any open jobs, why not post one?'

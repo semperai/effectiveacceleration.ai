@@ -21,11 +21,9 @@ const columns = [
 ];
 
 export const OwnerProgressJobs = ({
-  filteredJobs,
-  localJobs,
+  filteredJobs
 }: {
   filteredJobs: Job[];
-  localJobs: Job[];
 }) => {
   const defaultData: TInProgressTable[] = filteredJobs.map((job) => ({
     jobName: <span className='font-bold'>{job.title}</span>,
@@ -54,7 +52,7 @@ export const OwnerProgressJobs = ({
   return (
     <JobsTable
       table={table}
-      localJobs={localJobs}
+      filteredJobs={filteredJobs}
       title='In Progress'
       emptyMessage='No jobs in progress found'
       emptySubtext='Why not try creating more jobs?'
