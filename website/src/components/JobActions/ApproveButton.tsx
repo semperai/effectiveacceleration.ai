@@ -1,16 +1,14 @@
 import { Button } from '@/components/Button';
-import { Dialog, Transition } from '@headlessui/react';
-import { Rating } from '@mui/material';
-import { Job } from '@effectiveacceleration/contracts';
-import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
-import { Fragment, useEffect, useState } from 'react';
-import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
-import { Textarea } from '../Textarea';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
-import { Loader2 } from 'lucide-react';
+import { Job } from '@effectiveacceleration/contracts';
+import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
+import { Dialog, Transition } from '@headlessui/react';
+import { Rating } from '@mui/material';
 import * as Sentry from '@sentry/nextjs';
+import { Fragment, useState } from 'react';
+import { Textarea } from '../Textarea';
 
 export type ApproveButtonProps = {
   address: string | undefined;

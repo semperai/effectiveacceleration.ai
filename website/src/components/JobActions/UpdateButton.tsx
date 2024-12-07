@@ -1,5 +1,8 @@
 import { Button } from '@/components/Button';
 import useArbitrators from '@/hooks/subsquid/useArbitrators';
+import { useConfig } from '@/hooks/useConfig';
+import { useToast } from '@/hooks/useToast';
+import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import { ComboBoxOption } from '@/service/FormsTypes';
 import { tokenIcon, tokensMap } from '@/tokens';
 import { jobMeceTags } from '@/utils/jobMeceTags';
@@ -8,31 +11,26 @@ import {
   getUnitAndValueFromSeconds,
   unitsDeliveryTime,
 } from '@/utils/utils';
-import { Dialog, Transition } from '@headlessui/react';
-import { CheckIcon } from '@heroicons/react/20/solid';
 import { Job, publishToIpfs } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
+import { Dialog, Transition } from '@headlessui/react';
+import { CheckIcon } from '@heroicons/react/20/solid';
+import * as Sentry from '@sentry/nextjs';
 import { formatUnits, parseUnits, ZeroHash } from 'ethers';
 import {
   ChangeEvent,
   Fragment,
+  useCallback,
   useEffect,
   useRef,
   useState,
-  useCallback,
 } from 'react';
 import { zeroAddress } from 'viem';
-import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import CustomSelect from '../CustomSelect';
 import { Field, Label } from '../Fieldset';
 import { Input } from '../Input';
 import { Radio, RadioGroup } from '../Radio';
 import { Textarea } from '../Textarea';
-import { useConfig } from '@/hooks/useConfig';
-import { useToast } from '@/hooks/useToast';
-import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
-import { Loader2 } from 'lucide-react';
-import * as Sentry from '@sentry/nextjs';
 
 export type UpdateButtonProps = {
   address: string | undefined;

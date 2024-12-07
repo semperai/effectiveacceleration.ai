@@ -1,21 +1,18 @@
 import { Button } from '@/components/Button';
-import { Dialog, Transition } from '@headlessui/react';
+import { useConfig } from '@/hooks/useConfig';
+import { useToast } from '@/hooks/useToast';
+import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import {
   encryptBinaryData,
   encryptUtf8Data,
   Job,
 } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
-import { getBytes, hexlify } from 'ethers';
-import { Fragment, useEffect, useState } from 'react';
-import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
-import { Textarea } from '../Textarea';
-import { useConfig } from '@/hooks/useConfig';
-import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
-import { Loader2 } from 'lucide-react';
-import { consoleIntegration } from '@sentry/nextjs';
-import { useToast } from '@/hooks/useToast';
+import { Dialog, Transition } from '@headlessui/react';
 import * as Sentry from '@sentry/nextjs';
+import { getBytes, hexlify } from 'ethers';
+import { Fragment, useState } from 'react';
+import { Textarea } from '../Textarea';
 
 export type DisputeButtonProps = {
   address: string | undefined;

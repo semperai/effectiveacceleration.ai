@@ -1,19 +1,17 @@
 import { Button } from '@/components/Button';
-import { CheckIcon } from '@heroicons/react/20/solid';
-import { Job, JobEventWithDiffs } from '@effectiveacceleration/contracts';
-import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
-import { ethers } from 'ethers';
-import { useEffect, useState } from 'react';
-import {
-  useSignMessage,
-  useWaitForTransactionReceipt,
-  useWriteContract,
-} from 'wagmi';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
-import { Loader2 } from 'lucide-react';
+import { Job, JobEventWithDiffs } from '@effectiveacceleration/contracts';
+import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
+import { CheckIcon } from '@heroicons/react/20/solid';
 import * as Sentry from '@sentry/nextjs';
+import { ethers } from 'ethers';
+import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import {
+  useSignMessage
+} from 'wagmi';
 
 export type AcceptButtonProps = {
   address: string | undefined;

@@ -1,14 +1,13 @@
 import { Button } from '@/components/Button';
-import { Job } from '@effectiveacceleration/contracts';
-import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
-import { useEffect, useState } from 'react';
-import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
-import { Loader2 } from 'lucide-react';
+import { Job } from '@effectiveacceleration/contracts';
+import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { CheckIcon } from '@heroicons/react/20/solid';
 import * as Sentry from '@sentry/nextjs';
+import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
 
 export type RefuseArbitrationButtonProps = {
   job: Job;

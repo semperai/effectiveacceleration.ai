@@ -1,18 +1,16 @@
 import { Button } from '@/components/Button';
-import { Dialog, Transition } from '@headlessui/react';
+import { useConfig } from '@/hooks/useConfig';
+import { useToast } from '@/hooks/useToast';
+import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import { Job, publishToIpfs } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
-import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
+import { Dialog, Transition } from '@headlessui/react';
+import * as Sentry from '@sentry/nextjs';
+import { ZeroHash } from 'ethers';
+import { Fragment, useCallback, useRef, useState } from 'react';
 import { Field, Label } from '../Fieldset';
 import { Input } from '../Input';
 import { Textarea } from '../Textarea';
-import { useConfig } from '@/hooks/useConfig';
-import { Loader2 } from 'lucide-react';
-import { useToast } from '@/hooks/useToast';
-import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
-import { ZeroHash } from 'ethers';
-import * as Sentry from '@sentry/nextjs';
 
 export type ArbitrateButtonProps = {
   address: string | undefined;

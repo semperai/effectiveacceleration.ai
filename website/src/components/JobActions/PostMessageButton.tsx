@@ -1,18 +1,17 @@
 import { Button } from '@/components/Button';
-import { useRouter } from 'next/navigation';
 import useUser from '@/hooks/subsquid/useUser';
-import { Job, publishToIpfs } from '@effectiveacceleration/contracts';
-import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { PiPaperPlaneRight } from 'react-icons/pi';
-import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
-import { Textarea } from '../Textarea';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
-import { Loader2 } from 'lucide-react';
-import { ZeroHash } from 'ethers';
+import { Job, publishToIpfs } from '@effectiveacceleration/contracts';
+import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import * as Sentry from '@sentry/nextjs';
+import { ZeroHash } from 'ethers';
+import { Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useCallback, useRef, useState } from 'react';
+import { PiPaperPlaneRight } from 'react-icons/pi';
+import { Textarea } from '../Textarea';
 
 export type PostMessageButtonProps = {
   address: string | undefined;

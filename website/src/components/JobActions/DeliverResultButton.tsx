@@ -1,16 +1,15 @@
 import { Button } from '@/components/Button';
-import { Dialog, Transition } from '@headlessui/react';
-import { CheckIcon } from '@heroicons/react/20/solid';
-import { Job, publishToIpfs } from '@effectiveacceleration/contracts';
-import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
-import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
-import { Textarea } from '../Textarea';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
-import { ZeroHash } from 'ethers';
+import { Job, publishToIpfs } from '@effectiveacceleration/contracts';
+import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
+import { Dialog, Transition } from '@headlessui/react';
+import { CheckIcon } from '@heroicons/react/20/solid';
 import * as Sentry from '@sentry/nextjs';
+import { ZeroHash } from 'ethers';
+import { Fragment, useCallback, useRef, useState } from 'react';
+import { Textarea } from '../Textarea';
 
 export type DeliverResultButtonProps = {
   address: string | undefined;
