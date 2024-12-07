@@ -10,8 +10,7 @@ import { useAccount } from 'wagmi';
 interface JobsTableProps<T> {
   table: Table<T>;
   title: string;
-  localJobs?: Job[];
-  filteredJobs?: Job[];
+  jobs?: Job[];
   emptyMessage?: JSX.Element | string;
   emptySubtext?: JSX.Element | string;
 }
@@ -19,8 +18,7 @@ interface JobsTableProps<T> {
 function JobsTable<T>({
   table,
   title,
-  localJobs,
-  filteredJobs,
+  jobs,
   emptyMessage,
   emptySubtext,
 }: JobsTableProps<T>) {
@@ -31,17 +29,20 @@ function JobsTable<T>({
   const { data: user } = useUser(address!);
 
   useEffect(() => {
-    if (filteredJobs) {
+    if (jobs) {
       setLoading(false);
       setDataRow(true);
     }
-    if (table.getRowModel().rows.length === 0 && localJobs?.length === 0)
+
+    if (table.getRowModel().rows.length === 0) {
       return;
+    }
+
     setLoading(false);
     setDataRow(true);
   }, [table, dataRow]);
 
-  if (!user && localJobs?.length === 0 && title === 'RemoveForNow') {
+  if (!user && title === 'RemoveForNow') {
     return (
       <div className='rounded-2xl bg-white p-8 shadow-lg'>
         <div className='flex min-h-[300px] flex-col items-center justify-center text-center'>
@@ -56,7 +57,7 @@ function JobsTable<T>({
     );
   }
 
-  if (filteredJobs?.length === 0 || filteredJobs?.length === undefined) {
+  if (jobs?.length === 0 || jobs?.length === undefined) {
     return (
       <div className='rounded-2xl bg-white p-8 shadow-lg'>
         <div className='flex min-h-[300px] flex-col items-center justify-center text-center'>

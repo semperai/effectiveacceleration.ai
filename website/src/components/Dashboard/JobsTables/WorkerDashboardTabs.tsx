@@ -47,36 +47,28 @@ export const WorkerDashboardTabs = () => {
           </TabsList>
           <TabsContent value='Open Jobs'>
             {mounted ? (
-              <OpenJobs
-                filteredJobs={jobs?.filter((job) => job.state === 0) ?? []}
-              />
+              <OpenJobs jobs={jobs?.filter((job) => job.state === 0) ?? []} />
             ) : (
               <JobsTableSkeleton />
             )}
           </TabsContent>
           <TabsContent value='Applications'>
             {mounted ? (
-              <WorkerApplicationsJobs
-                filteredJobs={applicationsJobs}
-              />
+              <WorkerApplicationsJobs jobs={applicationsJobs} />
             ) : (
               <JobsTableSkeleton />
             )}
           </TabsContent>
           <TabsContent value='Started Jobs'>
             {mounted ? (
-              <WorkerProgressJobs
-                filteredJobs={takenJobs}
-              />
+              <WorkerProgressJobs jobs={takenJobs} />
             ) : (
               <JobsTableSkeleton />
             )}
           </TabsContent>
           <TabsContent value='Completed Jobs'>
             {mounted ? (
-              <WorkerCompletedJobs
-                filteredJobs={completedJobs}
-              />
+              <WorkerCompletedJobs jobs={completedJobs} />
             ) : (
               <JobsTableSkeleton />
             )}

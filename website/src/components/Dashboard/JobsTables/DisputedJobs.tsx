@@ -19,12 +19,8 @@ const columns = [
   columnBuilder(columnHelper, 'timeSpentDispute', 'timeSpentDispute'),
 ];
 
-export const DisputedJobs = ({
-  filteredJobs,
-}: {
-  filteredJobs: Job[];
-}) => {
-  const defaultData: TDisputedTable[] = filteredJobs.map((job) => ({
+export const DisputedJobs = ({ jobs }: { jobs: Job[] }) => {
+  const defaultData: TDisputedTable[] = jobs.map((job) => ({
     jobName: <span className='font-bold'>{job.title}</span>,
     arbitrationStatus: <span className=''>ArbitrationStatus</span>,
     disputedAmount: <span className='font-md'>{job?.amount}</span>,
@@ -41,7 +37,7 @@ export const DisputedJobs = ({
 
   useEffect(() => {
     setData(defaultData);
-  }, [filteredJobs]);
+  }, [jobs]);
 
   const tableDisputedTable = useReactTable({
     data,
@@ -52,7 +48,7 @@ export const DisputedJobs = ({
   return (
     <JobsTable
       table={tableDisputedTable}
-      filteredJobs={filteredJobs}
+      jobs={jobs}
       title='Disputed Jobs'
       emptyMessage='You do not have any disputed jobs'
       emptySubtext="That's a good thing!"

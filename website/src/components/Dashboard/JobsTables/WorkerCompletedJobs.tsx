@@ -19,12 +19,8 @@ const columns = [
   columnBuilder(columnHelper, 'actions', 'Actions'),
 ];
 
-export const WorkerCompletedJobs = ({
-  filteredJobs,
-}: {
-  filteredJobs: Job[];
-}) => {
-  const defaultData: TCompletedTable[] = filteredJobs.map((job) => ({
+export const WorkerCompletedJobs = ({ jobs }: { jobs: Job[] }) => {
+  const defaultData: TCompletedTable[] = jobs.map((job) => ({
     jobName: <span className='font-bold'>{job.title}</span>,
     status: (
       <span className='rounded-full bg-[#E1FFEF] px-3 py-2 text-[#23B528]'>
@@ -56,7 +52,7 @@ export const WorkerCompletedJobs = ({
   return (
     <JobsTable
       table={table}
-      filteredJobs={filteredJobs}
+      jobs={jobs}
       title='Completed Jobs'
       emptyMessage='You have no completed jobs'
       emptySubtext='Complete jobs to see them here'

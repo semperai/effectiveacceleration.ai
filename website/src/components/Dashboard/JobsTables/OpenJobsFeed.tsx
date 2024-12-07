@@ -12,7 +12,7 @@ export const OpenJobsFeed = () => {
   return (
     <div>
       <JobFilter />
-      <OpenJobs filteredJobs={jobs ?? []} />
+      <OpenJobs jobs={jobs ?? []} />
     </div>
   );
 };

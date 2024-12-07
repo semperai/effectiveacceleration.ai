@@ -23,12 +23,8 @@ const columns = [
   columnBuilder(columnHelper, 'traits', 'Traits'),
 ];
 
-export const OpenJobs = ({
-  filteredJobs
-}: {
-  filteredJobs: Job[];
-}) => {
-  const defaultData: TOpenJobTable[] = filteredJobs.map((job) => ({
+export const OpenJobs = ({ jobs }: { jobs: Job[] }) => {
+  const defaultData: TOpenJobTable[] = jobs.map((job) => ({
     jobName: (
       <Link href={`/dashboard/jobs/${job.id}`} className='font-bold'>
         {job.title}
@@ -62,7 +58,7 @@ export const OpenJobs = ({
 
   useEffect(() => {
     setData(defaultData);
-  }, [filteredJobs]);
+  }, [jobs]);
 
   const table = useReactTable({
     data,
@@ -73,7 +69,7 @@ export const OpenJobs = ({
   return (
     <JobsTable
       table={table}
-      filteredJobs={filteredJobs}
+      jobs={jobs}
       title='Open Jobs'
       emptyMessage='No open jobs'
       emptySubtext='You do not have any open jobs, why not post one?'

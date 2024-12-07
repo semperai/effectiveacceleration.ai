@@ -44,44 +44,28 @@ export const OwnerDashboardTabs = () => {
         <TabsTrigger value='Closed'>Closed</TabsTrigger>
       </TabsList>
       <TabsContent value='Open Jobs'>
-        {mounted ? (
-          <OpenJobs filteredJobs={openJobs} />
-        ) : (
-          <JobsTableSkeleton />
-        )}
+        {mounted ? <OpenJobs jobs={openJobs} /> : <JobsTableSkeleton />}
       </TabsContent>
       <TabsContent value='In Progress'>
         {mounted ? (
-          <OwnerProgressJobs
-            filteredJobs={takenJobs}
-          />
+          <OwnerProgressJobs jobs={takenJobs} />
         ) : (
           <JobsTableSkeleton />
         )}
       </TabsContent>
       <TabsContent value='Completed'>
         {mounted ? (
-          <OwnerCompletedJobs
-            filteredJobs={completedJobs}
-          />
+          <OwnerCompletedJobs jobs={completedJobs} />
         ) : (
           <JobsTableSkeleton />
         )}
       </TabsContent>
       <TabsContent value='Disputed'>
-        {mounted ? (
-          <DisputedJobs
-            filteredJobs={disputedJobs}
-          />
-        ) : (
-          <JobsTableSkeleton />
-        )}
+        {mounted ? <DisputedJobs jobs={disputedJobs} /> : <JobsTableSkeleton />}
       </TabsContent>
       <TabsContent value='Closed'>
         {mounted ? (
-          <OwnerCancelledJobs
-            filteredJobs={closedJobs}
-          />
+          <OwnerCancelledJobs jobs={closedJobs} />
         ) : (
           <JobsTableSkeleton />
         )}

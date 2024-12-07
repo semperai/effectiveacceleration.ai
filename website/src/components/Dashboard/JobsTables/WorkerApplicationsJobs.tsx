@@ -18,12 +18,8 @@ const columns = [
   columnBuilder(columnHelper, 'actions', 'Actions'),
 ];
 
-export const WorkerApplicationsJobs = ({
-  filteredJobs,
-}: {
-  filteredJobs: Job[];
-}) => {
-  const defaultData: TInProgressTable[] = filteredJobs.map((job) => ({
+export const WorkerApplicationsJobs = ({ jobs }: { jobs: Job[] }) => {
+  const defaultData: TInProgressTable[] = jobs.map((job) => ({
     jobName: <span className='font-bold'>{job.title}</span>,
     assignedTo: <span className='font-md'>{job.roles.worker ?? ''}</span>,
     tags: job.tags.map((tag) => (
@@ -50,7 +46,7 @@ export const WorkerApplicationsJobs = ({
   return (
     <JobsTable
       table={table}
-      filteredJobs={filteredJobs}
+      jobs={jobs}
       title='Job Aplications'
       emptyMessage='No job applications found'
       emptySubtext='Apply to more jobs to see them here'

@@ -20,12 +20,8 @@ const columns = [
   columnBuilder(columnHelper, 'actionsTaken', 'actionsTaken'),
 ];
 
-export const OwnerCancelledJobs = ({
-  filteredJobs,
-}: {
-  filteredJobs: Job[];
-}) => {
-  const defaultData: TCancelledTable[] = filteredJobs.map((job) => ({
+export const OwnerCancelledJobs = ({ jobs }: { jobs: Job[] }) => {
+  const defaultData: TCancelledTable[] = jobs.map((job) => ({
     jobName: <span className='font-bold'>{job.title}</span>,
     reason: <span className=''>Reason</span>,
     assignedTo: (
@@ -46,7 +42,7 @@ export const OwnerCancelledJobs = ({
 
   useEffect(() => {
     setData(defaultData);
-  }, [filteredJobs]);
+  }, [jobs]);
 
   const table = useReactTable({
     data,
@@ -57,7 +53,7 @@ export const OwnerCancelledJobs = ({
   return (
     <JobsTable
       table={table}
-      filteredJobs={filteredJobs}
+      jobs={jobs}
       title='Cancelled Jobs'
       emptyMessage='No cancelled jobs'
       emptySubtext='You have not cancelled any job posts'
