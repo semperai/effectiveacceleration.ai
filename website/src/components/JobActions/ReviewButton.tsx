@@ -115,7 +115,7 @@ export function ReviewButton({
                     as='h3'
                     className='text-lg font-medium leading-6 text-gray-900'
                   >
-                    Leave A Reviewww
+                    Leave A Review
                   </Dialog.Title>
                   <div className='mb-3 mt-5 flex flex-col gap-5'>
                     <Fieldset className='w-full'>
