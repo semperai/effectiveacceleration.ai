@@ -1,6 +1,7 @@
 export * from "./marketplace.model"
 export * from "./job.model"
 export * from "./_jobRoles"
+export * from "./_jobTimes"
 export * from "./jobEvent.model"
 export * from "./_customJobEvent"
 export * from "./_jobCreatedEvent"

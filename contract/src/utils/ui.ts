@@ -41,6 +41,16 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: string, job?:
           job.timestamp = event.timestamp_;
           job.resultHash = ZeroHash as string;
           job.allowedWorkers = [];
+          job.jobTimes = {
+            createdAt: event.timestamp_,
+            openedAt: event.timestamp_,
+            lastEventAt: event.timestamp_,
+
+            arbitratedAt: 0,
+            closedAt: 0,
+            disputedAt: 0,
+            updatedAt: 0,
+          }
         }
 
         event.details = jobCreated;
@@ -136,6 +146,7 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: string, job?:
         job.maxTime = jobUpdated.maxTime;
         job.roles.arbitrator = jobUpdated.arbitrator as string;
         job.whitelistWorkers = jobUpdated.whitelistWorkers;
+        job.jobTimes!.updatedAt = event.timestamp_;
 
         event.details = jobUpdated;
 
@@ -198,6 +209,7 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: string, job?:
         }
 
         job.state = JobState.Closed;
+        job.jobTimes!.closedAt = event.timestamp_;
 
         result.push({
           ...event,
@@ -236,6 +248,8 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: string, job?:
         }
 
         job.state = JobState.Closed;
+        job.jobTimes!.closedAt = event.timestamp_;
+
         if (Number(event.timestamp_) >= Number(job.timestamp) + 60 * 60 * 24) {
           job.collateralOwed = 0n; // Clear the collateral record
         } else {
@@ -263,6 +277,7 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: string, job?:
         job.state = JobState.Open;
         job.resultHash = ZeroHash as string;
         job.timestamp  = event.timestamp_;
+        job.jobTimes!.openedAt = event.timestamp_;
 
         if (job.collateralOwed < job.amount) {
             job.collateralOwed = 0n;
@@ -317,6 +332,7 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: string, job?:
         job.escrowId = 0n;
         job.allowedWorkers = job.allowedWorkers?.filter(address => address !== job!.roles.worker);
         job.roles.worker = ZeroAddress as string;
+        job.jobTimes!.openedAt = event.timestamp_;
 
         result.push({
           ...event,
@@ -341,6 +357,7 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: string, job?:
         const jobDisputed = decodeJobDisputedEvent(event.data_);
         event.details = jobDisputed;
         job.disputed = true;
+        job.jobTimes!.disputedAt = event.timestamp_;
 
         result.push({
           ...event,
@@ -364,6 +381,8 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: string, job?:
         job.disputed = false;
         job.state = JobState.Closed;
         job.collateralOwed = job.collateralOwed += jobArbitrated.creatorAmount;
+        job.jobTimes!.arbitratedAt = event.timestamp_;
+        job.jobTimes!.closedAt = event.timestamp_;
 
         result.push({
           ...event,
@@ -477,6 +496,10 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: string, job?:
       }
       default:
         break;
+    }
+
+    if (job) {
+      job.jobTimes!.lastEventAt = event.timestamp_;
     }
   }
 
