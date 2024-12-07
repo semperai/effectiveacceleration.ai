@@ -80,6 +80,5 @@ export function AcceptButton({
       <CheckIcon className='-ml-0.5 mr-1.5 h-5 w-5' aria-hidden='true' />
       {buttonText}
     </Button>
-    </>
   );
 }
