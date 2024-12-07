@@ -30,7 +30,10 @@ const serwist = new Serwist({
 self.addEventListener('push', function (event) {
   const payload = event.data ? event.data.text() : 'no payload';
 
-  const jobEvent = JSON5.parse(payload) as Omit<JobEvent, "data_" | "details"> & { jobId: string };
+  const jobEvent = JSON5.parse(payload) as Omit<
+    JobEvent,
+    'data_' | 'details'
+  > & { jobId: string };
 
   let body = '';
   switch (jobEvent.type_) {

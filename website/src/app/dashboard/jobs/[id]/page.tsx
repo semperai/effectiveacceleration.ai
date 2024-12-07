@@ -44,7 +44,6 @@ import ProfileUserHeader from './Components/JobChat/ProfileUserHeader';
 import JobChatsList from './Components/JobChatsList';
 import JobStatusWrapper from './Components/JobStatusWrapper';
 
-
 type JobSidebarProps = {
   job: Job;
   address: `0x${string}`;
