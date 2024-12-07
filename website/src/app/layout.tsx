@@ -1,19 +1,17 @@
 import '@/app/globals.css';
+import "@fontsource/plus-jakarta-sans/200.css";
+import "@fontsource/plus-jakarta-sans/300.css";
+import "@fontsource/plus-jakarta-sans/400.css";
+import "@fontsource/plus-jakarta-sans/500.css";
+import "@fontsource/plus-jakarta-sans/600.css";
+import "@fontsource/plus-jakarta-sans/700.css";
 import { Providers } from '@/app/providers';
 import '@/styles/tailwind.css';
 import { GoogleAnalytics } from '@next/third-parties/google';
-import clsx from 'clsx';
 import type { Metadata, Viewport } from 'next';
-import { Plus_Jakarta_Sans } from 'next/font/google';
 import Head from 'next/head';
 import { ToastProvider } from '@/providers/ToastProvider';
 
-const plusJakarta = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-plus-jakarta',
-  weight: ['200', '300', '400', '500', '600', '700'],
-});
 
 const APP_NAME = 'Effective Acceleration';
 const APP_DEFAULT_TITLE = 'Effective Acceleration';
@@ -75,10 +73,7 @@ export default function RootLayout({
     <html
       lang='en'
       dir='ltr'
-      className={clsx(
-        'h-full bg-white antialiased dark:bg-black',
-        plusJakarta.className
-      )}
+      className='h-full bg-white antialiased dark:bg-black'
       suppressHydrationWarning
     >
       <Head>

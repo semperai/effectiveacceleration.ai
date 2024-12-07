@@ -17,6 +17,7 @@
     "@effectiveacceleration/contracts": "^1.0.13",
     "@emotion/react": "^11.13.5",
     "@emotion/styled": "^11.13.5",
+    "@fontsource/plus-jakarta-sans": "^5.1.0",
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.2.0",
     "@mainnet-pat/json5-bigint": "^2.2.12",
