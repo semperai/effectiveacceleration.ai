@@ -1,27 +1,24 @@
 'use client';
 
-import clsx from 'clsx';
+import { Alert, AlertDescription } from '@/components/Alert';
 import { Button } from '@/components/Button';
 import { Field, FieldGroup, Label } from '@/components/Fieldset';
 import { Input } from '@/components/Input';
 import { Textarea } from '@/components/Textarea';
 import UploadAvatar from '@/components/UploadAvatar';
 import useUser from '@/hooks/subsquid/useUser';
+import { useConfig } from '@/hooks/useConfig';
+import { useToast } from '@/hooks/useToast';
+import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
+import RegisterSidebarImage from '@/images/register-sidebar-man.jpg';
 import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
+import * as Sentry from '@sentry/nextjs';
 import { AlertCircle } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
-import {
-  useAccount,
-  useWaitForTransactionReceipt,
-  useWriteContract,
-} from 'wagmi';
+import React, { useState } from 'react';
+import { useAccount } from 'wagmi';
 import { PostJobParams } from '../dashboard/post-job/PostJobPage';
-import { Alert, AlertDescription } from '@/components/Alert';
-import RegisterSidebarImage from '@/images/register-sidebar-man.jpg';
-import { useConfig } from '@/hooks/useConfig';
-import * as Sentry from '@sentry/nextjs';
 
 const RegisteredUserView = () => {
   const router = useRouter();
@@ -67,9 +64,9 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
   const { address } = useAccount();
   const { data: user } = useUser(address!);
   const router = useRouter();
-  const { data: hash, error, writeContract } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
-    useWaitForTransactionReceipt({ hash });
+  const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
+    useWriteContractWithNotifications();
+  const { showError } = useToast();
 
   const unregisteredUserLabel = `${address}-unregistered-job-cache`;
 
@@ -84,31 +81,6 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
   const updateFormField = (field: keyof typeof formState, value: string) => {
     setFormState((prev) => ({ ...prev, [field]: value }));
   };
-
-  // Handle contract interaction results
-  useEffect(() => {
-    if (!isConfirmed && !error) return;
-
-    if (error) {
-      // TODO handle revert reasons better
-      const revertReason = error.message.match(
-        /The contract function ".*" reverted with the following reason:\n(.*)\n.*/
-      )?.[1];
-      const deniedReason = error.message.match(
-        /User denied transaction signature/
-      )?.[0];
-      setFormState((prev) => ({
-        ...prev,
-        error: revertReason || deniedReason || 'An unknown error occurred',
-        isSubmitting: false,
-      }));
-      return;
-    }
-
-    if (isConfirmed) {
-      handleSuccessfulSubmission();
-    }
-  }, [isConfirmed, error]);
 
   // Handle successful profile creation
   const handleSuccessfulSubmission = () => {
@@ -159,7 +131,7 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
     setFormState((prev) => ({ ...prev, isSubmitting: true, error: '' }));
 
     try {
-      await writeContract({
+      await writeContractWithNotifications({
         abi: MARKETPLACE_DATA_V1_ABI,
         address: Config!.marketplaceDataAddress,
         functionName: 'registerUser',
@@ -172,9 +144,11 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
       });
     } catch (error) {
       Sentry.captureException(error);
+      const errMsg = 'Failed to create profile. Please try again.';
+      showError(errMsg);
       setFormState((prev) => ({
         ...prev,
-        error: 'Failed to create profile. Please try again.',
+        error: errMsg,
         isSubmitting: false,
       }));
       console.error('Error writing contract: ', error);
