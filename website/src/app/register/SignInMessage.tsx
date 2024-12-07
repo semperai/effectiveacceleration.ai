@@ -4,6 +4,7 @@ import React, { Dispatch } from 'react';
 import { useSignMessage, useAccount, useConnect, useWalletClient } from 'wagmi';
 import { getEncryptionSigningKey } from '@effectiveacceleration/contracts';
 import { ethers } from 'ethers';
+import * as Sentry from '@sentry/nextjs';
 
 const SignInMessage = ({
   setEncryptionPublicKey,
@@ -16,7 +17,10 @@ const SignInMessage = ({
 
   const handleSignMessage = async () => {
     if (!walletClient || !address) {
-      console.error('No wallet client or address available');
+      const errMsg = 'No wallet client or address available';
+      Sentry.captureMessage(errMsg);
+      console.error(errMsg);
+      // TODO show toast here
       return;
     }
 
@@ -41,7 +45,9 @@ const SignInMessage = ({
       ).compressedPublicKey;
       setEncryptionPublicKey(encryptionKey);
     } catch (error) {
+      Sentry.captureException(error);
       console.error('Error signing message:', error);
+      // TODO show toast here
     }
   };
 

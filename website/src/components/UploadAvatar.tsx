@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { BsPersonPlus } from 'react-icons/bs';
 import { Field } from './Fieldset';
+import * as Sentry from '@sentry/nextjs';
 
 const ipfsGatewayUrl = process.env.NEXT_PUBLIC_IPFS_GATEWAY_URL ?? '';
 
@@ -36,7 +37,9 @@ const UploadAvatar = ({
       const url = `${ipfsGatewayUrl}/ipfs/${data.Hash}`;
       setAvatarFileUrl(url);
     } catch (error) {
+      Sentry.captureException(error);
       console.error('Error uploading file to IPFS:', error);
+      // TODO show toast here
     }
   };
 

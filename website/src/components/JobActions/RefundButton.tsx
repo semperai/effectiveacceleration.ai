@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
+import * as Sentry from '@sentry/nextjs';
 
 export type RefundButtonProps = {
   address: string | undefined;
@@ -36,6 +37,7 @@ export function RefundButton({
         args: [BigInt(job.id!)],
       });
     } catch (err: any) {
+      Sentry.captureException(err);
       showError(`Error refunding job: ${err.message}`);
     } finally {
       setIsRefunding(false);

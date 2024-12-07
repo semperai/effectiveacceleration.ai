@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import { Loader2 } from 'lucide-react';
 import { ZeroHash } from 'ethers';
+import * as Sentry from '@sentry/nextjs';
 
 export type PostMessageButtonProps = {
   address: string | undefined;
@@ -68,6 +69,7 @@ export function PostMessageButton({
         const { hash } = await publishToIpfs(message, sessionKey);
         contentHash = hash;
       } catch (err) {
+        Sentry.captureException(err);
         dismissLoadingToast();
         showError('Failed to publish job post to IPFS');
         setIsPostingMessage(false);
@@ -85,6 +87,7 @@ export function PostMessageButton({
         args: [BigInt(job.id!), contentHash, selectedUserRecipient],
       });
     } catch (err: any) {
+      Sentry.captureException(err);
       showError(`Error posting job message: ${err.message}`);
     } finally {
       setIsPostingMessage(false);

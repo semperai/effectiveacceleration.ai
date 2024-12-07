@@ -13,6 +13,7 @@ import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import { Loader2 } from 'lucide-react';
+import * as Sentry from '@sentry/nextjs';
 
 export type AcceptButtonProps = {
   address: string | undefined;
@@ -59,7 +60,8 @@ export function AcceptButton({
         args: [BigInt(job.id!), signature],
       });
     } catch (err: any) {
-      showError(`Error Accepting job: ${err.message}`);
+      Sentry.captureException(err);
+      showError(`Error accepting job: ${err.message}`);
     } finally {
       setIsAccepting(false);
     }

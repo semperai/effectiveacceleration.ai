@@ -11,6 +11,7 @@ import { useConfig } from '@/hooks/useConfig';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
+import * as Sentry from '@sentry/nextjs';
 
 export type WhitelistButtonProps = {
   address: string | undefined;
@@ -48,13 +49,14 @@ export function WhitelistButton({
         args: [BigInt(job.id!), [selectedUserAddress!], []],
       });
     } catch (err: any) {
-      showError(`Error WhiteListing job: ${err.message}`);
+      Sentry.captureException(err);
+      showError(`Error whitelisting job: ${err.message}`);
     } finally {
       setIsWhiteListing(false);
     }
   }
 
-  const buttonText = isWhiteListing ? 'WhiteListing...' : 'WhiteList';
+  const buttonText = isWhiteListing ? 'Whitelisting...' : 'Whitelist';
 
   let [isOpen, setIsOpen] = useState(false);
 

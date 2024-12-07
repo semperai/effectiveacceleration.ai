@@ -32,7 +32,7 @@ import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import { Loader2 } from 'lucide-react';
-import { consoleIntegration } from '@sentry/nextjs';
+import * as Sentry from '@sentry/nextjs';
 
 export type UpdateButtonProps = {
   address: string | undefined;
@@ -199,6 +199,7 @@ export function UpdateButton({
           const { hash } = await publishToIpfs(content);
           contentHash = hash;
         } catch (err) {
+          Sentry.captureException(err);
           dismissLoadingToast();
           showError('Failed to publish job post to IPFS');
           setIsUpdating(false);
@@ -232,6 +233,7 @@ export function UpdateButton({
           ],
         });
       } catch (err: any) {
+        Sentry.captureException(err);
         showError(`Error updating job: ${err.message}`);
       } finally {
         setIsUpdating(false);

@@ -8,6 +8,7 @@ import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import { Loader2 } from 'lucide-react';
+import * as Sentry from '@sentry/nextjs';
 
 export type CloseButtonProps = {
   address: string | undefined;
@@ -37,6 +38,7 @@ export function CloseButton({
         args: [BigInt(job.id!)],
       });
     } catch (err: any) {
+      Sentry.captureException(err);
       showError(`Error closing job: ${err.message}`);
     } finally {
       setIsClosing(false);

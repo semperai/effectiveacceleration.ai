@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import { Loader2 } from 'lucide-react';
 import { CheckIcon } from '@heroicons/react/20/solid';
+import * as Sentry from '@sentry/nextjs';
 
 export type RefuseArbitrationButtonProps = {
   job: Job;
@@ -35,7 +36,8 @@ export function RefuseArbitrationButton({
         args: [BigInt(job.id!)],
       });
     } catch (err: any) {
-      showError(`Error Refusing job: ${err.message}`);
+      Sentry.captureException(err);
+      showError(`Error refusing job: ${err.message}`);
     } finally {
       setIsRefusing(false);
     }

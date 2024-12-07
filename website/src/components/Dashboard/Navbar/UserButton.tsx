@@ -18,6 +18,7 @@ import { Input } from '@/components/Input';
 import UploadAvatar from '@/components/UploadAvatar';
 import { useConfig } from '@/hooks/useConfig';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
+import * as Sentry from '@sentry/nextjs';
 
 interface NavButtonProps {
   name: string | undefined;
@@ -33,7 +34,9 @@ const NavButton = ({ name, avatar, openModal }: NavButtonProps) => {
       isImageValid(avatar)
         .then((isValid) => setIsImgValid(isValid))
         .catch((error) => {
+          Sentry.captureException(error);
           console.error('Error checking image URL:', error);
+          // TODO show toast here
           setIsImgValid(false);
         });
     }

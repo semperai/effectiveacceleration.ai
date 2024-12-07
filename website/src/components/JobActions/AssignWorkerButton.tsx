@@ -11,6 +11,7 @@ import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
+import * as Sentry from '@sentry/nextjs';
 
 export type AssignWorkerButtonProps = {
   address: string | undefined;
@@ -45,7 +46,8 @@ export function AssignWorkerButton({
         args: [BigInt(job.id!), selectedWorker],
       });
     } catch (err: any) {
-      showError(`Error Assigning job: ${err.message}`);
+      Sentry.captureException(err);
+      showError(`Error assigning worker to job: ${err.message}`);
     } finally {
       setIsAssigning(false);
     }

@@ -10,6 +10,7 @@ import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import { Loader2 } from 'lucide-react';
+import * as Sentry from '@sentry/nextjs';
 
 export type ApproveButtonProps = {
   address: string | undefined;
@@ -60,7 +61,8 @@ export function ApproveButton({
         ],
       });
     } catch (err: any) {
-      showError(`Error Approving job: ${err.message}`);
+      Sentry.captureException(err);
+      showError(`Error approving job: ${err.message}`);
     } finally {
       setIsApproving(false);
       setIsOpen(false);

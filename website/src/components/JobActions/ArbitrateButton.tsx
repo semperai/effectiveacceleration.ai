@@ -12,6 +12,7 @@ import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import { ZeroHash } from 'ethers';
+import * as Sentry from '@sentry/nextjs';
 
 export type ArbitrateButtonProps = {
   address: string | undefined;
@@ -62,6 +63,7 @@ export function ArbitrateButton({
         const { hash } = await publishToIpfs(message, sessionKey);
         contentHash = hash;
       } catch (err) {
+        Sentry.captureException(err);
         dismissLoadingToast();
         showError('Failed to publish job post to IPFS');
         setIsArbitrating(false);
@@ -79,7 +81,8 @@ export function ArbitrateButton({
         args: [BigInt(job.id!), ownerShare, workerShare, contentHash],
       });
     } catch (err: any) {
-      showError(`Error Arbitrating job: ${err.message}`);
+      Sentry.captureException(err);
+      showError(`Error arbitrating job: ${err.message}`);
     } finally {
       setIsArbitrating(false);
     }

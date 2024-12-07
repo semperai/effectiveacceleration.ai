@@ -10,6 +10,7 @@ import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import { ZeroHash } from 'ethers';
+import * as Sentry from '@sentry/nextjs';
 
 export type DeliverResultButtonProps = {
   address: string | undefined;
@@ -54,6 +55,7 @@ export function DeliverResultButton({
         const { hash } = await publishToIpfs(message, sessionKey);
         contentHash = hash;
       } catch (err) {
+        Sentry.captureException(err);
         dismissLoadingToast();
         showError('Failed to publish job post to IPFS');
         setIsDelivering(false);
@@ -71,7 +73,8 @@ export function DeliverResultButton({
         args: [BigInt(job.id!), contentHash],
       });
     } catch (err: any) {
-      showError(`Error Delivering job: ${err.message}`);
+      Sentry.captureException(err);
+      showError(`Error delivering job: ${err.message}`);
     } finally {
       setIsDelivering(false);
     }

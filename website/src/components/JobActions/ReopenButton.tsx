@@ -7,6 +7,7 @@ import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import { Loader2 } from 'lucide-react';
+import * as Sentry from '@sentry/nextjs';
 
 export type ReopenButtonProps = {
   address: string | undefined;
@@ -36,7 +37,8 @@ export function ReopenButton({
         args: [BigInt(job.id!)],
       });
     } catch (err: any) {
-      showError(`Error Reopening job: ${err.message}`);
+      Sentry.captureException(err);
+      showError(`Error reopening job: ${err.message}`);
     } finally {
       setIsReopening(false);
     }

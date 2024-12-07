@@ -17,6 +17,7 @@ import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import { Loader2 } from 'lucide-react';
+import * as Sentry from '@sentry/nextjs';
 
 export type ReviewButtonProps = {
   address: string | undefined;
@@ -55,7 +56,8 @@ export function ReviewButton({
         args: [BigInt(job.id!), rating, review],
       });
     } catch (err: any) {
-      showError(`Error ReviewingisReviewing job: ${err.message}`);
+      Sentry.captureException(err);
+      showError(`Error reviewing job: ${err.message}`);
     } finally {
       setIsReviewing(false);
       setIsOpen(false);

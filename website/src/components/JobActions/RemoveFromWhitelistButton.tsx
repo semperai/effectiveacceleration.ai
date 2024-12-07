@@ -11,6 +11,7 @@ import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import { Loader2 } from 'lucide-react';
+import * as Sentry from '@sentry/nextjs';
 
 export type RemoveFromWhitelistButtonProps = {
   address: string | undefined;
@@ -51,7 +52,8 @@ export function RemoveFromWhitelistButton({
         args: [BigInt(job.id!), [], [selectedUserAddress!]],
       });
     } catch (err: any) {
-      showError(`Error Removing job: ${err.message}`);
+      Sentry.captureException(err);
+      showError(`Error removing from whitelist: ${err.message}`);
     } finally {
       setIsRemoving(false);
     }

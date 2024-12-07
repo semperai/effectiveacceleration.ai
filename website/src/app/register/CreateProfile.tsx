@@ -21,6 +21,7 @@ import { PostJobParams } from '../dashboard/post-job/PostJobPage';
 import { Alert, AlertDescription } from '@/components/Alert';
 import RegisterSidebarImage from '@/images/register-sidebar-man.jpg';
 import { useConfig } from '@/hooks/useConfig';
+import * as Sentry from '@sentry/nextjs';
 
 const RegisteredUserView = () => {
   const router = useRouter();
@@ -170,6 +171,7 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
         ],
       });
     } catch (error) {
+      Sentry.captureException(error);
       setFormState((prev) => ({
         ...prev,
         error: 'Failed to create profile. Please try again.',

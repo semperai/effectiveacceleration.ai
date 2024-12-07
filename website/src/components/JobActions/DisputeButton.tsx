@@ -15,6 +15,7 @@ import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithN
 import { Loader2 } from 'lucide-react';
 import { consoleIntegration } from '@sentry/nextjs';
 import { useToast } from '@/hooks/useToast';
+import * as Sentry from '@sentry/nextjs';
 
 export type DisputeButtonProps = {
   address: string | undefined;
@@ -60,7 +61,8 @@ export function DisputeButton({
         args: [BigInt(job.id!), encryptedSessionKey, encryptedContent],
       });
     } catch (err: any) {
-      showError(`Error Disputing job: ${err.message}`);
+      Sentry.captureException(err);
+      showError(`Error disputing job: ${err.message}`);
     } finally {
       setIsDisputing(false);
     }

@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import { Loader2 } from 'lucide-react';
 import { CheckIcon } from '@heroicons/react/20/solid';
+import * as Sentry from '@sentry/nextjs';
 
 export type WithdrawCollateralButtonProps = {
   address: string | undefined;
@@ -37,6 +38,7 @@ export function WithdrawCollateralButton({
         args: [BigInt(job.id!)],
       });
     } catch (err: any) {
+      Sentry.captureException(err);
       showError(`Error Withrawing job: ${err.message}`);
     } finally {
       setIsWithrawing(false);

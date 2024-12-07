@@ -8,6 +8,7 @@ import {
   TransactionReceipt,
 } from 'viem';
 import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
+import * as Sentry from '@sentry/nextjs';
 
 import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
@@ -175,6 +176,7 @@ export function useWriteContractWithNotifications() {
           args,
         });
       } catch (e: any) {
+        Sentry.captureException(e);
         dismissLoadingToast();
         showError(`An error occurred: ${e?.message}`);
       }
