@@ -44,7 +44,7 @@ export function DisputeButton({
         ? sessionKeys[`${job.roles.creator}-${job.roles.worker}`]
         : sessionKeys[`${job.roles.worker}-${job.roles.creator}`];
     const encryptedContent = hexlify(
-      encryptUtf8Data(message, arbitratorSessionKey)
+      encryptUtf8Data(message, ownerWorkerSessionKey)
     );
     const encryptedSessionKey = hexlify(
       encryptBinaryData(getBytes(ownerWorkerSessionKey), arbitratorSessionKey)

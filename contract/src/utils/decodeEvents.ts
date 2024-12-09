@@ -67,8 +67,19 @@ export const decodeJobDisputedEvent = (rawData: BytesLike): JobDisputedEvent => 
 
 export const decryptJobDisputedEvent = (event: JobDisputedEvent, sessionKey: string) => {
   try {
-    event.content = decryptUtf8Data(getBytes(event.encryptedContent), sessionKey);
-    event.sessionKey = hexlify(decryptBinaryData(getBytes(event.encryptedSessionKey), sessionKey));
+    let decryptionKey;
+    try {
+      // first try to treat session key as Owner/Worker-Arbitrator session key
+      // this is the arbitrator's flow
+      event.sessionKey = hexlify(decryptBinaryData(getBytes(event.encryptedSessionKey), sessionKey));
+      decryptionKey = event.sessionKey;
+    } catch {
+      // fall back to Owner/Worker session key
+      // this is the owner/worker's flow who are 3rd party to the dispute
+      decryptionKey = sessionKey;
+      // note: event.sessionKey remains undefined here
+    }
+    event.content = decryptUtf8Data(getBytes(event.encryptedContent), decryptionKey);
   } catch {
     event.content = "<encrypted message>";
   }

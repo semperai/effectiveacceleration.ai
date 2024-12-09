@@ -140,10 +140,10 @@ export type JobRatedEvent = {
 
 // Same as JobDisputedEventRaw, but with values decrypted using the contender + arbitrator shared secret
 export type JobDisputedEvent = {
-  encryptedSessionKey: string; // Creator's and worker's session key
-  encryptedContent: string; // Dispute content
-  sessionKey?: string;
-  content?: string;
+  encryptedSessionKey: string; // Owner-Worker session key, encrypted with either Owner/Worker-Arbitrator session key
+  encryptedContent: string; // Dispute content, encrypted with Owner-Worker session key
+  sessionKey?: string; // Owner-Worker session key, decrypted
+  content?: string; // Dispute content, decrypted
 }
 
 export type JobArbitratedEvent = {

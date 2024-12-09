@@ -966,7 +966,7 @@ contract MarketplaceV1 is OwnableUpgradeable, PausableUpgradeable {
      * @notice Raise a dispute with the arbitrator.
      * @notice If the buyer is calling the dispute, the function will challenge the payment on Unicrow.
      * @param sessionKey_ Encrypted session key for the arbitrator to decrypt owner's and worker's messages
-     * @param content_ Encrypted short description for the arbitrator
+     * @param content_ Encrypted short description for the arbitrator, encrypted with owner-worker session key
      */
     function dispute(
         uint256 jobId_,

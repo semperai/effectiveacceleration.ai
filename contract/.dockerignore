@@ -4,7 +4,7 @@
 !src/
 !tasks/
 !wagmi/
-!hardhat.config.ts
+!hardhat.config*
 !package.json
 !tsconfig.json
 !yarn.lock

@@ -367,7 +367,7 @@ task("marketplace:seed", "Seed local marketplace instance")
     const sessionKeyOW = await getSessionKey(owner, await marketplaceData.connect(owner).publicKeys(worker.address), jobId);
     const sessionKeyOA = await getSessionKey(owner, (await marketplaceData.connect(owner).arbitrators(arbitrator.address)).publicKey, jobId);
 
-    const encryptedContent = hexlify(encryptUtf8Data(disputeContent, sessionKeyOA));
+    const encryptedContent = hexlify(encryptUtf8Data(disputeContent, sessionKeyOW));
     const encryptedSessionKey = hexlify(encryptBinaryData(getBytes(sessionKeyOW), sessionKeyOA));
 
     await marketplace.connect(owner).dispute(jobId, encryptedSessionKey, encryptedContent);
@@ -969,7 +969,7 @@ task("job:dispute", "Raise a dispute on a job")
     const sessionKeyOW = await getSessionKey(user, await marketplaceData.publicKeys(worker), jobid);
     const sessionKeyOA = await getSessionKey(user, (await marketplaceData.arbitrators(arbitrator)).publicKey, jobid);
 
-    const encryptedContent = hexlify(encryptUtf8Data(disputeContent, sessionKeyOA));
+    const encryptedContent = hexlify(encryptUtf8Data(disputeContent, sessionKeyOW));
     const encryptedSessionKey = hexlify(encryptBinaryData(getBytes(sessionKeyOW), sessionKeyOA));
 
     const tx = await marketplace.dispute(jobid, encryptedSessionKey, encryptedContent);
@@ -982,7 +982,7 @@ task("job:dispute", "Raise a dispute on a job")
     const sessionKeyWO = await getSessionKey(user, await marketplaceData.publicKeys(owner), jobid);
     const sessionKeyWA = await getSessionKey(user, (await marketplaceData.arbitrators(arbitrator)).publicKey, jobid);
 
-    const encryptedContent = hexlify(encryptUtf8Data(message, sessionKeyWA));
+    const encryptedContent = hexlify(encryptUtf8Data(message, sessionKeyWO));
     const encryptedSessionKey = hexlify(encryptBinaryData(getBytes(sessionKeyWO), sessionKeyWA));
 
     const tx = await marketplace.dispute(jobid, encryptedSessionKey, encryptedContent);

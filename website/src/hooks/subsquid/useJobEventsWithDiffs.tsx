@@ -132,15 +132,18 @@ export default function useJobEventsWithDiffs(jobId: string) {
         const details = jobDisputedEvent.details as JobDisputedEvent;
         const initiator = getAddress(jobDisputedEvent.address_);
         const arbitrator = jobDisputedEvent.job.roles.arbitrator;
-        const key = `${initiator}-${arbitrator}`;
-        decryptJobDisputedEvent(details, sessionKeys_[key]);
+        const workerAddress = jobDisputedEvent.job.roles.worker;
+        const key = arbitrator === signer?.address ? `${initiator}-${arbitrator}` : `${ownerAddress}-${workerAddress}`;
 
-        const other =
-          initiator === ownerAddress
-            ? jobDisputedEvent.job.roles.worker
-            : initiator;
-        sessionKeys_[`${initiator}-${other}`] = details.sessionKey!;
-        sessionKeys_[`${other}-${initiator}`] = details.sessionKey!;
+        decryptJobDisputedEvent(details, sessionKeys_[key]);
+        if (details.sessionKey) {
+          const other =
+            initiator === ownerAddress
+              ? workerAddress
+              : initiator;
+          sessionKeys_[`${initiator}-${other}`] = details.sessionKey!;
+          sessionKeys_[`${other}-${initiator}`] = details.sessionKey!;
+        }
       }
 
       const eventContents = await fetchEventContents(
