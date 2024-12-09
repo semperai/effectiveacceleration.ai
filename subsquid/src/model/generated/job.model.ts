@@ -1,6 +1,7 @@
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, IntColumn as IntColumn_, BooleanColumn as BooleanColumn_, StringColumn as StringColumn_, BigIntColumn as BigIntColumn_, OneToMany as OneToMany_, ManyToOne as ManyToOne_, Index as Index_} from "@subsquid/typeorm-store"
 import * as marshal from "./marshal"
 import {JobRoles} from "./_jobRoles"
+import {JobTimes} from "./_jobTimes"
 import {JobEvent} from "./jobEvent.model"
 import {Job as IJob} from "@effectiveacceleration/contracts";
 
@@ -72,6 +73,9 @@ export class Job implements IJob {
 
     @IntColumn_({nullable: false})
     eventCount!: number
+
+    @Column_("jsonb", {transformer: {to: obj => obj.toJSON(), from: obj => obj == null ? undefined : new JobTimes(undefined, obj)}, nullable: false})
+    jobTimes!: JobTimes
 
     @OneToMany_(() => JobEvent, e => e.job)
     events!: JobEvent[]

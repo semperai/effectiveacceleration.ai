@@ -4,6 +4,7 @@ import pg from "pg";
 import format from "pg-format";
 
 export interface IPushSubscription {
+  id?: number,
   address: string, // address must be checksummed
   endpoint: string,
   expirationTime: number | null,
@@ -49,9 +50,38 @@ export default class SqlProvider {
   }
 
   public async addSubscription(subscription: IPushSubscription) {
-    let text = this.formatter(
+    const text = this.formatter(
       "INSERT into push_subscription (address,endpoint,expiration_time,keys) VALUES ($1, $2, $3, $4::jsonb);",
     );
     return await this.db.query(text, [subscription.address, subscription.endpoint, subscription.expirationTime, JSON.stringify(subscription.keys)]);
+  }
+
+  public async getAllSubscriptions(): Promise<IPushSubscription[]> {
+    const text = "SELECT * from push_subscription";
+    const res = await this.db.query(text);
+    return res.rows.map((row) => ({
+      id: row.id,
+      address: row.address,
+      endpoint: row.endpoint,
+      expirationTime: row.expiration_time,
+      keys: row.keys,
+    }));
+  }
+
+  public async getAddressSubscriptions(address: string): Promise<IPushSubscription[]> {
+    const text = "SELECT * from push_subscription WHERE address = $1";
+    const res = await this.db.query(text, [address]);
+    return res.rows.map((row) => ({
+      id: row.id,
+      address: row.address,
+      endpoint: row.endpoint,
+      expirationTime: row.expiration_time,
+      keys: row.keys,
+    }));
+  }
+
+  public async removeSubscriptionsByIds(ids: number[]) {
+    const text = this.formatter("DELETE from push_subscription WHERE id IN (%L);", ids);
+    return await this.db.query(text);
   }
 }

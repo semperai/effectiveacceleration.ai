@@ -7,3 +7,13 @@ Subsquid will check for registrations and if a relevant event occurs while index
 ### Configuration
 
 See .env for configuration.
+
+### Broadcasting notifications to all subscribed users
+
+This is allowed only to an admin, authorized by basic auth. Example:
+
+```
+curl -X POST -H "Content-Type: application/json" -u user:password http://localhost:9000/broadcastNotification -d '{"text": "test", "href": "https://example.com"}'
+```
+
+`href` parameter is optional and will be used as a redirect link to any other resources. If omitted website will be opened at /dashboard route.

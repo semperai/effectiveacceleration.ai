@@ -42,9 +42,20 @@ type Job @entity {
   disputed: Boolean!
   allowedWorkers: [String!]!
   eventCount: Int!
+  jobTimes: JobTimes!
 
   events: [JobEvent!]! @derivedFrom(field: "job")
   lastJobEvent: JobEvent
+}
+
+type JobTimes {
+  createdAt: Int!
+  openedAt: Int!
+  closedAt: Int!
+  disputedAt: Int!
+  arbitratedAt: Int!
+  updatedAt: Int! # only job definition updates
+  lastEventAt: Int! # job instance updates with last event
 }
 
 type JobEvent @entity {
@@ -155,6 +166,7 @@ type JobMessageEvent {
 
 # # Manually added types which are not visible in graphql api
 # type PushSubscription @entity {
+#   id: Int!
 #   address: String! @index
 #   endpoint: String!
 #   expirationTime: Int

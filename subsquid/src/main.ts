@@ -51,6 +51,7 @@ import {
   User,
   Arbitrator,
   PushSubscription,
+  JobTimes,
 } from "./model";
 import {
   decodeJobArbitratedEvent,
@@ -456,6 +457,16 @@ processor.run(db, async (ctx) => {
                   job.allowedWorkers = [];
                   job.eventCount = 0;
                   job.events = [];
+                  job.jobTimes = new JobTimes({
+                    createdAt: event.timestamp_,
+                    openedAt: event.timestamp_,
+                    lastEventAt: event.timestamp_,
+
+                    arbitratedAt: 0,
+                    closedAt: 0,
+                    disputedAt: 0,
+                    updatedAt: 0,
+                  });
                 }
                 jobCache[jobId] = job;
 
@@ -514,6 +525,7 @@ processor.run(db, async (ctx) => {
                 job.maxTime = jobUpdated.maxTime;
                 job.roles.arbitrator = getAddress(jobUpdated.arbitrator);
                 job.whitelistWorkers = jobUpdated.whitelistWorkers;
+                job.jobTimes.updatedAt = event.timestamp_;
 
                 jobEvent.details = new JobUpdatedEvent(jobUpdated);
 
@@ -569,6 +581,7 @@ processor.run(db, async (ctx) => {
                 }
 
                 job.state = JobState.Closed;
+                job.jobTimes.closedAt = event.timestamp_;
 
                 await Promise.all([
                   sendPushNotification(job.roles.worker, jobEvent, ctx),
@@ -605,6 +618,7 @@ processor.run(db, async (ctx) => {
                 }
 
                 job.state = JobState.Closed;
+                job.jobTimes.closedAt = event.timestamp_;
                 if (
                   Number(event.timestamp_) >=
                   Number(job.timestamp) + 60 * 60 * 24
@@ -626,6 +640,7 @@ processor.run(db, async (ctx) => {
                 job.state = JobState.Open;
                 job.resultHash = ZeroHash;
                 job.timestamp = event.timestamp_;
+                job.jobTimes.openedAt = event.timestamp_;
 
                 if (job.collateralOwed < job.amount) {
                   job.collateralOwed = 0n;
@@ -700,6 +715,7 @@ processor.run(db, async (ctx) => {
                 job.state = JobState.Open;
                 job.escrowId = 0n;
                 job.disputed = false;
+                job.jobTimes.openedAt = event.timestamp_;
 
                 await sendPushNotification(job.roles.creator, jobEvent, ctx);
 
@@ -715,6 +731,7 @@ processor.run(db, async (ctx) => {
                 const jobDisputed = decodeJobDisputedEvent(event.data_);
                 jobEvent.details = new JobDisputedEvent(jobDisputed);
                 job.disputed = true;
+                job.jobTimes.disputedAt = event.timestamp_;
 
                 const byWorker = event.address_.toLowerCase() === job.roles.worker.toLowerCase();
 
@@ -738,6 +755,8 @@ processor.run(db, async (ctx) => {
                 job.collateralOwed = job.collateralOwed +=
                   jobArbitrated.creatorAmount;
                 job.disputed = false;
+                job.jobTimes.arbitratedAt = event.timestamp_;
+                job.jobTimes.closedAt = event.timestamp_;
 
                 const arbitrator =
                   arbitratorCache[job.roles.arbitrator] ??
@@ -838,6 +857,7 @@ processor.run(db, async (ctx) => {
 
             job.eventCount += 1;
             job.lastJobEvent = jobEvent;
+            job.jobTimes.lastEventAt = event.timestamp_;
             eventList.push(jobEvent);
             break;
           }
@@ -885,15 +905,28 @@ const sendPushNotification = async (address: string, event: JobEvent, ctx: DataH
       TTL: 10 * 60, // 10 minutes to store our message on the push server
     };
 
-    for (const i of [1, 2, 3]) {
+
+    const tries = 5;
+    for (const i of [...Array(tries).keys()].slice(1)) {
       try {
         await webPush.sendNotification(subscription, payload, options);
         console.log(`Push notification sent for address: ${address}, job: ${event.jobId}, event: ${event.id}`);
         break;
       } catch (e: any) {
-        if (i === 3) {
-          console.error(`Failed to send push notification for address: ${address}, job: ${event.jobId}, event: ${event.id}. Removing subscription due to error: ${e.message}: ${e.statusCode}`);
+        // trhottle the retries
+        if ([503, 201, 202, 429].includes(e.statusCode)) {
+          await new Promise((resolve) => setTimeout(resolve, 1000 * 1.5 ** i));
+        }
+
+        // invalid/expired subscription
+        if ([404, 102, 410, 103, 105, 106].includes(e.statusCode)) {
           await ctx.store.remove(subscription);
+          console.error(`Removing subscription due to error: ${e.message}: ${e.statusCode}`);
+          break;
+        }
+
+        if (i === tries) {
+          console.error(`Failed to send push notification for address: ${address}, job: ${event.jobId}, event: ${event.id}. Error: ${e.message}: ${e.statusCode}`);
         }
       }
     }

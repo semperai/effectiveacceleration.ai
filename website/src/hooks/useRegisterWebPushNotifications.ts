@@ -95,6 +95,20 @@ export const subscribeToWebPushNotifications = async (
   }
 };
 
+export const unsubscribeFromWebPushNotifications = async () => {
+  const registration = (await navigator.serviceWorker.getRegistration())!;
+  const subscription = await registration.pushManager.getSubscription();
+
+  if (!subscription) {
+    return;
+  }
+
+  console.log("Unsubscribing from web push notifications");
+
+  await subscription.unsubscribe();
+  localStorage.removeItem('WebPushNotificationsAddress');
+}
+
 export const useRegisterWebPushNotifications = () => {
   const [account, setAccount] = useState<string>();
   const [prevAccount, setPrevAccount] = useState<string>();
