@@ -6,6 +6,8 @@ import { Button } from '@/components/Button';
 import { Job, JobEventType, JobState } from '@effectiveacceleration/contracts';
 import useUser from '@/hooks/subsquid/useUser';
 import { useAccount } from 'wagmi';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface JobsTableProps<T> {
   table: Table<T>;
@@ -22,6 +24,7 @@ function JobsTable<T>({
   emptyMessage,
   emptySubtext,
 }: JobsTableProps<T>) {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [jobCount, setJobCount] = useState(0);
   const [dataRow, setDataRow] = useState(false);
@@ -68,8 +71,12 @@ function JobsTable<T>({
         </div>
       </div>
     );
-  }
 
+  };
+
+  const handleRowClick = (url: string) => {
+    router.push(url);
+  };
   return (
     <div className='overflow-hidden rounded-2xl bg-white shadow-lg'>
       <div className='border-b border-gray-200 px-6 py-4'>
@@ -116,28 +123,32 @@ function JobsTable<T>({
                     </td>
                   </tr>
                 ))
-              : table.getRowModel().rows.map((row, index) => (
-                  <tr
-                    key={index}
-                    className='transition-colors duration-150 hover:bg-gray-50'
-                  >
-                    {row.getVisibleCells().map((cell, index) => (
-                      <td
-                        key={index}
-                        className={`px-6 py-4 text-sm text-gray-900 ${
-                          index === row.getVisibleCells().length - 1
-                            ? 'text-right'
-                            : ''
-                        }`}
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
+                : table.getRowModel().rows.map((row, index) => {
+                  const dataUrl = (row.original as any).jobName.props['data-url'];
+                  return (
+                    <tr
+                      key={index}
+                      className='transition-colors duration-150 hover:bg-gray-50 cursor-pointer'
+                      onClick={() => handleRowClick(dataUrl)}
+                    >
+                      {row.getVisibleCells().map((cell, index) => (
+                        <td
+                          key={index}
+                          className={`px-6 py-4 text-sm text-gray-900 ${
+                            index === row.getVisibleCells().length - 1
+                              ? 'text-right'
+                              : ''
+                          }`}
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
           </tbody>
         </table>
       </div>

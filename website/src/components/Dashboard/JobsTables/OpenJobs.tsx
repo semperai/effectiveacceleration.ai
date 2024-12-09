@@ -26,9 +26,9 @@ const columns = [
 export const OpenJobs = ({ jobs }: { jobs: Job[] }) => {
   const defaultData: TOpenJobTable[] = jobs.map((job, index) => ({
     jobName: (
-      <Link key={index} href={`/dashboard/jobs/${job.id}`} className='font-bold'>
-        {job.title}
-      </Link>
+        <span data-url={`/dashboard/jobs/${job.id}`}>
+          {job.title}
+        </span>
     ),
     tags: job.tags.map((tag, index) => (
       <span key={index} className='rounded-full bg-[#E1FFEF] px-3 py-2 text-sm text-[#23B528]'>
