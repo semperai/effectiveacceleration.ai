@@ -21,12 +21,12 @@ const columns = [
 
 export const DisputedJobs = ({ jobs }: { jobs: Job[] }) => {
   const defaultData: TDisputedTable[] = jobs.map((job, index) => ({
-    jobName: <span key={index} className='font-bold'>{job.title}</span>,
-    arbitrationStatus: <span key={index} className=''>ArbitrationStatus</span>,
-    disputedAmount: <span key={index} className='font-md'>{job?.amount}</span>,
+    jobName: <span key={'disputed'+index} className='font-bold'>{job.title}</span>,
+    arbitrationStatus: <span key={'disputed'+index} className=''>ArbitrationStatus</span>,
+    disputedAmount: <span key={'disputed'+index} className='font-md'>{job?.amount}</span>,
     timeSpentDispute: (
-      <Link key={index} href={`/dashboard/jobs/${job.id?.toString()}`}>
-        <span key={index} className='font-md font-semibold text-primary underline'>
+      <Link key={'disputed'+index} href={`/dashboard/jobs/${job.id?.toString()}`}>
+        <span className='font-md font-semibold text-primary underline'>
           View Details
         </span>
       </Link>

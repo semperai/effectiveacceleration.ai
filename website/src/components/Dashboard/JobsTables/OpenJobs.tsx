@@ -30,7 +30,7 @@ export const OpenJobs = ({ jobs }: { jobs: Job[] }) => {
         {job.title}
       </Link>
     ),
-    tags: job.tags.map((tag) => (
+    tags: job.tags.map((tag, index) => (
       <span key={index} className='rounded-full bg-[#E1FFEF] px-3 py-2 text-sm text-[#23B528]'>
         {tag}
       </span>

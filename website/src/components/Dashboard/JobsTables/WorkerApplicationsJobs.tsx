@@ -22,7 +22,7 @@ export const WorkerApplicationsJobs = ({ jobs }: { jobs: Job[] }) => {
   const defaultData: TInProgressTable[] = jobs.map((job, index) => ({
     jobName: <span key={index} className='font-bold'>{job.title}</span>,
     assignedTo: <span key={index} className='font-md'>{job.roles.worker ?? ''}</span>,
-    tags: job.tags.map((tag) => (
+    tags: job.tags.map((tag, index) => (
       <span key={index} className='rounded-full bg-[#E1FFEF] px-3 py-2 text-sm text-[#23B528]'>
         {tag}
       </span>
