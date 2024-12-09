@@ -79,14 +79,14 @@ function JobsTable<T>({
       <div className='overflow-x-auto'>
         <table className='w-full'>
           <thead>
-            {table.getHeaderGroups().map((headerGroup) => (
+            {table.getHeaderGroups().map((headerGroup, index) => (
               <tr
-                key={headerGroup.id}
+                key={index}
                 className='border-b border-gray-200 bg-gray-50'
               >
                 {headerGroup.headers.map((header, index) => (
                   <th
-                    key={header.id}
+                    key={index}
                     className={`px-6 py-3 text-left text-sm font-medium text-gray-500 ${
                       title === 'Opens Jobs' ? 'max-w-6' : ''
                     } ${
@@ -116,14 +116,14 @@ function JobsTable<T>({
                     </td>
                   </tr>
                 ))
-              : table.getRowModel().rows.map((row) => (
+              : table.getRowModel().rows.map((row, index) => (
                   <tr
-                    key={row.id}
+                    key={index}
                     className='transition-colors duration-150 hover:bg-gray-50'
                   >
                     {row.getVisibleCells().map((cell, index) => (
                       <td
-                        key={cell.id}
+                        key={index}
                         className={`px-6 py-4 text-sm text-gray-900 ${
                           index === row.getVisibleCells().length - 1
                             ? 'text-right'
