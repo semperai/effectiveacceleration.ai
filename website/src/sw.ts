@@ -35,7 +35,7 @@ self.addEventListener('push', function(event) {
   let data: JobEventMessage | BroadcastMessage | undefined;
 
   const payload = event.data?.text();
-console.log(payload, event, event.data);
+
   try {
     data = JSON5.parse(payload!);
   } catch {}
@@ -119,7 +119,7 @@ console.log(payload, event, event.data);
 
   // Keep the service worker alive until the notification is created.
   event.waitUntil(
-    self.registration.showNotification("Effective Acceleration", {
+    self.registration.showNotification('Effective Acceleration', {
       body: body,
       data: data,
       icon: "/favicon.svg",
@@ -128,7 +128,7 @@ console.log(payload, event, event.data);
   );
 });
 
-self.addEventListener("notificationclick", (event) => {
+self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
   const url = event.notification.data?.jobId ? `${self.location.origin}/dashboard/jobs/${event.notification.data.jobId}` :
@@ -137,9 +137,11 @@ self.addEventListener("notificationclick", (event) => {
     );
 
   event.waitUntil(
-    self.clients.matchAll({ type: "window" }).then(async (clientsArr) => {
+    self.clients.matchAll({ type: 'window' }).then(async (clientsArr) => {
       // If a Window tab matching the targeted URL already exists, focus that;
-      const windowClientToFocus = clientsArr.find((windowClient) => windowClient.url === url);
+      const windowClientToFocus = clientsArr.find(
+        (windowClient) => windowClient.url === url
+      );
       if (windowClientToFocus) {
         windowClientToFocus.focus();
         return;
@@ -153,10 +155,10 @@ self.addEventListener("notificationclick", (event) => {
       }
 
       // safari fix
-      const windowClient = clientsArr.find(c => c.focused) ?? clientsArr[0];
+      const windowClient = clientsArr.find((c) => c.focused) ?? clientsArr[0];
       windowClient?.navigate(url);
       windowClient.focus();
-    }),
+    })
   );
 });
 

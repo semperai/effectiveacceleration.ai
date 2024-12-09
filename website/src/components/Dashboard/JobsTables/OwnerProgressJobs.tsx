@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import JobsTable from './JobsTable';
-import {
-  LocalStorageJob,
-  TInProgressTable,
-} from '@/service/JobsService';
+import { LocalStorageJob, TInProgressTable } from '@/service/JobsService';
 import {
   useReactTable,
   getCoreRowModel,
@@ -23,17 +20,11 @@ const columns = [
   columnBuilder(columnHelper, 'actions', 'Actions'),
 ];
 
-export const OwnerProgressJobs = ({
-  filteredJobs,
-  localJobs,
-}: {
-  filteredJobs: Job[];
-  localJobs: Job[];
-}) => {
-  const defaultData: TInProgressTable[] = filteredJobs.map((job) => ({
+export const OwnerProgressJobs = ({ jobs }: { jobs: Job[] }) => {
+  const defaultData: TInProgressTable[] = jobs.map((job) => ({
     jobName: <span className='font-bold'>{job.title}</span>,
     assignedTo: <span className='font-md'>{job.roles.worker ?? ''}</span>,
-    tags: job.tags.map(tag => (
+    tags: job.tags.map((tag) => (
       <span className='rounded-full bg-[#E1FFEF] px-3 py-2 text-sm text-[#23B528]'>
         {tag}
       </span>
@@ -57,7 +48,7 @@ export const OwnerProgressJobs = ({
   return (
     <JobsTable
       table={table}
-      localJobs={localJobs}
+      jobs={jobs}
       title='In Progress'
       emptyMessage='No jobs in progress found'
       emptySubtext='Why not try creating more jobs?'

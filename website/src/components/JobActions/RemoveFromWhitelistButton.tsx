@@ -1,16 +1,15 @@
 import { Button } from '@/components/Button';
 import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
-import { Dialog, Transition } from '@headlessui/react';
-import { CheckIcon } from '@heroicons/react/20/solid';
-import { Job } from '@effectiveacceleration/contracts';
-import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
-import { Fragment, useEffect, useState } from 'react';
-import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
-import { Listbox, ListboxOption } from '../Listbox';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
-import { Loader2 } from 'lucide-react';
+import { Job } from '@effectiveacceleration/contracts';
+import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
+import { Dialog, Transition } from '@headlessui/react';
+import { CheckIcon } from '@heroicons/react/20/solid';
+import * as Sentry from '@sentry/nextjs';
+import { Fragment, useState } from 'react';
+import { Listbox, ListboxOption } from '../Listbox';
 
 export type RemoveFromWhitelistButtonProps = {
   address: string | undefined;
@@ -51,7 +50,8 @@ export function RemoveFromWhitelistButton({
         args: [BigInt(job.id!), [], [selectedUserAddress!]],
       });
     } catch (err: any) {
-      showError(`Error Removing job: ${err.message}`);
+      Sentry.captureException(err);
+      showError(`Error removing from whitelist: ${err.message}`);
     } finally {
       setIsRemoving(false);
     }

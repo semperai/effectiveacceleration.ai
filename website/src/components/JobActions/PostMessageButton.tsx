@@ -1,17 +1,17 @@
 import { Button } from '@/components/Button';
-import { useRouter } from 'next/navigation';
 import useUser from '@/hooks/subsquid/useUser';
-import { Job, publishToIpfs } from '@effectiveacceleration/contracts';
-import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { PiPaperPlaneRight } from 'react-icons/pi';
-import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
-import { Textarea } from '../Textarea';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
-import { Loader2 } from 'lucide-react';
+import { Job, publishToIpfs } from '@effectiveacceleration/contracts';
+import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
+import * as Sentry from '@sentry/nextjs';
 import { ZeroHash } from 'ethers';
+import { Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useCallback, useRef, useState } from 'react';
+import { PiPaperPlaneRight } from 'react-icons/pi';
+import { Textarea } from '../Textarea';
 
 export type PostMessageButtonProps = {
   address: string | undefined;
@@ -39,7 +39,6 @@ export function PostMessageButton({
   const [isPostingMessage, setIsPostingMessage] = useState(false);
   const { showError, showSuccess, showLoading, toast } = useToast();
 
-
   const loadingToastIdRef = useRef<string | number | null>(null);
 
   // Cleanup function for dismissing loading toasts
@@ -49,7 +48,6 @@ export function PostMessageButton({
       loadingToastIdRef.current = null;
     }
   }, [toast]);
-
 
   const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
     useWriteContractWithNotifications();
@@ -65,13 +63,12 @@ export function PostMessageButton({
 
     if (message.length > 0) {
       dismissLoadingToast();
-      loadingToastIdRef.current = showLoading(
-        'Publishing job post to IPFS...'
-      );
+      loadingToastIdRef.current = showLoading('Publishing job post to IPFS...');
       try {
         const { hash } = await publishToIpfs(message, sessionKey);
         contentHash = hash;
       } catch (err) {
+        Sentry.captureException(err);
         dismissLoadingToast();
         showError('Failed to publish job post to IPFS');
         setIsPostingMessage(false);
@@ -89,6 +86,7 @@ export function PostMessageButton({
         args: [BigInt(job.id!), contentHash, selectedUserRecipient],
       });
     } catch (err: any) {
+      Sentry.captureException(err);
       showError(`Error posting job message: ${err.message}`);
     } finally {
       setIsPostingMessage(false);

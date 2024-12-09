@@ -70,21 +70,21 @@ const JobButtonActions = ({
             job.rating === 0 &&
             job.resultHash !== zeroHash &&
             address === job.roles.creator && (
-              <ReviewButton address={address} job={job}></ReviewButton>
+              <ReviewButton address={address} job={job} />
             )}
           {job.state === JobState.Open && address === job.roles.creator && (
-            <CloseButton address={address} job={job}></CloseButton>
+            <CloseButton job={job} />
           )}
           {job.state === JobState.Closed &&
             address === job.roles.creator &&
             job.resultHash === zeroHash && (
-              <ReopenButton address={address} job={job}></ReopenButton>
+              <ReopenButton job={job} />
             )}
           {job.state === JobState.Closed &&
             address === job.roles.creator &&
             job.collateralOwed > 0n &&
             timePassed && (
-              <WithdrawCollateralButton address={address} job={job} />
+              <WithdrawCollateralButton job={job} />
             )}
           {job.state === JobState.Open &&
             address === job.roles.creator &&
@@ -112,7 +112,7 @@ const JobButtonActions = ({
 
           {/* worker actions */}
           {job.state === JobState.Taken && address === job.roles.worker && (
-            <RefundButton address={address} job={job}></RefundButton>
+            <RefundButton job={job} />
           )}
           {job.state === JobState.Open &&
             address === job.roles.worker &&

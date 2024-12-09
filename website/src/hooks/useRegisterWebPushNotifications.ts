@@ -3,7 +3,7 @@ import { watchAccount } from '@wagmi/core';
 import { config } from '@/app/providers';
 
 function urlBase64ToUint8Array(base64String: string) {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding)
     .replace(/\-/g, '+')
     .replace(/_/g, '/');
@@ -19,35 +19,45 @@ function urlBase64ToUint8Array(base64String: string) {
 
 let requested = false;
 
-export const subscribeToWebPushNotifications = async (address: string | undefined, prevAddress?: string) => {
+export const subscribeToWebPushNotifications = async (
+  address: string | undefined,
+  prevAddress?: string
+) => {
   if (!prevAddress) {
-    prevAddress = localStorage.getItem('WebPushNotificationsAddress') ?? undefined;
+    prevAddress =
+      localStorage.getItem('WebPushNotificationsAddress') ?? undefined;
   }
 
   const registration = (await navigator.serviceWorker.getRegistration())!;
   let subscription = await registration.pushManager.getSubscription();
 
   if (subscription && address !== prevAddress) {
-    console.log("Unsubscribing from existing web push notifications subscription");
+    console.log(
+      'Unsubscribing from existing web push notifications subscription'
+    );
     await subscription.unsubscribe();
     localStorage.removeItem('WebPushNotificationsAddress');
     subscription = null;
   }
-    // If a subscription was found, return it.
+  // If a subscription was found, return it.
   if (!subscription && address) {
     console.log('Registering for web push notifications');
     // Get the server's public key
-    const response = await fetch(`${process.env.NEXT_PUBLIC_PUSH_SERVICE_URL}/vapidPublicKey`);
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_PUSH_SERVICE_URL}/vapidPublicKey`
+    );
     const vapidPublicKey = await response.text();
     // Chrome doesn't accept the base64-encoded (string) vapidPublicKey yet
     // urlBase64ToUint8Array() is defined in /tools.js
     const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
 
     // check perfmissions
-    if (await registration.pushManager.permissionState({
-      userVisibleOnly: true,
-      applicationServerKey: convertedVapidKey
-    }) === 'denied') {
+    if (
+      (await registration.pushManager.permissionState({
+        userVisibleOnly: true,
+        applicationServerKey: convertedVapidKey,
+      })) === 'denied'
+    ) {
       return;
     }
 
@@ -55,7 +65,7 @@ export const subscribeToWebPushNotifications = async (address: string | undefine
     // send notifications that don't have a visible effect for the user).
     subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: convertedVapidKey
+      applicationServerKey: convertedVapidKey,
     });
 
     const json = subscription.toJSON();
@@ -66,10 +76,10 @@ export const subscribeToWebPushNotifications = async (address: string | undefine
       await fetch(`${process.env.NEXT_PUBLIC_PUSH_SERVICE_URL}/register`, {
         method: 'post',
         headers: {
-          'Content-type': 'application/json'
+          'Content-type': 'application/json',
         },
         body: JSON.stringify({
-          subscription: json
+          subscription: json,
         }),
       });
 
@@ -83,7 +93,7 @@ export const subscribeToWebPushNotifications = async (address: string | undefine
       await subscription.unsubscribe();
     }
   }
-}
+};
 
 export const unsubscribeFromWebPushNotifications = async () => {
   const registration = (await navigator.serviceWorker.getRegistration())!;
@@ -134,17 +144,17 @@ export const useRegisterWebPushNotifications = () => {
 
       await subscribeToWebPushNotifications(account, prevAccount);
 
-      window.removeEventListener("mousedown", handler);
+      window.removeEventListener('mousedown', handler);
       requested = false;
       // window.removeEventListener("touchstart", handler);
       // window.removeEventListener("scroll", handler);
     };
 
-    window.addEventListener("mousedown", handler);
+    window.addEventListener('mousedown', handler);
 
     return () => {
-      window.removeEventListener("mousedown", handler);
+      window.removeEventListener('mousedown', handler);
       requested = false;
-    }
+    };
   }, [account, prevAccount]);
 };

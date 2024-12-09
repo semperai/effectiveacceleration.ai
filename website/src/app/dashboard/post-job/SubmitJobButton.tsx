@@ -12,6 +12,7 @@ import { type Address } from 'viem';
 import { useAccount, useReadContract } from 'wagmi';
 import { ApproveButton } from './ApproveButton';
 import { useRouter } from 'next/navigation';
+import * as Sentry from '@sentry/nextjs';
 
 interface SubmitJobButtonProps {
   title: string;
@@ -95,6 +96,7 @@ export const SubmitJobButton = ({
           const { hash } = await publishToIpfs(description);
           contentHash = hash;
         } catch (err) {
+          Sentry.captureException(err);
           dismissLoadingToast();
           showError('Failed to publish job post to IPFS');
           setIsSubmitting(false);
@@ -138,6 +140,7 @@ export const SubmitJobButton = ({
         },
       });
     } catch (err) {
+      Sentry.captureException(err);
       onError?.(err as Error);
     } finally {
       setIsSubmitting(false);

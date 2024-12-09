@@ -1,17 +1,16 @@
 import { Button } from '@/components/Button';
-import { Dialog, Transition } from '@headlessui/react';
+import { useConfig } from '@/hooks/useConfig';
+import { useToast } from '@/hooks/useToast';
+import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import { Job, publishToIpfs } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
-import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
+import { Dialog, Transition } from '@headlessui/react';
+import * as Sentry from '@sentry/nextjs';
+import { ZeroHash } from 'ethers';
+import { Fragment, useCallback, useRef, useState } from 'react';
 import { Field, Label } from '../Fieldset';
 import { Input } from '../Input';
 import { Textarea } from '../Textarea';
-import { useConfig } from '@/hooks/useConfig';
-import { Loader2 } from 'lucide-react';
-import { useToast } from '@/hooks/useToast';
-import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
-import { ZeroHash } from 'ethers';
 
 export type ArbitrateButtonProps = {
   address: string | undefined;
@@ -43,7 +42,6 @@ export function ArbitrateButton({
     }
   }, [toast]);
 
-
   const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
     useWriteContractWithNotifications();
 
@@ -58,13 +56,12 @@ export function ArbitrateButton({
 
     if (message.length > 0) {
       dismissLoadingToast();
-      loadingToastIdRef.current = showLoading(
-        'Publishing job post to IPFS...'
-      );
+      loadingToastIdRef.current = showLoading('Publishing job post to IPFS...');
       try {
         const { hash } = await publishToIpfs(message, sessionKey);
         contentHash = hash;
       } catch (err) {
+        Sentry.captureException(err);
         dismissLoadingToast();
         showError('Failed to publish job post to IPFS');
         setIsArbitrating(false);
@@ -82,7 +79,8 @@ export function ArbitrateButton({
         args: [BigInt(job.id!), ownerShare, workerShare, contentHash],
       });
     } catch (err: any) {
-      showError(`Error Arbitrating job: ${err.message}`);
+      Sentry.captureException(err);
+      showError(`Error arbitrating job: ${err.message}`);
     } finally {
       setIsArbitrating(false);
     }

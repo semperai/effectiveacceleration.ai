@@ -7,16 +7,15 @@ import {
 } from '@/components/Fieldset';
 import { Listbox, ListboxLabel, ListboxOption } from '@/components/Listbox';
 import { Textarea } from '@/components/Textarea';
-import { Dialog, Transition } from '@headlessui/react';
-import { CheckIcon } from '@heroicons/react/20/solid';
-import { Job } from '@effectiveacceleration/contracts';
-import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
-import { Fragment, useEffect, useState } from 'react';
-import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
-import { Loader2 } from 'lucide-react';
+import { Job } from '@effectiveacceleration/contracts';
+import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
+import { Dialog, Transition } from '@headlessui/react';
+import { CheckIcon } from '@heroicons/react/20/solid';
+import * as Sentry from '@sentry/nextjs';
+import { Fragment, useState } from 'react';
 
 export type ReviewButtonProps = {
   address: string | undefined;
@@ -55,7 +54,8 @@ export function ReviewButton({
         args: [BigInt(job.id!), rating, review],
       });
     } catch (err: any) {
-      showError(`Error ReviewingisReviewing job: ${err.message}`);
+      Sentry.captureException(err);
+      showError(`Error reviewing job: ${err.message}`);
     } finally {
       setIsReviewing(false);
       setIsOpen(false);
@@ -115,7 +115,7 @@ export function ReviewButton({
                     as='h3'
                     className='text-lg font-medium leading-6 text-gray-900'
                   >
-                    Leave A Reviewww
+                    Leave A Review
                   </Dialog.Title>
                   <div className='mb-3 mt-5 flex flex-col gap-5'>
                     <Fieldset className='w-full'>

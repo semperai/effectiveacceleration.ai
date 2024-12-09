@@ -2,9 +2,9 @@ import { ReactNode } from 'react';
 
 export type TOpenJobTable = {
   jobName: ReactNode;
-  description: ReactNode;
+  deadline: ReactNode;
+  reward: ReactNode;
   tags: ReactNode;
-  actions: ReactNode;
 };
 
 export type TInProgressTable = {

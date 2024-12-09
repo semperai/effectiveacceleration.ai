@@ -46,8 +46,10 @@ const Test = () => {
   const [tokenSelectionDialogOpen, setTokenSelectionDialogOpen] =
     useState(false);
   const [selectableTokens, setSelectableTokens] = useState<any>();
-  const { data: jobEvents } = useJobEventsWithDiffs("1");
-  const [subscribeAddress, setSubscribeAddress] = useState<string>("0x66c402694eEe2235E892B950c9b330e5603FEbe1");
+  const { data: jobEvents } = useJobEventsWithDiffs('1');
+  const [subscribeAddress, setSubscribeAddress] = useState<string>(
+    '0x66c402694eEe2235E892B950c9b330e5603FEbe1'
+  );
 
   const publish = useCallback(
     async (file: File) => {
@@ -92,20 +94,22 @@ const Test = () => {
 
     const event = jobEvents[0];
     (event.details as JobCreatedEvent).arbitrator = subscribeAddress;
-    console.log(event, event.jobId);
 
-    await fetch(`${process.env.NEXT_PUBLIC_PUSH_SERVICE_URL}/sendNotification`, {
-      method: 'post',
-      headers: {
-        'Content-type': 'application/json'
-      },
-      body: JSON5.stringify({
-        subscription: subscription,
-        payload: JSON5.stringify(event),
-        delay: delay,
-        ttl: ttl,
-      }),
-    });
+    await fetch(
+      `${process.env.NEXT_PUBLIC_PUSH_SERVICE_URL}/sendNotification`,
+      {
+        method: 'post',
+        headers: {
+          'Content-type': 'application/json',
+        },
+        body: JSON5.stringify({
+          subscription: subscription,
+          payload: JSON5.stringify(event),
+          delay: delay,
+          ttl: ttl,
+        }),
+      }
+    );
   }, [jobEvents, subscribeAddress]);
 
   return (
@@ -117,7 +121,6 @@ const Test = () => {
         <Button onClick={unsubscribeFromNotifications}>Unsubscribe</Button>
         <Button onClick={sendTestNotification}>Send test notification</Button>
       </div>
-
       <div className='border-4 border-solid p-5'>
         <strong>File upload test</strong>
         <div>

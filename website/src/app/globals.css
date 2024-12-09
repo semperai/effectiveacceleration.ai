@@ -9,6 +9,7 @@
 }
 
 body {
+  font-family: "Plus Jakarta Sans";
 }
 
 @layer utilities {

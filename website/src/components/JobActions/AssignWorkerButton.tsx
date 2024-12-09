@@ -1,16 +1,18 @@
 import { Button } from '@/components/Button';
 import useUsers from '@/hooks/subsquid/useUsers';
-import { formatTokenNameAndAmount } from '@/tokens';
-import { jobMeceTags } from '@/utils/jobMeceTags';
-import { Dialog, Transition } from '@headlessui/react';
-import { Job } from '@effectiveacceleration/contracts';
-import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
-import moment from 'moment';
-import { Fragment, useEffect, useState } from 'react';
-import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
+import { formatTokenNameAndAmount } from '@/tokens';
+import { jobMeceTags } from '@/utils/jobMeceTags';
+import { Job } from '@effectiveacceleration/contracts';
+import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
+import { Dialog, Transition } from '@headlessui/react';
+import * as Sentry from '@sentry/nextjs';
+import moment from 'moment';
+import { Fragment, useState } from 'react';
+
+
 
 export type AssignWorkerButtonProps = {
   address: string | undefined;
@@ -45,7 +47,8 @@ export function AssignWorkerButton({
         args: [BigInt(job.id!), selectedWorker],
       });
     } catch (err: any) {
-      showError(`Error Assigning job: ${err.message}`);
+      Sentry.captureException(err);
+      showError(`Error assigning worker to job: ${err.message}`);
     } finally {
       setIsAssigning(false);
     }

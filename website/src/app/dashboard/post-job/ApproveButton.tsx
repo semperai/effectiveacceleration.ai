@@ -7,6 +7,7 @@ import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithN
 import ERC20Abi from '@/abis/ERC20.json';
 import { Alert, AlertDescription } from '@/components/Alert';
 import { Loader2 } from 'lucide-react';
+import * as Sentry from '@sentry/nextjs';
 
 interface ApproveButtonProps {
   token: Address;
@@ -75,6 +76,7 @@ export const ApproveButton = ({
         args: [spender, MaxUint256],
       });
     } catch (err) {
+      Sentry.captureException(err);
       setIsApproving(false);
       onApproveError?.(err as Error);
     }

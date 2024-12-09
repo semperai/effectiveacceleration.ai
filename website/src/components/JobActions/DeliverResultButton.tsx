@@ -1,15 +1,15 @@
 import { Button } from '@/components/Button';
-import { Dialog, Transition } from '@headlessui/react';
-import { CheckIcon } from '@heroicons/react/20/solid';
-import { Job, publishToIpfs } from '@effectiveacceleration/contracts';
-import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
-import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
-import { Textarea } from '../Textarea';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
+import { Job, publishToIpfs } from '@effectiveacceleration/contracts';
+import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
+import { Dialog, Transition } from '@headlessui/react';
+import { CheckIcon } from '@heroicons/react/20/solid';
+import * as Sentry from '@sentry/nextjs';
 import { ZeroHash } from 'ethers';
+import { Fragment, useCallback, useRef, useState } from 'react';
+import { Textarea } from '../Textarea';
 
 export type DeliverResultButtonProps = {
   address: string | undefined;
@@ -31,31 +31,30 @@ export function DeliverResultButton({
   const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
     useWriteContractWithNotifications();
 
-    const loadingToastIdRef = useRef<string | number | null>(null);
+  const loadingToastIdRef = useRef<string | number | null>(null);
 
-    // Cleanup function for dismissing loading toasts
-    const dismissLoadingToast = useCallback(() => {
-      if (loadingToastIdRef.current !== null) {
-        toast.dismiss(loadingToastIdRef.current);
-        loadingToastIdRef.current = null;
-      }
-    }, [toast]);
+  // Cleanup function for dismissing loading toasts
+  const dismissLoadingToast = useCallback(() => {
+    if (loadingToastIdRef.current !== null) {
+      toast.dismiss(loadingToastIdRef.current);
+      loadingToastIdRef.current = null;
+    }
+  }, [toast]);
 
   async function handleDeliver() {
     setIsDelivering(true);
 
     let contentHash = ZeroHash;
     const sessionKey = sessionKeys[`${address}-${job.roles.creator}`];
-    
+
     if (message.length > 0) {
       dismissLoadingToast();
-      loadingToastIdRef.current = showLoading(
-        'Publishing job post to IPFS...'
-      );
+      loadingToastIdRef.current = showLoading('Publishing job post to IPFS...');
       try {
         const { hash } = await publishToIpfs(message, sessionKey);
         contentHash = hash;
       } catch (err) {
+        Sentry.captureException(err);
         dismissLoadingToast();
         showError('Failed to publish job post to IPFS');
         setIsDelivering(false);
@@ -65,7 +64,6 @@ export function DeliverResultButton({
       showSuccess('Job post published to IPFS');
     }
 
-
     try {
       await writeContractWithNotifications({
         abi: MARKETPLACE_V1_ABI,
@@ -74,7 +72,8 @@ export function DeliverResultButton({
         args: [BigInt(job.id!), contentHash],
       });
     } catch (err: any) {
-      showError(`Error Delivering job: ${err.message}`);
+      Sentry.captureException(err);
+      showError(`Error delivering job: ${err.message}`);
     } finally {
       setIsDelivering(false);
     }

@@ -16,6 +16,8 @@ Effective Acceleration is a monorepo:
 
 - **/subsquid** backend service for managing subgraph queries
 
+- **/notifications** backend service for sending web push notifications
+
 ## Documentation
 
 View the full documentation at https://docs.effectiveacceleration.ai/

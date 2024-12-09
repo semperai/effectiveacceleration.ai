@@ -30,7 +30,7 @@ import {
   TooltipContent,
 } from '@/components/Tooltip';
 import welcomeHeader from '@/images/welcome-header.webp';
-import logoLight from '@/images/logo-light.png';
+import tokenLogo from '@/images/token-logo-box.png';
 
 // Stats for the platform
 const platformStats = {
@@ -298,7 +298,7 @@ const TokenSection = () => {
   return (
     <div className='rounded-2xl bg-gray-50 p-8'>
       <div className='mb-6 flex items-center gap-6'>
-        <Image src={logoLight} alt='EACC Token' width={80} height={80} />
+        <Image src={tokenLogo} alt='EACC Token' width={80} height={80} />
         <div>
           <h2 className='mb-2 text-2xl font-bold'>$EACC Token</h2>
           <p className='text-gray-600'>Governance and utility token</p>
