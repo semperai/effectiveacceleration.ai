@@ -12,6 +12,7 @@ import * as Sentry from '@sentry/nextjs';
 
 import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
+import { useApolloClient } from '@apollo/client';
 
 type ParsedEvent = {
   contractName: string;
@@ -81,6 +82,7 @@ type WriteContractConfig = {
 };
 
 export function useWriteContractWithNotifications() {
+  const client = useApolloClient();
   const { showError, showSuccess, showLoading, toast } = useToast();
   const { data: hash, error, writeContract, isError } = useWriteContract();
   const onSuccessCallbackRef = useRef<
@@ -199,6 +201,11 @@ export function useWriteContractWithNotifications() {
       showSuccess('Transaction confirmed successfully!');
       const parsedEvents = parseEvents(receipt);
       onSuccessCallbackRef.current?.(receipt, parsedEvents);
+
+      setTimeout(() => {
+        console.log('Resetting gql cache');
+        client.resetStore();
+      }, 2000);
 
       // Log parsed events to console
       console.group('Transaction Events');

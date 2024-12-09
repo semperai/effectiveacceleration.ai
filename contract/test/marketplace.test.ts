@@ -2680,10 +2680,11 @@ describe("Marketplace Unit Tests", () => {
       const revision = await marketplaceData.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
+      const sessionKeyOW = await getSessionKey(user1, (await marketplaceData.connect(user1).users(user2.address)).publicKey, jobId);
       const sessionKeyOA = await getSessionKey(user1, (await marketplaceData.connect(user1).arbitrators(arbitrator.address)).publicKey, jobId);
 
-      const encryptedContent = hexlify(encryptUtf8Data("Objection!", sessionKeyOA));
-      const encryptedSessionKeyOW = hexlify(encryptBinaryData(getBytes("0x" + "00".repeat(32)), sessionKeyOA));
+      const encryptedContent = hexlify(encryptUtf8Data("Objection!", sessionKeyOW));
+      const encryptedSessionKeyOW = hexlify(encryptBinaryData(getBytes(sessionKeyOW), sessionKeyOA));
 
       await expect(
         marketplace.connect(user2).takeJob(jobId, signature)
@@ -2701,11 +2702,26 @@ describe("Marketplace Unit Tests", () => {
         expect(event.encryptedContent).to.equal(encryptedContent);
         expect(event.sessionKey).to.equal(undefined);
         expect(event.content).to.equal(undefined);
-        decryptJobDisputedEvent(event, sessionKeyOA);
-        expect(event.encryptedSessionKey).to.equal(encryptedSessionKeyOW);
-        expect(event.encryptedContent).to.equal(encryptedContent);
-        expect(event.sessionKey).to.equal("0x" + "00".repeat(32));
-        expect(event.content).to.equal("Objection!");
+
+        {
+          // arbitrator flow
+          const eventCopy = {...event};
+          decryptJobDisputedEvent(eventCopy, sessionKeyOA);
+          expect(eventCopy.encryptedSessionKey).to.equal(encryptedSessionKeyOW);
+          expect(eventCopy.encryptedContent).to.equal(encryptedContent);
+          expect(eventCopy.sessionKey).to.equal(sessionKeyOW);
+          expect(eventCopy.content).to.equal("Objection!");
+        }
+
+        {
+          // worker flow (3rd party)
+          const eventCopy = {...event};
+          decryptJobDisputedEvent(eventCopy, sessionKeyOW);
+          expect(eventCopy.encryptedSessionKey).to.equal(encryptedSessionKeyOW);
+          expect(eventCopy.encryptedContent).to.equal(encryptedContent);
+          expect(eventCopy.sessionKey).to.equal(undefined);
+          expect(eventCopy.content).to.equal("Objection!");
+        }
 
         return true;
       }).and.to.emit(unicrowDisputeGlobal, "Challenge");
@@ -2720,25 +2736,48 @@ describe("Marketplace Unit Tests", () => {
       const revision = await marketplaceData.eventsLength(jobId);
       const signature = await user2.signMessage(getBytes(ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [revision, jobId]))));
 
-      const content = toUtf8Bytes("Objection!");
-      const sessionKey = "0x" + "00".repeat(32);
+      const sessionKeyWO = await getSessionKey(user2, (await marketplaceData.connect(user2).users(user1.address)).publicKey, jobId);
+      const sessionKeyWA = await getSessionKey(user2, (await marketplaceData.connect(user2).arbitrators(arbitrator.address)).publicKey, jobId);
+
+      const encryptedContent = hexlify(encryptUtf8Data("Objection!", sessionKeyWO));
+      const encryptedSessionKeyWO = hexlify(encryptBinaryData(getBytes(sessionKeyWO), sessionKeyWA));
 
       await expect(
         marketplace.connect(user2).takeJob(jobId, signature)
       ).not.to.be.reverted;
 
       await expect(
-        marketplace.connect(user2).dispute(jobId, sessionKey, content)
+        marketplace.connect(user2).dispute(jobId, encryptedSessionKeyWO, encryptedContent)
       ).to.emit(marketplaceData, 'JobEvent').withArgs(jobId, (jobEventData: JobEventDataStructOutput) => {
         expect(jobEventData.timestamp_).to.be.greaterThan(0);
         expect(jobEventData.type_).to.equal(JobEventType.Disputed);
         expect(jobEventData.address_).to.equal(user2.address.toLowerCase());
 
         const event: JobDisputedEvent = decodeJobDisputedEvent(jobEventData.data_);
-        expect(event.encryptedSessionKey).to.equal(sessionKey);
-        expect(event.encryptedContent).to.equal(hexlify(content));
+        expect(event.encryptedSessionKey).to.equal(encryptedSessionKeyWO);
+        expect(event.encryptedContent).to.equal(encryptedContent);
         expect(event.sessionKey).to.equal(undefined);
         expect(event.content).to.equal(undefined);
+
+        {
+          // arbitrator flow
+          const eventCopy = {...event};
+          decryptJobDisputedEvent(eventCopy, sessionKeyWA);
+          expect(eventCopy.encryptedSessionKey).to.equal(encryptedSessionKeyWO);
+          expect(eventCopy.encryptedContent).to.equal(encryptedContent);
+          expect(eventCopy.sessionKey).to.equal(sessionKeyWO);
+          expect(eventCopy.content).to.equal("Objection!");
+        }
+
+        {
+          // owner flow (3rd party)
+          const eventCopy = {...event};
+          decryptJobDisputedEvent(eventCopy, sessionKeyWO);
+          expect(eventCopy.encryptedSessionKey).to.equal(encryptedSessionKeyWO);
+          expect(eventCopy.encryptedContent).to.equal(encryptedContent);
+          expect(eventCopy.sessionKey).to.equal(undefined);
+          expect(eventCopy.content).to.equal("Objection!");
+        }
 
         return true;
       }).and.not.to.emit(unicrowDisputeGlobal, "Challenge");
@@ -3270,7 +3309,7 @@ describe("Marketplace Unit Tests", () => {
       expect(sessionKeyOW).to.equal(sessionKeyWO);
       const sessionKeyOA = await getSessionKey(user1, (await marketplaceData.connect(user1).arbitrators(arbitrator.address)).publicKey, jobId);
 
-      const encryptedContent = hexlify(encryptUtf8Data(disputeContent, sessionKeyOA));
+      const encryptedContent = hexlify(encryptUtf8Data(disputeContent, sessionKeyOW));
       const encrypedSessionKey = hexlify(encryptBinaryData(getBytes(sessionKeyOW), sessionKeyOA));
 
       await marketplace.connect(user1).dispute(jobId, encrypedSessionKey, encryptedContent);
