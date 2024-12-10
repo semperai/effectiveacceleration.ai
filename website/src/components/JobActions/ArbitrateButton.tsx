@@ -52,7 +52,10 @@ export function ArbitrateButton({
     }
     setIsArbitrating(true);
     let contentHash = ZeroHash;
-    const sessionKey = sessionKeys[`${address}-${job.roles.creator}`];
+    const sessionKey = sessionKeys[`${job.roles.creator}-${job.roles.worker}`];
+    if (!sessionKey) {
+      throw new Error('ArbitrateButton: No session key found');
+    }
 
     if (message.length > 0) {
       dismissLoadingToast();

@@ -60,11 +60,17 @@ export default function useJobEventsWithDiffs(jobId: string) {
             ].includes(jobEvent.type_)
           )
           .map((event) => getAddress(event.address_));
+        const addressSet = new Set([
+          ...eventAddresses,
+          jobEventsWithDiffs[0].job.roles.creator,
+        ]);
+
+        if (signer) {
+          addressSet.add(signer.address);
+        }
+
         setAddresses([
-          ...new Set([
-            ...eventAddresses,
-            jobEventsWithDiffs[0].job.roles.creator,
-          ]),
+          ...addressSet
         ]);
         setArbitratorAddresses(
           [
@@ -77,7 +83,7 @@ export default function useJobEventsWithDiffs(jobId: string) {
         );
       }
     })();
-  }, [jobEventsWithDiffs]);
+  }, [jobEventsWithDiffs, signer]);
 
   useEffect(() => {
     (async () => {
@@ -143,6 +149,17 @@ export default function useJobEventsWithDiffs(jobId: string) {
               : initiator;
           sessionKeys_[`${initiator}-${other}`] = details.sessionKey!;
           sessionKeys_[`${other}-${initiator}`] = details.sessionKey!;
+        }
+      }
+
+      // force include a key from current user to job owner in case of first message
+      if (signer && signer.address !== ownerAddress) {
+        const otherPubkey = publicKeys.data?.[ownerAddress];
+        if (otherPubkey) {
+          sessionKeys_[`${ownerAddress}-${signer.address}`] =
+            await getSessionKey(signer as any, otherPubkey, jobId);
+          sessionKeys_[`${signer.address}-${ownerAddress}`] =
+            await getSessionKey(signer as any, otherPubkey, jobId);
         }
       }
 

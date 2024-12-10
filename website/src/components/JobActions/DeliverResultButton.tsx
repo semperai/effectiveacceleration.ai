@@ -45,7 +45,10 @@ export function DeliverResultButton({
     setIsDelivering(true);
 
     let contentHash = ZeroHash;
-    const sessionKey = sessionKeys[`${address}-${job.roles.creator}`];
+    const sessionKey = sessionKeys[`${job.roles.creator}-${address}`];
+    if (!sessionKey) {
+      throw new Error('DeliverReslutButton: No session key found');
+    }
 
     if (message.length > 0) {
       dismissLoadingToast();

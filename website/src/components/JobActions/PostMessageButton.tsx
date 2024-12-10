@@ -59,6 +59,9 @@ export function PostMessageButton({
     }
 
     const sessionKey = sessionKeys[`${address}-${selectedUserRecipient}`];
+    if (!sessionKey) {
+      throw new Error('PostMessageButton: No session key found');
+    }
     let contentHash = ZeroHash;
 
     if (message.length > 0) {
