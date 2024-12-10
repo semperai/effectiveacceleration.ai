@@ -22,7 +22,7 @@ const columns = [
 
 export const OwnerCancelledJobs = ({ jobs }: { jobs: Job[] }) => {
   const defaultData: TCancelledTable[] = jobs.map((job, index) => ({
-    jobName: <span key={'ownerCancelled'+index} className='font-bold'>{job.title}</span>,
+    jobName: <span data-url={`/dashboard/jobs/${job.id}`} key={'ownerCancelled'+index} className='font-bold'>{job.title}</span>,
     reason: <span key={'ownerCancelled'+index} className=''>Reason</span>,
     assignedTo: (
       <span key={'ownerCancelled'+index} className='font-md'>

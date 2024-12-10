@@ -21,7 +21,7 @@ const columns = [
 
 export const OwnerCompletedJobs = ({ jobs }: { jobs: Job[] }) => {
   const defaultData: TCompletedTable[] = jobs.map((job, index) => ({
-    jobName: <span key={'ownerCompleted'+'ownerCompleted'+index} className='font-bold'>{job.title}</span>,
+    jobName: <span data-url={`/dashboard/jobs/${job.id}`} key={'ownerCompleted'+index} className='font-bold'>{job.title}</span>,
     status: (
       <span key={'ownerCompleted'+index} className='rounded-full bg-[#E1FFEF] px-3 py-2 text-[#23B528]'>
         Completed

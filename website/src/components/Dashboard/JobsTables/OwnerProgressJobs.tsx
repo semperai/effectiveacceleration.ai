@@ -22,7 +22,7 @@ const columns = [
 
 export const OwnerProgressJobs = ({ jobs }: { jobs: Job[] }) => {
   const defaultData: TInProgressTable[] = jobs.map((job, index) => ({
-    jobName: <span key={'ownerProgress'+index} className='font-bold'>{job.title}</span>,
+    jobName: <span data-url={`/dashboard/jobs/${job.id}`} key={'ownerProgress'+index} className='font-bold'>{job.title}</span>,
     assignedTo: <span key={'ownerProgress'+index} className='font-md'>{job.roles.worker ?? ''}</span>,
     tags: job.tags.map((tag) => (
       <span key={'ownerProgress'+index} className='rounded-full bg-[#E1FFEF] px-3 py-2 text-sm text-[#23B528]'>
