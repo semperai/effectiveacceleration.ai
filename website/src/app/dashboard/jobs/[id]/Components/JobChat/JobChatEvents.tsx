@@ -11,6 +11,8 @@ import {
 } from '@effectiveacceleration/contracts/dist/src/interfaces';
 import JobChatStatus from './JobChatStatus';
 import useUser from '@/hooks/subsquid/useUser';
+import { useSearchParams } from 'next/navigation';
+import clsx from 'clsx';
 
 interface ResultAcceptedProps {
   job: Job;
@@ -28,6 +30,8 @@ const JobChatEvents: React.FC<ResultAcceptedProps> = ({
 }) => {
   const { data: user } = useUser(address!);
   const numberOfWorkers = Object.keys(users).length - 1; // -1 to exclude the creator;
+  const searchParams = useSearchParams();
+  const highlightedEventId = searchParams.get('eventId');
   return (
     <div className='row-span-4 max-h-customHeader overflow-y-auto border border-gray-100 bg-softBlue'>
       {selectedWorker && events.length > 0 ? (
@@ -43,7 +47,7 @@ const JobChatEvents: React.FC<ResultAcceptedProps> = ({
                         aria-hidden='true'
                       />
                     ) : null}
-                    <div className='relative flex items-start space-x-3'>
+                    <div className={clsx('relative flex items-start space-x-3', event.id === highlightedEventId ? 'border-r-2 border-r-yellow-600 border-dashed' : '')}>
                       {renderEvent({ event })}
                     </div>
                   </div>

@@ -554,7 +554,6 @@ processor.run(db, async (ctx) => {
                     sendPushNotification(oldArbitrator, jobEvent, ctx),
                     sendPushNotification(job.roles.arbitrator, jobEvent, ctx),
                   ]);
-
                 }
 
                 break;
