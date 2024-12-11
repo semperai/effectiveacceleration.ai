@@ -68,6 +68,18 @@ export default class SqlProvider {
     }));
   }
 
+  public async getSubscriptionsForManyAddresses(addresses: string[]): Promise<IPushSubscription[]> {
+    const text = this.formatter("SELECT * FROM push_subscription WHERE address IN (%L);", addresses);
+    const res = await this.db.query(text);
+    return res.rows.map((row) => ({
+      id: row.id,
+      address: row.address,
+      endpoint: row.endpoint,
+      expirationTime: row.expiration_time,
+      keys: row.keys,
+    }));
+  }
+
   public async getAddressSubscriptions(address: string): Promise<IPushSubscription[]> {
     const text = "SELECT * from push_subscription WHERE address = $1";
     const res = await this.db.query(text, [address]);

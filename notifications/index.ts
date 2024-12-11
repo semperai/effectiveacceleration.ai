@@ -91,11 +91,11 @@ app.use(basicAuth({
 
 type BroadcastMessage = { text: string, href?: string };
 
-export const broadcastNotification = async (message: BroadcastMessage) => {
+export const broadcastNotification = async (message: BroadcastMessage, addresses?: string[]) => {
   const payload = JSON.stringify(message);
-  console.log(`Broadcasting to everyone: '${payload}'`);
+  console.log(`Broadcasting${addresses?.length ? ` to select addresses (${JSON.stringify(addresses)}):\n` : ' to everyone: '}'${payload}'`);
 
-  const subscriptions = await provider.getAllSubscriptions();
+  const subscriptions = addresses?.length ? await provider.getSubscriptionsForManyAddresses(addresses) : await provider.getAllSubscriptions();
   const idsToRemove: number[] = [];
   let sent = 0;
   let failed = 0;
@@ -151,7 +151,7 @@ app.post("/broadcastNotification", async function (req, res) {
   const result = await broadcastNotification({
     text: req.body.text,
     href: req.body.href,
-  });
+  }, req.body.addresses);
   res.send(result);
 });
 
