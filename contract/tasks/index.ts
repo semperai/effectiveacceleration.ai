@@ -270,7 +270,6 @@ task("marketplace:seed", "Seed local marketplace instance")
     );
 
     await marketplace.connect(owner).payStartJob(0n, worker.address);
-    await marketplace.connect(worker).refund(0n);
     await marketplace.connect(arbitrator).refuseArbitration(0n);
 
     await marketplace.connect(owner).closeJob(0n);
