@@ -131,8 +131,16 @@ self.addEventListener('push', function(event) {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
-  const url = event.notification.data?.jobId ? `${self.location.origin}/dashboard/jobs/${event.notification.data.jobId}` :
-    (event.notification.data?.href ? `${self.location.origin}/redirect?url=${event.notification.data?.href}` :
+  let href = event.notification.data?.href;
+  if (href) {
+    const internal = href.includes(self.location.origin);
+    if (!internal) {
+      href = `${self.location.origin}/redirect?url=${event.notification.data?.href}`;
+    }
+  }
+
+  const url = event.notification.data?.jobId ? `${self.location.origin}/dashboard/jobs/${event.notification.data.jobId}?eventId=${event.notification.data.id}` :
+    (href ? href :
       `${self.location.origin}/dashboard`
     );
 
