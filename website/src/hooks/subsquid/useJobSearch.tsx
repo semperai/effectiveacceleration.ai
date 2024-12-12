@@ -10,6 +10,8 @@ export default function useJobSearch(jobSearch: Partial<Job>) {
         return `${key}_containsInsensitive: "${value}"`;
       } else if (typeof value === 'bigint') {
         return `${key}_eq: ${value.toString()}`;
+      } else if (Array.isArray(value)) {
+        return `${key}_containsAny: [${value.map(element => `"${element}"`).join(', ')}]`;
       } else {
         return `${key}_eq: ${value}`;
       }
