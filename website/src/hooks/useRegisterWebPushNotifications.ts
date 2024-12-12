@@ -23,44 +23,39 @@ export const subscribeToWebPushNotifications = async (
   address: string | undefined,
   prevAddress?: string
 ) => {
-  if (!prevAddress) {
-    prevAddress =
-      localStorage.getItem('WebPushNotificationsAddress') ?? undefined;
-  }
-
   const registration = (await navigator.serviceWorker.getRegistration())!;
   let subscription = await registration.pushManager.getSubscription();
 
-  if (subscription && address !== prevAddress) {
+  if (subscription && address !== prevAddress && address !== undefined) {
     console.log(
       'Unsubscribing from existing web push notifications subscription'
     );
     await subscription.unsubscribe();
-    localStorage.removeItem('WebPushNotificationsAddress');
     subscription = null;
   }
+
+  console.log('Registering for web push notifications');
+  // Get the server's public key
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_PUSH_SERVICE_URL}/vapidPublicKey`
+  );
+  const vapidPublicKey = await response.text();
+  // Chrome doesn't accept the base64-encoded (string) vapidPublicKey yet
+  // urlBase64ToUint8Array() is defined in /tools.js
+  const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+
+  // check perfmissions
+  if (
+    (await registration.pushManager.permissionState({
+      userVisibleOnly: true,
+      applicationServerKey: convertedVapidKey,
+    })) === 'denied'
+  ) {
+    return;
+  }
+
   // If a subscription was found, return it.
-  if (!subscription && address) {
-    console.log('Registering for web push notifications');
-    // Get the server's public key
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_PUSH_SERVICE_URL}/vapidPublicKey`
-    );
-    const vapidPublicKey = await response.text();
-    // Chrome doesn't accept the base64-encoded (string) vapidPublicKey yet
-    // urlBase64ToUint8Array() is defined in /tools.js
-    const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
-
-    // check perfmissions
-    if (
-      (await registration.pushManager.permissionState({
-        userVisibleOnly: true,
-        applicationServerKey: convertedVapidKey,
-      })) === 'denied'
-    ) {
-      return;
-    }
-
+  if (!subscription) {
     // Otherwise, subscribe the user (userVisibleOnly allows to specify that we don't plan to
     // send notifications that don't have a visible effect for the user).
     subscription = await registration.pushManager.subscribe({
@@ -69,7 +64,7 @@ export const subscribeToWebPushNotifications = async (
     });
 
     const json = subscription.toJSON();
-    (json as any).address = address;
+    (json as any).address = address ?? "0x";
 
     try {
       // Send the subscription details to the server using the Fetch API.
@@ -83,13 +78,7 @@ export const subscribeToWebPushNotifications = async (
         }),
       });
 
-      if (address) {
-        localStorage.setItem('WebPushNotificationsAddress', address);
-      } else {
-        localStorage.removeItem('WebPushNotificationsAddress');
-      }
     } catch {
-      localStorage.removeItem('WebPushNotificationsAddress');
       await subscription.unsubscribe();
     }
   }
@@ -106,7 +95,6 @@ export const unsubscribeFromWebPushNotifications = async () => {
   console.log("Unsubscribing from web push notifications");
 
   await subscription.unsubscribe();
-  localStorage.removeItem('WebPushNotificationsAddress');
 }
 
 export const useRegisterWebPushNotifications = () => {
@@ -130,9 +118,9 @@ export const useRegisterWebPushNotifications = () => {
 
   useEffect(() => {
     const handler = async () => {
-      if (!account && !prevAccount) {
-        return;
-      }
+      // if (!account && !prevAccount) {
+      //   return;
+      // }
 
       if (requested) {
         return;
