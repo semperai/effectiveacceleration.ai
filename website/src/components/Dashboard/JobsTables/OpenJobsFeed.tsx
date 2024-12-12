@@ -16,9 +16,9 @@ export const OpenJobsFeed = () => {
   const [selectedUnitTime, setSelectedUnitTime] = useState<ComboBoxOption>(unitsDeliveryTime[2]);
 
   const { data: jobs } = useJobSearch({
-    title: search,
+    ...(search && {title: search}),
     ...(tags.length > 0 && { tags: tags.map(tag => tag.name) }),
-  ...(minDeadline !== undefined && { maxTime: convertToSeconds(minDeadline, selectedUnitTime.name) }),    
+  ...(minDeadline !== undefined && { maxTime: convertToSeconds(minDeadline, selectedUnitTime.name) }),
   state: 0,
   ...(selectedToken && { token: selectedToken.id }),
 });
