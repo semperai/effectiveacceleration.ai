@@ -22,6 +22,8 @@ import {
 import useJobs from '@/hooks/subsquid/useJobs';
 import moment from 'moment';
 import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
+import useUserJobNotifications from '@/hooks/subsquid/useUserJobNotifications';
+import { useAccount } from 'wagmi';
 
 const environments: Record<string, string> = {
   Preview: 'text-gray-400 bg-gray-400/10 ring-gray-400/20',
@@ -29,15 +31,20 @@ const environments: Record<string, string> = {
 };
 
 export default function OpenJobsPage() {
+  const account = useAccount();
   const { data: jobs } = useJobs();
   const { data: users } = useUsersByAddresses(
     jobs?.map((job) => job.roles.creator) ?? []
   );
   console.log(users, 'ALL USERS');
+  const { data: userJobNotifications } = useUserJobNotifications(account?.address!, jobs?.map(job => job.id!) ?? []);
+
   return (
     <Layout>
       <h1 className='mb-8 ml-2 text-xl font-medium'>Open Jobs</h1>
-      {jobs?.map((job, idx) => (
+      {jobs?.map((job, idx) => {
+        const notificationsCount = userJobNotifications?.[job.id!]?.filter(notification => !notification.read).length ?? 0;
+        return (
         <li
           key={idx}
           className='relative flex items-center space-x-4 rounded-md px-2 py-4 transition ease-in-out hover:bg-zinc-50 dark:hover:bg-zinc-950'
@@ -93,12 +100,19 @@ export default function OpenJobsPage() {
               />
             </div>
           </div>
+          <div>
+            {notificationsCount > 0 && (
+              <span className='bg-rose-500 absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full text-xs font-medium text-white'>
+                {notificationsCount.toString()}
+              </span>
+            )}
+          </div>
           <ChevronRightIcon
             className='h-5 w-5 flex-none text-gray-400'
             aria-hidden='true'
           />
         </li>
-      ))}
+      )})}
 
       <Pagination className='mt-20'>
         <PaginationPrevious href='?page=2' />
