@@ -14,6 +14,8 @@ export const OpenJobsFeed = () => {
   const [selectedToken, setSelectedToken] = useState<Token | undefined>(undefined);
   const [minDeadline, setMinDeadline] = useState<number | undefined>(undefined);
   const [selectedUnitTime, setSelectedUnitTime] = useState<ComboBoxOption>(unitsDeliveryTime[2]);
+  const [minTokens, setMinTokens] = useState<number | undefined>(undefined);
+
 
   const { data: jobs } = useJobSearch({
     ...(search && {title: search}),
@@ -21,6 +23,7 @@ export const OpenJobsFeed = () => {
   ...(minDeadline !== undefined && { maxTime: convertToSeconds(minDeadline, selectedUnitTime.name) }),
   state: 0,
   ...(selectedToken && { token: selectedToken.id }),
+  // ...(minTokens && { amount: BigInt(minTokens) }), decimals cannot be converted to bigInt, every job has decimals tokens, will comment this for now
 });
   return (
     <div>
@@ -34,7 +37,10 @@ export const OpenJobsFeed = () => {
         minDeadline={minDeadline}
         setMinDeadline={setMinDeadline}
         selectedUnitTime={selectedUnitTime}
-        setSelectedUnitTime={setSelectedUnitTime}/>
+        setSelectedUnitTime={setSelectedUnitTime}
+        minTokens={minTokens}
+        setMinTokens={setMinTokens}
+        />
       <OpenJobs jobs={jobs ?? []} />
     </div>
   );

@@ -26,8 +26,8 @@ type JobFilterProps = {
   setMinDeadline: React.Dispatch<React.SetStateAction<number | undefined>>;
   selectedUnitTime: ComboBoxOption;
   setSelectedUnitTime: React.Dispatch<React.SetStateAction<ComboBoxOption>>;
-  minTokens?: number | undefined;
-  setMinTokens?: React.Dispatch<React.SetStateAction<number | undefined>>;
+  minTokens: number | undefined;
+  setMinTokens: React.Dispatch<React.SetStateAction<number | undefined>>;
 };
 
 export const JobFilter = ({
@@ -70,6 +70,7 @@ export const JobFilter = ({
           <Field className='w-full sm:w-auto'>
             <Input
               type='number'
+              value={minTokens} onChange={(e) => {setMinTokens(Number(e.target.value))}}
               className='w-full sm:w-40'
               placeholder='Minimum Tokens'
             />
