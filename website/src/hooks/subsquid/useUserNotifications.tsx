@@ -6,6 +6,7 @@ import { Notification } from '@/service/Interfaces';
 export default function useUserJobNotifications(userAddress: string) {
   const { data, ...rest } = useQuery(GET_USER_NOTIFICATIONS, {
     variables: { userAddress: userAddress ?? '' },
+    skip: !userAddress,
   });
 
   const [notifications, setNotifications] = useState<Notification[] | undefined>();

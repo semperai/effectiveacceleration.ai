@@ -6,6 +6,7 @@ import { GET_USER_BY_ADDRESS } from './queries';
 export default function useUser(userAddress: string) {
   const { data, ...rest } = useQuery(GET_USER_BY_ADDRESS, {
     variables: { userAddress: userAddress ?? '' },
+    skip: !userAddress,
   });
 
   return useMemo(

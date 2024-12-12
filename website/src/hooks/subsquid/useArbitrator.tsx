@@ -6,6 +6,7 @@ import { GET_ARBITRATOR_BY_ADDRESS } from './queries';
 export default function useArbitrator(arbitratorAddress: string) {
   const { data, ...rest } = useQuery(GET_ARBITRATOR_BY_ADDRESS, {
     variables: { arbitratorAddress: arbitratorAddress ?? '' },
+    skip: !arbitratorAddress,
   });
 
   return useMemo(
