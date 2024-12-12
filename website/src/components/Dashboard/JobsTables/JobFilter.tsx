@@ -26,6 +26,8 @@ type JobFilterProps = {
   setMinDeadline: React.Dispatch<React.SetStateAction<number | undefined>>;
   selectedUnitTime: ComboBoxOption;
   setSelectedUnitTime: React.Dispatch<React.SetStateAction<ComboBoxOption>>;
+  minTokens?: number | undefined;
+  setMinTokens?: React.Dispatch<React.SetStateAction<number | undefined>>;
 };
 
 export const JobFilter = ({
@@ -39,6 +41,8 @@ export const JobFilter = ({
   setMinDeadline,
   selectedUnitTime,
   setSelectedUnitTime,
+  minTokens,
+  setMinTokens
 }: JobFilterProps) => {
 
   return (
