@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import { formatTokenNameAndAmount } from '@/tokens';
 import { jobMeceTags } from '@/utils/jobMeceTags';
+import { formatTimeLeft } from '@/utils/utils';
 import { Job } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { Dialog, Transition } from '@headlessui/react';
@@ -116,9 +117,7 @@ export function AssignWorkerButton({
                         { label: 'Delivery Method', value: job.deliveryMethod },
                         {
                           label: 'Max Time',
-                          value: moment
-                            .duration(job?.maxTime, 'seconds')
-                            .humanize(),
+                          value: formatTimeLeft(job.maxTime),
                         },
                         {
                           label: 'Amount',

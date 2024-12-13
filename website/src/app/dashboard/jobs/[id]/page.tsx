@@ -14,7 +14,7 @@ import {
   LOCAL_JOBS_WORKER_CACHE,
 } from '@/utils/constants';
 import { jobMeceTags } from '@/utils/jobMeceTags';
-import { shortenText } from '@/utils/utils';
+import { shortenText, formatTimeLeft } from '@/utils/utils';
 import {
   Job,
   JobArbitratedEvent,
@@ -111,6 +111,14 @@ const JobSidebar = ({
       {children}
     </span>
   );
+
+  // TODO - fix this with proper time since the job taken
+  let timeLeft = 0;
+  // TODO there must be nicer way to do this..
+  if (job && job.jobTimes) {
+    timeLeft += job.jobTimes.openedAt;
+  }
+  timeLeft -= ((+new Date() / 1000)|0) + job.maxTime;
 
   return (
     <div className='h-full max-h-customHeader divide-y divide-gray-100 overflow-y-auto rounded-lg bg-white shadow-sm'>
@@ -232,7 +240,7 @@ const JobSidebar = ({
             <div className='space-y-4'>
               <DetailRow
                 label='Time Remaining'
-                value={moment.duration(job?.maxTime, 'seconds').humanize()}
+                value={timeLeft > 0 ? formatTimeLeft(timeLeft): `Overdue by ${formatTimeLeft(-timeLeft)}`}
               />
               <LinearProgress value={5} className='w-full' />
             </div>
