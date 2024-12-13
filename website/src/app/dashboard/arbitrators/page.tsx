@@ -3,19 +3,24 @@
 import { Layout } from '@/components/Dashboard/Layout';
 import { Link } from '@/components/Link';
 import {
-  Pagination,
-  PaginationGap,
-  PaginationList,
-  PaginationNext,
-  PaginationPage,
-  PaginationPrevious,
+  PaginationComponent,
 } from '@/components/Pagination';
 import useArbitrators from '@/hooks/subsquid/useArbitrators';
+import useArbitratorsLength from '@/hooks/subsquid/useArbitratorsLength';
 import { ChevronRightIcon } from '@heroicons/react/20/solid';
 import { clsx } from 'clsx';
+import { useSearchParams } from 'next/navigation';
+
+const defaultLimit = 1;
 
 export default function OpenJobsPage() {
-  const { data: arbitrators } = useArbitrators();
+  const searchParams = useSearchParams();
+  const page = Math.max(1, Number(searchParams.get('page')) || 1);
+
+  const { data: arbitratorsCount } = useArbitratorsLength();
+  const pages = Math.ceil((arbitratorsCount ?? 0) / defaultLimit);
+
+  const { data: arbitrators } = useArbitrators((page - 1) * defaultLimit, defaultLimit);
 
   return (
     <Layout>
@@ -72,21 +77,7 @@ export default function OpenJobsPage() {
         </li>
       ))}
 
-      <Pagination className='mt-20'>
-        <PaginationPrevious href='?page=2' />
-        <PaginationList>
-          <PaginationPage href='?page=1'>1</PaginationPage>
-          <PaginationPage href='?page=2'>2</PaginationPage>
-          <PaginationPage href='?page=3' current>
-            3
-          </PaginationPage>
-          <PaginationPage href='?page=4'>4</PaginationPage>
-          <PaginationGap />
-          <PaginationPage href='?page=65'>65</PaginationPage>
-          <PaginationPage href='?page=66'>66</PaginationPage>
-        </PaginationList>
-        <PaginationNext href='?page=4' />
-      </Pagination>
+      <PaginationComponent page={page} pages={pages} />
     </Layout>
   );
 }

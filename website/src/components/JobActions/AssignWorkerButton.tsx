@@ -12,8 +12,6 @@ import * as Sentry from '@sentry/nextjs';
 import moment from 'moment';
 import { Fragment, useState } from 'react';
 
-
-
 export type AssignWorkerButtonProps = {
   address: string | undefined;
   job: Job;

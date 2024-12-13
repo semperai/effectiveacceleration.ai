@@ -69,9 +69,7 @@ export default function useJobEventsWithDiffs(jobId: string) {
           addressSet.add(signer.address);
         }
 
-        setAddresses([
-          ...addressSet
-        ]);
+        setAddresses([...addressSet]);
         setArbitratorAddresses(
           [
             ...new Set(
@@ -139,14 +137,14 @@ export default function useJobEventsWithDiffs(jobId: string) {
         const initiator = getAddress(jobDisputedEvent.address_);
         const arbitrator = jobDisputedEvent.job.roles.arbitrator;
         const workerAddress = jobDisputedEvent.job.roles.worker;
-        const key = arbitrator === signer?.address ? `${initiator}-${arbitrator}` : `${ownerAddress}-${workerAddress}`;
+        const key =
+          arbitrator === signer?.address
+            ? `${initiator}-${arbitrator}`
+            : `${ownerAddress}-${workerAddress}`;
 
         decryptJobDisputedEvent(details, sessionKeys_[key]);
         if (details.sessionKey) {
-          const other =
-            initiator === ownerAddress
-              ? workerAddress
-              : initiator;
+          const other = initiator === ownerAddress ? workerAddress : initiator;
           sessionKeys_[`${initiator}-${other}`] = details.sessionKey!;
           sessionKeys_[`${other}-${initiator}`] = details.sessionKey!;
         }

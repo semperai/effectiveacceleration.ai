@@ -1,19 +1,15 @@
-import React, { useState } from 'react';
-import { ComboBoxOption, Tag } from '@/service/FormsTypes';
-import TagsInput from '@/components/TagsInput';
-import { Radio, RadioGroup } from '@/components/Radio';
+import { Button } from '@/components/Button';
+import { Card, CardContent } from '@/components/Card';
 import { Input } from '@/components/Input';
 import { Listbox, ListboxLabel, ListboxOption } from '@/components/Listbox';
+import { Separator } from '@/components/Separator';
+import TagsInput from '@/components/TagsInput';
 import { TokenSelector } from '@/components/TokenSelector';
-import { Token, tokens } from '@/tokens';
-import { convertToSeconds, unitsDeliveryTime } from '@/utils/utils';
-import {
-  Description,
-  Field,
-  FieldGroup,
-  Fieldset,
-  Label,
-} from '@/components/Fieldset';
+import { ComboBoxOption, Tag } from '@/service/FormsTypes';
+import { Token } from '@/tokens';
+import { unitsDeliveryTime } from '@/utils/utils';
+import { ChevronDown, ChevronUp, Filter, Search } from 'lucide-react';
+import React, { useState } from 'react';
 
 type JobFilterProps = {
   search: string;
@@ -42,80 +38,119 @@ export const JobFilter = ({
   selectedUnitTime,
   setSelectedUnitTime,
   minTokens,
-  setMinTokens
+  setMinTokens,
 }: JobFilterProps) => {
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   return (
-    <div className='mb-4 rounded-lg border border-gray-300 bg-white p-4 shadow-sm'>
-      {/* Stack vertically on mobile, horizontal on larger screens */}
-      <div className='flex flex-col items-start justify-between gap-4 md:flex-row md:items-center'>
-        <Field className='w-full'>
-          <Input placeholder='Search' value={search} onChange={(e) => {setSearch(e.target.value)}} className='w-full' />
-        </Field>
-        <Field className='w-full'>
-          <TagsInput tags={tags} setTags={setTags} />
-        </Field>
-      </div>
-
-      {/* Stack sections vertically on mobile */}
-      <div className='mt-4 flex flex-col items-start gap-4 lg:flex-row lg:items-center'>
-        {/* Token and Minimum Tokens section */}
-        <div className='flex w-full flex-col items-start gap-4 sm:flex-row sm:items-center'>
-          <Field className='w-full sm:w-auto'>
-            <TokenSelector
-              selectedToken={selectedToken}
-              onClick={(token: Token) => setSelectedToken(token)}
-            />
-          </Field>
-          <Field className='w-full sm:w-auto'>
-            <Input
-              type='number'
-              value={minTokens} onChange={(e) => {setMinTokens(Number(e.target.value))}}
-              className='w-full sm:w-40'
-              placeholder='Minimum Tokens'
-            />
-          </Field>
+    <Card className='mb-4 w-full'>
+      <CardContent className='p-4'>
+        {/* Always visible search bar */}
+        <div className='relative'>
+          <Search className='absolute left-3 top-2.5 h-4 w-4 text-gray-500' />
+          <Input
+            placeholder='Search jobs...'
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
 
-        {/* Delivery time section */}
-        <div className='flex w-full flex-col items-start gap-4 sm:flex-row sm:items-center'>
-          <Field className='w-full'>
-            <Input
-              type='number'
-              placeholder={`Minimum delivery time in ${selectedUnitTime.name}`}
-              value={minDeadline}
-              min={1}
-              step={1}
-              onChange={(e) => {
-                let deadline = parseInt(e.target.value);
-                if (deadline < 0) {
-                  deadline = -deadline;
-                }
-                setMinDeadline(deadline);
-              }}
-            />
-          </Field>
-          <Field className='w-full sm:w-auto'>
-            <Listbox
-              placeholder='Time Units'
-              value={selectedUnitTime}
-              onChange={(e) => setSelectedUnitTime(e)}
-              className='w-full sm:w-auto'
-            >
-              {unitsDeliveryTime.map(
-                (timeUnit, index) =>
-                  index > 0 && (
-                    <ListboxOption key={index} value={timeUnit}>
-                      <ListboxLabel>
-                        {unitsDeliveryTime[index].name}
-                      </ListboxLabel>
-                    </ListboxOption>
-                  )
-              )}
-            </Listbox>
-          </Field>
-        </div>
-      </div>
-    </div>
+        {/* Toggle button for advanced filters */}
+        <Button
+          outline
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          className='mt-2 w-full justify-between py-2 text-sm font-medium text-gray-600 hover:bg-gray-100'
+        >
+          <span className='flex items-center gap-2'>
+            <Filter className='h-4 w-4' />
+            Advanced Filters
+          </span>
+          {showAdvanced ? (
+            <ChevronUp className='h-4 w-4' />
+          ) : (
+            <ChevronDown className='h-4 w-4' />
+          )}
+        </Button>
+
+        {/* Collapsible advanced filters section */}
+        {showAdvanced && (
+          <div className='mt-4 space-y-6'>
+            <div className='space-y-4'>
+              <TagsInput tags={tags} setTags={setTags} />
+            </div>
+
+            <Separator />
+
+            {/* Token Settings Section */}
+            <div className='space-y-4'>
+              <h3 className='text-sm font-medium text-gray-700'>
+                Token Settings
+              </h3>
+              <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
+                <div className='flex-1'>
+                  <TokenSelector
+                    selectedToken={selectedToken}
+                    onClick={setSelectedToken}
+                  />
+                </div>
+                <div className='w-full sm:w-40'>
+                  <Input
+                    type='number'
+                    value={minTokens}
+                    onChange={(e) => setMinTokens(Number(e.target.value))}
+                    placeholder='Min. tokens'
+                    className='w-full'
+                  />
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Delivery Time Section */}
+            <div className='space-y-4'>
+              <h3 className='text-sm font-medium text-gray-700'>
+                Delivery Time
+              </h3>
+              <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
+                <div className='flex-1'>
+                  <Input
+                    type='number'
+                    placeholder={`Minimum delivery time in ${selectedUnitTime.name}`}
+                    value={minDeadline}
+                    min={1}
+                    step={1}
+                    onChange={(e) => {
+                      let deadline = Math.abs(parseInt(e.target.value));
+                      setMinDeadline(deadline);
+                    }}
+                    className='w-full'
+                  />
+                </div>
+                <div className='w-full sm:w-40'>
+                  <Listbox
+                    placeholder='Time Units'
+                    value={selectedUnitTime}
+                    onChange={setSelectedUnitTime}
+                    className='w-full'
+                  >
+                    {unitsDeliveryTime.map(
+                      (timeUnit, index) =>
+                        index > 0 && (
+                          <ListboxOption key={index} value={timeUnit}>
+                            <ListboxLabel>{timeUnit.name}</ListboxLabel>
+                          </ListboxOption>
+                        )
+                    )}
+                  </Listbox>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
+
+export default JobFilter;

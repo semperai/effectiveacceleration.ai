@@ -1,17 +1,16 @@
 import '@/app/globals.css';
-import "@fontsource/plus-jakarta-sans/200.css";
-import "@fontsource/plus-jakarta-sans/300.css";
-import "@fontsource/plus-jakarta-sans/400.css";
-import "@fontsource/plus-jakarta-sans/500.css";
-import "@fontsource/plus-jakarta-sans/600.css";
-import "@fontsource/plus-jakarta-sans/700.css";
+import '@fontsource/plus-jakarta-sans/200.css';
+import '@fontsource/plus-jakarta-sans/300.css';
+import '@fontsource/plus-jakarta-sans/400.css';
+import '@fontsource/plus-jakarta-sans/500.css';
+import '@fontsource/plus-jakarta-sans/600.css';
+import '@fontsource/plus-jakarta-sans/700.css';
 import { Providers } from '@/app/providers';
 import '@/styles/tailwind.css';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import type { Metadata, Viewport } from 'next';
 import Head from 'next/head';
 import { ToastProvider } from '@/providers/ToastProvider';
-
 
 const APP_NAME = 'Effective Acceleration';
 const APP_DEFAULT_TITLE = 'Effective Acceleration';

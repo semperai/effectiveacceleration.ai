@@ -71,8 +71,7 @@ function JobsTable<T>({
         </div>
       </div>
     );
-
-  };
+  }
 
   const handleRowClick = (url: string) => {
     router.push(url);
@@ -87,10 +86,7 @@ function JobsTable<T>({
         <table className='w-full'>
           <thead>
             {table.getHeaderGroups().map((headerGroup, index) => (
-              <tr
-                key={index}
-                className='border-b border-gray-200 bg-gray-50'
-              >
+              <tr key={index} className='border-b border-gray-200 bg-gray-50'>
                 {headerGroup.headers.map((header, index) => (
                   <th
                     key={index}
@@ -123,12 +119,14 @@ function JobsTable<T>({
                     </td>
                   </tr>
                 ))
-                : table.getRowModel().rows.map((row, index) => {
-                  const dataUrl = (row.original as any).jobName.props['data-url'];
+              : table.getRowModel().rows.map((row, index) => {
+                  const dataUrl = (row.original as any).jobName.props[
+                    'data-url'
+                  ];
                   return (
                     <tr
                       key={index}
-                      className='transition-colors duration-150 hover:bg-gray-50 cursor-pointer'
+                      className='cursor-pointer transition-colors duration-150 hover:bg-gray-50'
                       onClick={() => handleRowClick(dataUrl)}
                     >
                       {row.getVisibleCells().map((cell, index) => (

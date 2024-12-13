@@ -20,16 +20,34 @@ const columns = [
 
 export const WorkerApplicationsJobs = ({ jobs }: { jobs: Job[] }) => {
   const defaultData: TInProgressTable[] = jobs.map((job, index) => ({
-    jobName: <span data-url={`/dashboard/jobs/${job.id}`} key={index} className='font-bold'>{job.title}</span>,
-    assignedTo: <span key={index} className='font-md'>{job.roles.worker ?? ''}</span>,
+    jobName: (
+      <span
+        data-url={`/dashboard/jobs/${job.id}`}
+        key={index}
+        className='font-bold'
+      >
+        {job.title}
+      </span>
+    ),
+    assignedTo: (
+      <span key={index} className='font-md'>
+        {job.roles.worker ?? ''}
+      </span>
+    ),
     tags: job.tags.map((tag, index) => (
-      <span key={index} className='rounded-full bg-[#E1FFEF] px-3 py-2 text-sm text-[#23B528]'>
+      <span
+        key={index}
+        className='rounded-full bg-[#E1FFEF] px-3 py-2 text-sm text-[#23B528]'
+      >
         {tag}
       </span>
     )),
     actions: (
       <Link key={index} href={`/dashboard/jobs/${job.id?.toString()}`}>
-        <span key={index} className='font-md font-semibold text-primary underline'>
+        <span
+          key={index}
+          className='font-md font-semibold text-primary underline'
+        >
           View Details
         </span>
       </Link>

@@ -7,84 +7,19 @@ import { Dialog, Transition } from '@headlessui/react';
 import { Notification } from '@/service/Interfaces';
 import { JobEventType } from '@effectiveacceleration/contracts';
 import Link from 'next/link';
-
-const NotificationTextMap = (notification: Notification) => {
-  let body = "";
-  switch (notification.type) {
-    case JobEventType.Created:
-      // to arbitrator
-      body = `Job #${notification.jobId} created with you assigned as the arbitrator.`;
-      break;
-    case JobEventType.Taken:
-      // to creator
-      body = `Job #${notification.jobId} has been taken.`;
-      break;
-    case JobEventType.Paid:
-      // to worker
-      body = `Job #${notification.jobId} has been paid.`;
-      break;
-    case JobEventType.Updated:
-      // to worker, old arbitrator and new arbitrator
-      body = `Job #${notification.jobId} has been updated.`;
-      break;
-    case JobEventType.Signed:
-      // to creator
-      body = `Job #${notification.jobId} has been signed.`;
-      break;
-    case JobEventType.Completed:
-      // to worker and arbitrator
-      body = `Job #${notification.jobId} has been approved.`;
-      break;
-    case JobEventType.Delivered:
-      // to creator
-      body = `Job #${notification.jobId} has been delivered.`;
-      break;
-    case JobEventType.Rated:
-      // to worker
-      body = `Job #${notification.jobId} has been rated.`;
-      break;
-    case JobEventType.Refunded:
-      // to creator
-      body = `Job #${notification.jobId} has been refunded.`;
-      break;
-    case JobEventType.Disputed:
-      // to creator/worker and arbitrator
-      body = `Job #${notification.jobId} has been disputed.`;
-      break;
-    case JobEventType.Arbitrated:
-      // to creator and worker
-      body = `Job #${notification.jobId} has been arbitrated.`;
-      break;
-    case JobEventType.ArbitrationRefused:
-      // to creator and worker
-      body = `Job #${notification.jobId} arbitration has been refused.`;
-      break;
-    case JobEventType.WhitelistedWorkerAdded:
-      // to worker
-      body = `You have been added to the whitelist of job #${notification.jobId}.`;
-      break;
-    case JobEventType.WhitelistedWorkerRemoved:
-      // to worker
-      body = `You have been removed from the whitelist of job #${notification.jobId}.`;
-      break;
-    case JobEventType.OwnerMessage:
-    case JobEventType.WorkerMessage:
-      // to creator/worker
-      body = `New message in job #${notification.jobId}.`;
-      break;
-  }
-
-  return body;
-}
+import { EventTextMap } from '@/lib/utils';
 
 export const NotificationsButton = () => {
   const [open, setOpen] = useState(false);
   const account = useAccount();
+  const [limit, setLimit] = useState<number>(5);
   const { data: notifications } = useUserNotifications(account?.address ?? "");
   const notificationsCount = notifications?.filter(notification => !notification.read).length ?? 0;
 
   const readAllNotifications = useCallback(() => {
-    const readNotifications = new Set<string>(JSON.parse(localStorage.getItem('ReadNotifications') ?? '[]'));
+    const readNotifications = new Set<string>(
+      JSON.parse(localStorage.getItem('ReadNotifications') ?? '[]')
+    );
     const countBefore = readNotifications.size;
     for (const notification of notifications ?? []) {
       readNotifications.add(notification.id);
@@ -92,7 +27,10 @@ export const NotificationsButton = () => {
     if (countBefore === readNotifications.size) {
       return;
     }
-    localStorage.setItem('ReadNotifications', JSON.stringify([...readNotifications]));
+    localStorage.setItem(
+      'ReadNotifications',
+      JSON.stringify([...readNotifications])
+    );
     const event = new StorageEvent('storage', {
       key: 'ReadNotifications',
     });
@@ -100,23 +38,31 @@ export const NotificationsButton = () => {
   }, [notifications]);
 
   const readNotification = useCallback((notification: Notification) => {
-    const readNotifications = new Set<string>(JSON.parse(localStorage.getItem('ReadNotifications') ?? '[]'));
+    const readNotifications = new Set<string>(
+      JSON.parse(localStorage.getItem('ReadNotifications') ?? '[]')
+    );
     const countBefore = readNotifications.size;
     readNotifications.add(notification.id);
     if (countBefore === readNotifications.size) {
       return;
     }
-    localStorage.setItem('ReadNotifications', JSON.stringify([...readNotifications]));
+    localStorage.setItem(
+      'ReadNotifications',
+      JSON.stringify([...readNotifications])
+    );
     const event = new StorageEvent('storage', {
       key: 'ReadNotifications',
     });
     window.dispatchEvent(event);
   }, []);
 
-  const notificationClick = useCallback((notification: Notification) => {
-    readNotification(notification);
-    setOpen(false);
-  }, [readNotification]);
+  const notificationClick = useCallback(
+    (notification: Notification) => {
+      readNotification(notification);
+      setOpen(false);
+    },
+    [readNotification]
+  );
 
   return (
     <div className='relative'>
@@ -129,12 +75,14 @@ export const NotificationsButton = () => {
           }
         )}
         aria-label={`${notificationsCount} notifications`}
-        onClick={() => { if (notificationsCount > 0) setOpen(!open); } }
+        onClick={() => {
+          if (notificationsCount > 0) setOpen(!open);
+        }}
       >
         <PiBellSimple className='h-5 w-5' />
 
         {notificationsCount > 0 && (
-          <span className='bg-rose-500 absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full text-xs font-medium text-white'>
+          <span className='absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-xs font-medium text-white'>
             {notificationsCount.toString()}
           </span>
         )}
@@ -176,14 +124,21 @@ export const NotificationsButton = () => {
                     Notifications
                   </Dialog.Title>
                   <div className='mb-3 mt-5 flex flex-col'>
-                    <button onClick={() => readAllNotifications()}>Mark all as read</button>
-                    {notifications?.map(notification => (
+                    <div className='flex flex-row justify-evenly'>
+                      <button onClick={() => setLimit(limit+5)}>Load more</button>
+                      <button onClick={() => readAllNotifications()}>Mark all as read</button>
+                    </div>
+                    {notifications?.slice(0, limit).map(notification => (
                       <div key={notification.id} className={clsx('flex py-2 px-1', notification.read ? '' : 'bg-yellow-100')}>
                         <Link href={`/dashboard/jobs/${notification.jobId}?eventId=${notification.id}`} className='flex w-full cursor-pointer' onClick={() => notificationClick(notification)}>
-                          {NotificationTextMap(notification)}
+                          {EventTextMap(notification.type, notification.jobId)}
                         </Link>
                         <div className='flex-shrink cursor-pointer'>
-                          <PiCheck className='h-5 w-5' onClick={() => readNotification(notification)} title='Mark as read' />
+                          <PiCheck
+                            className='h-5 w-5'
+                            onClick={() => readNotification(notification)}
+                            title='Mark as read'
+                          />
                         </div>
                       </div>
                     ))}

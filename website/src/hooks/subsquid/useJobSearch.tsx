@@ -3,7 +3,13 @@ import { useMemo } from 'react';
 import { useQuery } from '@apollo/client';
 import { GET_JOB_SEARCH } from './queries';
 
-export default function useJobSearch(jobSearch: Partial<Job>) {
+export default function useJobSearch({
+  jobSearch,
+  orderBy,
+}: {
+  jobSearch: Partial<Job>;
+  orderBy: string;
+}) {
   const search = Object.entries(jobSearch)
     .map(([key, value]) => {
       if (typeof value === 'string') {
@@ -11,15 +17,22 @@ export default function useJobSearch(jobSearch: Partial<Job>) {
       } else if (typeof value === 'bigint') {
         return `${key}_eq: ${value.toString()}`;
       } else if (Array.isArray(value)) {
-        return `${key}_containsAny: [${value.map(element => `"${element}"`).join(', ')}]`;
+        return `${key}_containsAny: [${value.map((element) => `"${element}"`).join(', ')}]`;
       } else {
         return `${key}_eq: ${value}`;
       }
     })
     .join(',\n');
-  const { data, ...rest } = useQuery(GET_JOB_SEARCH(search), {
-    variables: {},
-  });
+
+  const { data, ...rest } = useQuery(
+    GET_JOB_SEARCH({
+      search,
+      orderBy,
+    }),
+    {
+      variables: {},
+    }
+  );
 
   return useMemo(
     () => ({ data: data ? (data?.jobs as Job[]) : undefined, ...rest }),

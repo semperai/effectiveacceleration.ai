@@ -23,7 +23,11 @@ import { useConfig } from '@/hooks/useConfig';
 import { ComboBoxOption, Tag } from '@/service/FormsTypes';
 import { Token, tokens } from '@/tokens';
 import { jobMeceTags } from '@/utils/jobMeceTags';
-import { convertToSeconds, shortenText, unitsDeliveryTime } from '@/utils/utils';
+import {
+  convertToSeconds,
+  shortenText,
+  unitsDeliveryTime,
+} from '@/utils/utils';
 import { ethers } from 'ethers';
 import moment from 'moment';
 import Link from 'next/link';
@@ -107,7 +111,7 @@ const JobSummary = ({
       </div>
     </div>
   );
-  console.log(deadline, 'DEADLINE')
+  console.log(deadline, 'DEADLINE');
   return (
     <div className='mx-auto max-w-4xl'>
       <div className='mb-8'>
@@ -189,7 +193,9 @@ const PostJob = () => {
     ...(arbitrators?.map((worker) => worker.fee) ?? []),
   ];
   const [selectedToken, setSelectedToken] = useState<Token | undefined>(
-    tokens[0]
+    process.env.NODE_ENV === 'development'
+      ? tokens.find((token) => token.symbol === 'FAKE')
+      : tokens.find((token) => token.symbol === 'USDC')
   );
   const noYes = ['No', 'Yes'];
   const [showSummary, setShowSummary] = useState(false);

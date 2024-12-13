@@ -161,9 +161,15 @@ export const GET_CREATOR_CLOSED_JOBS = gql`
   }
 `;
 
-export const GET_JOB_SEARCH = (search: string) => gql`
+export const GET_JOB_SEARCH = ({
+  search,
+  orderBy,
+}: {
+  search: string;
+  orderBy: string;
+}) => gql`
   query GetWorkerOpenJobSearch {
-    jobs(where: {
+    jobs(orderBy: ${orderBy}, where: {
       ${search}
     }) {
       ${JobFields}
@@ -213,8 +219,8 @@ export const GET_WORKER_DISPUTED_JOBS = gql`
 `;
 
 export const GET_USER_NOTIFICATIONS = gql`
-  query GetUserNotifications($userAddress: String!) {
-    notifications(orderBy: timestamp_DESC, where: { address_eq: $userAddress }) {
+  query GetUserNotifications($userAddress: String!, $minTimestamp: Int!, $offset: Int!, $limit: Int!) {
+    notifications(orderBy: timestamp_DESC, where: { address_eq: $userAddress, timestamp_gt: $minTimestamp }, offset: $offset, limit: $limit) {
       id
       type
       address
@@ -225,8 +231,8 @@ export const GET_USER_NOTIFICATIONS = gql`
 `;
 
 export const GET_USER_JOB_NOTIFICATIONS = gql`
-  query GetUserNotifications($userAddress: String!, $jobIds: [String!]) {
-    notifications(orderBy: timestamp_DESC, where: { address_eq: $userAddress, jobId_in: $jobIds }) {
+  query GetUserNotifications($userAddress: String!, $jobIds: [String!], $minTimestamp: Int!, $offset: Int!, $limit: Int!) {
+    notifications(orderBy: timestamp_DESC, where: { address_eq: $userAddress, jobId_in: $jobIds }, offset: $offset, limit: $limit) {
       id
       type
       address

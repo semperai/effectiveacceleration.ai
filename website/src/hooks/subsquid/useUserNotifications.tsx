@@ -3,13 +3,20 @@ import { useQuery } from '@apollo/client';
 import { GET_USER_NOTIFICATIONS } from './queries';
 import { Notification } from '@/service/Interfaces';
 
-export default function useUserJobNotifications(userAddress: string) {
+export default function useUserJobNotifications(userAddress: string, minTimestamp?: number, offset?: number, limit?: number) {
   const { data, ...rest } = useQuery(GET_USER_NOTIFICATIONS, {
-    variables: { userAddress: userAddress ?? '' },
+    variables: {
+      userAddress: userAddress ?? '',
+      minTimestamp: minTimestamp ?? 0,
+      offset: offset ?? 0,
+      limit: limit ?? 10,
+    },
     skip: !userAddress,
   });
 
-  const [notifications, setNotifications] = useState<Notification[] | undefined>();
+  const [notifications, setNotifications] = useState<
+    Notification[] | undefined
+  >();
 
   useEffect(() => {
     const handler = (event: StorageEvent) => {
@@ -18,13 +25,17 @@ export default function useUserJobNotifications(userAddress: string) {
           return;
         }
 
-        const readNotifications = JSON.parse(localStorage.getItem('ReadNotifications') || '[]') as string[];
-        const notifications = data.notifications.map((notification: Notification) => {
-          const copy = { ...notification };
+        const readNotifications = JSON.parse(
+          localStorage.getItem('ReadNotifications') || '[]'
+        ) as string[];
+        const notifications = data.notifications.map(
+          (notification: Notification) => {
+            const copy = { ...notification };
 
-          copy.read = readNotifications.includes(notification.id);
-          return copy;
-        });
+            copy.read = readNotifications.includes(notification.id);
+            return copy;
+          }
+        );
         setNotifications(notifications);
       }
     };
@@ -33,7 +44,7 @@ export default function useUserJobNotifications(userAddress: string) {
 
     return () => {
       window.removeEventListener('storage', handler, true);
-    }
+    };
   }, [data]);
 
   return useMemo(

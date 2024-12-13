@@ -77,15 +77,11 @@ const JobButtonActions = ({
           )}
           {job.state === JobState.Closed &&
             address === job.roles.creator &&
-            job.resultHash === zeroHash && (
-              <ReopenButton job={job} />
-            )}
+            job.resultHash === zeroHash && <ReopenButton job={job} />}
           {job.state === JobState.Closed &&
             address === job.roles.creator &&
             job.collateralOwed > 0n &&
-            timePassed && (
-              <WithdrawCollateralButton job={job} />
-            )}
+            timePassed && <WithdrawCollateralButton job={job} />}
           {job.state === JobState.Open &&
             address === job.roles.creator &&
             job.whitelistWorkers && (

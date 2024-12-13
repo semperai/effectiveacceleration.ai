@@ -2,32 +2,46 @@
 import React, { useState } from 'react';
 import { OpenJobs } from './OpenJobs';
 import { JobFilter } from '@/components/Dashboard/JobsTables/JobFilter';
-import useOpenJobs from '@/hooks/subsquid/useOpenJobs';
 import useJobSearch from '@/hooks/subsquid/useJobSearch';
 import { ComboBoxOption, Tag } from '@/service/FormsTypes';
-import { Token } from '@/tokens';
-import { convertToSeconds, unitsDeliveryTime, getUnitAndValueFromSeconds } from '@/utils/utils';
+import { Token, tokens } from '@/tokens';
+import {
+  convertToSeconds,
+  unitsDeliveryTime,
+  getUnitAndValueFromSeconds,
+} from '@/utils/utils';
+import { JobState } from '@effectiveacceleration/contracts';
 
 export const OpenJobsFeed = () => {
   const [search, setSearch] = useState<string>('');
   const [tags, setTags] = useState<Tag[]>([]);
-  const [selectedToken, setSelectedToken] = useState<Token | undefined>(undefined);
+  const [selectedToken, setSelectedToken] = useState<Token | undefined>(
+    process.env.NODE_ENV === 'development'
+      ? tokens.find((token) => token.symbol === 'FAKE')
+      : tokens.find((token) => token.symbol === 'USDC')
+  );
   const [minDeadline, setMinDeadline] = useState<number | undefined>(undefined);
-  const [selectedUnitTime, setSelectedUnitTime] = useState<ComboBoxOption>(unitsDeliveryTime[2]);
+  const [selectedUnitTime, setSelectedUnitTime] = useState<ComboBoxOption>(
+    unitsDeliveryTime[2]
+  );
   const [minTokens, setMinTokens] = useState<number | undefined>(undefined);
 
-
   const { data: jobs } = useJobSearch({
-    ...(search && {title: search}),
-    ...(tags.length > 0 && { tags: tags.map(tag => tag.name) }),
-  ...(minDeadline !== undefined && { maxTime: convertToSeconds(minDeadline, selectedUnitTime.name) }),
-  state: 0,
-  ...(selectedToken && { token: selectedToken.id }),
-  // ...(minTokens && { amount: BigInt(minTokens) }), decimals cannot be converted to bigInt, every job has decimals tokens, will comment this for now
-});
+    jobSearch: {
+      ...(search && { title: search }),
+      ...(tags.length > 0 && { tags: tags.map((tag) => tag.name) }),
+      ...(minDeadline !== undefined && {
+        maxTime: convertToSeconds(minDeadline, selectedUnitTime.name),
+      }),
+      state: JobState.Open,
+      ...(selectedToken && { token: selectedToken.id }),
+      // ...(minTokens && { amount: BigInt(minTokens) }), decimals cannot be converted to bigInt, every job has decimals tokens, will comment this for now
+    },
+    orderBy: 'jobTimes_openedAt_DESC',
+  });
   return (
     <div>
-      <JobFilter 
+      <JobFilter
         search={search}
         setSearch={setSearch}
         tags={tags}
@@ -40,7 +54,7 @@ export const OpenJobsFeed = () => {
         setSelectedUnitTime={setSelectedUnitTime}
         minTokens={minTokens}
         setMinTokens={setMinTokens}
-        />
+      />
       <OpenJobs jobs={jobs ?? []} />
     </div>
   );
