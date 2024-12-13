@@ -9,6 +9,7 @@ import {
   createColumnHelper,
 } from '@tanstack/react-table';
 import { columnBuilder } from '@/components/TablesCommon';
+import { Badge } from '@/components/Badge';
 import Link from 'next/link';
 import { PiCloverBold, PiListBold } from 'react-icons/pi';
 import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
@@ -27,19 +28,18 @@ export const OpenJobs = ({ jobs }: { jobs: Job[] }) => {
   const defaultData: TOpenJobTable[] = jobs.map((job, index) => ({
     jobName: <span data-url={`/dashboard/jobs/${job.id}`}>{job.title}</span>,
     tags: job.tags.map((tag, index) => (
-      <span
-        key={index}
-        className='rounded-full bg-[#E1FFEF] px-3 py-2 text-sm text-[#23B528]'
-      >
-        {tag}
-      </span>
+      <Badge key={index} className="m-0.5">{tag}</Badge>
     )),
     postedTime: (
-      <span key={index}>{moment(job.timestamp * 1000).fromNow()}</span>
+      <span key={index}>
+        {moment(job.timestamp * 1000).fromNow()}
+        <div className='text-xs text-slate-500'>{moment(job.timestamp * 1000).format('llll')}</div>
+      </span>
     ),
     deadline: (
       <span key={index}>
         {moment.duration(job.maxTime, 'seconds').humanize()}
+        <div className='text-xs text-slate-500 w-full'>{job.maxTime}s</div>
       </span>
     ),
     reward: (
@@ -50,12 +50,9 @@ export const OpenJobs = ({ jobs }: { jobs: Job[] }) => {
     ),
     traits: (
       <>
-        <span
-          key={index}
-          className='rounded-full bg-[#EFFFE1] px-3 py-2 text-sm text-[#2823B5]'
-        >
+        <Badge key={index} color='indigo' className='m-0.5'>
           {job.deliveryMethod}
-        </span>
+        </Badge>
         {!job.multipleApplicants && <PiCloverBold className='h-4 w-4' />}
         {job.whitelistWorkers && <PiListBold className='h-4 w-4' />}
       </>
