@@ -194,8 +194,8 @@ const PostJob = () => {
   ];
   const [selectedToken, setSelectedToken] = useState<Token | undefined>(
     process.env.NODE_ENV === 'development'
-    ? tokens.find((token) => token.symbol === 'FAKE')
-    : tokens.find((token) => token.symbol === 'USDC')
+      ? tokens.find((token) => token.symbol === 'FAKE')
+      : tokens.find((token) => token.symbol === 'USDC')
   );
   const noYes = ['No', 'Yes'];
   const [showSummary, setShowSummary] = useState(false);
