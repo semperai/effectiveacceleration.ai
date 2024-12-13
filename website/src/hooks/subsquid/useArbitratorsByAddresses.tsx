@@ -12,6 +12,7 @@ export default function useArbitratorsByAddresses(
 
   const { data, ...rest } = useQuery(GET_ARBITRATORS_BY_ADDRESSES, {
     variables: { arbitratorAddresses: arbitratorAddresses ?? [] },
+    skip: !arbitratorAddresses?.length,
   });
 
   useEffect(() => {

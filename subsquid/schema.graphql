@@ -164,6 +164,15 @@ type JobMessageEvent {
   recipientAddress: String!
 }
 
+type Notification @entity {
+  id: ID! @index # this is effectively an eventId
+  type: Int!
+  address: String!
+  timestamp: Int!
+
+  jobId: String!
+}
+
 # # Manually added types which are not visible in graphql api
 # type PushSubscription @entity {
 #   id: Int!

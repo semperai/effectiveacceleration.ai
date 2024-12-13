@@ -52,6 +52,7 @@ import {
   Arbitrator,
   PushSubscription,
   JobTimes,
+  Notification,
 } from "./model";
 import {
   decodeJobArbitratedEvent,
@@ -472,7 +473,9 @@ processor.run(db, async (ctx) => {
 
                 jobEvent.details = new JobCreatedEvent(jobCreated);
 
-                await sendPushNotification(job.roles.arbitrator, jobEvent, ctx);
+                if (job.roles.arbitrator !== ZeroAddress) {
+                  await handleNotification(job.roles.arbitrator, jobEvent, ctx);
+                }
 
                 marketplace =
                   marketplace ??
@@ -491,7 +494,7 @@ processor.run(db, async (ctx) => {
                 job.state = JobState.Taken;
                 job.escrowId = toBigInt(event.data_);
 
-                await sendPushNotification(job.roles.creator, jobEvent, ctx);
+                await handleNotification(job.roles.creator, jobEvent, ctx);
 
                 break;
               }
@@ -504,7 +507,7 @@ processor.run(db, async (ctx) => {
                 job.state = JobState.Taken;
                 job.escrowId = toBigInt(event.data_);
 
-                await sendPushNotification(job.roles.worker, jobEvent, ctx);
+                await handleNotification(job.roles.worker, jobEvent, ctx);
 
                 break;
               }
@@ -548,11 +551,11 @@ processor.run(db, async (ctx) => {
                   job.amount = jobUpdated.amount;
                 }
 
-                await sendPushNotification(job.roles.worker, jobEvent, ctx);
+                await handleNotification(job.roles.worker, jobEvent, ctx);
                 if (arbitratorChanged) {
                   await Promise.all([
-                    sendPushNotification(oldArbitrator, jobEvent, ctx),
-                    sendPushNotification(job.roles.arbitrator, jobEvent, ctx),
+                    handleNotification(oldArbitrator, jobEvent, ctx),
+                    handleNotification(job.roles.arbitrator, jobEvent, ctx),
                   ]);
                 }
 
@@ -568,7 +571,7 @@ processor.run(db, async (ctx) => {
                 const jobSigned = decodeJobSignedEvent(event.data_);
                 jobEvent.details = new JobSignedEvent(jobSigned);
 
-                await sendPushNotification(job.roles.creator, jobEvent, ctx);
+                await handleNotification(job.roles.creator, jobEvent, ctx);
 
                 break;
               }
@@ -582,10 +585,10 @@ processor.run(db, async (ctx) => {
                 job.state = JobState.Closed;
                 job.jobTimes.closedAt = event.timestamp_;
 
-                await Promise.all([
-                  sendPushNotification(job.roles.worker, jobEvent, ctx),
-                  sendPushNotification(job.roles.arbitrator, jobEvent, ctx),
-                ]);
+                await handleNotification(job.roles.worker, jobEvent, ctx);
+                if (job.roles.arbitrator !== ZeroAddress) {
+                  await handleNotification(job.roles.arbitrator, jobEvent, ctx);
+                }
 
                 break;
               }
@@ -605,7 +608,7 @@ processor.run(db, async (ctx) => {
                 user.reputationUp++;
                 userCache[userId] = user;
 
-                await sendPushNotification(job.roles.creator, jobEvent, ctx);
+                await handleNotification(job.roles.creator, jobEvent, ctx);
 
                 break;
               }
@@ -685,7 +688,7 @@ processor.run(db, async (ctx) => {
                   })
                 );
 
-                await sendPushNotification(job.roles.worker, jobEvent, ctx);
+                await handleNotification(job.roles.worker, jobEvent, ctx);
 
                 break;
               }
@@ -716,7 +719,7 @@ processor.run(db, async (ctx) => {
                 job.disputed = false;
                 job.jobTimes.openedAt = event.timestamp_;
 
-                await sendPushNotification(job.roles.creator, jobEvent, ctx);
+                await handleNotification(job.roles.creator, jobEvent, ctx);
 
                 break;
               }
@@ -735,8 +738,8 @@ processor.run(db, async (ctx) => {
                 const byWorker = event.address_.toLowerCase() === job.roles.worker.toLowerCase();
 
                 await Promise.all([
-                  sendPushNotification(byWorker ? job.roles.creator : job.roles.worker, jobEvent, ctx),
-                  sendPushNotification(job.roles.arbitrator, jobEvent, ctx),
+                  handleNotification(byWorker ? job.roles.creator : job.roles.worker, jobEvent, ctx),
+                  handleNotification(job.roles.arbitrator, jobEvent, ctx),
                 ]);
 
                 break;
@@ -766,8 +769,8 @@ processor.run(db, async (ctx) => {
                 arbitrator.settledCount++;
 
                 await Promise.all([
-                  sendPushNotification(job.roles.creator, jobEvent, ctx),
-                  sendPushNotification(job.roles.worker, jobEvent, ctx),
+                  handleNotification(job.roles.creator, jobEvent, ctx),
+                  handleNotification(job.roles.worker, jobEvent, ctx),
                 ]);
 
                 break;
@@ -789,10 +792,10 @@ processor.run(db, async (ctx) => {
 
                 job.roles.arbitrator = ZeroAddress;
 
-                await Promise.all([
-                  sendPushNotification(job.roles.creator, jobEvent, ctx),
-                  sendPushNotification(job.roles.worker, jobEvent, ctx),
-                ]);
+                await handleNotification(job.roles.creator, jobEvent, ctx);
+                if (job.roles.worker !== ZeroAddress) {
+                  await handleNotification(job.roles.worker, jobEvent, ctx);
+                }
 
                 break;
               }
@@ -805,7 +808,7 @@ processor.run(db, async (ctx) => {
 
                 job.allowedWorkers.push(getAddress(event.address_));
 
-                await sendPushNotification(getAddress(event.address_), jobEvent, ctx);
+                await handleNotification(getAddress(event.address_), jobEvent, ctx);
 
                 break;
               }
@@ -820,7 +823,7 @@ processor.run(db, async (ctx) => {
                   (address) => address !== getAddress(event.address_)
                 );
 
-                await sendPushNotification(getAddress(event.address_), jobEvent, ctx);
+                await handleNotification(getAddress(event.address_), jobEvent, ctx);
 
                 break;
               }
@@ -846,7 +849,7 @@ processor.run(db, async (ctx) => {
                 const jobMessage = decodeJobMessageEvent(event.data_);
                 jobEvent.details = new JobMessageEvent(jobMessage);
 
-                await sendPushNotification(jobEvent.details.recipientAddress, jobEvent, ctx);
+                await handleNotification(jobEvent.details.recipientAddress, jobEvent, ctx);
 
                 break;
               }
@@ -878,7 +881,18 @@ processor.run(db, async (ctx) => {
   await ctx.store.upsert(reviewList);
 });
 
-const sendPushNotification = async (address: string, event: JobEvent, ctx: DataHandlerContext<Store, {}>): Promise<void> => {
+// inserts a notification into the database and sends a web push notification
+const handleNotification = async (address: string, event: JobEvent, ctx: DataHandlerContext<Store, {}>): Promise<void> => {
+  // insert the notification into the database
+  await ctx.store.upsert(new Notification({
+    id: event.id,
+    address: address,
+    jobId: String(event.jobId),
+    type: event.type_,
+    timestamp: event.timestamp_,
+  }));
+
+  // send a push notification
   if (!ctx.isHead) {
     // do not send push notifications while (re)-syncing
     return;

@@ -23,7 +23,7 @@ import { useConfig } from '@/hooks/useConfig';
 import { ComboBoxOption, Tag } from '@/service/FormsTypes';
 import { Token, tokens } from '@/tokens';
 import { jobMeceTags } from '@/utils/jobMeceTags';
-import { shortenText, unitsDeliveryTime } from '@/utils/utils';
+import { convertToSeconds, shortenText, unitsDeliveryTime } from '@/utils/utils';
 import { ethers } from 'ethers';
 import moment from 'moment';
 import Link from 'next/link';
@@ -107,7 +107,7 @@ const JobSummary = ({
       </div>
     </div>
   );
-
+  console.log(deadline, 'DEADLINE')
   return (
     <div className='mx-auto max-w-4xl'>
       <div className='mb-8'>
@@ -767,7 +767,7 @@ const PostJob = () => {
           selectedToken={selectedToken}
           amount={amount}
           selectedCategory={selectedCategory as { id: string; name: string }}
-          deadline={deadline}
+          deadline={convertToSeconds(deadline, selectedUnitTime.name)}
           selectedArbitratorAddress={selectedArbitratorAddress}
         />
       )}

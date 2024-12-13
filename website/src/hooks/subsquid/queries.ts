@@ -211,3 +211,27 @@ export const GET_WORKER_DISPUTED_JOBS = gql`
     }
   }
 `;
+
+export const GET_USER_NOTIFICATIONS = gql`
+  query GetUserNotifications($userAddress: String!) {
+    notifications(orderBy: timestamp_DESC, where: { address_eq: $userAddress }) {
+      id
+      type
+      address
+      timestamp
+      jobId
+    }
+  }
+`;
+
+export const GET_USER_JOB_NOTIFICATIONS = gql`
+  query GetUserNotifications($userAddress: String!, $jobIds: [String!]) {
+    notifications(orderBy: timestamp_DESC, where: { address_eq: $userAddress, jobId_in: $jobIds }) {
+      id
+      type
+      address
+      timestamp
+      jobId
+    }
+  }
+`;

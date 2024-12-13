@@ -15,24 +15,42 @@ import {
   Label,
 } from '@/components/Fieldset';
 
-type JobFilterProps = {};
+type JobFilterProps = {
+  search: string;
+  setSearch: React.Dispatch<React.SetStateAction<string>>;
+  tags: Tag[];
+  setTags: React.Dispatch<React.SetStateAction<Tag[]>>;
+  selectedToken: Token | undefined;
+  setSelectedToken: React.Dispatch<React.SetStateAction<Token | undefined>>;
+  minDeadline: number | undefined;
+  setMinDeadline: React.Dispatch<React.SetStateAction<number | undefined>>;
+  selectedUnitTime: ComboBoxOption;
+  setSelectedUnitTime: React.Dispatch<React.SetStateAction<ComboBoxOption>>;
+  minTokens: number | undefined;
+  setMinTokens: React.Dispatch<React.SetStateAction<number | undefined>>;
+};
 
-export const JobFilter = ({}: JobFilterProps) => {
-  const [tags, setTags] = useState<Tag[]>([]);
-  const [selectedToken, setSelectedToken] = useState<Token | undefined>(
-    tokens[0]
-  );
-  const [minDeadline, setMinDeadline] = useState<number | undefined>();
-  const [selectedUnitTime, setselectedUnitTime] = useState<ComboBoxOption>(
-    unitsDeliveryTime[2]
-  );
+export const JobFilter = ({
+  search,
+  setSearch,
+  tags,
+  setTags,
+  selectedToken,
+  setSelectedToken,
+  minDeadline,
+  setMinDeadline,
+  selectedUnitTime,
+  setSelectedUnitTime,
+  minTokens,
+  setMinTokens
+}: JobFilterProps) => {
 
   return (
     <div className='mb-4 rounded-lg border border-gray-300 bg-white p-4 shadow-sm'>
       {/* Stack vertically on mobile, horizontal on larger screens */}
       <div className='flex flex-col items-start justify-between gap-4 md:flex-row md:items-center'>
         <Field className='w-full'>
-          <Input placeholder='Search' className='w-full' />
+          <Input placeholder='Search' value={search} onChange={(e) => {setSearch(e.target.value)}} className='w-full' />
         </Field>
         <Field className='w-full'>
           <TagsInput tags={tags} setTags={setTags} />
@@ -52,6 +70,7 @@ export const JobFilter = ({}: JobFilterProps) => {
           <Field className='w-full sm:w-auto'>
             <Input
               type='number'
+              value={minTokens} onChange={(e) => {setMinTokens(Number(e.target.value))}}
               className='w-full sm:w-40'
               placeholder='Minimum Tokens'
             />
@@ -80,7 +99,7 @@ export const JobFilter = ({}: JobFilterProps) => {
             <Listbox
               placeholder='Time Units'
               value={selectedUnitTime}
-              onChange={(e) => setselectedUnitTime(e)}
+              onChange={(e) => setSelectedUnitTime(e)}
               className='w-full sm:w-auto'
             >
               {unitsDeliveryTime.map(

@@ -26,3 +26,12 @@ export enum JobUserRoles {
   WORKER_DATA = 2,
   ARBITRATOR_DATA = 3,
 }
+
+export interface Notification {
+  id: string;
+  type: number;
+  address: string;
+  timestamp: number;
+  jobId: string;
+  read?: boolean;
+}
