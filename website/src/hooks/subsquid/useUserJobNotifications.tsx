@@ -3,12 +3,14 @@ import { useQuery } from '@apollo/client';
 import { GET_USER_JOB_NOTIFICATIONS } from './queries';
 import { Notification } from '@/service/Interfaces';
 
-export default function useUserJobNotifications(
-  userAddress: string,
-  jobIds: string[]
-) {
+export default function useUserJobNotifications(userAddress: string, jobIds: string[], minTimestamp?: number, offset?: number, limit?: number) {
   const { data, ...rest } = useQuery(GET_USER_JOB_NOTIFICATIONS, {
-    variables: { userAddress: userAddress ?? '', jobIds: jobIds },
+    variables: {
+      userAddress: userAddress ?? '',
+      minTimestamp: minTimestamp ?? 0,
+      offset: offset ?? 0,
+      limit: limit ?? 10,
+    },
     skip: !userAddress || !jobIds.length,
   });
 

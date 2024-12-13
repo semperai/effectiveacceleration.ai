@@ -2,10 +2,11 @@ import { Job } from '@effectiveacceleration/contracts';
 import { useMemo } from 'react';
 import { useQuery } from '@apollo/client';
 import { GET_WORKER_DISPUTED_JOBS } from './queries';
+import { OrderByType } from '@/service/Interfaces';
 
-export default function useCreatorDisputedJobs(creatorAddress: string) {
+export default function useCreatorDisputedJobs(creatorAddress: string, orderBy?: OrderByType) {
   const { data, ...rest } = useQuery(GET_WORKER_DISPUTED_JOBS, {
-    variables: { creatorAddress },
+    variables: { creatorAddress, ...(orderBy && { orderBy })  },
   });
 
   return useMemo(

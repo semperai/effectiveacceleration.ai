@@ -25,6 +25,7 @@ export const JobFields = `
       jobTimes {
         arbitratedAt
         closedAt
+        assignedAt
         disputedAt
         createdAt
         lastEventAt

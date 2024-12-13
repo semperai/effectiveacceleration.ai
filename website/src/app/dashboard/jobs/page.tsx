@@ -6,33 +6,39 @@ import { Link } from '@/components/Link';
 import { ChevronRightIcon } from '@heroicons/react/20/solid';
 import {
   formatTokenNameAndAmount,
-  Token,
   tokenIcon,
-  tokens,
   tokensMap,
 } from '@/tokens';
 import {
-  Pagination,
-  PaginationGap,
-  PaginationList,
-  PaginationNext,
-  PaginationPage,
-  PaginationPrevious,
+  PaginationComponent,
 } from '@/components/Pagination';
 import useJobs from '@/hooks/subsquid/useJobs';
 import moment from 'moment';
 import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
 import useUserJobNotifications from '@/hooks/subsquid/useUserJobNotifications';
 import { useAccount } from 'wagmi';
+import { useSearchParams } from 'next/navigation';
+import useJobsLength from '@/hooks/subsquid/useJobsLength';
 
 const environments: Record<string, string> = {
   Preview: 'text-gray-400 bg-gray-400/10 ring-gray-400/20',
   Production: 'text-indigo-400 bg-indigo-400/10 ring-indigo-400/30',
 };
 
+const defaultLimit = 10;
+
 export default function OpenJobsPage() {
+  const searchParams = useSearchParams();
+  const page = Math.max(1, Number(searchParams.get('page')) || 1);
+
+  const { data: jobsCount } = useJobsLength();
+  const pages = Math.ceil((jobsCount ?? 0) / defaultLimit);
+
   const account = useAccount();
-  const { data: jobs } = useJobs();
+  const { data: jobs } = useJobs({
+    limit: defaultLimit, offset: (page - 1) * defaultLimit,
+  });
+
   const { data: users } = useUsersByAddresses(
     jobs?.map((job) => job.roles.creator) ?? []
   );
@@ -121,21 +127,7 @@ export default function OpenJobsPage() {
         );
       })}
 
-      <Pagination className='mt-20'>
-        <PaginationPrevious href='?page=2' />
-        <PaginationList>
-          <PaginationPage href='?page=1'>1</PaginationPage>
-          <PaginationPage href='?page=2'>2</PaginationPage>
-          <PaginationPage href='?page=3' current>
-            3
-          </PaginationPage>
-          <PaginationPage href='?page=4'>4</PaginationPage>
-          <PaginationGap />
-          <PaginationPage href='?page=65'>65</PaginationPage>
-          <PaginationPage href='?page=66'>66</PaginationPage>
-        </PaginationList>
-        <PaginationNext href='?page=4' />
-      </Pagination>
+      <PaginationComponent page={page} pages={pages} />
     </Layout>
   );
 }

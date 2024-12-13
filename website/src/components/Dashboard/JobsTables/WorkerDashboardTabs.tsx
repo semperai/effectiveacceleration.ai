@@ -16,9 +16,9 @@ import useWorkerTakenJobs from '@/hooks/subsquid/useWorkerTakenJobs';
 
 export const WorkerDashboardTabs = () => {
   const { address } = useAccount();
-  const { data: applicationsJobs = [] } = useWorkerApplications(address!);
-  const { data: completedJobs = [] } = useWorkerCompletedJobs(address!);
-  const { data: takenJobs = [] } = useWorkerTakenJobs(address!);
+  const { data: applicationsJobs = [] } = useWorkerApplications(address!, 'jobTimes_openedAt_DESC');
+  const { data: completedJobs = [] } = useWorkerCompletedJobs(address!, 'jobTimes_openedAt_DESC');
+  const { data: takenJobs = [] } = useWorkerTakenJobs(address!, 'jobTimes_openedAt_DESC');
 
   const [mounted, setMounted] = useState(false);
 

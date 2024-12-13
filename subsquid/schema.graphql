@@ -51,10 +51,11 @@ type Job @entity {
 type JobTimes {
   createdAt: Int!
   openedAt: Int!
+  assignedAt: Int!
   closedAt: Int!
   disputedAt: Int!
   arbitratedAt: Int!
-  updatedAt: Int! # only job definition updates
+  updatedAt: Int! # only job scope updates
   lastEventAt: Int! # job instance updates with last event
 }
 

@@ -4,6 +4,7 @@ import type { PrecacheEntry, SerwistGlobalConfig } from 'serwist';
 import { Serwist } from 'serwist';
 import JSON5 from '@mainnet-pat/json5-bigint';
 import '@mainnet-pat/json5-bigint/lib/presets/extended';
+import { EventTextMap } from './lib/utils';
 
 // This declares the value of `injectionPoint` to TypeScript.
 // `injectionPoint` is the string that will be replaced by the
@@ -50,69 +51,7 @@ self.addEventListener('push', function (event) {
   } else {
     // otherwise it is a job event notification
     const jobEvent = data;
-    switch (jobEvent.type_) {
-      case JobEventType.Created:
-        // to arbitrator
-        body = `Job #${jobEvent.jobId} created with you assigned as the arbitrator.`;
-        break;
-      case JobEventType.Taken:
-        // to creator
-        body = `Job #${jobEvent.jobId} has been taken.`;
-        break;
-      case JobEventType.Paid:
-        // to worker
-        body = `Job #${jobEvent.jobId} has been paid.`;
-        break;
-      case JobEventType.Updated:
-        // to worker, old arbitrator and new arbitrator
-        body = `Job #${jobEvent.jobId} has been updated.`;
-        break;
-      case JobEventType.Signed:
-        // to creator
-        body = `Job #${jobEvent.jobId} has been signed.`;
-        break;
-      case JobEventType.Completed:
-        // to worker and arbitrator
-        body = `Job #${jobEvent.jobId} has been approved.`;
-        break;
-      case JobEventType.Delivered:
-        // to creator
-        body = `Job #${jobEvent.jobId} has been delivered.`;
-        break;
-      case JobEventType.Rated:
-        // to worker
-        body = `Job #${jobEvent.jobId} has been rated.`;
-        break;
-      case JobEventType.Refunded:
-        // to creator
-        body = `Job #${jobEvent.jobId} has been refunded.`;
-        break;
-      case JobEventType.Disputed:
-        // to creator/worker and arbitrator
-        body = `Job #${jobEvent.jobId} has been disputed.`;
-        break;
-      case JobEventType.Arbitrated:
-        // to creator and worker
-        body = `Job #${jobEvent.jobId} has been arbitrated.`;
-        break;
-      case JobEventType.ArbitrationRefused:
-        // to creator and worker
-        body = `Job #${jobEvent.jobId} arbitration has been refused.`;
-        break;
-      case JobEventType.WhitelistedWorkerAdded:
-        // to worker
-        body = `You have been added to the whitelist of job #${jobEvent.jobId}.`;
-        break;
-      case JobEventType.WhitelistedWorkerRemoved:
-        // to worker
-        body = `You have been removed from the whitelist of job #${jobEvent.jobId}.`;
-        break;
-      case JobEventType.OwnerMessage:
-      case JobEventType.WorkerMessage:
-        // to creator/worker
-        body = `New message in job #${jobEvent.jobId}.`;
-        break;
-    }
+    body = EventTextMap(jobEvent.type_, jobEvent.jobId)
 
     data = jobEvent;
   }
