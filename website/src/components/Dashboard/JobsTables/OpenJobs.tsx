@@ -1,15 +1,15 @@
 import { Badge } from '@/components/Badge';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/Tooltip';
 import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
 import { Job } from '@effectiveacceleration/contracts';
-import { Check, Clock, Lock, Users, User, Scale } from 'lucide-react';
+import { Check, Clock, Lock, Scale, User, Users } from 'lucide-react';
 import moment from 'moment';
 import Link from 'next/link';
-import {
-  TooltipProvider,
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from '@/components/Tooltip';
 
 const formatAddress = (address: string) => {
   if (!address) return '';
