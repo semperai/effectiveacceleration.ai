@@ -112,11 +112,10 @@ const JobSidebar = ({
     </span>
   );
 
-  // TODO - fix this with proper time since the job taken
   let timeLeft = 0;
   // TODO there must be nicer way to do this..
   if (job && job.jobTimes) {
-    timeLeft += job.jobTimes.openedAt;
+    timeLeft += job.jobTimes.assignedAt;
   }
   timeLeft -= ((+new Date() / 1000)|0) + job.maxTime;
 
