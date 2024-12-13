@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Job } from '@effectiveacceleration/contracts';
 import JobsTable from './JobsTable';
 import moment from 'moment';
-import { LocalStorageJob, TOpenJobTable } from '@/service/JobsService';
+import { TOpenJobTable } from '@/service/JobsService';
 import {
   useReactTable,
   getCoreRowModel,
