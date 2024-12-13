@@ -28,18 +28,22 @@ export const OpenJobs = ({ jobs }: { jobs: Job[] }) => {
   const defaultData: TOpenJobTable[] = jobs.map((job, index) => ({
     jobName: <span data-url={`/dashboard/jobs/${job.id}`}>{job.title}</span>,
     tags: job.tags.map((tag, index) => (
-      <Badge key={index} className="m-0.5">{tag}</Badge>
+      <Badge key={index} className='m-0.5'>
+        {tag}
+      </Badge>
     )),
     postedTime: (
       <span key={index}>
         {moment(job.timestamp * 1000).fromNow()}
-        <div className='text-xs text-slate-500'>{moment(job.timestamp * 1000).format('llll')}</div>
+        <div className='text-xs text-slate-500'>
+          {moment(job.timestamp * 1000).format('llll')}
+        </div>
       </span>
     ),
     deadline: (
       <span key={index}>
         {moment.duration(job.maxTime, 'seconds').humanize()}
-        <div className='text-xs text-slate-500 w-full'>{job.maxTime}s</div>
+        <div className='w-full text-xs text-slate-500'>{job.maxTime}s</div>
       </span>
     ),
     reward: (
