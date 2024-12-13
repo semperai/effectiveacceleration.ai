@@ -163,7 +163,7 @@ export const GET_CREATOR_CLOSED_JOBS = gql`
 
 export const GET_JOB_SEARCH = (search: string) => gql`
   query GetWorkerOpenJobSearch {
-    jobs(where: {
+    jobs(orderBy: jobTimes_openedAt_DESC, where: {
       ${search}
     }) {
       ${JobFields}
