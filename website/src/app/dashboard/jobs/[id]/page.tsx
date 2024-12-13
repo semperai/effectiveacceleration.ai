@@ -117,7 +117,7 @@ const JobSidebar = ({
   if (job && job.jobTimes) {
     timeLeft += job.jobTimes.assignedAt;
   }
-  timeLeft -= ((+new Date() / 1000)|0) + job.maxTime;
+  timeLeft -= ((+new Date() / 1000) | 0) + job.maxTime;
 
   return (
     <div className='h-full max-h-customHeader divide-y divide-gray-100 overflow-y-auto rounded-lg bg-white shadow-sm'>
@@ -239,7 +239,11 @@ const JobSidebar = ({
             <div className='space-y-4'>
               <DetailRow
                 label='Time Remaining'
-                value={timeLeft > 0 ? formatTimeLeft(timeLeft): `Overdue by ${formatTimeLeft(-timeLeft)}`}
+                value={
+                  timeLeft > 0
+                    ? formatTimeLeft(timeLeft)
+                    : `Overdue by ${formatTimeLeft(-timeLeft)}`
+                }
               />
               <LinearProgress value={5} className='w-full' />
             </div>

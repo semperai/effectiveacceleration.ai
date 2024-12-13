@@ -4,14 +4,8 @@ import { clsx } from 'clsx';
 import { Layout } from '@/components/Dashboard/Layout';
 import { Link } from '@/components/Link';
 import { ChevronRightIcon } from '@heroicons/react/20/solid';
-import {
-  formatTokenNameAndAmount,
-  tokenIcon,
-  tokensMap,
-} from '@/tokens';
-import {
-  PaginationComponent,
-} from '@/components/Pagination';
+import { formatTokenNameAndAmount, tokenIcon, tokensMap } from '@/tokens';
+import { PaginationComponent } from '@/components/Pagination';
 import useJobs from '@/hooks/subsquid/useJobs';
 import moment from 'moment';
 import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
@@ -36,7 +30,8 @@ export default function OpenJobsPage() {
 
   const account = useAccount();
   const { data: jobs } = useJobs({
-    limit: defaultLimit, offset: (page - 1) * defaultLimit,
+    limit: defaultLimit,
+    offset: (page - 1) * defaultLimit,
   });
 
   const { data: users } = useUsersByAddresses(

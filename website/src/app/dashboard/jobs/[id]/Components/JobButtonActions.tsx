@@ -35,29 +35,82 @@ const JobButtonActions = ({
   whitelistedWorkers: string[];
   timePassed?: boolean;
 }) => {
+  const showDisputeButton =
+    job?.state === JobState.Taken &&
+    // job.resultHash !== zeroHash &&
+    job.roles.arbitrator !== zeroAddress &&
+    address !== job.roles.arbitrator &&
+    addresses.length &&
+    !job.disputed &&
+    Object.keys(sessionKeys).length > 0;
+
+  const showReviewButton =
+    job?.state === JobState.Closed &&
+    job.rating === 0 &&
+    job.resultHash !== zeroHash &&
+    address === job.roles.creator;
+
+  const showCloseButton =
+    job?.state === JobState.Open && address === job.roles.creator;
+
+  const showReopenButton =
+    job?.state === JobState.Closed &&
+    address === job.roles.creator &&
+    job.resultHash === zeroHash;
+
+  const showWithdrawCollateralButton =
+    job?.state === JobState.Closed &&
+    address === job.roles.creator &&
+    job.collateralOwed > 0n &&
+    timePassed;
+
+  const showWhitelistButton =
+    job?.state === JobState.Open &&
+    address === job.roles.creator &&
+    job.whitelistWorkers;
+
+  const showRemoveFromWhitelistButton =
+    job?.state === JobState.Open &&
+    address === job.roles.creator &&
+    job.whitelistWorkers &&
+    events.length > 0 &&
+    events.at(-1)!.job.allowedWorkers!.length! > 0;
+
+  const showUpdateButton =
+    job?.state === JobState.Open && address === job.roles.creator;
+
+  const showRefundButton =
+    job?.state === JobState.Taken && address === job.roles.worker;
+
+  // TODO shouldnt this be from creator side ?
+  const showAcceptButton =
+    job?.state === JobState.Open &&
+    address === job.roles.worker &&
+    events.length > 0;
+
+  const showDeliverResultButton =
+    job?.state === JobState.Taken &&
+    address === job.roles.worker &&
+    Object.keys(sessionKeys).length > 0;
+
+  const showArbitrateButton =
+    job?.state === JobState.Taken && address === job.roles.arbitrator;
+
+  const showRefuseArbitrationButton =
+    job?.state !== JobState.Closed && address === job?.roles.arbitrator;
+
   return (
-    <div className=''>
+    <div>
       {job && (
         <div className='flex flex-col gap-2'>
           {/* owner & worker actions */}
-          {job.state === JobState.Taken &&
-            job.resultHash !== zeroHash &&
-            job.roles.arbitrator !== zeroAddress &&
-            address !== job.roles.arbitrator &&
-            addresses.length &&
-            !job.disputed &&
-            Object.keys(sessionKeys).length > 0 && (
-              <DisputeButton
-                address={address}
-                sessionKeys={sessionKeys}
-                job={job}
-              />
-            )}
-          {/* {job.state !== JobState.Closed && address !== job.roles.arbitrator && addresses.length && Object.keys(sessionKeys).length > 0 &&
-          <div className='row-span-1 flex flex-1 border border-gray-100'>
-              <PostMessageButton address={address} addresses={addresses as any} sessionKeys={sessionKeys} job={job}/>
-          </div>
-      } */}
+          {showDisputeButton && (
+            <DisputeButton
+              address={address}
+              sessionKeys={sessionKeys}
+              job={job}
+            />
+          )}
 
           {/* owner actions */}
           {/* {job.state === JobState.Open && address === job.roles.creator && events.length > 0 &&
@@ -66,77 +119,50 @@ const JobButtonActions = ({
           {/* {job.state === JobState.Taken && job.resultHash !== zeroHash && address === job.roles.creator &&
         <ApproveButton address={address} job={job}></ApproveButton>
       } */}
-          {job.state === JobState.Closed &&
-            job.rating === 0 &&
-            job.resultHash !== zeroHash &&
-            address === job.roles.creator && (
-              <ReviewButton address={address} job={job} />
-            )}
-          {job.state === JobState.Open && address === job.roles.creator && (
-            <CloseButton job={job} />
+          {showReviewButton && <ReviewButton address={address} job={job} />}
+          {showCloseButton && <CloseButton job={job} />}
+          {showReopenButton && <ReopenButton job={job} />}
+          {showWithdrawCollateralButton && (
+            <WithdrawCollateralButton job={job} />
           )}
-          {job.state === JobState.Closed &&
-            address === job.roles.creator &&
-            job.resultHash === zeroHash && <ReopenButton job={job} />}
-          {job.state === JobState.Closed &&
-            address === job.roles.creator &&
-            job.collateralOwed > 0n &&
-            timePassed && <WithdrawCollateralButton job={job} />}
-          {job.state === JobState.Open &&
-            address === job.roles.creator &&
-            job.whitelistWorkers && (
-              <WhitelistButton
-                address={address}
-                job={job}
-                whitelist={whitelistedWorkers}
-              />
-            )}
-          {job.state === JobState.Open &&
-            address === job.roles.creator &&
-            job.whitelistWorkers &&
-            events.length > 0 &&
-            events.at(-1)!.job.allowedWorkers!.length! > 0 && (
-              <RemoveFromWhitelistButton
-                address={address}
-                job={job}
-                whitelist={whitelistedWorkers}
-              />
-            )}
-          {job.state === JobState.Open && address === job.roles.creator && (
-            <UpdateButton address={address} job={job} />
+          {showWhitelistButton && (
+            <WhitelistButton
+              address={address}
+              job={job}
+              whitelist={whitelistedWorkers}
+            />
           )}
+          {showRemoveFromWhitelistButton && (
+            <RemoveFromWhitelistButton
+              address={address}
+              job={job}
+              whitelist={whitelistedWorkers}
+            />
+          )}
+          {showUpdateButton && <UpdateButton address={address} job={job} />}
 
           {/* worker actions */}
-          {job.state === JobState.Taken && address === job.roles.worker && (
-            <RefundButton job={job} />
+          {showRefundButton && <RefundButton job={job} />}
+          {showAcceptButton && (
+            <AcceptButton address={address} job={job} events={events} />
           )}
-          {job.state === JobState.Open &&
-            address === job.roles.worker &&
-            events.length > 0 && (
-              <AcceptButton address={address} job={job} events={events} />
-            )}
-          {job.state === JobState.Taken &&
-            address === job.roles.worker &&
-            Object.keys(sessionKeys).length > 0 && (
-              <DeliverResultButton
-                address={address}
-                job={job}
-                sessionKeys={sessionKeys}
-              />
-            )}
+          {showDeliverResultButton && (
+            <DeliverResultButton
+              address={address}
+              job={job}
+              sessionKeys={sessionKeys}
+            />
+          )}
 
           {/* arbitrator actions */}
-          {job.state === JobState.Taken && address === job.roles.arbitrator && (
+          {showArbitrateButton && (
             <ArbitrateButton
               address={address}
               job={job}
               sessionKeys={sessionKeys}
             />
           )}
-          {job.state !== JobState.Closed &&
-            address === job.roles.arbitrator && (
-              <RefuseArbitrationButton job={job} />
-            )}
+          {showRefuseArbitrationButton && <RefuseArbitrationButton job={job} />}
         </div>
       )}
     </div>
