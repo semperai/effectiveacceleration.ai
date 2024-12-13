@@ -21,21 +21,35 @@ const columns = [
 
 export const OwnerCompletedJobs = ({ jobs }: { jobs: Job[] }) => {
   const defaultData: TCompletedTable[] = jobs.map((job, index) => ({
-    jobName: <span data-url={`/dashboard/jobs/${job.id}`} key={'ownerCompleted'+index} className='font-bold'>{job.title}</span>,
+    jobName: (
+      <span
+        data-url={`/dashboard/jobs/${job.id}`}
+        key={'ownerCompleted' + index}
+        className='font-bold'
+      >
+        {job.title}
+      </span>
+    ),
     status: (
-      <span key={'ownerCompleted'+index} className='rounded-full bg-[#E1FFEF] px-3 py-2 text-[#23B528]'>
+      <span
+        key={'ownerCompleted' + index}
+        className='rounded-full bg-[#E1FFEF] px-3 py-2 text-[#23B528]'
+      >
         Completed
       </span>
     ),
-    timeTaken: <span key={'ownerCompleted'+index}>{job.maxTime}</span>,
+    timeTaken: <span key={'ownerCompleted' + index}>{job.maxTime}</span>,
     completedBy: (
-      <span key={'ownerCompleted'+index} className='font-md'>
+      <span key={'ownerCompleted' + index} className='font-md'>
         {shortenText({ text: job?.roles.worker, maxLength: 20 }) || ''}
       </span>
     ),
     actions: (
-      <Link key={'ownerCompleted'+index} href={`/dashboard/jobs/${job.id?.toString()}`}>
-        <span  className='font-md font-semibold text-primary underline'>
+      <Link
+        key={'ownerCompleted' + index}
+        href={`/dashboard/jobs/${job.id?.toString()}`}
+      >
+        <span className='font-md font-semibold text-primary underline'>
           View Details
         </span>
       </Link>

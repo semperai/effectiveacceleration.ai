@@ -9,9 +9,7 @@ import * as Sentry from '@sentry/nextjs';
 import { ethers } from 'ethers';
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
-import {
-  useSignMessage
-} from 'wagmi';
+import { useSignMessage } from 'wagmi';
 
 export type AcceptButtonProps = {
   address: string | undefined;

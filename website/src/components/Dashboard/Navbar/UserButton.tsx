@@ -57,7 +57,7 @@ const NavButton = ({ name, avatar, openModal }: NavButtonProps) => {
         />
       ) : (
         <Image
-          className='h-full w-full object-cover rounded-full'
+          className='h-full w-full rounded-full object-cover'
           width={64}
           height={64}
           src={avatar as string | StaticImport}

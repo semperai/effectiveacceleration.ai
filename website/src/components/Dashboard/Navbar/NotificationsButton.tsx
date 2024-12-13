@@ -17,7 +17,9 @@ export const NotificationsButton = () => {
   const notificationsCount = notifications?.filter(notification => !notification.read).length ?? 0;
 
   const readAllNotifications = useCallback(() => {
-    const readNotifications = new Set<string>(JSON.parse(localStorage.getItem('ReadNotifications') ?? '[]'));
+    const readNotifications = new Set<string>(
+      JSON.parse(localStorage.getItem('ReadNotifications') ?? '[]')
+    );
     const countBefore = readNotifications.size;
     for (const notification of notifications ?? []) {
       readNotifications.add(notification.id);
@@ -25,7 +27,10 @@ export const NotificationsButton = () => {
     if (countBefore === readNotifications.size) {
       return;
     }
-    localStorage.setItem('ReadNotifications', JSON.stringify([...readNotifications]));
+    localStorage.setItem(
+      'ReadNotifications',
+      JSON.stringify([...readNotifications])
+    );
     const event = new StorageEvent('storage', {
       key: 'ReadNotifications',
     });
@@ -33,23 +38,31 @@ export const NotificationsButton = () => {
   }, [notifications]);
 
   const readNotification = useCallback((notification: Notification) => {
-    const readNotifications = new Set<string>(JSON.parse(localStorage.getItem('ReadNotifications') ?? '[]'));
+    const readNotifications = new Set<string>(
+      JSON.parse(localStorage.getItem('ReadNotifications') ?? '[]')
+    );
     const countBefore = readNotifications.size;
     readNotifications.add(notification.id);
     if (countBefore === readNotifications.size) {
       return;
     }
-    localStorage.setItem('ReadNotifications', JSON.stringify([...readNotifications]));
+    localStorage.setItem(
+      'ReadNotifications',
+      JSON.stringify([...readNotifications])
+    );
     const event = new StorageEvent('storage', {
       key: 'ReadNotifications',
     });
     window.dispatchEvent(event);
   }, []);
 
-  const notificationClick = useCallback((notification: Notification) => {
-    readNotification(notification);
-    setOpen(false);
-  }, [readNotification]);
+  const notificationClick = useCallback(
+    (notification: Notification) => {
+      readNotification(notification);
+      setOpen(false);
+    },
+    [readNotification]
+  );
 
   return (
     <div className='relative'>
@@ -62,12 +75,14 @@ export const NotificationsButton = () => {
           }
         )}
         aria-label={`${notificationsCount} notifications`}
-        onClick={() => { if (notificationsCount > 0) setOpen(!open); } }
+        onClick={() => {
+          if (notificationsCount > 0) setOpen(!open);
+        }}
       >
         <PiBellSimple className='h-5 w-5' />
 
         {notificationsCount > 0 && (
-          <span className='bg-rose-500 absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full text-xs font-medium text-white'>
+          <span className='absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-xs font-medium text-white'>
             {notificationsCount.toString()}
           </span>
         )}
@@ -119,7 +134,11 @@ export const NotificationsButton = () => {
                           {EventTextMap(notification.type, notification.jobId)}
                         </Link>
                         <div className='flex-shrink cursor-pointer'>
-                          <PiCheck className='h-5 w-5' onClick={() => readNotification(notification)} title='Mark as read' />
+                          <PiCheck
+                            className='h-5 w-5'
+                            onClick={() => readNotification(notification)}
+                            title='Mark as read'
+                          />
                         </div>
                       </div>
                     ))}

@@ -70,7 +70,7 @@ export const subscribeToWebPushNotifications = async (
     });
 
     const json = subscription.toJSON();
-    (json as any).address = address ?? "0x";
+    (json as any).address = address ?? '0x';
 
     try {
       // Send the subscription details to the server using the Fetch API.
@@ -83,7 +83,6 @@ export const subscribeToWebPushNotifications = async (
           subscription: json,
         }),
       });
-
     } catch {
       await subscription.unsubscribe();
     }
@@ -98,10 +97,10 @@ export const unsubscribeFromWebPushNotifications = async () => {
     return;
   }
 
-  console.log("Unsubscribing from web push notifications");
+  console.log('Unsubscribing from web push notifications');
 
   await subscription.unsubscribe();
-}
+};
 
 export const useRegisterWebPushNotifications = () => {
   const [account, setAccount] = useState<string>();

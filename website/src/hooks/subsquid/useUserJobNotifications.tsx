@@ -14,7 +14,9 @@ export default function useUserJobNotifications(userAddress: string, jobIds: str
     skip: !userAddress || !jobIds.length,
   });
 
-  const [notificationMap, setNotificationMap] = useState<Record<string, Notification[]> | undefined>();
+  const [notificationMap, setNotificationMap] = useState<
+    Record<string, Notification[]> | undefined
+  >();
 
   useEffect(() => {
     const handler = (event: StorageEvent) => {
@@ -23,7 +25,9 @@ export default function useUserJobNotifications(userAddress: string, jobIds: str
           return;
         }
 
-        const readNotifications = JSON.parse(localStorage.getItem('ReadNotifications') || '[]') as string[];
+        const readNotifications = JSON.parse(
+          localStorage.getItem('ReadNotifications') || '[]'
+        ) as string[];
         const notificationMap: Record<string, Notification[]> = {};
         data.notifications.map((notification: Notification) => {
           const copy = { ...notification };
@@ -35,7 +39,7 @@ export default function useUserJobNotifications(userAddress: string, jobIds: str
           }
           notificationMap[copy.jobId].push(copy);
         });
-        setNotificationMap((prev) => ({...prev, ...notificationMap}));
+        setNotificationMap((prev) => ({ ...prev, ...notificationMap }));
       }
     };
     window.addEventListener('storage', handler);
@@ -43,7 +47,7 @@ export default function useUserJobNotifications(userAddress: string, jobIds: str
 
     return () => {
       window.removeEventListener('storage', handler, true);
-    }
+    };
   }, [data]);
 
   return useMemo(
