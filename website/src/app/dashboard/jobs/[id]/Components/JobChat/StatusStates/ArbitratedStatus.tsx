@@ -27,7 +27,7 @@ const ArbitratedStatus: React.FC<ResultAcceptedProps> = ({
   events,
   address,
 }) => {
-  console.log(events, 'EVENTS')
+  console.log(events, 'EVENTS');
   const arbitratedEvent = events.filter(
     (event) => event.type_ === JobEventType.Arbitrated
   )[0]?.details as JobArbitratedEvent;
@@ -39,8 +39,13 @@ const ArbitratedStatus: React.FC<ResultAcceptedProps> = ({
         <span className='block justify-center'>
           The arbitrator decided to release the funds to the worker with the
           following reasons:&nbsp;
-          {(events.filter((event) => event.type_ === JobEventType.Arbitrated)[0]
-              ?.details as JobArbitratedEvent)?.reason}
+          {
+            (
+              events.filter(
+                (event) => event.type_ === JobEventType.Arbitrated
+              )[0]?.details as JobArbitratedEvent
+            )?.reason
+          }
         </span>
         {address === job.roles.creator && (
           <span className='block'>
@@ -56,10 +61,8 @@ const ArbitratedStatus: React.FC<ResultAcceptedProps> = ({
         {address === job.roles.worker && (
           <span className='block'>
             The arbitrator refunded your payment. You received &nbsp;
-            {formatTokenNameAndAmount(
-              job.token,
-              arbitratedEvent?.workerAmount
-            )}, arbitrator fee was{' '}
+            {formatTokenNameAndAmount(job.token, arbitratedEvent?.workerAmount)}
+            , arbitrator fee was{' '}
             {formatTokenNameAndAmount(job.token, /* TODO */ BigInt(0))}
           </span>
         )}

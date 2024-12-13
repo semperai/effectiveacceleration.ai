@@ -9,7 +9,9 @@ export default function useUserJobNotifications(userAddress: string) {
     skip: !userAddress,
   });
 
-  const [notifications, setNotifications] = useState<Notification[] | undefined>();
+  const [notifications, setNotifications] = useState<
+    Notification[] | undefined
+  >();
 
   useEffect(() => {
     const handler = (event: StorageEvent) => {
@@ -18,13 +20,17 @@ export default function useUserJobNotifications(userAddress: string) {
           return;
         }
 
-        const readNotifications = JSON.parse(localStorage.getItem('ReadNotifications') || '[]') as string[];
-        const notifications = data.notifications.map((notification: Notification) => {
-          const copy = { ...notification };
+        const readNotifications = JSON.parse(
+          localStorage.getItem('ReadNotifications') || '[]'
+        ) as string[];
+        const notifications = data.notifications.map(
+          (notification: Notification) => {
+            const copy = { ...notification };
 
-          copy.read = readNotifications.includes(notification.id);
-          return copy;
-        });
+            copy.read = readNotifications.includes(notification.id);
+            return copy;
+          }
+        );
         setNotifications(notifications);
       }
     };
@@ -33,7 +39,7 @@ export default function useUserJobNotifications(userAddress: string) {
 
     return () => {
       window.removeEventListener('storage', handler, true);
-    }
+    };
   }, [data]);
 
   return useMemo(

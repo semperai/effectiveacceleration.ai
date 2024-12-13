@@ -22,15 +22,30 @@ const columns = [
 
 export const OwnerCancelledJobs = ({ jobs }: { jobs: Job[] }) => {
   const defaultData: TCancelledTable[] = jobs.map((job, index) => ({
-    jobName: <span data-url={`/dashboard/jobs/${job.id}`} key={'ownerCancelled'+index} className='font-bold'>{job.title}</span>,
-    reason: <span key={'ownerCancelled'+index} className=''>Reason</span>,
+    jobName: (
+      <span
+        data-url={`/dashboard/jobs/${job.id}`}
+        key={'ownerCancelled' + index}
+        className='font-bold'
+      >
+        {job.title}
+      </span>
+    ),
+    reason: (
+      <span key={'ownerCancelled' + index} className=''>
+        Reason
+      </span>
+    ),
     assignedTo: (
-      <span key={'ownerCancelled'+index} className='font-md'>
+      <span key={'ownerCancelled' + index} className='font-md'>
         {shortenText({ text: job?.roles.worker, maxLength: 20 }) || ''}
       </span>
     ),
     actionsTaken: (
-      <Link key={'ownerCancelled'+index} href={`/dashboard/jobs/${job.id?.toString()}`}>
+      <Link
+        key={'ownerCancelled' + index}
+        href={`/dashboard/jobs/${job.id?.toString()}`}
+      >
         <span className='font-md font-semibold text-primary underline'>
           View Details
         </span>

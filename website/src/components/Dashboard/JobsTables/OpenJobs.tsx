@@ -25,18 +25,23 @@ const columns = [
 
 export const OpenJobs = ({ jobs }: { jobs: Job[] }) => {
   const defaultData: TOpenJobTable[] = jobs.map((job, index) => ({
-    jobName: (
-        <span data-url={`/dashboard/jobs/${job.id}`}>
-          {job.title}
-        </span>
-    ),
+    jobName: <span data-url={`/dashboard/jobs/${job.id}`}>{job.title}</span>,
     tags: job.tags.map((tag, index) => (
-      <span key={index} className='rounded-full bg-[#E1FFEF] px-3 py-2 text-sm text-[#23B528]'>
+      <span
+        key={index}
+        className='rounded-full bg-[#E1FFEF] px-3 py-2 text-sm text-[#23B528]'
+      >
         {tag}
       </span>
     )),
-    postedTime: <span key={index}>{moment(job.timestamp * 1000).fromNow()}</span>,
-    deadline: <span key={index}>{moment.duration(job.maxTime, 'seconds').humanize()}</span>,
+    postedTime: (
+      <span key={index}>{moment(job.timestamp * 1000).fromNow()}</span>
+    ),
+    deadline: (
+      <span key={index}>
+        {moment.duration(job.maxTime, 'seconds').humanize()}
+      </span>
+    ),
     reward: (
       <div key={index} className='flex items-center gap-2'>
         {formatTokenNameAndAmount(job.token, job.amount)}
@@ -45,7 +50,10 @@ export const OpenJobs = ({ jobs }: { jobs: Job[] }) => {
     ),
     traits: (
       <>
-        <span key={index} className='rounded-full bg-[#EFFFE1] px-3 py-2 text-sm text-[#2823B5]'>
+        <span
+          key={index}
+          className='rounded-full bg-[#EFFFE1] px-3 py-2 text-sm text-[#2823B5]'
+        >
           {job.deliveryMethod}
         </span>
         {!job.multipleApplicants && <PiCloverBold className='h-4 w-4' />}

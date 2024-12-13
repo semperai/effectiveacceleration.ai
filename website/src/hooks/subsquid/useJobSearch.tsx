@@ -11,7 +11,7 @@ export default function useJobSearch(jobSearch: Partial<Job>) {
       } else if (typeof value === 'bigint') {
         return `${key}_eq: ${value.toString()}`;
       } else if (Array.isArray(value)) {
-        return `${key}_containsAny: [${value.map(element => `"${element}"`).join(', ')}]`;
+        return `${key}_containsAny: [${value.map((element) => `"${element}"`).join(', ')}]`;
       } else {
         return `${key}_eq: ${value}`;
       }

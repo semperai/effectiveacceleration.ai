@@ -42,15 +42,21 @@ export const JobFilter = ({
   selectedUnitTime,
   setSelectedUnitTime,
   minTokens,
-  setMinTokens
+  setMinTokens,
 }: JobFilterProps) => {
-
   return (
     <div className='mb-4 rounded-lg border border-gray-300 bg-white p-4 shadow-sm'>
       {/* Stack vertically on mobile, horizontal on larger screens */}
       <div className='flex flex-col items-start justify-between gap-4 md:flex-row md:items-center'>
         <Field className='w-full'>
-          <Input placeholder='Search' value={search} onChange={(e) => {setSearch(e.target.value)}} className='w-full' />
+          <Input
+            placeholder='Search'
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+            }}
+            className='w-full'
+          />
         </Field>
         <Field className='w-full'>
           <TagsInput tags={tags} setTags={setTags} />
@@ -70,7 +76,10 @@ export const JobFilter = ({
           <Field className='w-full sm:w-auto'>
             <Input
               type='number'
-              value={minTokens} onChange={(e) => {setMinTokens(Number(e.target.value))}}
+              value={minTokens}
+              onChange={(e) => {
+                setMinTokens(Number(e.target.value));
+              }}
               className='w-full sm:w-40'
               placeholder='Minimum Tokens'
             />

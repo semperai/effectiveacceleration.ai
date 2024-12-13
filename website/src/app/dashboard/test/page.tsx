@@ -17,9 +17,12 @@ import { Button } from '@/components/Button';
 import Markdown from 'react-markdown';
 import { Textarea } from '@/components/Textarea';
 import useJobEventsWithDiffs from '@/hooks/subsquid/useJobEventsWithDiffs';
-import JSON5 from "@mainnet-pat/json5-bigint";
-import "@mainnet-pat/json5-bigint/lib/presets/extended";
-import { subscribeToWebPushNotifications, unsubscribeFromWebPushNotifications } from '@/hooks/useRegisterWebPushNotifications';
+import JSON5 from '@mainnet-pat/json5-bigint';
+import '@mainnet-pat/json5-bigint/lib/presets/extended';
+import {
+  subscribeToWebPushNotifications,
+  unsubscribeFromWebPushNotifications,
+} from '@/hooks/useRegisterWebPushNotifications';
 
 export interface IArbitrumToken {
   logoURI?: string;
@@ -116,8 +119,13 @@ const Test = () => {
     <Layout>
       aa
       <div className='flex flex-row gap-3'>
-        <Input value={subscribeAddress} onChange={(e) => setSubscribeAddress(e.target.value)} />
-        <Button onClick={() => subscribeToNotifications(subscribeAddress)}>Subscribe address to notifications</Button>
+        <Input
+          value={subscribeAddress}
+          onChange={(e) => setSubscribeAddress(e.target.value)}
+        />
+        <Button onClick={() => subscribeToNotifications(subscribeAddress)}>
+          Subscribe address to notifications
+        </Button>
         <Button onClick={unsubscribeFromNotifications}>Unsubscribe</Button>
         <Button onClick={sendTestNotification}>Send test notification</Button>
       </div>

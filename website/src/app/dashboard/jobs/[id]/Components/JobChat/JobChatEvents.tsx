@@ -47,7 +47,14 @@ const JobChatEvents: React.FC<ResultAcceptedProps> = ({
                         aria-hidden='true'
                       />
                     ) : null}
-                    <div className={clsx('relative flex items-start space-x-3', event.id === highlightedEventId ? 'border-r-2 border-r-yellow-600 border-dashed' : '')}>
+                    <div
+                      className={clsx(
+                        'relative flex items-start space-x-3',
+                        event.id === highlightedEventId
+                          ? 'border-r-2 border-dashed border-r-yellow-600'
+                          : ''
+                      )}
+                    >
                       {renderEvent({ event })}
                     </div>
                   </div>

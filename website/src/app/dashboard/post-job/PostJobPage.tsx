@@ -23,7 +23,11 @@ import { useConfig } from '@/hooks/useConfig';
 import { ComboBoxOption, Tag } from '@/service/FormsTypes';
 import { Token, tokens } from '@/tokens';
 import { jobMeceTags } from '@/utils/jobMeceTags';
-import { convertToSeconds, shortenText, unitsDeliveryTime } from '@/utils/utils';
+import {
+  convertToSeconds,
+  shortenText,
+  unitsDeliveryTime,
+} from '@/utils/utils';
 import { ethers } from 'ethers';
 import moment from 'moment';
 import Link from 'next/link';
@@ -107,7 +111,7 @@ const JobSummary = ({
       </div>
     </div>
   );
-  console.log(deadline, 'DEADLINE')
+  console.log(deadline, 'DEADLINE');
   return (
     <div className='mx-auto max-w-4xl'>
       <div className='mb-8'>
