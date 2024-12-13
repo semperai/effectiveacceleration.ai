@@ -122,7 +122,7 @@ export const GET_JOB_EVENTS = gql`
 `;
 
 export const GET_CREATOR_OPEN_JOBS = gql`
-  query GetCreatorOpenJobs($creatorAddress: String!, $orderBy: String) {
+  query GetCreatorOpenJobs($creatorAddress: String!, $orderBy: [JobOrderByInput!]) {
     jobs(orderBy: $orderBy, where: {roles:{creator_eq: $creatorAddress}, state_eq: 0}){
       ${JobFields}
     }

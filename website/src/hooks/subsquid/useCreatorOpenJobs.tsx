@@ -12,7 +12,7 @@ export enum OrderByType {
 
 export default function useCreatorOpenJobs(creatorAddress: string, orderBy?: OrderByType) {
   const { data, ...rest } = useQuery(GET_CREATOR_OPEN_JOBS, {
-    variables: { creatorAddress, orderBy: OrderByType.JobTimesCreatedAtDesc},
+    variables: { creatorAddress, orderBy: orderBy ?? OrderByType.JobTimesCreatedAtDesc, },
   });
 
   return useMemo(
