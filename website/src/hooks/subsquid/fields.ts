@@ -22,6 +22,15 @@ export const JobFields = `
         worker
         arbitrator
       }
+      jobTimes {
+        arbitratedAt
+        closedAt
+        disputedAt
+        createdAt
+        lastEventAt
+        openedAt
+        updatedAt
+      }
       title
       tags
       contentHash
