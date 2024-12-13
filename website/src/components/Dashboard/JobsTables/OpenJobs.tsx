@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import moment from 'moment';
 import Link from 'next/link';
+import { formatTimeLeft } from '@/utils/utils';
 
 const formatAddress = (address: string) => {
   if (!address) return '';
@@ -29,17 +30,6 @@ const formatAddress = (address: string) => {
 };
 
 export const OpenJobs = ({ jobs }: { jobs: Job[] }) => {
-  const formatTimeLeft = (maxTime: number) => {
-    const pluralize = (value: number, unit: string) =>
-      `${value} ${unit}${value === 1 ? '' : 's'}`;
-
-    if (maxTime < 60) return pluralize(maxTime, 'second');
-    if (maxTime < 3600) return pluralize(Math.floor(maxTime / 60), 'minute');
-    if (maxTime < 86400) return pluralize(Math.floor(maxTime / 3600), 'hour');
-    if (maxTime < 604800) return pluralize(Math.floor(maxTime / 86400), 'day');
-    return pluralize(Math.floor(maxTime / 604800), 'week');
-  };
-
   const getDeliveryIcon = (method: string) => {
     switch (method.toLowerCase()) {
       case 'ipfs':
