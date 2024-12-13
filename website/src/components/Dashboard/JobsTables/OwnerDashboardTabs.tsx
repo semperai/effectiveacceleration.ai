@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useMemo, useState, useRef } from 'react';
-import { OpenJobs } from './OpenJobs';
+import { JobsList } from '@/components/Dashboard/JobsList';
 import { OwnerProgressJobs } from './OwnerProgressJobs';
 import { OwnerCompletedJobs } from './OwnerCompletedJobs';
 import { DisputedJobs } from './DisputedJobs';
@@ -44,7 +44,7 @@ export const OwnerDashboardTabs = () => {
         <TabsTrigger value='Closed'>Closed</TabsTrigger>
       </TabsList>
       <TabsContent value='Open Jobs'>
-        {mounted ? <OpenJobs jobs={openJobs} /> : <JobsTableSkeleton />}
+        {mounted ? <JobsList jobs={openJobs} /> : <JobsTableSkeleton />}
       </TabsContent>
       <TabsContent value='In Progress'>
         {mounted ? (

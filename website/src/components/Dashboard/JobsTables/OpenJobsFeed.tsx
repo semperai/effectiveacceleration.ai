@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import { OpenJobs } from './OpenJobs';
+import { JobsList } from '@/components/Dashboard/JobsList';
 import { JobFilter } from '@/components/Dashboard/JobsTables/JobFilter';
 import useJobSearch from '@/hooks/subsquid/useJobSearch';
 import { ComboBoxOption, Tag } from '@/service/FormsTypes';
@@ -55,7 +55,7 @@ export const OpenJobsFeed = () => {
         minTokens={minTokens}
         setMinTokens={setMinTokens}
       />
-      <OpenJobs jobs={jobs ?? []} />
+      <JobsList jobs={jobs} />
     </div>
   );
 };
