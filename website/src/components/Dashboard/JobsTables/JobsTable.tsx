@@ -8,6 +8,13 @@ import useUser from '@/hooks/subsquid/useUser';
 import { useAccount } from 'wagmi';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import NoJobsCompletedImage from '@/images/noCompletedJobs.svg';
+import NoJobsDisputedImage from '@/images/NoDisputesYet.svg';
+import NoJobsOpenImage from '@/images/noOpenJobs.svg';
+import NoJobsProgessImage from '@/images/NoWorkInProgress.svg';
+import NojobsClosedImage from '@/images/noCompletedJobs.svg';
+
+import Image from 'next/image';
 
 interface JobsTableProps<T> {
   table: Table<T>;
@@ -16,6 +23,21 @@ interface JobsTableProps<T> {
   emptyMessage?: JSX.Element | string;
   emptySubtext?: JSX.Element | string;
 }
+
+const getImageByTitle = (title: string) => {
+  switch (title) {
+    case 'Cancelled Jobs':
+      return NojobsClosedImage;
+    case 'Completed Jobs':
+      return NoJobsCompletedImage;
+    case 'In Progress':
+      return NoJobsProgessImage;
+    case 'Disputed Jobs':
+      return NoJobsDisputedImage;
+    default:
+      return NoJobsOpenImage;
+  }
+};
 
 function JobsTable<T>({
   table,
@@ -64,7 +86,8 @@ function JobsTable<T>({
     return (
       <div className='rounded-2xl bg-white p-8 shadow-lg'>
         <div className='flex min-h-[300px] flex-col items-center justify-center text-center'>
-          <h2 className='mb-4 text-xl font-semibold text-gray-900'>
+          <Image className='py-4' src={getImageByTitle(title)} alt="No completed jobs"></Image>
+          <h2 className='mb-1 text-xl font-semibold text-gray-900'>
             {emptyMessage}
           </h2>
           <p className='text-gray-500'>{emptySubtext}</p>
