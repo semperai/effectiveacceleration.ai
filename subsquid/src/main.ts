@@ -465,6 +465,7 @@ processor.run(db, async (ctx) => {
 
                     arbitratedAt: 0,
                     closedAt: 0,
+                    assignedAt: 0,
                     disputedAt: 0,
                     updatedAt: 0,
                   });
@@ -493,6 +494,7 @@ processor.run(db, async (ctx) => {
                 job.roles.worker = getAddress(event.address_);
                 job.state = JobState.Taken;
                 job.escrowId = toBigInt(event.data_);
+                job.jobTimes.assignedAt = event.timestamp_;
 
                 await handleNotification(job.roles.creator, jobEvent, ctx);
 
@@ -506,6 +508,7 @@ processor.run(db, async (ctx) => {
                 job.roles.worker = getAddress(event.address_);
                 job.state = JobState.Taken;
                 job.escrowId = toBigInt(event.data_);
+                job.jobTimes.assignedAt = event.timestamp_;
 
                 await handleNotification(job.roles.worker, jobEvent, ctx);
 

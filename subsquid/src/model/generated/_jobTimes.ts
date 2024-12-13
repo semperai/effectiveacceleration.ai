@@ -5,6 +5,7 @@ import { JobTimes as IJobTimes } from "@effectiveacceleration/contracts"
 export class JobTimes implements IJobTimes {
     private _createdAt!: number
     private _openedAt!: number
+    private _assignedAt!: number
     private _closedAt!: number
     private _disputedAt!: number
     private _arbitratedAt!: number
@@ -16,6 +17,7 @@ export class JobTimes implements IJobTimes {
         if (json != null) {
             this._createdAt = marshal.int.fromJSON(json.createdAt)
             this._openedAt = marshal.int.fromJSON(json.openedAt)
+            this._assignedAt = marshal.int.fromJSON(json.assignedAt)
             this._closedAt = marshal.int.fromJSON(json.closedAt)
             this._disputedAt = marshal.int.fromJSON(json.disputedAt)
             this._arbitratedAt = marshal.int.fromJSON(json.arbitratedAt)
@@ -40,6 +42,15 @@ export class JobTimes implements IJobTimes {
 
     set openedAt(value: number) {
         this._openedAt = value
+    }
+
+    get assignedAt(): number {
+        assert(this._assignedAt != null, 'uninitialized access')
+        return this._assignedAt
+    }
+
+    set assignedAt(value: number) {
+        this._assignedAt = value
     }
 
     get closedAt(): number {
@@ -91,6 +102,7 @@ export class JobTimes implements IJobTimes {
         return {
             createdAt: this.createdAt,
             openedAt: this.openedAt,
+            assignedAt: this.assignedAt,
             closedAt: this.closedAt,
             disputedAt: this.disputedAt,
             arbitratedAt: this.arbitratedAt,
