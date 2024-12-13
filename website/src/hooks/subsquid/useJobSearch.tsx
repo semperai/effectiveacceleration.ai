@@ -24,12 +24,15 @@ export default function useJobSearch({
     })
     .join(',\n');
 
-  const { data, ...rest } = useQuery(GET_JOB_SEARCH({
-    search,
-    orderBy,
-  }), {
-    variables: {},
-  });
+  const { data, ...rest } = useQuery(
+    GET_JOB_SEARCH({
+      search,
+      orderBy,
+    }),
+    {
+      variables: {},
+    }
+  );
 
   return useMemo(
     () => ({ data: data ? (data?.jobs as Job[]) : undefined, ...rest }),

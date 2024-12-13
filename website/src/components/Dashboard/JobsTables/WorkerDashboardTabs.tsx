@@ -23,7 +23,7 @@ export const WorkerDashboardTabs = () => {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (! mounted) {
+    if (!mounted) {
       setMounted(true);
     }
   }, [applicationsJobs, completedJobs, takenJobs]);
