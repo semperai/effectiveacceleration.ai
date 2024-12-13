@@ -10,6 +10,7 @@ import {
   unitsDeliveryTime,
   getUnitAndValueFromSeconds,
 } from '@/utils/utils';
+import { JobState } from '@effectiveacceleration/contracts';
 
 export const OpenJobsFeed = () => {
   const [search, setSearch] = useState<string>('');
@@ -29,7 +30,7 @@ export const OpenJobsFeed = () => {
     ...(minDeadline !== undefined && {
       maxTime: convertToSeconds(minDeadline, selectedUnitTime.name),
     }),
-    state: 0,
+    state: JobState.Open,
     ...(selectedToken && { token: selectedToken.id }),
     // ...(minTokens && { amount: BigInt(minTokens) }), decimals cannot be converted to bigInt, every job has decimals tokens, will comment this for now
   });
