@@ -25,14 +25,17 @@ export const OpenJobsFeed = () => {
   const [minTokens, setMinTokens] = useState<number | undefined>(undefined);
 
   const { data: jobs } = useJobSearch({
-    ...(search && { title: search }),
-    ...(tags.length > 0 && { tags: tags.map((tag) => tag.name) }),
-    ...(minDeadline !== undefined && {
-      maxTime: convertToSeconds(minDeadline, selectedUnitTime.name),
-    }),
-    state: JobState.Open,
-    ...(selectedToken && { token: selectedToken.id }),
-    // ...(minTokens && { amount: BigInt(minTokens) }), decimals cannot be converted to bigInt, every job has decimals tokens, will comment this for now
+    jobSearch: {
+      ...(search && { title: search }),
+      ...(tags.length > 0 && { tags: tags.map((tag) => tag.name) }),
+      ...(minDeadline !== undefined && {
+        maxTime: convertToSeconds(minDeadline, selectedUnitTime.name),
+      }),
+      state: JobState.Open,
+      ...(selectedToken && { token: selectedToken.id }),
+      // ...(minTokens && { amount: BigInt(minTokens) }), decimals cannot be converted to bigInt, every job has decimals tokens, will comment this for now
+    },
+    orderBy: 'jobTimes_openedAt_DESC',
   });
   return (
     <div>

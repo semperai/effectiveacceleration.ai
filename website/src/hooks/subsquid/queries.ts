@@ -154,16 +154,22 @@ export const GET_CREATOR_DISPUTED_JOBS = gql`
 `;
 
 export const GET_CREATOR_CLOSED_JOBS = gql`
-  query GetCreatorClosedJobs($creatorAddress: String!) {
+  query GetCreatorDisputedJobs($creatorAddress: String!) {
     jobs(where: {roles:{creator_eq: $creatorAddress}, state_eq: 2, lastJobEvent:{type__eq:7}}){
       ${JobFields}
     }
   }
 `;
 
-export const GET_JOB_SEARCH = (search: string) => gql`
+export const GET_JOB_SEARCH = ({
+  search,
+  orderBy,
+}: {
+  search: string;
+  orderBy: string;
+}) => gql`
   query GetWorkerOpenJobSearch {
-    jobs(orderBy: jobTimes_openedAt_DESC, where: {
+    jobs(orderBy: ${orderBy}, where: {
       ${search}
     }) {
       ${JobFields}

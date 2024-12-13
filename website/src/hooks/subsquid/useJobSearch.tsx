@@ -3,7 +3,13 @@ import { useMemo } from 'react';
 import { useQuery } from '@apollo/client';
 import { GET_JOB_SEARCH } from './queries';
 
-export default function useJobSearch(jobSearch: Partial<Job>) {
+export default function useJobSearch({
+  jobSearch,
+  orderBy,
+}: {
+  jobSearch: Partial<Job>;
+  orderBy: string;
+}) {
   const search = Object.entries(jobSearch)
     .map(([key, value]) => {
       if (typeof value === 'string') {
@@ -17,7 +23,11 @@ export default function useJobSearch(jobSearch: Partial<Job>) {
       }
     })
     .join(',\n');
-  const { data, ...rest } = useQuery(GET_JOB_SEARCH(search), {
+
+  const { data, ...rest } = useQuery(GET_JOB_SEARCH({
+    search,
+    orderBy,
+  }), {
     variables: {},
   });
 
