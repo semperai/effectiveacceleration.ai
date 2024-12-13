@@ -12,7 +12,7 @@ export const tokens: Token[] = [
         {
           id: '0x1235747639a5da96d3B52EffC0E179957C94Dc71',
           name: 'Fake Token',
-          symbol: 'Fake',
+          symbol: 'FAKE',
           icon: 'https://assets.coingecko.com/coins/images/279/standard/ethereum.png',
           decimals: 18,
         },
