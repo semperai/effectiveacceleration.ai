@@ -154,7 +154,7 @@ export const GET_CREATOR_DISPUTED_JOBS = gql`
 `;
 
 export const GET_CREATOR_CLOSED_JOBS = gql`
-  query GetCreatorDisputedJobs($creatorAddress: String!) {
+  query GetCreatorClosedJobs($creatorAddress: String!) {
     jobs(where: {roles:{creator_eq: $creatorAddress}, state_eq: 2, lastJobEvent:{type__eq:7}}){
       ${JobFields}
     }
