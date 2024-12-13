@@ -7,7 +7,19 @@ import {
 } from '@/components/Tooltip';
 import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
 import { Job } from '@effectiveacceleration/contracts';
-import { Check, Clock, Lock, Scale, User, Users } from 'lucide-react';
+import {
+  Check,
+  Clock,
+  Cloud,
+  LinkIcon,
+  Lock,
+  Package,
+  Camera,
+  HelpCircle,
+  Scale,
+  User,
+  Users,
+} from 'lucide-react';
 import moment from 'moment';
 import Link from 'next/link';
 
@@ -28,40 +40,62 @@ export const OpenJobs = ({ jobs }: { jobs: Job[] }) => {
     return pluralize(Math.floor(maxTime / 604800), 'week');
   };
 
+  const getDeliveryIcon = (method: string) => {
+    switch (method.toLowerCase()) {
+      case 'ipfs':
+        return <Cloud className='h-4 w-4 text-gray-500' />;
+      case 'url':
+        return <LinkIcon className='h-4 w-4 text-gray-500' />;
+      case 'courier':
+        return <Package className='h-4 w-4 text-gray-500' />;
+      case 'digital proof':
+        return <Camera className='h-4 w-4 text-gray-500' />;
+      default:
+        return <HelpCircle className='h-4 w-4 text-gray-500' />;
+    }
+  };
+
   return (
-    <div className="space-y-3">
+    <div className='space-y-3'>
       {jobs.map((job) => (
         <Link
           href={`/dashboard/jobs/${job.id}`}
           key={job.id}
-          className="block group"
+          className='group block'
         >
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 transition-all duration-200 ease-in-out hover:shadow-md hover:border-gray-300 hover:scale-[1.01]">
-            <div className="flex justify-between items-start gap-4">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-start gap-2 flex-wrap">
-                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+          <div className='rounded-lg border border-gray-200 bg-white p-5 shadow-sm transition-all duration-200 ease-in-out hover:scale-[1.01] hover:border-gray-300 hover:shadow-md'>
+            <div className='flex items-start justify-between gap-4'>
+              <div className='min-w-0 flex-1'>
+                <div className='flex flex-wrap items-start gap-2'>
+                  <h3 className='text-lg font-semibold text-gray-900 transition-colors group-hover:text-blue-600'>
                     {job.title}
                   </h3>
-                  <div className="flex items-center gap-2 flex-wrap mt-0.5">
+                  <div className='mt-0.5 flex flex-wrap items-center gap-2'>
                     {job.tags.map((tag) => (
-                      <Badge key={tag} className="text-xs">{tag}</Badge>
+                      <Badge key={tag} className='text-xs'>
+                        {tag}
+                      </Badge>
                     ))}
                   </div>
                 </div>
 
-                <div className="mt-1 text-sm text-gray-500">
-                  Posted {moment(job.jobTimes && job.jobTimes.openedAt * 1000).fromNow()}
+                <div className='mt-1 text-sm text-gray-500'>
+                  Posted{' '}
+                  {moment(
+                    job.jobTimes && job.jobTimes.openedAt * 1000
+                  ).fromNow()}
                 </div>
 
-                <div className="mt-2 flex flex-wrap gap-3 text-sm text-gray-600">
+                <div className='mt-2 flex flex-wrap gap-3 text-sm text-gray-600'>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <div className="flex items-center gap-1.5 cursor-help">
-                          <User className="w-4 h-4 text-gray-400" />
-                          <span className="font-medium">Creator:</span>
-                          <span className="font-mono">{formatAddress(job.roles.creator)}</span>
+                        <div className='flex cursor-help items-center gap-1.5'>
+                          <User className='h-4 w-4 text-gray-400' />
+                          <span className='font-medium'>Creator:</span>
+                          <span className='font-mono'>
+                            {formatAddress(job.roles.creator)}
+                          </span>
                         </div>
                       </TooltipTrigger>
                       <TooltipContent>
@@ -72,10 +106,12 @@ export const OpenJobs = ({ jobs }: { jobs: Job[] }) => {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <div className="flex items-center gap-1.5 cursor-help">
-                          <Scale className="w-4 h-4 text-gray-400" />
-                          <span className="font-medium">Arbitrator:</span>
-                          <span className="font-mono">{formatAddress(job.roles.arbitrator)}</span>
+                        <div className='flex cursor-help items-center gap-1.5'>
+                          <Scale className='h-4 w-4 text-gray-400' />
+                          <span className='font-medium'>Arbitrator:</span>
+                          <span className='font-mono'>
+                            {formatAddress(job.roles.arbitrator)}
+                          </span>
                         </div>
                       </TooltipTrigger>
                       <TooltipContent>
@@ -86,37 +122,48 @@ export const OpenJobs = ({ jobs }: { jobs: Job[] }) => {
                 </div>
               </div>
 
-              <div className="flex flex-col items-end gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center font-bold text-gray-900">
-                    <span className="text-md">{formatTokenNameAndAmount(job.token, job.amount)}</span>
-                    <img src={tokenIcon(job.token)} alt="" className="h-5 w-5 ml-1.5" />
+              <div className='flex flex-col items-end gap-2'>
+                <div className='flex items-center gap-2'>
+                  <div className='flex items-center font-bold text-gray-900'>
+                    <span className='text-md'>
+                      {formatTokenNameAndAmount(job.token, job.amount)}
+                    </span>
+                    <img
+                      src={tokenIcon(job.token)}
+                      alt=''
+                      className='ml-1.5 h-5 w-5'
+                    />
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-600">
-              <div className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-full">
-                <Clock className="w-4 h-4 text-gray-500" />
+            <div className='mt-4 flex flex-wrap gap-4 text-sm text-gray-600'>
+              <div className='flex items-center gap-1.5 rounded-full bg-gray-50 px-3 py-1.5'>
+                <Clock className='h-4 w-4 text-gray-500' />
                 <span>{formatTimeLeft(job.maxTime)} to complete</span>
               </div>
 
+              <div className='flex items-center gap-1.5 rounded-full bg-gray-50 px-3 py-1.5'>
+                {getDeliveryIcon(job.deliveryMethod)}
+                <span>Delivery via {job.deliveryMethod}</span>
+              </div>
+
               {job.multipleApplicants ? (
-                <div className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-full">
-                  <Users className="w-4 h-4 text-gray-500" />
+                <div className='flex items-center gap-1.5 rounded-full bg-gray-50 px-3 py-1.5'>
+                  <Users className='h-4 w-4 text-gray-500' />
                   <span>Multiple applicants allowed</span>
                 </div>
               ) : (
-                <div className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-full">
-                  <Check className="w-4 h-4 text-gray-500" />
+                <div className='flex items-center gap-1.5 rounded-full bg-gray-50 px-3 py-1.5'>
+                  <Check className='h-4 w-4 text-gray-500' />
                   <span>First applicant gets the job</span>
                 </div>
               )}
 
               {job.whitelistWorkers && (
-                <div className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-full">
-                  <Lock className="w-4 h-4 text-gray-500" />
+                <div className='flex items-center gap-1.5 rounded-full bg-gray-50 px-3 py-1.5'>
+                  <Lock className='h-4 w-4 text-gray-500' />
                   <span>Whitelist only</span>
                 </div>
               )}
