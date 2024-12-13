@@ -130,32 +130,32 @@ export const GET_CREATOR_OPEN_JOBS = gql`
 `;
 
 export const GET_CREATOR_TAKEN_JOBS = gql`
-  query GetCreatorTakenJobs($creatorAddress: String!) {
-    jobs(orderBy: jobTimes_createdAt_DESC, where: {roles:{creator_eq: $creatorAddress}, state_eq: 1}){
+  query GetCreatorTakenJobs($creatorAddress: String!, $orderBy: [JobOrderByInput!]) {
+    jobs(orderBy: $orderBy, where: {roles:{creator_eq: $creatorAddress}, state_eq: 1}){
       ${JobFields}
     }
   }
 `;
 
 export const GET_CREATOR_COMPLETED_JOBS = gql`
-  query GetCreatorCompletedJobs($creatorAddress: String!) {
-    jobs(orderBy: jobTimes_createdAt_DESC, where: {roles:{creator_eq: $creatorAddress}, state_eq: 2, lastJobEvent:{type__in:[5,9,12]}}){
+  query GetCreatorCompletedJobs($creatorAddress: String!, $orderBy: [JobOrderByInput!]) {
+    jobs(orderBy: $orderBy, where: {roles:{creator_eq: $creatorAddress}, state_eq: 2, lastJobEvent:{type__in:[5,9,12]}}){
       ${JobFields}
     }
   }
 `;
 
 export const GET_CREATOR_DISPUTED_JOBS = gql`
-  query GetCreatorDisputedJobs($creatorAddress: String!) {
-    jobs(orderBy: jobTimes_createdAt_DESC,where: {roles:{creator_eq: $creatorAddress}, state_eq: 1, disputed_eq: true}){
+  query GetCreatorDisputedJobs($creatorAddress: String!, $orderBy: [JobOrderByInput!]) {
+    jobs(orderBy: $orderBy, where: {roles:{creator_eq: $creatorAddress}, state_eq: 1, disputed_eq: true}){
       ${JobFields}
     }
   }
 `;
 
 export const GET_CREATOR_CLOSED_JOBS = gql`
-  query GetCreatorDisputedJobs($creatorAddress: String!) {
-    jobs(orderBy: jobTimes_createdAt_DESC, where: {roles:{creator_eq: $creatorAddress}, state_eq: 2, lastJobEvent:{type__eq:7}}){
+  query GetCreatorDisputedJobs($creatorAddress: String!, $orderBy: [JobOrderByInput!]) {
+    jobs(orderBy: $orderBy, where: {roles:{creator_eq: $creatorAddress}, state_eq: 2, lastJobEvent:{type__eq:7}}){
       ${JobFields}
     }
   }
@@ -178,8 +178,8 @@ export const GET_JOB_SEARCH = ({
 `;
 
 export const GET_WORKER_APPLICATIONS = gql`
-  query GetWorkerApplications($workerAddress: String!) {
-  jobs(orderBy: jobTimes_createdAt_DESC, where: {OR: [
+  query GetWorkerApplications($workerAddress: String!, $orderBy: [JobOrderByInput!]) {
+  jobs(orderBy: $orderBy, where: {OR: [
     {roles: {worker_eq: $workerAddress}},
     {events_some: {OR:
       [
@@ -195,24 +195,24 @@ export const GET_WORKER_APPLICATIONS = gql`
 `;
 
 export const GET_WORKER_TAKEN_JOBS = gql`
-  query GetWorkerTakenJobs($workerAddress: String!) {
-    jobs(orderBy: jobTimes_createdAt_DESC, where: {roles:{worker_eq: $workerAddress}, state_eq: 1}){
+  query GetWorkerTakenJobs($workerAddress: String!, $orderBy: [JobOrderByInput!]) {
+    jobs(orderBy: $orderBy, where: {roles:{worker_eq: $workerAddress}, state_eq: 1}){
       ${JobFields}
     }
   }
 `;
 
 export const GET_WORKER_COMPLETED_JOBS = gql`
-  query GetWorkerCompletedJobs($workerAddress: String!) {
-    jobs(orderBy: jobTimes_createdAt_DESC, where: {roles:{worker_eq: $workerAddress}, state_eq: 2, lastJobEvent:{type__in:[5,9,12]}}){
+  query GetWorkerCompletedJobs($workerAddress: String!, $orderBy: [JobOrderByInput!]) {
+    jobs(orderBy: $orderBy, where: {roles:{worker_eq: $workerAddress}, state_eq: 2, lastJobEvent:{type__in:[5,9,12]}}){
       ${JobFields}
     }
   }
 `;
 
 export const GET_WORKER_DISPUTED_JOBS = gql`
-  query GetCWorkerDisputedJobs($worker: String!) {
-    jobs(orderBy: jobTimes_createdAt_DESC, where: {roles:{worker_eq: $worker}, state_eq: 1, disputed_eq: true}){
+  query GetCWorkerDisputedJobs($worker: String!, $orderBy: [JobOrderByInput!]) {
+    jobs(orderBy: $orderBy, where: {roles:{worker_eq: $worker}, state_eq: 1, disputed_eq: true}){
       ${JobFields}
     }
   }

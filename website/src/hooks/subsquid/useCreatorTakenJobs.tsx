@@ -6,7 +6,7 @@ import { OrderByType } from '@/service/Interfaces';
 
 export default function useCreatorTakenJobs(creatorAddress: string, orderBy?: OrderByType) {
   const { data, ...rest } = useQuery(GET_CREATOR_TAKEN_JOBS, {
-    variables: { creatorAddress, orderBy: 'jobTimes_createdAt_DESC'  },
+    variables: { creatorAddress, ...(orderBy && { orderBy }) },
   });
 
   return useMemo(

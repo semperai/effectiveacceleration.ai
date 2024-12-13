@@ -24,11 +24,11 @@ import useCreatorClosedJobs from '@/hooks/subsquid/useCreatorClosedJobs';
 export const OwnerDashboardTabs = () => {
   const { address } = useAccount();
   const [mounted, setMounted] = useState(false);
-  const { data: openJobs = [] } = useCreatorOpenJobs(address!);
-  const { data: takenJobs = [] } = useCreatorTakenJobsfrom(address!);
-  const { data: completedJobs = [] } = useCreatorCompletedJobs(address!);
-  const { data: disputedJobs = [] } = useCreatorDisputedJobs(address!);
-  const { data: closedJobs = [] } = useCreatorClosedJobs(address!, 'jobTimes_createdAt_DESC');
+  const { data: openJobs = [] } = useCreatorOpenJobs(address!, 'jobTimes_openedAt_ASC');
+  const { data: takenJobs = [] } = useCreatorTakenJobsfrom(address!, 'jobTimes_openedAt_ASC');
+  const { data: completedJobs = [] } = useCreatorCompletedJobs(address!, 'jobTimes_openedAt_ASC');
+  const { data: disputedJobs = [] } = useCreatorDisputedJobs(address!, 'jobTimes_openedAt_ASC');
+  const { data: closedJobs = [] } = useCreatorClosedJobs(address!, 'jobTimes_openedAt_ASC');
 
   useEffect(() => {
     setMounted(true);
