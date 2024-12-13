@@ -35,20 +35,26 @@ export const subscribeToWebPushNotifications = async (
   }
 
   console.log('Registering for web push notifications');
-  // Get the server's public key
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_PUSH_SERVICE_URL}/vapidPublicKey`
-  );
-  const vapidPublicKey = await response.text();
-  // Chrome doesn't accept the base64-encoded (string) vapidPublicKey yet
-  // urlBase64ToUint8Array() is defined in /tools.js
-  const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+  let applicationServerKey;
+  try {
+    // Get the server's public key
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_PUSH_SERVICE_URL}/vapidPublicKey`
+    );
+    const vapidPublicKey = await response.text();
+    // Chrome doesn't accept the base64-encoded (string) vapidPublicKey yet
+    // urlBase64ToUint8Array() is defined in /tools.js
+    applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
+  } catch {
+    console.error("Failed to contact notification server")
+    return;
+  }
 
   // check perfmissions
   if (
     (await registration.pushManager.permissionState({
       userVisibleOnly: true,
-      applicationServerKey: convertedVapidKey,
+      applicationServerKey: applicationServerKey,
     })) === 'denied'
   ) {
     return;
@@ -60,7 +66,7 @@ export const subscribeToWebPushNotifications = async (
     // send notifications that don't have a visible effect for the user).
     subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: convertedVapidKey,
+      applicationServerKey: applicationServerKey,
     });
 
     const json = subscription.toJSON();
