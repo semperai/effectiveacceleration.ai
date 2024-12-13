@@ -48,6 +48,7 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: string, job?:
 
             arbitratedAt: 0,
             closedAt: 0,
+            assignedAt: 0,
             disputedAt: 0,
             updatedAt: 0,
           }
@@ -96,6 +97,7 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: string, job?:
         job.roles.worker = getAddress(event.address_) as string;
         job.state = JobState.Taken;
         job.escrowId = toBigInt(event.data_);
+        job.jobTimes!.assignedAt = event.timestamp_;
 
         result.push({
           ...event,
@@ -119,6 +121,7 @@ export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: string, job?:
         job.roles.worker = getAddress(event.address_) as string;
         job.state = JobState.Taken;
         job.escrowId = toBigInt(event.data_);
+        job.jobTimes!.assignedAt = event.timestamp_;
 
         result.push({
           ...event,

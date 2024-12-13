@@ -22,11 +22,12 @@ export type Review = GetElementType<DeepWriteable<ReadContractReturnType<typeof 
 export type JobTimes = {
   createdAt: number,
   openedAt: number,
+  assignedAt: number,
   closedAt: number,
   disputedAt: number,
   arbitratedAt: number,
-  updatedAt: number,
-  lastEventAt: number,
+  updatedAt: number, // only job scope updates
+  lastEventAt: number, // job instance updates with last event
 }
 
 export type Job = {
