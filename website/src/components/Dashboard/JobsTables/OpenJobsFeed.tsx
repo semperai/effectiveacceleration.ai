@@ -4,7 +4,7 @@ import { OpenJobs } from './OpenJobs';
 import { JobFilter } from '@/components/Dashboard/JobsTables/JobFilter';
 import useJobSearch from '@/hooks/subsquid/useJobSearch';
 import { ComboBoxOption, Tag } from '@/service/FormsTypes';
-import { Token } from '@/tokens';
+import { Token, tokens } from '@/tokens';
 import {
   convertToSeconds,
   unitsDeliveryTime,
@@ -16,7 +16,9 @@ export const OpenJobsFeed = () => {
   const [search, setSearch] = useState<string>('');
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedToken, setSelectedToken] = useState<Token | undefined>(
-    undefined
+    process.env.NODE_ENV === 'development'
+    ? tokens.find((token) => token.symbol === 'FAKE')
+    : tokens.find((token) => token.symbol === 'USDC')
   );
   const [minDeadline, setMinDeadline] = useState<number | undefined>(undefined);
   const [selectedUnitTime, setSelectedUnitTime] = useState<ComboBoxOption>(

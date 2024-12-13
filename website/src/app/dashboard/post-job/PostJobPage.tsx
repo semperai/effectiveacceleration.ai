@@ -193,7 +193,9 @@ const PostJob = () => {
     ...(arbitrators?.map((worker) => worker.fee) ?? []),
   ];
   const [selectedToken, setSelectedToken] = useState<Token | undefined>(
-    tokens[0]
+    process.env.NODE_ENV === 'development'
+    ? tokens.find((token) => token.symbol === 'FAKE')
+    : tokens.find((token) => token.symbol === 'USDC')
   );
   const noYes = ['No', 'Yes'];
   const [showSummary, setShowSummary] = useState(false);
