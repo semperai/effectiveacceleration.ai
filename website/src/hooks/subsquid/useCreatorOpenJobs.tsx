@@ -3,9 +3,16 @@ import { useMemo } from 'react';
 import { useQuery } from '@apollo/client';
 import { GET_CREATOR_OPEN_JOBS } from './queries';
 
-export default function useCreatorOpenJobs(creatorAddress: string) {
+
+export enum OrderByType {
+  JobTimesOpenedAtAscNullsLast = "jobTimes_openedAt_ASC_NULLS_LAST",
+  JobTimesCreatedAtDesc = "jobTimes_createdAt_DESC",
+  // Add other possible values here
+}
+
+export default function useCreatorOpenJobs(creatorAddress: string, orderBy?: OrderByType) {
   const { data, ...rest } = useQuery(GET_CREATOR_OPEN_JOBS, {
-    variables: { creatorAddress },
+    variables: { creatorAddress, orderBy: OrderByType.JobTimesCreatedAtDesc},
   });
 
   return useMemo(

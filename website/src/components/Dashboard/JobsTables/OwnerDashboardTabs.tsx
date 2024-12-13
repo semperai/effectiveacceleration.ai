@@ -28,7 +28,7 @@ export const OwnerDashboardTabs = () => {
   const { data: takenJobs = [] } = useCreatorTakenJobsfrom(address!);
   const { data: completedJobs = [] } = useCreatorCompletedJobs(address!);
   const { data: disputedJobs = [] } = useCreatorDisputedJobs(address!);
-  const { data: closedJobs = [] } = useCreatorClosedJobs(address!);
+  const { data: closedJobs = [] } = useCreatorClosedJobs(address!, 'jobTimes_createdAt_DESC');
 
   useEffect(() => {
     setMounted(true);
