@@ -4,6 +4,12 @@ import { Job } from '@effectiveacceleration/contracts';
 import { Check, Clock, Lock, Users, User, Scale } from 'lucide-react';
 import moment from 'moment';
 import Link from 'next/link';
+import {
+  TooltipProvider,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from '@/components/Tooltip';
 
 const formatAddress = (address: string) => {
   if (!address) return '';
@@ -20,19 +26,6 @@ export const OpenJobs = ({ jobs }: { jobs: Job[] }) => {
     if (maxTime < 86400) return pluralize(Math.floor(maxTime / 3600), 'hour');
     if (maxTime < 604800) return pluralize(Math.floor(maxTime / 86400), 'day');
     return pluralize(Math.floor(maxTime / 604800), 'week');
-  };
-
-  const getStateLabel = (state: number) => {
-    switch (state) {
-      case 0:
-        return 'Open';
-      case 1:
-        return 'Taken';
-      case 2:
-        return 'Closed';
-      default:
-        return 'Unknown';
-    }
   };
 
   return (
@@ -62,16 +55,34 @@ export const OpenJobs = ({ jobs }: { jobs: Job[] }) => {
                 </div>
 
                 <div className="mt-2 flex flex-wrap gap-3 text-sm text-gray-600">
-                  <div className="flex items-center gap-1.5">
-                    <User className="w-4 h-4 text-gray-400" />
-                    <span className="font-medium">Creator:</span>
-                    <span className="font-mono">{formatAddress(job.roles.creator)}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <Scale className="w-4 h-4 text-gray-400" />
-                    <span className="font-medium">Arbitrator:</span>
-                    <span className="font-mono">{formatAddress(job.roles.arbitrator)}</span>
-                  </div>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="flex items-center gap-1.5 cursor-help">
+                          <User className="w-4 h-4 text-gray-400" />
+                          <span className="font-medium">Creator:</span>
+                          <span className="font-mono">{formatAddress(job.roles.creator)}</span>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{job.roles.creator}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="flex items-center gap-1.5 cursor-help">
+                          <Scale className="w-4 h-4 text-gray-400" />
+                          <span className="font-medium">Arbitrator:</span>
+                          <span className="font-mono">{formatAddress(job.roles.arbitrator)}</span>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{job.roles.arbitrator}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </div>
 
@@ -81,9 +92,6 @@ export const OpenJobs = ({ jobs }: { jobs: Job[] }) => {
                     <span className="text-md">{formatTokenNameAndAmount(job.token, job.amount)}</span>
                     <img src={tokenIcon(job.token)} alt="" className="h-5 w-5 ml-1.5" />
                   </div>
-                  <Badge color='green' className="ml-2">
-                    {getStateLabel(job.state)}
-                  </Badge>
                 </div>
               </div>
             </div>
