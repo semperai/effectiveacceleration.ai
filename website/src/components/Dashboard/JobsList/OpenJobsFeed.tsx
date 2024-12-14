@@ -64,7 +64,10 @@ export const OpenJobsFeed = () => {
         <>
           <JobsList jobs={jobs} />
           {jobs.length === 0 && (
-            <EmptyJobsList image={NoJobsOpenImage} text='No open jobs (try loosening filter)' />
+            <EmptyJobsList
+              image={NoJobsOpenImage}
+              text='No open jobs (try loosening filter)'
+            />
           )}
         </>
       ) : (
