@@ -22,16 +22,11 @@ import NojobsClosedImage from '@/images/noCompletedJobs.svg';
 
 export const OwnerDashboardTabs = () => {
   const { address } = useAccount();
-  const [mounted, setMounted] = useState(false);
-  const { data: openJobs = [] } = useCreatorOpenJobs(address!, 'jobTimes_openedAt_ASC');
-  const { data: takenJobs = [] } = useCreatorTakenJobsfrom(address!, 'jobTimes_openedAt_ASC');
-  const { data: completedJobs = [] } = useCreatorCompletedJobs(address!, 'jobTimes_openedAt_ASC');
-  const { data: disputedJobs = [] } = useCreatorDisputedJobs(address!, 'jobTimes_openedAt_ASC');
-  const { data: closedJobs = [] } = useCreatorClosedJobs(address!, 'jobTimes_openedAt_ASC');
-
-  useEffect(() => {
-    setMounted(true);
-  }, [openJobs, takenJobs, completedJobs, disputedJobs, closedJobs]);
+  const { data: openJobs } = useCreatorOpenJobs(address!, 'jobTimes_openedAt_ASC');
+  const { data: takenJobs } = useCreatorTakenJobsfrom(address!, 'jobTimes_openedAt_ASC');
+  const { data: completedJobs } = useCreatorCompletedJobs(address!, 'jobTimes_openedAt_ASC');
+  const { data: disputedJobs } = useCreatorDisputedJobs(address!, 'jobTimes_openedAt_ASC');
+  const { data: closedJobs } = useCreatorClosedJobs(address!, 'jobTimes_openedAt_ASC');
 
   return (
     <Tabs defaultValue='Open Jobs'>
@@ -43,7 +38,7 @@ export const OwnerDashboardTabs = () => {
         <TabsTrigger value='Closed'>Closed</TabsTrigger>
       </TabsList>
       <TabsContent value='Open Jobs'>
-        {mounted ? (
+        {openJobs ? (
           <>
             <JobsList jobs={openJobs} />
             {openJobs.length === 0 && <EmptyJobsList image={NoJobsOpenImage} text='No open jobs' />}
@@ -53,7 +48,7 @@ export const OwnerDashboardTabs = () => {
         )}
       </TabsContent>
       <TabsContent value='In Progress'>
-        {mounted ? (
+        {takenJobs ? (
           <>
             <JobsList jobs={takenJobs} />
             {takenJobs.length === 0 && <EmptyJobsList image={NoJobsProgessImage} text='No jobs in progress' />}
@@ -63,7 +58,7 @@ export const OwnerDashboardTabs = () => {
         )}
       </TabsContent>
       <TabsContent value='Completed'>
-        {mounted ? (
+        {completedJobs ? (
           <>
             <JobsList jobs={completedJobs} />
             {completedJobs.length === 0 && <EmptyJobsList image={NoJobsCompletedImage} text='No completed jobs' />}
@@ -73,7 +68,7 @@ export const OwnerDashboardTabs = () => {
         )}
       </TabsContent>
       <TabsContent value='Disputed'>
-        {mounted ? (
+        {disputedJobs ? (
           <>
             <JobsList jobs={disputedJobs} />
             {disputedJobs.length === 0 && <EmptyJobsList image={NoJobsDisputedImage} text='No disputed jobs' />}
@@ -83,7 +78,7 @@ export const OwnerDashboardTabs = () => {
         )}
       </TabsContent>
       <TabsContent value='Closed'>
-        {mounted ? (
+        {closedJobs ? (
           <>
             <JobsList jobs={closedJobs} />
             {closedJobs.length === 0 && <EmptyJobsList image={NojobsClosedImage} text='No closed jobs' />}
