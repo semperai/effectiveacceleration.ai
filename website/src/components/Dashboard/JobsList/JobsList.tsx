@@ -8,9 +8,7 @@ type JobsListProps = {
 export const JobsList = ({ jobs }: JobsListProps) => {
   return (
     <div className='space-y-3'>
-      {jobs?.map((job) => (
-        <JobRow key={job.id} job={job} />
-      ))}
+      {jobs?.map((job) => <JobRow key={job.id} job={job} />)}
     </div>
   );
-}
+};

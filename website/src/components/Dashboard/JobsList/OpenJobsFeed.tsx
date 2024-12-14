@@ -1,6 +1,8 @@
 'use client';
 import React, { useState } from 'react';
 import { JobsList } from './JobsList';
+import { EmptyJobsList } from './EmptyJobsList';
+import { JobsListSkeleton } from './JobsListSkeleton';
 import { JobFilter } from './JobFilter';
 import useJobSearch from '@/hooks/subsquid/useJobSearch';
 import { ComboBoxOption, Tag } from '@/service/FormsTypes';
@@ -11,6 +13,8 @@ import {
   getUnitAndValueFromSeconds,
 } from '@/utils/utils';
 import { JobState } from '@effectiveacceleration/contracts';
+
+import NoJobsOpenImage from '@/images/noOpenJobs.svg';
 
 export const OpenJobsFeed = () => {
   const [search, setSearch] = useState<string>('');
@@ -39,6 +43,7 @@ export const OpenJobsFeed = () => {
     },
     orderBy: 'jobTimes_openedAt_DESC',
   });
+
   return (
     <div>
       <JobFilter
@@ -55,7 +60,16 @@ export const OpenJobsFeed = () => {
         minTokens={minTokens}
         setMinTokens={setMinTokens}
       />
-      <JobsList jobs={jobs} />
+      {jobs ? (
+        <>
+          <JobsList jobs={jobs} />
+          {jobs.length === 0 && (
+            <EmptyJobsList image={NoJobsOpenImage} text='No open jobs (try loosening filter)' />
+          )}
+        </>
+      ) : (
+        <JobsListSkeleton />
+      )}
     </div>
   );
 };

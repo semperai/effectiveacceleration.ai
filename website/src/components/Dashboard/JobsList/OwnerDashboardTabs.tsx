@@ -22,11 +22,26 @@ import NojobsClosedImage from '@/images/noCompletedJobs.svg';
 
 export const OwnerDashboardTabs = () => {
   const { address } = useAccount();
-  const { data: openJobs } = useCreatorOpenJobs(address!, 'jobTimes_openedAt_ASC');
-  const { data: takenJobs } = useCreatorTakenJobsfrom(address!, 'jobTimes_openedAt_ASC');
-  const { data: completedJobs } = useCreatorCompletedJobs(address!, 'jobTimes_openedAt_ASC');
-  const { data: disputedJobs } = useCreatorDisputedJobs(address!, 'jobTimes_openedAt_ASC');
-  const { data: closedJobs } = useCreatorClosedJobs(address!, 'jobTimes_openedAt_ASC');
+  const { data: openJobs } = useCreatorOpenJobs(
+    address!,
+    'jobTimes_openedAt_ASC'
+  );
+  const { data: takenJobs } = useCreatorTakenJobsfrom(
+    address!,
+    'jobTimes_openedAt_ASC'
+  );
+  const { data: completedJobs } = useCreatorCompletedJobs(
+    address!,
+    'jobTimes_openedAt_ASC'
+  );
+  const { data: disputedJobs } = useCreatorDisputedJobs(
+    address!,
+    'jobTimes_openedAt_ASC'
+  );
+  const { data: closedJobs } = useCreatorClosedJobs(
+    address!,
+    'jobTimes_openedAt_ASC'
+  );
 
   return (
     <Tabs defaultValue='Open Jobs'>
@@ -41,7 +56,9 @@ export const OwnerDashboardTabs = () => {
         {openJobs ? (
           <>
             <JobsList jobs={openJobs} />
-            {openJobs.length === 0 && <EmptyJobsList image={NoJobsOpenImage} text='No open jobs' />}
+            {openJobs.length === 0 && (
+              <EmptyJobsList image={NoJobsOpenImage} text='No open jobs' />
+            )}
           </>
         ) : (
           <JobsListSkeleton />
@@ -51,7 +68,12 @@ export const OwnerDashboardTabs = () => {
         {takenJobs ? (
           <>
             <JobsList jobs={takenJobs} />
-            {takenJobs.length === 0 && <EmptyJobsList image={NoJobsProgessImage} text='No jobs in progress' />}
+            {takenJobs.length === 0 && (
+              <EmptyJobsList
+                image={NoJobsProgessImage}
+                text='No jobs in progress'
+              />
+            )}
           </>
         ) : (
           <JobsListSkeleton />
@@ -61,7 +83,12 @@ export const OwnerDashboardTabs = () => {
         {completedJobs ? (
           <>
             <JobsList jobs={completedJobs} />
-            {completedJobs.length === 0 && <EmptyJobsList image={NoJobsCompletedImage} text='No completed jobs' />}
+            {completedJobs.length === 0 && (
+              <EmptyJobsList
+                image={NoJobsCompletedImage}
+                text='No completed jobs'
+              />
+            )}
           </>
         ) : (
           <JobsListSkeleton />
@@ -71,9 +98,14 @@ export const OwnerDashboardTabs = () => {
         {disputedJobs ? (
           <>
             <JobsList jobs={disputedJobs} />
-            {disputedJobs.length === 0 && <EmptyJobsList image={NoJobsDisputedImage} text='No disputed jobs' />}
+            {disputedJobs.length === 0 && (
+              <EmptyJobsList
+                image={NoJobsDisputedImage}
+                text='No disputed jobs'
+              />
+            )}
           </>
-        ): (
+        ) : (
           <JobsListSkeleton />
         )}
       </TabsContent>
@@ -81,7 +113,9 @@ export const OwnerDashboardTabs = () => {
         {closedJobs ? (
           <>
             <JobsList jobs={closedJobs} />
-            {closedJobs.length === 0 && <EmptyJobsList image={NojobsClosedImage} text='No closed jobs' />}
+            {closedJobs.length === 0 && (
+              <EmptyJobsList image={NojobsClosedImage} text='No closed jobs' />
+            )}
           </>
         ) : (
           <JobsListSkeleton />

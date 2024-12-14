@@ -16,9 +16,18 @@ import NoJobsCompletedImage from '@/images/noCompletedJobs.svg';
 
 export const WorkerDashboardTabs = () => {
   const { address } = useAccount();
-  const { data: applicationsJobs } = useWorkerApplications(address!, 'jobTimes_openedAt_DESC');
-  const { data: completedJobs } = useWorkerCompletedJobs(address!, 'jobTimes_openedAt_DESC');
-  const { data: takenJobs } = useWorkerTakenJobs(address!, 'jobTimes_openedAt_DESC');
+  const { data: applicationsJobs } = useWorkerApplications(
+    address!,
+    'jobTimes_openedAt_DESC'
+  );
+  const { data: completedJobs } = useWorkerCompletedJobs(
+    address!,
+    'jobTimes_openedAt_DESC'
+  );
+  const { data: takenJobs } = useWorkerTakenJobs(
+    address!,
+    'jobTimes_openedAt_DESC'
+  );
 
   return (
     <div>
@@ -45,7 +54,10 @@ export const WorkerDashboardTabs = () => {
             <>
               <JobsList jobs={takenJobs} />
               {takenJobs?.length === 0 && (
-                <EmptyJobsList image={NoJobsProgressImage} text='No started jobs' />
+                <EmptyJobsList
+                  image={NoJobsProgressImage}
+                  text='No started jobs'
+                />
               )}
             </>
           ) : (
@@ -57,7 +69,10 @@ export const WorkerDashboardTabs = () => {
             <>
               <JobsList jobs={completedJobs} />
               {completedJobs.length === 0 && (
-                <EmptyJobsList image={NoJobsCompletedImage} text='No completed jobs' />
+                <EmptyJobsList
+                  image={NoJobsCompletedImage}
+                  text='No completed jobs'
+                />
               )}
             </>
           ) : (

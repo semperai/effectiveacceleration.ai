@@ -69,9 +69,7 @@ export const JobRow = ({ job }: { job: Job }) => {
 
             <div className='mt-1 text-sm text-gray-500'>
               Posted{' '}
-              {moment(
-                job.jobTimes && job.jobTimes.openedAt * 1000
-              ).fromNow()}
+              {moment(job.jobTimes && job.jobTimes.openedAt * 1000).fromNow()}
             </div>
 
             <div className='mt-2 flex flex-wrap gap-3 text-sm text-gray-600'>
@@ -159,4 +157,4 @@ export const JobRow = ({ job }: { job: Job }) => {
       </div>
     </Link>
   );
-}
+};
