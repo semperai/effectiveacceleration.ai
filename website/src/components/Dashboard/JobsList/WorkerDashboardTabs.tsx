@@ -1,18 +1,18 @@
 'use client';
 import React, { useEffect, useMemo, useState, useRef } from 'react';
-import { WorkerApplicationsJobs } from './WorkerApplicationsJobs';
-import { WorkerProgressJobs } from './WorkerProgressJobs';
-import { WorkerCompletedJobs } from './WorkerCompletedJobs';
-import { DisputedJobs } from './DisputedJobs';
-import { JobsTableSkeleton } from './JobsTable';
+import { JobsList } from './JobsList';
+import { EmptyJobsList } from './EmptyJobsList';
+import { JobsListSkeleton } from './JobsListSkeleton';
 import { Job, JobEventType, JobState } from '@effectiveacceleration/contracts';
-import { LocalStorageJob } from '@/service/JobsService';
-import { LOCAL_JOBS_WORKER_CACHE } from '@/utils/constants';
 import { useAccount } from 'wagmi';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/Tabs';
 import useWorkerApplications from '@/hooks/subsquid/useWorkerApplications';
 import useWorkerCompletedJobs from '@/hooks/subsquid/useWorkerCompletedJobs';
 import useWorkerTakenJobs from '@/hooks/subsquid/useWorkerTakenJobs';
+
+import NoJobsOpenImage from '@/images/noOpenJobs.svg';
+import NoJobsProgressImage from '@/images/noWorkInProgress.svg';
+import NoJobsCompletedImage from '@/images/noCompletedJobs.svg';
 
 export const WorkerDashboardTabs = () => {
   const { address } = useAccount();
@@ -39,23 +39,38 @@ export const WorkerDashboardTabs = () => {
           </TabsList>
           <TabsContent value='Applications'>
             {mounted ? (
-              <WorkerApplicationsJobs jobs={applicationsJobs} />
+              <>
+                <JobsList jobs={applicationsJobs} />
+                {applicationsJobs.length === 0 && (
+                  <EmptyJobsList image={NoJobsOpenImage} text='No applications' />
+                )}
+              </>
             ) : (
-              <JobsTableSkeleton />
+              <JobsListSkeleton />
             )}
           </TabsContent>
           <TabsContent value='Started Jobs'>
             {mounted ? (
-              <WorkerProgressJobs jobs={takenJobs} />
+              <>
+                <JobsList jobs={takenJobs} />
+                {takenJobs.length === 0 && (
+                  <EmptyJobsList image={NoJobsProgressImage} text='No started jobs' />
+                )}
+              </>
             ) : (
-              <JobsTableSkeleton />
+              <JobsListSkeleton />
             )}
           </TabsContent>
           <TabsContent value='Completed Jobs'>
             {mounted ? (
-              <WorkerCompletedJobs jobs={completedJobs} />
+              <>
+                <JobsList jobs={completedJobs} />
+                {completedJobs.length === 0 && (
+                  <EmptyJobsList image={NoJobsCompletedImage} text='No completed jobs' />
+                )}
+              </>
             ) : (
-              <JobsTableSkeleton />
+              <JobsListSkeleton />
             )}
           </TabsContent>
         </Tabs>

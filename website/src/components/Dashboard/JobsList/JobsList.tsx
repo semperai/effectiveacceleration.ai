@@ -1,5 +1,5 @@
 import { Job } from '@effectiveacceleration/contracts';
-import { JobRow } from '@/components/Dashboard/JobRow';
+import { JobRow } from './JobRow';
 
 type JobsListProps = {
   jobs?: Job[];

@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
-import { JobsList } from '@/components/Dashboard/JobsList';
-import { JobFilter } from '@/components/Dashboard/JobsTables/JobFilter';
+import { JobsList } from './JobsList';
+import { JobFilter } from './JobFilter';
 import useJobSearch from '@/hooks/subsquid/useJobSearch';
 import { ComboBoxOption, Tag } from '@/service/FormsTypes';
 import { Token, tokens } from '@/tokens';

@@ -33,7 +33,6 @@
     "@serwist/next": "^9.0.10",
     "@tailwindcss/forms": "^0.5.9",
     "@tanstack/react-query": "^5.61.0",
-    "@tanstack/react-table": "^8.17.3",
     "@unicrowio/sdk": "^1.0.0-beta.12",
     "apollo3-cache-persist": "^0.15.0",
     "class-variance-authority": "^0.7.1",

@@ -1,17 +1,10 @@
 'use client';
 import React, { useEffect, useMemo, useState, useRef } from 'react';
-import { JobsList } from '@/components/Dashboard/JobsList';
-import { OwnerProgressJobs } from './OwnerProgressJobs';
-import { OwnerCompletedJobs } from './OwnerCompletedJobs';
-import { DisputedJobs } from './DisputedJobs';
-import { OwnerCancelledJobs } from './OwnerCancelledJobs';
-import { JobsTableSkeleton } from './JobsTable';
-import useJobs from '@/hooks/subsquid/useJobs';
+import { JobsList } from './JobsList';
+import { EmptyJobsList } from './EmptyJobsList';
+import { JobsListSkeleton } from './JobsListSkeleton';
 import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
 import { Job, JobEventType, JobState } from '@effectiveacceleration/contracts';
-import { LocalStorageJob } from '@/service/JobsService';
-import useJobsByIds from '@/hooks/subsquid/useJobsByIds';
-import { LOCAL_JOBS_OWNER_CACHE } from '@/utils/constants';
 import { useAccount } from 'wagmi';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/Tabs';
 
@@ -20,6 +13,12 @@ import useCreatorTakenJobsfrom from '@/hooks/subsquid/useCreatorTakenJobs';
 import useCreatorCompletedJobs from '@/hooks/subsquid/useCreatorCompletedJobs';
 import useCreatorDisputedJobs from '@/hooks/subsquid/useCreatorDisputedJobs';
 import useCreatorClosedJobs from '@/hooks/subsquid/useCreatorClosedJobs';
+
+import NoJobsOpenImage from '@/images/noOpenJobs.svg';
+import NoJobsProgessImage from '@/images/noWorkInProgress.svg';
+import NoJobsCompletedImage from '@/images/noCompletedJobs.svg';
+import NoJobsDisputedImage from '@/images/noDisputesYet.svg';
+import NojobsClosedImage from '@/images/noCompletedJobs.svg';
 
 export const OwnerDashboardTabs = () => {
   const { address } = useAccount();
@@ -44,30 +43,53 @@ export const OwnerDashboardTabs = () => {
         <TabsTrigger value='Closed'>Closed</TabsTrigger>
       </TabsList>
       <TabsContent value='Open Jobs'>
-        {mounted ? <JobsList jobs={openJobs} /> : <JobsTableSkeleton />}
+        {mounted ? (
+          <>
+            <JobsList jobs={openJobs} />
+            {openJobs.length === 0 && <EmptyJobsList image={NoJobsOpenImage} text='No open jobs' />}
+          </>
+        ) : (
+          <JobsListSkeleton />
+        )}
       </TabsContent>
       <TabsContent value='In Progress'>
         {mounted ? (
-          <OwnerProgressJobs jobs={takenJobs} />
+          <>
+            <JobsList jobs={takenJobs} />
+            {takenJobs.length === 0 && <EmptyJobsList image={NoJobsProgessImage} text='No jobs in progress' />}
+          </>
         ) : (
-          <JobsTableSkeleton />
+          <JobsListSkeleton />
         )}
       </TabsContent>
       <TabsContent value='Completed'>
         {mounted ? (
-          <OwnerCompletedJobs jobs={completedJobs} />
+          <>
+            <JobsList jobs={completedJobs} />
+            {completedJobs.length === 0 && <EmptyJobsList image={NoJobsCompletedImage} text='No completed jobs' />}
+          </>
         ) : (
-          <JobsTableSkeleton />
+          <JobsListSkeleton />
         )}
       </TabsContent>
       <TabsContent value='Disputed'>
-        {mounted ? <DisputedJobs jobs={disputedJobs} /> : <JobsTableSkeleton />}
+        {mounted ? (
+          <>
+            <JobsList jobs={disputedJobs} />
+            {disputedJobs.length === 0 && <EmptyJobsList image={NoJobsDisputedImage} text='No disputed jobs' />}
+          </>
+        ): (
+          <JobsListSkeleton />
+        )}
       </TabsContent>
       <TabsContent value='Closed'>
         {mounted ? (
-          <OwnerCancelledJobs jobs={closedJobs} />
+          <>
+            <JobsList jobs={closedJobs} />
+            {closedJobs.length === 0 && <EmptyJobsList image={NojobsClosedImage} text='No closed jobs' />}
+          </>
         ) : (
-          <JobsTableSkeleton />
+          <JobsListSkeleton />
         )}
       </TabsContent>
     </Tabs>
