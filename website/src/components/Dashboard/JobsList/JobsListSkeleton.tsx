@@ -1,57 +1,59 @@
-export const JobsListSkeleton = ({ rows = 5 }) => {
+import React from 'react';
+
+const JobRowSkeleton = () => {
   return (
-    <div className='w-full animate-pulse'>
-      {/* Table Header */}
-      <div className='border-b border-gray-200 bg-gray-50'>
-        <div className='grid grid-cols-10 gap-4 px-6 py-4'>
-          <div className='col-span-4'>
-            <div className='h-4 w-24 rounded bg-gray-200' />
+    <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          {/* Title and tags */}
+          <div className="flex flex-wrap items-start gap-2">
+            <div className="h-7 w-48 animate-pulse rounded bg-gray-200" />
+            <div className="flex gap-2">
+              <div className="h-5 w-16 animate-pulse rounded-full bg-gray-200" />
+              <div className="h-5 w-20 animate-pulse rounded-full bg-gray-200" />
+            </div>
           </div>
-          <div className='col-span-2'>
-            <div className='h-4 w-16 rounded bg-gray-200' />
+
+          {/* Posted time */}
+          <div className="mt-1">
+            <div className="h-4 w-32 animate-pulse rounded bg-gray-200" />
           </div>
-          <div className='col-span-2'>
-            <div className='h-4 w-20 rounded bg-gray-200' />
+
+          {/* Creator and Arbitrator */}
+          <div className="mt-2 flex flex-wrap gap-3">
+            <div className="flex items-center gap-1.5">
+              <div className="h-4 w-4 animate-pulse rounded bg-gray-200" />
+              <div className="h-4 w-24 animate-pulse rounded bg-gray-200" />
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="h-4 w-4 animate-pulse rounded bg-gray-200" />
+              <div className="h-4 w-24 animate-pulse rounded bg-gray-200" />
+            </div>
           </div>
-          <div className='col-span-2'>
-            <div className='h-4 w-20 rounded bg-gray-200' />
-          </div>
+        </div>
+
+        {/* Amount */}
+        <div className="flex flex-col items-end">
+          <div className="h-6 w-24 animate-pulse rounded bg-gray-200" />
         </div>
       </div>
 
-      {/* Table Body */}
-      <div className='divide-y divide-gray-200 bg-white'>
-        {[...Array(rows)].map((_, index) => (
-          <div
-            key={index}
-            className='relative grid grid-cols-10 gap-4 overflow-hidden px-6 py-4'
-          >
-            {/* Title and Description */}
-            <div className='col-span-4 space-y-2'>
-              <div className='h-4 w-3/4 rounded bg-gray-200' />
-              <div className='h-3 w-1/2 rounded bg-gray-100' />
-            </div>
-            {/* Budget */}
-            <div className='col-span-2'>
-              <div className='h-4 w-16 rounded bg-gray-200' />
-            </div>
-            {/* Timeline */}
-            <div className='col-span-2'>
-              <div className='h-4 w-20 rounded bg-gray-200' />
-            </div>
-            {/* Actions */}
-            <div className='col-span-2 flex space-x-2'>
-              <div className='h-8 w-8 rounded bg-gray-200' />
-              <div className='h-8 w-8 rounded bg-gray-200' />
-            </div>
-
-            {/* Shimmer Effect */}
-            <div className='absolute -inset-x-4 top-0 h-full transform-gpu'>
-              <div className='animate-shimmer h-full w-8 bg-gradient-to-r from-transparent via-white/20 to-transparent' />
-            </div>
-          </div>
-        ))}
+      {/* Bottom row of pills */}
+      <div className="mt-4 flex flex-wrap gap-4">
+        <div className="h-8 w-36 animate-pulse rounded-full bg-gray-200" />
+        <div className="h-8 w-32 animate-pulse rounded-full bg-gray-200" />
+        <div className="h-8 w-44 animate-pulse rounded-full bg-gray-200" />
       </div>
     </div>
   );
 };
+
+export const JobsListSkeleton = ({ rows = 5 }) => {
+  return (
+    <div className='space-y-3'>
+      {[...Array(rows)].map((_, index) => (
+        <JobRowSkeleton key={index} />
+      ))}
+    </div>
+  );
+}
