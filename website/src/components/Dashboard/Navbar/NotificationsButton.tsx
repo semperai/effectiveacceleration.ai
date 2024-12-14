@@ -7,6 +7,78 @@ import { Fragment, useCallback, useState } from 'react';
 import { PiBellSimple, PiCheck, PiEye, PiEyeSlash } from 'react-icons/pi';
 import { useAccount } from 'wagmi';
 import { Button } from '@/components/Button';
+import moment from 'moment';
+
+const NotificationItem = ({
+  notification,
+  onRead,
+  onSelect,
+}: {
+  notification: Notification;
+  onRead: (notification: Notification) => void;
+  onSelect: (notification: Notification) => void;
+}) => {
+  const formattedTime = moment(notification.timestamp * 1000).fromNow();
+
+  return (
+    <div
+      className={`flex flex-col rounded-lg p-3 ${notification.read ? 'bg-white' : 'bg-yellow-50'} transition-colors hover:bg-gray-50`}
+    >
+      <div className='flex items-center justify-between'>
+        <Link
+          href={`/dashboard/jobs/${notification.jobId}?eventId=${notification.id}`}
+          className='flex-1 text-sm text-gray-700 hover:text-gray-900'
+          onClick={() => onSelect(notification)}
+        >
+          {EventTextMap(notification.type, notification.jobId)}
+        </Link>
+        {!notification.read && (
+          <Button
+            onClick={() => onRead(notification)}
+            outline
+            title='Mark as read'
+          >
+            <PiCheck className='h-5 w-5' />
+          </Button>
+        )}
+      </div>
+      <span className='mt-1 text-xs text-gray-500'>{formattedTime}</span>
+    </div>
+  );
+};
+
+const NotificationsList = ({
+  notifications,
+  onRead,
+  onSelect,
+  limit,
+}: {
+  notifications: Notification[];
+  onRead: (notification: Notification) => void;
+  onSelect: (notification: Notification) => void;
+  limit: number;
+}) => {
+  if (notifications.length === 0) {
+    return (
+      <p className='py-4 text-center text-gray-500'>
+        No notifications to display
+      </p>
+    );
+  }
+
+  return (
+    <div className='space-y-2'>
+      {notifications.slice(0, limit).map((notification) => (
+        <NotificationItem
+          key={notification.id}
+          notification={notification}
+          onRead={onRead}
+          onSelect={onSelect}
+        />
+      ))}
+    </div>
+  );
+};
 
 export const NotificationsButton = () => {
   const [open, setOpen] = useState(false);
@@ -47,6 +119,14 @@ export const NotificationsButton = () => {
       new StorageEvent('storage', { key: 'ReadNotifications' })
     );
   }, [notifications]);
+
+  const handleNotificationSelect = useCallback(
+    (notification: Notification) => {
+      readNotification(notification);
+      setOpen(false);
+    },
+    [readNotification]
+  );
 
   return (
     <div className='relative'>
@@ -99,9 +179,9 @@ export const NotificationsButton = () => {
                         Notifications
                       </Dialog.Title>
                       <div className='flex gap-2'>
-                        <button
+                        <Button
                           onClick={() => setShowAll(!showAll)}
-                          className='text-gray-500 transition-colors hover:text-gray-700'
+                          outline
                           title={
                             showAll
                               ? 'Show unread only'
@@ -113,58 +193,27 @@ export const NotificationsButton = () => {
                           ) : (
                             <PiEye className='h-5 w-5' />
                           )}
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   </div>
 
                   <div className='px-6 py-4'>
                     <div className='mb-4 flex justify-between'>
-                      <Button outline onClick={() => setLimit(limit + 5)}>
+                      <Button onClick={() => setLimit(limit + 5)} outline>
                         Load more
                       </Button>
-                      <Button outline onClick={readAllNotifications}>
+                      <Button onClick={readAllNotifications} outline>
                         Mark all as read
                       </Button>
                     </div>
 
-                    <div className='space-y-2'>
-                      {displayedNotifications?.map((notification) => (
-                        <div
-                          key={notification.id}
-                          className={`flex items-center justify-between rounded-lg p-3 ${notification.read ? 'bg-white' : 'bg-yellow-50'} transition-colors hover:bg-gray-50`}
-                        >
-                          <Link
-                            href={`/dashboard/jobs/${notification.jobId}?eventId=${notification.id}`}
-                            className='flex-1 text-sm text-gray-700 hover:text-gray-900'
-                            onClick={() => {
-                              readNotification(notification);
-                              setOpen(false);
-                            }}
-                          >
-                            {EventTextMap(
-                              notification.type,
-                              notification.jobId
-                            )}
-                          </Link>
-                          {!notification.read && (
-                            <button
-                              onClick={() => readNotification(notification)}
-                              className='ml-2 text-gray-400 hover:text-gray-600'
-                              title='Mark as read'
-                            >
-                              <PiCheck className='h-5 w-5' />
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-
-                    {displayedNotifications?.length === 0 && (
-                      <p className='py-4 text-center text-gray-500'>
-                        No notifications to display
-                      </p>
-                    )}
+                    <NotificationsList
+                      notifications={displayedNotifications ?? []}
+                      onRead={readNotification}
+                      onSelect={handleNotificationSelect}
+                      limit={limit}
+                    />
                   </div>
                 </Dialog.Panel>
               </Transition.Child>
