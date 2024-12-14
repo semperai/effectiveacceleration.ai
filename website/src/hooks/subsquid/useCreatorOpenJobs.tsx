@@ -4,9 +4,10 @@ import { useQuery } from '@apollo/client';
 import { GET_CREATOR_OPEN_JOBS } from './queries';
 import { OrderByType } from '@/service/Interfaces';
 
-
-
-export default function useCreatorOpenJobs(creatorAddress: string, orderBy?: OrderByType) {
+export default function useCreatorOpenJobs(
+  creatorAddress: string,
+  orderBy?: OrderByType
+) {
   const { data, ...rest } = useQuery(GET_CREATOR_OPEN_JOBS, {
     variables: { creatorAddress, ...(orderBy && { orderBy }) },
   });

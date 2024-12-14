@@ -6,29 +6,44 @@ export function PaginationComponent({
   page,
   pages,
 }: {
-  page: number,
-  pages: number,
+  page: number;
+  pages: number;
 }) {
-  return <>
-    {pages > 1 && <Pagination className='mt-20'>
-      {page > 1 && <PaginationPrevious href={`?page=${page-1}`} />}
-      <PaginationList>
+  return (
+    <>
+      {pages > 1 && (
+        <Pagination className='mt-20'>
+          {page > 1 && <PaginationPrevious href={`?page=${page - 1}`} />}
+          <PaginationList>
+            {page > 2 && <PaginationPage href={`?page=1`}>1</PaginationPage>}
+            {page > 3 && <PaginationGap />}
 
-        {(page > 2) && <PaginationPage href={`?page=1`}>1</PaginationPage>}
-        {(page > 3) && <PaginationGap />}
+            {page > 1 && (
+              <PaginationPage
+                href={`?page=${page - 1}`}
+              >{`${page - 1}`}</PaginationPage>
+            )}
+            <PaginationPage href={`?page=${page}`} current>
+              {`${page}`}
+            </PaginationPage>
+            {page < pages - 1 && (
+              <PaginationPage
+                href={`?page=${page + 1}`}
+              >{`${page + 1}`}</PaginationPage>
+            )}
+            {page < pages - 2 && <PaginationGap />}
 
-        {page > 1 && <PaginationPage href={`?page=${page - 1}`}>{`${page - 1}`}</PaginationPage>}
-        <PaginationPage href={`?page=${page}`} current>
-          {`${page}`}
-        </PaginationPage>
-        {(page < pages - 1) && <PaginationPage href={`?page=${page + 1}`}>{`${page + 1}`}</PaginationPage>}
-        {(page < pages - 2) && <PaginationGap />}
-
-        {(page < pages) && <PaginationPage href={`?page=${pages}`}>{`${pages}`}</PaginationPage>}
-      </PaginationList>
-      {(page < pages - 1) && <PaginationNext href={`?page=${page + 1}`} />}
-    </Pagination>}
-  </>
+            {page < pages && (
+              <PaginationPage
+                href={`?page=${pages}`}
+              >{`${pages}`}</PaginationPage>
+            )}
+          </PaginationList>
+          {page < pages - 1 && <PaginationNext href={`?page=${page + 1}`} />}
+        </Pagination>
+      )}
+    </>
+  );
 }
 
 export function Pagination({

@@ -2,9 +2,7 @@
 
 import { Layout } from '@/components/Dashboard/Layout';
 import { Link } from '@/components/Link';
-import {
-  PaginationComponent,
-} from '@/components/Pagination';
+import { PaginationComponent } from '@/components/Pagination';
 import useArbitrators from '@/hooks/subsquid/useArbitrators';
 import useArbitratorsLength from '@/hooks/subsquid/useArbitratorsLength';
 import { ChevronRightIcon } from '@heroicons/react/20/solid';
@@ -20,7 +18,10 @@ export default function OpenJobsPage() {
   const { data: arbitratorsCount } = useArbitratorsLength();
   const pages = Math.ceil((arbitratorsCount ?? 0) / defaultLimit);
 
-  const { data: arbitrators } = useArbitrators((page - 1) * defaultLimit, defaultLimit);
+  const { data: arbitrators } = useArbitrators(
+    (page - 1) * defaultLimit,
+    defaultLimit
+  );
 
   return (
     <Layout>

@@ -51,7 +51,7 @@ self.addEventListener('push', function (event) {
   } else {
     // otherwise it is a job event notification
     const jobEvent = data;
-    body = EventTextMap(jobEvent.type_, jobEvent.jobId)
+    body = EventTextMap(jobEvent.type_, jobEvent.jobId);
 
     data = jobEvent;
   }

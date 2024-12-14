@@ -46,7 +46,7 @@ export const subscribeToWebPushNotifications = async (
     // urlBase64ToUint8Array() is defined in /tools.js
     applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
   } catch {
-    console.error("Failed to contact notification server")
+    console.error('Failed to contact notification server');
     return;
   }
 

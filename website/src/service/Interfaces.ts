@@ -36,8 +36,7 @@ export interface Notification {
   read?: boolean;
 }
 
-
-export type OrderByType = 
+export type OrderByType =
   | 'jobTimes_createdAt_ASC'
   | 'jobTimes_createdAt_DESC'
   | 'jobTimes_createdAt_ASC_NULLS_FIRST'

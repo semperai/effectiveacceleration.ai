@@ -19,8 +19,11 @@ export function absoluteUrl(path: string) {
   return `${process.env.NEXT_PUBLIC_APP_URL}${path}`;
 }
 
-export const EventTextMap = (eventType: JobEventType, jobId: string | bigint) => {
-  let body = "";
+export const EventTextMap = (
+  eventType: JobEventType,
+  jobId: string | bigint
+) => {
+  let body = '';
   switch (eventType) {
     case JobEventType.Created:
       // to arbitrator
@@ -86,4 +89,4 @@ export const EventTextMap = (eventType: JobEventType, jobId: string | bigint) =>
   }
 
   return body;
-}
+};

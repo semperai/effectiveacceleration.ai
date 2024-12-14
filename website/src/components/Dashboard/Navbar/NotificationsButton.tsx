@@ -13,8 +13,9 @@ export const NotificationsButton = () => {
   const [open, setOpen] = useState(false);
   const account = useAccount();
   const [limit, setLimit] = useState<number>(5);
-  const { data: notifications } = useUserNotifications(account?.address ?? "");
-  const notificationsCount = notifications?.filter(notification => !notification.read).length ?? 0;
+  const { data: notifications } = useUserNotifications(account?.address ?? '');
+  const notificationsCount =
+    notifications?.filter((notification) => !notification.read).length ?? 0;
 
   const readAllNotifications = useCallback(() => {
     const readNotifications = new Set<string>(
@@ -125,12 +126,26 @@ export const NotificationsButton = () => {
                   </Dialog.Title>
                   <div className='mb-3 mt-5 flex flex-col'>
                     <div className='flex flex-row justify-evenly'>
-                      <button onClick={() => setLimit(limit+5)}>Load more</button>
-                      <button onClick={() => readAllNotifications()}>Mark all as read</button>
+                      <button onClick={() => setLimit(limit + 5)}>
+                        Load more
+                      </button>
+                      <button onClick={() => readAllNotifications()}>
+                        Mark all as read
+                      </button>
                     </div>
-                    {notifications?.slice(0, limit).map(notification => (
-                      <div key={notification.id} className={clsx('flex py-2 px-1', notification.read ? '' : 'bg-yellow-100')}>
-                        <Link href={`/dashboard/jobs/${notification.jobId}?eventId=${notification.id}`} className='flex w-full cursor-pointer' onClick={() => notificationClick(notification)}>
+                    {notifications?.slice(0, limit).map((notification) => (
+                      <div
+                        key={notification.id}
+                        className={clsx(
+                          'flex px-1 py-2',
+                          notification.read ? '' : 'bg-yellow-100'
+                        )}
+                      >
+                        <Link
+                          href={`/dashboard/jobs/${notification.jobId}?eventId=${notification.id}`}
+                          className='flex w-full cursor-pointer'
+                          onClick={() => notificationClick(notification)}
+                        >
                           {EventTextMap(notification.type, notification.jobId)}
                         </Link>
                         <div className='flex-shrink cursor-pointer'>
