@@ -205,6 +205,10 @@ export function useWriteContractWithNotifications() {
       setTimeout(() => {
         console.log('Resetting gql cache');
         client.resetStore();
+        setTimeout(() => {
+          console.log('Resetting gql cache');
+          client.resetStore();
+        }, 3000);
       }, 3000);
 
       // Log parsed events to console
