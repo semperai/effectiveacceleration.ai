@@ -66,19 +66,19 @@ export function PostMessageButton({
 
     if (message.length > 0) {
       dismissLoadingToast();
-      loadingToastIdRef.current = showLoading('Publishing job post to IPFS...');
+      loadingToastIdRef.current = showLoading('Publishing job message to IPFS...');
       try {
         const { hash } = await publishToIpfs(message, sessionKey);
         contentHash = hash;
       } catch (err) {
         Sentry.captureException(err);
         dismissLoadingToast();
-        showError('Failed to publish job post to IPFS');
+        showError('Failed to publish job message to IPFS');
         setIsPostingMessage(false);
         return;
       }
       dismissLoadingToast();
-      showSuccess('Job post published to IPFS');
+      showSuccess('Job message published to IPFS');
     }
 
     try {
