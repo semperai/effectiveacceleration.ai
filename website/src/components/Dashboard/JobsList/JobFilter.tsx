@@ -7,7 +7,7 @@ import TagsInput from '@/components/TagsInput';
 import { TokenSelector } from '@/components/TokenSelector';
 import { ComboBoxOption, Tag } from '@/service/FormsTypes';
 import { Token } from '@/tokens';
-import { unitsDeliveryTime } from '@/utils/utils';
+import { shortenText, unitsDeliveryTime } from '@/utils/utils';
 import { ChevronDown, ChevronUp, Filter, Search } from 'lucide-react';
 import React, { useState } from 'react';
 
@@ -24,6 +24,11 @@ type JobFilterProps = {
   setSelectedUnitTime: React.Dispatch<React.SetStateAction<ComboBoxOption>>;
   minTokens: number | undefined;
   setMinTokens: React.Dispatch<React.SetStateAction<number | undefined>>;
+  selectedArbitratorAddress: string | undefined;
+  setSelectedArbitratorAddress: React.Dispatch<React.SetStateAction<string | undefined>>;
+  arbitratorAddresses: string[];
+  arbitratorNames: string[];
+  arbitratorFees: (string | number)[];
 };
 
 export const JobFilter = ({
@@ -39,6 +44,11 @@ export const JobFilter = ({
   setSelectedUnitTime,
   minTokens,
   setMinTokens,
+  selectedArbitratorAddress,
+  setSelectedArbitratorAddress,
+  arbitratorAddresses,
+  arbitratorNames,
+  arbitratorFees
 }: JobFilterProps) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -143,6 +153,38 @@ export const JobFilter = ({
                         )
                     )}
                   </Listbox>
+                </div>
+                <div className='w-full sm:w-40'>
+                <Listbox
+                      placeholder='Select Arbitrator'
+                      value={selectedArbitratorAddress}
+                      onChange={(addr) => setSelectedArbitratorAddress(addr)}
+                    >
+                      {arbitratorAddresses.map(
+                        (arbitratorAddress, index) =>
+                          index > 0 && (
+                            <ListboxOption
+                              key={index}
+                              value={arbitratorAddress}
+                            >
+                              <ListboxLabel>
+                                <span className=''>
+                                  {arbitratorNames[index]}
+                                </span>{' '}
+                                <span className='ml-4 text-sm text-gray-500'>
+                                  {shortenText({
+                                    text: arbitratorAddress,
+                                    maxLength: 11,
+                                  })}
+                                </span>{' '}
+                                <span className='bold ml-4'>
+                                  {+arbitratorFees[index] / 100}%
+                                </span>
+                              </ListboxLabel>
+                            </ListboxOption>
+                          )
+                      )}
+                    </Listbox>
                 </div>
               </div>
             </div>

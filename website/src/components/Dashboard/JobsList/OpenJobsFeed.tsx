@@ -15,6 +15,8 @@ import {
 import { JobState } from '@effectiveacceleration/contracts';
 
 import NoJobsOpenImage from '@/images/noOpenJobs.svg';
+import useArbitrators from '@/hooks/subsquid/useArbitrators';
+import { zeroAddress } from 'viem';
 
 export const OpenJobsFeed = () => {
   const [search, setSearch] = useState<string>('');
@@ -29,7 +31,22 @@ export const OpenJobsFeed = () => {
     unitsDeliveryTime[2]
   );
   const [minTokens, setMinTokens] = useState<number | undefined>(undefined);
+  const { data: arbitrators } = useArbitrators();
+  const arbitratorAddresses = [
+    zeroAddress,
+    ...(arbitrators?.map((worker) => worker.address_) ?? []),
+  ];
+  const [selectedArbitratorAddress, setSelectedArbitratorAddress] =
+    useState<string>();
+  const arbitratorNames = [
+    'None',
+    ...(arbitrators?.map((worker) => worker.name) ?? []),
+  ];
 
+  const arbitratorFees = [
+    '0',
+    ...(arbitrators?.map((worker) => worker.fee) ?? []),
+  ];
   const { data: jobs } = useJobSearch({
     jobSearch: {
       ...(search && { title: search }),
@@ -59,6 +76,11 @@ export const OpenJobsFeed = () => {
         setSelectedUnitTime={setSelectedUnitTime}
         minTokens={minTokens}
         setMinTokens={setMinTokens}
+        setSelectedArbitratorAddress={setSelectedArbitratorAddress}
+        selectedArbitratorAddress={selectedArbitratorAddress}
+        arbitratorAddresses={arbitratorAddresses}
+        arbitratorNames={arbitratorNames}
+        arbitratorFees={arbitratorFees}
       />
       {jobs ? (
         <>
