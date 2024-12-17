@@ -25,7 +25,9 @@ type JobFilterProps = {
   minTokens: number | undefined;
   setMinTokens: React.Dispatch<React.SetStateAction<number | undefined>>;
   selectedArbitratorAddress: string | undefined;
-  setSelectedArbitratorAddress: React.Dispatch<React.SetStateAction<string | undefined>>;
+  setSelectedArbitratorAddress: React.Dispatch<
+    React.SetStateAction<string | undefined>
+  >;
   arbitratorAddresses: string[];
   arbitratorNames: string[];
   arbitratorFees: (string | number)[];
@@ -48,7 +50,7 @@ export const JobFilter = ({
   setSelectedArbitratorAddress,
   arbitratorAddresses,
   arbitratorNames,
-  arbitratorFees
+  arbitratorFees,
 }: JobFilterProps) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -85,14 +87,15 @@ export const JobFilter = ({
         {/* Collapsible advanced filters section */}
         {showAdvanced && (
           <div className='mt-4 space-y-6'>
-            <div className='space-y-4'>
+            <div className=''>
+              <h3 className='text-sm font-medium text-gray-700'>Tags</h3>
               <TagsInput tags={tags} setTags={setTags} />
             </div>
-
-            <Separator />
+            {/* 
+            <Separator /> */}
 
             {/* Token Settings Section */}
-            <div className='space-y-4'>
+            <div className=''>
               <h3 className='text-sm font-medium text-gray-700'>
                 Token Settings
               </h3>
@@ -115,10 +118,10 @@ export const JobFilter = ({
               </div>
             </div>
 
-            <Separator />
+            {/* <Separator /> */}
 
             {/* Delivery Time Section */}
-            <div className='space-y-4'>
+            <div className=''>
               <h3 className='text-sm font-medium text-gray-700'>
                 Delivery Time
               </h3>
@@ -154,8 +157,15 @@ export const JobFilter = ({
                     )}
                   </Listbox>
                 </div>
-                <div className='w-full sm:w-40'>
-                <Listbox
+              </div>
+            </div>
+            <div>
+                <h3 className='mb-2 text-sm font-medium text-gray-700'>
+                  Search for Arbitrator
+                </h3>
+                <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
+                  <div className='flex-1'>
+                    <Listbox
                       placeholder='Select Arbitrator'
                       value={selectedArbitratorAddress}
                       onChange={(addr) => setSelectedArbitratorAddress(addr)}
@@ -185,9 +195,10 @@ export const JobFilter = ({
                           )
                       )}
                     </Listbox>
+                  </div>
                 </div>
-              </div>
             </div>
+            
           </div>
         )}
       </CardContent>
