@@ -42,7 +42,7 @@ export const OwnerDashboardTabs = () => {
     address!,
     'jobTimes_openedAt_ASC'
   );
-
+  console.log(address, 'ADDRESS')
   return (
     <Tabs defaultValue='Open Jobs'>
       <TabsList className='mb-4 flex h-auto flex-wrap items-center gap-6 md:mb-8 md:gap-4'>
@@ -53,7 +53,9 @@ export const OwnerDashboardTabs = () => {
         <TabsTrigger value='Closed'>Closed</TabsTrigger>
       </TabsList>
       <TabsContent value='Open Jobs'>
-        {openJobs ? (
+      {!address ? (
+          <EmptyJobsList image={NoJobsOpenImage} text='No address provided' />
+        ) : openJobs ? (
           <>
             <JobsList jobs={openJobs} />
             {openJobs.length === 0 && (

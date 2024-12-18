@@ -38,10 +38,12 @@ export const WorkerDashboardTabs = () => {
           <TabsTrigger value='Completed Jobs'>Completed Jobs</TabsTrigger>
         </TabsList>
         <TabsContent value='Applications'>
-          {applicationsJobs ? (
+          {!address ? (
+            <EmptyJobsList image={NoJobsOpenImage} text='No address provided' />
+          ) : applicationsJobs ? (
             <>
               <JobsList jobs={applicationsJobs} />
-              {applicationsJobs?.length === 0 && (
+              {applicationsJobs.length === 0 && (
                 <EmptyJobsList image={NoJobsOpenImage} text='No applications' />
               )}
             </>
