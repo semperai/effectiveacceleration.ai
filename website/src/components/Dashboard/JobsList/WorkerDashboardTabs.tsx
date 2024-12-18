@@ -43,7 +43,7 @@ export const WorkerDashboardTabs = () => {
           ) : applicationsJobs ? (
             <>
               <JobsList jobs={applicationsJobs} />
-              {applicationsJobs.length === 0 && (
+              {applicationsJobs?.length === 0 && (
                 <EmptyJobsList image={NoJobsOpenImage} text='No applications' />
               )}
             </>

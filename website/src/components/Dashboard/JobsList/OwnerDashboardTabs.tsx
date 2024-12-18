@@ -58,7 +58,7 @@ export const OwnerDashboardTabs = () => {
         ) : openJobs ? (
           <>
             <JobsList jobs={openJobs} />
-            {openJobs.length === 0 && (
+            {openJobs?.length === 0 && (
               <EmptyJobsList image={NoJobsOpenImage} text='No open jobs' />
             )}
           </>
