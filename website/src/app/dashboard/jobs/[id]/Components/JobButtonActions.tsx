@@ -100,7 +100,7 @@ const JobButtonActions = ({
     job?.state !== JobState.Closed && address === job?.roles.arbitrator;
 
   return (
-    <div>
+    <div className='jobButtonActions'>
       {job && (
         <div className='flex flex-col gap-2'>
           {/* owner & worker actions */}

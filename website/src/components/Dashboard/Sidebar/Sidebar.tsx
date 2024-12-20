@@ -46,18 +46,6 @@ const navigationItems: NavigationItem[] = [
     href: '/dashboard/worker-job-list',
     icon: <PiBriefcase className='text-2xl' />,
   },
-  /*
-  {
-    name: 'Arbitrators',
-    href: '/dashboard/arbitrators',
-    icon: <PiFinnTheHuman className='text-2xl' />,
-  },
-  {
-    name: 'Users',
-    href: '/dashboard/users',
-    icon: <PiPerson className='text-2xl' />,
-  },
-  */
   {
     name: 'Docs',
     href: 'https://docs.effectiveacceleration.ai',
@@ -150,10 +138,10 @@ const Sidebar = ({
               <Dialog.Panel className='relative mr-16 flex w-full max-w-xs flex-1'>
                 <Transition.Child
                   as={Fragment}
-                  enter='ease-in-out duration-150'
+                  enter='ease-in-out duration-100'
                   enterFrom='opacity-0'
                   enterTo='opacity-100'
-                  leave='ease-in-out duration-150'
+                  leave='ease-in-out duration-100'
                   leaveFrom='opacity-100'
                   leaveTo='opacity-0'
                 >

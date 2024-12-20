@@ -15,9 +15,8 @@ export default function useJobSearch({
       console.log('key', key, 'value', value);
       if (typeof value === 'string') {
         return `${key}_containsInsensitive: "${value}"`;
-      } else if (key === 'roles' && typeof value === 'object') {
+      }if (key === 'roles' && typeof value === 'object') {
         const rolesConditions = Object.entries(value)
-          .filter(([roleKey, roleValue]) => roleValue !== '')
           .map(([roleKey, roleValue]) => `${roleKey}_eq: "${roleValue}"`)
           .join(', ');
         return `${key}: { ${rolesConditions} }`;
@@ -30,7 +29,7 @@ export default function useJobSearch({
       }
     })
     .join(',\n');
-  console.log('search', search);
+
   const { data, ...rest } = useQuery(
     GET_JOB_SEARCH({
       search,
