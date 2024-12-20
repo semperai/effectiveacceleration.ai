@@ -59,13 +59,13 @@ const JobChat = ({
     Object.keys(sessionKeys).length > 0;
   return (
     <div className='grid min-h-customHeader grid-rows-[74px_70%_10%]'>
-      <ProfileUserHeader
+      {/* <ProfileUserHeader
         users={users}
         selectedWorker={selectedWorker}
         eventMessages={eventMessages}
-        address={address}
+        address={address as `0x${string}`}
         job={job}
-      />
+      /> */}
       <JobChatEvents
         users={users}
         selectedWorker={selectedWorker}

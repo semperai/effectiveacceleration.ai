@@ -10,17 +10,29 @@ import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import Image from 'next/image';
 import SideJobList from '../SideJobList';
 import SideJobInfo from '../SideJobInfo';
-import { JobSidebarProps } from '../../page';
+
 import InfoIcon from '@mui/icons-material/Info';
 
-interface ResultAcceptedProps extends JobSidebarProps {
+type JobSidebarProps = {
+  job: any;
+  address: `0x${string}`;
+  events: any[];
+  addresses: string[];
+  sessionKeys: Record<string, string>;
   users: Record<string, User>;
+  jobMeceTag: string;
+  timePassed: boolean;
+  adjustedProgressValue: number;
+  whitelistedWorkers: string[];
+  tokenIcon: (token: string) => string;
+  sidebarOpen?: boolean;
+  setSidebarOpen?: (value: boolean) => void;
+  setSelectedWorker: Dispatch<SetStateAction<string>>;
   selectedWorker: string;
   eventMessages: JobEventWithDiffs[];
-  job: Job;
-  setSelectedWorker: Dispatch<SetStateAction<string>>;
-}
-const ProfileUserHeader: React.FC<ResultAcceptedProps> = ({
+};
+
+const ProfileUserHeader: React.FC<JobSidebarProps> = ({
   selectedWorker,
   users,
   eventMessages,
@@ -68,8 +80,10 @@ const ProfileUserHeader: React.FC<ResultAcceptedProps> = ({
               address={address} 
               job={job} 
               setSelectedWorker={setSelectedWorker} 
+              selectedWorker={selectedWorker}
             />
           <SideJobInfo 
+              selectedWorker={selectedWorker}
               sidebarOpen={sideJobInfoOpen}
               setSidebarOpen={setSideJobInfoOpen}
               users={users}

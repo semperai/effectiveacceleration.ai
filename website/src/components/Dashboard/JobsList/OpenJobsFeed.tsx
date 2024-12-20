@@ -55,13 +55,12 @@ export const OpenJobsFeed = () => {
         maxTime: convertToSeconds(minDeadline, selectedUnitTime.name),
       }),
       state: JobState.Open,
-      ...(selectedArbitratorAddress && { roles: { creator: '', arbitrator: selectedArbitratorAddress ?? '', worker: ''} }),
       ...(selectedToken && { token: selectedToken.id }),
-      // ...(minTokens && { amount: BigInt(minTokens) }), decimals cannot be converted to bigInt, every job has decimals tokens, will comment this for now
+      ...(selectedArbitratorAddress && { roles: { creator: '', arbitrator: selectedArbitratorAddress ?? '', worker: '' } }),
     },
     orderBy: 'jobTimes_openedAt_DESC',
   });
-  console.log(jobs, selectedArbitratorAddress, 'jobs');
+  
   return (
     <div>
       <JobFilter

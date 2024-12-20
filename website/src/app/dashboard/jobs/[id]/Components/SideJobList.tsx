@@ -34,6 +34,7 @@ interface SideJobListProps {
   address: string | undefined;
   job: Job;
   setSelectedWorker: Dispatch<SetStateAction<string>>;
+  selectedWorker: string;
 }
 
 const SideJobList: React.FC<SideJobListProps> = ({
@@ -41,7 +42,8 @@ const SideJobList: React.FC<SideJobListProps> = ({
   setSidebarOpen,
   users,
   job,
-  setSelectedWorker
+  setSelectedWorker,
+  selectedWorker
 }) => {
   return (
     <>

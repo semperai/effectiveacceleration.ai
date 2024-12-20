@@ -35,7 +35,7 @@ import { clsx } from 'clsx';
 import moment from 'moment';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { zeroAddress, zeroHash } from 'viem';
 import { useAccount } from 'wagmi';
 import JobButtonActions from './Components/JobButtonActions';
@@ -43,9 +43,8 @@ import JobChatEvents from './Components/JobChat/JobChatEvents';
 import ProfileUserHeader from './Components/JobChat/ProfileUserHeader';
 import JobChatsList from './Components/JobChatsList';
 import JobStatusWrapper from './Components/JobStatusWrapper';
-import OpenJobMobileMenu from './Components/JobChat/OpenJobMobileMenu';
 
-export type JobSidebarProps = {
+type JobSidebarProps = {
   job: Job;
   address: `0x${string}`;
   events: JobEventWithDiffs[];
@@ -57,12 +56,9 @@ export type JobSidebarProps = {
   adjustedProgressValue: number;
   whitelistedWorkers: string[];
   tokenIcon: (token: string) => string;
-  sidebarOpen?: boolean;
-  setSidebarOpen?: (value: boolean) => void;
-  setSelectedWorker?: Dispatch<SetStateAction<string>>;
 };
 
-export const JobSidebar = ({
+const JobSidebar = ({
   job,
   address,
   events,
@@ -124,7 +120,7 @@ export const JobSidebar = ({
   timeLeft -= ((+new Date() / 1000) | 0) + job.maxTime;
 
   return (
-    <>
+    <div className='h-full max-h-customHeader divide-y divide-gray-100 overflow-y-auto rounded-lg bg-white shadow-sm'>
       {job && address && events && (
         <JobStatusWrapper
           job={job}
@@ -296,7 +292,7 @@ export const JobSidebar = ({
           </div>
         </div>
       </InfoSection>
-    </>
+    </div>
   );
 };
 
@@ -446,9 +442,9 @@ export default function JobPage() {
   return (
     <Layout borderless>
       <div className='grid min-h-customHeader grid-cols-1'>
-        <div className='grid min-h-customHeader sm:grid-cols-2 md:grid-cols-4'>
+        <div className='grid min-h-customHeader grid-cols-4'>
           {isOwner && job?.state === JobState.Open && (
-            <div className='hidden md:block md:col-span-1 md:max-h-customHeader overflow-y-auto border border-gray-100 bg-white p-3'>
+            <div className='col-span-1 max-h-customHeader overflow-y-auto border border-gray-100 bg-white p-3'>
               <JobChatsList
                 users={users ?? {}}
                 job={job}
@@ -469,38 +465,13 @@ export default function JobPage() {
           >
             {job && (
               <div className='grid max-h-customHeader min-h-customHeader grid-rows-[74px_68%_10%]'>
-                <OpenJobMobileMenu
-                   users={users ?? {}}
-                   selectedWorker={selectedWorker}
-                   eventMessages={eventMessages}
-                   address={address as `0x${string}`}
-                   job={job}
-                   setSelectedWorker={setSelectedWorker}
-                   events={events}
-                   addresses={addresses}
-                   sessionKeys={sessionKeys}
-                   jobMeceTag={jobMeceTag ?? ''}
-                   timePassed={timePassed}
-                   adjustedProgressValue={adjustedProgressValue}
-                   whitelistedWorkers={whitelistedWorkers}
-                   tokenIcon={tokenIcon}
-                />
-                <ProfileUserHeader
+                {/* <ProfileUserHeader
                   users={users ?? {}}
                   selectedWorker={selectedWorker}
                   eventMessages={eventMessages}
-                  address={address as `0x${string}`}
+                  address={address}
                   job={job}
-                  setSelectedWorker={setSelectedWorker}
-                  events={events}
-                  addresses={addresses}
-                  sessionKeys={sessionKeys}
-                  jobMeceTag={jobMeceTag ?? ''}
-                  timePassed={timePassed}
-                  adjustedProgressValue={adjustedProgressValue}
-                  whitelistedWorkers={whitelistedWorkers}
-                  tokenIcon={tokenIcon}
-                />
+                /> */}
                 <JobChatEvents
                   users={users ?? {}}
                   selectedWorker={selectedWorker}
@@ -528,21 +499,19 @@ export default function JobPage() {
               </div>
             )}
           </div>
-          <div className='hidden md:block h-full max-h-customHeader divide-y divide-gray-100 overflow-y-auto rounded-lg bg-white shadow-sm'>
-            <JobSidebar
-              job={job}
-              address={address as `0x${string}`}
-              events={eventMessages as JobEventWithDiffs[]}
-              addresses={addresses}
-              sessionKeys={sessionKeys}
-              users={users ?? {}}
-              jobMeceTag={jobMeceTag ?? ''}
-              timePassed={timePassed}
-              adjustedProgressValue={adjustedProgressValue}
-              whitelistedWorkers={whitelistedWorkers}
-              tokenIcon={tokenIcon}
-            />
-          </div>
+          <JobSidebar
+            job={job}
+            address={address as `0x${string}`}
+            events={eventMessages as JobEventWithDiffs[]}
+            addresses={addresses}
+            sessionKeys={sessionKeys}
+            users={users ?? {}}
+            jobMeceTag={jobMeceTag ?? ''}
+            timePassed={timePassed}
+            adjustedProgressValue={adjustedProgressValue}
+            whitelistedWorkers={whitelistedWorkers}
+            tokenIcon={tokenIcon}
+          />
         </div>
       </div>
     </Layout>

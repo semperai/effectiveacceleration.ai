@@ -20,7 +20,7 @@ import { Transition, Dialog } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import JobChatsList from './JobChatsList';
 import { Job, JobEventWithDiffs, User } from '@effectiveacceleration/contracts';
-import { JobSidebar, JobSidebarProps } from '../page';
+// import { JobSidebar } from '../page';
 import { tokenIcon } from '@/tokens';
 type NavigationItem = {
   name: string;
@@ -28,16 +28,26 @@ type NavigationItem = {
   icon: JSX.Element;
 };
 
-interface SideJobListProps extends JobSidebarProps {
-  sidebarOpen: boolean;
-  setSidebarOpen: (value: boolean) => void;
+type JobSidebarProps = {
+  job: any;
+  address: `0x${string}`;
+  events: any[];
+  addresses: string[];
+  sessionKeys: Record<string, string>;
   users: Record<string, User>;
-  job: Job;
+  jobMeceTag: string;
+  timePassed: boolean;
+  adjustedProgressValue: number;
+  whitelistedWorkers: string[];
+  tokenIcon: (token: string) => string;
+  sidebarOpen?: boolean;
+  setSidebarOpen?: (value: boolean) => void;
   setSelectedWorker: Dispatch<SetStateAction<string>>;
+  selectedWorker: string;
   eventMessages: JobEventWithDiffs[];
-}
+};
 
-const SideJobList: React.FC<SideJobListProps> = ({
+const SideJobList: React.FC<JobSidebarProps> = ({
   sidebarOpen,
   setSidebarOpen,
   users,
@@ -58,7 +68,9 @@ const SideJobList: React.FC<SideJobListProps> = ({
     if (!sidebarOpen) return;
     const handleButtonClick = (event: Event) => {
       console.log('handleButtonClick');
-      setSidebarOpen(false);
+      if (setSidebarOpen) {
+        setSidebarOpen(false);
+      }
 
       // Find the corresponding button in jobButtonActionsDivOther
       const clickedButton = event.target as HTMLButtonElement;
@@ -102,7 +114,7 @@ const SideJobList: React.FC<SideJobListProps> = ({
   return (
     <>
   <Transition.Root show={sidebarOpen} as={Fragment}>
-    <Dialog as='div' className='relative z-50 lg:hidden' onClose={setSidebarOpen}>
+    <Dialog as='div' className='relative z-50 lg:hidden' onClose={setSidebarOpen ?? (() => {})}>
       <Transition.Child
         as={Fragment}
         enter='transition-opacity ease-linear duration-150'
@@ -139,7 +151,7 @@ const SideJobList: React.FC<SideJobListProps> = ({
                 <button
                   type='button'
                   className='-m-2.5 p-2.5'
-                  onClick={() => setSidebarOpen(false)}
+                  onClick={() => (setSidebarOpen ? setSidebarOpen(false) : undefined)}
                 >
                   <span className='sr-only'>Close sidebar</span>
                   <XMarkIcon className='h-6 w-6 text-white' aria-hidden='true' />
@@ -148,7 +160,7 @@ const SideJobList: React.FC<SideJobListProps> = ({
             </Transition.Child>
 
             <div className='flex grow flex-col gap-y-5 overflow-y-auto bg-white pb-4 dark:bg-black'>
-              <JobSidebar 
+              {/* <JobSidebar 
                 job={job}
                 address={address as `0x${string}`}
                 events={eventMessages as JobEventWithDiffs[]}
@@ -160,7 +172,7 @@ const SideJobList: React.FC<SideJobListProps> = ({
                 adjustedProgressValue={adjustedProgressValue}
                 whitelistedWorkers={whitelistedWorkers}
                 tokenIcon={tokenIcon}
-              />
+              /> */}
             </div>
           </Dialog.Panel>
         </Transition.Child>
