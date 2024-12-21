@@ -13,7 +13,7 @@ import SideJobInfo from '../SideJobInfo';
 
 import InfoIcon from '@mui/icons-material/Info';
 
-type JobSidebarProps = {
+export type JobSidebarProps = {
   job: any;
   address: `0x${string}`;
   events: any[];
@@ -55,7 +55,7 @@ const ProfileUserHeader: React.FC<JobSidebarProps> = ({
 
   return (
     <>
-      {isCreator && job.state === JobState.Open && !isWorker ? (
+      {isCreator && job.state === JobState.Open && !isWorker && !selectedWorker ? (
         <div className='block md:hidden'>
           <div className='min-h-[74px]'>
             <div className='min-h-[74px] items-center align-center justify-between border border-gray-100 p-4'>
@@ -83,22 +83,22 @@ const ProfileUserHeader: React.FC<JobSidebarProps> = ({
               selectedWorker={selectedWorker}
             />
           <SideJobInfo 
-              selectedWorker={selectedWorker}
               sidebarOpen={sideJobInfoOpen}
               setSidebarOpen={setSideJobInfoOpen}
               users={users}
               address={address as `0x${string}`}
               job={job}
-              setSelectedWorker={setSelectedWorker} 
-              eventMessages={eventMessages} 
-              events={ events} 
-              addresses={addresses} 
-              sessionKeys={sessionKeys} 
-              jobMeceTag={jobMeceTag ?? ''} 
-              timePassed={timePassed} 
-              adjustedProgressValue={adjustedProgressValue} 
-              whitelistedWorkers={whitelistedWorkers} 
-              tokenIcon={tokenIcon} 
+              setSelectedWorker={setSelectedWorker}
+              selectedWorker={selectedWorker}
+              events={events}
+              eventMessages={eventMessages}
+              addresses={addresses}
+              sessionKeys={sessionKeys}
+              jobMeceTag={jobMeceTag ?? ''}
+              timePassed={timePassed}
+              adjustedProgressValue={adjustedProgressValue}
+              whitelistedWorkers={whitelistedWorkers}
+              tokenIcon={tokenIcon}
             />
         </div>
 

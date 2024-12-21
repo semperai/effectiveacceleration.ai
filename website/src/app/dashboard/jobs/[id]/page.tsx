@@ -38,263 +38,11 @@ import { useParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { zeroAddress, zeroHash } from 'viem';
 import { useAccount } from 'wagmi';
-import JobButtonActions from './Components/JobButtonActions';
 import JobChatEvents from './Components/JobChat/JobChatEvents';
 import ProfileUserHeader from './Components/JobChat/ProfileUserHeader';
 import JobChatsList from './Components/JobChatsList';
-import JobStatusWrapper from './Components/JobStatusWrapper';
-
-type JobSidebarProps = {
-  job: Job;
-  address: `0x${string}`;
-  events: JobEventWithDiffs[];
-  addresses: string[];
-  sessionKeys: Record<string, string>;
-  users: Record<string, User>;
-  jobMeceTag: string;
-  timePassed: boolean;
-  adjustedProgressValue: number;
-  whitelistedWorkers: string[];
-  tokenIcon: (token: string) => string;
-};
-
-const JobSidebar = ({
-  job,
-  address,
-  events,
-  addresses,
-  sessionKeys,
-  users,
-  jobMeceTag,
-  timePassed,
-  adjustedProgressValue,
-  whitelistedWorkers,
-  tokenIcon,
-}: JobSidebarProps) => {
-  const InfoSection = ({
-    title,
-    children,
-    className = '',
-  }: {
-    title?: string;
-    children: React.ReactNode;
-    className?: string;
-  }) => (
-    <div className={`border-b border-gray-100 p-6 ${className}`}>
-      {title && (
-        <h3 className='mb-4 text-lg font-semibold text-gray-900'>{title}</h3>
-      )}
-      {children}
-    </div>
-  );
-
-  const DetailRow = ({
-    label,
-    value,
-    icon: Icon,
-  }: {
-    label: string;
-    value: React.ReactNode;
-    icon?: React.ElementType;
-  }) => (
-    <div className='flex items-center justify-between py-2'>
-      <span className='text-gray-600'>{label}</span>
-      <div className='flex items-center gap-2 text-gray-900'>
-        {Icon && <Icon className='h-5 w-5 text-gray-400' />}
-        {value}
-      </div>
-    </div>
-  );
-
-  const Tag = ({ children }: { children: React.ReactNode }) => (
-    <span className='m-1 inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700'>
-      {children}
-    </span>
-  );
-
-  let timeLeft = 0;
-  // TODO there must be nicer way to do this..
-  if (job && job.jobTimes) {
-    timeLeft += job.jobTimes.assignedAt;
-  }
-  timeLeft -= ((+new Date() / 1000) | 0) + job.maxTime;
-
-  return (
-    <div className='h-full max-h-customHeader divide-y divide-gray-100 overflow-y-auto rounded-lg bg-white shadow-sm'>
-      {job && address && events && (
-        <JobStatusWrapper
-          job={job}
-          events={events}
-          address={address}
-          zeroHash={zeroHash}
-          addresses={addresses}
-          sessionKeys={sessionKeys}
-        />
-      )}
-
-      <InfoSection>
-        {job && (
-          <>
-            <h2 className='mb-2 text-xl font-semibold text-gray-900'>
-              {job.title}
-            </h2>
-            <p className='text-sm text-gray-600'>{job.content}</p>
-          </>
-        )}
-        <div className='mt-6 space-y-3'>
-          <JobButtonActions
-            job={job}
-            addresses={addresses}
-            sessionKeys={sessionKeys}
-            events={events}
-            whitelistedWorkers={whitelistedWorkers}
-            address={address}
-            timePassed={timePassed}
-          />
-          <TooltipButton
-            outline
-            className='flex w-full items-center justify-center gap-2'
-            tooltipContent='Copy link to clipboard'
-            popoverContent='Copied!'
-            onClick={async () => {
-              await navigator.clipboard.writeText(window.location.href);
-            }}
-          >
-            <LinkIcon className='h-4 w-4' />
-            Share
-          </TooltipButton>
-        </div>
-      </InfoSection>
-
-      <InfoSection title='Project Details'>
-        <DetailRow
-          label='Price'
-          value={
-            job && (
-              <div className='flex items-center gap-2'>
-                {formatTokenNameAndAmount(job.token, job.amount)}
-                <img src={tokenIcon(job.token)} alt='' className='h-4 w-4' />
-              </div>
-            )
-          }
-          icon={CurrencyDollarIcon}
-        />
-        <DetailRow
-          label='Multiple Applicants'
-          value={job?.multipleApplicants ? 'Allowed' : 'Not Allowed'}
-        />
-        <DetailRow label='Delivery Method' value={job?.deliveryMethod} />
-        <div className='mt-4 flex items-center gap-2 text-sm text-gray-500'>
-          <UserIcon className='h-5 w-5 text-gray-400' />
-          <span>
-            last updated by {users[job?.roles.creator!]?.name}{' '}
-            {moment(job?.timestamp! * 1000).fromNow()}
-          </span>
-        </div>
-      </InfoSection>
-
-      {job?.state === JobState.Closed &&
-        address === job.roles.creator &&
-        job.collateralOwed > 0n && (
-          <InfoSection title='Collateral Withdrawal'>
-            <div className='space-y-4'>
-              <div className='text-sm text-gray-600'>
-                {(() => {
-                  if (!job || job.timestamp === undefined) return;
-                  const ts = moment.unix(job.timestamp);
-                  return ts.add(24, 'hours').isAfter(moment())
-                    ? ts.from(moment(), true)
-                    : 'Ready to withdraw';
-                })()}
-              </div>
-              <LinearProgress
-                value={timePassed ? 100 : adjustedProgressValue}
-                className='w-full'
-              />
-              <DetailRow
-                label='Collateral'
-                value={
-                  job && (
-                    <div className='flex items-center gap-2'>
-                      {formatTokenNameAndAmount(job.token, job.amount)}
-                      <img
-                        src={tokenIcon(job.token)}
-                        alt=''
-                        className='h-4 w-4'
-                      />
-                    </div>
-                  )
-                }
-                icon={CurrencyDollarIcon}
-              />
-            </div>
-          </InfoSection>
-        )}
-
-      {job?.state === JobState.Taken &&
-        job.resultHash === zeroHash &&
-        address === job.roles.creator &&
-        events.length > 0 && (
-          <InfoSection title='Delivery Status'>
-            <div className='space-y-4'>
-              <DetailRow
-                label='Time Remaining'
-                value={
-                  timeLeft > 0
-                    ? formatTimeLeft(timeLeft)
-                    : `Overdue by ${formatTimeLeft(-timeLeft)}`
-                }
-              />
-              <LinearProgress value={5} className='w-full' />
-            </div>
-          </InfoSection>
-        )}
-
-      {job?.state === JobState.Open && (
-        <InfoSection>
-          <DetailRow
-            label='Max Delivery Time'
-            value={moment.duration(job?.maxTime, 'seconds').humanize()}
-          />
-        </InfoSection>
-      )}
-
-      {job?.roles.arbitrator !== zeroAddress && (
-        <InfoSection title='Addresses'>
-          <DetailRow
-            label='Arbitrator Address'
-            value={
-              <Link
-                href={`/dashboard/arbitrators/${job?.roles.arbitrator}`}
-                className='text-blue-600 hover:text-blue-700'
-              >
-                {shortenText({ text: job?.roles.arbitrator, maxLength: 12 }) ||
-                  ''}
-              </Link>
-            }
-          />
-        </InfoSection>
-      )}
-
-      <InfoSection>
-        <div className='space-y-4'>
-          <div>
-            <h4 className='mb-2 font-medium text-gray-900'>Category</h4>
-            <Tag>{jobMeceTag}</Tag>
-          </div>
-          <div>
-            <h4 className='mb-2 font-medium text-gray-900'>Tags</h4>
-            <div className='flex flex-wrap gap-2'>
-              {job?.tags
-                .slice(1)
-                .map((value: string) => <Tag key={value}>{value}</Tag>)}
-            </div>
-          </div>
-        </div>
-      </InfoSection>
-    </div>
-  );
-};
+import JobSidebar from './Components/JobSidebar';
+import OpenJobMobileMenu from './Components/JobChat/OpenJobMobileMenu';
 
 const JobPostSkeleton = () => {
   return (
@@ -442,9 +190,9 @@ export default function JobPage() {
   return (
     <Layout borderless>
       <div className='grid min-h-customHeader grid-cols-1'>
-        <div className='grid min-h-customHeader grid-cols-4'>
+        <div className='grid min-h-customHeader grid-cols-2 md:grid-cols-4'>
           {isOwner && job?.state === JobState.Open && (
-            <div className='col-span-1 max-h-customHeader overflow-y-auto border border-gray-100 bg-white p-3'>
+            <div className='col-span-1 hidden md:block max-h-customHeader overflow-y-auto border border-gray-100 bg-white p-3'>
               <JobChatsList
                 users={users ?? {}}
                 job={job}
@@ -465,13 +213,38 @@ export default function JobPage() {
           >
             {job && (
               <div className='grid max-h-customHeader min-h-customHeader grid-rows-[74px_68%_10%]'>
-                {/* <ProfileUserHeader
+                <ProfileUserHeader
                   users={users ?? {}}
                   selectedWorker={selectedWorker}
                   eventMessages={eventMessages}
-                  address={address}
+                  address={address as `0x${string}`}
                   job={job}
-                /> */}
+                  events={eventMessages}
+                  addresses={addresses}
+                  sessionKeys={sessionKeys}
+                  jobMeceTag={jobMeceTag ?? ''}
+                  timePassed={timePassed}
+                  adjustedProgressValue={adjustedProgressValue}
+                  tokenIcon={tokenIcon}
+                  setSelectedWorker={setSelectedWorker}
+                  whitelistedWorkers={whitelistedWorkers}
+                />
+                <OpenJobMobileMenu
+                  users={users ?? {}}
+                  selectedWorker={selectedWorker}
+                  eventMessages={eventMessages}
+                  address={address as `0x${string}`}
+                  job={job}
+                  events={eventMessages}
+                  addresses={addresses}
+                  sessionKeys={sessionKeys}
+                  jobMeceTag={jobMeceTag ?? ''}
+                  timePassed={timePassed}
+                  adjustedProgressValue={adjustedProgressValue}
+                  tokenIcon={tokenIcon}
+                  setSelectedWorker={setSelectedWorker}
+                  whitelistedWorkers={whitelistedWorkers}
+                />
                 <JobChatEvents
                   users={users ?? {}}
                   selectedWorker={selectedWorker}
@@ -485,7 +258,7 @@ export default function JobPage() {
                     isUserCreatorWithSelectedWorkerOrTaken) &&
                   shouldShowPostMessageButton && (
                     <>
-                      <div className='row-span-1 flex flex-1 border border-gray-100'>
+                      <div className='row-span-1 md:block flex flex-1 border border-gray-100'>
                         <PostMessageButton
                           address={address}
                           recipient={selectedWorker as string}
@@ -499,19 +272,21 @@ export default function JobPage() {
               </div>
             )}
           </div>
-          <JobSidebar
-            job={job}
-            address={address as `0x${string}`}
-            events={eventMessages as JobEventWithDiffs[]}
-            addresses={addresses}
-            sessionKeys={sessionKeys}
-            users={users ?? {}}
-            jobMeceTag={jobMeceTag ?? ''}
-            timePassed={timePassed}
-            adjustedProgressValue={adjustedProgressValue}
-            whitelistedWorkers={whitelistedWorkers}
-            tokenIcon={tokenIcon}
-          />
+          <div className='hidden md:block'>
+            <JobSidebar
+              job={job}
+              address={address as `0x${string}`}
+              events={eventMessages as JobEventWithDiffs[]}
+              addresses={addresses}
+              sessionKeys={sessionKeys}
+              users={users ?? {}}
+              jobMeceTag={jobMeceTag ?? ''}
+              timePassed={timePassed}
+              adjustedProgressValue={adjustedProgressValue}
+              whitelistedWorkers={whitelistedWorkers}
+              tokenIcon={tokenIcon}
+            />
+          </div>
         </div>
       </div>
     </Layout>

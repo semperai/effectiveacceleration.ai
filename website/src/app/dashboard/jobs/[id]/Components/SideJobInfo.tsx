@@ -21,48 +21,25 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import JobChatsList from './JobChatsList';
 import { Job, JobEventWithDiffs, User } from '@effectiveacceleration/contracts';
 // import { JobSidebar } from '../page';
-import { tokenIcon } from '@/tokens';
-type NavigationItem = {
-  name: string;
-  href: string;
-  icon: JSX.Element;
-};
+import JobSidebar from './JobSidebar';
+import { JobSidebarProps } from './JobChat/OpenJobMobileMenu';
 
-type JobSidebarProps = {
-  job: any;
-  address: `0x${string}`;
-  events: any[];
-  addresses: string[];
-  sessionKeys: Record<string, string>;
-  users: Record<string, User>;
-  jobMeceTag: string;
-  timePassed: boolean;
-  adjustedProgressValue: number;
-  whitelistedWorkers: string[];
-  tokenIcon: (token: string) => string;
-  sidebarOpen?: boolean;
-  setSidebarOpen?: (value: boolean) => void;
-  setSelectedWorker: Dispatch<SetStateAction<string>>;
-  selectedWorker: string;
-  eventMessages: JobEventWithDiffs[];
-};
-
-const SideJobList: React.FC<JobSidebarProps> = ({
-  sidebarOpen,
-  setSidebarOpen,
-  users,
+const SideJobInfo = ({
   job,
   address,
-  setSelectedWorker,
-  events,
+  eventMessages,
   addresses,
   sessionKeys,
+  users,
   jobMeceTag,
   timePassed,
   adjustedProgressValue,
   whitelistedWorkers,
-  eventMessages,
-}) => {
+  tokenIcon,
+  setSidebarOpen,
+  setSelectedWorker,
+  sidebarOpen
+}: JobSidebarProps) => {
 
   useEffect(() => {
     if (!sidebarOpen) return;
@@ -159,8 +136,8 @@ const SideJobList: React.FC<JobSidebarProps> = ({
               </div>
             </Transition.Child>
 
-            <div className='flex grow flex-col gap-y-5 overflow-y-auto bg-white pb-4 dark:bg-black'>
-              {/* <JobSidebar 
+            <div className='flex grow flex-col gap-y-5 overflow-y-auto  bg-white pb-0 dark:bg-black'>
+              <JobSidebar 
                 job={job}
                 address={address as `0x${string}`}
                 events={eventMessages as JobEventWithDiffs[]}
@@ -172,7 +149,7 @@ const SideJobList: React.FC<JobSidebarProps> = ({
                 adjustedProgressValue={adjustedProgressValue}
                 whitelistedWorkers={whitelistedWorkers}
                 tokenIcon={tokenIcon}
-              /> */}
+              />
             </div>
           </Dialog.Panel>
         </Transition.Child>
@@ -183,4 +160,4 @@ const SideJobList: React.FC<JobSidebarProps> = ({
   );
 };
 
-export default SideJobList;
+export default SideJobInfo;

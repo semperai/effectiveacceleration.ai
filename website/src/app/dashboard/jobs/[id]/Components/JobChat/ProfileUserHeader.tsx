@@ -11,28 +11,7 @@ import Image from 'next/image';
 import SideJobList from '../SideJobList';
 import SideJobInfo from '../SideJobInfo';
 import InfoIcon from '@mui/icons-material/Info';
-
-
-type JobSidebarProps = {
-  job: any;
-  address: `0x${string}`;
-  events: any[];
-  addresses: string[];
-  sessionKeys: Record<string, string>;
-  users: Record<string, User>;
-  jobMeceTag: string;
-  timePassed: boolean;
-  adjustedProgressValue: number;
-  whitelistedWorkers: string[];
-  tokenIcon: (token: string) => string;
-  sidebarOpen?: boolean;
-  setSidebarOpen?: (value: boolean) => void;
-  setSelectedWorker: Dispatch<SetStateAction<string>>;
-  selectedWorker: string;
-  
-  eventMessages: JobEventWithDiffs[];
-};
-
+import { JobSidebarProps } from './OpenJobMobileMenu';
 
 const ProfileUserHeader: React.FC<JobSidebarProps> = ({
   selectedWorker,
@@ -114,16 +93,16 @@ const ProfileUserHeader: React.FC<JobSidebarProps> = ({
               address={address as `0x${string}`}
               job={job}
               setSelectedWorker={setSelectedWorker} 
+              eventMessages={eventMessages}
+              addresses={addresses}
+              sessionKeys={sessionKeys}
+              jobMeceTag={jobMeceTag ?? ''}
+              timePassed={timePassed}
+              adjustedProgressValue={adjustedProgressValue}
+              whitelistedWorkers={whitelistedWorkers}
+              tokenIcon={tokenIcon}
+              events={events}
               selectedWorker={selectedWorker}
-              eventMessages={eventMessages} 
-              events={ events} 
-              addresses={addresses} 
-              sessionKeys={sessionKeys} 
-              jobMeceTag={jobMeceTag ?? ''} 
-              timePassed={timePassed} 
-              adjustedProgressValue={adjustedProgressValue} 
-              whitelistedWorkers={whitelistedWorkers} 
-              tokenIcon={tokenIcon} 
             />
         </div>
 
