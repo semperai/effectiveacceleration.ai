@@ -30,31 +30,37 @@ const navigationItems: NavigationItem[] = [
     name: 'Post job',
     href: '/dashboard/post-job',
     icon: <PiPaperPlaneTilt className='text-2xl' />,
+    target: '_self',
   },
   {
     name: 'Open Jobs',
     href: '/dashboard/open-job-list',
     icon: <PiListHeart className='text-2xl' />,
+    target: '_self',
   },
   {
     name: 'Your Jobs',
     href: '/dashboard/owner-job-list',
     icon: <PiNetwork className='text-2xl' />,
+    target: '_self',
   },
   {
     name: 'Worker Jobs',
     href: '/dashboard/worker-job-list',
     icon: <PiBriefcase className='text-2xl' />,
+    target: '_self',
   },
   {
     name: 'Docs',
     href: 'https://docs.effectiveacceleration.ai',
     icon: <PiBooks className='text-2xl' />,
+    target: '_blank',
   },
   {
     name: 'Changelog',
     href: '/dashboard/changelog',
     icon: <PiMegaphoneSimple className='text-2xl' />,
+    target: '_self',
   },
 ];
 
@@ -80,6 +86,7 @@ const SharedMenu = () => {
                         ? 'overflow-hidden bg-gradient-to-r from-fuchsia-500/70 to-fuchsia-600/70 font-bold shadow-lg hover:from-fuchsia-500/80 hover:to-fuchsia-600/80'
                         : ''
                     )}
+                    target={item.target ? item.target : '_self'}
                   >
                     {item.icon}
                     {item.name}
