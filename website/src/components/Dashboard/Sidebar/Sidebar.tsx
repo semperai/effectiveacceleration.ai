@@ -23,6 +23,7 @@ type NavigationItem = {
   name: string;
   href: string;
   icon: JSX.Element;
+  target: string;
 };
 
 const navigationItems: NavigationItem[] = [
