@@ -50,12 +50,14 @@ const ProfileUserHeader: React.FC<JobSidebarProps> = ({
 }) => {
   const isWorker: boolean = address === selectedWorker;
   const isCreator: boolean = address === job.roles.creator;
+  const isArbitrator: boolean = address === job.roles.arbitrator;
+  const isGuest = !users[address];
   const [sideJobListOpen, setSideJobListOpen] = useState(false);
   const [sideJobInfoOpen, setSideJobInfoOpen] = useState(false);
 
-  return (
+  return (  
     <>
-      {isCreator && job.state === JobState.Open && !isWorker && !selectedWorker ? (
+      {(isCreator && job.state === JobState.Open && !isWorker && !selectedWorker) || isGuest || isArbitrator ? (
         <div className='block md:hidden'>
           <div className='min-h-[74px]'>
             <div className='min-h-[74px] items-center align-center justify-between border border-gray-100 p-4'>
@@ -63,7 +65,12 @@ const ProfileUserHeader: React.FC<JobSidebarProps> = ({
                 <div className='flex flex-row justify-between'>
                   <div className='flex self-center pr-4'>
                     <div className='self-center !text-md mr-1 block md:hidden'>
-                      <ArrowBackIosNewIcon onClick={() => setSideJobListOpen(prevState => !prevState)} className='self-center !text-md mr-1 block md:hidden'></ArrowBackIosNewIcon>
+                    {!isGuest && (
+                        <ArrowBackIosNewIcon 
+                          onClick={() => setSideJobListOpen(prevState => !prevState)} 
+                          className='self-center !text-md mr-1 block md:hidden'>
+                        </ArrowBackIosNewIcon>
+                      )}
                     </div>
                   </div>
                   <div className='self-center !text-md mr-1 block md:hidden'>
