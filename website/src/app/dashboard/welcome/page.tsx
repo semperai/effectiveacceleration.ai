@@ -35,14 +35,14 @@ const platformStats = {
   avgCompletionTime: '4.2 hrs',
 };
 
-const SecurityFeaturesPopover = (mainText: string, popoverText: string) => {
+const SecurityFeaturesPopover = ({mainText, popoverText}: {mainText: string, popoverText: string}) => {
   return (
       <Popover>
         <PopoverAnchor asChild>
           <div className='flex items-center gap-3 rounded-lg bg-white p-4'>
             <Shield className='h-6 w-6 text-blue-600' />
             <div className='font-medium'>
-              End-to-End Encryption
+              {mainText}
             </div>
             <div className="grow flex">
               <PopoverTrigger className="ml-auto align-middle">
@@ -51,8 +51,7 @@ const SecurityFeaturesPopover = (mainText: string, popoverText: string) => {
             </div>
             <PopoverContent side="top">
               <p>
-                All messages and sensitive data are encrypted using
-                industry-standard protocols
+                {popoverText}
               </p>
             </PopoverContent>
           </div>
