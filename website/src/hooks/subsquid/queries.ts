@@ -179,13 +179,10 @@ export const GET_JOB_SEARCH = ({
 
 export const GET_WORKER_APPLICATIONS = gql`
   query GetWorkerApplications($workerAddress: String!, $orderBy: [JobOrderByInput!]) {
-  jobs(orderBy: $orderBy, where: {OR: [
-    {roles: {worker_eq: $workerAddress}},
+  jobs(orderBy: $orderBy, where: {state_eq:0, AND: [
     {events_some: {OR:
       [
         {address__eq: $workerAddress},
-        {details:{recipientAddress_eq: $workerAddress}},
-        {details:{workerAddress_eq: $workerAddress}}
       ]
     }}
   ]}) {
