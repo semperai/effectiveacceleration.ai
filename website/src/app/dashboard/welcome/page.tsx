@@ -12,6 +12,7 @@ import {
   RefreshCw,
   Scale,
   Shield,
+  Info,
   Users,
   Vote,
 } from 'lucide-react';
@@ -22,13 +23,7 @@ import {
   CardDescription,
   CardContent,
 } from '@/components/Card';
-import { Button } from '@/components/Button';
-import {
-  TooltipProvider,
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from '@/components/Tooltip';
+import {Popover, PopoverTrigger, PopoverContent, PopoverAnchor} from '@/components/Popover';
 import welcomeHeader from '@/images/welcome-header.webp';
 import tokenLogo from '@/images/token-logo-box.png';
 
@@ -40,55 +35,40 @@ const platformStats = {
   avgCompletionTime: '4.2 hrs',
 };
 
+const SecurityFeaturesPopover = (mainText: string, popoverText: string) => {
+  return (
+      <Popover>
+        <PopoverAnchor asChild>
+          <div className='flex items-center gap-3 rounded-lg bg-white p-4'>
+            <Shield className='h-6 w-6 text-blue-600' />
+            <div className='font-medium'>
+              End-to-End Encryption
+            </div>
+            <div className="grow flex">
+              <PopoverTrigger className="ml-auto align-middle">
+                <Info className='h-5 w-5 text-gray-600'/>
+              </PopoverTrigger>
+            </div>
+            <PopoverContent side="top">
+              <p>
+                All messages and sensitive data are encrypted using
+                industry-standard protocols
+              </p>
+            </PopoverContent>
+          </div>
+        </PopoverAnchor>
+      </Popover>
+  );
+}
+
 const SecurityFeatures = () => {
   return (
     <div className='rounded-2xl bg-gray-50 p-8'>
       <h2 className='mb-6 text-2xl font-bold'>Enterprise-Grade Security</h2>
       <div className='grid gap-6 md:grid-cols-3'>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className='flex cursor-help items-center gap-3 rounded-lg bg-white p-4'>
-                <Shield className='h-6 w-6 text-blue-600' />
-                <div className='font-medium'>End-to-End Encryption</div>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>
-                All messages and sensitive data are encrypted using
-                industry-standard protocols
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className='flex cursor-help items-center gap-3 rounded-lg bg-white p-4'>
-                <Shield className='h-6 w-6 text-blue-600' />
-                <div className='font-medium'>Smart Contract Audited</div>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>All smart contracts are thoroughly audited by 0xguard</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className='flex cursor-help items-center gap-3 rounded-lg bg-white p-4'>
-                <Shield className='h-6 w-6 text-blue-600' />
-                <div className='font-medium'>Decentralized Storage</div>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>All data is stored on IPFS. EACC is unstoppable.</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <SecurityFeaturesPopover mainText="End-to-End Encryption" popoverText="All messages and sensitive data are encrypted using industry-standard protocols" />
+        <SecurityFeaturesPopover mainText="Smart Contract Audited" popoverText="All smart contracts are thoroughly audited by 0xguard" />
+        <SecurityFeaturesPopover mainText="Decentralized Storage" popoverText="All data is stored on IPFS. EACC is unstoppable." />
       </div>
     </div>
   );
