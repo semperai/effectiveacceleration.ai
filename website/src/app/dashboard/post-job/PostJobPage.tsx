@@ -111,7 +111,7 @@ const JobSummary = ({
       </div>
     </div>
   );
-  console.log(deadline, 'DEADLINE');
+
   return (
     <div className='mx-auto max-w-4xl'>
       <div className='mb-8'>
@@ -225,7 +225,7 @@ const PostJob = () => {
   const [paymentTokenError, setPaymentTokenError] = useState<string>('');
   const [arbitratorError, setArbitratorError] = useState<string>('');
   const [deadlineError, setDeadlineError] = useState<string>('');
-  const [continueButtonDisabled, setContinueButtonDisabled] = useState(false);
+  const [continueButtonDisabled, setContinueButtonDisabled] = useState(true);
   const jobTitleRef = useRef<HTMLDivElement>(null);
   const jobDescriptionRef = useRef<HTMLDivElement>(null);
   const jobCategoryRef = useRef<HTMLDivElement>(null);
@@ -307,13 +307,14 @@ const PostJob = () => {
 
     if (required === 'No') {
       setSelectedArbitratorAddress(zeroAddress);
+      setArbitratorError('');
       return;
     }
 
     // required is 'Yes'
     if (
-      !selectedArbitratorAddress ||
-      selectedArbitratorAddress === zeroAddress
+      required === 'Yes' &&
+      !selectedArbitratorAddress
     ) {
       setArbitratorError('Please select an arbitrator');
       return;
