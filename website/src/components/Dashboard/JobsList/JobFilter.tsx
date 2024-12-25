@@ -8,6 +8,8 @@ import { TokenSelector } from '@/components/TokenSelector';
 import { ComboBoxOption, Tag } from '@/service/FormsTypes';
 import { Token } from '@/tokens';
 import { shortenText, unitsDeliveryTime } from '@/utils/utils';
+import { Field, Label } from '@headlessui/react';
+import { Radio, RadioGroup } from '@/components/Radio';
 import { ChevronDown, ChevronUp, Filter, Search } from 'lucide-react';
 import React, { useState } from 'react';
 
@@ -31,7 +33,11 @@ type JobFilterProps = {
   arbitratorAddresses: string[];
   arbitratorNames: string[];
   arbitratorFees: (string | number)[];
+  multipleApplicants: boolean;
+  setMultipleApplicants: React.Dispatch<React.SetStateAction<boolean>>;
 };
+
+const noYes = ['No', 'Yes'];
 
 export const JobFilter = ({
   search,
@@ -51,6 +57,8 @@ export const JobFilter = ({
   arbitratorAddresses,
   arbitratorNames,
   arbitratorFees,
+  multipleApplicants,
+  setMultipleApplicants
 }: JobFilterProps) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -89,7 +97,32 @@ export const JobFilter = ({
           <div className='mt-4 space-y-6'>
             <div className=''>
               <h3 className='text-sm font-medium text-gray-700'>Tags</h3>
-              <TagsInput tags={tags} setTags={setTags} />
+              <div className='flex flex-row gap-4'>
+                <div className='w-1/2'>
+                  <TagsInput tags={tags} setTags={setTags} />
+                </div>
+                <div className='w-1/2 flex flex-row items-center justify-between'>
+                <h3 className='text-sm font-medium text-gray-700'>Multiple Applicants</h3>
+                  <RadioGroup
+                    className='!mt-0 flex'
+                    value={multipleApplicants ? 'Yes' : 'No'}
+                    onChange={(value) => setMultipleApplicants(value === 'Yes')}
+                    aria-label='Server size'
+                  >
+                    {noYes.map((option) => (
+                      <Field
+                        className='!mt-0 ml-5 flex items-center'
+                        key={option}
+                      >
+                        <Radio className='mr-2' color='default' value={option}>
+                          <span>{option}</span>
+                        </Radio>
+                        <Label>{option}</Label>
+                      </Field>
+                    ))}
+                  </RadioGroup>
+                </div>
+              </div>
             </div>
             {/* 
             <Separator /> */}

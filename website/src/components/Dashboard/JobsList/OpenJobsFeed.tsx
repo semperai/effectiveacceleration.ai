@@ -18,6 +18,9 @@ import NoJobsOpenImage from '@/images/noOpenJobs.svg';
 import useArbitrators from '@/hooks/subsquid/useArbitrators';
 import { zeroAddress } from 'viem';
 
+const noYes = [false, true];
+
+
 export const OpenJobsFeed = () => {
   const [search, setSearch] = useState<string>('');
   const [tags, setTags] = useState<Tag[]>([]);
@@ -36,6 +39,7 @@ export const OpenJobsFeed = () => {
     zeroAddress,
     ...(arbitrators?.map((worker) => worker.address_) ?? []),
   ];
+  const [multipleApplicants, setMultipleApplicants] = useState<boolean>(noYes[1]);
   const [selectedArbitratorAddress, setSelectedArbitratorAddress] =
     useState<string>();
   const arbitratorNames = [
@@ -57,6 +61,7 @@ export const OpenJobsFeed = () => {
       state: JobState.Open,
       ...(selectedToken && { token: selectedToken.id }),
       ...(selectedArbitratorAddress && { roles: { creator: '', arbitrator: selectedArbitratorAddress ?? '', worker: '' } }),
+      multipleApplicants: multipleApplicants,
     },
     orderBy: 'jobTimes_openedAt_DESC',
   });
@@ -81,6 +86,8 @@ export const OpenJobsFeed = () => {
         arbitratorAddresses={arbitratorAddresses}
         arbitratorNames={arbitratorNames}
         arbitratorFees={arbitratorFees}
+        multipleApplicants={multipleApplicants}
+        setMultipleApplicants={setMultipleApplicants}
       />
       {jobs ? (
         <>
