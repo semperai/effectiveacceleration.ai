@@ -34,6 +34,7 @@ export const OpenJobsFeed = () => {
     unitsDeliveryTime[2]
   );
   const [minTokens, setMinTokens] = useState<number | undefined>(undefined);
+  const [creatorAddress, setCreatorAddress] = useState<string | undefined>(undefined);
   const { data: arbitrators } = useArbitrators();
   const arbitratorAddresses = [
     zeroAddress,
@@ -60,12 +61,12 @@ export const OpenJobsFeed = () => {
       }),
       state: JobState.Open,
       ...(selectedToken && { token: selectedToken.id }),
-      ...(selectedArbitratorAddress && { roles: { creator: '', arbitrator: selectedArbitratorAddress ?? '', worker: '' } }),
+      ...((selectedArbitratorAddress || creatorAddress) && { roles: { creator: creatorAddress ?? '', arbitrator: selectedArbitratorAddress ?? '', worker: '' } }),
       multipleApplicants: multipleApplicants,
     },
     orderBy: 'jobTimes_openedAt_DESC',
   });
-  
+
   return (
     <div>
       <JobFilter
@@ -88,6 +89,8 @@ export const OpenJobsFeed = () => {
         arbitratorFees={arbitratorFees}
         multipleApplicants={multipleApplicants}
         setMultipleApplicants={setMultipleApplicants}
+        creatorAddress={creatorAddress}
+        setCreatorAddress={setCreatorAddress}
       />
       {jobs ? (
         <>

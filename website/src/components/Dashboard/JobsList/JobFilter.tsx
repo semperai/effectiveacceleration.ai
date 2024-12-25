@@ -35,6 +35,8 @@ type JobFilterProps = {
   arbitratorFees: (string | number)[];
   multipleApplicants: boolean;
   setMultipleApplicants: React.Dispatch<React.SetStateAction<boolean>>;
+  setCreatorAddress: React.Dispatch<React.SetStateAction<string | undefined>>;
+  creatorAddress: string | undefined;
 };
 
 const noYes = ['No', 'Yes'];
@@ -58,7 +60,9 @@ export const JobFilter = ({
   arbitratorNames,
   arbitratorFees,
   multipleApplicants,
-  setMultipleApplicants
+  setMultipleApplicants,
+  setCreatorAddress,
+  creatorAddress
 }: JobFilterProps) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -228,6 +232,14 @@ export const JobFilter = ({
                           )
                       )}
                     </Listbox>
+                  </div>
+                  <div className='flex-1'>
+                  <Input
+                    placeholder='Enter Creator Address'
+                    value={creatorAddress}
+                    onChange={(e) => setCreatorAddress(e.target.value)}
+                    className='w-full'
+                  />
                   </div>
                 </div>
             </div>
