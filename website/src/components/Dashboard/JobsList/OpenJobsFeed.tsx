@@ -51,7 +51,7 @@ export const OpenJobsFeed = () => {
     jobSearch: {
       ...(search && { title: search }),
       ...(tags.length > 0 && { tags: tags.map((tag) => tag.name) }),
-      ...(minDeadline !== undefined && {
+      ...(minDeadline !== undefined && !isNaN(minDeadline) && {
         maxTime: convertToSeconds(minDeadline, selectedUnitTime.name),
       }),
       state: JobState.Open,
