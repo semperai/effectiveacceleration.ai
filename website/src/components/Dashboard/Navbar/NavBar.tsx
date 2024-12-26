@@ -37,9 +37,9 @@ const Navbar = ({ setSidebarOpen, noSidebar }: NavbarProps) => {
           />
 
           {/* Main navbar content */}
-          <div className='flex flex-1 items-center justify-between gap-x-4 lg:gap-x-6'>
+          <div className='flex flex-1 items-center justify-end md:justify-between gap-x-4 lg:gap-x-6'>
             {/* Breadcrumbs */}
-            <div className='flex-1'>
+            <div className='flex-1 md:block hidden'>
               <BreadCrumbs
                 separator={
                   <MdOutlineArrowForwardIos className='h-4 w-4 text-gray-300 dark:text-gray-600' />
@@ -52,7 +52,7 @@ const Navbar = ({ setSidebarOpen, noSidebar }: NavbarProps) => {
             </div>
 
             {/* Right side actions */}
-            <div className='flex items-center gap-x-4'>
+            <div className='flex items-center gap-x-4 justify-end'>
               <NotificationsButton />
               <UserButton />
             </div>
