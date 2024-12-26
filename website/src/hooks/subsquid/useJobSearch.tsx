@@ -6,11 +6,13 @@ import { GET_JOB_SEARCH } from './queries';
 export default function useJobSearch({
   jobSearch,
   orderBy,
+  userAddress
 }: {
   jobSearch: Partial<Job>;
   orderBy: string;
+  userAddress?: string;
 }) {
-  const search = Object.entries(jobSearch)
+  const searchConditions = Object.entries(jobSearch)
     .map(([key, value]) => {
       console.log('key', key, 'value', value);
       if (typeof value === 'string') {
@@ -31,6 +33,22 @@ export default function useJobSearch({
     })
     .join(',\n');
 
+    const search = userAddress
+    ? `
+      OR: [
+        {
+          whitelistWorkers_eq: true,
+          allowedWorkers_containsAny: "${userAddress}",
+          ${searchConditions}
+        },
+        {
+          whitelistWorkers_eq: false,
+          ${searchConditions}
+        }
+      ]
+    `
+    : searchConditions;
+    
   const { data, ...rest } = useQuery(
     GET_JOB_SEARCH({
       search,
@@ -40,6 +58,8 @@ export default function useJobSearch({
       variables: {},
     }
   );
+
+  console.log(data, 'DATA');
 
   return useMemo(
     () => ({ data: data ? (data?.jobs as Job[]) : undefined, ...rest }),

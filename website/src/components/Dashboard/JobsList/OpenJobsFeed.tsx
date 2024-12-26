@@ -17,12 +17,13 @@ import { JobState } from '@effectiveacceleration/contracts';
 import NoJobsOpenImage from '@/images/noOpenJobs.svg';
 import useArbitrators from '@/hooks/subsquid/useArbitrators';
 import { zeroAddress } from 'viem';
+import { useAccount } from 'wagmi';
 
-const noYes = [false, true];
 
 
 export const OpenJobsFeed = () => {
   const [search, setSearch] = useState<string>('');
+  const { address } = useAccount();
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedToken, setSelectedToken] = useState<Token | undefined>(
     process.env.NODE_ENV === 'development'
@@ -40,7 +41,7 @@ export const OpenJobsFeed = () => {
     zeroAddress,
     ...(arbitrators?.map((worker) => worker.address_) ?? []),
   ];
-  const [multipleApplicants, setMultipleApplicants] = useState<boolean>(noYes[1]);
+  const [multipleApplicants, setMultipleApplicants] = useState<boolean>(true);
   const [selectedArbitratorAddress, setSelectedArbitratorAddress] =
     useState<string>();
   const arbitratorNames = [
@@ -65,6 +66,7 @@ export const OpenJobsFeed = () => {
       multipleApplicants: multipleApplicants,
     },
     orderBy: 'jobTimes_openedAt_DESC',
+    userAddress: address,
   });
 
   return (
