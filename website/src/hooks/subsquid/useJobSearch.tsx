@@ -15,9 +15,10 @@ export default function useJobSearch({
       console.log('key', key, 'value', value);
       if (typeof value === 'string') {
         return `${key}_containsInsensitive: "${value}"`;
-      }if (key === 'roles' && typeof value === 'object') {
+      } else if (key === 'roles' && typeof value === 'object') {
         const rolesConditions = Object.entries(value)
-          .map(([roleKey, roleValue]) => `${roleKey}_eq: "${roleValue}"`)
+          .filter(([roleKey, roleValue]) => roleValue !== '')
+          .map(([roleKey, roleValue]) => `${roleKey}_contains: "${roleValue}"`)
           .join(', ');
         return `${key}: { ${rolesConditions} }`;
       } else if (typeof value === 'bigint') {
