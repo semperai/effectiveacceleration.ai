@@ -36,7 +36,7 @@ const JobChatEvents: React.FC<ResultAcceptedProps> = ({
     <div className='row-span-4 max-h-customHeader overflow-y-auto border border-gray-100 bg-softBlue'>
       {selectedWorker && events.length > 0 ? (
         <>
-          <div className='flow-root w-full pl-5'>
+          <div className='flow-root w-full pl-5 mt-4 pr-5'>
             <ul role='list' className='-mb-8'>
               {events?.slice().map((event, index) => (
                 <li key={index}>
