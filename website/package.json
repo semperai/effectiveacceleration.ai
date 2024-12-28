@@ -10,6 +10,7 @@
     "lint": "next lint",
     "format": "prettier --check --ignore-path .gitignore .",
     "format:fix": "prettier --write --ignore-path .gitignore .",
+    "changelog": "git-cliff --workdir .. --config website/cliff.toml --output src/app/dashboard/changelog/changelog.mdx --unreleased",
     "todo": "grep -r TODO src"
   },
   "dependencies": {
@@ -67,6 +68,7 @@
     "eslint-config-next": "15.0.3",
     "eslint-config-prettier": "^9.1.0",
     "feed": "^4.2.2",
+    "git-cliff": "^2.7.0",
     "mdast-util-to-string": "^4.0.0",
     "mdx-annotations": "^0.1.4",
     "motion": "^11.11.17",
