@@ -23,7 +23,7 @@ const AssignWorker: React.FC<ResultAcceptedProps> = ({
   selectedWorker,
 }) => {
   return (
-    <div className='flex w-full flex-col content-center items-center justify-center py-16'>
+    <div className='flex w-full flex-col content-center items-center justify-center py-16 text-center'>
       <span className='mb-4 block font-semibold'>
         You will have a chance to review the job parameters before confirming{' '}
       </span>
