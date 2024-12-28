@@ -52,7 +52,7 @@ const ProfileUserHeader: React.FC<JobSidebarProps> = ({
                       <div className='self-center !text-md mr-1 block md:hidden'>
                         <ArrowBackIosNewIcon 
                           onClick={() => setSideJobListOpen(prevState => !prevState)} 
-                          className='self-center !text-md mr-1 block md:hidden'>
+                          className='self-center !text-md mr-1 block md:hidden text-lightPurple'>
                         </ArrowBackIosNewIcon>
                       </div>
                     )}
@@ -65,7 +65,7 @@ const ProfileUserHeader: React.FC<JobSidebarProps> = ({
                     </span>
                   </div>
                   <div className='self-center !text-md mr-1 block md:hidden'>
-                    <InfoIcon   onClick={() => setSideJobInfoOpen(prevState => !prevState)} className='self-center !text-md mr-1 block md:hidden'></InfoIcon>
+                    <InfoIcon onClick={() => setSideJobInfoOpen(prevState => !prevState)} className='self-center !text-md mr-1 block md:hidden text-lightPurple'></InfoIcon>
                   </div>
                 </div>
               </div>

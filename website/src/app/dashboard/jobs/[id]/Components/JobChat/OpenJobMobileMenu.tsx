@@ -60,7 +60,7 @@ const ProfileUserHeader: React.FC<JobSidebarProps> = ({
       {(isCreator && job.state === JobState.Open && !isWorker && !selectedWorker) || isGuest || isArbitrator ? (
         <div className='block md:hidden'>
           <div className='min-h-[74px]'>
-            <div className='min-h-[74px] items-center align-center justify-between border border-gray-100 p-4'>
+            <div className='min-h-[74px] items-center align-center justify-between border border-gray-100 p-4 content-center'>
               <div className='h-fit'>
                 <div className='flex flex-row justify-between'>
                   <div className='flex self-center pr-4'>
@@ -68,12 +68,12 @@ const ProfileUserHeader: React.FC<JobSidebarProps> = ({
                     {!isGuest && (
                         <ArrowBackIosNewIcon 
                           onClick={() => setSideJobListOpen(prevState => !prevState)} 
-                          className='self-center !text-md mr-1 block md:hidden'>
+                          className='self-center !text-md mr-1 block md:hidden text-lightPurple'>
                         </ArrowBackIosNewIcon>
                       )}
                     </div>
                   </div>
-                  <div className='self-center !text-md mr-1 block md:hidden'>
+                  <div className='self-center !text-md mr-1 block md:hidden text-lightPurple'>
                     <InfoIcon   onClick={() => setSideJobInfoOpen(prevState => !prevState)} className='self-center !text-md mr-1 block md:hidden'></InfoIcon>
                   </div>
                 </div>
