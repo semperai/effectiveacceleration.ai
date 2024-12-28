@@ -107,7 +107,7 @@ export function PostMessageButton({
     <>
       <div className='w-full'>
         <div className='flex items-center justify-center text-center'>
-          <div className='flex w-full flex-row gap-x-5 p-3'>
+          <div className='flex w-full flex-row gap-x-5 py-1 px-3'>
             <Textarea
               rows={1}
               value={message}
