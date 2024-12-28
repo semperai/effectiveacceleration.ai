@@ -64,7 +64,7 @@ const JobStatusWrapper: React.FC<JobStatusWrapperProps> = ({
     );
   }
 
-  if (job.state === JobState.Open && events.length > 0) {
+  if (job.state === JobState.Open) {
     return (
       <JobStatus
         text='Awaiting Job Acceptance'
