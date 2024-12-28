@@ -37,13 +37,13 @@ const JobChatsList = ({
           job?.roles.creator !== key ? (
             <li
               key={key}
-              className='flex cursor-pointer pr-2 flex-row rounded py-2 place-items-center hover:bg-slate-100'
+              className='flex cursor-pointer pr-2 flex-row rounded py-2 px-2 place-items-center hover:bg-slate-100'
               onClick={() => setSelectedWorker(key)}
             >
               <EventProfileImage user={value}></EventProfileImage>
-              <div className='items-left flex flex-[4] flex-col ml-2'>
-                <span>{value.name}</span>
-                <p className='... max-w-56 truncate text-sm text-darkBlueFont'>
+              <div className='items-left flex flex-[4] flex-col ml-2 max-w-[75%]'>
+                <span className='overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap'>{value.name}</span>
+                <p className='... max-w-56 truncate text-xs text-darkBlueFont overflow-hidden text-ellipsis whitespace-nowrap'>
                   {value.bio}
                 </p>
               </div>

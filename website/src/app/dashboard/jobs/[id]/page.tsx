@@ -258,7 +258,7 @@ export default function JobPage() {
                     isUserCreatorWithSelectedWorkerOrTaken) &&
                   shouldShowPostMessageButton && (
                     <>
-                      <div className='row-span-1 md:block flex flex-1 border border-gray-100'>
+                      <div className='row-span-1 md:block flex flex-1 content-center items-center border border-gray-100'>
                         <PostMessageButton
                           address={address}
                           recipient={selectedWorker as string}
