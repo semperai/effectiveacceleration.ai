@@ -9,7 +9,7 @@ import * as Sentry from '@sentry/nextjs';
 import { ZeroHash } from 'ethers';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { PiPaperPlaneRight } from 'react-icons/pi';
 import { Textarea } from '../Textarea';
 
@@ -51,6 +51,13 @@ export function PostMessageButton({
 
   const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
     useWriteContractWithNotifications();
+
+
+  useEffect(() => {
+      if (isConfirmed) {
+          setMessage('');
+      }
+  }, [isConfirmed]);
 
   async function handlePostMessage() {
     if (!user) {
