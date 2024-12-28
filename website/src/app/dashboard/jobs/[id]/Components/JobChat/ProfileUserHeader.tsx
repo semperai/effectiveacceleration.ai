@@ -12,6 +12,7 @@ import SideJobList from '../SideJobList';
 import SideJobInfo from '../SideJobInfo';
 import InfoIcon from '@mui/icons-material/Info';
 import { JobSidebarProps } from './OpenJobMobileMenu';
+import EventProfileImage from '@/components/Events/Components/EventProfileImage';
 
 const ProfileUserHeader: React.FC<JobSidebarProps> = ({
   selectedWorker,
@@ -33,7 +34,7 @@ const ProfileUserHeader: React.FC<JobSidebarProps> = ({
   const isCreator: boolean = address === job.roles.creator;
   const [sideJobListOpen, setSideJobListOpen] = useState(false);
   const [sideJobInfoOpen, setSideJobInfoOpen] = useState(false);
-
+  const userAccount = users[selectedWorker];
   return (
     <>
       {selectedWorker !== ' ' &&
@@ -55,19 +56,7 @@ const ProfileUserHeader: React.FC<JobSidebarProps> = ({
                         </ArrowBackIosNewIcon>
                       </div>
                     )}
-                    <Image
-                      className='max-h-10 max-w-10 rounded-lg'
-                      src={
-                        isWorker
-                          ? users[job.roles.creator]?.avatar ||
-                            '/profilePicture.webp'
-                          : users[selectedWorker]?.avatar ||
-                            '/profilePicture.webp'
-                      }
-                      height={100}
-                      width={100}
-                      alt={'Profile picture'}
-                    />
+                    <EventProfileImage user={userAccount}></EventProfileImage>
                     <span className='block font-extrabold self-center pl-4'>
                       {isWorker
                         ? users[job.roles.creator]?.name ||

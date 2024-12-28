@@ -1,3 +1,4 @@
+import EventProfileImage from '@/components/Events/Components/EventProfileImage';
 import { Job, User } from '@effectiveacceleration/contracts';
 import Image from 'next/image';
 import { Dispatch, SetStateAction } from 'react';
@@ -36,16 +37,10 @@ const JobChatsList = ({
           job?.roles.creator !== key ? (
             <li
               key={key}
-              className='flex cursor-pointer flex-row rounded py-2 hover:bg-slate-100'
+              className='flex cursor-pointer pr-2 flex-row rounded py-2 hover:bg-slate-100'
               onClick={() => setSelectedWorker(key)}
             >
-              <Image
-                className='mr-2 flex max-h-10 max-w-10 flex-1 items-center rounded-lg'
-                src={`${value.avatar ? value.avatar : '/profilePicture.webp'}`}
-                height={100}
-                width={100}
-                alt={'Profile picture'}
-              ></Image>
+              <EventProfileImage user={value}></EventProfileImage>
               <div className='items-left flex flex-[4] flex-col'>
                 <span>{value.name}</span>
                 <p className='... max-w-56 truncate text-sm text-darkBlueFont'>
