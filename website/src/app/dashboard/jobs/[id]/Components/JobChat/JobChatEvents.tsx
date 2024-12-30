@@ -1,12 +1,14 @@
 import Image from 'next/image';
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/Button';
 
 import { renderEvent } from '@/components/Events';
 import logoDark from '@/images/logo-light.png';
 import {
   Job,
+  JobEventType,
   JobEventWithDiffs,
+  JobState,
   User,
 } from '@effectiveacceleration/contracts/dist/src/interfaces';
 import JobChatStatus from './JobChatStatus';
@@ -29,11 +31,20 @@ const JobChatEvents: React.FC<ResultAcceptedProps> = ({
   address,
 }) => {
   const { data: user } = useUser(address!);
-  const numberOfWorkers = Object.keys(users).length - 1; // -1 to exclude the creator;
   const searchParams = useSearchParams();
   const highlightedEventId = searchParams.get('eventId');
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const [showNotification, setShowNotification] = useState(false);
+
+  useEffect(() => {
+    setShowNotification(true);
+    if (chatContainerRef.current && events[events.length - 1]?.address_ === user?.address_) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  },[events]);
+
   return (
-    <div className='row-span-4 max-h-customHeader overflow-y-auto px-4 border border-gray-100 bg-softBlue'>
+    <div ref={chatContainerRef} className='row-span-4 max-h-customHeader overflow-y-auto px-4 border border-gray-100 bg-softBlue relative'>
       {selectedWorker && events.length > 0 ? (
         <>
           <div className='flow-root w-full mt-4'>
