@@ -15,6 +15,7 @@ import JobChatStatus from './JobChatStatus';
 import useUser from '@/hooks/subsquid/useUser';
 import { useSearchParams } from 'next/navigation';
 import clsx from 'clsx';
+import { ChevronDown, Mail } from 'lucide-react';
 
 interface ResultAcceptedProps {
   job: Job;
@@ -35,11 +36,44 @@ const JobChatEvents: React.FC<ResultAcceptedProps> = ({
   const highlightedEventId = searchParams.get('eventId');
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [showNotification, setShowNotification] = useState(false);
+  const [newMessage, setNewMessage] = useState(false);
+  const lastEvent = events[events.length - 1];
+  const handleScroll = () => {
+    if (!chatContainerRef.current) return;
+    if (chatContainerRef.current) {
+      const isAtBottom = (chatContainerRef.current.scrollTop + 100 + chatContainerRef.current.clientHeight) >= chatContainerRef.current.scrollHeight;
+      if (isAtBottom) {
+        setNewMessage(false);
+        setShowNotification(false) 
+      } else {
+        setShowNotification(true)
+      }
+    }
+  };
+
+  const scrollToEnd = () => {
+    if (chatContainerRef.current && chatContainerRef.current.scrollHeight !== undefined) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }
 
   useEffect(() => {
-    setShowNotification(true);
-    if (chatContainerRef.current && events[events.length - 1]?.address_ === user?.address_) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    const chatContainer = chatContainerRef.current;
+    if (chatContainer) {
+      chatContainer.addEventListener('scroll', handleScroll);
+      return () => {
+        chatContainer.removeEventListener('scroll', handleScroll);
+      };
+    }
+    scrollToEnd();
+  }, []);
+
+  useEffect(() => {
+    if (chatContainerRef.current && lastEvent?.address_ === user?.address_) {
+      scrollToEnd();
+    }
+    if ((lastEvent?.type_ === JobEventType.OwnerMessage || lastEvent?.type_ === JobEventType.WorkerMessage) && lastEvent?.address_ !== user?.address_ && showNotification === true) {
+      setNewMessage(true);
     }
   },[events]);
 
@@ -117,6 +151,19 @@ const JobChatEvents: React.FC<ResultAcceptedProps> = ({
             </div>
           )}
         </div>
+      )}
+      {showNotification && (
+        <div className='absolute bottom-3 right-12'>
+          <div className="fixed py-[4px] max-h-[32px] px-[16px] hover:cursor-pointer bottom-20 rounded-full bg-gray-400 w-6 text-white place-items-center animate-[slideIn_0.5s_ease-out]">         
+            <ChevronDown size='2' onClick={() => scrollToEnd()} className='w-6 h-6 text-sm text-white' />
+            {newMessage && (
+            <div className="top-[-38px] p-0.5 rounded-full left-[-12px] bg-rose-600 relative">
+              <Mail className='w-4 h-4' />
+            </div>
+          )}
+          </div>
+        </div>
+        
       )}
     </div>
   );

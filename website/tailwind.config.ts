@@ -37,6 +37,15 @@ export default {
       maxHeight: {
         customHeader: 'calc(100vh - 64px)', // min height viewPort minus header height (64px)
       },
+      keyframes: {
+        slideIn: {
+          '0%': { transform: 'translateY(100%)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+      },
+      animation: {
+        slideIn: 'slideIn 0.5s ease-out',
+      },
     },
   },
   plugins: [require('@tailwindcss/forms')],
