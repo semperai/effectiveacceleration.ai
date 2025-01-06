@@ -272,5 +272,6 @@ export function useWriteContractWithNotifications() {
     isConfirming,
     isConfirmed,
     receipt,
+    loadingToastIdRef
   };
 }

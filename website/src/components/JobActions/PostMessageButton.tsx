@@ -12,6 +12,8 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { PiPaperPlaneRight } from 'react-icons/pi';
 import { Textarea } from '../Textarea';
+import { useWaitForTransactionReceipt } from 'wagmi';
+
 
 export type PostMessageButtonProps = {
   address: string | undefined;
@@ -49,15 +51,21 @@ export function PostMessageButton({
     }
   }, [toast]);
 
-  const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
+  const { writeContractWithNotifications, isConfirming, isConfirmed, error, hash, loadingToastIdRef: contractLoadingToastIdRef } =
     useWriteContractWithNotifications();
 
-
   useEffect(() => {
+      if (contractLoadingToastIdRef.current) {
+        setIsPostingMessage(true);
+      }
       if (isConfirmed) {
           setMessage('');
+          setIsPostingMessage(false);
       }
-  }, [isConfirmed]);
+      if (error) {
+        setIsPostingMessage(false);
+      }
+  }, [isConfirmed, contractLoadingToastIdRef.current]);
 
   async function handlePostMessage() {
     if (!user) {
@@ -74,6 +82,7 @@ export function PostMessageButton({
     if (message.length > 0) {
       dismissLoadingToast();
       loadingToastIdRef.current = showLoading('Publishing job message to IPFS...');
+      setIsPostingMessage(true);
       try {
         const { hash } = await publishToIpfs(message, sessionKey);
         contentHash = hash;
@@ -111,12 +120,13 @@ export function PostMessageButton({
             <Textarea
               rows={1}
               value={message}
+              disabled={isPostingMessage || isConfirming}
               onChange={(e) => setMessage(e.target.value)}
               placeholder='Type a new message'
               className='w-full !rounded'
             />
             <Button
-              disabled={isPostingMessage || isConfirming}
+              disabled={isPostingMessage || isConfirming || message.length === 0}
               onClick={handlePostMessage}
               color='lightBlue'
             >
