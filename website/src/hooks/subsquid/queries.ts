@@ -184,7 +184,8 @@ export const GET_WORKER_APPLICATIONS = gql`
       [
         {address__eq: $workerAddress},
       ]
-    }}
+    }},
+    {roles: {creator_not_eq: $workerAddress}}
   ]}) {
       ${JobFields}
     }
