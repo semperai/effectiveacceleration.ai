@@ -15,6 +15,10 @@ import { getAddress, ZeroAddress } from 'ethers';
 import useArbitratorPublicKeys from './useArbitratorPublicKeys';
 import useJobEvents from './useJobEvents';
 
+import { Mutex } from "async-mutex";
+
+const mutex = new Mutex();
+
 export default function useJobEventsWithDiffs(jobId: string) {
   const [jobEventsWithDiffs, setJobEventsWithDiffs] = useState<
     JobEventWithDiffs[]
@@ -97,6 +101,9 @@ export default function useJobEventsWithDiffs(jobId: string) {
       // when all public keys are fetched, we are ready to fetch encrypted contents from IPFS and decrypt them
       const sessionKeys_: Record<string, string> = {};
       const ownerAddress = jobEventsWithDiffs[0].job.roles.creator;
+
+      const release = await mutex.acquire();
+
       for (const workerAddress of addresses) {
         if (signer && Object.keys(publicKeys.data ?? {}).length) {
           const otherPubkey =
@@ -160,6 +167,8 @@ export default function useJobEventsWithDiffs(jobId: string) {
             await getSessionKey(signer as any, otherPubkey, jobId);
         }
       }
+
+      await release();
 
       const eventContents = await fetchEventContents(
         jobEventsWithDiffs,
