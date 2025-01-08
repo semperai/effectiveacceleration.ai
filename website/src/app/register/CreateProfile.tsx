@@ -186,7 +186,7 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
                 Add an avatar to stand out from the crowd
               </span>
               <UploadAvatar
-                avatar={formState.avatar}
+                avatar={formState?.avatar}
                 setAvatar={(value) =>
                   updateFormField('avatar', value as string)
                 }
