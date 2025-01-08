@@ -1,0 +1,174 @@
+# git-cliff ~ default configuration file
+# https://git-cliff.org/docs/configuration
+#
+# Lines starting with "#" are comments.
+# Configuration options are organized into tables and keys.
+# See documentation for more information on available options.
+
+[changelog]
+# template for the changelog header
+header = """
+export { Layout as default } from '@/components/Dashboard/Layout';
+
+---
+
+![dark mode](@/images/changelog-1.webp)
+
+## Effective Acceleration
+"""
+# template for the changelog body
+# https://keats.github.io/tera/docs/#introduction
+body = """
+{% if version %}\
+    ## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+{% else %}\
+    ## [unreleased]
+{% endif %}\
+{% for group, commits in commits | group_by(attribute="group") %}
+    ### {{ group | striptags | trim | upper_first }}
+    {% for commit in commits %}
+        - {% if commit.scope %}*({{ commit.scope }})* {% endif %}\
+            {% if commit.breaking %}[**breaking**] {% endif %}\
+            {{ commit.message | upper_first }}\
+    {% endfor %}
+{% endfor %}\n
+"""
+# template for the changelog footer
+footer = """
+## v0.1.0
+
+The alpha release of Effective Acceleration introduces significant protocol upgrades, featuring enhanced marketplace contracts with pause state enforcement and granular event tracking. Core improvements include a rebuilt job management system with comprehensive client-side validations, and deployment to Arbitrum as the primary network. The frontend has been streamlined through dependency cleanup and improved state handling, while the contract layer has undergone a security audit and now includes thorough documentation via solidity-docgen. Key technical enhancements focus on validation logic, async state management, and optimized contract interactions.
+
+### 🔒 Security & Contract Updates
+
+- Added security audit
+- Made Marketplace contract respect paused state with respective modifier
+- Added more events for changing contract properties
+- Made MarketplaceData contract respect paused state
+- Added address of user triggering refund event
+- Added basic contract documentation (solidity-docgen)
+- Updated deployments and contract configurations
+
+### 💼 Job Management Features
+
+- Added unfiltered open jobs list page
+- Improved job posting workflow:
+  - Added deadline error handling
+  - Configured post job to handle deadlines properly
+  - Improved amount validation for both balance and input
+  - Set delivery method defaults with dropdown
+  - Restricted payment amount to positive values
+- Enhanced job display:
+  - Show "Update Job" option only when open
+  - Show withdrawal collateral timing
+  - Improved token ID and USDT balance display
+
+### 👤 User Experience
+
+- Enhanced profile management:
+  - Redirect to home from register if already registered
+  - Updated create profile text about updating data later
+  - Added validations for user info updates
+- Improved wallet integration:
+  - Added wallet icon display
+  - Created nicer connect button
+  - Set Arbitrum as initial network
+- Added feedback button on bottom right
+- Improved mobile experience:
+  - Optimized for wide display on mobile
+  - Used flex-based tabs for mobile layout
+
+### 🎨 UI/UX Improvements
+
+- Enhanced navigation:
+  - Made navbar breadcrumbs smaller
+  - Added more items to sidebar
+  - Added documentation link in sidebar
+  - Removed create job from header
+- Improved form validation:
+  - Added scroll to elements on validation failure
+  - Show all validation errors on load
+  - Remove error from selected category on change
+- Added nicer contract loader
+- Improved table layouts and summary page spacing
+- Updated various text and wording
+
+### 🛠 Technical Updates
+
+- Configured local setup and scripts
+  - Added output to .local.json
+  - Added local config script
+- Updated development environment:
+  - Set Node.js version to LTS/Hydrogen
+  - Bumped Hardhat upgrades
+  - Added etherscan API key support
+- Optimized error handling:
+  - Fixed empty LocalStorage fallback
+  - Fixed price validation
+  - Improved balance data loading
+- Removed unnecessary components:
+  - Removed next-themes
+  - Removed dark mode preferences
+  - Removed MDX support
+  - Cleaned up Sentry configuration
+
+### 📚 Documentation
+
+- Updated README
+- Improved documentation writing
+- Updated links to Telegram
+- Added comprehensive contract documentation
+
+### 🐛 Bug Fixes
+
+- Fixed various UI/UX issues (#17, #18)
+- Fixed broken docs page
+- Fixed minimum input value string conversion
+- Added padding to prevent bug box button occlusion
+- Fixed crash issues
+- Resolved joblist display problems
+"""
+# remove the leading and trailing s
+trim = true
+# postprocessors
+postprocessors = [
+  # { pattern = '<REPO>', replace = "https://github.com/orhun/git-cliff" }, # replace repository URL
+]
+# render body even when there are no releases to process
+# render_always = true
+# output file path
+# output = "test.md"
+
+[git]
+# parse the commits based on https://www.conventionalcommits.org
+conventional_commits = true
+# filter out the commits that are not conventional
+filter_unconventional = false
+# process each line of a commit as an individual commit
+split_commits = false
+# regex for preprocessing the commit messages
+commit_preprocessors = [
+  # Replace issue numbers
+  #{ pattern = '\((\w+\s)?#([0-9]+)\)', replace = "([#${2}](<REPO>/issues/${2}))"},
+  # Check spelling of the commit with https://github.com/crate-ci/typos
+  # If the spelling is incorrect, it will be automatically fixed.
+  #{ pattern = '.*', replace_command = 'typos --write-changes -' },
+]
+# regex for parsing and grouping commits
+commit_parsers = [
+  { message = "^[mM]erge", skip = true },
+  { message = "security|contract", group = "🔒 Security & Contract Updates" },
+  { message = "job", group = "💼 Job Management Features" },
+  { message = "ux|ui|user experience|links|button|styling|logo", group = "🎨 UI & User Experience" },
+  { message = "script|.json|environment|version|error-handling|env", group = "🛠 Technical Updates" },
+  { message = "[dD]oc|documentation", group = "📚 Documentation" },
+  { message = "fix", group = "🐛 Bug Fixes" },
+  { message = "refactor|testing|readme|clean[up]|CHANGELOG", group = "⚙️ Miscellaneous Tasks" },
+  { message = ".*", group = "◀️ Other" },
+]
+# filter out the commits that are not matched by commit parsers
+filter_commits = false
+# sort the tags topologically
+topo_order = false
+# sort the commits inside sections by oldest/newest order
+sort_commits = "oldest"
