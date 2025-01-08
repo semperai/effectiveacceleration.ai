@@ -69,6 +69,5 @@ export const formatTokenNameAndAmount = (
 };
 
 export const tokenIcon = (tokenId: string) => {
-  console.log('tokenId',  tokensMap[tokenId]?.icon, tokenId);
   return tokensMap[tokenId]?.icon ?? '';
 };
