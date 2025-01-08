@@ -40,7 +40,7 @@ export const tokens: Token[] = [
     decimals: 18,
   },
   {
-    id: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+    id: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
     name: 'Wrapped Ether',
     symbol: 'WETH',
     icon: 'https://assets.coingecko.com/coins/images/279/standard/ethereum.png',
@@ -60,6 +60,7 @@ export const formatTokenNameAndAmount = (
   tokenId: string,
   amount: bigint | undefined
 ) => {
+  console.log
   const amountBigint =
     ((amount ?? 0n) * 10000n) /
     10n ** BigInt(tokensMap[tokenId]?.decimals ?? 0);
@@ -68,5 +69,6 @@ export const formatTokenNameAndAmount = (
 };
 
 export const tokenIcon = (tokenId: string) => {
+  console.log('tokenId',  tokensMap[tokenId]?.icon, tokenId);
   return tokensMap[tokenId]?.icon ?? '';
 };
