@@ -102,7 +102,6 @@ export function DeliverResultButton({
         color={'borderlessGray'}
         className={'w-full'}
       >
-        <CheckIcon className='-ml-0.5 mr-1.5 h-5 w-5' aria-hidden='true' />
         Deliver Result
       </Button>
 
