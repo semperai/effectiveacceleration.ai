@@ -65,7 +65,7 @@ export function PostMessageButton({
       if (error) {
         setIsPostingMessage(false);
       }
-  }, [isConfirmed, contractLoadingToastIdRef.current]);
+  }, [isConfirmed, contractLoadingToastIdRef.current, error]);
 
   async function handlePostMessage() {
     if (!user) {
