@@ -42,6 +42,8 @@ const JobButtonActions = ({
     address !== job.roles.arbitrator &&
     addresses.length &&
     !job.disputed &&
+    (job?.roles.creator === address ||
+    job?.roles.worker === address)
     Object.keys(sessionKeys).length > 0;
 
   const showReviewButton =
