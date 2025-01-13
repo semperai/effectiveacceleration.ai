@@ -1,5 +1,5 @@
 diff --git a/node_modules/@subsquid/openreader/lib/dialect/opencrud/where.js b/node_modules/@subsquid/openreader/lib/dialect/opencrud/where.js
-index 1326c13..483c9b2 100644
+index 1326c13..27307fa 100644
 --- a/node_modules/@subsquid/openreader/lib/dialect/opencrud/where.js
 +++ b/node_modules/@subsquid/openreader/lib/dialect/opencrud/where.js
 @@ -127,6 +127,6 @@ const WHERE_KEY_REGEX = (() => {
@@ -7,7 +7,7 @@ index 1326c13..483c9b2 100644
          "not_in",
      ];
 -    return new RegExp(`^([^_]*)_(${ops.join('|')})$`);
-+    return new RegExp(`^(.*)_(${ops.join('|')})$`);
++    return new RegExp(`^([^_]*_?)_(${ops.join('|')})$`);
  })();
  //# sourceMappingURL=where.js.map
 \ No newline at end of file

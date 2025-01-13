@@ -669,10 +669,11 @@ processor.run(db, async (ctx) => {
                   userCache[userId] ??
                   (await ctx.store.findOneByOrFail(User, { id: userId }))!;
 
-                user.averageRating =
+                user.averageRating = Math.floor(
                   (user.averageRating * user.numberOfReviews +
                     jobRated.rating * 10000) /
-                  (user.numberOfReviews + 1);
+                  (user.numberOfReviews + 1)
+                );
                 user.numberOfReviews++;
 
                 userCache[userId] = user;
