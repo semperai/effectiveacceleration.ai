@@ -82,7 +82,7 @@ export function DisputeButton({
       <Button
         disabled={isDisputing || isConfirming}
         onClick={() => openModal()}
-        color={'cancelBorder'}
+        color={'borderlessGrayCancel'}
         className={'w-full'}
       >
         Raise a Dispute
