@@ -98,7 +98,7 @@ const processor = new EvmBatchProcessor()
   // If it detects a blockchain fork, it will roll back any changes to the
   // database made due to orphaned blocks, then re-run the processing for the
   // main chain blocks.
-  .setFinalityConfirmation(0)
+  .setFinalityConfirmation(100)
   // .addXXX() methods request data items.
   // Other .addXXX() methods (.addTransaction(), .addTrace(), .addStateDiff()
   // on EVM) are similarly feature-rich.
