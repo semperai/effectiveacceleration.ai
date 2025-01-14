@@ -7,7 +7,8 @@ import {
   Log,
   TransactionReceipt,
 } from 'viem';
-import { useWaitForTransactionReceipt, useWriteContract } from 'wagmi';
+import { useWaitForTransactionReceipt, useWriteContract, useConfig } from 'wagmi';
+import { simulateContract, WriteContractErrorType } from "@wagmi/core";
 import * as Sentry from '@sentry/nextjs';
 
 import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
@@ -82,8 +83,10 @@ type WriteContractConfig = {
 };
 
 export function useWriteContractWithNotifications() {
+  const config = useConfig()
   const client = useApolloClient();
   const { showError, showSuccess, showLoading, toast } = useToast();
+  const [simulateError, setSimlateError] = useState<WriteContractErrorType | undefined>(undefined);
   const { data: hash, error, writeContract, isError } = useWriteContract();
   const onSuccessCallbackRef = useRef<
     ((receipt: TransactionReceipt, events: ParsedEvent[]) => void) | undefined
@@ -171,6 +174,18 @@ export function useWriteContractWithNotifications() {
       contractsRef.current = contracts;
 
       try {
+        try {
+          await simulateContract(config, {
+            abi,
+            address,
+            functionName,
+            args,
+          });
+        } catch (e: any) {
+          setSimlateError(e);
+          return
+        }
+
         await writeContract({
           abi,
           address,
@@ -183,7 +198,7 @@ export function useWriteContractWithNotifications() {
         showError(`An error occurred: ${e?.message}`);
       }
     },
-    [writeContract, showError, showLoading, toast, getRevertReason]
+    [writeContract, showError, showLoading, toast, getRevertReason, setSimlateError]
   );
 
   // Handle receipt
@@ -233,10 +248,10 @@ export function useWriteContractWithNotifications() {
 
   // Handle errors
   useEffect(() => {
-    if (error) {
+    if (error || simulateError) {
       dismissLoadingToast();
 
-      const { type, message } = getRevertReason(error.message);
+      const { type, message } = getRevertReason((error || simulateError)!.message);
 
       if (type === 'revert' && message) {
         showError(message);
@@ -248,7 +263,7 @@ export function useWriteContractWithNotifications() {
         showError(customErrorMessages?.default || 'An unknown error occurred');
       }
     }
-  }, [error]);
+  }, [error, simulateError]);
 
   // Handle error cleanup
   useEffect(() => {
