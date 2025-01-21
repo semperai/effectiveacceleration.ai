@@ -33,7 +33,7 @@ const JobChatStatus: React.FC<JobStatusProps> = ({
   const lastEventType = events[events.length - 1]?.type_;
   return (
     <>
-      {lastEventType === JobEventType.Completed && ( // If the job is completed
+      {lastEventType === JobEventType.Completed && (
         <ResultAccepted
           job={job}
           events={events}
