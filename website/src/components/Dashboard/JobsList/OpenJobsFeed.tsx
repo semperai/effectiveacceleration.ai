@@ -18,6 +18,7 @@ import NoJobsOpenImage from '@/images/noOpenJobs.svg';
 import useArbitrators from '@/hooks/subsquid/useArbitrators';
 import { zeroAddress } from 'viem';
 import { useAccount } from 'wagmi';
+import { Button } from '@/components/Button';
 
 
 
@@ -25,6 +26,7 @@ export const OpenJobsFeed = () => {
   const [search, setSearch] = useState<string>('');
   const { address } = useAccount();
   const [tags, setTags] = useState<Tag[]>([]);
+  const [limit, setLimit] = useState<number>();
   const [selectedToken, setSelectedToken] = useState<Token | undefined>(
     process.env.NODE_ENV === 'development'
       ? tokens.find((token) => token.symbol === 'FAKE')
@@ -67,6 +69,7 @@ export const OpenJobsFeed = () => {
     },
     orderBy: 'jobTimes_openedAt_DESC',
     userAddress: address,
+    limit,
   });
 
   return (
@@ -96,6 +99,7 @@ export const OpenJobsFeed = () => {
       />
       {jobs ? (
         <>
+        {/* <Button onClick={() => {setLimit(limit + 1)}}>Click Me</Button> */}
           <JobsList jobs={jobs} />
           {jobs.length === 0 && (
             <EmptyJobsList

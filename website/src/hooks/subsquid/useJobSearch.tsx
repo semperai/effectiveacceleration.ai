@@ -6,11 +6,13 @@ import { GET_JOB_SEARCH } from './queries';
 export default function useJobSearch({
   jobSearch,
   orderBy,
-  userAddress
+  userAddress,
+  limit
 }: {
   jobSearch: Partial<Job>;
   orderBy: string;
   userAddress?: string;
+  limit?: number;
 }) {
   const buildSearchConditions = (obj: any): string => {
     return Object.entries(obj)
@@ -51,6 +53,7 @@ export default function useJobSearch({
     GET_JOB_SEARCH({
       search,
       orderBy,
+      limit: limit ?? 10,
     }),
     {
       variables: {},

@@ -164,12 +164,14 @@ export const GET_CREATOR_CLOSED_JOBS = gql`
 export const GET_JOB_SEARCH = ({
   search,
   orderBy,
+  limit,
 }: {
   search: string;
   orderBy: string;
+  limit: number;
 }) => gql`
   query GetWorkerOpenJobSearch {
-    jobs(orderBy: ${orderBy}, where: {
+    jobs(limit: ${limit}, orderBy: ${orderBy}, where: {
       ${search}
     }) {
       ${JobFields}
