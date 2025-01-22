@@ -156,7 +156,7 @@ export const JobRow = ({ job }: { job: Job }) => {
             )}
           </div>
           <div className='flex items-center gap-1.5 rounded-full bg-gray-50 px-3 py-1.5'>
-            <span>ID: {job.id}</span>
+            <span>ID {job.id}</span>
           </div>
         </div>
       </div>
