@@ -39,10 +39,10 @@ export const WorkerDashboardTabs = () => {
             Applications {applicationsJobs?.length ? <span className={jobsCountClassNames}>{applicationsJobs.length}</span> : null}
           </TabsTrigger>
           <TabsTrigger value='Started Jobs'>
-            Started Jobs {completedJobs?.length ? <span className={jobsCountClassNames}>{completedJobs.length}</span> : null}
+            Started Jobs {takenJobs?.length ? <span className={jobsCountClassNames}>{takenJobs.length}</span> : null}
           </TabsTrigger>
           <TabsTrigger value='Completed Jobs'>
-            Completed Jobs {takenJobs?.length ? <span className={jobsCountClassNames}>{takenJobs.length}</span> : null}
+            Completed Jobs {completedJobs?.length ? <span className={jobsCountClassNames}>{completedJobs.length}</span> : null}
           </TabsTrigger>
         </TabsList>
         <TabsContent value='Applications'>
