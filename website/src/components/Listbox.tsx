@@ -150,7 +150,7 @@ export function ListboxOption<T>({
           <div
             className={clsx(
               // Basic layout
-              'group/option grid cursor-default grid-cols-[theme(spacing.5),1fr] items-baseline gap-x-2 rounded-lg py-2.5 pl-2 pr-3.5 sm:grid-cols-[theme(spacing.4),1fr] sm:py-1.5 sm:pl-1.5 sm:pr-3',
+              'group/option group grid cursor-default grid-cols-[theme(spacing.5),1fr] items-baseline gap-x-2 rounded-lg py-2.5 pl-2 pr-3.5 sm:grid-cols-[theme(spacing.4),1fr] sm:py-1.5 sm:pl-1.5 sm:pr-3',
               // Typography
               'text-base/6 text-zinc-950 sm:text-sm/6 dark:text-white forced-colors:text-[CanvasText]',
               // Focus
@@ -193,7 +193,7 @@ export function ListboxLabel({
       {...props}
       className={clsx(
         className,
-        'ml-2.5 truncate first:ml-0 sm:ml-2 sm:first:ml-0'
+        'ml-2.5 truncate first:ml-0 sm:ml-2 sm:first:ml-0 group-hover:text-white'
       )}
     />
   );
