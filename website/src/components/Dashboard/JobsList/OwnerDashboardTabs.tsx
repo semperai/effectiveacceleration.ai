@@ -26,23 +26,23 @@ export const OwnerDashboardTabs = () => {
   const { address } = useAccount();
   const { data: openJobs } = useCreatorOpenJobs(
     address!,
-    'jobTimes_openedAt_ASC'
+    'jobTimes_openedAt_DESC'
   );
   const { data: takenJobs } = useCreatorTakenJobsfrom(
     address!,
-    'jobTimes_openedAt_ASC'
+    'jobTimes_openedAt_DESC'
   );
   const { data: completedJobs } = useCreatorCompletedJobs(
     address!,
-    'jobTimes_openedAt_ASC'
+    'jobTimes_openedAt_DESC'
   );
   const { data: disputedJobs } = useCreatorDisputedJobs(
     address!,
-    'jobTimes_openedAt_ASC'
+    'jobTimes_openedAt_DESC'
   );
   const { data: closedJobs } = useCreatorClosedJobs(
     address!,
-    'jobTimes_openedAt_ASC'
+    'jobTimes_openedAt_DESC'
   );
 
   return (
