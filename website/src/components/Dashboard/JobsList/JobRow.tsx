@@ -124,35 +124,40 @@ export const JobRow = ({ job }: { job: Job }) => {
           </div>
         </div>
 
-        <div className='mt-4 flex flex-wrap gap-4 text-sm text-gray-600'>
-          <div className='flex items-center gap-1.5 rounded-full bg-gray-50 px-3 py-1.5'>
-            <Clock className='h-4 w-4 text-gray-500' />
-            <span>{formatTimeLeft(job.maxTime)} to complete</span>
+        <div className='mt-4 flex items-start justify-between gap-4 text-sm text-gray-600'>
+          <div className='flex'>
+            <div className='flex items-center gap-1.5 rounded-full bg-gray-50 px-3 py-1.5'>
+              <Clock className='h-4 w-4 text-gray-500' />
+              <span>{formatTimeLeft(job.maxTime)} to complete</span>
+            </div>
+
+            <div className='flex items-center gap-1.5 rounded-full bg-gray-50 px-3 py-1.5'>
+              {getDeliveryIcon(job.deliveryMethod)}
+              <span>Delivery via {job.deliveryMethod}</span>
+            </div>
+
+            {job.multipleApplicants ? (
+              <div className='flex items-center gap-1.5 rounded-full bg-gray-50 px-3 py-1.5'>
+                <Users className='h-4 w-4 text-gray-500' />
+                <span>Multiple applicants allowed</span>
+              </div>
+            ) : (
+              <div className='flex items-center gap-1.5 rounded-full bg-gray-50 px-3 py-1.5'>
+                <Check className='h-4 w-4 text-gray-500' />
+                <span>First applicant gets the job</span>
+              </div>
+            )}
+
+            {job.whitelistWorkers && (
+              <div className='flex items-center gap-1.5 rounded-full bg-gray-50 px-3 py-1.5'>
+                <Lock className='h-4 w-4 text-gray-500' />
+                <span>Whitelist only</span>
+              </div>
+            )}
           </div>
-
           <div className='flex items-center gap-1.5 rounded-full bg-gray-50 px-3 py-1.5'>
-            {getDeliveryIcon(job.deliveryMethod)}
-            <span>Delivery via {job.deliveryMethod}</span>
+            <span>ID: {job.id}</span>
           </div>
-
-          {job.multipleApplicants ? (
-            <div className='flex items-center gap-1.5 rounded-full bg-gray-50 px-3 py-1.5'>
-              <Users className='h-4 w-4 text-gray-500' />
-              <span>Multiple applicants allowed</span>
-            </div>
-          ) : (
-            <div className='flex items-center gap-1.5 rounded-full bg-gray-50 px-3 py-1.5'>
-              <Check className='h-4 w-4 text-gray-500' />
-              <span>First applicant gets the job</span>
-            </div>
-          )}
-
-          {job.whitelistWorkers && (
-            <div className='flex items-center gap-1.5 rounded-full bg-gray-50 px-3 py-1.5'>
-              <Lock className='h-4 w-4 text-gray-500' />
-              <span>Whitelist only</span>
-            </div>
-          )}
         </div>
       </div>
     </Link>
