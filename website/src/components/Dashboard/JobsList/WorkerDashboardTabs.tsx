@@ -14,6 +14,8 @@ import NoJobsOpenImage from '@/images/noOpenJobs.svg';
 import NoJobsProgressImage from '@/images/noWorkInProgress.svg';
 import NoJobsCompletedImage from '@/images/noCompletedJobs.svg';
 
+const jobsCountClassNames = 'ml-2 text-xs self-end rounded-full bg-gray-300 px-[6px] py-[1px] text-white opacity-90';
+
 export const WorkerDashboardTabs = () => {
   const { address } = useAccount();
   const { data: applicationsJobs } = useWorkerApplications(
@@ -33,9 +35,15 @@ export const WorkerDashboardTabs = () => {
     <div>
       <Tabs defaultValue='Applications'>
         <TabsList className='mb-4 flex h-auto flex-wrap items-center gap-6 md:mb-8 md:gap-4'>
-          <TabsTrigger value='Applications'>Applications</TabsTrigger>
-          <TabsTrigger value='Started Jobs'>Started Jobs</TabsTrigger>
-          <TabsTrigger value='Completed Jobs'>Completed Jobs</TabsTrigger>
+          <TabsTrigger value='Applications'>
+            Applications {applicationsJobs?.length ? <span className={jobsCountClassNames}>{applicationsJobs.length}</span> : null}
+          </TabsTrigger>
+          <TabsTrigger value='Started Jobs'>
+            Started Jobs {completedJobs?.length ? <span className={jobsCountClassNames}>{completedJobs.length}</span> : null}
+          </TabsTrigger>
+          <TabsTrigger value='Completed Jobs'>
+            Completed Jobs {takenJobs?.length ? <span className={jobsCountClassNames}>{takenJobs.length}</span> : null}
+          </TabsTrigger>
         </TabsList>
         <TabsContent value='Applications'>
           {!address ? (
