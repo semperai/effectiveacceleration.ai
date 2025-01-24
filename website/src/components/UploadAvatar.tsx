@@ -1,9 +1,12 @@
-import React, { useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { BsPersonPlus } from 'react-icons/bs';
 import { Field } from './Fieldset';
 import * as Sentry from '@sentry/nextjs';
+import { publishMediaToIpfs, safeGetMediaFromIpfs } from '@effectiveacceleration/contracts';
+import useFetchAvatar from '@/hooks/useFetchAvatar';
 
 const ipfsGatewayUrl = process.env.NEXT_PUBLIC_IPFS_GATEWAY_URL ?? '';
+const serviceSecret = process.env.NEXT_PUBLIC_IPFS_UPLOAD_SERVICE_SECRET;
 
 interface UploadAvatarProps {
   avatar: string | undefined;
@@ -17,29 +20,24 @@ const UploadAvatar = ({
   setAvatarFileUrl,
 }: UploadAvatarProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-
+  const [sessionKey, setSessionKey] = useState<string>();
+  const avatarUrl = useFetchAvatar(avatar, sessionKey);
+  console.log(avatarUrl, 'avatarUrl', avatar, 'avatar');
   const uploadToIPFS = async (file: File): Promise<void> => {
     try {
       const formData = new FormData();
       formData.append('file', file);
-
-      // TODO this should be controlled by environment not posting to localhost first
-      const response = await fetch('http://localhost:5001/api/v0/add', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to upload file to IPFS');
-      }
-
-      const data = await response.json();
-      const url = `${ipfsGatewayUrl}/ipfs/${data.Hash}`;
-      setAvatarFileUrl(url);
+      const dataFile = await file.arrayBuffer();
+      const mimeType = file.type;
+      const { cid } = await publishMediaToIpfs(
+        mimeType,
+        new Uint8Array(dataFile),
+        sessionKey
+      );
+      setAvatarFileUrl(cid);
     } catch (error) {
       Sentry.captureException(error);
       console.error('Error uploading file to IPFS:', error);
-      // TODO show toast here
     }
   };
 
@@ -57,10 +55,10 @@ const UploadAvatar = ({
         setAvatar(reader.result as string);
       };
       reader.readAsDataURL(file);
-
       uploadToIPFS(file);
     }
   };
+
   return (
     <Field>
       <input
@@ -77,7 +75,7 @@ const UploadAvatar = ({
       >
         {avatar ? (
           <img
-            src={avatar}
+            src={avatar.length > 100 ? avatar : avatarUrl}
             alt='Avatar'
             className='h-full w-full rounded-full object-cover'
           />

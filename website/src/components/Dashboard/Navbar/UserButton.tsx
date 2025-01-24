@@ -105,6 +105,10 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
     setFee(arbitrator?.fee ?? 0);
   }, [user, arbitrator]);
 
+  useEffect(() => {
+    setButtonDisabled(false);
+  }, [isConfirmed]);
+
   async function updateButtonClick() {
     setButtonDisabled(true);
 
