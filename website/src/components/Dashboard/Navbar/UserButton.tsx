@@ -19,6 +19,7 @@ import UploadAvatar from '@/components/UploadAvatar';
 import { useConfig } from '@/hooks/useConfig';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import * as Sentry from '@sentry/nextjs';
+import useFetchAvatar from '@/hooks/useFetchAvatar';
 
 interface NavButtonProps {
   name: string | undefined;
@@ -28,6 +29,8 @@ interface NavButtonProps {
 
 const NavButton = ({ name, avatar, openModal }: NavButtonProps) => {
   const [isImgValid, setIsImgValid] = useState<boolean>(false);
+  const [sessionKey, setSessionKey] = useState<string>();
+  const avatarUrl = useFetchAvatar(avatar, sessionKey);
 
   useEffect(() => {
     if (avatar) {
@@ -50,7 +53,7 @@ const NavButton = ({ name, avatar, openModal }: NavButtonProps) => {
       {avatar === '' ||
       avatar === undefined ||
       avatar === null ||
-      !isImgValid ? (
+      !avatarUrl ? (
         <PiUser
           className='h-5 w-5 flex-shrink-0 text-gray-600'
           aria-hidden='true'
@@ -60,7 +63,7 @@ const NavButton = ({ name, avatar, openModal }: NavButtonProps) => {
           className='h-full w-full rounded-full object-cover'
           width={64}
           height={64}
-          src={avatar as string | StaticImport}
+          src={avatarUrl as string | StaticImport}
           alt={'Profile picture'}
         />
       )}
