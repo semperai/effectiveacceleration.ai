@@ -53,7 +53,7 @@ export default function useJobSearch({
     GET_JOB_SEARCH({
       search,
       orderBy,
-      limit: limit ?? 10,
+      limit: limit ?? 100,
     }),
     {
       variables: {},

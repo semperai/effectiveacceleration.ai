@@ -69,7 +69,7 @@ export const OpenJobsFeed = () => {
     },
     orderBy: 'jobTimes_openedAt_DESC',
     userAddress: address,
-    limit,
+    limit: 100,
   });
 
   return (
