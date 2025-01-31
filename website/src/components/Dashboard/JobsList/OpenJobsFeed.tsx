@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { JobsList } from './JobsList';
 import { EmptyJobsList } from './EmptyJobsList';
 import { JobsListSkeleton } from './JobsListSkeleton';
@@ -26,7 +26,7 @@ export const OpenJobsFeed = () => {
   const [search, setSearch] = useState<string>('');
   const { address } = useAccount();
   const [tags, setTags] = useState<Tag[]>([]);
-  const [limit, setLimit] = useState<number>();
+  const [limit, setLimit] = useState<number>(2);
   const [selectedToken, setSelectedToken] = useState<Token | undefined>(
     process.env.NODE_ENV === 'development'
       ? tokens.find((token) => token.symbol === 'FAKE')
@@ -69,8 +69,35 @@ export const OpenJobsFeed = () => {
     },
     orderBy: 'jobTimes_openedAt_DESC',
     userAddress: address,
-    limit: 100,
+    limit: limit,
   });
+
+  const observer = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  
+  const loadMoreJobs = useCallback(() => {
+    console.log('loadMoreJobs');
+    setLimit((prevLimit) => prevLimit + 10); // Increase the limit to load more jobs
+  }, []);
+
+  useEffect(() => {
+    console.log('useEffect');
+    if (observer.current) observer.current.disconnect();
+
+    observer.current = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        loadMoreJobs();
+      }
+    });
+
+    if (loadMoreRef.current) {
+      observer.current.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (observer.current) observer.current.disconnect();
+    };
+  }, [loadMoreJobs]);
 
   return (
     <div>
@@ -107,6 +134,7 @@ export const OpenJobsFeed = () => {
               text='No open jobs (try loosening filter)'
             />
           )}
+          <div className='h-1 w-1' ref={loadMoreRef} />
         </>
       ) : (
         <JobsListSkeleton />

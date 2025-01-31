@@ -165,13 +165,15 @@ export const GET_JOB_SEARCH = ({
   search,
   orderBy,
   limit,
+  offset,
 }: {
   search: string;
   orderBy: string;
   limit: number;
+  offset: number;
 }) => gql`
   query GetWorkerOpenJobSearch {
-    jobs(limit: ${limit}, orderBy: ${orderBy}, where: {
+    jobs(limit: ${limit}, offset: ${offset}, orderBy: ${orderBy}, where: {
       ${search}
     }) {
       ${JobFields}

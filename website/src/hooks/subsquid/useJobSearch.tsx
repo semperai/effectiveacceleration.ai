@@ -7,12 +7,14 @@ export default function useJobSearch({
   jobSearch,
   orderBy,
   userAddress,
-  limit
+  limit,
+  offset,
 }: {
   jobSearch: Partial<Job>;
   orderBy: string;
   userAddress?: string;
   limit?: number;
+  offset?: number;
 }) {
   const buildSearchConditions = (obj: any): string => {
     return Object.entries(obj)
@@ -54,6 +56,7 @@ export default function useJobSearch({
       search,
       orderBy,
       limit: limit ?? 100,
+      offset: offset ?? 0,
     }),
     {
       variables: {},
