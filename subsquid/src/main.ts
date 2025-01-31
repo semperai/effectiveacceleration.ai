@@ -927,7 +927,7 @@ const handleNotification = async (address: string, event: JobEvent, ctx: DataHan
     for (const i of [...Array(tries).keys()].slice(1)) {
       try {
         await webPush.sendNotification(subscription, payload, options);
-        console.log(`Push notification sent for address: ${address}, job: ${event.jobId}, event: ${event.id}`);
+        console.log(`Push notification sent for address: ${address}, job: ${event.jobId}, event: ${event.id}, subscriptionId: ${subscription.id}`);
         break;
       } catch (e: any) {
         // trhottle the retries
@@ -938,12 +938,12 @@ const handleNotification = async (address: string, event: JobEvent, ctx: DataHan
         // invalid/expired subscription
         if ([404, 102, 410, 103, 105, 106].includes(e.statusCode)) {
           await ctx.store.remove(subscription);
-          console.log(`Removing subscription due to error: ${e.message}: ${e.statusCode}`);
+          console.log(`Removing subscription due to error: ${e.message}: ${e.statusCode}, subscriptionId: ${subscription.id}`);
           break;
         }
 
         if (i === tries) {
-          console.log(`Failed to send push notification for address: ${address}, job: ${event.jobId}, event: ${event.id}. Error: ${e.message}: ${e.statusCode}`);
+          console.log(`Failed to send push notification for address: ${address}, job: ${event.jobId}, event: ${event.id}. Error: ${e.message}: ${e.statusCode}. subscriptionId: ${subscription.id}`);
         }
       }
     }
