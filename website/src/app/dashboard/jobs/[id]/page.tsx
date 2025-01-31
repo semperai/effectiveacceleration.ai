@@ -43,6 +43,7 @@ import ProfileUserHeader from './Components/JobChat/ProfileUserHeader';
 import JobChatsList from './Components/JobChatsList';
 import JobSidebar from './Components/JobSidebar';
 import OpenJobMobileMenu from './Components/JobChat/OpenJobMobileMenu';
+import { useSwResetMessage } from '@/hooks/useSwResetMessage';
 
 const JobPostSkeleton = () => {
   return (
@@ -98,6 +99,7 @@ export default function JobPage() {
   const workerJobCache = `${address}${LOCAL_JOBS_WORKER_CACHE}`;
   const ownerJobCache = `${address}${LOCAL_JOBS_OWNER_CACHE}`;
   const prevJobRef = useRef<Job | undefined>(undefined);
+  useSwResetMessage(jobId);
 
   // Calculate the time passed since the job was closed
   const timestamp = events
