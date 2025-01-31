@@ -27,6 +27,8 @@ const serwist = new Serwist({
   disableDevLogs: true,
 });
 
+const broadcastChannel = new BroadcastChannel('sw-messages');
+
 type BroadcastMessage = { text: string; href?: string };
 type JobEventMessage = Omit<JobEvent, 'data_' | 'details'>;
 
@@ -55,6 +57,8 @@ self.addEventListener('push', function (event) {
 
     data = jobEvent;
   }
+
+  broadcastChannel.postMessage({ body, data });
 
   // Keep the service worker alive until the notification is created.
   event.waitUntil(
