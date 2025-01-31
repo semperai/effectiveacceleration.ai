@@ -28,13 +28,16 @@ const ProfileUserHeader: React.FC<JobSidebarProps> = ({
   timePassed,
   adjustedProgressValue,
   whitelistedWorkers,
-  tokenIcon
+  tokenIcon,
+  user
 }) => {
   const isWorker: boolean = address === selectedWorker;
   const isCreator: boolean = address === job.roles.creator;
   const [sideJobListOpen, setSideJobListOpen] = useState(false);
   const [sideJobInfoOpen, setSideJobInfoOpen] = useState(false);
   const userAccount = users[selectedWorker];
+  const isApplicantUser = user?.address_ === users[selectedWorker]?.address_;
+  console.log(userAccount, 'userAccount')
   return (
     <>
       {selectedWorker !== ' ' &&
@@ -56,7 +59,7 @@ const ProfileUserHeader: React.FC<JobSidebarProps> = ({
                         </ArrowBackIosNewIcon>
                       </div>
                     )}
-                    <EventProfileImage user={userAccount}></EventProfileImage>
+                    <EventProfileImage user={isApplicantUser ? users[job.roles.creator] :  userAccount}></EventProfileImage>
                     <span className='block font-extrabold self-center pl-4'>
                       {isWorker
                         ? users[job.roles.creator]?.name ||

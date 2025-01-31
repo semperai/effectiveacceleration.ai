@@ -228,6 +228,7 @@ export default function JobPage() {
                   tokenIcon={tokenIcon}
                   setSelectedWorker={setSelectedWorker}
                   whitelistedWorkers={whitelistedWorkers}
+                  user={user}
                 />
                 <OpenJobMobileMenu
                   users={users ?? {}}

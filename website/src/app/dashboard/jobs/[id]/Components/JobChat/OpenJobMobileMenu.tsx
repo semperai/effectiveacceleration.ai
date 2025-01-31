@@ -30,6 +30,7 @@ export type JobSidebarProps = {
   setSelectedWorker: Dispatch<SetStateAction<string>>;
   selectedWorker: string;
   eventMessages: JobEventWithDiffs[];
+  user?: User;
 };
 
 const ProfileUserHeader: React.FC<JobSidebarProps> = ({
