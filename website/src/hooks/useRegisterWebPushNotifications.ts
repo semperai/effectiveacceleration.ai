@@ -34,7 +34,7 @@ export const subscribeToWebPushNotifications = async (
     subscription = null;
   }
 
-  console.log('Registering for web push notifications');
+  console.log('Registering for web push notifications', address ? address : '');
   let applicationServerKey;
   try {
     // Get the server's public key

@@ -896,9 +896,8 @@ const handleNotification = async (address: string, event: JobEvent, ctx: DataHan
     timestamp: event.timestamp_,
   }));
 
-  // send a push notification
-  if (!ctx.isHead) {
-    // do not send push notifications while (re)-syncing
+  if (event.timestamp_ < Date.now() / 1000 - 5 * 60) {
+    // do not send historical push notifications while (re)-syncing or those older than 5 minutes
     return;
   }
 
@@ -907,6 +906,7 @@ const handleNotification = async (address: string, event: JobEvent, ctx: DataHan
     return;
   }
 
+  // send a push notification
   const subscriptions = await ctx.store.findBy(PushSubscription, { address });
   await Promise.all(subscriptions.map(async (subscription) => {
     // strip raw and decoded data not to exceed the payload max size of 4028 bytes
@@ -938,12 +938,12 @@ const handleNotification = async (address: string, event: JobEvent, ctx: DataHan
         // invalid/expired subscription
         if ([404, 102, 410, 103, 105, 106].includes(e.statusCode)) {
           await ctx.store.remove(subscription);
-          console.error(`Removing subscription due to error: ${e.message}: ${e.statusCode}`);
+          console.log(`Removing subscription due to error: ${e.message}: ${e.statusCode}`);
           break;
         }
 
         if (i === tries) {
-          console.error(`Failed to send push notification for address: ${address}, job: ${event.jobId}, event: ${event.id}. Error: ${e.message}: ${e.statusCode}`);
+          console.log(`Failed to send push notification for address: ${address}, job: ${event.jobId}, event: ${event.id}. Error: ${e.message}: ${e.statusCode}`);
         }
       }
     }

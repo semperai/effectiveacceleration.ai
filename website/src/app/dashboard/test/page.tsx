@@ -23,6 +23,7 @@ import {
   subscribeToWebPushNotifications,
   unsubscribeFromWebPushNotifications,
 } from '@/hooks/useRegisterWebPushNotifications';
+import { useSwResetMessage } from '@/hooks/useSwResetMessage';
 
 export interface IArbitrumToken {
   logoURI?: string;
@@ -49,10 +50,11 @@ const Test = () => {
   const [tokenSelectionDialogOpen, setTokenSelectionDialogOpen] =
     useState(false);
   const [selectableTokens, setSelectableTokens] = useState<any>();
-  const { data: jobEvents } = useJobEventsWithDiffs('1');
+  const { data: jobEvents } = useJobEventsWithDiffs('21');
   const [subscribeAddress, setSubscribeAddress] = useState<string>(
     '0x66c402694eEe2235E892B950c9b330e5603FEbe1'
   );
+  useSwResetMessage("21");
 
   const publish = useCallback(
     async (file: File) => {
