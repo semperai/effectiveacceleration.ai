@@ -62,7 +62,7 @@ export const JobFilter = ({
   multipleApplicants,
   setMultipleApplicants,
   setCreatorAddress,
-  creatorAddress
+  creatorAddress,
 }: JobFilterProps) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -100,150 +100,161 @@ export const JobFilter = ({
         {showAdvanced && (
           <div className='mt-4 space-y-6'>
             <div className=''>
-              <h3 className='text-sm font-medium text-gray-700'>Tags</h3>
-              <div className='flex flex-row gap-4'>
-                <div className='w-1/2'>
-                  <TagsInput tags={tags} setTags={setTags} />
-                </div>
-                <div className='w-1/2 flex flex-row items-center justify-between'>
-                <h3 className='text-sm font-medium text-gray-700'>Multiple Applicants</h3>
-                  <RadioGroup
-                    className='!mt-0 flex'
-                    value={multipleApplicants ? 'Yes' : 'No'}
-                    onChange={(value) => setMultipleApplicants(value === 'Yes')}
-                    aria-label='Server size'
-                  >
-                    {noYes.map((option) => (
-                      <Field
-                        className='!mt-0 ml-5 flex items-center'
-                        key={option}
-                      >
-                        <Radio className='mr-2' color='default' value={option}>
-                          <span>{option}</span>
-                        </Radio>
-                        <Label>{option}</Label>
-                      </Field>
-                    ))}
-                  </RadioGroup>
-                </div>
-              </div>
-            </div>
-            {/* 
-            <Separator /> */}
-
-            {/* Token Settings Section */}
-            <div className=''>
-              <h3 className='text-sm font-medium text-gray-700'>
-                Token Settings
-              </h3>
-              <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
-                <div className='flex-1'>
-                  <TokenSelector
-                    selectedToken={selectedToken}
-                    onClick={setSelectedToken}
-                  />
-                </div>
-                <div className='w-full sm:w-40'>
-                  <Input
-                    type='number'
-                    value={minTokens}
-                    onChange={(e) => setMinTokens(Number(e.target.value))}
-                    placeholder='Min. tokens'
-                    className='w-full'
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* <Separator /> */}
-
-            {/* Delivery Time Section */}
-            <div className=''>
-              <h3 className='text-sm font-medium text-gray-700'>
-                Delivery Time
-              </h3>
-              <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
-                <div className='flex-1'>
-                  <Input
-                    type='number'
-                    placeholder={`Minimum delivery time in ${selectedUnitTime.name}`}
-                    value={minDeadline}
-                    min={1}
-                    step={1}
-                    onChange={(e) => {
-                      let deadline = Math.abs(parseInt(e.target.value));
-                      setMinDeadline(deadline);
-                    }}
-                    className='w-full'
-                  />
-                </div>
-                <div className='w-full sm:w-40'>
-                  <Listbox
-                    placeholder='Time Units'
-                    value={selectedUnitTime}
-                    onChange={setSelectedUnitTime}
-                    className='w-full'
-                  >
-                    {unitsDeliveryTime.map(
-                      (timeUnit, index) =>
-                        index > 0 && (
-                          <ListboxOption key={index} value={timeUnit}>
-                            <ListboxLabel>{timeUnit.name}</ListboxLabel>
-                          </ListboxOption>
-                        )
-                    )}
-                  </Listbox>
-                </div>
-              </div>
-            </div>
-            <div>
-                <h3 className='mb-2 text-sm font-medium text-gray-700'>
-                  Search for Arbitrator
-                </h3>
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
-                  <div className='flex-1'>
-                    <Listbox
-                      placeholder='Select Arbitrator'
-                      value={selectedArbitratorAddress}
-                      onChange={(addr) => setSelectedArbitratorAddress(addr)}
-                    >
-                      {arbitratorAddresses.map(
-                        (arbitratorAddress, index) =>
-                          index > 0 && (
-                            <ListboxOption
-                              key={index}
-                              value={arbitratorAddress}
+              <div className='flex gap-x-16'>
+                <div className='flex flex-col w-1/2 gap-y-3'>
+                    <div className='w-full'>
+                      <h3 className='text-sm font-medium text-gray-700'>
+                        Tags
+                      </h3>
+                      <TagsInput tags={tags} setTags={setTags} />
+                    </div>
+                    <div className='flex w-full flex-row items-center justify-between'>
+                        <h3 className='text-sm font-medium text-gray-700'>
+                          Multiple Applicants
+                        </h3>
+                        <RadioGroup
+                          className='!mt-0 flex'
+                          value={multipleApplicants ? 'Yes' : 'No'}
+                          onChange={(value) =>
+                            setMultipleApplicants(value === 'Yes')
+                          }
+                          aria-label='Server size'
+                        >
+                          {noYes.map((option) => (
+                            <Field
+                              className='!mt-0 ml-5 flex items-center'
+                              key={option}
                             >
-                              <ListboxLabel>
-                                <span className=''>
-                                  {arbitratorNames[index]}
-                                </span>{' '}
-                                <span className='ml-4 text-sm text-gray-500'>
-                                  {shortenText({
-                                    text: arbitratorAddress,
-                                    maxLength: 11,
-                                  })}
-                                </span>{' '}
-                                <span className='bold ml-4'>
-                                  {+arbitratorFees[index] / 100}%
-                                </span>
-                              </ListboxLabel>
-                            </ListboxOption>
-                          )
-                      )}
-                    </Listbox>
-                  </div>
-                  <div className='flex-1'>
-                  <Input
-                    placeholder='Enter Creator Address'
-                    value={creatorAddress}
-                    onChange={(e) => setCreatorAddress(e.target.value)}
-                    className='w-full'
-                  />
-                  </div>
+                              <Radio
+                                className='mr-2'
+                                color='default'
+                                value={option}
+                              >
+                                <span>{option}</span>
+                              </Radio>
+                              <Label>{option}</Label>
+                            </Field>
+                          ))}
+                        </RadioGroup>
+                      </div>
+
                 </div>
+                <div className='flex flex-col w-1/2 gap-y-3'>
+                  {/* Token Settings Section */}
+                  <div className=''>
+                    <h3 className='text-sm font-medium text-gray-700'>
+                      Token Settings
+                    </h3>
+                    <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
+                      <div className='flex-1'>
+                        <TokenSelector
+                          selectedToken={selectedToken}
+                          onClick={setSelectedToken}
+                        />
+                      </div>
+                      <div className='w-full sm:w-40'>
+                        <Input
+                          type='number'
+                          value={minTokens}
+                          onChange={(e) => setMinTokens(Number(e.target.value))}
+                          placeholder='Min. tokens'
+                          className='w-full'
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Delivery Time Section */}
+                  <div className=''>
+                    <h3 className='text-sm font-medium text-gray-700'>
+                      Delivery Time
+                    </h3>
+                    <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
+                      <div className='flex-1'>
+                        <Input
+                          type='number'
+                          placeholder={`Minimum delivery time in ${selectedUnitTime.name}`}
+                          value={minDeadline}
+                          min={1}
+                          step={1}
+                          onChange={(e) => {
+                            let deadline = Math.abs(parseInt(e.target.value));
+                            setMinDeadline(deadline);
+                          }}
+                          className='w-full'
+                        />
+                      </div>
+                      <div className='w-full sm:w-40'>
+                        <Listbox
+                          placeholder='Time Units'
+                          value={selectedUnitTime}
+                          onChange={setSelectedUnitTime}
+                          className='w-full'
+                        >
+                          {unitsDeliveryTime.map(
+                            (timeUnit, index) =>
+                              index > 0 && (
+                                <ListboxOption key={index} value={timeUnit}>
+                                  <ListboxLabel>{timeUnit.name}</ListboxLabel>
+                                </ListboxOption>
+                              )
+                          )}
+                        </Listbox>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                      <h3 className='mb-2 text-sm font-medium text-gray-700'>
+                        Search for Arbitrator
+                      </h3>
+                      <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
+                        <div className='flex-1'>
+                          <Listbox
+                            placeholder='Select Arbitrator'
+                            value={selectedArbitratorAddress}
+                            onChange={(addr) =>
+                              setSelectedArbitratorAddress(addr)
+                            }
+                          >
+                            {arbitratorAddresses.map(
+                              (arbitratorAddress, index) =>
+                                index > 0 && (
+                                  <ListboxOption
+                                    key={index}
+                                    value={arbitratorAddress}
+                                  >
+                                    <ListboxLabel>
+                                      <span className=''>
+                                        {arbitratorNames[index]}
+                                      </span>{' '}
+                                      <span className='ml-4 text-sm text-gray-500'>
+                                        {shortenText({
+                                          text: arbitratorAddress,
+                                          maxLength: 11,
+                                        })}
+                                      </span>{' '}
+                                      <span className='bold ml-4'>
+                                        {+arbitratorFees[index] / 100}%
+                                      </span>
+                                    </ListboxLabel>
+                                  </ListboxOption>
+                                )
+                            )}
+                          </Listbox>
+                        </div>
+                        <div className='flex-1'>
+                          <Input
+                            placeholder='Enter Creator Address'
+                            value={creatorAddress}
+                            onChange={(e) => setCreatorAddress(e.target.value)}
+                            className='w-full'
+                          />
+                        </div>
+                      </div>
+                    </div>
+                </div>
+              </div>
             </div>
-            
           </div>
         )}
       </CardContent>

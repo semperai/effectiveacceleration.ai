@@ -37,7 +37,6 @@ const ProfileUserHeader: React.FC<JobSidebarProps> = ({
   const [sideJobInfoOpen, setSideJobInfoOpen] = useState(false);
   const userAccount = users[selectedWorker];
   const isApplicantUser = user?.address_ === users[selectedWorker]?.address_;
-  console.log(userAccount, 'userAccount')
   return (
     <>
       {selectedWorker !== ' ' &&
