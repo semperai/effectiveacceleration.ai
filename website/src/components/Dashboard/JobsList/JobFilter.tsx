@@ -101,45 +101,7 @@ export const JobFilter = ({
           <div className='mt-4 space-y-6'>
             <div className=''>
               <div className='flex gap-x-16'>
-                <div className='flex flex-col w-1/2 gap-y-3'>
-                    <div className='w-full'>
-                      <h3 className='text-sm font-medium text-gray-700'>
-                        Tags
-                      </h3>
-                      <TagsInput tags={tags} setTags={setTags} />
-                    </div>
-                    <div className='flex w-full flex-row items-center justify-between'>
-                        <h3 className='text-sm font-medium text-gray-700'>
-                          Multiple Applicants
-                        </h3>
-                        <RadioGroup
-                          className='!mt-0 flex'
-                          value={multipleApplicants ? 'Yes' : 'No'}
-                          onChange={(value) =>
-                            setMultipleApplicants(value === 'Yes')
-                          }
-                          aria-label='Server size'
-                        >
-                          {noYes.map((option) => (
-                            <Field
-                              className='!mt-0 ml-5 flex items-center'
-                              key={option}
-                            >
-                              <Radio
-                                className='mr-2'
-                                color='default'
-                                value={option}
-                              >
-                                <span>{option}</span>
-                              </Radio>
-                              <Label>{option}</Label>
-                            </Field>
-                          ))}
-                        </RadioGroup>
-                      </div>
-
-                </div>
-                <div className='flex flex-col w-1/2 gap-y-3'>
+                <div className='flex w-1/2 flex-col gap-y-3'>
                   {/* Token Settings Section */}
                   <div className=''>
                     <h3 className='text-sm font-medium text-gray-700'>
@@ -204,50 +166,85 @@ export const JobFilter = ({
                     </div>
                   </div>
                   <div>
-                      <h3 className='mb-2 text-sm font-medium text-gray-700'>
-                        Search for Arbitrator
-                      </h3>
-                      <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
-                        <div className='flex-1'>
-                          <Listbox
-                            placeholder='Select Arbitrator'
-                            value={selectedArbitratorAddress}
-                            onChange={(addr) =>
-                              setSelectedArbitratorAddress(addr)
-                            }
-                          >
-                            {arbitratorAddresses.map(
-                              (arbitratorAddress, index) =>
-                                index > 0 && (
-                                  <ListboxOption
-                                    key={index}
-                                    value={arbitratorAddress}
-                                  >
-                                    <ListboxLabel>
-                                        {arbitratorNames[index]}
-                                        &nbsp;
-                                        {shortenText({
-                                          text: arbitratorAddress,
-                                          maxLength: 11,
-                                        })}
-                                        &nbsp;
-                                        {+arbitratorFees[index] / 100}%
-                                    </ListboxLabel>
-                                  </ListboxOption>
-                                )
-                            )}
-                          </Listbox>
-                        </div>
-                        <div className='flex-1'>
-                          <Input
-                            placeholder='Enter Creator Address'
-                            value={creatorAddress}
-                            onChange={(e) => setCreatorAddress(e.target.value)}
-                            className='w-full'
-                          />
-                        </div>
+                    <h3 className='mb-2 text-sm font-medium text-gray-700'>
+                      Search for Arbitrator
+                    </h3>
+                    <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
+                      <div className='flex-1'>
+                        <Listbox
+                          placeholder='Select Arbitrator'
+                          value={selectedArbitratorAddress}
+                          onChange={(addr) =>
+                            setSelectedArbitratorAddress(addr)
+                          }
+                        >
+                          {arbitratorAddresses.map(
+                            (arbitratorAddress, index) =>
+                              index > 0 && (
+                                <ListboxOption
+                                  key={index}
+                                  value={arbitratorAddress}
+                                >
+                                  <ListboxLabel>
+                                    {arbitratorNames[index]}
+                                    &nbsp;
+                                    {shortenText({
+                                      text: arbitratorAddress,
+                                      maxLength: 11,
+                                    })}
+                                    &nbsp;
+                                    {+arbitratorFees[index] / 100}%
+                                  </ListboxLabel>
+                                </ListboxOption>
+                              )
+                          )}
+                        </Listbox>
+                      </div>
+                      <div className='flex-1'>
+                        <Input
+                          placeholder='Enter Creator Address'
+                          value={creatorAddress}
+                          onChange={(e) => setCreatorAddress(e.target.value)}
+                          className='w-full'
+                        />
                       </div>
                     </div>
+                  </div>
+                </div>
+                <div className='flex w-1/2 flex-col gap-y-3'>
+                  <div className='w-full'>
+                    <h3 className='text-sm font-medium text-gray-700'>Tags</h3>
+                    <TagsInput tags={tags} setTags={setTags} />
+                  </div>
+                  <div className='flex w-full flex-row items-center justify-between'>
+                    <h3 className='text-sm font-medium text-gray-700'>
+                      Multiple Applicants
+                    </h3>
+                    <RadioGroup
+                      className='!mt-0 flex'
+                      value={multipleApplicants ? 'Yes' : 'No'}
+                      onChange={(value) =>
+                        setMultipleApplicants(value === 'Yes')
+                      }
+                      aria-label='Server size'
+                    >
+                      {noYes.map((option) => (
+                        <Field
+                          className='!mt-0 ml-5 flex items-center'
+                          key={option}
+                        >
+                          <Radio
+                            className='mr-2'
+                            color='default'
+                            value={option}
+                          >
+                            <span>{option}</span>
+                          </Radio>
+                          <Label>{option}</Label>
+                        </Field>
+                      ))}
+                    </RadioGroup>
+                  </div>
                 </div>
               </div>
             </div>
