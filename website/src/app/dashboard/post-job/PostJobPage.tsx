@@ -672,18 +672,12 @@ const PostJob = () => {
                               value={arbitratorAddress}
                             >
                               <ListboxLabel>
-                                <span className=''>
                                   {arbitratorNames[index]}
-                                </span>{' '}
-                                <span className='ml-4 text-sm text-gray-500'>
                                   {shortenText({
                                     text: arbitratorAddress,
                                     maxLength: 11,
                                   })}
-                                </span>{' '}
-                                <span className='bold ml-4'>
                                   {+arbitratorFees[index] / 100}%
-                                </span>
                               </ListboxLabel>
                             </ListboxOption>
                           )
