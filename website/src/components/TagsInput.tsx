@@ -31,7 +31,7 @@ const TagsInput: React.FC<{ tags: Tag[]; setTags: (tags: Tag[]) => void }> = ({
   return (
     <div className='mt-1.1 rounded-xl border border-zinc-950/20 bg-white shadow-sm data-[hover]:border-zinc-950/20'>
       <div className='h-0 w-full text-right'>
-        <span className='relative right-4 top-[11.2px] text-sm text-gray-400'>
+        <span className='relative right-4 top-[8px] text-sm text-gray-400'>
           Press enter to add tag
         </span>
       </div>
