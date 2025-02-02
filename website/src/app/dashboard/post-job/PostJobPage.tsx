@@ -673,10 +673,12 @@ const PostJob = () => {
                             >
                               <ListboxLabel>
                                   {arbitratorNames[index]}
+                                  &nbsp;
                                   {shortenText({
                                     text: arbitratorAddress,
                                     maxLength: 11,
                                   })}
+                                  &nbsp;
                                   {+arbitratorFees[index] / 100}%
                               </ListboxLabel>
                             </ListboxOption>
