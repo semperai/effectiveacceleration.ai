@@ -26,7 +26,7 @@ export const OpenJobsFeed = () => {
   const [search, setSearch] = useState<string>('');
   const { address } = useAccount();
   const [tags, setTags] = useState<Tag[]>([]);
-  const [limit, setLimit] = useState<number>(2);
+  const [limit, setLimit] = useState<number>(100);
   const [selectedToken, setSelectedToken] = useState<Token | undefined>(
     process.env.NODE_ENV === 'development'
       ? tokens.find((token) => token.symbol === 'FAKE')
