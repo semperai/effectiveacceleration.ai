@@ -9,15 +9,27 @@ export default function useJobSearch({
   userAddress,
   limit,
   offset,
+  maxTimestamp,
+  minTimestamp,
 }: {
   jobSearch: Partial<Job>;
   orderBy: string;
   userAddress?: string;
   limit?: number;
   offset?: number;
+  maxTimestamp?: number;
+  minTimestamp?: number;
 }) {
   const buildSearchConditions = (obj: any): string => {
-    return Object.entries(obj)
+    const search: string[] = [];
+    if (maxTimestamp) {
+      search.push(`jobTimes:{createdAt_lt: ${maxTimestamp}}`)
+    }
+    if (minTimestamp) {
+      search.push(`jobTimes:{createdAt_gt: ${minTimestamp}}`)
+    }
+
+    return [...search, ...Object.entries(obj)
       .map(([key, value]) => {
         if (typeof value === 'string') {
           return `${key}_containsInsensitive: "${value}"`;
@@ -30,7 +42,7 @@ export default function useJobSearch({
         } else {
           return `${key}_eq: ${value}`;
         }
-      })
+      })]
       .join(',\n');
   };
 
@@ -50,7 +62,7 @@ export default function useJobSearch({
       ]
     `
     : searchConditions;
-    
+
   const { data, ...rest } = useQuery(
     GET_JOB_SEARCH({
       search,
@@ -67,6 +79,6 @@ export default function useJobSearch({
 
   return useMemo(
     () => ({ data: data ? (data?.jobs as Job[]) : undefined, ...rest }),
-    [jobSearch, data, rest]
+    [jobSearch, orderBy, userAddress, limit, offset, maxTimestamp, minTimestamp, data, rest]
   );
 }

@@ -55,6 +55,7 @@ export const OpenJobsFeed = () => {
     '0',
     ...(arbitrators?.map((worker) => worker.fee) ?? []),
   ];
+  const [now, setNow] = useState(Math.floor(new Date().getTime() / 1000));
   const { data: jobs } = useJobSearch({
     jobSearch: {
       ...(search && { title: search }),
@@ -70,6 +71,24 @@ export const OpenJobsFeed = () => {
     orderBy: 'jobTimes_openedAt_DESC',
     userAddress: address,
     limit: limit,
+    maxTimestamp: now,
+  });
+  const { data: newJobs } = useJobSearch({
+    jobSearch: {
+      ...(search && { title: search }),
+      ...(tags.length > 0 && { tags: tags.map((tag) => tag.name) }),
+      ...(minDeadline !== undefined && !isNaN(minDeadline) && {
+        maxTime: convertToSeconds(minDeadline, selectedUnitTime.name),
+      }),
+      state: JobState.Open,
+      ...(selectedToken && { token: selectedToken.id }),
+      ...((selectedArbitratorAddress || creatorAddress) && { roles: { creator: creatorAddress ?? '', arbitrator: selectedArbitratorAddress ?? '', worker: '' } }),
+      multipleApplicants: multipleApplicants,
+    },
+    orderBy: 'jobTimes_openedAt_DESC',
+    userAddress: address,
+    limit: limit,
+    minTimestamp: now,
   });
 
   const observer = useRef<IntersectionObserver | null>(null);
@@ -124,6 +143,9 @@ export const OpenJobsFeed = () => {
         creatorAddress={creatorAddress}
         setCreatorAddress={setCreatorAddress}
       />
+      {newJobs?.length ? <div className='flex justify-center'>
+        <div onClick={() => setNow(Math.floor(new Date().getTime() / 1000))} className='bg-green-300 px-3 py-1 rounded-md border-2 border-green-500 border-solid'>Found {newJobs.length} new jobs, click to refresh</div>
+      </div> : <></>}
       {jobs ? (
         <>
         {/* <Button onClick={() => {setLimit(limit + 1)}}>Click Me</Button> */}

@@ -13,6 +13,7 @@ import useUserJobNotifications from '@/hooks/subsquid/useUserJobNotifications';
 import { useAccount } from 'wagmi';
 import { useSearchParams } from 'next/navigation';
 import useJobsLength from '@/hooks/subsquid/useJobsLength';
+import { useState } from 'react';
 
 const environments: Record<string, string> = {
   Preview: 'text-gray-400 bg-gray-400/10 ring-gray-400/20',
@@ -29,9 +30,16 @@ export default function OpenJobsPage() {
   const pages = Math.ceil((jobsCount ?? 0) / defaultLimit);
 
   const account = useAccount();
+  const [now, setNow] = useState(Math.floor(new Date().getTime() / 1000));
   const { data: jobs } = useJobs({
     limit: defaultLimit,
     offset: (page - 1) * defaultLimit,
+    maxTimestamp: now,
+  });
+  const { data: newJobs } = useJobs({
+    limit: defaultLimit,
+    offset: (page - 1) * defaultLimit,
+    minTimestamp: now,
   });
 
   const { data: users } = useUsersByAddresses(
@@ -46,6 +54,9 @@ export default function OpenJobsPage() {
   return (
     <Layout>
       <h1 className='mb-8 ml-2 text-xl font-medium'>Open Jobs</h1>
+      {newJobs?.length ? <div className='flex justify-center'>
+        <div onClick={() => setNow(Math.floor(new Date().getTime() / 1000))} className='bg-green-300 px-3 py-1 rounded-md border-2 border-green-500 border-solid'>Found {newJobs.length} new jobs, click to refresh</div>
+      </div> : <></>}
       {jobs?.map((job, idx) => {
         const notificationsCount =
           userJobNotifications?.[job.id!]?.filter(

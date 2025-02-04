@@ -8,25 +8,29 @@ interface UseJobsProps {
   offset?: number;
   limit?: number;
   fake?: boolean;
+  maxTimestamp?: number;
+  minTimestamp?: number;
 }
 
 const DEFAULT: UseJobsProps = {
   offset: 0,
   limit: 0,
   fake: false,
+  maxTimestamp: undefined,
+  minTimestamp: undefined,
 };
 
 export default function useJobs(props: UseJobsProps = {}) {
-  const { fake, offset, limit } = { ...DEFAULT, ...props };
+  const { fake, offset, limit, maxTimestamp, minTimestamp } = { ...DEFAULT, ...props };
   if (fake) return { data: FAKE_JOBS_DATA };
 
-  const { data, ...rest } = useQuery(GET_JOBS, {
+  const { data, ...rest } = useQuery(GET_JOBS(maxTimestamp, minTimestamp), {
     variables: { offset, limit: limit === 0 ? 1000 : limit },
   });
 
   return useMemo(
     () => ({ data: data ? (data?.jobs as Job[]) : undefined, ...rest }),
-    [offset, limit, data, rest]
+    [offset, limit, maxTimestamp, minTimestamp, data, rest]
   );
 }
 

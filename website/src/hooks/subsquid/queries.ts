@@ -65,9 +65,9 @@ export const GET_JOBS_BY_IDS = gql`
   }
 `;
 
-export const GET_JOBS = gql`
+export const GET_JOBS = (maxTimestamp?: number, minTimestamp?: number) => gql`
   query GetJobs($offset: Int!, $limit: Int!) {
-    jobs(orderBy: timestamp_ASC, offset: $offset, limit: $limit) {
+    jobs(${maxTimestamp || minTimestamp ? `where: { ${maxTimestamp ? `jobTimes:{createdAt_lt: ${maxTimestamp}}` : `jobTimes:{createdAt_gt: ${minTimestamp}}`} }, ` : ``}orderBy: timestamp_ASC, offset: $offset, limit: $limit) {
       ${JobFields}
     }
   }
