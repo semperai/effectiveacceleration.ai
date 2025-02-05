@@ -114,7 +114,8 @@ const JobSummary = ({
 
   return (
     <div className='mx-auto max-w-4xl'>
-      <div className='mb-8'>
+      <h1>TESTING CAN YOU SEE THIS?</h1>
+      {/* <div className='mb-8'>
         <h1 className='mb-2 text-3xl font-bold text-gray-900'>Summary</h1>
         <p className='text-gray-600'>
           Before you submit your job, please double check your answers.
@@ -170,7 +171,7 @@ const JobSummary = ({
           deliveryMethod={deliveryMethod}
           arbitrator={selectedArbitratorAddress as string}
         />
-      </div>
+      </div> */}
     </div>
   );
 };
