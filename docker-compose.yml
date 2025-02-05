@@ -36,3 +36,69 @@ services:
       IPFS_UPLOAD_SERVICE_URL: "http://ipfs-service:8000"
       CHAIN_ID: 31337
     restart: always
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "127.0.0.1:5432:5432"
+      # command: ["postgres", "-c", "log_statement=all"]
+    shm_size: 1gb
+    restart: always
+
+  notifications:
+    image: marketplace-notifications
+    build: notifications
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres
+      - VAPID_PUBLIC_KEY=BMgxoHXn2yOLgla0VVv6UT_AgQhNckmh8F98GxjxMOcou-7DgxzeeX8fiTG0HN9Orx7awuwtvliBN4BUgbe0JNU
+      - VAPID_PRIVATE_KEY=EvqCwoED86VlhVTjVUGw7tstpVRg27HKyJQsVdYXyzY
+      - AUTH_USER=user
+      - AUTH_PASSWORD=password
+    ports:
+      - '127.0.0.1:9000:9000'
+    restart: always
+    depends_on:
+      - db
+
+  api:
+    image: marketplace-squid
+    build: subsquid
+    environment:
+      - DB_NAME=postgres
+      - DB_PORT=5432
+      - DB_HOST=db
+      - DB_PASS=postgres
+      - GQL_PORT=4350
+    ports:
+      # GraphQL endpoint at port 4350
+      - "127.0.0.1:4350:4350"
+    command: ["sqd", "serve:prod"]
+    depends_on:
+      - db
+      - node_public
+    restart: always
+
+  processor:
+    image: marketplace-squid
+    build: subsquid
+    environment:
+      - DB_NAME=postgres
+      - DB_PORT=5432
+      - DB_HOST=db
+      - DB_PASS=postgres
+      - NETWORK=Hardhat
+      - RPC_ENDPOINT=http://node_public:8545
+      - IPFS_GATEWAY_URL=http://ipfs:8080
+      - VAPID_PUBLIC_KEY=BMgxoHXn2yOLgla0VVv6UT_AgQhNckmh8F98GxjxMOcou-7DgxzeeX8fiTG0HN9Orx7awuwtvliBN4BUgbe0JNU
+      - VAPID_PRIVATE_KEY=EvqCwoED86VlhVTjVUGw7tstpVRg27HKyJQsVdYXyzY
+    ports:
+      # prometheus metrics exposed at port 3000
+      - "127.0.0.1:3000:3000"
+    command: ["sqd", "process:prod"]
+    depends_on:
+      - db
+      - node_public
+    restart: always
