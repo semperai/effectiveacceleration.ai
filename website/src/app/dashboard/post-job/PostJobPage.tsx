@@ -114,7 +114,6 @@ const JobSummary = ({
 
   return (
     <div className='mx-auto max-w-4xl'>
-      <h1>TESTING CAN YOU SEE THIS?</h1>
       <div className='mb-8'>
         <h1 className='mb-2 text-3xl font-bold text-gray-900'>Summary</h1>
         <p className='text-gray-600'>
@@ -124,7 +123,7 @@ const JobSummary = ({
 
       <div className='mb-8 rounded-2xl bg-white p-8 shadow-lg'>
         <div className='divide-y divide-gray-200'>
-          {/* <Row label='Job Title'>{title}</Row>
+          <Row label='Job Title'>{title}</Row>
           <Row label='Description'>{description}</Row>
           <Row label='Category'>{selectedCategory.name}</Row>
           <Row label='Token'>
@@ -152,7 +151,7 @@ const JobSummary = ({
           <Row label='Arbitrator Required'>
             {selectedArbitratorAddress !== undefined ? 'Yes' : 'No'}
           </Row>
-          <Row label='Arbitrator Address'>{selectedArbitratorAddress}</Row> */}
+          <Row label='Arbitrator Address'>{selectedArbitratorAddress}</Row>
         </div>
       </div>
 
@@ -547,7 +546,7 @@ const PostJob = () => {
                   <Input
                     name='amount'
                     placeholder='1.00'
-                    type='text'
+                    type='number'
                     value={amount}
                     onChange={(e) => validatePaymentAmount(e.target.value)}
                   />
