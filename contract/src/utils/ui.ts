@@ -1,6 +1,6 @@
 import { toBigInt, getAddress, ZeroAddress, ZeroHash } from "ethers";
 import { Job, JobArbitratedEvent, JobCreatedEvent, JobDisputedEvent, JobEvent, JobEventType, JobEventWithDiffs, JobMessageEvent, JobState, JobUpdatedEvent } from "../interfaces";
-import { safeGetFromIpfs } from "./encryption";
+import { getMediaFromIpfs, hashToCid, safeGetFromIpfs } from "./encryption";
 import { decodeJobCreatedEvent, decodeJobUpdatedEvent, decodeJobSignedEvent, decodeJobRatedEvent, decodeJobArbitratedEvent, decodeJobMessageEvent, decodeJobDisputedEvent, decryptJobDisputedEvent } from "./decodeEvents";
 
 export const computeJobStateDiffs = (jobEvents: JobEvent[], jobId: string, job?: Job): JobEventWithDiffs[] => {
@@ -564,8 +564,19 @@ export const fetchEventContents = async (events: JobEventWithDiffs[], sessionKey
     const badResponses = ["<encrypted message>", "Error: Failed to fetch data"];
     try {
       if (!contents[contentHash] || badResponses.includes(contents[contentHash])) {
-        const content = await safeGetFromIpfs(contentHash, sessionKey);
-        contents[contentHash] = content;
+        try {
+          // first try to treat data as media
+          const content = await getMediaFromIpfs(contentHash, sessionKey);
+          const downloadHash = '#' + encodeURIComponent(
+            `filename=${content.fileName}&cid=${hashToCid(contentHash)}${sessionKey ? `&sessionKey=${sessionKey}` : ''}`
+          );
+
+          contents[contentHash] = downloadHash;
+        } catch {
+          // then as message
+          const content = await safeGetFromIpfs(contentHash, sessionKey);
+          contents[contentHash] = content;
+        }
       }
     } catch {
       contents[contentHash] = "Error: Failed to fetch data";

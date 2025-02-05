@@ -68,10 +68,13 @@ export const publishToIpfs = async (message: string, sessionKey: string | undefi
   return publishToIpfsRaw(encodedData);
 }
 
-export const publishMediaToIpfs = async (mimeType: string, mediaBytes: Uint8Array, sessionKey: string | undefined = undefined): Promise<{
+export const publishMediaToIpfs = async (fileName: string, mimeType: string, mediaBytes: Uint8Array, sessionKey: string | undefined = undefined): Promise<{
   hash: string;
   cid: string;
 }> => {
+  if (fileName.length === 0) {
+    throw new Error("empty file name");
+  }
   if (mimeType.length === 0 || mimeType.indexOf("/") === -1) {
     throw new Error("wrong mime type");
   }
@@ -79,7 +82,7 @@ export const publishMediaToIpfs = async (mimeType: string, mediaBytes: Uint8Arra
     throw new Error("empty data");
   }
 
-  const binary = getBytes(AbiCoder.defaultAbiCoder().encode(["string", "bytes"], [mimeType, mediaBytes]));
+  const binary = getBytes(AbiCoder.defaultAbiCoder().encode(["string", "string", "bytes"], [fileName, mimeType, mediaBytes]));
   const encodedData: string = encodeBase64(encryptBinaryData(binary, sessionKey));
   return publishToIpfsRaw(encodedData);
 }
@@ -144,22 +147,24 @@ export const safeGetFromIpfs = async (cidOrHash: string, sessionKey: string | un
 }
 
 export const getMediaFromIpfs = async (cidOrHash: string, sessionKey: string | undefined = undefined): Promise<{
+  fileName: string;
   mimeType: string;
   mediaBytes: Uint8Array;
 }> => {
   const decodedData = decryptBinaryData(decodeBase64(await getFromIpfsRaw(cidOrHash)), sessionKey);
-  const [mimeType, mediaBytes] = AbiCoder.defaultAbiCoder().decode(["string", "bytes"], getBytes(decodedData));
-  return { mimeType, mediaBytes: getBytes(mediaBytes) };
+  const [fileName, mimeType, mediaBytes] = AbiCoder.defaultAbiCoder().decode(["string", "string", "bytes"], getBytes(decodedData));
+  return { fileName, mimeType, mediaBytes: getBytes(mediaBytes) };
 }
 
 export const safeGetMediaFromIpfs = async (cidOrHash: string, sessionKey: string | undefined = undefined): Promise<{
+  fileName: string;
   mimeType: string;
   mediaBytes: Uint8Array;
 }> => {
   try {
     return await getMediaFromIpfs(cidOrHash, sessionKey);
   } catch (error: any) {
-    return { mimeType: "", mediaBytes: new Uint8Array() };
+    return { fileName: "", mimeType: "", mediaBytes: new Uint8Array() };
   }
 }
 
