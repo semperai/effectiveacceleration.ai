@@ -37,6 +37,7 @@ import { useAccount, useReadContract } from 'wagmi';
 import LoadingModal from './LoadingModal';
 import RegisterModal from './RegisterModal';
 import { SubmitJobButton } from './SubmitJobButton';
+import { Combobox } from '@/components/NewComboBox';
 
 const deliveryMethods = [
   {
@@ -312,10 +313,7 @@ const PostJob = () => {
     }
 
     // required is 'Yes'
-    if (
-      required === 'Yes' &&
-      !selectedArbitratorAddress
-    ) {
+    if (required === 'Yes' && !selectedArbitratorAddress) {
       setArbitratorError('Please select an arbitrator');
       return;
     }
@@ -655,36 +653,20 @@ const PostJob = () => {
                   third-party entities that can help resolve disputes.
                 </Description>
               </Field>
+
               {arbitratorRequired === 'Yes' && (
                 <>
                   <Field>
                     <div className='scroll-mt-20' ref={jobArbitratorRef} />
-                    <Listbox
+                    <Combobox
                       placeholder='Select Arbitrator'
-                      value={selectedArbitratorAddress}
+                      value={selectedArbitratorAddress || ''}
+                      options={arbitratorAddresses.map((address, index) => ({
+                        value: address,
+                        label: `${arbitratorNames[index]} ${shortenText({ text: address, maxLength: 11 })} ${+arbitratorFees[index] / 100}%`,
+                      }))}
                       onChange={(addr) => validateArbitrator(addr)}
-                    >
-                      {arbitratorAddresses.map(
-                        (arbitratorAddress, index) =>
-                          index > 0 && (
-                            <ListboxOption
-                              key={index}
-                              value={arbitratorAddress}
-                            >
-                              <ListboxLabel>
-                                  {arbitratorNames[index]}
-                                  &nbsp;
-                                  {shortenText({
-                                    text: arbitratorAddress,
-                                    maxLength: 11,
-                                  })}
-                                  &nbsp;
-                                  {+arbitratorFees[index] / 100}%
-                              </ListboxLabel>
-                            </ListboxOption>
-                          )
-                      )}
-                    </Listbox>
+                    />
                     {arbitratorError && (
                       <div className='text-xs' style={{ color: 'red' }}>
                         {arbitratorError}

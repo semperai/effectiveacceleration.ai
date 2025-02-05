@@ -22,7 +22,6 @@ const UploadAvatar = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [sessionKey, setSessionKey] = useState<string>();
   const avatarUrl = useFetchAvatar(avatar, sessionKey);
-  console.log(avatarUrl, 'avatarUrl', avatar, 'avatar');
   const uploadToIPFS = async (file: File): Promise<void> => {
     try {
       const formData = new FormData();

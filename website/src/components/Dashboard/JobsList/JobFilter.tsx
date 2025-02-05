@@ -12,6 +12,7 @@ import { Field, Label } from '@headlessui/react';
 import { Radio, RadioGroup } from '@/components/Radio';
 import { ChevronDown, ChevronUp, Filter, Search } from 'lucide-react';
 import React, { useState } from 'react';
+import { Combobox } from '@/components/NewComboBox';
 
 type JobFilterProps = {
   search: string;
@@ -171,34 +172,19 @@ export const JobFilter = ({
                     </h3>
                     <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
                       <div className='flex-1'>
-                        <Listbox
+                        <Combobox
                           placeholder='Select Arbitrator'
-                          value={selectedArbitratorAddress}
+                          value={selectedArbitratorAddress || ''}
+                          options={arbitratorAddresses.map(
+                            (arbitratorAddress, index) => ({
+                              value: arbitratorAddress,
+                              label: `${arbitratorNames[index]} ${shortenText({ text: arbitratorAddress, maxLength: 11 })} ${+arbitratorFees[index] / 100}%`,
+                            })
+                          )}
                           onChange={(addr) =>
                             setSelectedArbitratorAddress(addr)
                           }
-                        >
-                          {arbitratorAddresses.map(
-                            (arbitratorAddress, index) =>
-                              index > 0 && (
-                                <ListboxOption
-                                  key={index}
-                                  value={arbitratorAddress}
-                                >
-                                  <ListboxLabel>
-                                    {arbitratorNames[index]}
-                                    &nbsp;
-                                    {shortenText({
-                                      text: arbitratorAddress,
-                                      maxLength: 11,
-                                    })}
-                                    &nbsp;
-                                    {+arbitratorFees[index] / 100}%
-                                  </ListboxLabel>
-                                </ListboxOption>
-                              )
-                          )}
-                        </Listbox>
+                        />
                       </div>
                       <div className='flex-1'>
                         <Input

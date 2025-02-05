@@ -34,3 +34,9 @@ h6 {
 span {
   @apply text-darkBlueFont;
 }
+
+@layer base {
+  :root {
+    --radius: 0.5rem;
+  }
+}
