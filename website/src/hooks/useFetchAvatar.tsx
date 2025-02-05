@@ -3,7 +3,7 @@ import { safeGetMediaFromIpfs } from '@effectiveacceleration/contracts';
 
 const useFetchAvatar = (avatar: string | undefined, sessionKey: string | undefined) => {
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
-
+  console.log('avatar', avatarUrl);
   useMemo(() => {
     const cidLength = 46;
     if (!avatar || avatar.length > cidLength) return;
