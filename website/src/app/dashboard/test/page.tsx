@@ -61,6 +61,7 @@ const Test = () => {
       const data = await file.arrayBuffer();
       const mimeType = file.type;
       const { cid } = await publishMediaToIpfs(
+        file.name,
         mimeType,
         new Uint8Array(data),
         sessionKey

@@ -4,6 +4,8 @@ import moment from 'moment';
 import { getAddress } from 'viem';
 import EventProfileImage from './Components/EventProfileImage';
 import { type EventProps } from './index';
+import Markdown from 'react-markdown';
+import { useEffect, useState } from 'react';
 
 export function DeliveredEvent({
   event,
@@ -15,6 +17,16 @@ export function DeliveredEvent({
   const date = moment(event.timestamp_ * 1000).fromNow();
 
   const result = event.job.result;
+  const [markdownContent, setMarkdownContent] = useState<string>();
+  useEffect(() => {
+    if (result?.startsWith("#filename%3D")) {
+      const hash = result.slice(1);
+      const params = new URLSearchParams(decodeURIComponent(hash));
+      const filename = params.get('filename');
+
+      setMarkdownContent(`Click to download results: **[${filename}](${result})**`)
+    }
+  }, [result]);
 
   return (
     <>
@@ -38,9 +50,14 @@ export function DeliveredEvent({
           delivered the results{' '}
           <span className='whitespace-nowrap'>{date}</span>
         </div>
-        <div className='mt-2 text-sm text-gray-700 dark:text-gray-500'>
-          <p>{result}</p>
-        </div>
+        {markdownContent ?
+          <Markdown className='h-full'>
+            {markdownContent}
+          </Markdown> :
+          <div className='mt-2 text-sm text-gray-700 dark:text-gray-500'>
+            <p>{result}</p>
+          </div>
+        }
       </div>
     </>
   );
