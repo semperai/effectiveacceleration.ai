@@ -1080,6 +1080,17 @@ task("eacc:whitelist", "Update EACC whitelist")
   console.log("Transaction hash:", receipt.hash);
 });
 
+task("eacc:withdraw", "Withdraw tokens sent to contract")
+.addParam("token", "Token address")
+.setAction(async ({ token }, hre) => {
+  const eacc = await getEACCToken(hre);
+
+  const tx = await eacc.withdraw(token);
+  const receipt = await tx.wait();
+
+  console.log("Transaction hash:", receipt.hash);
+});
+
 task("eacc:multisend", "Multisend EACC tokens")
 .addParam("file", "CSV file with address and amount")
 .setAction(async ({ file }, hre) => {
