@@ -18,7 +18,7 @@ export const Textarea = forwardRef<
         'relative block w-full',
 
         // Background color + shadow applied to inset pseudo element, so shadow blends with border in light mode
-        'before:absolute before:inset-px before:bg-white before:shadow',
+        'before:absolute before:rounded-xl before:inset-px before:bg-white before:shadow',
 
         // Background color is moved to control and shadow is removed in dark mode so hide `before` pseudo
         'dark:before:hidden',
