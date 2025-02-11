@@ -1,0 +1,1038 @@
+export { Layout as default } from '@/components/Dashboard/Layout';
+
+---
+
+![dark mode](@/images/changelog-1.webp)
+
+## Effective Acceleration
+## [unreleased]
+
+### ◀️ Other
+
+- Initial layout changes and styles
+- Initial commit
+- Add analytics
+- Title
+- Update page
+- Remove yellow bg
+- Favicon
+- No need for vw/vh
+- Typeform embed
+- Typeform formatting
+- Bump
+- Create-next-app
+- Add nvmrc
+- Use landing dir for landing site
+- Initialize hardhat
+- Import catalyst
+- Clean homepage
+- Update link to fit next
+- Initialize base page
+- Add paper stub
+- Web3 agent stub
+- Update homepage
+- Use openzeppelin pausable
+- Import rainbowkit
+- Start of gpt template
+- Setup layouts better
+- Minor updates
+- Move some stuff around, nicer 404
+- Remove starfield
+- Separate file for layout of each page = dumb
+- Nicer layout
+- Remove feed.xml
+- Make sidebar suck less
+- Update setup notes
+- Add token selector
+- Remove unused code
+- Still exploring
+- Update metadata
+- Paginator
+- Rainbowkit theme to fit computer
+- Unify classes between desktop sidebar and mobile
+- Speed up sidebar show
+- Minor color changes
+- Make token selector select text not scrunched
+- Slight tokenselector improvements
+- Show notifications
+- Basic notifications
+- Add titles
+- Update navbar
+- More frost
+- Add size method back
+- Marketplace post test
+- Add test stubs and apply test
+- Add messaging test
+- Store correct address
+- Wait for token deploy
+- Test sends
+- Show hardhat network
+- Load fake token
+- Add erc20 abi
+- Read balance
+- Add sharp dep
+- Styles update, dashboard navbar and tables
+- PostJob Form Inputs
+- Needed files
+- Added unicrow token selection component. Not working yet.
+- Token select modal from unicrow working. styles still needed
+- Fixed bug of dropdowns, Replaced listView for ComboBox, Typed postJobForm, Created summary component
+- Proposed changes to marketplace based on latest specs
+- - Updated Unicrow's pay function to return escrowId
+- Fixed a gazillion compilation errors
+- Add ECDH setup for encrypted communication
+- Checkpoint before merge
+- Fix typo
+- Fix updateJobWhitelist
+- Fix storage layout
+- Wip, test coverage 100%
+- Add ArbitratorRegistered event, extend registerArbitrator, add tests
+- Rever mece tags handling to vanilla
+- Job state to enum
+- Fix arbitrator test
+- Add token scales of e18 to reflect real world use, refine arbitration tests, marketplace address and fee become initialization parameters, update unicrow arbitrate function to return payout amounts
+- Encode payout amounts in JobArbitratedEvent
+- Reflect planned fees at launch: marketplace 19.31%, unicrow 0.69%
+- Cleanup todos
+- Ensure in tests that collateral is counted correctly after refund
+- Correct the dispute data encoding
+- Commit ipfs service
+- Commit the web3 encryption flow
+- Add encodeBytes utility
+- Allow for arbitrator to end escrows via refund
+- Add ecnryption utils and tests
+- Rewrite unit tests, add integration test
+- Allow to update tags
+- Regenerate abis
+- Rename JobUpdateEvent to JobUpdatedEvent
+- Extract decode utils
+- Extract encryption utils
+- Extract decode events utils
+- Extract types to interfaces.ts
+- Move utils into a separate dir
+- Fix decrypting worker messages by iterating over candidates
+- Rework JobDisputed event decoding and decrypting workflow
+Update tests
+Add update event to seeding
+- Seed task seeds all event types
+- WithdrawCollateral should not accept token address
+- Add components to display events of all kinds
+- Add components to display events of all kinds
+- Rename MarketplaceDataView to MarketplaceData
+- Move events to MarketplaceData
+- Move arbitrators from Marketplace to MarketplaceData
+- Move public keys from marketplace to marketplace data
+- Fix mece tags
+- Move mece tags from marketplace to marketplace data
+- Fix test variable naming
+- Update upgradeable gaps
+- Add bio and avatar to arbitrator, add update arbitrator method
+- Add extra checks that neither worker, arbitrator or owner can be the same person
+- Generalize public keys to User struct, add name, bio, avatar and reputation tracking, add user queries
+- Update interfaces
+- Update web types
+- Add review and users hooks
+- Fix seeding task
+- Add address to user and arbitrator structs
+- Add useUser hooks usage in web app
+- Add user ratings hooks and display
+- Cache fetched users to session storage
+- Fix various issues with decrypting the data as worker and arbitrator, add data revalidation upon account switch
+- Lint hooks, remove plain useJobEvents in favor of useJobEventsWithDiffs
+- Use JSON5-bigint for cache serialization
+- Move users into dashboard
+- Remove obsolete 'interfaces'
+- Fix navigation
+- Rework getArbitrator to use new getArbitratorsByAddresses, replace addresses with names in message recipient window
+- Remove legacy notifications
+- Persist users/arbitrators and their public keys upon fetching
+- Fix error in users page
+- Add arbitrators page
+- Add token icons display where needed
+- Jobs page shows creator name instead of address
+- Fix seeding timesstamps
+- Add whitelisted workers display
+- Add (stashed) experimental combobox component
+- Add Multicall3 address deployment on testnet, make use of it in wagmi hooks
+- Remove the post message extracted code from the page
+- UseDimensions hook added to calculate width of combobox dropdown
+- Overwrite default width of combobox
+- Add staging network configuration
+- Fix broken hrefs
+- Fix for not connected wallet
+- Add harness for deploying stagenet with custom chain id, add config and stagenet to website
+- Default to staging network
+- Fix diff for tags
+- Solved merge
+- Change chainid
+- Buttons Job functionality and Job Post implementation
+- Use custom accounts on testnet
+- New pat master changes, merge necessary
+- Sign In form added
+- Arbitrator Amount added to event. JobChat Refactored
+- Prettier
+- Update nvmrc
+- Remove package lock
+- Update lockfile
+- Replace missing arbitratorAmount with TODO
+- Update catalyst base components
+- Handle null value during onchange
+- Remove IPFS libraries, upload image to IPFS manually
+- Dashboard last changes
+- Change marketplaceAddress
+- Change marketplaceAddress back
+- Changes to deploy without Unicrow
+- Add OpenZeppelin Hardhat Upgrades plugin
+- Add OpenZeppelin Hardhat Upgrades dependency
+- Changes related to arbitrum sepolia deployment
+- Changes related to arbitrum sepolia deployment
+- Fixed SignInMessage
+- New addresses
+- Addresses back
+- Config staging pat
+- Add Pat url to providers
+- Fix SignInMessage on Register
+- Theme toggle Off darkmode
+- Theme toggle remove from sidebar
+- Default by light
+- Trying to get vercel deployed: rpc values back
+- RPC Providers
+- Trigger deploy
+- Update interfaces.ts lastJobEvent
+- Dashboard changes, localSesssions changes, remove darkmode
+- Default mnemonic in hardhat.config.ts
+- Add pat domain IPFS for avoiding error, token Id
+- UseJob log
+- Logs for Job Events
+- Logs Job debugging
+- JobLog
+- More useJobs debugging
+- Logs to debug Job Event
+- Add displayname to PostJobPage
+- Remove unnecesary hook
+- Remove useUnsavedChanges for now
+- Add a check that message poster must be a registered user, adjust tests
+- Add 'recipient' param to postThreadMessage and to respective event, update decoding, update tests
+- Remove dist from git
+- Update web app to respect new recipientAddress in message events
+- Updated addresses of arbitrum sepolia deployment
+- PostMessageButton recipient and merge with audit response
+- Fix owner list dashboard issues relarted with localStorage and Skeleton
+- Display state when there are no applicants
+- New registration is not reflected
+- Fix user image fallback, check if Image is broken
+- Create upload avatar component and apply it on CreateProfile
+- Handle an unristered user profile
+- Disable text input in units and category
+- Approved amount not reflected
+- Validation for token ammounts
+- Fix arbitrator message decryption between disputing parties
+- Fix validation error balance token
+- Add arbitrum chain to config
+- Bump hardhat upgrades
+- Update addresses for unicrow
+- Remove wrong debug line
+- Save oz upgrades info
+- Update config
+- Import sentry
+- Provide default privkey
+- Remove sentry test page
+- Try something
+- Usdt Default and remove dashboard
+- Update tokens for arb1
+- Remove sentry example api
+- Remove dark mode pref vars
+- Remove next-themes from provider
+- Remove next-themes
+- Inline it works :shrug:
+- Disable component name tracking in sentry
+- Whitespace
+- Go wide on mobile
+- Run prettier
+- Improve writing
+- Add ca
+- Hide whitepaper link
+- Remove faqs from list
+- Remove paper dir
+- Remove agent dir
+- Remove mdx
+- Disable branding in popup
+- Minor wording
+- Analytics
+- Update deployments
+- Fix error where no fallback appeared when you had your LS empty
+- Bottom spacing on summary page
+- Use table for summary
+- Use maps for tabs and use flex for mobile
+- Add TODO
+- Make arbitrum initial network
+- Add more items to sidebar
+- Update create profile text to reflect ability to update user data later
+- Show icon on wallet
+- Redirect to home from register page if already registered
+- Ws
+- Use tbody for table
+- Set delivery method defaults and as a dropdown
+- Scroll to elements on validation failure
+- Add minimum/gt validation
+- Dont allow submit without balance data being loaded
+- Render all validation errors on load
+- Remove error from selected category on change
+- Validate both from amount and balance
+- Simplify amount validation
+- Add deadline error handling
+- Add todo note
+- Validations for user info update
+- Show when ready to withdraw collateral
+- Formatting
+- Minor
+- Make navbar breadcrumbs smaller text
+- Register task
+- More tasks
+- S/sets/set
+- Do not set a default arbitrator
+- Update changelog
+- Update lost image
+- Updates to changelog
+- Hide some sidebar items
+- S/aplications/applications
+- Shrink padding on form elements
+- Shrink tags padding
+- Update empty messages
+- Clean up console.logs
+- Indent
+- Add favicon
+- Add sheen effect on sidebar
+- Move editicon to own component
+- Add gen wallet task
+- Fix Open Jobs load
+- Disable unregistered user fallback for now
+- Better naming
+- Upgrade listbox
+- Remove unused page
+- Remove unused import
+- Add dispute task
+- Additional tasks
+- Add usdc for dropdown
+- Remove testtoken from dropdown
+- Move weth to bottom
+- Show nothing if no bio
+- Make posting messages from both creators and workers with cli
+- Add another hh config for more convenient cli usage
+- Allow approve task to have rating/review be optional
+- Show first tag in assign worker / review
+- Provide dispute task for worker and owner
+- Simplify config
+- Add link to arbitrator page
+- Eacc token
+- Multisend for eacc
+- Use EACC
+- Use landing page for dashboard redirect
+- Ignore missing date for headers in mdx
+- New welcome/lander
+- Update welcome
+- Clean up imports and remove dead code
+- WorkerAccepted.tsx able for workers and show a different text for workers
+- Fix EventProfileImage.tsx Fallback
+- Show after arbitration event
+- Remove log
+- Shorten tags
+- Add info task
+- Use names instead of indexing for sanity
+- Small improvement with destructuring
+- Remove log
+- Better deliver result disabled handling and placeholder
+- Nicer arbitration message placeholder and disable on empty message
+- Better title for dispute modal
+- Formatting
+- Formatting
+- Upgraded marketplace
+- Upgrade again
+- Improve assign worker review
+- Do not allow user to select themselves as an arbitrator
+- Improve comment event
+- Improve typings, update viem
+- Improve typings
+- Improve typings
+- Fix merge issues
+- Redeploy
+- Add commented out upgrade
+- Improve 404 page
+- Add lucide-react dep
+- Remove span
+- Whitespace
+- New tabs system
+- Mobile tabs
+- Tab bottom spacing
+- Reskin register modal
+- Mv welcome to tsx
+- Nicer landing
+- Better landing
+- Remove some single use functions
+- Opengraph
+- Add support for encrypted media uploads
+- Add support for uploading and downloading of encrypted media files in web app + markdown support
+- Use metadataBase
+- Dot show register modal if user not loaded
+- Remove react-tabs dep
+- Remove unused code
+- Job events, show all the events after a worker has been assigned
+- Run prettier
+- Use url for metadatabase
+- Shadcn alert
+- Ws
+- Formatting
+- Pulsing husbando registration page
+- Check user name and bio correct lengths
+- Formatting
+- Only show pane if user detected
+- Show if user denied transaction while registering
+- Make register modal open register in new window
+- Provide a noSidebar option for layout, use it on lander, and clean up some files
+- We use register image in images dir now, delete this one
+- Coloring for navbar items
+- Add sonner
+- Formatting
+- Rich colors sonner
+- Use sonner for transaction updates
+- Disable sidebar for the empty page that redirects to lander
+- Disable cache
+- Marketplace config func
+- Make use of new Config getter
+- Remove unused component
+- Move around
+- Use text input for value rather than number, to avoid annoying scroll reset to 0
+- Remove unused code
+- Add ipfs.effectiveacceleration.ai to next.config.mjs for images permission
+- Formatting
+- Import editicon
+- Update notifications
+- Make use of Promise.all for two notifications
+- Notify users about IPFS uploading and errors
+- Notify users about IPFS uploading and errors on POstMessageButton.tsx
+- Notify users about IPFS uploading and errors DeliverResultButton.tsx
+- Notify users about IPFS uploading and errors ArbitrateButton.tsx
+- Add support for authorized textual broadcast notifications
+- Remove reverse
+- Add ref to notification service
+- Formatting
+- Remove unused view files
+- Remove unused file
+- Formatting
+- Send handled errors to sentry
+- For creating profile use toaster
+- Local jakarta font
+- Key values tags missing
+- Make Rows clickable on rows tables tanStack
+- Rework dispute content encryption to use OW session keys, update website, improve decryption by arbitrator
+- Adjust arbitrated message
+- Remove form
+- Add support to broadcast notifications to select addresses, allow for notifications even when wallet is not connected, improve restoring notification behaviour after browser relaunch, last active account disconnect, visually highlight the event from notification
+- Add support to broadcast notifications to select addresses, allow for notifications even when wallet is not connected, improve restoring notification behaviour after browser relaunch, last active account disconnect, visually highlight the event from notification
+- Formatting
+- Make badge text not wrap
+- Format
+- Remove unused import
+- Use enum
+- Rearrange imports
+- Fmt
+- Capitalize fake
+- Choose default token correctly
+- Add separator component
+- Improve filter
+- Fmt
+- Move formatTimeLeft to utils
+- Add pagination to useUserNotifications, support pseudo-infinte scroll in last notifications modal, extract event to text routine to utils
+- Add orderBy dinamic functionality to some useJobs
+- Fix orderBy gql param
+- Use assignedAt
+- Fmt
+- Redesign notifications
+- Fmt
+- Workaround for message not appearing
+- Job post published to ipfs when posting a message
+- Refuse arbitration pop up
+- Added Input for filtering with arbitrator
+- Roles functionality added to useJobSearch and arbitrator input working on OpenJobsFeed
+- Owner and worker dashboard loads forever if not connected to an account
+- Remove log
+- Switch to popover. resolves #122
+- Switch to popover. add type resolves #122
+
+### ⚙️ Miscellaneous Tasks
+
+- Update readme
+- Update readme
+- Remove extra readme
+- Create Profile create avatar refactor
+- Update readme
+- Refactor and style sidebar
+- Refactor
+- Cleanup tasks
+- Add simple readme
+- Add ipfs service to readme
+- Refactor loadingmodal
+- Refactor navbar
+- Refactor register
+- Refactor
+- Use tags instead of tag, and other minor cleanups
+- Refactor
+- Updated CHANGELOG.md
+- Updated CHANGELOG.md
+
+### 🎨 UI & User Experience
+
+- Fix build
+- Styling
+- Fix changelog styling
+- Logical buttons
+- Fix ze build
+- Correct cursors for button state
+- Wip approve button
+- Add logo file to sidebar
+- Update docs logos
+- Update logo
+- Favicons / logos etc
+- Move logo down a little
+- Fix build/logo
+- Remove unused arbitrator required membeer, rename variables and members to consistent camelCase
+- Add function to get arbitrators for ui
+- Extract interfaces for ui
+- Rename utils to ui utils
+- Lint hooks, remove infinite rerender issues, extract and show revert messages, add ui and code for posting user messages, rename ipfs upload secret env variable name
+- Revamp all event uis with decoding addresses and tokens
+- Fix events display quirks
+- Move accept button into separate component
+- Add deliver result button
+- Add assign worker button
+- Fix vercel build
+- Rework assign worker button to use modal
+- Rework deliver result button to use modals
+- Extract post message button into component
+- Visibility fixes for buttons
+- Add arbitrate button
+- Add refuse arbitration button
+- Add approve result button
+- Add leave a review button
+- Fixed combobox styling
+- Add reopen button
+- Add refund button
+- Add dispute button, fixes to other components
+- Add withdraw collateral button
+- Cherrypick combobox styling
+- Reinstate chain selection button
+- Add whitelist add/remove buttons
+- Add user/arbitrator updates and registrations when interacting with top-right user button
+- Fix build
+- Fix build
+- Job completed stated, new ui changes, styles
+- Remove extra whitespace
+
+trigger build
+- Fix build
+- Build Fixed, helia added replacing https-client-ipfs
+- Fix build createJobPage
+- Fix build
+- Only enable sentry on production build
+- Remove theme code from logo
+- Changed links to TG
+- Fixed links
+- Add feedback button on bottom right
+- Add additional padding to not occlude bug box button
+- Nicer connect button, fixes #18
+- Add arbitrator required error message
+- Fix build
+- Update packages backward-compatibles changes
+@headlessui/react
+@heroicons/react
+@mdx-js/loader
+@mdx-js/react
+@raimbow-me/raimbowkit
+@sentry/nextjs
+@tailwindcss/forms
+@tanstack/react-query
+prettier-plugin-tailwindcss
+typescript
+viem
+wagmi
+- Update packages that have not compatible changes
+@mui/icons-material
+@mui/material
+@next/mdx
+@types/node
+eslint
+eslint-config-next
+motion
+next
+remark-rehype-wrap
+- Disable register button if no name provided
+- Add button informing user to sign in to chat
+- Improve dispute button handling / disabling
+- Dont show dispute button if already in dispute, fixed #68
+- Implement add to homescreen button with pwa, fixes #43
+- Implement share button and new tooltip component, fixes #74
+- Show copied when clicked on share button
+- Unicrow requires sender address in the pay() function
+- Add marketplace subsquid
+- Publish @effectiveacceleration/subsquid
+- Update subsquid
+- Update squid, add Job.lastJobEvent
+- Audit fix squid packages
+- Fix build
+- Ref subsquids dir in readme
+- Fix build
+- Dont show wallet connectbutton in navbar
+- Refactor user button
+- Improve styling
+- Move userbutton component
+- Move notifications button to new component file
+- Update squid to use internal rpc
+- Have refund button use new write with notifications (untested / wip)
+- Deploy new squids and notification services, change to ipfs.effectiveacceleration.ai, fix arb one block from
+- Add token logos
+- Use token logo on homepage
+- Do not require the optional props
+- Remove other localStorage functionalities and fix build
+- Remove unused imports and rearrange for buttons
+- Remove address from refundbutton tag
+- Add cache expirer for better ux
+- Add notifications table to subsquid, fix minor issues
+- Improve squid hooks not to fire for empty lookups
+- Refactor notificationbutton
+- Fix build, exporting and importing JobSidebar breaks the typing on build. Check why
+
+### 🐛 Bug Fixes
+
+- Fix dark mode and style sidebar
+- Switch to using fixtures
+- Minor fixes
+- Fixed project position. Mistakenly worked on EffectiveAcceleration and not on website. fixed
+- Move user ratings from marketplace to marketplace data, fix deployments
+- Show revert error for message posting, fix hooks dependencies for refetch
+- Remove old arbitrator selector, fix input error
+- Fix hook, fix broken navigation, make root redirect to dashboard
+- Chat styles fixed, dynamic values added. Chat list functionality added
+- Logged out form and form styles and functionality fixes
+- Update import statements for `upgrades` and `ethers`
+- Update import statements for ethers and upgrades
+- Import ethers and upgrades from correct packages
+- Update import statement for upgrades
+- Resolve import errors
+- Remove separate localsessio p acc, dashboard completed fixes
+- Add UploadAvatar component to UserButton component, and fix bugs related
+- Jobs breadcrumb fix
+- LS worker and owner changes, fix useJobUserRole
+- Fix usdt balance display
+- Fix token id display
+- Fix price validation
+- Fix crash
+- Fix wording
+- Restrict payment amount input to positive value, fixes #17
+- Fix withdraw collateral time length
+- Minor fixes and icons
+- Format fix
+- Replace rebacca with worker name, fixes #28
+- Use im feeling lucky + minor updates, fixes #40
+- Fix assign worker max time
+- Add slider to arbitration modal, fixes #56
+- Fix bold ca name
+- Fix arbitrate task (wip)
+- Use profile image instead of image, fixes #51
+- Fix col span
+- Fix cols for closed arbitration
+- Reset disputed flag on refund or arbitration conclusion, fixes #66
+- Fix unicrow arbitrator address
+- Fix bad import
+- Fix default modal view
+- Fix link
+- Minor fixes
+- Minor fixups
+- Fix type
+- Fix typo
+- Fix for new next
+- Revert "fix for new next"
+
+This reverts commit 106c696e13cfea1149fd7b6d5033b4a90938e4d3.
+- Fix extra tag
+- Fix name of query
+- Semi-fix delivery status time remaining
+- OrderBy applied on rest on queries + bug fix
+
+### 💼 Job Management Features
+
+- Basic post job page
+- Add base for open jobs page
+- Use zinc bg on open jobs page
+- Attempt to create job post
+- Job post test
+- Combobox dropdown width bug fixed, job page latout added on applicants, button styles defined
+- - handling of mece tags
+- handling of collateral in job update, closing, reopening
+- withdrawing of collateral
+- - Unicrow handling (only skeleton code and specs, nothing really working)
+- Arbitrator registration and handling
+- Marketplace address governance (fee governance needed too)
+- Skeleton code for signing (by worker) and paying for (by customer) the job
+- - refactored to make it compileable
+- fixed: tags were not saved
+- removed redundant update when posting a new job
+- - added collateral handling to starting the job
+- reviews and ratings
+- unicrow dispute and arbitration integration
+- basic functionality for accepting the job result, refunding the job, or disputing and settling it
+- Checkpoint before removing changing job token type
+- Allow to reopen jobs with delivered results
+- Rename job event types
+- Drastically reduce the job event data size by minimally encoding it for job publish and update
+- Add job state reconstruction from events, calculation of state diffs, add related tests
+- Extend seed example for job assignment
+- Job creation does not emit whitelisted workers, they come from whitelisting events
+Fix job diff calculations
+Add bulk content fetching
+Fix and update tests
+- Add job reviews
+- Rework job page to display fetched data, add posting stub messages, fix event watch handling for job events
+- Remove old post-job
+- Add creator name to job posting
+- Make job post page working, add mece tags, arbitrator selection, whitelist selection, etc
+- Show formatted token info on jobs page
+- Rename about to post job
+- Add accept job handler
+- Remove owner from worker whitelist selecteion in job creation
+- Add close job button, some other visual tweaks
+- Job action buttons requires job to be undefined and do not use optional external users
+- Shared secrets are now derived salted, based on job id, in order to prevent arbitrators to peek into other jobs
+- Add update job button
+- Post job Form and input changes
+- Added job states, code optimization still required
+- Finishing job states
+- Dashboard functionality and job fixes
+- Dashboard skeleton added, localStorage jobs added, fix rpc
+- Allowance on job post
+- Register redirect, jobEventWatchers fixed
+- Redirect to the job after job creation
+- Job List owner and worker created, working on job view from different users
+- Show job name and description only to owner
+- Job view adjusted for every user, more job view functionality added
+- Register and posting a job improvements
+- Post a job with no arbitrator throws an error
+- Update, bug fixing from job post, user avatar, image fallback validation, dashboard
+- Remove timeout jobs
+- Add job localStorage saver
+- Remove post-job-old
+- Remove create job from header
+- Configure post job to handle deadlines properly
+- Update button with post job text
+- Show update job only if open
+- Add unfiltered open jobs list page
+- Provide default text and subtext for jobstables + rename alljobs to openjobs for worker
+- Add empty text for job applications
+- Change tab name cancelled jobs to closed and dont show zeroaddress on job details when no arbitrator is selected
+- Highlight post job link in sidebar
+- Refactor jobs tables
+- Refactor jobs tables
+- Store on job maxtime in seconds and then display it with pretty print
+- Make open for work jobs visible for everyone
+- Fix edit job, add validations, necesary inputs, fixed headlessUI bugs related, added maxTime and unit functionality
+- Improve help text on post job page
+- Show connect button on post job page if not connected
+- Refactor job page
+- Combine summary into post job page
+- Publish job post cli
+- Update job post cli
+- Properly load time unit from seconds in update job pane
+- Add job:start for worker
+- Fix undefined values on update job button
+- Don't show ProfileUserHeader.tsx on chat if job is closed.
+- Show job being closed in history on job page and profileUserHeader.tsx fallback fix
+- Improve the pre-chat job window
+- Redirect to register on job post if not registered, and disable button if no message written
+- Show correct cols for arbitrator on job
+- Show special message for arbitrator on job page
+- Show title and description of job for all users
+- Hide chat list for job in takenstate
+- Pull jobchat and jobchatdetails into jobs page itself, also rename file for clarity
+- Create job filter component
+- Improve post job review page
+- Improve jobs table
+- Improve code of sidebar in jobs page
+- Fix refund events logging zero addresses, fix tests, change jobId to string everywhere
+- Add loading pane for job page
+- Remove description as requirement for job post
+- Remove description as requirement for job update button
+- Refactor post job
+- Redirect to job page on successful job creation, and fix error messages
+- Cleanup imports from post job page
+- Fix job page no events were selected on click
+- Adjust max-h on job page to eliminate extra div spaces.
+- Add jobId to JobEvent, fix 'disputed' field beingh absent in diffs for arbitrated and refunded events
+- Add new jobTimes dict to indexer
+- Improve usejobs and useopenjobs with fake data
+- More work on jobs pages
+- Remove all jobs tab
+- Remove caching system from owner job dashboard and fixes
+- Remove caching system from WORKER job dashboard and fixes
+- Filteredjobs -> jobs
+- Remove usejob local storage in wagmi
+- Introduce generic job action button
+- Fix key list error on job lists
+- Bug fixing clicking rows open job
+- Update actions related to publishing content to ipfs to check for session keys and use proper OW session key, safeguard against session key not present, add current user / job owner to session keys population
+- Add user notification hooks for squid, make use of them in ui to render badges in navbar and in job list
+- Add filters functionality to open jobs
+- Fix Job page deadline and add mintokens to jobfilter.tsx
+- Fix job search
+- MinTokens on jobFilter
+- Sort open jobs correct order
+- Improve jobs list
+- Make usejobsearch order configurable
+- Remove open jobs from worker job list
+- Add jobTimes to job field
+- Redesign open jobs list
+- Add tooltips for creator/arbitrator and remove the open badge since all open jobs are.... open :)
+- Render delivery type in job post list
+- Encapsulate pagination component, apply new pagination to jobs, users and arbitrators
+- Add assignedAt to jobTimes, release 1.0.18
+- Add assignedAt to jobTimes
+- Add assignedAt to jobTimes
+- Ilustrations fallback joblist
+- Refactor job actions and reenable dispute button for creator
+- Use jobrow / jobslist instead of openjobs
+- Use jobrow instead of react-table
+- Improve skeleton loading for jobs
+- Improve jobs list skeleton rendering
+- Nicer skeleton loading for open jobs page
+- Layout changes arbitrator filter openjobs
+- ? operator for jobslength
+- Add mobile support to job page, several bug fixes and style fixes, some other details in regard to the jobtable
+
+### 📚 Documentation
+
+- Initialize docs
+- Add dockerfile to ifps service. Add ipfs upload service secret checking
+- Docker setup for all project services
+- Audit response:
+High 1: Added an explainer comment that tokens must be chosen carefully, user's responsibility
+High 2: Fixed as suggested
+Medium 1: Removed mention of ETH from documentation, suggest using WETH ERC20
+Medium 2: Added an explainer comment that arbitrators must be chosen and evaluated carefully, user's responsibility
+Medium 3: Fixed as suggested
+Low 1: Fixed as suggested
+Low 2: removed meceShortForm unused variable, removed treasury and pauser members and getters/setters, preserve ability to pause/unpause but set it to onlyOwner access check, rename unicrowMarketplaceAddress to treasuryAddress for clarity
+Low 3: Move rating checks to MarketPlaceData and make use of them
+Low 4: Added a hint in Unicrow's readme, that this is an external library audited elsewhere
+- Docs update
+- Fix broken docs page
+- Add link to docs in side bar
+- Import solidity-docgen
+- Update cas in docs
+- Update readme with broadcast example, update docker compose ports
+
+### 🔒 Security & Contract Updates
+
+- Nvmrc for contract
+- Setup with base marketplace contract
+- Upgrade&simplify contract dir
+- Import unicrow contracts for testing
+- Add some initial functions for marketplace contracts
+- Simplify contract api
+- Pull some data from contracts
+- Remove ipfs content hashing in-contract, fix signature verification to be eip-191 compliant
+- Add data reads to a separate contract, adjust tests
+- Add contract seeding for local environment
+- Change JobArbitratedEvent data signature to include worker address
+Add getArbitrator to DataView contract
+Regenerate wagmi abi
+Add safeGetFromIpfs to utils, change event decoding
+Fix tests|
+- Intermediate checkin, implementing contract query hooks
+- Fix various issues in contract
+- Fix build, build script builds linked 'contract' project
+- Add dotenv to contracts, improve handling of upload secrets
+- Prepare move marketplace data to a separate contract
+- Update import statement for ethers in contract/scripts/001-deploy-marketplace-public.ts
+- - contract updates reflecting unicrow updates
+- new contract addresses
+- new abi
+- new deploy script
+- hardhat config
+- Marketplace contract update
+- Deleted Unicrow contract files
+- Reinstate unicrow contracts, fix arbitrated event decoding for new event data signature, fix tests
+- Make Marketplace contract respect paused state by adding respective modifier
+Add more events for changing contract properties
+Add address of user triggering the refund event
+Make MarketplaceData contract respect paused state by adding respective modifier
+- Add security audit
+- Add basic contract documentation
+- Nicer loader of contracts
+- Publish contracts package, make website use the published package
+- Bring the graph entities in line with contract interfaces
+- Update viem and wagmi, update contracts lib, get rid of  typings
+- Fix contracts
+- Fix contracts
+- Add subsquid-based hooks to website reimplementing those existing contract-based and adding new custom lookups
+- Bump @eacc/contracts
+- Bump /contracts package
+- Usewritecontract with notifications
+- Show toast on error thrown from writing contract
+- Use write contract with notifications on PostMessageButton.tsx
+- Use write contract with notifications on CloseButton.tsx
+- Use write contract with notifications on ReopenButton.tsx
+- Use write contract with notifications on AcceptButton.tsx
+- Use write contract with notifications on ApproveButton.tsx and ReviewButton.tsx
+- Use write contract with notifications on UpdateButton.tsx
+- Use write contract with notifications on DisputeButton.tsx (untested)
+- Use write contract with notifications on ArbitrateButton.tsx
+- Use write contract with notifications on WhitelistButton.tsx (untested)
+- Use write contract with notifications on AssignWorkerButton.tsx
+- Use write contract with notifications on DeliverResultButton.tsx (untested)
+- Use write contract with notifications on RefuseArbitrationButton.tsx (untested)
+- Use write contract with notifications on WithdrawCollateralButton.tsx (untested)
+- Use write contract with notifications on RemoveFromWhitelistButton.tsx (untested)
+
+### 🛠 Technical Updates
+
+- Add example env for website
+- Fix deploy script
+- Local deploy test script
+- Refurbish deploy script, add npm scripts for deployment in local environment
+- Add wagmi-compatible abi export, add typescript compilation, fix typings
+- Rollback package.json and yarn.lock before rebase
+- Add envs
+- Move staging env to higher priority
+- Update config.json
+
+current testnet addresses
+- Update import statement for `upgrades` from `@openzeppelin/hardhat-upgrades` to `hardhat`
+- Change env rpc url
+- Remove env pat
+- Lts/hydrogen nvm version
+- Remove .env from git
+- Read etherscan api key from .env
+- Load chains based on env
+- Fix minimum input value from string conversion
+- Local config script
+- Make local setup output to .local.json
+- Update packages backward-compatibles bug fixes
+
+- @emotion/react
+- @emotion?styles
+- @mainnet-pat/json5-bigint
+- @types/react
+- @types/react-dom
+- ethers
+- postcss
+- styled-components
+- tailwindcss
+- Update packages backward-compatibles bug fixes
+- @emotion/react
+- @emotion?styles
+- @mainnet-pat/json5-bigint
+- @types/react
+- @types/react-dom
+- ethers
+- postcss
+- styled-components
+- tailwindcss
+- Use a proper dropdown for review ratings and add a small description for it
+- Update .env files
+- Remove .env
+- Add fallback if .env incorrect
+- Remove min length error on description
+- Update .env template
+- Reset all env vars to empty to allow them defined in docker compose
+- Script for todo notes
+
+## v0.1.0
+
+The alpha release of Effective Acceleration introduces significant protocol upgrades, featuring enhanced marketplace contracts with pause state enforcement and granular event tracking. Core improvements include a rebuilt job management system with comprehensive client-side validations, and deployment to Arbitrum as the primary network. The frontend has been streamlined through dependency cleanup and improved state handling, while the contract layer has undergone a security audit and now includes thorough documentation via solidity-docgen. Key technical enhancements focus on validation logic, async state management, and optimized contract interactions.
+
+### 🔒 Security & Contract Updates
+
+- Added security audit
+- Made Marketplace contract respect paused state with respective modifier
+- Added more events for changing contract properties
+- Made MarketplaceData contract respect paused state
+- Added address of user triggering refund event
+- Added basic contract documentation (solidity-docgen)
+- Updated deployments and contract configurations
+
+### 💼 Job Management Features
+
+- Added unfiltered open jobs list page
+- Improved job posting workflow:
+- Added deadline error handling
+- Configured post job to handle deadlines properly
+- Improved amount validation for both balance and input
+- Set delivery method defaults with dropdown
+- Restricted payment amount to positive values
+- Enhanced job display:
+- Show "Update Job" option only when open
+- Show withdrawal collateral timing
+- Improved token ID and USDT balance display
+
+### 👤 User Experience
+
+- Enhanced profile management:
+- Redirect to home from register if already registered
+- Updated create profile text about updating data later
+- Added validations for user info updates
+- Improved wallet integration:
+- Added wallet icon display
+- Created nicer connect button
+- Set Arbitrum as initial network
+- Added feedback button on bottom right
+- Improved mobile experience:
+- Optimized for wide display on mobile
+- Used flex-based tabs for mobile layout
+
+### 🎨 UI/UX Improvements
+
+- Enhanced navigation:
+- Made navbar breadcrumbs smaller
+- Added more items to sidebar
+- Added documentation link in sidebar
+- Removed create job from header
+- Improved form validation:
+- Added scroll to elements on validation failure
+- Show all validation errors on load
+- Remove error from selected category on change
+- Added nicer contract loader
+- Improved table layouts and summary page spacing
+- Updated various text and wording
+
+### 🛠 Technical Updates
+
+- Configured local setup and scripts
+- Added output to .local.json
+- Added local config script
+- Updated development environment:
+- Set Node.js version to LTS/Hydrogen
+- Bumped Hardhat upgrades
+- Added etherscan API key support
+- Optimized error handling:
+- Fixed empty LocalStorage fallback
+- Fixed price validation
+- Improved balance data loading
+- Removed unnecessary components:
+- Removed next-themes
+- Removed dark mode preferences
+- Removed MDX support
+- Cleaned up Sentry configuration
+
+### 📚 Documentation
+
+- Updated README
+- Improved documentation writing
+- Updated links to Telegram
+- Added comprehensive contract documentation
+
+### 🐛 Bug Fixes
+
+- Fixed various UI/UX issues (#17, #18)
+- Fixed broken docs page
+- Fixed minimum input value string conversion
+- Added padding to prevent bug box button occlusion
+- Fixed crash issues
+- Resolved joblist display problems
