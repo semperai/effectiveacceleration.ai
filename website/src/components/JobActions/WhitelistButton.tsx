@@ -9,7 +9,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { CheckIcon } from '@heroicons/react/20/solid';
 import * as Sentry from '@sentry/nextjs';
 import { Fragment, useState } from 'react';
-import { Listbox, ListboxOption } from '../Listbox';
+import ListBox from '../ListBox';
 
 export type WhitelistButtonProps = {
   address: string | undefined;
@@ -111,18 +111,16 @@ export function WhitelistButton({
                     Select User
                   </Dialog.Title>
                   <div className='mb-3 mt-5 flex flex-col gap-5'>
-                    <Listbox
-                      value={selectedUserAddress}
-                      onChange={(e) => setSelectedUserAddress(e)}
-                      className='z-10 rounded-md border border-gray-300 shadow-sm'
-                      placeholder='Select an option'
-                    >
-                      {userList?.map((user, index) => (
-                        <ListboxOption key={index} value={user.address_}>
-                          {user.name}
-                        </ListboxOption>
-                      ))}
-                    </Listbox>
+                  <ListBox
+                        placeholder='Select Time Units'
+                        value={selectedUserAddress}
+                        onChange={(address) => {
+                          if (typeof address !== 'string') {
+                            setSelectedUserAddress(address.id);
+                          }
+                        }}
+                        options={(userList ?? []).map(unit => ({ id: unit.address_, name: unit.name }))}
+                    />
                     <Button disabled={isWhiteListing} onClick={handleWhiteList}>
                       <CheckIcon
                         className='-ml-0.5 mr-1.5 h-5 w-5'

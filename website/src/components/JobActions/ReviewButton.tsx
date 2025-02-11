@@ -5,7 +5,6 @@ import {
   FieldGroup,
   Fieldset,
 } from '@/components/Fieldset';
-import { Listbox, ListboxLabel, ListboxOption } from '@/components/Listbox';
 import { Textarea } from '@/components/Textarea';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
@@ -16,11 +15,21 @@ import { Dialog, Transition } from '@headlessui/react';
 import { CheckIcon } from '@heroicons/react/20/solid';
 import * as Sentry from '@sentry/nextjs';
 import { Fragment, useState } from 'react';
+import ListBox from '../ListBox';
 
 export type ReviewButtonProps = {
   address: string | undefined;
   job: Job;
 };
+
+const ratingOptions = [
+  { id: '5', name: '5 stars - No issues' },
+  { id: '4', name: '4 stars - Minor issues' },
+  { id: '3', name: '3 stars - Lot\'s of issues' },
+  { id: '2', name: '2 stars - Severe problems' },
+  { id: '1', name: '1 stars - Malicious or criminal' },
+  { id: '0', name: 'Abstain from rating' },
+];
 
 export function ReviewButton({
   address,
@@ -135,38 +144,16 @@ export function ReviewButton({
                           />
                         </Field>
                         <Field>
-                          <Listbox
-                            value={rating}
-                            onChange={setRating}
-                            className='mt-5'
-                          >
-                            <ListboxOption value={5}>
-                              <ListboxLabel>5 stars - No issues</ListboxLabel>
-                            </ListboxOption>
-                            <ListboxOption value={4}>
-                              <ListboxLabel>
-                                4 stars - Minor issues
-                              </ListboxLabel>
-                            </ListboxOption>
-                            <ListboxOption value={3}>
-                              <ListboxLabel>
-                                3 stars - Lot&apos;s of issues
-                              </ListboxLabel>
-                            </ListboxOption>
-                            <ListboxOption value={2}>
-                              <ListboxLabel>
-                                2 stars - Severe problems
-                              </ListboxLabel>
-                            </ListboxOption>
-                            <ListboxOption value={1}>
-                              <ListboxLabel>
-                                1 stars - Malicious or criminal
-                              </ListboxLabel>
-                            </ListboxOption>
-                            <ListboxOption value={0}>
-                              <ListboxLabel>Abstain from rating</ListboxLabel>
-                            </ListboxOption>
-                          </Listbox>
+                          <ListBox
+                            placeholder='Select Rating'
+                            value={rating.toString()}
+                            onChange={(selected) => {
+                              if (typeof selected === 'string') {
+                                setRating(parseInt(selected, 10));
+                              }
+                            }}
+                            options={ratingOptions}
+                          />
                         </Field>
                       </FieldGroup>
                       <Button

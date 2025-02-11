@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 
 export type ComboBoxOption = {
-  id: number | string;
+  id: string;
   name: string;
 };
 

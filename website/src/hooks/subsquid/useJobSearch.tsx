@@ -20,16 +20,16 @@ export default function useJobSearch({
   maxTimestamp?: number;
   minTimestamp?: number;
 }) {
-  let maxtimeAdded = false;
+  let timestampAdded = false;
   const buildSearchConditions = (obj: any): string => {
     const search: string[] = [];
-    if (maxTimestamp && !maxtimeAdded) {
+    if (maxTimestamp && !timestampAdded) {
       search.push(`jobTimes:{createdAt_lt: ${maxTimestamp}}`)
-      maxtimeAdded = true;
+      timestampAdded = true;
     }
-    if (minTimestamp && !maxtimeAdded) {
+    if (minTimestamp && !timestampAdded) {
       search.push(`jobTimes:{createdAt_gt: ${minTimestamp}}`)
-      maxtimeAdded = true;
+      timestampAdded = true;
     }
 
     return [...search, ...Object.entries(obj)

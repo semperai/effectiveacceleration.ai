@@ -1,140 +1,77 @@
-'use client';
-import useDimensions from '@/hooks/useDimensions';
-import { ComboBoxOption } from '@/service/FormsTypes';
+"use client"
+
+import * as React from "react"
+import { Check, ChevronsUpDown } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import {
-  ComboboxButton,
-  ComboboxInput,
-  ComboboxOption,
-  ComboboxOptions,
-  Combobox as HeadlessCombobox,
-} from '@headlessui/react';
-import { CheckIcon } from '@heroicons/react/20/solid';
-import clsx from 'clsx';
-import { useEffect, useRef, useState } from 'react';
-import { GoChevronDown } from 'react-icons/go';
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
-export type ComboboxProps<T> = {
-  value?: T;
-  options: ComboBoxOption[];
-  onChange: (value: T) => void;
-  placeholder?: string;
-};
+interface ComboboxProps {
+  placeholder: string
+  value: string
+  options: { value: string; label: string }[]
+  onChange: (value: string) => void
+}
 
-export function ComboBox<T>({
-  options,
-  value,
-  onChange,
-  className,
-  placeholder,
-  ...props
-}: ComboboxProps<T> & React.ComponentPropsWithoutRef<'div'>) {
-  const inputRef = useRef(null);
-  const dropdownRef = useRef<HTMLUListElement>(null);
-  const { width, height } = useDimensions(inputRef);
-  const [query, setQuery] = useState('');
-  const [selected, setSelected] = useState(value);
-
-  // Tailwind JIT doesn't support injecting CSS variables dynamically,
-  // styles={} didn't work on ComboboxOptions either, so we're using this workaround
-  function changeWidthDropdown() {
-    setTimeout(function () {
-      if (!dropdownRef.current) return;
-      dropdownRef.current.style.width = `${width}px`;
-      dropdownRef.current.style.setProperty('width', `${width}px`, 'important');
-    }, 1);
-  }
-
-  useEffect(() => {
-    changeWidthDropdown();
-  }, [width]);
-
-  const filteredOptions =
-    query === ''
-      ? options
-      : options.filter((option) => {
-          return option.name.toLowerCase().includes(query.toLowerCase());
-        });
+export function Combobox({ placeholder, value, options, onChange }: ComboboxProps) {
+  const [open, setOpen] = React.useState(false)
 
   return (
-    <>
-      <div>
-        <HeadlessCombobox
-          value={selected}
-          onChange={(value) => {
-            setSelected(value ?? undefined);
-            if (value) {
-              onChange(value);
-            }
-          }}
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between rounded-xl"
         >
-          <div className='relative'>
-            <ComboboxInput
-              ref={inputRef}
-              placeholder={`${placeholder}`}
-              className={clsx(
-                className,
-
-                '!mt-2 w-full bg-white text-sm/6 text-darkBlueFont shadow focus:border-primary focus:ring-0',
-
-                'relative block w-full appearance-none rounded-xl py-[calc(theme(spacing[2.5])-1px)] sm:py-[calc(theme(spacing[3])-1px)]',
-
-                // Horizontal padding
-                'pl-[calc(theme(spacing[3.5])-1px)] pr-[calc(theme(spacing.7)-1px)] sm:pl-[calc(theme(spacing.3)-1px)]',
-
-                // Typography
-                'text-left text-base/6 text-zinc-950 placeholder:text-zinc-500 sm:text-sm/6 dark:text-white forced-colors:text-[CanvasText]',
-
-                // Border
-                'border border-zinc-950/20 group-hover:border-zinc-950/30 group-active:border-zinc-950/30 dark:border-white/10 dark:group-data-[active]:border-white/20 dark:group-data-[hover]:border-white/20',
-
-                // Background color
-                'bg-transparent dark:bg-white/5',
-
-                // Invalid state
-                'group-data-[invalid]:border-red-500 group-data-[invalid]:group-data-[hover]:border-red-500 group-data-[invalid]:dark:border-red-600 group-data-[invalid]:data-[hover]:dark:border-red-600',
-
-                // Disabled state
-                'group-data-[disabled]:border-zinc-950/20 group-data-[disabled]:opacity-100 group-data-[disabled]:dark:border-white/15 group-data-[disabled]:dark:bg-white/[2.5%] dark:data-[hover]:group-data-[disabled]:border-white/15'
-              )}
-              displayValue={(option: ComboBoxOption) => option?.name}
-              onChange={(event) => setQuery(event.target.value)}
-            />
-            <ComboboxButton
-              onClick={changeWidthDropdown}
-              className='group absolute inset-y-0 right-0 px-2.5'
-            >
-              <GoChevronDown className='size-6 fill-blueGrayTitles group-data-[hover]:fill-blueGrayTitles' />
-            </ComboboxButton>
-          </div>
-          <ComboboxOptions
-            ref={dropdownRef}
-            anchor={{ to: 'bottom' }}
-            style={{ width: `${width}px` }}
-            className={clsx(
-              'z-50 rounded-xl border border-white/5 bg-white p-1 shadow-lg [--anchor-gap:var(--spacing-1)] empty:invisible',
-              'transition duration-100 ease-in data-[leave]:data-[closed]:opacity-0',
-              // Border
-              'border border-zinc-950/10 group-hover:border-zinc-950/20 group-active:border-zinc-950/20 dark:border-white/10 dark:group-data-[active]:border-white/20 dark:group-data-[hover]:border-white/20',
-              className
-            )}
-          >
-            {filteredOptions.map((option) => (
-              <ComboboxOption
-                key={option.id}
-                value={option}
-                className={clsx(
-                  'group flex cursor-pointer select-none items-center gap-2 rounded-lg px-3 py-1.5 hover:!bg-primary hover:!text-white data-[focus]:bg-white/10'
-                )}
-              >
-                <CheckIcon className='invisible size-4 fill-darkBlueFont group-hover:fill-white group-data-[selected]:visible' />
-                <div className='text-sm/6 text-darkBlueFont group-hover:text-white'>
-                  {option.name}
-                </div>
-              </ComboboxOption>
-            ))}
-          </ComboboxOptions>
-        </HeadlessCombobox>
-      </div>
-    </>
-  );
+          {value
+            ? options.find((option) => option.value === value)?.label
+            : placeholder}
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-full p-0">
+        <Command>
+          <CommandInput className="ring-primary! focus:ring-primary focus:ring-offset-0" placeholder={`Search ${placeholder.toLowerCase()}...`} />
+          <CommandList>
+            <CommandEmpty>No {placeholder.toLowerCase()} found.</CommandEmpty>
+            <CommandGroup>
+              {options.map((option) => (
+                <CommandItem
+                  key={option.value}
+                  value={option.value}
+                  onSelect={(currentValue) => {
+                    onChange(currentValue === value ? "" : currentValue)
+                    setOpen(false)
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value === option.value ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {option.label}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  )
 }

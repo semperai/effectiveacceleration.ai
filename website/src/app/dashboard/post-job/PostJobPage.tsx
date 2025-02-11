@@ -11,7 +11,6 @@ import {
   Label,
 } from '@/components/Fieldset';
 import { Input } from '@/components/Input';
-import { Listbox, ListboxLabel, ListboxOption } from '@/components/Listbox';
 import { Radio, RadioGroup } from '@/components/Radio';
 import TagsInput from '@/components/TagsInput';
 import { Text } from '@/components/Text';
@@ -37,7 +36,8 @@ import { useAccount, useReadContract } from 'wagmi';
 import LoadingModal from './LoadingModal';
 import RegisterModal from './RegisterModal';
 import { SubmitJobButton } from './SubmitJobButton';
-import { Combobox } from '@/components/NewComboBox';
+import { Combobox } from '@/components/ComboBox';
+import ListBox from '@/components/ListBox';
 
 const deliveryMethods = [
   {
@@ -504,23 +504,17 @@ const PostJob = () => {
               <Field>
                 <Label>Category</Label>
                 <div ref={jobCategoryRef} className='scroll-mt-20' />
-                <Listbox
+                <ListBox
                   placeholder='Select Category'
                   value={selectedCategory}
                   onChange={(category) => {
-                    setSelectedCategory(category);
-                    setCategoryError('');
+                    if (typeof category !== 'string') {
+                      setSelectedCategory(category);
+                      setCategoryError('');
+                    }
                   }}
-                >
-                  {jobMeceTags.map(
-                    (category, index) =>
-                      index > 0 && (
-                        <ListboxOption key={index} value={category}>
-                          <ListboxLabel>{jobMeceTags[index].name}</ListboxLabel>
-                        </ListboxOption>
-                      )
-                  )}
-                </Listbox>
+                  options={jobMeceTags}
+                />
                 {categoryError && (
                   <div className='text-xs' style={{ color: 'red' }}>
                     {categoryError}
@@ -602,19 +596,16 @@ const PostJob = () => {
               </div>
               <Field>
                 <Label>Delivery Method</Label>
-                <Listbox
+                <ListBox
                   placeholder='Delivery Method'
                   value={deliveryMethod}
-                  onChange={(e) => setDeliveryMethod(e)}
-                >
-                  {deliveryMethods.map((method, index) => (
-                    <ListboxOption key={index} value={method.value}>
-                      <ListboxLabel>
-                        {deliveryMethods[index].label}
-                      </ListboxLabel>
-                    </ListboxOption>
-                  ))}
-                </Listbox>
+                  onChange={(method) => {
+                    if (typeof method === 'string') {
+                      setDeliveryMethod(method);
+                    }
+                  }}
+                  options={deliveryMethods.map(method => ({ id: method.value, name: method.label }))}
+                />
                 <Description>
                   What delivery method should the worker use? For digital items
                   usually IPFS is the correct choice. For jobs that do not
@@ -706,22 +697,16 @@ const PostJob = () => {
                 </Field>
                 <Field className='flex-1'>
                   <Label>Units</Label>
-                  <Listbox
-                    placeholder='Time Units'
+                  <ListBox
+                    placeholder='Select Time Units'
                     value={selectedUnitTime}
-                    onChange={(e) => setselectedUnitTime(e)}
-                  >
-                    {unitsDeliveryTime.map(
-                      (timeUnit, index) =>
-                        index > 0 && (
-                          <ListboxOption key={index} value={timeUnit}>
-                            <ListboxLabel>
-                              {unitsDeliveryTime[index].name}
-                            </ListboxLabel>
-                          </ListboxOption>
-                        )
-                    )}
-                  </Listbox>
+                    onChange={(unit) => {
+                      if (typeof unit !== 'string') {
+                        setselectedUnitTime(unit);
+                      }
+                    }}
+                    options={unitsDeliveryTime.map(unit => ({ id: unit.id.toString(), name: unit.name }))}
+                  />
                 </Field>
               </div>
             </FieldGroup>

@@ -120,7 +120,6 @@ const Test = () => {
 
   return (
     <Layout>
-      aa
       <div className='flex flex-row gap-3'>
         <Input
           value={subscribeAddress}
