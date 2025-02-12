@@ -39,7 +39,7 @@ export function Combobox({ placeholder, value, options, onChange }: ComboboxProp
           className="w-full justify-between rounded-xl"
         >
           {value
-            ? options.find((option) => option.value === value)?.label
+          ? options.find((option) => option.value === value)?.label
             : placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
