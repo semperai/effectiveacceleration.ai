@@ -36,7 +36,7 @@ export function Combobox({ placeholder, value, options, onChange }: ComboboxProp
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between rounded-xl"
+          className="w-full justify-between rounded-xl border-gray-300 active:ring-offset-0 focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0 focus:ring-primary"
         >
           {value
           ? options.find((option) => option.value === value)?.label
@@ -44,14 +44,15 @@ export function Combobox({ placeholder, value, options, onChange }: ComboboxProp
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0">
-        <Command>
-          <CommandInput className="ring-primary! focus:ring-primary focus:ring-offset-0" placeholder={`Search ${placeholder.toLowerCase()}...`} />
+      <PopoverContent className="w-full p-0 rounded-xl">
+        <Command className="rounded-xl">
+          <CommandInput className="rounded-xl border outline-1 outline-offset-1 focus:outline-offset-1 focus:outline-1 ring-primary border-primary before:ring-primary focus:ring-primary focus:border-0 ring-offset-0 focus:ring-offset-0" placeholder={`Search ${placeholder.toLowerCase()}...`} />
           <CommandList>
             <CommandEmpty>No {placeholder.toLowerCase()} found.</CommandEmpty>
             <CommandGroup>
               {options.map((option) => (
                 <CommandItem
+                  className="rounded-lg"
                   key={option.value}
                   value={option.value}
                   onSelect={(currentValue) => {
