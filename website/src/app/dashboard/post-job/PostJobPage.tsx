@@ -41,20 +41,20 @@ import ListBox from '@/components/ListBox';
 
 const deliveryMethods = [
   {
-    label: 'IPFS',
-    value: 'ipfs',
+    name: 'IPFS',
+    id: 'ipfs',
   },
   {
-    label: 'Courier',
-    value: 'courier',
+    name: 'Courier',
+    id: 'courier',
   },
   {
-    label: 'Digital Proof',
-    value: 'digital_proof',
+    name: 'Digital Proof',
+    id: 'digital_proof',
   },
   {
-    label: 'Other',
-    value: 'other',
+    name: 'Other',
+    id: 'other',
   },
 ];
 
@@ -112,6 +112,7 @@ const JobSummary = ({
       </div>
     </div>
   );
+  const deliveryMethodName = deliveryMethods.find(method => method.id === deliveryMethod)?.name;
 
   return (
     <div className='mx-auto max-w-4xl'>
@@ -145,7 +146,7 @@ const JobSummary = ({
           <Row label='Price'>
             <span className='mr-1 inline'>{amount}</span>
           </Row>
-          <Row label='Delivery Method'>{deliveryMethod}</Row>
+          <Row label='Delivery Method'>{deliveryMethodName}</Row>
           <Row label='Deadline'>
             {moment.duration(deadline, 'seconds').humanize()}
           </Row>
@@ -202,7 +203,7 @@ const PostJob = () => {
   const [showSummary, setShowSummary] = useState(false);
   const [title, setTitle] = useState<string>('');
   const [deliveryMethod, setDeliveryMethod] = useState(
-    deliveryMethods[0].value
+    deliveryMethods[0].id
   );
   const [description, setDescription] = useState<string>('');
   const [amount, setAmount] = useState('');
@@ -600,11 +601,12 @@ const PostJob = () => {
                   placeholder='Delivery Method'
                   value={deliveryMethod}
                   onChange={(method) => {
-                    if (typeof method === 'string') {
-                      setDeliveryMethod(method);
+                    if (typeof method !== 'string') {
+                      setDeliveryMethod(method.id);
+                      setCategoryError('');
                     }
                   }}
-                  options={deliveryMethods.map(method => ({ id: method.value, name: method.label }))}
+                  options={deliveryMethods}
                 />
                 <Description>
                   What delivery method should the worker use? For digital items
