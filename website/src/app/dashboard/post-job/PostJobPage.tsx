@@ -556,7 +556,7 @@ const PostJob = () => {
                 </Field>
                 <Field className='flex-1'>
                   <Label>Payment Token</Label>
-                  <div className='flex flex-col gap-y-2'>
+                  <div className='flex flex-col gap-y-2 mt-[7px]'>
                     <div className='flex items-center gap-x-2'>
                       <div>
                         <div className='flex flex-col gap-4'>
@@ -568,7 +568,7 @@ const PostJob = () => {
                         {selectedToken &&
                         balanceData !== null &&
                         balanceData !== undefined ? (
-                          <Text>
+                          <Text className='text-xs'>
                             Balance:{' '}
                             {ethers.formatUnits(
                               balanceData as ethers.BigNumberish,
@@ -577,7 +577,7 @@ const PostJob = () => {
                             {selectedToken.symbol}
                           </Text>
                         ) : (
-                          <Text style={{ color: 'red' }}>
+                          <Text className='!text-xs' style={{color: 'red' }}>
                             Balance: 0.0 {selectedToken?.symbol}
                           </Text>
                         )}
