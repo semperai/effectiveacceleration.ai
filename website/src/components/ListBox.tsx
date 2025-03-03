@@ -24,7 +24,7 @@ const ListBox: React.FC<ListBoxProps> = ({ placeholder, value, onChange, options
         onChange(id);
       }
     }}>
-      <SelectTrigger className="w-full rounded-xl border-gray-300 focus:ring-offset-0 focus:ring-primary focus:ring-1 ring-blue-500 border data-[hover]:border-zinc-950/20 dark:border-white/10 dark:data-[hover]:border-white/20">
+      <SelectTrigger className="w-full rounded-xl border-gray-300 focus:ring-offset-0 focus:ring-primary focus:ring-1 ring-blue-500 border data-[hover]:border-zinc-950/20 dark:border-white/10 dark:data-[hover]:border-white/20 mt-[7px]">
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent className='rounded-xl'>
