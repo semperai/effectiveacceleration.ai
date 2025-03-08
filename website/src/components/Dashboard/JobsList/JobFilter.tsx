@@ -1,7 +1,6 @@
 import { Button } from '@/components/Button';
 import { Card, CardContent } from '@/components/Card';
 import { Input } from '@/components/Input';
-import { Listbox, ListboxLabel, ListboxOption } from '@/components/Listbox';
 import { Separator } from '@/components/Separator';
 import TagsInput from '@/components/TagsInput';
 import { TokenSelector } from '@/components/TokenSelector';
@@ -12,7 +11,8 @@ import { Field, Label } from '@headlessui/react';
 import { Radio, RadioGroup } from '@/components/Radio';
 import { ChevronDown, ChevronUp, Filter, Search } from 'lucide-react';
 import React, { useState } from 'react';
-import { Combobox } from '@/components/NewComboBox';
+import { Combobox } from '@/components/ComboBox';
+import ListBox from '@/components/ListBox';
 
 type JobFilterProps = {
   search: string;
@@ -148,21 +148,16 @@ export const JobFilter = ({
                         />
                       </div>
                       <div className='w-full sm:w-40'>
-                        <Listbox
-                          placeholder='Time Units'
-                          value={selectedUnitTime}
-                          onChange={setSelectedUnitTime}
-                          className='w-full'
-                        >
-                          {unitsDeliveryTime.map(
-                            (timeUnit, index) =>
-                              index > 0 && (
-                                <ListboxOption key={index} value={timeUnit}>
-                                  <ListboxLabel>{timeUnit.name}</ListboxLabel>
-                                </ListboxOption>
-                              )
-                          )}
-                        </Listbox>
+                      <ListBox
+                        placeholder='Select Time Units'
+                        value={selectedUnitTime}
+                        onChange={(unit) => {
+                          if (typeof unit !== 'string') {
+                            setSelectedUnitTime(unit);
+                          }
+                        }}
+                        options={unitsDeliveryTime.map(unit => ({ id: unit.id.toString(), name: unit.name }))}
+                      />
                       </div>
                     </div>
                   </div>

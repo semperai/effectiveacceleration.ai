@@ -11,7 +11,6 @@ import {
   Label,
 } from '@/components/Fieldset';
 import { Input } from '@/components/Input';
-import { Listbox, ListboxLabel, ListboxOption } from '@/components/Listbox';
 import { Radio, RadioGroup } from '@/components/Radio';
 import TagsInput from '@/components/TagsInput';
 import { Text } from '@/components/Text';
@@ -37,24 +36,25 @@ import { useAccount, useReadContract } from 'wagmi';
 import LoadingModal from './LoadingModal';
 import RegisterModal from './RegisterModal';
 import { SubmitJobButton } from './SubmitJobButton';
-import { Combobox } from '@/components/NewComboBox';
+import { Combobox } from '@/components/ComboBox';
+import ListBox from '@/components/ListBox';
 
 const deliveryMethods = [
   {
-    label: 'IPFS',
-    value: 'ipfs',
+    name: 'IPFS',
+    id: 'ipfs',
   },
   {
-    label: 'Courier',
-    value: 'courier',
+    name: 'Courier',
+    id: 'courier',
   },
   {
-    label: 'Digital Proof',
-    value: 'digital_proof',
+    name: 'Digital Proof',
+    id: 'digital_proof',
   },
   {
-    label: 'Other',
-    value: 'other',
+    name: 'Other',
+    id: 'other',
   },
 ];
 
@@ -112,6 +112,7 @@ const JobSummary = ({
       </div>
     </div>
   );
+  const deliveryMethodName = deliveryMethods.find(method => method.id === deliveryMethod)?.name;
 
   return (
     <div className='mx-auto max-w-4xl'>
@@ -145,7 +146,7 @@ const JobSummary = ({
           <Row label='Price'>
             <span className='mr-1 inline'>{amount}</span>
           </Row>
-          <Row label='Delivery Method'>{deliveryMethod}</Row>
+          <Row label='Delivery Method'>{deliveryMethodName}</Row>
           <Row label='Deadline'>
             {moment.duration(deadline, 'seconds').humanize()}
           </Row>
@@ -202,7 +203,7 @@ const PostJob = () => {
   const [showSummary, setShowSummary] = useState(false);
   const [title, setTitle] = useState<string>('');
   const [deliveryMethod, setDeliveryMethod] = useState(
-    deliveryMethods[0].value
+    deliveryMethods[0].id
   );
   const [description, setDescription] = useState<string>('');
   const [amount, setAmount] = useState('');
@@ -504,23 +505,17 @@ const PostJob = () => {
               <Field>
                 <Label>Category</Label>
                 <div ref={jobCategoryRef} className='scroll-mt-20' />
-                <Listbox
+                <ListBox
                   placeholder='Select Category'
                   value={selectedCategory}
                   onChange={(category) => {
-                    setSelectedCategory(category);
-                    setCategoryError('');
+                    if (typeof category !== 'string') {
+                      setSelectedCategory(category);
+                      setCategoryError('');
+                    }
                   }}
-                >
-                  {jobMeceTags.map(
-                    (category, index) =>
-                      index > 0 && (
-                        <ListboxOption key={index} value={category}>
-                          <ListboxLabel>{jobMeceTags[index].name}</ListboxLabel>
-                        </ListboxOption>
-                      )
-                  )}
-                </Listbox>
+                  options={jobMeceTags}
+                />
                 {categoryError && (
                   <div className='text-xs' style={{ color: 'red' }}>
                     {categoryError}
@@ -561,7 +556,7 @@ const PostJob = () => {
                 </Field>
                 <Field className='flex-1'>
                   <Label>Payment Token</Label>
-                  <div className='flex flex-col gap-y-2'>
+                  <div className='flex flex-col gap-y-2 mt-[7px]'>
                     <div className='flex items-center gap-x-2'>
                       <div>
                         <div className='flex flex-col gap-4'>
@@ -573,7 +568,7 @@ const PostJob = () => {
                         {selectedToken &&
                         balanceData !== null &&
                         balanceData !== undefined ? (
-                          <Text>
+                          <Text className='text-xs'>
                             Balance:{' '}
                             {ethers.formatUnits(
                               balanceData as ethers.BigNumberish,
@@ -582,7 +577,7 @@ const PostJob = () => {
                             {selectedToken.symbol}
                           </Text>
                         ) : (
-                          <Text style={{ color: 'red' }}>
+                          <Text className='!text-xs' style={{color: 'red' }}>
                             Balance: 0.0 {selectedToken?.symbol}
                           </Text>
                         )}
@@ -602,19 +597,17 @@ const PostJob = () => {
               </div>
               <Field>
                 <Label>Delivery Method</Label>
-                <Listbox
+                <ListBox
                   placeholder='Delivery Method'
                   value={deliveryMethod}
-                  onChange={(e) => setDeliveryMethod(e)}
-                >
-                  {deliveryMethods.map((method, index) => (
-                    <ListboxOption key={index} value={method.value}>
-                      <ListboxLabel>
-                        {deliveryMethods[index].label}
-                      </ListboxLabel>
-                    </ListboxOption>
-                  ))}
-                </Listbox>
+                  onChange={(method) => {
+                    if (typeof method !== 'string') {
+                      setDeliveryMethod(method.id);
+                      setCategoryError('');
+                    }
+                  }}
+                  options={deliveryMethods}
+                />
                 <Description>
                   What delivery method should the worker use? For digital items
                   usually IPFS is the correct choice. For jobs that do not
@@ -706,22 +699,16 @@ const PostJob = () => {
                 </Field>
                 <Field className='flex-1'>
                   <Label>Units</Label>
-                  <Listbox
-                    placeholder='Time Units'
+                  <ListBox
+                    placeholder='Select Time Units'
                     value={selectedUnitTime}
-                    onChange={(e) => setselectedUnitTime(e)}
-                  >
-                    {unitsDeliveryTime.map(
-                      (timeUnit, index) =>
-                        index > 0 && (
-                          <ListboxOption key={index} value={timeUnit}>
-                            <ListboxLabel>
-                              {unitsDeliveryTime[index].name}
-                            </ListboxLabel>
-                          </ListboxOption>
-                        )
-                    )}
-                  </Listbox>
+                    onChange={(unit) => {
+                      if (typeof unit !== 'string') {
+                        setselectedUnitTime(unit);
+                      }
+                    }}
+                    options={unitsDeliveryTime.map(unit => ({ id: unit.id.toString(), name: unit.name }))}
+                  />
                 </Field>
               </div>
             </FieldGroup>

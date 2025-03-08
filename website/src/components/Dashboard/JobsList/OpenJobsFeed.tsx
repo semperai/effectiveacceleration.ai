@@ -93,7 +93,7 @@ export const OpenJobsFeed = () => {
 
   const observer = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
-  
+
   const loadMoreJobs = useCallback(() => {
     console.log('loadMoreJobs');
     setLimit((prevLimit) => prevLimit + 10); // Increase the limit to load more jobs

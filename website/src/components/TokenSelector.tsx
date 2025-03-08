@@ -13,7 +13,7 @@ function TokenButton({
   selectedToken: Token | undefined;
 }) {
   const baseClass =
-    'w-fit rounded-lg font-medium flex gap-2 items-center transition ease-in-out delay-50 duration-150';
+    'w-fit rounded-lg font-medium flex gap-2 items-center transition ease-in-out delay-50 duration-150 h-10 rounded-xl p-1.5';
 
   if (selectedToken) {
     return (

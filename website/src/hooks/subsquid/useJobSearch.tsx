@@ -20,13 +20,16 @@ export default function useJobSearch({
   maxTimestamp?: number;
   minTimestamp?: number;
 }) {
+  let timestampAdded = false;
   const buildSearchConditions = (obj: any): string => {
     const search: string[] = [];
-    if (maxTimestamp) {
+    if (maxTimestamp && !timestampAdded) {
       search.push(`jobTimes:{createdAt_lt: ${maxTimestamp}}`)
+      timestampAdded = true;
     }
-    if (minTimestamp) {
+    if (minTimestamp && !timestampAdded) {
       search.push(`jobTimes:{createdAt_gt: ${minTimestamp}}`)
+      timestampAdded = true;
     }
 
     return [...search, ...Object.entries(obj)
@@ -50,12 +53,12 @@ export default function useJobSearch({
     const search = userAddress
     ? `
       OR: [
-        {
+        { 
           whitelistWorkers_eq: true,
           allowedWorkers_containsAny: "${userAddress}",
-          ${searchConditions}
+          ${searchConditions},
         },
-        {
+        {          
           whitelistWorkers_eq: false,
           ${searchConditions}
         }
@@ -75,7 +78,6 @@ export default function useJobSearch({
     }
   );
 
-  console.log(data, 'DATA');
 
   return useMemo(
     () => ({ data: data ? (data?.jobs as Job[]) : undefined, ...rest }),
