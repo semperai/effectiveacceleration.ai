@@ -318,10 +318,6 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
                             }
                             onClick={updateButtonClick}
                           >
-                            <CheckIcon
-                              className='-ml-0.5 mr-1.5 h-5 w-5'
-                              aria-hidden='true'
-                            />
                             Update
                           </Button>
                         )}

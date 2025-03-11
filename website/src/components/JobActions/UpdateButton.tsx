@@ -294,7 +294,7 @@ export function UpdateButton({
                   >
                     Update job
                   </Dialog.Title>
-                  <div className='mb-3 mt-5 flex flex-col gap-5'>
+                  <div className='mb-3 mt-5 flex flex-col gap-5 h-[500px] overflow-auto px-4'>
                     <Field>
                       <Label>Title</Label>
                       <Input
@@ -504,10 +504,6 @@ export function UpdateButton({
                       disabled={isUpdating || isConfirming}
                       onClick={handleUpdate}
                     >
-                      <CheckIcon
-                        className='-ml-0.5 mr-1.5 h-5 w-5'
-                        aria-hidden='true'
-                      />
                       Confirm
                     </Button>
                   </div>
