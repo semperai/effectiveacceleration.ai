@@ -287,14 +287,14 @@ export function UpdateButton({
                 leaveFrom='opacity-100 scale-100'
                 leaveTo='opacity-0 scale-95'
               >
-                <Dialog.Panel className='w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all'>
+                <Dialog.Panel className='w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-8 text-left align-middle shadow-xl transition-all'>
                   <Dialog.Title
                     as='h3'
                     className='text-lg font-medium leading-6 text-gray-900'
                   >
                     Update job
                   </Dialog.Title>
-                  <div className='mb-3 mt-5 flex flex-col gap-5 h-[500px] overflow-auto px-4'>
+                  <div className='mb-3 mt-5 flex flex-col gap-5 h-[450px] overflow-auto pr-4'>
                     <Field>
                       <Label>Title</Label>
                       <Input
@@ -500,13 +500,15 @@ export function UpdateButton({
                       </RadioGroup>
                     </Field>
 
-                    <Button
+
+                  </div>
+                  <Button
+                      className='w-full '
                       disabled={isUpdating || isConfirming}
                       onClick={handleUpdate}
                     >
                       Confirm
                     </Button>
-                  </div>
                 </Dialog.Panel>
               </Transition.Child>
             </div>
