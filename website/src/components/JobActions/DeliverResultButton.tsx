@@ -28,6 +28,7 @@ export function DeliverResultButton({
   const [message, setMessage] = useState<string>('');
   const [file, setFile] = useState<File>();
   const [isDelivering, setIsDelivering] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { showError, showSuccess, showLoading, toast } = useToast();
 
   const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
@@ -139,7 +140,7 @@ export function DeliverResultButton({
   function openModal() {
     setIsOpen(true);
   }
-
+  console.log(file, 'FILE');
   return (
     <>
       <Button
@@ -198,11 +199,20 @@ export function DeliverResultButton({
                         <Input
                           type='file'
                           id='file'
-                          name='file'
+                          ref={fileInputRef}
+                          name={file?.name}
                           onChange={(e) => setFile(e.target.files?.[0]!)}
                         />
                         {file && <div className='w-[48px] h-[48px] rounded-xl ml-2 mt-1.5 p-1 border-[rgb(79 70 229)]  flex items-center justify-center'>
-                          <TrashIcon className='w-[26px] h-[26px] hover:cursor-pointer' onClick={() => setFile(undefined)} />
+                          <TrashIcon 
+                            className='w-[26px] h-[26px] hover:cursor-pointer' 
+                            onClick={() => {
+                              setFile(undefined);
+                              if (fileInputRef.current) {
+                                fileInputRef.current.value = '';
+                              }
+                            }} 
+                          />
                         </div>}
                       </div>
                     </div>
