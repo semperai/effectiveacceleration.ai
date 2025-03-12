@@ -201,8 +201,8 @@ export function DeliverResultButton({
                           name='file'
                           onChange={(e) => setFile(e.target.files?.[0]!)}
                         />
-                        {file && <div className='w-[48px] h-[48px] rounded-xl ml-2 mt-1.5 p-1 border-[rgb(79 70 229)] border-2'>
-                          <TrashIcon className='hover:cursor-pointer' onClick={() => setFile(undefined)}/>
+                        {file && <div className='w-[48px] h-[48px] rounded-xl ml-2 mt-1.5 p-1 border-[rgb(79 70 229)]  flex items-center justify-center'>
+                          <TrashIcon className='w-[26px] h-[26px] hover:cursor-pointer' onClick={() => setFile(undefined)} />
                         </div>}
                       </div>
                     </div>
