@@ -40,3 +40,9 @@ span {
     --radius: 0.5rem;
   }
 }
+
+/* Styles for download  */
+.download-markdown strong {
+  @apply text-primary;
+  @apply underline;
+}
