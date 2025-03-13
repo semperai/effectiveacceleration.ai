@@ -28,20 +28,21 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
   };
   console.log(selectedWorker, 'selectedWorker');
   return (
-    <div className='w-full content-center py-16 text-center'>
-      <span className='block justify-center pb-2 text-primary'>
+    <div className='w-full content-center py-16 px-10 text-center'>
+      <span className='block justify-center pb-2 text-primary px-8'>
         {users[selectedWorker]?.name || 'User'} has completed the job with a
         comment:
-        <br /> 
-        <span>
+
+      </span>
+      <span className='text-sm'>
           {isReadMore ? `${comment?.slice(0, 200)}...` : comment}
           {comment.length > 100 && (
             <span onClick={toggleReadMore} className='text-primary cursor-pointer'>
               {isReadMore ? ' read more' : ' show less'}
             </span>
           )}
-        </span>
       </span>
+      <br/>
       <br/>
       <span className='block'>You have accepted the result.</span>
       <div className='pt-3'>
