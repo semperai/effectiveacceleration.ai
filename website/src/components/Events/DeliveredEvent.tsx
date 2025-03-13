@@ -51,7 +51,7 @@ export function DeliveredEvent({
           <span className='whitespace-nowrap'>{date}</span>
         </div>
         {markdownContent ?
-          <Markdown className='h-full download-markdown'>
+          <Markdown className='h-full download-markdown text-sm'>
             {markdownContent}
           </Markdown> :
           <div className='mt-2 text-sm text-gray-700 dark:text-gray-500'>
