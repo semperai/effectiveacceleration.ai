@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/Button';
 import {
@@ -21,16 +21,28 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
   selectedWorker,
   events,
 }) => {
+  const [isReadMore, setIsReadMore] = useState(true);
+  const comment = events.filter((event) => event.type_ === JobEventType.Delivered)[0]?.job?.result || '';
+  const toggleReadMore = () => {
+    setIsReadMore(!isReadMore);
+  };
+  console.log(selectedWorker, 'selectedWorker');
   return (
     <div className='w-full content-center py-16 text-center'>
       <span className='block justify-center pb-2 text-primary'>
-        {users[selectedWorker]?.name || 'user'} has completed the job with a
+        {users[selectedWorker]?.name || 'User'} has completed the job with a
         comment:
-        {
-          events.filter((event) => event.type_ === JobEventType.Delivered)[0]
-            .job.result
-        }
+        <br /> 
+        <span>
+          {isReadMore ? `${comment?.slice(0, 200)}...` : comment}
+          {comment.length > 100 && (
+            <span onClick={toggleReadMore} className='text-primary cursor-pointer'>
+              {isReadMore ? ' read more' : ' show less'}
+            </span>
+          )}
+        </span>
       </span>
+      <br/>
       <span className='block'>You have accepted the result.</span>
       <div className='pt-3'>
         <Link
