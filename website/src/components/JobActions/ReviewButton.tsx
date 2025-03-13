@@ -82,7 +82,6 @@ export function ReviewButton({
   function openModal() {
     setIsOpen(true);
   }
-  console.log('selected', ratingOptions, rating)
   return (
     <>
       <Button
