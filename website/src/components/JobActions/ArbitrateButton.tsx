@@ -113,7 +113,7 @@ export function ArbitrateButton({
       </Button>
 
       <Transition appear show={isOpen} as={Fragment}>
-        <Dialog as='div' className='relative z-10' onClose={closeModal}>
+        <Dialog as='div' className='relative z-50' onClose={closeModal}>
           <Transition.Child
             as={Fragment}
             enter='ease-out duration-300'
@@ -137,7 +137,7 @@ export function ArbitrateButton({
                 leaveFrom='opacity-100 scale-100'
                 leaveTo='opacity-0 scale-95'
               >
-                <Dialog.Panel className='w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all'>
+                <Dialog.Panel className='w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-8 text-left align-middle shadow-xl transition-all'>
                   <Dialog.Title
                     as='h3'
                     className='text-lg font-medium leading-6 text-gray-900'
@@ -215,7 +215,6 @@ export function ArbitrateButton({
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       placeholder='Please write a message describing your reasoning for your decision'
-                      className='mt-5'
                     />
                     <Button
                       disabled={isArbitrating || message === ''}
