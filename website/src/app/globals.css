@@ -48,5 +48,4 @@ span {
 
 .download-markdown strong:hover {
   @apply text-darkBlueFont;
-  @apply underline;
 }
