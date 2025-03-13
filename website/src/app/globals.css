@@ -44,5 +44,9 @@ span {
 /* Styles for download  */
 .download-markdown strong {
   @apply text-primary;
+}
+
+.download-markdown strong:hover {
+  @apply text-darkBlueFont;
   @apply underline;
 }
