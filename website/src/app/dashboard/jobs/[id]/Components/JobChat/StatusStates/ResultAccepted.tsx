@@ -28,7 +28,7 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
   };
   console.log(selectedWorker, 'selectedWorker');
   return (
-    <div className='w-full content-center py-16 px-10 text-center'>
+    <div className='w-full content-center py-16 px-9 text-center'>
       <span className='block justify-center pb-2 text-primary px-8'>
         {users[selectedWorker]?.name || 'User'} has completed the job with a
         comment:
