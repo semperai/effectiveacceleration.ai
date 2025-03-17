@@ -39,7 +39,7 @@ export function ConnectButton() {
             <button
               type='button'
               className={clsx(
-                'group relative inline-flex items-center gap-2 bg-gradient-to-r px-6 py-2',
+                'group relative inline-flex items-center gap-2 bg-gradient-to-r px-6 py-2 w-full justify-center',
                 error
                   ? 'from-purple-600 to-pink-500 shadow-pink-500/25 hover:from-purple-500 hover:to-pink-400 hover:shadow-pink-500/30 active:from-purple-700 active:to-pink-600'
                   : 'from-purple-600 to-blue-500 shadow-purple-500/25 hover:from-purple-500 hover:to-blue-400 hover:shadow-purple-500/30 active:from-purple-700 active:to-blue-600',
