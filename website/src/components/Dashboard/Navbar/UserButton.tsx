@@ -284,7 +284,7 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
                         )}
                         {user && userIndex === 0 && (
                           <Field className='py-2'>
-                            Reputation
+                            <Label>Reputation</Label>
                             <p className='whitespace-nowrap'>
                               <span className='text-green-500 pr-4'>
                                 +{user.reputationUp}
