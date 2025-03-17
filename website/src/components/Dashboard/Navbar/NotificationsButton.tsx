@@ -173,7 +173,7 @@ export const NotificationsButton = () => {
                 leaveTo='opacity-0 scale-95'
               >
                 <Dialog.Panel className='w-full max-w-md transform overflow-hidden rounded-2xl bg-white shadow-xl transition-all'>
-                  <div className='border-b border-gray-200 bg-gray-50 px-6 py-4'>
+                  <div className='border-b border-gray-200 bg-gray-50 px-8 py-4'>
                     <div className='flex items-center justify-between'>
                       <Dialog.Title className='text-lg font-medium text-gray-900'>
                         Notifications
@@ -198,7 +198,7 @@ export const NotificationsButton = () => {
                     </div>
                   </div>
 
-                  <div className='px-6 py-4'>
+                  <div className='px-8 py-4'>
                     <div className='mb-4 flex justify-between'>
                       <Button onClick={() => setLimit(limit + 5)} outline>
                         Load more
