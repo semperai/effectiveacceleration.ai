@@ -22,7 +22,7 @@ const NotificationItem = ({
 
   return (
     <div
-      className={`flex flex-col rounded-lg p-3 ${notification.read ? 'bg-white' : 'bg-yellow-50'} transition-colors hover:bg-gray-50`}
+      className={`flex flex-col rounded-lg p-3 ${notification.read ? 'bg-white' : 'bg-primary bg-opacity-10'} transition-colors hover:bg-gray-50`}
     >
       <div className='flex items-center justify-between'>
         <Link
