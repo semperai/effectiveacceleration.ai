@@ -27,6 +27,27 @@ interface NavButtonProps {
   openModal: () => void;
 }
 
+interface ReputationProps {
+  positiveCount: number;
+  negativeCount: number;
+}
+
+const Reputation = ({ positiveCount, negativeCount }: ReputationProps) => (
+  <Field className='py-2'>
+    <Label>Reputation</Label>
+    <div className='py-2'>
+      <p className='whitespace-nowrap'>
+        <span className='text-green-500 mr-2 p-2 border rounded-full border-gray-300'>
+          +{positiveCount}
+        </span>
+        <span className='text-red p-2 border rounded-full border-gray-300'>
+          -{negativeCount}
+        </span>
+      </p>
+    </div>
+  </Field>
+);
+
 const NavButton = ({ name, avatar, openModal }: NavButtonProps) => {
   const [isImgValid, setIsImgValid] = useState<boolean>(false);
   const [sessionKey, setSessionKey] = useState<string>();
@@ -283,32 +304,17 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
                           </Field>
                         )}
                         {user && userIndex === 0 && (
-                          <Field className='py-2'>
-                            <Label>Reputation</Label>
-                            <p className='whitespace-nowrap'>
-                              <span className='text-green-500 p-2 border rounded-full border-green-500'>
-                                +{user.reputationUp}
-                              </span>
-                              <span className='text-red-500 p-2 border rounded-full border-red-500'>
-                                -{user.reputationDown}
-                              </span>{' '}
-                            </p>
-                          </Field>
+                          <Reputation
+                            positiveCount={user.reputationUp}
+                            negativeCount={user.reputationDown}
+                          />
                         )}
                         {arbitrator && userIndex === 1 && (
-                          <Field>
-                            <p className='whitespace-nowrap'>
-                              <span className='text-green-500 p-2 border rounded-full border-green-500'>
-                                +{arbitrator.settledCount}
-                              </span>
-                              <span className='text-red-500 p-2 border rounded-full border-red-500'>
-                                -{arbitrator.refusedCount}
-                              </span>{' '}
-                              reputation
-                            </p>
-                          </Field>
+                          <Reputation
+                            positiveCount={arbitrator.settledCount}
+                            negativeCount={arbitrator.refusedCount}
+                          />
                         )}
-
                         {users[userIndex] && (
                           <Button
                             disabled={
