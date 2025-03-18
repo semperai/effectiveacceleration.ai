@@ -8,6 +8,7 @@ import { UserButton } from './UserButton';
 import { useAccount } from 'wagmi';
 import useUser from '@/hooks/subsquid/useUser';
 import { Button } from '@/components/Button';
+import { ConnectButton } from '@/components/ConnectButton';
 
 interface NavbarProps {
   setSidebarOpen: (value: boolean) => void;
@@ -59,17 +60,20 @@ const Navbar = ({ setSidebarOpen, noSidebar }: NavbarProps) => {
             {/* Right side actions */}
             {user ? (
               <div className='flex items-center justify-end gap-x-4'>
-                <UserButton />
                 <NotificationsButton />
+                <UserButton />
               </div>
             ) : (
-              <Button
-                className='rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700'
-                onClick={() => console.log('Redirect to register page')}
-                href={'/register'}
-              >
-                Sign Up
-              </Button>
+              <div className='flex items-center justify-end gap-x-4'>
+                <ConnectButton />
+                <Button
+                  className='rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700'
+                  onClick={() => console.log('Redirect to register page')}
+                  href={'/register'}
+                >
+                  Sign Up
+                </Button>
+              </div>
             )}
           </div>
         </div>
