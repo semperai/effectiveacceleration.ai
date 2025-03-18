@@ -286,23 +286,22 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
                           <Field className='py-2'>
                             <Label>Reputation</Label>
                             <p className='whitespace-nowrap'>
-                              <span className='text-green-500 pr-4'>
+                              <span className='text-green-500 p-2 border rounded-full border-green-500'>
                                 +{user.reputationUp}
                               </span>
-                              <span className='text-red-500'>
+                              <span className='text-red-500 p-2 border rounded-full border-red-500'>
                                 -{user.reputationDown}
                               </span>{' '}
-
                             </p>
                           </Field>
                         )}
                         {arbitrator && userIndex === 1 && (
                           <Field>
                             <p className='whitespace-nowrap'>
-                              <span className='text-green-500'>
+                              <span className='text-green-500 p-2 border rounded-full border-green-500'>
                                 +{arbitrator.settledCount}
                               </span>
-                              <span className='text-red-500'>
+                              <span className='text-red-500 p-2 border rounded-full border-red-500'>
                                 -{arbitrator.refusedCount}
                               </span>{' '}
                               reputation
@@ -327,10 +326,6 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
                             disabled={buttonDisabled}
                             onClick={registerButtonClick}
                           >
-                            <CheckIcon
-                              className='-ml-0.5 mr-1.5 h-5 w-5'
-                              aria-hidden='true'
-                            />
                             Register
                           </Button>
                         )}
