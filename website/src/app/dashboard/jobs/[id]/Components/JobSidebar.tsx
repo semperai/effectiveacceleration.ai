@@ -223,7 +223,7 @@ export default function JobSidebar({
                   value={
                     timeLeft > 0
                       ? formatTimeLeft(timeLeft)
-                      : `Overdue by ${formatTimeLeft(-timeLeft)}`
+                      : `Due in ${formatTimeLeft(-timeLeft)}`
                   }
                 />
                 <LinearProgress value={5} className='w-full' />
