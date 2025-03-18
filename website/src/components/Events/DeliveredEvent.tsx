@@ -6,6 +6,7 @@ import EventProfileImage from './Components/EventProfileImage';
 import { type EventProps } from './index';
 import Markdown from 'react-markdown';
 import { useEffect, useState } from 'react';
+import { formatMarkdownContent } from '@/utils/utils';
 
 export function DeliveredEvent({
   event,
@@ -18,16 +19,11 @@ export function DeliveredEvent({
 
   const result = event.job.result;
   const [markdownContent, setMarkdownContent] = useState<string>();
+  
   useEffect(() => {
-    if (result?.startsWith("#filename%3D")) {
-      const hash = result.slice(1);
-      const params = new URLSearchParams(decodeURIComponent(hash));
-      const filename = params.get('filename');
-
-      setMarkdownContent(`Click to download results: **[${filename}](${result})**`)
-    }
+    formatMarkdownContent(result ?? '', setMarkdownContent);
   }, [result]);
-  console.log(markdownContent, 'markdownContent');
+
   return (
     <>
       <div className='relative'>
