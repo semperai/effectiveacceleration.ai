@@ -33,18 +33,18 @@ interface ReputationProps {
 }
 
 const Reputation = ({ positiveCount, negativeCount }: ReputationProps) => (
-  <Field className='py-2'>
+  <Field className=''>
     <Label>Reputation</Label>
-    <div className='py-2'>
-      <p className='whitespace-nowrap'>
-        <span className='text-green-500 mr-2 p-2 border rounded-full border-gray-300'>
-          +{positiveCount}
-        </span>
-        <span className='text-red p-2 border rounded-full border-gray-300'>
-          -{negativeCount}
-        </span>
-      </p>
-    </div>
+      <div className='py-3'>
+        <p className='whitespace-nowrap'>
+          <span className='text-green-500 mr-2 p-2 border rounded-full border-gray-300'>
+            +{positiveCount}
+          </span>
+          <span className='text-red p-2 border rounded-full border-gray-300'>
+            -{negativeCount}
+          </span>
+        </p>
+      </div>
   </Field>
 );
 
