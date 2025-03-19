@@ -33,7 +33,7 @@ export default {
   			darkBlueFont: '#475569',
   			red: '#FF0000',
   			graybg: '#FAFAFA',
-			lightPrimary: '#4F46E5',
+			lightPrimary: '#e0e2f7',
   		},
   		margin: {
   			'1.1': '0.500rem'
