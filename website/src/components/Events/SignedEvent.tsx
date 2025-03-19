@@ -23,7 +23,6 @@ export function SignedEvent({
       <div className='min-w-0 flex-1 py-1.5'>
         <div className='text-sm text-gray-500 dark:text-gray-400'>
           <a
-            href={href}
             className='font-medium text-gray-900 dark:text-gray-100'
           >
             {user?.name}

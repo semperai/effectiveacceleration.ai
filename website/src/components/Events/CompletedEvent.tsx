@@ -22,7 +22,6 @@ export function CompletedEvent({
         <div>
           <div className='text-sm'>
             <a
-              href={href}
               className='font-medium text-gray-900 dark:text-gray-100'
             >
               {user?.name}

@@ -48,13 +48,12 @@ export function CommentEvent({ event, ...rest }: CommentEventProps) {
       <div className='min-w-0 flex-1'>
         <div className='flex items-center justify-between'>
           <div className='text-sm'>
-            <Link
-              href={`/dashboard/users/${address}`}
+            <a
               className='font-semibold text-gray-900 transition-colors hover:text-blue-600'
               title={address}
             >
               {user?.name || 'Anonymous'}
-            </Link>
+            </a>
           </div>
           <span className='text-xs text-gray-500'>{date}</span>
         </div>
