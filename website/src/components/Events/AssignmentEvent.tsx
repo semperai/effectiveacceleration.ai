@@ -32,7 +32,6 @@ export function AssignedEvent({
           </a>{' '}
           assigned{' '}
           <a
-            href={workerHref}
             className='font-medium text-gray-900 dark:text-gray-100'
           >
             {worker?.name}
