@@ -158,9 +158,24 @@ export default function JobPage() {
           break;
         }
       }
-
-      const filteredEvents = lastIndex !== -1 ? events.slice(lastIndex) : [];
-
+      // All message events before job started
+      const additionalEvents = events.filter(
+        (event, index) =>
+          index < lastIndex &&
+          (
+            (event.type_ === 17 &&
+            event.address_ === selectedWorker &&
+            (event.details as JobMessageEvent)?.recipientAddress === job.roles.creator) ||
+            (event.type_ === 18 &&
+              event.address_ === job.roles.creator &&
+              (event.details as JobMessageEvent)?.recipientAddress === selectedWorker)
+          )
+      );
+      // All events after job started
+      const filteredEvents =
+        lastIndex !== -1
+          ? [...additionalEvents, ...events.slice(lastIndex)]
+          : [...additionalEvents];
       setEventMessages(filteredEvents);
     } else {
       setEventMessages(events);
@@ -194,7 +209,7 @@ export default function JobPage() {
       <div className='grid min-h-customHeader grid-cols-1'>
         <div className='grid min-h-customHeader grid-cols-2 md:grid-cols-4'>
           {isOwner && job?.state === JobState.Open && (
-            <div className='col-span-1 hidden md:block max-h-customHeader overflow-y-auto border border-gray-100 bg-white p-3'>
+            <div className='col-span-1 hidden max-h-customHeader overflow-y-auto border border-gray-100 bg-white p-3 md:block'>
               <JobChatsList
                 users={users ?? {}}
                 job={job}
@@ -261,7 +276,7 @@ export default function JobPage() {
                     isUserCreatorWithSelectedWorkerOrTaken) &&
                   shouldShowPostMessageButton && (
                     <>
-                      <div className='row-span-1 md:block flex flex-1 content-center items-center border border-gray-100'>
+                      <div className='row-span-1 flex flex-1 content-center items-center border border-gray-100 md:block'>
                         <PostMessageButton
                           address={address}
                           recipient={selectedWorker as string}
