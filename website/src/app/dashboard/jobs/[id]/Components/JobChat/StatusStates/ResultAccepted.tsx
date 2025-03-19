@@ -34,6 +34,7 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
       formatMarkdownContent(rawComment, (formatted) => {
         setFormattedComment(formatted);
         setIsFormatted(true); 
+        setIsReadMore(false)
       });
     } else {
       setFormattedComment(rawComment);
@@ -66,14 +67,14 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
             onClick={toggleReadMore}
             className='text-primary cursor-pointer'
           >
-            {isReadMore ? ' read more' : ' show less'}
+            {isReadMore ? ' show more' : ' show less'}
           </span>
         )}
       </span>
       <br/>
       <br/>
       <span className='block'>You have accepted the result.</span>
-      <div className='pt-3'>
+      {/* <div className='pt-3'>
         <Link
           href={{
             pathname: '/dashboard/post-job',
@@ -90,7 +91,7 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
         >
           <Button color='purplePrimary'>Create a new job with {'user'}</Button>
         </Link>
-      </div>
+      </div> */}
     </div>
   );
 };
