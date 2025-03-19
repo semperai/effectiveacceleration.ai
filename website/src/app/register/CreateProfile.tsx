@@ -16,7 +16,7 @@ import * as Sentry from '@sentry/nextjs';
 import { AlertCircle } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAccount } from 'wagmi';
 import { PostJobParams } from '../dashboard/post-job/PostJobPage';
 
@@ -105,6 +105,15 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
     router.push(hasUnfinishedJob ? '/dashboard/post-job' : '/dashboard');
   };
 
+  useEffect(() => {
+    if (error) {
+      setFormState((prev) => ({
+        ...prev,
+        isSubmitting: false,
+      }));
+    }
+  }, [error]);
+  
   // Submit handler
   const handleSubmit = async () => {
     if (!formState.userName) {
