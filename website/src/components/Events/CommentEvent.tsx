@@ -27,7 +27,7 @@ export function CommentEvent({ event, ...rest }: CommentEventProps) {
   return (
     <div
       className={clsx(
-        'flex w-full items-start space-x-4 rounded-lg p-4 transition-colors z-50',
+        'flex w-full items-start space-x-4 rounded-lg p-4 transition-colors',
         isOwnMessage ? 'bg-lightPrimary' : 'bg-gray-50'
       )}
     >
