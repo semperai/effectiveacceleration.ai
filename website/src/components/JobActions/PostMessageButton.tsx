@@ -121,7 +121,24 @@ export function PostMessageButton({
               rows={1}
               value={message}
               disabled={isPostingMessage || isConfirming}
-              onChange={(e) => setMessage(e.target.value)}
+              onChange={(e) => {
+                setMessage(e.target.value);
+            
+                // Dynamically adjust the height of the textarea
+                const textarea = e.target as HTMLTextAreaElement;
+                textarea.style.height = 'auto'; // Reset height to calculate the new height
+            
+                // Only adjust height if content exceeds one row
+                const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight!);
+                if (textarea.scrollHeight > lineHeight) {
+                  textarea.style.height = `${textarea.scrollHeight}px`; // Set height based on scrollHeight
+            
+                  // Enforce a maximum height of 6 lines
+                  if (textarea.scrollHeight > 6 * lineHeight) {
+                    textarea.style.height = `${6 * lineHeight}px`;
+                  }
+                }
+              }}
               placeholder='Type a new message'
               className='w-full !rounded'
             />
