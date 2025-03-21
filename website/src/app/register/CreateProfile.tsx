@@ -69,6 +69,15 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
   const { showError } = useToast();
 
   const unregisteredUserLabel = `${address}-unregistered-job-cache`;
+  
+  useEffect(() => {
+    if (error) {
+      setFormState((prev) => ({
+        ...prev,
+        isSubmitting: false,
+      }));
+    }
+  }, [error]);
 
   // TODO maybe this shouldn't be triggered...
   // we also have force redirect
@@ -104,15 +113,6 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
     const hasUnfinishedJob = jobsAfterSignUp[0]?.title;
     router.push(hasUnfinishedJob ? '/dashboard/post-job' : '/dashboard');
   };
-
-  useEffect(() => {
-    if (error) {
-      setFormState((prev) => ({
-        ...prev,
-        isSubmitting: false,
-      }));
-    }
-  }, [error]);
   
   // Submit handler
   const handleSubmit = async () => {
@@ -137,8 +137,19 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
       return;
     }
 
-    setFormState((prev) => ({ ...prev, isSubmitting: true, error: '' }));
+    if (formState.userBio.length >= 255) {
+      setFormState((prev) => ({
+        ...prev,
+        error: 'Bio must be less than 255 characters',
+      }));
+      return;
+    }
 
+    setFormState((prev) => ({ ...prev, isSubmitting: true, error: '' }));
+    console.log(          typeof formState.userName,
+      typeof formState.userBio,
+      typeof formState.avatarFileUrl,
+    'valus')
     try {
       await writeContractWithNotifications({
         abi: MARKETPLACE_DATA_V1_ABI,
