@@ -229,7 +229,7 @@ export default function JobPage() {
             )}
           >
             {job && (
-              <div className='grid max-h-customHeader min-h-customHeader grid-rows-[74px_68%_10%]'>
+              <div className='grid max-h-customHeader min-h-customHeader grid-rows-[74px_auto_1fr]'>
                 <ProfileUserHeader
                   users={users ?? {}}
                   selectedWorker={selectedWorker}

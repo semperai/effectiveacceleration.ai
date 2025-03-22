@@ -146,6 +146,7 @@ export function PostMessageButton({
               disabled={isPostingMessage || isConfirming || message.length === 0}
               onClick={handlePostMessage}
               color='lightBlue'
+              className={'max-h-9 self-end'}
             >
               {(isPostingMessage || isConfirming) && (
                 <Loader2 className='mr-2 h-4 w-4 animate-spin' />
