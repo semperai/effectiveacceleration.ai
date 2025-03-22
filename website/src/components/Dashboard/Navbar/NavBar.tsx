@@ -9,6 +9,7 @@ import { useAccount } from 'wagmi';
 import useUser from '@/hooks/subsquid/useUser';
 import { Button } from '@/components/Button';
 import { ConnectButton } from '@/components/ConnectButton';
+import useArbitrator from '@/hooks/subsquid/useArbitrator';
 
 interface NavbarProps {
   setSidebarOpen: (value: boolean) => void;
@@ -18,6 +19,8 @@ interface NavbarProps {
 const Navbar = ({ setSidebarOpen, noSidebar }: NavbarProps) => {
   const { address } = useAccount();
   const { data: user } = useUser(address!);
+  const { data: arbitrator } = useArbitrator(address!);
+
   return (
     <header className='sticky top-0 z-40 w-full'>
       <div className='relative'>
@@ -58,7 +61,7 @@ const Navbar = ({ setSidebarOpen, noSidebar }: NavbarProps) => {
             </div>
 
             {/* Right side actions */}
-            {user ? (
+            {user || arbitrator ? (
               <div className='flex items-center justify-end gap-x-4'>
                 <NotificationsButton />
                 <UserButton />
