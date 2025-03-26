@@ -16,6 +16,7 @@ import {
 import { jobMeceTags } from '@/utils/jobMeceTags';
 import { shortenText, formatTimeLeft } from '@/utils/utils';
 import {
+  getFromIpfs,
   Job,
   JobArbitratedEvent,
   JobEventType,
@@ -99,6 +100,7 @@ export default function JobPage() {
   const workerJobCache = `${address}${LOCAL_JOBS_WORKER_CACHE}`;
   const ownerJobCache = `${address}${LOCAL_JOBS_OWNER_CACHE}`;
   const prevJobRef = useRef<Job | undefined>(undefined);
+  
   useSwResetMessage(jobId);
 
   // Calculate the time passed since the job was closed
@@ -203,6 +205,7 @@ export default function JobPage() {
   const isWorker = !isOwner && address && job?.roles.worker.includes(address);
   const isArbitrator =
     !isOwner && !isWorker && address && job?.roles.arbitrator.includes(address);
+  console.log(events, 'events')
 
   return (
     <Layout borderless>

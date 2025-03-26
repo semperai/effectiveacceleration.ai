@@ -143,7 +143,7 @@ export const safeGetFromIpfs = async (cidOrHash: string, sessionKey: string | un
     return decryptUtf8Data(decodedData, sessionKey);
   } catch (error: any) {
     console.log('Fetching encrypted data failed with the following error: ', error);
-    return `<encrypted message>`;
+    return `<encrypted message> + ${error}`;
   }
 }
 
