@@ -80,8 +80,8 @@ export const decryptJobDisputedEvent = (event: JobDisputedEvent, sessionKey: str
       // note: event.sessionKey remains undefined here
     }
     event.content = decryptUtf8Data(getBytes(event.encryptedContent), decryptionKey);
-  } catch(e) {
-    event.content = `<encrypted message> ${e} error`;
+  } catch {
+    event.content = "<encrypted message>";
   }
 }
 
