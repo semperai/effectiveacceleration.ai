@@ -98,12 +98,14 @@ export function PostMessageButton({
     }
 
     try {
+      console.log('sessionKey: ',sessionKey, 'userAddress: ', address, 'contentHash: ', contentHash, 'selectedUserRecipient: ', selectedUserRecipient);
       await writeContractWithNotifications({
         abi: MARKETPLACE_V1_ABI,
         address: Config!.marketplaceAddress,
         functionName: 'postThreadMessage',
         args: [BigInt(job.id!), contentHash, selectedUserRecipient],
       });
+    
     } catch (err: any) {
       Sentry.captureException(err);
       showError(`Error posting job message: ${err.message}`);
