@@ -86,6 +86,11 @@ export function PostMessageButton({
       try {
         const { hash } = await publishToIpfs(message, sessionKey);
         contentHash = hash;
+        console.log('Posting job message on-IPFS:',
+          'sessionKey: ',sessionKey, 
+          'userAddress: ', address, 
+          'contentHash: ', contentHash, 
+          'selectedUserRecipient: ', selectedUserRecipient);
       } catch (err) {
         Sentry.captureException(err);
         dismissLoadingToast();
@@ -98,7 +103,11 @@ export function PostMessageButton({
     }
 
     try {
-      console.log('sessionKey: ',sessionKey, 'userAddress: ', address, 'contentHash: ', contentHash, 'selectedUserRecipient: ', selectedUserRecipient);
+      console.log('Posting job message on-chain:',
+        'sessionKey: ',sessionKey, 
+        'userAddress: ', address, 
+        'contentHash: ', contentHash, 
+        'selectedUserRecipient: ', selectedUserRecipient);
       await writeContractWithNotifications({
         abi: MARKETPLACE_V1_ABI,
         address: Config!.marketplaceAddress,
