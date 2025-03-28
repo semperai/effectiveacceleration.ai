@@ -59,7 +59,7 @@ export function CommentEvent({ event, ...rest }: CommentEventProps) {
         </div>
 
         <div className='mt-2'>
-          <p className='text-sm leading-relaxed text-gray-700'>
+          <p className='text-sm leading-relaxed text-gray-700 break-words'>
             {details.content}
           </p>
         </div>
