@@ -8,7 +8,7 @@ import { UserButton } from './UserButton';
 import { useAccount } from 'wagmi';
 import useUser from '@/hooks/subsquid/useUser';
 import { Button } from '@/components/Button';
-import { ConnectButton } from '@/components/ConnectButton';
+import { YourApp } from '@/components/ConnectButton';
 import useArbitrator from '@/hooks/subsquid/useArbitrator';
 
 interface NavbarProps {
@@ -68,7 +68,7 @@ const Navbar = ({ setSidebarOpen, noSidebar }: NavbarProps) => {
               </div>
             ) : (
               <div className='flex items-center justify-end gap-x-4'>
-                <ConnectButton />
+                <YourApp />
                 <Button
                   className='rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700'
                   onClick={() => console.log('Redirect to register page')}
