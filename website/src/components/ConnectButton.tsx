@@ -1,8 +1,8 @@
-import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { ConnectButton as ConnectWallet } from '@rainbow-me/rainbowkit';
 
-export const YourApp = () => {
+export const ConnectButton = () => {
   return (
-    <ConnectButton.Custom>
+    <ConnectWallet.Custom>
       {({
         account,
         chain,
@@ -88,6 +88,6 @@ export const YourApp = () => {
           </div>
         );
       }}
-    </ConnectButton.Custom>
+    </ConnectWallet.Custom>
   );
 };
