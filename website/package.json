@@ -57,7 +57,7 @@
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7",
     "viem": "^2.21.51",
-    "wagmi": "^2.13.0"
+    "wagmi": "^2.14.15"
   },
   "devDependencies": {
     "@mdx-js/loader": "^3.1.0",
