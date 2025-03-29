@@ -1,93 +1,80 @@
-import { ConnectButton as ConnectWallet } from '@rainbow-me/rainbowkit';
+'use client';
+import { ConnectButton as RainbowConnectButton } from '@rainbow-me/rainbowkit';
+import clsx from 'clsx';
+import { PiWallet } from 'react-icons/pi';
+import { useAccount } from 'wagmi';
 
-export const ConnectButton = () => {
+export function ConnectButton() {
+  const { address } = useAccount();
+
   return (
-    <ConnectWallet.Custom>
+    <RainbowConnectButton.Custom>
       {({
         account,
         chain,
         openAccountModal,
         openChainModal,
         openConnectModal,
-        authenticationStatus,
         mounted,
       }) => {
-        // Note: If your app doesn't use authentication, you
-        // can remove all 'authenticationStatus' checks
-        const ready = mounted && authenticationStatus !== 'loading';
-        const connected =
-          ready &&
-          account &&
-          chain &&
-          (!authenticationStatus ||
-            authenticationStatus === 'authenticated');
+        const ready = mounted;
+        const connected = ready && account && chain;
+        let error = false;
+        let onClick = connected ? openAccountModal : openConnectModal;
+        if (chain?.unsupported) {
+          onClick = openChainModal;
+          error = true;
+        }
         return (
           <div
             {...(!ready && {
               'aria-hidden': true,
-              'style': {
+              style: {
                 opacity: 0,
                 pointerEvents: 'none',
                 userSelect: 'none',
               },
             })}
           >
-            {(() => {
-              if (!connected) {
+            <button
+              type='button'
+              className={clsx(
+                'group relative inline-flex items-center gap-2 bg-gradient-to-r px-6 py-2 w-full justify-center',
+                error
+                  ? 'from-purple-600 to-pink-500 shadow-pink-500/25 hover:from-purple-500 hover:to-pink-400 hover:shadow-pink-500/30 active:from-purple-700 active:to-pink-600'
+                  : 'from-purple-600 to-blue-500 shadow-purple-500/25 hover:from-purple-500 hover:to-blue-400 hover:shadow-purple-500/30 active:from-purple-700 active:to-blue-600',
+
+                'rounded-xl font-semibold text-white shadow-lg',
+                'transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:shadow-xl',
+                'active:translate-y-0 active:shadow-md',
+                'disabled:opacity-70 disabled:hover:transform-none disabled:hover:shadow-lg'
+              )}
+              onClick={onClick}
+            >
+              <PiWallet className='h-6 w-6' />
+
+              {(() => {
+                if (!connected) {
+                  return <>Connect</>;
+                }
+                if (chain.unsupported) {
+                  return <>Wrong network</>;
+                }
+
                 return (
-                  <button onClick={openConnectModal} type="button">
-                    Connect Wallet
-                  </button>
+                  <>
+                    {address?.substr(0, 6)}...{address?.substr(-4)}
+                  </>
                 );
-              }
-              if (chain.unsupported) {
-                return (
-                  <button onClick={openChainModal} type="button">
-                    Wrong network
-                  </button>
-                );
-              }
-              return (
-                <div style={{ display: 'flex', gap: 12 }}>
-                  <button
-                    onClick={openChainModal}
-                    style={{ display: 'flex', alignItems: 'center' }}
-                    type="button"
-                  >
-                    {chain.hasIcon && (
-                      <div
-                        style={{
-                          background: chain.iconBackground,
-                          width: 12,
-                          height: 12,
-                          borderRadius: 999,
-                          overflow: 'hidden',
-                          marginRight: 4,
-                        }}
-                      >
-                        {chain.iconUrl && (
-                          <img
-                            alt={chain.name ?? 'Chain icon'}
-                            src={chain.iconUrl}
-                            style={{ width: 12, height: 12 }}
-                          />
-                        )}
-                      </div>
-                    )}
-                    {chain.name}
-                  </button>
-                  <button onClick={openAccountModal} type="button">
-                    {account.displayName}
-                    {account.displayBalance
-                      ? ` (${account.displayBalance})`
-                      : ''}
-                  </button>
-                </div>
-              );
-            })()}
+              })()}
+
+              <div className='absolute inset-0 overflow-hidden rounded-xl'>
+                <div className='absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-1000 group-hover:translate-x-[100%]' />
+              </div>
+            </button>
           </div>
         );
       }}
-    </ConnectWallet.Custom>
+    </RainbowConnectButton.Custom>
   );
-};
+}
