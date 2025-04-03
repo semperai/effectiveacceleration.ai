@@ -3,7 +3,7 @@ import useUser from '@/hooks/subsquid/useUser';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
-import { Job, publishToIpfs } from '@effectiveacceleration/contracts';
+import { getFromIpfs, Job, publishToIpfs, safeGetFromIpfs } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import * as Sentry from '@sentry/nextjs';
 import { ZeroHash } from 'ethers';
@@ -79,6 +79,12 @@ export function PostMessageButton({
     }
     let contentHash = ZeroHash;
 
+    try {
+      const contentCall = await safeGetFromIpfs('0xc7043d48132d84a040c63871406a706a86bf1bbdce36800d26a66d9ba6c30adf', sessionKey);
+      console.log(contentCall, 'TEST');
+    } catch (error) {
+      console.error('Error fetching content from IPFS:', error);
+    }
     if (message.length > 0) {
       dismissLoadingToast();
       loadingToastIdRef.current = showLoading('Publishing job message to IPFS...');
@@ -88,6 +94,7 @@ export function PostMessageButton({
         contentHash = hash;
         console.log('Posting job message on-IPFS:',
           'sessionKey: ',sessionKey, 
+          'sessionKeyRaw', sessionKeys[`${address}-${selectedUserRecipient}`],
           'userAddress: ', address, 
           'contentHash: ', contentHash, 
           'selectedUserRecipient: ', selectedUserRecipient);
@@ -105,6 +112,7 @@ export function PostMessageButton({
     try {
       console.log('Posting job message on-chain:',
         'sessionKey: ',sessionKey, 
+        'sessionKeyRaw', sessionKeys[`${address}-${selectedUserRecipient}`],
         'userAddress: ', address, 
         'contentHash: ', contentHash, 
         'selectedUserRecipient: ', selectedUserRecipient);
