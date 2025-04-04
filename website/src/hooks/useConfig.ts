@@ -8,10 +8,18 @@ export const useConfig = () => {
   const [config, setConfig] = useState<TConfig>();
   const { data: walletClient } = useWalletClient();
 
+
   useEffect(() => {
+    let conf = Config('Arbitrum One');
+    try {
+      conf = Config(walletClient?.chain.name ?? 'Arbitrum One');
+    } catch (e) {
+      console.error(e);
+    }
+
     setConfig({
-       ...Config(walletClient?.chain.name ?? 'Arbitrum One'),
-       ...StakingConfig('Ethereum'),
+      ...conf,
+      ...StakingConfig('Ethereum'),
     });
   }, [walletClient]);
 
