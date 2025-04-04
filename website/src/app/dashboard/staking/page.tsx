@@ -24,7 +24,7 @@ export default function StakingPage() {
 
   const [amount, setAmount] = useState<string>('');
   const [lockupPeriod, setLockupPeriod] = useState<number>(52); // Default to 52 weeks
-  const [isDirectStaking, setIsDirectStaking] = useState<boolean>(true);
+  const [isEACCStaking, setIsEACCStaking] = useState<boolean>(true);
   const [multiplier, setMultiplier] = useState<string>('0');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -66,8 +66,8 @@ export default function StakingPage() {
 
   // Calculate multiplier based on lockup period
   const { data: multiplierData } = useReadContract({
-    address: isDirectStaking ? Config?.EACCBarAddress : Config?.EACCAddress,
-    abi: isDirectStaking ? EACC_BAR_ABI : EACC_TOKEN_ABI,
+    address: isEACCStaking ? Config?.EACCBarAddress : Config?.EACCAddress,
+    abi: isEACCStaking ? EACC_BAR_ABI : EACC_TOKEN_ABI,
     functionName: 'M',
     args: [BigInt(lockupPeriod * 7 * 24 * 60 * 60)], // convert weeks to seconds
     query: {
@@ -121,7 +121,7 @@ export default function StakingPage() {
       const amountWei = parseEther(amount);
       const tSeconds = BigInt(lockupPeriod * 7 * 24 * 60 * 60); // Convert weeks to seconds
 
-      if (isDirectStaking) {
+      if (isEACCStaking) {
         await writeContractWithNotifications({
           address: Config!.EACCBarAddress,
           abi: EACC_BAR_ABI,
@@ -143,7 +143,7 @@ export default function StakingPage() {
       }
     } catch (error) {
       Sentry.captureException(error);
-      showError(isDirectStaking ? "Error staking tokens. Please try again." : "Error creating stream. Please try again.");
+      showError(isEACCStaking ? "Error staking tokens. Please try again." : "Error creating stream. Please try again.");
       console.error("Error staking tokens:", error);
       setIsLoading(false);
     }
@@ -178,9 +178,9 @@ export default function StakingPage() {
 
   // Handle max amount
   const handleMaxAmount = () => {
-    if (isDirectStaking && eaccBalance) {
+    if (isEACCStaking && eaccBalance) {
       setAmount(formatEther(eaccBalance));
-    } else if (!isDirectStaking && eaccxBalance) {
+    } else if (!isEACCStaking && eaccxBalance) {
       setAmount(formatEther(eaccxBalance));
     }
   };
@@ -212,14 +212,14 @@ export default function StakingPage() {
             <div className="flex justify-center mb-8">
               <div className="flex bg-gray-100 rounded-lg p-1">
                 <button
-                  className={`px-4 py-2 rounded-md ${isDirectStaking ? 'bg-blue-500 text-white' : 'text-gray-700'}`}
-                  onClick={() => setIsDirectStaking(true)}
+                  className={`px-4 py-2 rounded-md ${isEACCStaking ? 'bg-blue-500 text-white' : 'text-gray-700'}`}
+                  onClick={() => setIsEACCStaking(true)}
                 >
                   Stake EACC
                 </button>
                 <button
-                  className={`px-4 py-2 rounded-md ${!isDirectStaking ? 'bg-blue-500 text-white' : 'text-gray-700'}`}
-                  onClick={() => setIsDirectStaking(false)}
+                  className={`px-4 py-2 rounded-md ${!isEACCStaking ? 'bg-blue-500 text-white' : 'text-gray-700'}`}
+                  onClick={() => setIsEACCStaking(false)}
                 >
                   Create Stream
                 </button>
@@ -247,7 +247,7 @@ export default function StakingPage() {
               {/* Amount Input */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {isDirectStaking ? 'Amount to Stake' : 'Amount to Stream'}
+                  {isEACCStaking ? 'Amount to Stake' : 'Amount to Stream'}
                 </label>
                 <div className="relative">
                   <input
@@ -275,7 +275,7 @@ export default function StakingPage() {
                 <div className="flex items-center space-x-4">
                   <input
                     type="range"
-                    min={isDirectStaking ? 52 : 1}
+                    min={isEACCStaking ? 52 : 1}
                     max={208}
                     value={lockupPeriod}
                     onChange={(e) => setLockupPeriod(parseInt(e.target.value))}
@@ -290,8 +290,8 @@ export default function StakingPage() {
                 <p className="text-sm text-gray-500">Multiplier</p>
                 <p className="text-xl font-semibold">{parseFloat(multiplier).toFixed(4)}x</p>
                 <p className="text-xs text-gray-500">
-                  {isDirectStaking
-                    ? `You'll receive ${(parseFloat(amount || '0') * parseFloat(multiplier)).toFixed(4)} EAXX tokens`
+                  {isEACCStaking
+                    ? `You'll receive a stream of ${(parseFloat(amount || '0') * parseFloat(multiplier)).toFixed(4)} EAXX tokens`
                     : `You'll receive a stream of ${(parseFloat(amount || '0') * parseFloat(multiplier)).toFixed(4)} EACC tokens`}
                 </p>
               </div>
@@ -313,9 +313,9 @@ export default function StakingPage() {
                       onClick={handleStake}
                       disabled={isLoading || isConfirming || !amount || parseFloat(amount) <= 0}
                     >
-                      {isLoading || isConfirming ? 'Processing...' : isDirectStaking ? 'Stake EACC' : 'Create Stream'}
+                      {isLoading || isConfirming ? 'Processing...' : isEACCStaking ? 'Stake EACC' : 'Create Stream'}
                     </Button>
-                    {isDirectStaking && (
+                    {isEACCStaking && (
                       <Button
                         className="w-full"
                         onClick={handleUnstake}
@@ -333,9 +333,9 @@ export default function StakingPage() {
             <div className="mt-8 bg-blue-50 p-4 rounded-lg">
               <h3 className="font-medium text-blue-700 mb-2">How it works</h3>
               <p className="text-sm text-blue-600">
-                {isDirectStaking
-                  ? 'Staking EACC gives you EAXX tokens based on your lockup period. The longer you lock, the more EAXX you receive. You can unstake at any time after your lockup period ends.'
-                  : 'Create a stream of EACC tokens. The longer the stream duration, the higher the multiplier. The tokens will be streamed to you linearly over the specified period.'}
+                {isEACCStaking
+                  ? 'Staking EACC gives you a stream of EAXX tokens based on your lockup period. The longer you lock, the more EAXX you receive. EAXX accrues EACC from others multiplying their tokens.'
+                  : 'Create a stream of EACC tokens. The longer the stream duration, the higher the multiplier. The EACC tokens will be streamed to you linearly over the specified period.'}
               </p>
             </div>
           </div>
