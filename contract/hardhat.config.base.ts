@@ -83,9 +83,9 @@ export function configWithPkey(privateKey: string): HardhatUserConfig {
       disambiguatePaths: false,
       runOnCompile: true,
       strict: true,
-      only: ['contracts/MarketplaceV1.sol', 'contracts/MarketplaceDataV1.sol'],
+      only: ['contracts/MarketplaceV1.sol', 'contracts/MarketplaceDataV1.sol', 'contracts/EACCToken.sol', 'contracts/EACCBar.sol'],
     },
-    contractsToExtractAbi: ['MarketplaceV1', 'MarketplaceDataV1', 'FakeToken', 'Unicrow', 'UnicrowDispute', 'UnicrowArbitrator', 'UnicrowClaim'],
+    contractsToExtractAbi: ['MarketplaceV1', 'MarketplaceDataV1', 'FakeToken', 'Unicrow', 'UnicrowDispute', 'UnicrowArbitrator', 'UnicrowClaim', 'EACCBar', 'EACCToken'],
     etherscan: {
       apiKey: process.env.ETHERSCAN_API_KEY,
       customChains: [
