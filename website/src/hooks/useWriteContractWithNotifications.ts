@@ -13,6 +13,8 @@ import * as Sentry from '@sentry/nextjs';
 
 import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
+import { E_A_C_C_TOKEN_ABI as EACC_TOKEN_ABI } from '@effectiveacceleration/contracts/wagmi/EACCToken';
+import { E_A_C_C_BAR_ABI as EACC_BAR_ABI } from '@effectiveacceleration/contracts/wagmi/EACCBar';
 import { useApolloClient } from '@apollo/client';
 
 type ParsedEvent = {
@@ -66,6 +68,8 @@ type WriteContractConfig = {
   contracts?: {
     marketplaceAddress: Address;
     marketplaceDataAddress: Address;
+    eaccAddress?: Address;
+    eaccBarAddress?: Address;
   };
   onSuccess?: (
     receipt: TransactionReceipt,
@@ -115,7 +119,7 @@ export function useWriteContractWithNotifications() {
   const parseEvents = useCallback((receipt: TransactionReceipt) => {
     if (!contractsRef.current) return [];
 
-    const contracts = [
+    let contracts = [
       {
         address: contractsRef.current.marketplaceAddress,
         abi: MARKETPLACE_V1_ABI,
@@ -127,6 +131,21 @@ export function useWriteContractWithNotifications() {
         name: 'MarketplaceDataV1',
       },
     ];
+
+    if (contractsRef.current.eaccAddress) {
+      contracts.push({
+        address: contractsRef.current.eaccAddress,
+        abi: EACC_TOKEN_ABI as any,
+        name: 'EACCToken',
+      });
+    }
+    if (contractsRef.current.eaccBarAddress) {
+      contracts.push({
+        address: contractsRef.current.eaccBarAddress,
+        abi: EACC_BAR_ABI as any,
+        name: 'EACCBar',
+      });
+    }
 
     return parseContractEvents(receipt.logs, contracts);
   }, []);
@@ -176,7 +195,7 @@ export function useWriteContractWithNotifications() {
       try {
         try {
           await simulateContract(config, {
-            abi,
+            abi: abi as any,
             address,
             functionName,
             args,
@@ -187,7 +206,7 @@ export function useWriteContractWithNotifications() {
         }
 
         await writeContract({
-          abi,
+          abi: abi as any,
           address,
           functionName,
           args,
