@@ -263,7 +263,7 @@ export function UpdateButton({
         Edit Details
       </Button>
       <Transition appear show={isOpen} as={Fragment}>
-        <Dialog as='div' className='relative z-10' onClose={closeModal}>
+        <Dialog as='div' className='relative  z-50' onClose={closeModal}>
           <Transition.Child
             as={Fragment}
             enter='ease-out duration-300'
@@ -287,14 +287,14 @@ export function UpdateButton({
                 leaveFrom='opacity-100 scale-100'
                 leaveTo='opacity-0 scale-95'
               >
-                <Dialog.Panel className='w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all'>
+                <Dialog.Panel className='w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-8 text-left align-middle shadow-xl transition-all'>
                   <Dialog.Title
                     as='h3'
                     className='text-lg font-medium leading-6 text-gray-900'
                   >
                     Update job
                   </Dialog.Title>
-                  <div className='mb-3 mt-5 flex flex-col gap-5'>
+                  <div className='mb-3 mt-5 flex flex-col gap-5 h-[450px] overflow-auto pr-4'>
                     <Field>
                       <Label>Title</Label>
                       <Input
@@ -500,17 +500,15 @@ export function UpdateButton({
                       </RadioGroup>
                     </Field>
 
-                    <Button
+
+                  </div>
+                  <Button
+                      className='w-full '
                       disabled={isUpdating || isConfirming}
                       onClick={handleUpdate}
                     >
-                      <CheckIcon
-                        className='-ml-0.5 mr-1.5 h-5 w-5'
-                        aria-hidden='true'
-                      />
                       Confirm
                     </Button>
-                  </div>
                 </Dialog.Panel>
               </Transition.Child>
             </div>

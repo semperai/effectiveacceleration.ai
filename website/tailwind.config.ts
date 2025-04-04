@@ -32,7 +32,8 @@ export default {
   			blueGrayTitles: '#28303F',
   			darkBlueFont: '#475569',
   			red: '#FF0000',
-  			graybg: '#FAFAFA'
+  			graybg: '#FAFAFA',
+			lightPrimary: '#e0e2f7',
   		},
   		margin: {
   			'1.1': '0.500rem'

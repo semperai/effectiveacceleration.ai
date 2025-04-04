@@ -6,6 +6,7 @@ import EventProfileImage from './Components/EventProfileImage';
 import { type EventProps } from './index';
 import Markdown from 'react-markdown';
 import { useEffect, useState } from 'react';
+import { formatMarkdownContent } from '@/utils/utils';
 
 export function DeliveredEvent({
   event,
@@ -18,14 +19,9 @@ export function DeliveredEvent({
 
   const result = event.job.result;
   const [markdownContent, setMarkdownContent] = useState<string>();
+  
   useEffect(() => {
-    if (result?.startsWith("#filename%3D")) {
-      const hash = result.slice(1);
-      const params = new URLSearchParams(decodeURIComponent(hash));
-      const filename = params.get('filename');
-
-      setMarkdownContent(`Click to download results: **[${filename}](${result})**`)
-    }
+    formatMarkdownContent(result ?? '', setMarkdownContent);
   }, [result]);
 
   return (
@@ -42,7 +38,6 @@ export function DeliveredEvent({
       <div className='min-w-0 flex-1 py-1.5'>
         <div className='text-sm text-gray-500 dark:text-gray-400'>
           <a
-            href={href}
             className='font-medium text-gray-900 dark:text-gray-100'
           >
             {user?.name}
@@ -51,7 +46,7 @@ export function DeliveredEvent({
           <span className='whitespace-nowrap'>{date}</span>
         </div>
         {markdownContent ?
-          <Markdown className='h-full'>
+          <Markdown className='h-full download-markdown text-sm'>
             {markdownContent}
           </Markdown> :
           <div className='mt-2 text-sm text-gray-700 dark:text-gray-500'>

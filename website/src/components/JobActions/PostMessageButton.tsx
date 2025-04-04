@@ -3,7 +3,7 @@ import useUser from '@/hooks/subsquid/useUser';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
-import { Job, publishToIpfs } from '@effectiveacceleration/contracts';
+import { getFromIpfs, Job, publishToIpfs, safeGetFromIpfs } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import * as Sentry from '@sentry/nextjs';
 import { ZeroHash } from 'ethers';
@@ -79,6 +79,12 @@ export function PostMessageButton({
     }
     let contentHash = ZeroHash;
 
+    try {
+      const contentCall = await safeGetFromIpfs('0xc7043d48132d84a040c63871406a706a86bf1bbdce36800d26a66d9ba6c30adf', sessionKey);
+      console.log(contentCall, 'TEST');
+    } catch (error) {
+      console.error('Error fetching content from IPFS:', error);
+    }
     if (message.length > 0) {
       dismissLoadingToast();
       loadingToastIdRef.current = showLoading('Publishing job message to IPFS...');
@@ -86,6 +92,12 @@ export function PostMessageButton({
       try {
         const { hash } = await publishToIpfs(message, sessionKey);
         contentHash = hash;
+        console.log('Posting job message on-IPFS:',
+          'sessionKey: ',sessionKey, 
+          'sessionKeyRaw', sessionKeys[`${address}-${selectedUserRecipient}`],
+          'userAddress: ', address, 
+          'contentHash: ', contentHash, 
+          'selectedUserRecipient: ', selectedUserRecipient);
       } catch (err) {
         Sentry.captureException(err);
         dismissLoadingToast();
@@ -98,12 +110,19 @@ export function PostMessageButton({
     }
 
     try {
+      console.log('Posting job message on-chain:',
+        'sessionKey: ',sessionKey, 
+        'sessionKeyRaw', sessionKeys[`${address}-${selectedUserRecipient}`],
+        'userAddress: ', address, 
+        'contentHash: ', contentHash, 
+        'selectedUserRecipient: ', selectedUserRecipient);
       await writeContractWithNotifications({
         abi: MARKETPLACE_V1_ABI,
         address: Config!.marketplaceAddress,
         functionName: 'postThreadMessage',
         args: [BigInt(job.id!), contentHash, selectedUserRecipient],
       });
+    
     } catch (err: any) {
       Sentry.captureException(err);
       showError(`Error posting job message: ${err.message}`);
@@ -121,7 +140,24 @@ export function PostMessageButton({
               rows={1}
               value={message}
               disabled={isPostingMessage || isConfirming}
-              onChange={(e) => setMessage(e.target.value)}
+              onChange={(e) => {
+                setMessage(e.target.value);
+            
+                // Dynamically adjust the height of the textarea
+                const textarea = e.target as HTMLTextAreaElement;
+                textarea.style.height = 'auto'; // Reset height to calculate the new height
+            
+                // Only adjust height if content exceeds one row
+                const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight!);
+                if (textarea.scrollHeight > lineHeight) {
+                  textarea.style.height = `${textarea.scrollHeight}px`; // Set height based on scrollHeight
+            
+                  // Enforce a maximum height of 6 lines
+                  if (textarea.scrollHeight > 6 * lineHeight) {
+                    textarea.style.height = `${6 * lineHeight}px`;
+                  }
+                }
+              }}
               placeholder='Type a new message'
               className='w-full !rounded'
             />
@@ -129,6 +165,7 @@ export function PostMessageButton({
               disabled={isPostingMessage || isConfirming || message.length === 0}
               onClick={handlePostMessage}
               color='lightBlue'
+              className={'max-h-9 self-end'}
             >
               {(isPostingMessage || isConfirming) && (
                 <Loader2 className='mr-2 h-4 w-4 animate-spin' />

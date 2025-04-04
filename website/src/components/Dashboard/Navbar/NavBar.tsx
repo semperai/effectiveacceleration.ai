@@ -5,6 +5,11 @@ import { MdOutlineArrowForwardIos } from 'react-icons/md';
 import BreadCrumbs from '@/components/BreadCrumbs';
 import { NotificationsButton } from './NotificationsButton';
 import { UserButton } from './UserButton';
+import { useAccount } from 'wagmi';
+import useUser from '@/hooks/subsquid/useUser';
+import { Button } from '@/components/Button';
+import { ConnectButton } from '@/components/ConnectButton';
+import useArbitrator from '@/hooks/subsquid/useArbitrator';
 
 interface NavbarProps {
   setSidebarOpen: (value: boolean) => void;
@@ -12,6 +17,10 @@ interface NavbarProps {
 }
 
 const Navbar = ({ setSidebarOpen, noSidebar }: NavbarProps) => {
+  const { address } = useAccount();
+  const { data: user } = useUser(address!);
+  const { data: arbitrator } = useArbitrator(address!);
+
   return (
     <header className='sticky top-0 z-40 w-full'>
       <div className='relative'>
@@ -37,9 +46,9 @@ const Navbar = ({ setSidebarOpen, noSidebar }: NavbarProps) => {
           />
 
           {/* Main navbar content */}
-          <div className='flex flex-1 items-center justify-end md:justify-between gap-x-4 lg:gap-x-6'>
+          <div className='flex flex-1 items-center justify-end gap-x-4 md:justify-between lg:gap-x-6'>
             {/* Breadcrumbs */}
-            <div className='flex-1 md:block hidden'>
+            <div className='hidden flex-1 md:block'>
               <BreadCrumbs
                 separator={
                   <MdOutlineArrowForwardIos className='h-4 w-4 text-gray-300 dark:text-gray-600' />
@@ -52,10 +61,23 @@ const Navbar = ({ setSidebarOpen, noSidebar }: NavbarProps) => {
             </div>
 
             {/* Right side actions */}
-            <div className='flex items-center gap-x-4 justify-end'>
-              <NotificationsButton />
-              <UserButton />
-            </div>
+            {user || arbitrator ? (
+              <div className='flex items-center justify-end gap-x-4'>
+                <NotificationsButton />
+                <UserButton />
+              </div>
+            ) : (
+              <div className='flex items-center justify-end gap-x-4'>
+                <ConnectButton />
+                <Button
+                  className='rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700'
+                  onClick={() => console.log('Redirect to register page')}
+                  href={'/register'}
+                >
+                  Sign Up
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>

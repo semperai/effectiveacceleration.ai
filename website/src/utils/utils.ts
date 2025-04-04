@@ -86,3 +86,24 @@ export const formatTimeLeft = (maxTime: number) => {
   if (maxTime < 604800) return pluralize(Math.floor(maxTime / 86400), 'day');
   return pluralize(Math.floor(maxTime / 604800), 'week');
 };
+
+export const formatMarkdownContent = (result: string, setMarkdownContent: (content: string) => void) => {
+  if (result?.startsWith("#filename%3D")) {
+    try {
+      const hash = result.slice(1);
+      const params = new URLSearchParams(decodeURIComponent(hash));
+      const filename = params.get('filename');
+
+      if (filename) {
+        setMarkdownContent(`Click to download results: **[${filename}](${result})**`);
+      } else {
+        console.error('Filename parameter is missing in the result string.');
+      }
+    } catch (error) {
+      console.error('Error parsing the result string:', error);
+    }
+  } else {
+    setMarkdownContent(result);
+  }
+};
+

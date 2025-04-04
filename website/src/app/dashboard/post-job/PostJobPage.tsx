@@ -38,6 +38,9 @@ import RegisterModal from './RegisterModal';
 import { SubmitJobButton } from './SubmitJobButton';
 import { Combobox } from '@/components/ComboBox';
 import ListBox from '@/components/ListBox';
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/Tooltip';
+import { InfoIcon } from 'lucide-react';
+
 
 const deliveryMethods = [
   {
@@ -334,7 +337,13 @@ const PostJob = () => {
   };
 
   const validateDeadline = (deadlineStr: string) => {
-    let deadline = deadlineStr ? parseInt(deadlineStr) : 0;
+    if (deadlineStr === '') {
+      setDeadline(NaN); // Or setDeadline(0) if you want it to default to zero
+      setDeadlineError('');
+      return;
+    }
+  
+    let deadline = parseInt(deadlineStr);
 
     if (deadline < 0) {
       deadline = -deadline;
