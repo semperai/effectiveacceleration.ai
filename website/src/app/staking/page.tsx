@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import DefaultNavBar from '@/components/DefaultNavBar';
 import { useAccount, useReadContract } from 'wagmi';
-import ConnectWallet from '../register/ConnectWallet';
+import { ConnectButton } from '@/components/ConnectButton';
 import StreamsComponent from '@/components/StreamsComponent';
 import { Button } from '@/components/Button';
 import { useConfig } from '@/hooks/useConfig';
@@ -403,7 +403,7 @@ export default function EACCPage() {
                 <h2 className="text-2xl font-bold mb-2">Connect Your Wallet</h2>
                 <p className="text-gray-600 mb-6">Connect your wallet to stake EACC tokens and earn streaming rewards</p>
               </div>
-              <ConnectWallet />
+              <ConnectButton />
             </div>
           )}
         </div>
