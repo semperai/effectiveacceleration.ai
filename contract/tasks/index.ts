@@ -1098,3 +1098,25 @@ task("eacc:multisend", "Multisend EACC tokens")
     await sendBatch(amounts);
   }
 });
+
+task("eacc:setEACCBar", "Set EACCBar address")
+.addParam("address", "EACCBar address")
+.setAction(async ({ address }, hre) => {
+  const eacc = await getEACCToken(hre);
+
+  const tx = await eacc.setEACCBar(address);
+  const receipt = await tx.wait();
+
+  console.log("Transaction hash:", receipt.hash);
+});
+
+task("eacc:setEACCBarPercent", "Set EACCBar percent")
+.addParam("percent", "EACCBar percent")
+.setAction(async ({ percent }, hre) => {
+  const eacc = await getEACCToken(hre);
+
+  const tx = await eacc.setEACCBarPercent(hre.ethers.parseEther(percent));
+  const receipt = await tx.wait();
+
+  console.log("Transaction hash:", receipt.hash);
+});
