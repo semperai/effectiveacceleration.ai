@@ -1,198 +1,57 @@
 'use client';
 import { Layout } from '@/components/Dashboard/Layout';
 import { Button } from '@/components/Button';
-import { useState, useEffect } from 'react';
-import { useAccount, useReadContract, useSwitchChain } from 'wagmi';
-import { useConfig } from '@/hooks/useConfig';
-import { formatEther, parseEther } from 'viem';
-import { E_A_C_C_TOKEN_ABI as EACC_TOKEN_ABI } from '@effectiveacceleration/contracts/wagmi/EACCToken';
-import { E_A_C_C_BAR_ABI as EACC_BAR_ABI } from '@effectiveacceleration/contracts/wagmi/EACCBar';
-import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
+import { formatEther } from 'viem';
 import { useToast } from '@/hooks/useToast';
-import * as Sentry from '@sentry/nextjs';
 import { WelcomeScreen } from './WelcomeScreen';
 import { NetworkSwitcher } from './NetworkSwitcher';
-
-const ETHEREUM_CHAIN_ID = 1;
+import { useStaking } from '@/hooks/wagmi/useStaking';
+import { useEffect } from 'react';
 
 export default function StakingPage() {
-  const { address, isConnected, chain } = useAccount();
-  const { switchChain, isPending: isSwitchingNetwork } = useSwitchChain();
-  const Config = useConfig();
-  const { writeContractWithNotifications, isConfirming, isConfirmed, error } = useWriteContractWithNotifications();
   const { showError } = useToast();
 
-  const [amount, setAmount] = useState<string>('');
-  const [lockupPeriod, setLockupPeriod] = useState<number>(52); // Default to 52 weeks
-  const [isEACCStaking, setIsEACCStaking] = useState<boolean>(true);
-  const [multiplier, setMultiplier] = useState<string>('0');
-  const [isLoading, setIsLoading] = useState(false);
+  const {
+    amount,
+    setAmount,
+    lockupPeriod,
+    setLockupPeriod,
+    isEACCStaking,
+    setIsEACCStaking,
+    multiplier,
+    isLoading,
+    isConfirming,
+    isConfirmed,
+    error,
 
-  // Check if user is on Ethereum mainnet
-  const isEthereumMainnet = chain?.id === ETHEREUM_CHAIN_ID;
+    // Connection state
+    isConnected,
+    isEthereumMainnet,
+    isSwitchingNetwork,
 
-  // Read EACC balance
-  const { data: eaccBalance } = useReadContract({
-    address: Config?.EACCAddress,
-    abi: EACC_TOKEN_ABI,
-    functionName: 'balanceOf',
-    args: [address || '0x'],
-    query: {
-      enabled: isConnected && !!address && isEthereumMainnet,
-    },
-  });
+    // Balances
+    eaccBalance,
+    eaccxBalance,
+    isApproved,
 
-  // Read EAXX balance
-  const { data: eaccxBalance } = useReadContract({
-    address: Config?.EACCBarAddress,
-    abi: EACC_BAR_ABI,
-    functionName: 'balanceOf',
-    args: [address || '0x'],
-    query: {
-      enabled: isConnected && !!address && isEthereumMainnet,
-    },
-  });
+    // Actions
+    handleApprove,
+    handleStake,
+    handleUnstake,
+    handleMaxAmount,
+    handleSwitchToEthereum,
+  } = useStaking();
 
-  // Check allowance
-  const { data: allowance } = useReadContract({
-    address: Config?.EACCAddress,
-    abi: EACC_TOKEN_ABI,
-    functionName: 'allowance',
-    args: [address || '0x', Config?.EACCBarAddress || '0x'],
-    query: {
-      enabled: isConnected && !!address && !!Config?.EACCBarAddress && isEthereumMainnet,
-    },
-  });
-
-  // Calculate multiplier based on lockup period
-  const { data: multiplierData } = useReadContract({
-    address: isEACCStaking ? Config?.EACCBarAddress : Config?.EACCAddress,
-    abi: isEACCStaking ? EACC_BAR_ABI : EACC_TOKEN_ABI,
-    functionName: 'M',
-    args: [BigInt(lockupPeriod * 7 * 24 * 60 * 60)], // convert weeks to seconds
-    query: {
-      enabled: isConnected && !!address && !!Config && isEthereumMainnet,
-    },
-  });
-
-  // Update multiplier when data changes
-  useEffect(() => {
-    if (multiplierData) {
-      setMultiplier(formatEther(multiplierData));
-    }
-  }, [multiplierData]);
-
-  // Reset loading state when error occurs
+  // Show error toast when error occurs
   useEffect(() => {
     if (error) {
-      setIsLoading(false);
+      showError(
+        isEACCStaking
+          ? "Error with staking operation. Please try again."
+          : "Error creating stream. Please try again."
+      );
     }
-  }, [error]);
-
-  // Check if approved
-  const isApproved = allowance ? BigInt(allowance) > BigInt(0) : false;
-
-  // Handle approval
-  const handleApprove = async () => {
-    if (!Config?.EACCBarAddress || !isEthereumMainnet) return;
-
-    setIsLoading(true);
-    try {
-      await writeContractWithNotifications({
-        address: Config!.EACCAddress,
-        abi: EACC_TOKEN_ABI,
-        functionName: 'approve',
-        args: [Config.EACCBarAddress, BigInt(2) ** BigInt(256) - BigInt(1)], // max uint256
-      });
-    } catch (error) {
-      Sentry.captureException(error);
-      showError("Error approving tokens. Please try again.");
-      console.error("Error approving tokens:", error);
-      setIsLoading(false);
-    }
-  };
-
-  // Handle staking
-  const handleStake = async () => {
-    if (!amount || !isEthereumMainnet) return;
-
-    setIsLoading(true);
-    try {
-      const amountWei = parseEther(amount);
-      const tSeconds = BigInt(lockupPeriod * 7 * 24 * 60 * 60); // Convert weeks to seconds
-
-      if (isEACCStaking) {
-        await writeContractWithNotifications({
-          address: Config!.EACCBarAddress,
-          abi: EACC_BAR_ABI,
-          functionName: 'enter',
-          args: [amountWei, tSeconds],
-        });
-      } else {
-        await writeContractWithNotifications({
-          address: Config!.EACCAddress,
-          abi: EACC_TOKEN_ABI,
-          functionName: 'depositForStream',
-          args: [amountWei, tSeconds],
-        });
-      }
-
-      // Reset amount after successful transaction
-      if (isConfirmed) {
-        setAmount('');
-      }
-    } catch (error) {
-      Sentry.captureException(error);
-      showError(isEACCStaking ? "Error staking tokens. Please try again." : "Error creating stream. Please try again.");
-      console.error("Error staking tokens:", error);
-      setIsLoading(false);
-    }
-  };
-
-  // Handle unstaking
-  const handleUnstake = async () => {
-    if (!amount || !isEthereumMainnet) return;
-
-    setIsLoading(true);
-    try {
-      const amountWei = parseEther(amount);
-
-      await writeContractWithNotifications({
-        address: Config!.EACCBarAddress,
-        abi: EACC_BAR_ABI,
-        functionName: 'leave',
-        args: [amountWei],
-      });
-
-      // Reset amount after successful transaction
-      if (isConfirmed) {
-        setAmount('');
-      }
-    } catch (error) {
-      Sentry.captureException(error);
-      showError("Error unstaking tokens. Please try again.");
-      console.error("Error unstaking tokens:", error);
-      setIsLoading(false);
-    }
-  };
-
-  // Handle max amount
-  const handleMaxAmount = () => {
-    if (isEACCStaking && eaccBalance) {
-      setAmount(formatEther(eaccBalance));
-    } else if (!isEACCStaking && eaccxBalance) {
-      setAmount(formatEther(eaccxBalance));
-    }
-  };
-
-  // Switch to Ethereum Mainnet
-  const handleSwitchToEthereum = () => {
-    if (switchChain) {
-      switchChain({
-        chainId: ETHEREUM_CHAIN_ID,
-      });
-    }
-  };
+  }, [error, isEACCStaking, showError]);
 
   return (
     <Layout>
@@ -200,9 +59,9 @@ export default function StakingPage() {
         {!isConnected ? (
           <WelcomeScreen />
         ) : !isEthereumMainnet ? (
-          <NetworkSwitcher 
-            onSwitchNetwork={handleSwitchToEthereum} 
-            isSwitchingNetwork={isSwitchingNetwork} 
+          <NetworkSwitcher
+            onSwitchNetwork={handleSwitchToEthereum}
+            isSwitchingNetwork={isSwitchingNetwork}
           />
         ) : (
           <div className="max-w-2xl mx-auto w-full bg-white p-8 rounded-2xl shadow-xl">
