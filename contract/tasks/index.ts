@@ -6,6 +6,7 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { task } from "hardhat/config";
 import Config from '../scripts/config.json';
 import LocalConfig from '../scripts/config.local.json';
+import MainnetConfig from '../scripts/config.mainnet.json';
 import { AbiCoder, getBytes, hexlify, keccak256, ZeroAddress } from 'ethers';
 import {
   getEncryptionSigningKey,
@@ -76,12 +77,12 @@ async function getEACCToken(hre: HardhatRuntimeEnvironment) {
   }
 
   if (hre.network.name === 'localhost') {
-    const eacc = await EACCToken.attach(LocalConfig.eaccTokenAddress);
+    const eacc = await EACCToken.attach(LocalConfig.EACCAddress);
     return eacc;
   }
 
-  if (hre.network.name === 'arbitrum') {
-    const eacc = await EACCToken.attach(Config.eaccTokenAddress);
+  if (hre.network.name === 'mainnet') {
+    const eacc = await EACCToken.attach(Config.EACCAddress);
     return eacc;
   }
 
