@@ -82,7 +82,7 @@ async function getEACCToken(hre: HardhatRuntimeEnvironment) {
   }
 
   if (hre.network.name === 'mainnet') {
-    const eacc = await EACCToken.attach(Config.EACCAddress);
+    const eacc = await EACCToken.attach(MainnetConfig.EACCAddress);
     return eacc;
   }
 
