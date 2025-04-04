@@ -90,6 +90,28 @@ async function getEACCToken(hre: HardhatRuntimeEnvironment) {
   process.exit(1);
 }
 
+async function getEACCBar(hre: HardhatRuntimeEnvironment) {
+  const EACCBar = await hre.ethers.getContractFactory("EACCBar");
+
+  if (hre.network.name === 'hardhat') {
+    console.log('You are on hardhat network, try localhost');
+    process.exit(1);
+  }
+
+  if (hre.network.name === 'localhost') {
+    const bar = await EACCBar.attach(LocalConfig.EACCBarAddress);
+    return bar;
+  }
+
+  if (hre.network.name === 'mainnet') {
+    const bar = await EACCBar.attach(MainnetConfig.EACCBarAddress);
+    return bar;
+  }
+
+  console.log(`Unknown network ${hre.network.name}`);
+  process.exit(1);
+}
+
 async function getUserAddress(hre: HardhatRuntimeEnvironment) {
   const accounts = await hre.ethers.getSigners();
   return accounts[0].address;
@@ -1119,4 +1141,20 @@ task("eacc:setEACCBarPercent", "Set EACCBar percent")
   const receipt = await tx.wait();
 
   console.log("Transaction hash:", receipt.hash);
+});
+
+task("eacc:M", "Query M")
+.addParam("t", "time (in seconds)")
+.setAction(async ({ t }, hre) => {
+  const eacc = await getEACCToken(hre);
+  const m = await eacc.M(t);
+  console.log(hre.ethers.formatEther(m));
+});
+
+task("eaccbar:M", "Query M")
+.addParam("t", "time (in seconds)")
+.setAction(async ({ t }, hre) => {
+  const eacc = await getEACCBar(hre);
+  const m = await eacc.M(t);
+  console.log(hre.ethers.formatEther(m));
 });
