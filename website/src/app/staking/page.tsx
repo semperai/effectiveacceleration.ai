@@ -1,10 +1,8 @@
 'use client';
-import { useState, useEffect } from 'react';
 import DefaultNavBar from '@/components/DefaultNavBar';
-import { useAccount, useReadContract } from 'wagmi';
-import { ConnectButton } from '@/components/ConnectButton';
-import StreamsComponent from '@/components/StreamsComponent';
 import { Button } from '@/components/Button';
+import { useState, useEffect } from 'react';
+import { useAccount, useReadContract, useSwitchChain } from 'wagmi';
 import { useConfig } from '@/hooks/useConfig';
 import { formatEther, parseEther } from 'viem';
 import { E_A_C_C_TOKEN_ABI as EACC_TOKEN_ABI } from '@effectiveacceleration/contracts/wagmi/EACCToken';
@@ -12,16 +10,28 @@ import { E_A_C_C_BAR_ABI as EACC_BAR_ABI } from '@effectiveacceleration/contract
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import { useToast } from '@/hooks/useToast';
 import * as Sentry from '@sentry/nextjs';
+import { ConnectButton } from '@/components/ConnectButton';
+import { PiArrowsClockwise } from 'react-icons/pi';
+import clsx from 'clsx';
 
-export default function EACCPage() {
-  const { address, isConnected } = useAccount();
+// Ethereum Mainnet chain ID
+const ETHEREUM_CHAIN_ID = 1;
+
+export default function StakingPage() {
+  const { address, isConnected, chain } = useAccount();
+  const { switchChain, isPending: isSwitchingNetwork } = useSwitchChain();
   const Config = useConfig();
-  const [activeTab, setActiveTab] = useState<'stake' | 'streams'>('stake');
+  const { writeContractWithNotifications, isConfirming, isConfirmed, error } = useWriteContractWithNotifications();
+  const { showError } = useToast();
+
   const [amount, setAmount] = useState<string>('');
   const [lockupPeriod, setLockupPeriod] = useState<number>(52); // Default to 52 weeks
   const [isDirectStaking, setIsDirectStaking] = useState<boolean>(true);
-  const { writeContractWithNotifications, isConfirming, isConfirmed, error } = useWriteContractWithNotifications();
-  const { showError } = useToast();
+  const [multiplier, setMultiplier] = useState<string>('0');
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Check if user is on Ethereum mainnet
+  const isEthereumMainnet = chain?.id === ETHEREUM_CHAIN_ID;
 
   // Read EACC balance
   const { data: eaccBalance } = useReadContract({
@@ -30,7 +40,7 @@ export default function EACCPage() {
     functionName: 'balanceOf',
     args: [address || '0x'],
     query: {
-      enabled: isConnected && !!address && !!Config,
+      enabled: isConnected && !!address && isEthereumMainnet,
     },
   });
 
@@ -41,7 +51,7 @@ export default function EACCPage() {
     functionName: 'balanceOf',
     args: [address || '0x'],
     query: {
-      enabled: isConnected && !!address && !!Config,
+      enabled: isConnected && !!address && isEthereumMainnet,
     },
   });
 
@@ -52,7 +62,7 @@ export default function EACCPage() {
     functionName: 'allowance',
     args: [address || '0x', Config?.EACCBarAddress || '0x'],
     query: {
-      enabled: isConnected && !!address && !!Config,
+      enabled: isConnected && !!address && !!Config?.EACCBarAddress && isEthereumMainnet,
     },
   });
 
@@ -63,33 +73,35 @@ export default function EACCPage() {
     functionName: 'M',
     args: [BigInt(lockupPeriod * 7 * 24 * 60 * 60)], // convert weeks to seconds
     query: {
-      enabled: isConnected && !!address && !!Config,
+      enabled: isConnected && !!address && !!Config && isEthereumMainnet,
     },
   });
 
-  // Format multiplier for display
-  const multiplier = multiplierData ? formatEther(multiplierData) : '0';
+  // Update multiplier when data changes
+  useEffect(() => {
+    if (multiplierData) {
+      setMultiplier(formatEther(multiplierData));
+    }
+  }, [multiplierData]);
 
-  // Check if approved
-  const isEaccApproved = allowance ? BigInt(allowance) > BigInt(0) : false;
-
-  // Track global loading state
-  const [isLoading, setIsLoading] = useState(false);
-
+  // Reset loading state when error occurs
   useEffect(() => {
     if (error) {
       setIsLoading(false);
     }
   }, [error]);
 
+  // Check if approved
+  const isApproved = allowance ? BigInt(allowance) > BigInt(0) : false;
+
   // Handle approval
   const handleApprove = async () => {
-    if (!Config?.EACCBarAddress) return;
+    if (!Config?.EACCBarAddress || !isEthereumMainnet) return;
 
     setIsLoading(true);
     try {
       await writeContractWithNotifications({
-        address: Config.EACCAddress,
+        address: Config!.EACCAddress,
         abi: EACC_TOKEN_ABI,
         functionName: 'approve',
         args: [Config.EACCBarAddress, BigInt(2) ** BigInt(256) - BigInt(1)], // max uint256
@@ -104,7 +116,7 @@ export default function EACCPage() {
 
   // Handle staking
   const handleStake = async () => {
-    if (!amount) return;
+    if (!amount || !isEthereumMainnet) return;
 
     setIsLoading(true);
     try {
@@ -141,7 +153,7 @@ export default function EACCPage() {
 
   // Handle unstaking
   const handleUnstake = async () => {
-    if (!amount) return;
+    if (!amount || !isEthereumMainnet) return;
 
     setIsLoading(true);
     try {
@@ -175,238 +187,193 @@ export default function EACCPage() {
     }
   };
 
+  // Switch to Ethereum Mainnet
+  const handleSwitchToEthereum = () => {
+    if (switchChain) {
+      switchChain({
+        chainId: ETHEREUM_CHAIN_ID,
+      });
+    }
+  };
+
+  // Network switcher component
+  const NetworkSwitcher = () => (
+    <div className="max-w-2xl mx-auto w-full bg-white p-8 rounded-2xl shadow-xl text-center">
+      <div className="mb-6">
+        <div className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center mx-auto mb-4">
+          <PiArrowsClockwise className="h-8 w-8 text-orange-500" />
+        </div>
+        <h2 className="text-2xl font-bold mb-2">Wrong Network</h2>
+        <p className="text-gray-600 mb-6">
+          EACC staking is only available on Ethereum Mainnet. Please switch your network to continue.
+        </p>
+      </div>
+
+      <button
+        onClick={handleSwitchToEthereum}
+        disabled={isSwitchingNetwork}
+        className={clsx(
+          'group relative inline-flex items-center gap-2 bg-gradient-to-r px-6 py-2 w-full justify-center',
+          'from-orange-500 to-amber-500 shadow-orange-500/25 hover:from-orange-400 hover:to-amber-400',
+          'rounded-xl font-semibold text-white shadow-lg',
+          'transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:shadow-xl',
+          'active:translate-y-0 active:shadow-md',
+          'disabled:opacity-70 disabled:hover:transform-none disabled:hover:shadow-lg'
+        )}
+      >
+        {isSwitchingNetwork ? 'Switching...' : 'Switch to Ethereum Mainnet'}
+
+        <div className='absolute inset-0 overflow-hidden rounded-xl'>
+          <div className='absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-1000 group-hover:translate-x-[100%]' />
+        </div>
+      </button>
+    </div>
+  );
+
   return (
     <>
       <DefaultNavBar />
-      <div className="relative w-full py-8">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold mb-2">EACC Finance</h1>
-            <p className="text-gray-600">Stake your EACC tokens and earn streaming rewards</p>
-          </div>
+      <div className="relative mx-auto flex min-h-customHeader flex-col justify-center">
+        {!isConnected ? (
+          <ConnectButton />
+        ) : !isEthereumMainnet ? (
+          <NetworkSwitcher />
+        ) : (
+          <div className="max-w-2xl mx-auto w-full bg-white p-8 rounded-2xl shadow-xl">
+            <h1 className="text-3xl font-bold mb-6 text-center">EACC Staking</h1>
 
-          {isConnected ? (
-            <>
-              {/* Balance Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100">
-                  <div className="flex items-center mb-4">
-                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-                      <span className="text-blue-600 font-bold">E</span>
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-medium">EACC Balance</h3>
-                      <p className="text-gray-500 text-sm">Available for staking</p>
-                    </div>
-                  </div>
-                  <div className="text-2xl font-bold">
-                    {eaccBalance ? parseFloat(formatEther(eaccBalance)).toFixed(4) : '0.0000'} EACC
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100">
-                  <div className="flex items-center mb-4">
-                    <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center mr-3">
-                      <span className="text-indigo-600 font-bold">Ex</span>
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-medium">EACCx Balance</h3>
-                      <p className="text-gray-500 text-sm">Staked EACC tokens</p>
-                    </div>
-                  </div>
-                  <div className="text-2xl font-bold">
-                    {eaccxBalance ? parseFloat(formatEther(eaccxBalance)).toFixed(4) : '0.0000'} EACCx
-                  </div>
-                </div>
+            {/* Staking Options Toggle */}
+            <div className="flex justify-center mb-8">
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                <button
+                  className={`px-4 py-2 rounded-md ${isDirectStaking ? 'bg-blue-500 text-white' : 'text-gray-700'}`}
+                  onClick={() => setIsDirectStaking(true)}
+                >
+                  Stake EACC
+                </button>
+                <button
+                  className={`px-4 py-2 rounded-md ${!isDirectStaking ? 'bg-blue-500 text-white' : 'text-gray-700'}`}
+                  onClick={() => setIsDirectStaking(false)}
+                >
+                  Create Stream
+                </button>
               </div>
-
-              {/* Tabs */}
-              <div className="mb-6 border-b border-gray-200">
-                <div className="flex">
-                  <button
-                    className={`py-3 px-6 ${activeTab === 'stake' ? 'border-b-2 border-blue-500 text-blue-600 font-medium' : 'text-gray-500'}`}
-                    onClick={() => setActiveTab('stake')}
-                  >
-                    Stake & Stream
-                  </button>
-                  <button
-                    className={`py-3 px-6 ${activeTab === 'streams' ? 'border-b-2 border-blue-500 text-blue-600 font-medium' : 'text-gray-500'}`}
-                    onClick={() => setActiveTab('streams')}
-                  >
-                    Your Streams
-                  </button>
-                </div>
-              </div>
-
-              {/* Tab Content */}
-              {activeTab === 'stake' ? (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  <div className="md:col-span-2">
-                    <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100">
-                      <h2 className="text-xl font-bold mb-6">Stake Your EACC</h2>
-
-                      {/* Staking Options Toggle */}
-                      <div className="flex justify-center mb-8">
-                        <div className="flex bg-gray-100 rounded-lg p-1">
-                          <button
-                            className={`px-4 py-2 rounded-md ${isDirectStaking ? 'bg-blue-500 text-white' : 'text-gray-700'}`}
-                            onClick={() => setIsDirectStaking(true)}
-                          >
-                            Stake EACC
-                          </button>
-                          <button
-                            className={`px-4 py-2 rounded-md ${!isDirectStaking ? 'bg-blue-500 text-white' : 'text-gray-700'}`}
-                            onClick={() => setIsDirectStaking(false)}
-                          >
-                            Create Stream
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Staking Form */}
-                      <div className="space-y-6">
-                        {/* Amount Input */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            {isDirectStaking ? 'Amount to Stake' : 'Amount to Stream'}
-                          </label>
-                          <div className="relative">
-                            <input
-                              type="text"
-                              value={amount}
-                              onChange={(e) => setAmount(e.target.value)}
-                              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 border"
-                              placeholder="0.0"
-                            />
-                            <button
-                              type="button"
-                              onClick={handleMaxAmount}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-500 text-sm font-medium"
-                            >
-                              MAX
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Lockup Period Input */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Lockup Period (weeks)
-                          </label>
-                          <div className="mb-2">
-                            <input
-                              type="range"
-                              min={isDirectStaking ? 52 : 1}
-                              max={208}
-                              value={lockupPeriod}
-                              onChange={(e) => setLockupPeriod(parseInt(e.target.value))}
-                              className="w-full"
-                            />
-                          </div>
-                          <div className="flex justify-between text-sm text-gray-500">
-                            <span>{isDirectStaking ? '52 weeks' : '1 week'}</span>
-                            <span>{lockupPeriod} weeks</span>
-                            <span>208 weeks</span>
-                          </div>
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div>
-                          {!isEaccApproved ? (
-                            <Button
-                              className="w-full"
-                              onClick={handleApprove}
-                              disabled={isLoading || isConfirming}
-                            >
-                              {isLoading || isConfirming ? 'Approving...' : 'Approve EACC'}
-                            </Button>
-                          ) : (
-                            <div className="grid grid-cols-2 gap-4">
-                              <Button
-                                className="w-full"
-                                onClick={handleStake}
-                                disabled={isLoading || isConfirming || !amount || parseFloat(amount) <= 0}
-                              >
-                                {isLoading || isConfirming ? 'Processing...' : isDirectStaking ? 'Stake EACC' : 'Create Stream'}
-                              </Button>
-                              {isDirectStaking && (
-                                <Button
-                                  className="w-full"
-                                  onClick={handleUnstake}
-                                  disabled={isLoading || isConfirming || !amount || parseFloat(amount) <= 0}
-                                >
-                                  {isLoading || isConfirming ? 'Processing...' : 'Unstake'}
-                                </Button>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Info Side Panel */}
-                  <div className="md:col-span-1">
-                    <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100 mb-6">
-                      <h3 className="font-medium text-lg mb-4">Reward Multiplier</h3>
-                      <div className="text-3xl font-bold text-blue-600 mb-3">{parseFloat(multiplier).toFixed(2)}x</div>
-                      <p className="text-sm text-gray-600 mb-4">
-                        Lock your tokens for longer periods to earn higher rewards.
-                      </p>
-
-                      <div className="border-t border-gray-100 pt-4 mt-4">
-                        <h4 className="text-sm font-medium text-gray-700 mb-2">You will receive:</h4>
-                        <div className="text-lg font-semibold">
-                          {(parseFloat(amount || '0') * parseFloat(multiplier || '0')).toFixed(4)}
-                          {isDirectStaking ? ' EACCx tokens' : ' EACC tokens (streamed)'}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-blue-50 rounded-lg p-6">
-                      <h3 className="font-medium text-blue-700 mb-3">How it works</h3>
-                      <p className="text-sm text-blue-600 mb-4">
-                        {isDirectStaking
-                          ? 'When you stake EACC, you receive EACCx tokens based on your lockup period. The longer you lock, the more EACCx you receive. You can unstake at any time after your lockup period ends.'
-                          : 'Create a stream of EACC tokens that will gradually vest to you over time. The longer the stream duration, the higher the multiplier. Your tokens will be streamed linearly over the specified period.'}
-                      </p>
-
-                      <ul className="space-y-2 text-sm text-blue-700">
-                        <li className="flex items-start">
-                          <span className="mr-2">•</span>
-                          <span>Minimum lock period: {isDirectStaking ? '52 weeks' : '1 week'}</span>
-                        </li>
-                        <li className="flex items-start">
-                          <span className="mr-2">•</span>
-                          <span>Maximum lock period: 208 weeks</span>
-                        </li>
-                        <li className="flex items-start">
-                          <span className="mr-2">•</span>
-                          <span>Streams are non-cancelable</span>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <StreamsComponent />
-              )}
-            </>
-          ) : (
-            <div className="bg-white rounded-lg shadow-lg p-8 max-w-md mx-auto my-16">
-              <div className="text-center mb-6">
-                <div className="mb-4 flex justify-center">
-                  <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
-                    <span className="text-blue-600 text-2xl font-bold">E</span>
-                  </div>
-                </div>
-                <h2 className="text-2xl font-bold mb-2">Connect Your Wallet</h2>
-                <p className="text-gray-600 mb-6">Connect your wallet to stake EACC tokens and earn streaming rewards</p>
-              </div>
-              <ConnectButton />
             </div>
-          )}
-        </div>
+
+            {/* Balance Display */}
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-500">EACC Balance</p>
+                <p className="text-xl font-semibold">
+                  {eaccBalance ? parseFloat(formatEther(eaccBalance)).toFixed(4) : '0.0000'}
+                </p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-500">EACCx Balance</p>
+                <p className="text-xl font-semibold">
+                  {eaccxBalance ? parseFloat(formatEther(eaccxBalance)).toFixed(4) : '0.0000'}
+                </p>
+              </div>
+            </div>
+
+            {/* Staking Form */}
+            <div className="space-y-4">
+              {/* Amount Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {isDirectStaking ? 'Amount to Stake' : 'Amount to Stream'}
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 border"
+                    placeholder="0.0"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleMaxAmount}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-500 text-sm font-medium"
+                  >
+                    MAX
+                  </button>
+                </div>
+              </div>
+
+              {/* Lockup Period Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Lockup Period (weeks)
+                </label>
+                <div className="flex items-center space-x-4">
+                  <input
+                    type="range"
+                    min={isDirectStaking ? 52 : 1}
+                    max={208}
+                    value={lockupPeriod}
+                    onChange={(e) => setLockupPeriod(parseInt(e.target.value))}
+                    className="w-full"
+                  />
+                  <span className="text-sm font-medium">{lockupPeriod} weeks</span>
+                </div>
+              </div>
+
+              {/* Multiplier Display */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-500">Multiplier</p>
+                <p className="text-xl font-semibold">{parseFloat(multiplier).toFixed(4)}x</p>
+                <p className="text-xs text-gray-500">
+                  {isDirectStaking
+                    ? `You'll receive ${(parseFloat(amount || '0') * parseFloat(multiplier)).toFixed(4)} EACCx tokens`
+                    : `You'll receive a stream of ${(parseFloat(amount || '0') * parseFloat(multiplier)).toFixed(4)} EACC tokens`}
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div>
+                {!isApproved ? (
+                  <Button
+                    className="w-full"
+                    onClick={handleApprove}
+                    disabled={isLoading || isConfirming}
+                  >
+                    {isLoading || isConfirming ? 'Approving...' : 'Approve EACC'}
+                  </Button>
+                ) : (
+                  <div className="grid grid-cols-2 gap-4">
+                    <Button
+                      className="w-full"
+                      onClick={handleStake}
+                      disabled={isLoading || isConfirming || !amount || parseFloat(amount) <= 0}
+                    >
+                      {isLoading || isConfirming ? 'Processing...' : isDirectStaking ? 'Stake EACC' : 'Create Stream'}
+                    </Button>
+                    {isDirectStaking && (
+                      <Button
+                        className="w-full"
+                        onClick={handleUnstake}
+                        disabled={isLoading || isConfirming || !amount || parseFloat(amount) <= 0}
+                      >
+                        {isLoading || isConfirming ? 'Processing...' : 'Unstake'}
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Information Box */}
+            <div className="mt-8 bg-blue-50 p-4 rounded-lg">
+              <h3 className="font-medium text-blue-700 mb-2">How it works</h3>
+              <p className="text-sm text-blue-600">
+                {isDirectStaking
+                  ? 'Staking EACC gives you EACCx tokens based on your lockup period. The longer you lock, the more EACCx you receive. You can unstake at any time after your lockup period ends.'
+                  : 'Create a stream of EACC tokens. The longer the stream duration, the higher the multiplier. The tokens will be streamed to you linearly over the specified period.'}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
