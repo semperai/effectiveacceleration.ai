@@ -65,6 +65,7 @@
   },
   "dependencies": {
     "@noble/ciphers": "^0.5.3",
+    "@sablier/lockup": "^2.0.1",
     "viem": "^2.21.51"
   }
 }

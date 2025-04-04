@@ -1,12 +1,8 @@
 const { ethers } = require("hardhat");
+import { EACCToken } from "../typechain-types/contracts/EACCToken";
+import { EACCBar } from "../typechain-types/contracts/EACCBar";
 
-import { MarketplaceV1 as Marketplace } from '../typechain-types/contracts/MarketplaceV1';
-import { MarketplaceDataV1 as MarketplaceData } from "../typechain-types/contracts/MarketplaceDataV1";
 import * as fs from 'fs'
-
-const treasury    = "0xF20D0ebD8223DfF22cFAf05F0549021525015577";
-const arbiusToken = "0x4a24b101728e07a52053c13fb4db2bcf490cabc3";
-const router      = "0x4752ba5dbc23f44d87826276bf6fd6b1c372ad24";
 
 async function main() {
   const signers = await ethers.getSigners();
@@ -14,19 +10,31 @@ async function main() {
 
   console.log("Deploying contracts with the account:", deployer.address);
 
+  const sablierLockupAddress = "0x9DeaBf7815b42Bf4E9a03EEc35a486fF74ee7459";
+
   const EACCToken = await ethers.getContractFactory(
     "EACCToken"
   );
 
   const eaccToken = await EACCToken.deploy(
-    "Effective Acceleration",
+    "EACCToken",
     "EACC",
     ethers.parseEther("6969696969"),
-    treasury,
-    arbiusToken,
-    router,
-  );
+    sablierLockupAddress,
+  ) as unknown as EACCToken;
   console.log("EACC deployed to:", await eaccToken.getAddress());
+
+  const EACCBar = await ethers.getContractFactory("EACCBar");
+  const eaccBar = await EACCBar.deploy(
+    await eaccToken.getAddress(),
+    sablierLockupAddress,
+  ) as unknown as EACCBar;
+  console.log("EACCBar deployed to:", await eaccBar.getAddress());
+
+  // Set the EACCBar address in the EACCToken
+  const tx = await eaccToken.setEACCBar(await eaccBar.getAddress());
+  const receipt = await tx.wait();
+  console.log("EACCToken setEACCBar tx hash:", receipt.hash);
 
   process.exit(0);
 }

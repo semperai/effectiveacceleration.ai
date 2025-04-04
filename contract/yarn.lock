@@ -998,7 +998,7 @@
   resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.7.3.tgz#939534757a81f8d69cc854c7692805684ff3111e"
   integrity sha512-dGRS0agJzu8ybo44pCIf3xBaPQN/65AIXNgK8+4gzKd5kbvlqyxryUYVLJv7fK98Seyd2hDZzVEHSWAh0Bt1Yw==
 
-"@openzeppelin/contracts@^5.0.2":
+"@openzeppelin/contracts@5.0.2", "@openzeppelin/contracts@^5.0.2":
   version "5.0.2"
   resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-5.0.2.tgz#b1d03075e49290d06570b2fd42154d76c2a5d210"
   integrity sha512-ytPc6eLGcHHnapAZ9S+5qsdomhjo6QBHTDRRBFfTxXIpsicMhVPouPgmUPebZZZGX7vt9USA+Z+0M0dSVtSUEA==
@@ -1064,6 +1064,19 @@
   version "0.11.0"
   resolved "https://registry.yarnpkg.com/@pkgjs/parseargs/-/parseargs-0.11.0.tgz#a77ea742fab25775145434eb1d2328cf5013ac33"
   integrity sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==
+
+"@prb/math@4.1.0":
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/@prb/math/-/math-4.1.0.tgz#cb65ff415d5cb1539b7d1b0bc41ecc55c0c12b5f"
+  integrity sha512-ef5Xrlh3BeX4xT5/Wi810dpEPq2bYPndRxgFIaKSU1F/Op/s8af03kyom+mfU7gEpvfIZ46xu8W0duiHplbBMg==
+
+"@sablier/lockup@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@sablier/lockup/-/lockup-2.0.1.tgz#f2884360c6b07eaa1ea6e22b1237748ac1e3a887"
+  integrity sha512-InzssjIj6F17dVKzqDWOymAkqwTkek+g6g6bYpPdk8n8+FYkNvF6QgegUGgE4NfyAMz7hN4VC5lsFyfwx79wBQ==
+  dependencies:
+    "@openzeppelin/contracts" "5.0.2"
+    "@prb/math" "4.1.0"
 
 "@scure/base@^1.2.1":
   version "1.2.1"

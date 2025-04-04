@@ -71,6 +71,11 @@ export function configWithPkey(privateKey: string): HardhatUserConfig {
         url: "https://arbitrum.llamarpc.com",
         chainId: 42161,
       },
+      mainnet: {
+        accounts: [privateKey],
+        url: "https://eth.llamarpc.com",
+        chainId: 1,
+      },
     },
     // limit is 24.576 KiB
     contractSizer: {

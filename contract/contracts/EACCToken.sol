@@ -9,117 +9,112 @@ import {ERC20Votes} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Vo
 import {Nonces} from "@openzeppelin/contracts/utils/Nonces.sol";
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import { ud2x18 } from "@prb/math/src/UD2x18.sol";
+import { ud60x18, ud, unwrap } from "@prb/math/src/UD60x18.sol";
+import { exp } from "@prb/math/src/ud60x18/Math.sol";
+import { ISablierLockup } from "@sablier/lockup/src/interfaces/ISablierLockup.sol";
+import { Broker, Lockup, LockupDynamic } from "@sablier/lockup/src/types/DataTypes.sol";
+
 
 contract EACCToken is ERC20, ERC20Permit, ERC20Votes, Ownable {
-    // where the transfer taxes go
-    address public treasury;
+    IERC20 public eaccBar;
+    uint256 public eaccBarPercent; // how much of the converted EACC goes to eaccBar
+    ISablierLockup public lockup;
 
-    // our pair token
-    IERC20 public arbiusToken;
+    uint256 public constant R = 6969696969; // base rate
+    uint256 public constant K = 69; // booster
+    uint64 constant E = 6e18; // exponent for stream
 
-    // uniswap router
-    IUniswapV2Router02 public router;
-
-    // tax (between 0 and 1eth : 0% - 100%)
-    uint256 public tax;
-
-    // remove these addresses from tax
-    mapping(address => bool) public whitelist;
-
-    // disable tax during swap
-    bool private lock;
-
-    // minimum amount for swap
-    uint256 public minimumTokensBeforeSwap;
-
-    event TaxSet(uint256 tax);
-    event TokenWithdrawn(
-        address indexed addr,
-        address indexed token,
-        uint256 amount
-    );
-    event WhitelistUpdated(address indexed addr, bool whitelisted);
-    event MinimumTokensBeforeSwapUpdated(uint256 amount);
-
-    modifier lockSwap() {
-        require(!lock, "Swap locked");
-        lock = true;
-        _;
-        lock = false;
-    }
+    event EACCBarSet(IERC20 eaccBar);
+    event EACCBarPercentSet(uint256 eaccBarPercent);
 
     /// @notice Constructor
     /// @param _name the name of the token
     /// @param _symbol the symbol of the token
     /// @param _initialSupply the initial supply of the token
-    /// @param _treasury the treasury address
-    /// @param _arbiusToken the arbius token address
-    /// @param _router the uniswap router address
     constructor(
         string memory _name,
         string memory _symbol,
         uint256 _initialSupply,
-        address _treasury,
-        address _arbiusToken,
-        address _router
+        ISablierLockup _lockup
     ) ERC20(_name, _symbol) ERC20Permit(_name) Ownable(msg.sender) {
-        treasury = _treasury;
-        arbiusToken = IERC20(_arbiusToken);
-        router = IUniswapV2Router02(_router);
-
-        // add the owner to the whitelist
-        whitelist[msg.sender] = true;
-        whitelist[address(this)] = true;
-        whitelist[treasury] = true;
-
-        // Set minimum tokens before swap (e.g., 0.1% of total supply)
-        minimumTokensBeforeSwap = _initialSupply / 1000;
-
-        tax = 0.99 ether; // 99% tax
-
-        // mint the initial supply
         _mint(msg.sender, _initialSupply);
-
-        // approve the router to spend the token
-        _approve(address(this), address(router), type(uint256).max);
+        eaccBarPercent = 0.2 ether; // 20% of converted EACC
+        lockup = _lockup;
+        _approve(address(this), address(_lockup), type(uint256).max);
     }
 
-    /// @notice Sets the minimum tokens acquired before swapping
-    /// @dev This is to prevent swapping small amounts of tokens
-    /// @param _amount the amount of tokens
-    function setMinimumTokensBeforeSwap(uint256 _amount) external onlyOwner {
-        minimumTokensBeforeSwap = _amount;
-        emit MinimumTokensBeforeSwapUpdated(_amount);
+    /// @notice Sets the EACCBar contract
+    /// @dev eaccBar receives tokens when the user creates a stream
+    /// @param _eaccBar the address of the EACCBar contract
+    function setEACCBar(IERC20 _eaccBar) external onlyOwner {
+        eaccBar = _eaccBar;
+        emit EACCBarSet(_eaccBar);
     }
 
-    /// @notice Sets the tax
-    /// @dev 0 is no tax, 1ether is 100% tax
-    /// @param _tax the new tax
-    function setTax(uint256 _tax) public onlyOwner {
-        require(_tax <= 1 ether, "Tax must be less than 1 ether");
-        tax = _tax;
-        emit TaxSet(_tax);
+    /// @notice Sets the EACCBar percent
+    /// @param _eaccBarPercent the percent of the converted EACC that goes to eaccBar
+    function setEACCBarPercent(uint256 _eaccBarPercent) external onlyOwner {
+        require(_eaccBarPercent <= 1 ether, "EACCToken: Invalid percent");
+        eaccBarPercent = _eaccBarPercent;
+        emit EACCBarPercentSet(_eaccBarPercent);
     }
 
-    /// @notice Withdraws tokens from the contract to the treasury
-    /// @param _token the token to withdraw
-    function withdraw(address _token) public onlyOwner {
-        IERC20 token = IERC20(_token);
-        uint256 balance = token.balanceOf(address(this));
-        token.transfer(treasury, balance);
-        emit TokenWithdrawn(msg.sender, _token, balance);
+    // @notice M(t) = e^(R*t + K*t^2)
+    // @dev M(t) is the multiplier for the amount of EACC you receive
+    // @param _tSeconds The time in seconds
+    // @return m The multiplier
+    function M(uint256 _tSeconds) public pure returns (uint256 m) {
+        uint256 rt = R * _tSeconds;
+
+        // K*t²
+        uint256 tSquared = _tSeconds * _tSeconds;
+        uint256 ktSquared = K * tSquared;
+
+        // R*t + K*t²
+        uint256 exponent = rt + ktSquared;
+
+        // e^exponent
+        m = unwrap(exp(ud(exponent)));
     }
 
-    /// @notice Updates the whitelist
-    /// @param _addr the address to update
-    /// @param _whitelisted the new value
-    function updateWhitelist(
-        address _addr,
-        bool _whitelisted
-    ) public onlyOwner {
-        require(_addr != address(0), "Invalid address");
-        whitelist[_addr] = _whitelisted;
-        emit WhitelistUpdated(_addr, _whitelisted);
+    // @notice Burns tokens to create a stream
+    // @dev This function is used to create a stream
+    // @param _amount The amount of EACC to stake
+    // @param _tSeconds The time in seconds for the stream
+    // @return streamId The id of the stream created
+    function depositForStream(uint256 _amount, uint256 _tSeconds) external returns (uint256 streamId) {
+        require(_amount > 0, "EACCToken::depositForStream: Cannot stake 0");
+        require(_tSeconds >= 1 weeks && _tSeconds <= 208 weeks, "EACCToken::depositForStream: Invalid time");
+        require(address(eaccBar) != address(0), "EACCToken::depositForStream: eaccBar not set");
+
+        uint256 eaccBarAmount = (_amount * eaccBarPercent) / 1 ether;
+        uint256 burnAmount = _amount - eaccBarAmount;
+
+        _burn(msg.sender, burnAmount);
+        _transfer(msg.sender, address(eaccBar), eaccBarAmount);
+
+        uint256 mintAmount = _amount * M(_tSeconds) / 1 ether;
+        _mint(address(this), mintAmount);
+
+        Lockup.CreateWithDurations memory params;
+
+        LockupDynamic.SegmentWithDuration[] memory segments = new LockupDynamic.SegmentWithDuration[](1);
+        segments[0] = LockupDynamic.SegmentWithDuration({
+            amount: uint128(mintAmount),
+            duration: uint40(_tSeconds),
+            exponent: ud2x18(E)
+        });
+
+        params.sender = msg.sender;
+        params.recipient = msg.sender;
+        params.totalAmount = uint128(mintAmount);
+        params.token = IERC20(address(this));
+        params.cancelable = false;
+        params.transferable = true;
+        params.broker = Broker(address(0), ud60x18(0));
+
+        streamId = lockup.createWithDurationsLD(params, segments);
     }
 
     /// @notice Multitransfer function
@@ -140,74 +135,6 @@ contract EACCToken is ERC20, ERC20Permit, ERC20Votes, Ownable {
         }
     }
 
-    /// @notice Used to convert the tax to arbius
-    /// @param _amount the amount to convert
-    function swapTokensForAius(uint256 _amount) internal lockSwap {
-        require(_amount > 0, "Amount must be greater than 0");
-        require(
-            _amount >= minimumTokensBeforeSwap,
-            "Amount less than minimum required for swap"
-        );
-
-        // Generate the uniswap pair path of token -> AIUS
-        address[] memory path = new address[](2);
-        path[0] = address(this);
-        path[1] = address(arbiusToken);
-
-        try
-            router.swapExactTokensForTokens(
-                _amount,
-                0, // Accept any amount of aius
-                path,
-                treasury,
-                block.timestamp
-            )
-        returns (uint256[] memory) {
-            // Swap successful
-        } catch {
-            // If swap fails, keep the tokens in the contract for manual withdrawal
-        }
-    }
-
-    /// @notice Overrides the _update function to add tax
-    /// @param _from the sender
-    /// @param _to the receiver
-    /// @param _amount the amount to transfer
-    function _update(
-        address _from,
-        address _to,
-        uint256 _amount
-    ) internal virtual override(ERC20, ERC20Votes) {
-        if (
-            lock ||
-            tax == 0 ||
-            whitelist[_from] ||
-            whitelist[_to] ||
-            _from == address(0) || // Skip tax on minting
-            _to == address(0) // Skip tax on burning
-        ) {
-            super._update(_from, _to, _amount);
-            return;
-        }
-
-        uint256 taxAmount = (_amount * tax) / 1 ether;
-        uint256 transferAmount = _amount - taxAmount;
-
-        // First perform the normal transfer
-        super._update(_from, _to, transferAmount);
-
-        if (taxAmount > 0) {
-            // Then collect the tax
-            super._update(_from, address(this), taxAmount);
-
-            // Only swap if we've accumulated enough tokens
-            uint256 contractBalance = balanceOf(address(this));
-            if (contractBalance >= minimumTokensBeforeSwap) {
-                swapTokensForAius(contractBalance);
-            }
-        }
-    }
-
     /// @notice Required for ERC20Permit
     /// @param owner_ the owner
     /// @return the nonces
@@ -215,5 +142,13 @@ contract EACCToken is ERC20, ERC20Permit, ERC20Votes, Ownable {
         address owner_
     ) public view override(ERC20Permit, Nonces) returns (uint256) {
         return super.nonces(owner_);
+    }
+
+    /// @notice ERC20 override
+    /// @param from the from address
+    /// @param to the to address
+    /// @param value the value
+    function _update(address from, address to, uint256 value) internal override(ERC20, ERC20Votes) {
+        super._update(from, to, value);
     }
 }
