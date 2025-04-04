@@ -5,9 +5,6 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {ERC20Permit} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
-import {ERC20Votes} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
-import {Nonces} from "@openzeppelin/contracts/utils/Nonces.sol";
-import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import { ud2x18 } from "@prb/math/src/UD2x18.sol";
 import { ud60x18, ud, unwrap } from "@prb/math/src/UD60x18.sol";
@@ -16,13 +13,13 @@ import { ISablierLockup } from "@sablier/lockup/src/interfaces/ISablierLockup.so
 import { Broker, Lockup, LockupDynamic } from "@sablier/lockup/src/types/DataTypes.sol";
 
 
-contract EACCToken is ERC20, ERC20Permit, ERC20Votes, Ownable {
+contract EACCToken is ERC20, ERC20Permit, Ownable {
     IERC20 public eaccBar;
     uint256 public eaccBarPercent; // how much of the converted EACC goes to eaccBar
     ISablierLockup public lockup;
 
-    uint256 public constant R = 6969696969; // base rate
-    uint256 public constant K = 69; // booster
+    uint256 constant R = 6969696969; // base rate
+    uint256 constant K = 69; // booster
     uint64 constant E = 6e18; // exponent for stream
 
     event EACCBarSet(IERC20 eaccBar);
@@ -133,22 +130,5 @@ contract EACCToken is ERC20, ERC20Permit, ERC20Votes, Ownable {
                 i++;
             }
         }
-    }
-
-    /// @notice Required for ERC20Permit
-    /// @param owner_ the owner
-    /// @return the nonces
-    function nonces(
-        address owner_
-    ) public view override(ERC20Permit, Nonces) returns (uint256) {
-        return super.nonces(owner_);
-    }
-
-    /// @notice ERC20 override
-    /// @param from the from address
-    /// @param to the to address
-    /// @param value the value
-    function _update(address from, address to, uint256 value) internal override(ERC20, ERC20Votes) {
-        super._update(from, to, value);
     }
 }
