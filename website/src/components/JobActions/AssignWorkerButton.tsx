@@ -76,7 +76,7 @@ export function AssignWorkerButton({
         Start Job with WORKER
       </Button>
       <Transition appear show={isOpen} as={Fragment}>
-        <Dialog as='div' className='relative z-10' onClose={closeModal}>
+        <Dialog as='div' className='relative z-50' onClose={closeModal}>
           <Transition.Child
             as={Fragment}
             enter='ease-out duration-300'
@@ -100,7 +100,7 @@ export function AssignWorkerButton({
                 leaveFrom='opacity-100 scale-100'
                 leaveTo='opacity-0 scale-95'
               >
-                <Dialog.Panel className='w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-8 text-left align-middle shadow-xl transition-all'>
+                <Dialog.Panel className='w-full max-w-md transform rounded-2xl bg-white p-8 text-left align-middle shadow-xl transition-all'>
                   <Dialog.Title
                     as='h3'
                     className='mb-6 text-xl font-semibold text-gray-900'
@@ -108,7 +108,7 @@ export function AssignWorkerButton({
                     Review Job Details
                   </Dialog.Title>
 
-                  <div className='space-y-4'>
+                  <div className='space-y-4  h-[400px] overflow-auto'>
                     {/* Job Details Grid */}
                     <div className='grid grid-cols-1 gap-4 text-sm'>
                       {[
@@ -154,7 +154,7 @@ export function AssignWorkerButton({
                     <Button
                       disabled={isAssigning}
                       onClick={handleAssign}
-                      className='w-full rounded-lg bg-blue-600 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-700'
+                      className='w-full px-4 py-2 font-medium text-white transition-colors '
                     >
                       Confirm
                     </Button>

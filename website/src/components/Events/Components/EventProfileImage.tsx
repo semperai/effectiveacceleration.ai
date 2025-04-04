@@ -8,9 +8,8 @@ import useFetchAvatar from '@/hooks/useFetchAvatar';
 
 const EventProfileImage = ({ user }: { user: User | Arbitrator }) => {
   const [isImgValid, setIsImgValid] = useState(true);
-    const [sessionKey, setSessionKey] = useState<string>();
+  const [sessionKey, setSessionKey] = useState<string>();
   const avatarUrl = useFetchAvatar(user?.avatar, sessionKey);
-  console.log(avatarUrl, avatarUrl)
   const handleImageError = () => {
     setIsImgValid(false);
   };

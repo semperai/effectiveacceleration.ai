@@ -28,6 +28,7 @@ export function DeliverResultButton({
   const [message, setMessage] = useState<string>('');
   const [file, setFile] = useState<File>();
   const [isDelivering, setIsDelivering] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { showError, showSuccess, showLoading, toast } = useToast();
 
   const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
@@ -139,7 +140,7 @@ export function DeliverResultButton({
   function openModal() {
     setIsOpen(true);
   }
-
+  console.log(file, 'FILE');
   return (
     <>
       <Button
@@ -152,7 +153,7 @@ export function DeliverResultButton({
       </Button>
 
       <Transition appear show={isOpen} as={Fragment}>
-        <Dialog as='div' className='relative z-10' onClose={closeModal}>
+        <Dialog as='div' className='relative z-50' onClose={closeModal}>
           <Transition.Child
             as={Fragment}
             enter='ease-out duration-300'
@@ -176,7 +177,7 @@ export function DeliverResultButton({
                 leaveFrom='opacity-100 scale-100'
                 leaveTo='opacity-0 scale-95'
               >
-                <Dialog.Panel className='w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all'>
+                <Dialog.Panel className='w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-8 text-left align-middle shadow-xl transition-all'>
                   <Dialog.Title
                     as='h3'
                     className='text-lg font-medium leading-6 text-gray-900'
@@ -190,26 +191,36 @@ export function DeliverResultButton({
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       placeholder='Please write a message providing the deliverable for the job. Include links etc'
-                      className='mt-5'
+                      className=''
                     />
-                    <div>or alternatively upload a file with results</div>
-                    <div className='flex flex-row'>
-                      <Input
-                        type='file'
-                        id='file'
-                        name='file'
-                        onChange={(e) => setFile(e.target.files?.[0]!)}
-                      />
-                      {file && <div className='w-[48px] h-[48px] rounded-xl ml-2 mt-1.5 p-1 border-[rgb(79 70 229)] border-2'><TrashIcon onClick={() => setFile(undefined)}></TrashIcon></div>}
+                    <div>
+                      <span className='text-sm'>or alternatively upload a file with results</span>
+                      <div className='flex flex-row'>
+                        <Input
+                          type='file'
+                          id='file'
+                          ref={fileInputRef}
+                          name={file?.name}
+                          onChange={(e) => setFile(e.target.files?.[0]!)}
+                        />
+                        {file && <div className='w-[48px] h-[48px] rounded-xl ml-2 mt-1.5 p-1 border-[rgb(79 70 229)]  flex items-center justify-center'>
+                          <TrashIcon 
+                            className='w-[26px] h-[26px] hover:cursor-pointer' 
+                            onClick={() => {
+                              setFile(undefined);
+                              if (fileInputRef.current) {
+                                fileInputRef.current.value = '';
+                              }
+                            }} 
+                          />
+                        </div>}
+                      </div>
                     </div>
+
                     <Button
                       disabled={isDelivering || (message === '' && file === undefined)}
                       onClick={handleDeliver}
                     >
-                      <CheckIcon
-                        className='-ml-0.5 mr-1.5 h-5 w-5'
-                        aria-hidden='true'
-                      />
                       Confirm
                     </Button>
                   </div>

@@ -26,14 +26,12 @@ export function AssignedEvent({
       <div className='min-w-0 flex-1 py-1.5'>
         <div className='text-sm text-gray-500 dark:text-gray-400'>
           <a
-            href={ownerHref}
             className='font-medium text-gray-900 dark:text-gray-100'
           >
             {owner?.name}
           </a>{' '}
           assigned{' '}
           <a
-            href={workerHref}
             className='font-medium text-gray-900 dark:text-gray-100'
           >
             {worker?.name}

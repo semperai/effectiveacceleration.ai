@@ -27,6 +27,27 @@ interface NavButtonProps {
   openModal: () => void;
 }
 
+interface ReputationProps {
+  positiveCount: number;
+  negativeCount: number;
+}
+
+const Reputation = ({ positiveCount, negativeCount }: ReputationProps) => (
+  <Field className=''>
+    <Label>Reputation</Label>
+      <div className='py-3'>
+        <p className='whitespace-nowrap'>
+          <span className='text-green-500 mr-2 p-2 border rounded-full border-gray-300'>
+            +{positiveCount}
+          </span>
+          <span className='text-red p-2 border rounded-full border-gray-300'>
+            -{negativeCount}
+          </span>
+        </p>
+      </div>
+  </Field>
+);
+
 const NavButton = ({ name, avatar, openModal }: NavButtonProps) => {
   const [isImgValid, setIsImgValid] = useState<boolean>(false);
   const [sessionKey, setSessionKey] = useState<string>();
@@ -193,7 +214,7 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
       <Transition appear show={open} as={Fragment}>
         <Dialog
           as='div'
-          className='relative z-10'
+          className='relative z-50'
           onClose={() => setOpen(false)}
         >
           <Transition.Child
@@ -219,7 +240,7 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
                 leaveFrom='opacity-100 scale-100'
                 leaveTo='opacity-0 scale-95'
               >
-                <Dialog.Panel className='w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all'>
+                <Dialog.Panel className='w-full p-8 max-w-md transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all'>
                   <Dialog.Title
                     as='h3'
                     className='text-lg font-medium leading-6 text-gray-900'
@@ -283,32 +304,17 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
                           </Field>
                         )}
                         {user && userIndex === 0 && (
-                          <Field>
-                            <p className='whitespace-nowrap'>
-                              <span className='text-green-500'>
-                                +{user.reputationUp}
-                              </span>
-                              <span className='text-red-500'>
-                                -{user.reputationDown}
-                              </span>{' '}
-                              reputation
-                            </p>
-                          </Field>
+                          <Reputation
+                            positiveCount={user.reputationUp}
+                            negativeCount={user.reputationDown}
+                          />
                         )}
                         {arbitrator && userIndex === 1 && (
-                          <Field>
-                            <p className='whitespace-nowrap'>
-                              <span className='text-green-500'>
-                                +{arbitrator.settledCount}
-                              </span>
-                              <span className='text-red-500'>
-                                -{arbitrator.refusedCount}
-                              </span>{' '}
-                              reputation
-                            </p>
-                          </Field>
+                          <Reputation
+                            positiveCount={arbitrator.settledCount}
+                            negativeCount={arbitrator.refusedCount}
+                          />
                         )}
-
                         {users[userIndex] && (
                           <Button
                             disabled={
@@ -318,10 +324,6 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
                             }
                             onClick={updateButtonClick}
                           >
-                            <CheckIcon
-                              className='-ml-0.5 mr-1.5 h-5 w-5'
-                              aria-hidden='true'
-                            />
                             Update
                           </Button>
                         )}
@@ -330,10 +332,6 @@ export function UserButton({ ...rest }: React.ComponentPropsWithoutRef<'div'>) {
                             disabled={buttonDisabled}
                             onClick={registerButtonClick}
                           >
-                            <CheckIcon
-                              className='-ml-0.5 mr-1.5 h-5 w-5'
-                              aria-hidden='true'
-                            />
                             Register
                           </Button>
                         )}

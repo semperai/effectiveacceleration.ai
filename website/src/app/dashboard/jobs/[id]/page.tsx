@@ -16,6 +16,7 @@ import {
 import { jobMeceTags } from '@/utils/jobMeceTags';
 import { shortenText, formatTimeLeft } from '@/utils/utils';
 import {
+  getFromIpfs,
   Job,
   JobArbitratedEvent,
   JobEventType,
@@ -99,6 +100,7 @@ export default function JobPage() {
   const workerJobCache = `${address}${LOCAL_JOBS_WORKER_CACHE}`;
   const ownerJobCache = `${address}${LOCAL_JOBS_OWNER_CACHE}`;
   const prevJobRef = useRef<Job | undefined>(undefined);
+  
   useSwResetMessage(jobId);
 
   // Calculate the time passed since the job was closed
@@ -158,9 +160,24 @@ export default function JobPage() {
           break;
         }
       }
-
-      const filteredEvents = lastIndex !== -1 ? events.slice(lastIndex) : [];
-
+      // All message events before job started
+      const additionalEvents = events.filter(
+        (event, index) =>
+          index < lastIndex &&
+          (
+            (event.type_ === 17 &&
+            event.address_ === selectedWorker &&
+            (event.details as JobMessageEvent)?.recipientAddress === job.roles.creator) ||
+            (event.type_ === 18 &&
+              event.address_ === job.roles.creator &&
+              (event.details as JobMessageEvent)?.recipientAddress === selectedWorker)
+          )
+      );
+      // All events after job started
+      const filteredEvents =
+        lastIndex !== -1
+          ? [...additionalEvents, ...events.slice(lastIndex)]
+          : [...additionalEvents];
       setEventMessages(filteredEvents);
     } else {
       setEventMessages(events);
@@ -188,13 +205,14 @@ export default function JobPage() {
   const isWorker = !isOwner && address && job?.roles.worker.includes(address);
   const isArbitrator =
     !isOwner && !isWorker && address && job?.roles.arbitrator.includes(address);
+  console.log(events, 'events')
 
   return (
     <Layout borderless>
       <div className='grid min-h-customHeader grid-cols-1'>
         <div className='grid min-h-customHeader grid-cols-2 md:grid-cols-4'>
           {isOwner && job?.state === JobState.Open && (
-            <div className='col-span-1 hidden md:block max-h-customHeader overflow-y-auto border border-gray-100 bg-white p-3'>
+            <div className='col-span-1 hidden max-h-customHeader overflow-y-auto border border-gray-100 bg-white p-3 md:block'>
               <JobChatsList
                 users={users ?? {}}
                 job={job}
@@ -214,7 +232,7 @@ export default function JobPage() {
             )}
           >
             {job && (
-              <div className='grid max-h-customHeader min-h-customHeader grid-rows-[74px_68%_10%]'>
+              <div className='grid max-h-customHeader min-h-customHeader grid-rows-[74px_auto_1fr]'>
                 <ProfileUserHeader
                   users={users ?? {}}
                   selectedWorker={selectedWorker}
@@ -261,7 +279,7 @@ export default function JobPage() {
                     isUserCreatorWithSelectedWorkerOrTaken) &&
                   shouldShowPostMessageButton && (
                     <>
-                      <div className='row-span-1 md:block flex flex-1 content-center items-center border border-gray-100'>
+                      <div className='row-span-1 flex flex-1 content-center items-center border border-gray-100 md:block'>
                         <PostMessageButton
                           address={address}
                           recipient={selectedWorker as string}

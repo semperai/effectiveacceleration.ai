@@ -82,7 +82,6 @@ export function ReviewButton({
   function openModal() {
     setIsOpen(true);
   }
-
   return (
     <>
       <Button
@@ -91,11 +90,10 @@ export function ReviewButton({
         color={'borderlessGray'}
         className={'w-full'}
       >
-        <CheckIcon className='-ml-0.5 mr-1.5 h-5 w-5' aria-hidden='true' />
         Leave a Review
       </Button>
       <Transition appear show={isOpen} as={Fragment}>
-        <Dialog as='div' className='relative z-10' onClose={closeModal}>
+        <Dialog as='div' className='relative z-50' onClose={closeModal}>
           <Transition.Child
             as={Fragment}
             enter='ease-out duration-300'
@@ -119,7 +117,7 @@ export function ReviewButton({
                 leaveFrom='opacity-100 scale-100'
                 leaveTo='opacity-0 scale-95'
               >
-                <Dialog.Panel className='w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all'>
+                <Dialog.Panel className='w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-8 text-left align-middle shadow-xl transition-all'>
                   <Dialog.Title
                     as='h3'
                     className='text-lg font-medium leading-6 text-gray-900'
@@ -148,8 +146,8 @@ export function ReviewButton({
                             placeholder='Select Rating'
                             value={rating.toString()}
                             onChange={(selected) => {
-                              if (typeof selected === 'string') {
-                                setRating(parseInt(selected, 10));
+                              if (typeof selected !== 'string') {
+                                setRating(parseInt(selected.id, 10));
                               }
                             }}
                             options={ratingOptions}
@@ -159,12 +157,8 @@ export function ReviewButton({
                       <Button
                         disabled={isReviewing || isConfirming}
                         onClick={handleReview}
-                        className='mt-5'
+                        className='mt-5 w-full'
                       >
-                        <CheckIcon
-                          className='-ml-0.5 mr-1.5 h-5 w-5'
-                          aria-hidden='true'
-                        />
                         {buttonText}
                       </Button>
                     </Fieldset>

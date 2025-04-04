@@ -27,8 +27,8 @@ export function CommentEvent({ event, ...rest }: CommentEventProps) {
   return (
     <div
       className={clsx(
-        'flex w-full items-start space-x-4 rounded-lg p-4 transition-colors hover:bg-gray-50',
-        isOwnMessage ? 'bg-gray-50' : 'bg-gray-100'
+        'flex w-full items-start space-x-4 rounded-lg p-4 transition-colors',
+        isOwnMessage ? 'bg-lightPrimary' : 'bg-gray-50'
       )}
     >
       <div className='relative flex-shrink-0'>
@@ -48,19 +48,18 @@ export function CommentEvent({ event, ...rest }: CommentEventProps) {
       <div className='min-w-0 flex-1'>
         <div className='flex items-center justify-between'>
           <div className='text-sm'>
-            <Link
-              href={`/dashboard/users/${address}`}
+            <a
               className='font-semibold text-gray-900 transition-colors hover:text-blue-600'
               title={address}
             >
               {user?.name || 'Anonymous'}
-            </Link>
+            </a>
           </div>
           <span className='text-xs text-gray-500'>{date}</span>
         </div>
 
         <div className='mt-2'>
-          <p className='text-sm leading-relaxed text-gray-700'>
+          <p className='text-sm leading-relaxed text-gray-700 break-words'>
             {details.content}
           </p>
         </div>
