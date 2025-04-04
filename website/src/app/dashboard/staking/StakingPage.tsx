@@ -10,11 +10,9 @@ import { E_A_C_C_BAR_ABI as EACC_BAR_ABI } from '@effectiveacceleration/contract
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import { useToast } from '@/hooks/useToast';
 import * as Sentry from '@sentry/nextjs';
-import { ConnectButton } from '@/components/ConnectButton';
-import { PiArrowsClockwise } from 'react-icons/pi';
-import clsx from 'clsx';
+import { WelcomeScreen } from './WelcomeScreen';
+import { NetworkSwitcher } from './NetworkSwitcher';
 
-// Ethereum Mainnet chain ID
 const ETHEREUM_CHAIN_ID = 1;
 
 export default function StakingPage() {
@@ -44,7 +42,7 @@ export default function StakingPage() {
     },
   });
 
-  // Read EACCx balance
+  // Read EAXX balance
   const { data: eaccxBalance } = useReadContract({
     address: Config?.EACCBarAddress,
     abi: EACC_BAR_ABI,
@@ -196,48 +194,17 @@ export default function StakingPage() {
     }
   };
 
-  // Network switcher component
-  const NetworkSwitcher = () => (
-    <div className="max-w-2xl mx-auto w-full bg-white p-8 rounded-2xl shadow-xl text-center">
-      <div className="mb-6">
-        <div className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center mx-auto mb-4">
-          <PiArrowsClockwise className="h-8 w-8 text-orange-500" />
-        </div>
-        <h2 className="text-2xl font-bold mb-2">Wrong Network</h2>
-        <p className="text-gray-600 mb-6">
-          EACC staking is only available on Ethereum Mainnet. Please switch your network to continue.
-        </p>
-      </div>
-
-      <button
-        onClick={handleSwitchToEthereum}
-        disabled={isSwitchingNetwork}
-        className={clsx(
-          'group relative inline-flex items-center gap-2 bg-gradient-to-r px-6 py-2 w-full justify-center',
-          'from-orange-500 to-amber-500 shadow-orange-500/25 hover:from-orange-400 hover:to-amber-400',
-          'rounded-xl font-semibold text-white shadow-lg',
-          'transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:shadow-xl',
-          'active:translate-y-0 active:shadow-md',
-          'disabled:opacity-70 disabled:hover:transform-none disabled:hover:shadow-lg'
-        )}
-      >
-        {isSwitchingNetwork ? 'Switching...' : 'Switch to Ethereum Mainnet'}
-
-        <div className='absolute inset-0 overflow-hidden rounded-xl'>
-          <div className='absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-1000 group-hover:translate-x-[100%]' />
-        </div>
-      </button>
-    </div>
-  );
-
   return (
     <>
       <DefaultNavBar />
-      <div className="relative mx-auto flex min-h-customHeader flex-col justify-center">
+      <div className="relative mx-auto flex min-h-customHeader flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
         {!isConnected ? (
-          <ConnectButton />
+          <WelcomeScreen />
         ) : !isEthereumMainnet ? (
-          <NetworkSwitcher />
+          <NetworkSwitcher 
+            onSwitchNetwork={handleSwitchToEthereum} 
+            isSwitchingNetwork={isSwitchingNetwork} 
+          />
         ) : (
           <div className="max-w-2xl mx-auto w-full bg-white p-8 rounded-2xl shadow-xl">
             <h1 className="text-3xl font-bold mb-6 text-center">EACC Staking</h1>
@@ -269,7 +236,7 @@ export default function StakingPage() {
                 </p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-500">EACCx Balance</p>
+                <p className="text-sm text-gray-500">EAXX Balance</p>
                 <p className="text-xl font-semibold">
                   {eaccxBalance ? parseFloat(formatEther(eaccxBalance)).toFixed(4) : '0.0000'}
                 </p>
@@ -325,7 +292,7 @@ export default function StakingPage() {
                 <p className="text-xl font-semibold">{parseFloat(multiplier).toFixed(4)}x</p>
                 <p className="text-xs text-gray-500">
                   {isDirectStaking
-                    ? `You'll receive ${(parseFloat(amount || '0') * parseFloat(multiplier)).toFixed(4)} EACCx tokens`
+                    ? `You'll receive ${(parseFloat(amount || '0') * parseFloat(multiplier)).toFixed(4)} EAXX tokens`
                     : `You'll receive a stream of ${(parseFloat(amount || '0') * parseFloat(multiplier)).toFixed(4)} EACC tokens`}
                 </p>
               </div>
@@ -368,7 +335,7 @@ export default function StakingPage() {
               <h3 className="font-medium text-blue-700 mb-2">How it works</h3>
               <p className="text-sm text-blue-600">
                 {isDirectStaking
-                  ? 'Staking EACC gives you EACCx tokens based on your lockup period. The longer you lock, the more EACCx you receive. You can unstake at any time after your lockup period ends.'
+                  ? 'Staking EACC gives you EAXX tokens based on your lockup period. The longer you lock, the more EAXX you receive. You can unstake at any time after your lockup period ends.'
                   : 'Create a stream of EACC tokens. The longer the stream duration, the higher the multiplier. The tokens will be streamed to you linearly over the specified period.'}
               </p>
             </div>
