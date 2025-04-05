@@ -10,7 +10,7 @@ async function main() {
 
   console.log("Deploying contracts with the account:", deployer.address);
 
-  const sablierLockupAddress = "0x9DeaBf7815b42Bf4E9a03EEc35a486fF74ee7459";
+  const sablierLockupAddress = "0x7C01AA3783577E15fD7e272443D44B92d5b21056";
 
   const EACCToken = await ethers.getContractFactory(
     "EACCToken"
@@ -38,8 +38,9 @@ async function main() {
 
 
   /*
-  npx hardhat verify --network mainnet ADDRESS "EACCToken" "EACC" "6969696969000000000000000000" "0x9DeaBf7815b42Bf4E9a03EEc35a486fF74ee7459"
-  npx hardhat verify --network mainnet ADDRESS EACCADDRESS 0x9DeaBf7815b42Bf4E9a03EEc35a486fF74ee7459
+  npx hardhat verify --network mainnet ADDRESS "EACCToken" "EACC" "6969696969000000000000000000" "0x7C01AA3783577E15fD7e272443D44B92d5b21056"
+
+  npx hardhat verify --network mainnet ADDRESS EACCADDRESS 0x7C01AA3783577E15fD7e272443D44B92d5b21056
   */
 
   process.exit(0);
