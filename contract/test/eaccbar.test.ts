@@ -80,7 +80,7 @@ describe("EACCBar Unit Tests", () => {
     it("Should approve max tokens to Sablier", async () => {
       const { eaccToken, eaccBar, mockSablier } = await loadFixture(deployContractsFixture);
 
-      const allowance = await eaccToken.allowance(
+      const allowance = await eaccBar.allowance(
         await eaccBar.getAddress(),
         await mockSablier.getAddress()
       );
@@ -141,7 +141,7 @@ describe("EACCBar Unit Tests", () => {
         await eaccBar.connect(deployer).setLockup(await newMockSablier.getAddress());
 
         // Verify approval was set
-        const allowance = await eaccToken.allowance(
+        const allowance = await eaccBar.allowance(
           await eaccBar.getAddress(),
           await newMockSablier.getAddress()
         );
