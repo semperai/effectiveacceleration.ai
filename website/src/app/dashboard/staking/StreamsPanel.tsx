@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useAccount, useReadContract, useReadContracts } from 'wagmi';
+import { useAccount, useReadContracts } from 'wagmi';
 import { Button } from '@/components/Button';
 import Image from 'next/image';
 import { useConfig } from '@/hooks/useConfig';
@@ -8,6 +8,7 @@ import { formatEther } from 'viem';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import { useToast } from '@/hooks/useToast';
 import * as Sentry from '@sentry/nextjs';
+import Link from 'next/link';
 
 // Sablier Lockup ABI
 const SABLIER_LOCKUP_ABI = [
@@ -58,6 +59,7 @@ interface Stream {
   id: string;
   deposit: string;
   token: string;
+  tokenSymbol: string; // Added to support multiple tokens
   startTime: Date;
   endTime: Date;
   lockupAmount: string;
@@ -65,26 +67,58 @@ interface Stream {
   remainingAmount: string;
   percentComplete: number;
   isActive: boolean;
-  isWithdrawing?: boolean; // Track individual stream withdrawal status
+  isWithdrawing?: boolean;
 }
 
-export default function StreamsComponent() {
+export function StreamsPanel() {
   const { address, isConnected } = useAccount();
   const Config = useConfig();
   const [streams, setStreams] = useState<Stream[]>([]);
   const [streamIds, setStreamIds] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingInitial, setIsLoadingInitial] = useState(true);
   const { writeContractWithNotifications, isConfirming, isConfirmed, error } = useWriteContractWithNotifications();
   const { showError, showSuccess } = useToast();
+  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'completed'>('all');
+
+  // Helper function to determine token symbol from address
+  const getTokenSymbol = (tokenAddress: string): string => {
+    if (!Config) return 'TOKEN';
+
+    // Compare with known token addresses from config
+    if (tokenAddress.toLowerCase() === Config.EACCAddress?.toLowerCase()) return 'EACC';
+    if (tokenAddress.toLowerCase() === Config.EACCBarAddress?.toLowerCase()) return 'EAXX';
+
+    // Default fallback
+    return 'TOKEN';
+  };
 
   // In a real implementation, you'd fetch streamIds from a backend or indexer
-  // For demonstration, we'll use example IDs
   useEffect(() => {
-    if (isConnected && address) {
-      // Example: In production, you would get these from an indexer or API
-      setStreamIds(['1', '2', '3']);
-    }
-  }, [isConnected, address]);
+    const fetchStreamIds = async () => {
+      if (isConnected && address && Config?.sablierLockupAddress) {
+        try {
+          setIsLoadingInitial(true);
+          // In a real implementation, you would fetch this from an API or subgraph
+          // Example: const response = await fetch(`/api/streams?address=${address}`);
+          // For demonstration, we'll use example IDs
+
+          // Simulate API call delay
+          await new Promise(resolve => setTimeout(resolve, 500));
+
+          // Example IDs - In production, these would come from your backend/indexer
+          setStreamIds(['1', '2', '3']);
+        } catch (error) {
+          console.error("Error fetching stream IDs:", error);
+          Sentry.captureException(error);
+          showError("Failed to load your streams. Please try again later.");
+        } finally {
+          setIsLoadingInitial(false);
+        }
+      }
+    };
+
+    fetchStreamIds();
+  }, [isConnected, address, Config?.sablierLockupAddress, showError]);
 
   // Read multiple streams data at once using useReadContracts
   const { data: streamsData, isLoading: isLoadingStreams, refetch } = useReadContracts({
@@ -103,7 +137,6 @@ export default function StreamsComponent() {
   // Reset loading state when error occurs
   useEffect(() => {
     if (error) {
-      setIsLoading(false);
       // Reset any individual stream loading states
       setStreams(prevStreams =>
         prevStreams.map(stream => ({
@@ -111,13 +144,22 @@ export default function StreamsComponent() {
           isWithdrawing: false
         }))
       );
+
+      showError("An error occurred with your stream operation. Please try again.");
     }
-  }, [error]);
+  }, [error, showError]);
 
   // Refresh streams after a successful withdraw
   useEffect(() => {
     if (isConfirmed) {
       refetch();
+      // Reset withdrawing state for all streams
+      setStreams(prevStreams =>
+        prevStreams.map(stream => ({
+          ...stream,
+          isWithdrawing: false
+        }))
+      );
     }
   }, [isConfirmed, refetch]);
 
@@ -150,6 +192,9 @@ export default function StreamsComponent() {
           // Check if stream is active
           const isActive = now >= startTime && now <= endTime && !streamData[10]; // wasCanceled is at index 10
 
+          // Get token symbol
+          const tokenSymbol = getTokenSymbol(streamData[4]); // token is at index 4
+
           // Preserve isWithdrawing state if it exists
           const existingStream = streams.find(s => s.id === streamIds[index]);
 
@@ -157,6 +202,7 @@ export default function StreamsComponent() {
             id: streamIds[index],
             deposit: formatEther(streamData[3]), // deposit is at index 3
             token: streamData[4], // token is at index 4
+            tokenSymbol: tokenSymbol,
             startTime: startTime,
             endTime: endTime,
             lockupAmount: formatEther(lockupAmount),
@@ -171,7 +217,15 @@ export default function StreamsComponent() {
 
       setStreams(processedStreams);
     }
-  }, [streamsData, streamIds, streams]);
+  }, [streamsData, streamIds, streams, Config]);
+
+  // Filter streams based on active filter
+  const filteredStreams = streams.filter(stream => {
+    if (activeFilter === 'all') return true;
+    if (activeFilter === 'active') return stream.isActive;
+    if (activeFilter === 'completed') return !stream.isActive;
+    return true;
+  });
 
   // Handle withdraw from stream
   const handleWithdraw = async (streamId: string) => {
@@ -223,32 +277,68 @@ export default function StreamsComponent() {
     refetch();
   };
 
+  // Calculate remaining time in days
+  const getRemainingDays = (endTime: Date) => {
+    const now = new Date();
+    const diffTime = endTime.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return Math.max(0, diffDays);
+  };
+
   return (
     <div className="w-full">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Your Streams</h2>
-        <Button
-          onClick={handleRefresh}
-          disabled={isLoadingStreams || isConfirming}
-          className="text-sm px-4"
-        >
-          {isLoadingStreams ? 'Loading...' : 'Refresh'}
-        </Button>
+        <div className="flex space-x-2">
+          <div className="flex bg-gray-100 rounded-md p-1 mr-2 text-sm">
+            <button
+              onClick={() => setActiveFilter('all')}
+              className={`px-3 py-1 rounded ${activeFilter === 'all' ? 'bg-blue-500 text-white' : 'text-gray-700'}`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setActiveFilter('active')}
+              className={`px-3 py-1 rounded ${activeFilter === 'active' ? 'bg-blue-500 text-white' : 'text-gray-700'}`}
+            >
+              Active
+            </button>
+            <button
+              onClick={() => setActiveFilter('completed')}
+              className={`px-3 py-1 rounded ${activeFilter === 'completed' ? 'bg-blue-500 text-white' : 'text-gray-700'}`}
+            >
+              Completed
+            </button>
+          </div>
+          <Button
+            onClick={handleRefresh}
+            disabled={isLoadingStreams || isConfirming}
+            className="text-sm px-3"
+          >
+            {isLoadingStreams ? 'Loading...' : 'Refresh'}
+          </Button>
+        </div>
       </div>
 
-      {isLoadingStreams ? (
-        <div className="flex justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      {isLoadingInitial || isLoadingStreams ? (
+        <div className="flex justify-center py-12">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
         </div>
-      ) : streams.length > 0 ? (
+      ) : filteredStreams.length > 0 ? (
         <div className="space-y-4">
-          {streams.map((stream) => (
-            <div key={stream.id} className="bg-white rounded-lg shadow-md p-4 border border-gray-100">
+          {filteredStreams.map((stream) => (
+            <div key={stream.id} className="bg-white rounded-lg shadow-sm p-4 border border-gray-100 hover:shadow-md transition-shadow">
               <div className="flex justify-between items-start mb-2">
                 <div>
                   <div className="flex items-center">
-                    <span className="text-lg font-semibold mr-2">{stream.deposit} EACC</span>
-                    <span className={`px-2 py-0.5 text-xs rounded-full ${stream.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                    <span className="text-lg font-semibold mr-2">
+                      {parseFloat(stream.deposit).toFixed(4)} {stream.tokenSymbol}
+                    </span>
+                    <span className={`px-2 py-0.5 text-xs rounded-full ${
+                      stream.isActive
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-gray-100 text-gray-800'
+                    }`}>
                       {stream.isActive ? 'Active' : 'Completed'}
                     </span>
                   </div>
@@ -264,35 +354,34 @@ export default function StreamsComponent() {
                   }
                   className="text-sm px-3 py-1"
                 >
-                  {stream.isWithdrawing || (isConfirming && streams.find(s => s.isWithdrawing && s.id === stream.id))
-                    ? 'Processing...'
-                    : 'Withdraw'}
+                  {stream.isWithdrawing ? 'Processing...' : 'Withdraw'}
                 </Button>
               </div>
 
-              <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+              <div className="w-full bg-gray-200 rounded-full h-2 mb-1">
                 <div
-                  className="bg-blue-500 h-2 rounded-full"
+                  className={`h-2 rounded-full ${stream.isActive ? 'bg-blue-500' : 'bg-gray-400'}`}
                   style={{ width: `${stream.percentComplete}%` }}
                 ></div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mt-4 text-sm">
-                <div>
-                  <p className="text-gray-500">Start Date</p>
-                  <p>{formatDate(stream.startTime)}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500">End Date</p>
-                  <p>{formatDate(stream.endTime)}</p>
-                </div>
+              <div className="flex justify-between text-xs text-gray-500 mb-4">
+                <span>{formatDate(stream.startTime)}</span>
+                <span>
+                  {stream.isActive
+                    ? `${getRemainingDays(stream.endTime)} days remaining`
+                    : formatDate(stream.endTime)}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mt-2 text-sm">
                 <div>
                   <p className="text-gray-500">Withdrawn</p>
-                  <p>{parseFloat(stream.withdrawnAmount).toFixed(4)} EACC</p>
+                  <p>{parseFloat(stream.withdrawnAmount).toFixed(4)} {stream.tokenSymbol}</p>
                 </div>
                 <div>
                   <p className="text-gray-500">Remaining</p>
-                  <p>{parseFloat(stream.remainingAmount).toFixed(4)} EACC</p>
+                  <p>{parseFloat(stream.remainingAmount).toFixed(4)} {stream.tokenSymbol}</p>
                 </div>
               </div>
             </div>
@@ -301,22 +390,29 @@ export default function StreamsComponent() {
       ) : (
         <div className="text-center py-12 bg-gray-50 rounded-lg">
           <div className="flex justify-center mb-4">
-            <Image
-              src="/placeholder-icon.svg" // Replace with your actual placeholder image
-              alt="No streams"
-              width={64}
-              height={64}
-              className="opacity-30"
-            />
+            <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
           </div>
           <h3 className="text-lg font-medium text-gray-600 mb-2">No Streams Found</h3>
-          <p className="text-gray-500 mb-4">You don't have any active streams yet.</p>
-          <Button
-            onClick={() => window.location.href = '/finance'}
-            className="text-sm"
-          >
-            Create Your First Stream
-          </Button>
+          <p className="text-gray-500 mb-4">
+            {activeFilter !== 'all'
+              ? `You don't have any ${activeFilter} streams.`
+              : "You don't have any active streams yet."}
+          </p>
+          <div className="flex justify-center">
+            <Link href="#" onClick={() => setActiveFilter('all')} className="text-blue-500 hover:text-blue-700 mr-4">
+              View All Streams
+            </Link>
+            <Button
+              className="text-sm"
+              onClick={() => window.location.href = '/dashboard/staking'}
+            >
+              Create New Stream
+            </Button>
+          </div>
         </div>
       )}
     </div>
