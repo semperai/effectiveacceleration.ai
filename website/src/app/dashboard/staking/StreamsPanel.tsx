@@ -219,6 +219,11 @@ export function StreamsPanel() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isConfirmed]);
 
+  // Load streams on component mount or when address, isConnected, or Config changes
+  useEffect(() => {
+    handleRefresh();
+  }, [address, isConnected, Config]);
+
   // Handle withdraw from stream
   const handleWithdraw = async (streamId: string) => {
     if (!isConnected || !Config?.sablierLockupAddress || !isArbitrumOne) return;
