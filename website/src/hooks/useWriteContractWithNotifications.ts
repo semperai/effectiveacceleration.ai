@@ -68,8 +68,8 @@ type WriteContractConfig = {
   contracts?: {
     marketplaceAddress: Address;
     marketplaceDataAddress: Address;
-    eaccAddress?: Address;
-    eaccBarAddress?: Address;
+    eaccAddress: Address;
+    eaccBarAddress: Address;
   };
   onSuccess?: (
     receipt: TransactionReceipt,
@@ -119,7 +119,7 @@ export function useWriteContractWithNotifications() {
   const parseEvents = useCallback((receipt: TransactionReceipt) => {
     if (!contractsRef.current) return [];
 
-    let contracts = [
+    const contracts = [
       {
         address: contractsRef.current.marketplaceAddress,
         abi: MARKETPLACE_V1_ABI,
@@ -130,22 +130,17 @@ export function useWriteContractWithNotifications() {
         abi: MARKETPLACE_DATA_V1_ABI,
         name: 'MarketplaceDataV1',
       },
-    ];
-
-    if (contractsRef.current.eaccAddress) {
-      contracts.push({
+      {
         address: contractsRef.current.eaccAddress,
-        abi: EACC_TOKEN_ABI as any,
+        abi: EACC_TOKEN_ABI,
         name: 'EACCToken',
-      });
-    }
-    if (contractsRef.current.eaccBarAddress) {
-      contracts.push({
+      },
+      {
         address: contractsRef.current.eaccBarAddress,
-        abi: EACC_BAR_ABI as any,
+        abi: EACC_BAR_ABI,
         name: 'EACCBar',
-      });
-    }
+      },
+    ];
 
     return parseContractEvents(receipt.logs, contracts);
   }, []);

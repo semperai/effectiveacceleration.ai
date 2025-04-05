@@ -2,9 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useAccount, useReadContracts } from 'wagmi';
 import { Button } from '@/components/Button';
-import Image from 'next/image';
 import { useConfig } from '@/hooks/useConfig';
-import { formatEther } from 'viem';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import { useToast } from '@/hooks/useToast';
 import * as Sentry from '@sentry/nextjs';
@@ -45,13 +43,6 @@ const SABLIER_LOCKUP_ABI = [
     outputs: [{ internalType: 'uint256', name: 'amount', type: 'uint256' }],
     stateMutability: 'nonpayable',
     type: 'function'
-  },
-  {
-    inputs: [{ internalType: 'uint256', name: 'streamId', type: 'uint256' }, { internalType: 'uint128', name: 'amount', type: 'uint128' }],
-    name: 'withdrawAmount',
-    outputs: [{ internalType: 'uint256', name: 'withdrawnAmount', type: 'uint256' }],
-    stateMutability: 'nonpayable',
-    type: 'function'
   }
 ] as const;
 
@@ -60,7 +51,7 @@ interface Stream {
   id: string;
   deposit: string;
   token: string;
-  tokenSymbol: string; // Added to support multiple tokens
+  tokenSymbol: string;
   startTime: Date;
   endTime: Date;
   lockupAmount: string;
@@ -68,97 +59,102 @@ interface Stream {
   remainingAmount: string;
   percentComplete: number;
   isActive: boolean;
-  isWithdrawing?: boolean;
+  isWithdrawing: boolean;
 }
+
+// Mock data for streams - to avoid network calls during testing
+const MOCK_STREAMS: Stream[] = [
+  {
+    id: "1",
+    deposit: "1000.0",
+    token: "0x1234...",
+    tokenSymbol: "EACC",
+    startTime: new Date("2023-01-01"),
+    endTime: new Date("2025-01-01"),
+    lockupAmount: "1000.0",
+    withdrawnAmount: "250.0",
+    remainingAmount: "750.0",
+    percentComplete: 25,
+    isActive: true,
+    isWithdrawing: false
+  },
+  {
+    id: "2",
+    deposit: "500.0",
+    token: "0x5678...",
+    tokenSymbol: "EAXX",
+    startTime: new Date("2023-06-01"),
+    endTime: new Date("2024-06-01"),
+    lockupAmount: "500.0",
+    withdrawnAmount: "375.0",
+    remainingAmount: "125.0",
+    percentComplete: 75,
+    isActive: true,
+    isWithdrawing: false
+  },
+  {
+    id: "3",
+    deposit: "200.0",
+    token: "0x1234...",
+    tokenSymbol: "EACC",
+    startTime: new Date("2022-01-01"),
+    endTime: new Date("2023-01-01"),
+    lockupAmount: "200.0",
+    withdrawnAmount: "200.0",
+    remainingAmount: "0.0",
+    percentComplete: 100,
+    isActive: false,
+    isWithdrawing: false
+  }
+];
 
 export function StreamsPanel() {
   const { address, isConnected, chain } = useAccount();
   const Config = useConfig();
-  const [streams, setStreams] = useState<Stream[]>([]);
-  const [streamIds, setStreamIds] = useState<string[]>([]);
-  const [isLoadingInitial, setIsLoadingInitial] = useState(true);
   const { writeContractWithNotifications, isConfirming, isConfirmed, error } = useWriteContractWithNotifications();
   const { showError, showSuccess } = useToast();
+
+  // UI States
   const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'completed'>('all');
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Helper function to determine token symbol from address
-  const getTokenSymbol = (tokenAddress: string): string => {
-    if (!Config) return 'TOKEN';
-
-    // Compare with known token addresses from config
-    if (tokenAddress.toLowerCase() === Config.EACCAddress?.toLowerCase()) return 'EACC';
-    if (tokenAddress.toLowerCase() === Config.EACCBarAddress?.toLowerCase()) return 'EAXX';
-
-    // Default fallback
-    return 'TOKEN';
-  };
+  // Data States
+  const [streams, setStreams] = useState<Stream[]>([]);
 
   // Check if user is on Arbitrum One
   const isArbitrumOne = chain?.id === ARBITRUM_CHAIN_ID;
 
-  // In a real implementation, you'd fetch streamIds from a backend or indexer
+  // Initial data load (simulating API call)
   useEffect(() => {
-    const fetchStreamIds = async () => {
-      if (isConnected && address && Config?.sablierLockupAddress && isArbitrumOne) {
-        try {
-          setIsLoadingInitial(true);
-          // In a real implementation, you would fetch this from an API or subgraph
-          // Example: const response = await fetch(`/api/streams?address=${address}`);
-          // For demonstration, we'll use example IDs
+    const timer = setTimeout(() => {
+      setStreams(MOCK_STREAMS);
+      setIsLoading(false);
+    }, 1000);
 
-          // Simulate API call delay
-          await new Promise(resolve => setTimeout(resolve, 500));
+    return () => clearTimeout(timer);
+  }, []);
 
-          // Example IDs - In production, these would come from your backend/indexer
-          setStreamIds(['1', '2', '3']);
-        } catch (error) {
-          console.error("Error fetching stream IDs:", error);
-          Sentry.captureException(error);
-          showError("Failed to load your streams. Please try again later.");
-        } finally {
-          setIsLoadingInitial(false);
-        }
-      }
-    };
-
-    fetchStreamIds();
-  }, [isConnected, address, Config?.sablierLockupAddress, showError, isArbitrumOne]);
-
-  // Read multiple streams data at once using useReadContracts
-  const { data: streamsData, isLoading: isLoadingStreams, refetch } = useReadContracts({
-    contracts: streamIds.map(id => ({
-      abi: SABLIER_LOCKUP_ABI,
-      address: Config?.sablierLockupAddress,
-      functionName: 'streamById',
-      args: [BigInt(id)],
-      chainId: ARBITRUM_CHAIN_ID,
-    })),
-    multicallAddress: Config?.multicall3Address,
-    query: {
-      enabled: isConnected && !!address && streamIds.length > 0 && !!Config?.sablierLockupAddress && isArbitrumOne,
-    }
-  });
-
-  // Reset loading state when error occurs
+  // Reset loading state and show error when error occurs
   useEffect(() => {
     if (error) {
-      // Reset any individual stream loading states
+      showError("An error occurred with your stream operation. Please try again.");
+
+      // Reset withdrawing state
       setStreams(prevStreams =>
         prevStreams.map(stream => ({
           ...stream,
           isWithdrawing: false
         }))
       );
-
-      showError("An error occurred with your stream operation. Please try again.");
     }
   }, [error, showError]);
 
-  // Refresh streams after a successful withdraw
+  // Handle refresh after confirmed transaction
   useEffect(() => {
     if (isConfirmed) {
-      refetch();
-      // Reset withdrawing state for all streams
+      showSuccess("Stream operation completed successfully");
+
+      // Reset withdrawing state
       setStreams(prevStreams =>
         prevStreams.map(stream => ({
           ...stream,
@@ -166,77 +162,13 @@ export function StreamsPanel() {
         }))
       );
     }
-  }, [isConfirmed, refetch]);
-
-  // Process streams data when it changes
-  useEffect(() => {
-    if (streamsData && streamsData.length > 0) {
-      const processedStreams = streamsData
-        .filter(data => data.status === 'success' && data.result)
-        .map((data, index) => {
-          const streamData = data.result as any;
-          if (!streamData) return null;
-
-          const now = new Date();
-          const startTime = new Date(Number(streamData[5]) * 1000); // startTime is at index 5
-          const endTime = new Date(Number(streamData[6]) * 1000); // endTime is at index 6
-
-          // Calculate percentage complete
-          const totalTime = Number(streamData[6]) - Number(streamData[5]);
-          const elapsedTime = Math.min(
-            Math.max(Math.floor(now.getTime() / 1000) - Number(streamData[5]), 0),
-            totalTime
-          );
-          const percentComplete = totalTime > 0 ? (elapsedTime / totalTime) * 100 : 0;
-
-          // Calculate remaining amount
-          const lockupAmount = streamData[7]; // lockupAmount is at index 7
-          const withdrawnAmount = streamData[8]; // withdrawnAmount is at index 8
-          const remainingAmount = BigInt(lockupAmount) - BigInt(withdrawnAmount);
-
-          // Check if stream is active
-          const isActive = now >= startTime && now <= endTime && !streamData[10]; // wasCanceled is at index 10
-
-          // Get token symbol
-          const tokenSymbol = getTokenSymbol(streamData[4]); // token is at index 4
-
-          // Preserve isWithdrawing state if it exists
-          const existingStream = streams.find(s => s.id === streamIds[index]);
-
-          return {
-            id: streamIds[index],
-            deposit: formatEther(streamData[3]), // deposit is at index 3
-            token: streamData[4], // token is at index 4
-            tokenSymbol: tokenSymbol,
-            startTime: startTime,
-            endTime: endTime,
-            lockupAmount: formatEther(lockupAmount),
-            withdrawnAmount: formatEther(withdrawnAmount),
-            remainingAmount: formatEther(remainingAmount),
-            percentComplete: percentComplete,
-            isActive: isActive,
-            isWithdrawing: existingStream?.isWithdrawing || false
-          };
-        })
-        .filter(stream => stream !== null) as Stream[];
-
-      setStreams(processedStreams);
-    }
-  }, [streamsData, streamIds, streams, Config]);
-
-  // Filter streams based on active filter
-  const filteredStreams = streams.filter(stream => {
-    if (activeFilter === 'all') return true;
-    if (activeFilter === 'active') return stream.isActive;
-    if (activeFilter === 'completed') return !stream.isActive;
-    return true;
-  });
+  }, [isConfirmed, showSuccess]);
 
   // Handle withdraw from stream
   const handleWithdraw = async (streamId: string) => {
     if (!isConnected || !Config?.sablierLockupAddress || !isArbitrumOne) return;
 
-    // Set loading state for specific stream
+    // Update withdrawing state
     setStreams(prevStreams =>
       prevStreams.map(stream =>
         stream.id === streamId ? { ...stream, isWithdrawing: true } : stream
@@ -249,18 +181,13 @@ export function StreamsPanel() {
         abi: SABLIER_LOCKUP_ABI,
         functionName: 'withdrawMax',
         args: [BigInt(streamId)],
-        chainId: ARBITRUM_CHAIN_ID,
       });
-
-      if (isConfirmed) {
-        showSuccess(`Successfully withdrawn from stream #${streamId}`);
-      }
     } catch (error) {
       Sentry.captureException(error);
       showError(`Error withdrawing from stream #${streamId}. Please try again.`);
       console.error("Error withdrawing from stream:", error);
 
-      // Reset loading state for the specific stream
+      // Reset withdrawing state
       setStreams(prevStreams =>
         prevStreams.map(stream =>
           stream.id === streamId ? { ...stream, isWithdrawing: false } : stream
@@ -269,6 +196,25 @@ export function StreamsPanel() {
     }
   };
 
+  // Handle refresh button click
+  const handleRefresh = () => {
+    setIsLoading(true);
+
+    // Simulate refresh with a timeout
+    setTimeout(() => {
+      setStreams(MOCK_STREAMS);
+      setIsLoading(false);
+    }, 500);
+  };
+
+  // Filter streams based on active filter
+  const filteredStreams = streams.filter(stream => {
+    if (activeFilter === 'all') return true;
+    if (activeFilter === 'active') return stream.isActive;
+    if (activeFilter === 'completed') return !stream.isActive;
+    return true;
+  });
+
   // Format date to readable string
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
@@ -276,11 +222,6 @@ export function StreamsPanel() {
       month: 'short',
       day: 'numeric'
     });
-  };
-
-  // Handle refresh of streams data
-  const handleRefresh = () => {
-    refetch();
   };
 
   // Calculate remaining time in days
@@ -318,15 +259,15 @@ export function StreamsPanel() {
           </div>
           <Button
             onClick={handleRefresh}
-            disabled={isLoadingStreams || isConfirming}
+            disabled={isLoading || isConfirming}
             className="text-sm px-3"
           >
-            {isLoadingStreams ? 'Loading...' : 'Refresh'}
+            {isLoading ? 'Loading...' : 'Refresh'}
           </Button>
         </div>
       </div>
 
-      {isLoadingInitial || isLoadingStreams ? (
+      {isLoading ? (
         <div className="flex justify-center py-12">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
         </div>

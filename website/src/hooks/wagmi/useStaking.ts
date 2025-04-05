@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useAccount, useReadContracts, useSwitchChain, useWriteContract, useWatchContractEvent } from 'wagmi';
+import { useAccount, useReadContracts, useSwitchChain, useWatchContractEvent } from 'wagmi';
 import { formatEther, parseEther } from 'viem';
 import { E_A_C_C_TOKEN_ABI as EACC_TOKEN_ABI } from '@effectiveacceleration/contracts/wagmi/EACCToken';
 import { E_A_C_C_BAR_ABI as EACC_BAR_ABI } from '@effectiveacceleration/contracts/wagmi/EACCBar';
 import { useConfig } from '@/hooks/useConfig';
 import * as Sentry from '@sentry/nextjs';
+import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 
 // Change from Ethereum to Arbitrum One
 export const ARBITRUM_CHAIN_ID = 42161;
@@ -26,8 +27,15 @@ export function useStaking() {
   // Check if user is on Arbitrum One
   const isArbitrumOne = chain?.id === ARBITRUM_CHAIN_ID;
 
-  // Setup write contract
-  const { writeContractAsync, isPending: isConfirming, isSuccess: isConfirmed } = useWriteContract();
+  // Replace useWriteContract with useWriteContractWithNotifications
+  const {
+    writeContractWithNotifications,
+    isConfirming,
+    isConfirmed,
+    hash,
+    receipt,
+    error: writeError
+  } = useWriteContractWithNotifications();
 
   const eaccContract = {
     address: Config?.EACCAddress,
@@ -69,7 +77,6 @@ export function useStaking() {
       {
         address: isEACCStaking ? Config?.EACCBarAddress : Config?.EACCAddress,
         abi: isEACCStaking ? EACC_BAR_ABI : EACC_TOKEN_ABI,
-
         functionName: 'M',
         args: [BigInt(lockupPeriod * 7 * 24 * 60 * 60)], // convert weeks to seconds
         chainId: ARBITRUM_CHAIN_ID,
@@ -140,42 +147,54 @@ export function useStaking() {
     enabled: isConnected && !!Config?.EACCAddress,
   });
 
-  // Update multiplier when data changes
+  // Update error state when write error occurs
   useEffect(() => {
-    if (multiplierData) {
-      setMultiplier(formatEther(multiplierData));
-    }
-  }, [multiplierData]);
-
-  // Reset loading state when error occurs
-  useEffect(() => {
-    if (error) {
+    if (writeError) {
+      setError(writeError);
       setIsLoading(false);
+      setIsApproving(false);
     }
-  }, [error]);
+  }, [writeError]);
+
+  // Reset loading state on confirmation
+  useEffect(() => {
+    if (isConfirmed) {
+      setIsLoading(false);
+      setIsApproving(false);
+    }
+  }, [isConfirmed]);
 
   // Handle approval
   const handleApprove = async () => {
     if (!Config?.EACCBarAddress || !isArbitrumOne) return;
 
-    setIsApproving(true);  // Use specific approval loading state
+    setIsApproving(true);
     try {
-      await writeContractAsync({
-        address: Config.EACCAddress,
+      await writeContractWithNotifications({
         abi: EACC_TOKEN_ABI,
+        address: Config.EACCAddress,
         functionName: 'approve',
         args: [Config.EACCBarAddress, BigInt(2) ** BigInt(256) - BigInt(1)], // max uint256
+        contracts: {
+          marketplaceAddress: Config.marketplaceAddress,
+          marketplaceDataAddress: Config.marketplaceDataAddress,
+          eaccAddress: Config.EACCAddress,
+          eaccBarAddress: Config.EACCBarAddress,
+        },
+        successMessage: 'Approval successful!',
+        customErrorMessages: {
+          userDenied: 'Approval was denied by the user',
+          default: 'Failed to approve tokens'
+        }
       });
-
       // Refetch will be triggered automatically by the event watcher
     } catch (error) {
       Sentry.captureException(error);
-      setError(error as unknown);
+      setError(error);
       console.error("Error approving tokens:", error);
-      setIsApproving(false);  // Reset approval loading state
+      setIsApproving(false);
     }
   };
-
 
   // Handle staking
   const handleStake = async () => {
@@ -187,24 +206,50 @@ export function useStaking() {
       const tSeconds = BigInt(lockupPeriod * 7 * 24 * 60 * 60); // Convert weeks to seconds
 
       if (isEACCStaking) {
-        await writeContractAsync({
+        await writeContractWithNotifications({
           address: Config!.EACCBarAddress,
           abi: EACC_BAR_ABI,
           functionName: 'enter',
           args: [amountWei, tSeconds],
+          contracts: {
+            marketplaceAddress: Config!.marketplaceAddress,
+            marketplaceDataAddress: Config!.marketplaceDataAddress,
+            eaccAddress: Config!.EACCAddress,
+            eaccBarAddress: Config!.EACCBarAddress,
+          },
+          successMessage: 'Successfully staked EACC tokens!',
+          customErrorMessages: {
+            userDenied: 'Staking was denied by the user',
+            default: 'Failed to stake tokens'
+          },
+          onSuccess: () => {
+            // Reset amount after successful transaction
+            setAmount('');
+          }
         });
       } else {
-        await writeContractAsync({
+        await writeContractWithNotifications({
           address: Config!.EACCAddress,
           abi: EACC_TOKEN_ABI,
           functionName: 'depositForStream',
           args: [amountWei, tSeconds],
+          contracts: {
+            marketplaceAddress: Config!.marketplaceAddress,
+            marketplaceDataAddress: Config!.marketplaceDataAddress,
+            eaccAddress: Config!.EACCAddress,
+            eaccBarAddress: Config!.EACCBarAddress,
+          },
+          successMessage: 'Successfully created new stream!',
+          customErrorMessages: {
+            userDenied: 'Stream creation was denied by the user',
+            default: 'Failed to create new stream'
+          },
+          onSuccess: () => {
+            // Reset amount after successful transaction
+            setAmount('');
+          }
         });
       }
-
-      // Reset amount after successful transaction
-      setAmount('');
-      // Refetch will be triggered by event watchers
     } catch (error) {
       Sentry.captureException(error);
       setError(error);
@@ -221,16 +266,27 @@ export function useStaking() {
     try {
       const amountWei = parseEther(amount);
 
-      await writeContractAsync({
+      await writeContractWithNotifications({
         address: Config!.EACCBarAddress,
         abi: EACC_BAR_ABI,
         functionName: 'leave',
         args: [amountWei],
+        contracts: {
+          marketplaceAddress: Config!.marketplaceAddress,
+          marketplaceDataAddress: Config!.marketplaceDataAddress,
+          eaccAddress: Config!.EACCAddress,
+          eaccBarAddress: Config!.EACCBarAddress,
+        },
+        successMessage: 'Successfully unstaked tokens!',
+        customErrorMessages: {
+          userDenied: 'Unstaking was denied by the user',
+          default: 'Failed to unstake tokens'
+        },
+        onSuccess: () => {
+          // Reset amount after successful transaction
+          setAmount('');
+        }
       });
-
-      // Reset amount after successful transaction
-      setAmount('');
-      // Refetch will be triggered by event watchers
     } catch (error) {
       Sentry.captureException(error);
       setError(error);
