@@ -429,7 +429,6 @@ export function useStaking() {
           setIsApproving(false);
           transactionOnSuccess();
         },
-        onError: () => handleTransactionError('approve')
       });
       console.log("Approval initiated successfully");
     } catch (error) {
@@ -470,7 +469,6 @@ export function useStaking() {
             setIsStaking(false); // Reset the specific loading state
             refetchContracts();
           },
-          onError: () => handleTransactionError('stake')
         });
       } else {
         await writeContractWithNotifications({
@@ -493,7 +491,6 @@ export function useStaking() {
             setIsStaking(false); // Reset the specific loading state
             refetchContracts();
           },
-          onError: () => handleTransactionError('stake')
         });
       }
     } catch (error) {
@@ -532,7 +529,6 @@ export function useStaking() {
           setIsUnstaking(false); // Reset the specific loading state
           refetchContracts();
         },
-        onError: () => handleTransactionError('unstake')
       });
     } catch (error) {
       Sentry.captureException(error);
