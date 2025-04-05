@@ -662,7 +662,7 @@ describe("EACCToken Unit Tests", () => {
       const [sender, recipient, totalAmount, token, cancelable, transferable, shape, cliffDuration, totalDuration] =
         await mockSablier.getCreateWithDurationsLLCall(0);
 
-      expect(sender).to.equal(alice.address);
+      expect(sender).to.equal(await eaccToken.getAddress());
       expect(recipient).to.equal(alice.address);
       expect(totalAmount).to.be.closeTo(
         expectedMintAmount,
