@@ -141,7 +141,7 @@ contract EACCToken is ERC20, ERC20Permit, Ownable {
             exponent: ud2x18(E)
         });
 
-        params.sender = msg.sender;
+        params.sender = address(this);
         params.recipient = msg.sender;
         params.totalAmount = uint128(mintAmount);
         params.token = IERC20(address(this));
