@@ -36,7 +36,7 @@ contract EACCBar is ERC20, ERC20Permit, Ownable {
     constructor(IERC20 _eacc, ISablierLockup _lockup) ERC20("Staked EACC", "EAXX") ERC20Permit("Staked EACC") Ownable(msg.sender) {
         eacc = _eacc;
         lockup = _lockup;
-        eacc.approve(address(lockup), type(uint256).max);
+        _approve(address(this), address(lockup), type(uint256).max);
         R = 9696969696;
         K = 33;
         E = 3e18;
@@ -46,7 +46,7 @@ contract EACCBar is ERC20, ERC20Permit, Ownable {
     // @param _lockup The address of the lockup contract
     function setLockup(ISablierLockup _lockup) external onlyOwner {
         lockup = _lockup;
-        eacc.approve(address(lockup), type(uint256).max);
+        _approve(address(this), address(lockup), type(uint256).max);
         emit LockupSet(_lockup);
     }
 
