@@ -9,6 +9,7 @@ import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithN
 import { useToast } from '@/hooks/useToast';
 import * as Sentry from '@sentry/nextjs';
 import Link from 'next/link';
+import { ARBITRUM_CHAIN_ID } from '@/hooks/wagmi/useStaking';
 
 // Sablier Lockup ABI
 const SABLIER_LOCKUP_ABI = [
@@ -71,7 +72,7 @@ interface Stream {
 }
 
 export function StreamsPanel() {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chain } = useAccount();
   const Config = useConfig();
   const [streams, setStreams] = useState<Stream[]>([]);
   const [streamIds, setStreamIds] = useState<string[]>([]);
@@ -92,10 +93,13 @@ export function StreamsPanel() {
     return 'TOKEN';
   };
 
+  // Check if user is on Arbitrum One
+  const isArbitrumOne = chain?.id === ARBITRUM_CHAIN_ID;
+
   // In a real implementation, you'd fetch streamIds from a backend or indexer
   useEffect(() => {
     const fetchStreamIds = async () => {
-      if (isConnected && address && Config?.sablierLockupAddress) {
+      if (isConnected && address && Config?.sablierLockupAddress && isArbitrumOne) {
         try {
           setIsLoadingInitial(true);
           // In a real implementation, you would fetch this from an API or subgraph
@@ -118,7 +122,7 @@ export function StreamsPanel() {
     };
 
     fetchStreamIds();
-  }, [isConnected, address, Config?.sablierLockupAddress, showError]);
+  }, [isConnected, address, Config?.sablierLockupAddress, showError, isArbitrumOne]);
 
   // Read multiple streams data at once using useReadContracts
   const { data: streamsData, isLoading: isLoadingStreams, refetch } = useReadContracts({
@@ -127,10 +131,11 @@ export function StreamsPanel() {
       address: Config?.sablierLockupAddress,
       functionName: 'streamById',
       args: [BigInt(id)],
+      chainId: ARBITRUM_CHAIN_ID,
     })),
     multicallAddress: Config?.multicall3Address,
     query: {
-      enabled: isConnected && !!address && streamIds.length > 0 && !!Config?.sablierLockupAddress,
+      enabled: isConnected && !!address && streamIds.length > 0 && !!Config?.sablierLockupAddress && isArbitrumOne,
     }
   });
 
@@ -229,7 +234,7 @@ export function StreamsPanel() {
 
   // Handle withdraw from stream
   const handleWithdraw = async (streamId: string) => {
-    if (!isConnected || !Config?.sablierLockupAddress) return;
+    if (!isConnected || !Config?.sablierLockupAddress || !isArbitrumOne) return;
 
     // Set loading state for specific stream
     setStreams(prevStreams =>
@@ -244,6 +249,7 @@ export function StreamsPanel() {
         abi: SABLIER_LOCKUP_ABI,
         functionName: 'withdrawMax',
         args: [BigInt(streamId)],
+        chainId: ARBITRUM_CHAIN_ID,
       });
 
       if (isConfirmed) {

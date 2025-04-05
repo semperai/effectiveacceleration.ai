@@ -6,7 +6,8 @@ import { E_A_C_C_BAR_ABI as EACC_BAR_ABI } from '@effectiveacceleration/contract
 import { useConfig } from '@/hooks/useConfig';
 import * as Sentry from '@sentry/nextjs';
 
-export const ETHEREUM_CHAIN_ID = 1;
+// Change from Ethereum to Arbitrum One
+export const ARBITRUM_CHAIN_ID = 42161;
 
 export function useStaking() {
   const { address, isConnected, chain } = useAccount();
@@ -22,8 +23,8 @@ export function useStaking() {
   const [isApproving, setIsApproving] = useState(false);
   const [error, setError] = useState<unknown>(null);
 
-  // Check if user is on Ethereum mainnet
-  const isEthereumMainnet = chain?.id === ETHEREUM_CHAIN_ID;
+  // Check if user is on Arbitrum One
+  const isArbitrumOne = chain?.id === ARBITRUM_CHAIN_ID;
 
   // Setup write contract
   const { writeContractAsync, isPending: isConfirming, isSuccess: isConfirmed } = useWriteContract();
@@ -48,21 +49,21 @@ export function useStaking() {
         ...eaccContract,
         functionName: 'balanceOf',
         args: [address || '0x'],
-        chainId: ETHEREUM_CHAIN_ID,
+        chainId: ARBITRUM_CHAIN_ID,
       },
       // EAXX Balance
       {
         ...eaccBarContract,
         functionName: 'balanceOf',
         args: [address || '0x'],
-        chainId: ETHEREUM_CHAIN_ID,
+        chainId: ARBITRUM_CHAIN_ID,
       },
       // Allowance
       ...(isEACCStaking ? [{
         ...eaccContract,
         functionName: 'allowance',
         args: [address || '0x', Config?.EACCBarAddress || '0x'],
-        chainId: ETHEREUM_CHAIN_ID,
+        chainId: ARBITRUM_CHAIN_ID,
       }] : []),
       // Multiplier
       {
@@ -71,7 +72,7 @@ export function useStaking() {
 
         functionName: 'M',
         args: [BigInt(lockupPeriod * 7 * 24 * 60 * 60)], // convert weeks to seconds
-        chainId: ETHEREUM_CHAIN_ID,
+        chainId: ARBITRUM_CHAIN_ID,
       }
     ],
     allowFailure: true,
@@ -155,7 +156,7 @@ export function useStaking() {
 
   // Handle approval
   const handleApprove = async () => {
-    if (!Config?.EACCBarAddress || !isEthereumMainnet) return;
+    if (!Config?.EACCBarAddress || !isArbitrumOne) return;
 
     setIsApproving(true);  // Use specific approval loading state
     try {
@@ -178,7 +179,7 @@ export function useStaking() {
 
   // Handle staking
   const handleStake = async () => {
-    if (!amount || !isEthereumMainnet) return;
+    if (!amount || !isArbitrumOne) return;
 
     setIsLoading(true);
     try {
@@ -214,7 +215,7 @@ export function useStaking() {
 
   // Handle unstaking
   const handleUnstake = async () => {
-    if (!amount || !isEthereumMainnet) return;
+    if (!amount || !isArbitrumOne) return;
 
     setIsLoading(true);
     try {
@@ -247,11 +248,11 @@ export function useStaking() {
     }
   };
 
-  // Switch to Ethereum Mainnet
-  const handleSwitchToEthereum = () => {
+  // Switch to Arbitrum One
+  const handleSwitchToArbitrum = () => {
     if (switchChain) {
       switchChain({
-        chainId: ETHEREUM_CHAIN_ID,
+        chainId: ARBITRUM_CHAIN_ID,
       });
     }
   };
@@ -291,7 +292,7 @@ export function useStaking() {
 
     // Connection state
     isConnected,
-    isEthereumMainnet,
+    isArbitrumOne,
     isSwitchingNetwork,
 
     // Balances
@@ -304,7 +305,7 @@ export function useStaking() {
     handleStake,
     handleUnstake,
     handleMaxAmount,
-    handleSwitchToEthereum,
+    handleSwitchToArbitrum,
     refetchAll,
   };
 }

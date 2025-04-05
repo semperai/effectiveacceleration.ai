@@ -55,7 +55,7 @@ export const WelcomeScreen = () => {
             <div>
               <h4 className="font-medium text-gray-800">1. Connect Your Wallet</h4>
               <p className="text-gray-600">
-                Connect your Ethereum wallet to access the staking platform
+                Connect your wallet to access the staking platform on Arbitrum One
               </p>
             </div>
           </div>

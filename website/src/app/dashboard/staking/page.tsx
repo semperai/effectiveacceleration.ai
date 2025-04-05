@@ -29,7 +29,7 @@ export default function StakingPage() {
 
     // Connection state
     isConnected,
-    isEthereumMainnet,
+    isArbitrumOne,
     isSwitchingNetwork,
 
     // Balances
@@ -42,7 +42,7 @@ export default function StakingPage() {
     handleStake,
     handleUnstake,
     handleMaxAmount,
-    handleSwitchToEthereum,
+    handleSwitchToArbitrum,
   } = useStaking();
 
   // Show error toast when error occurs
@@ -61,9 +61,9 @@ export default function StakingPage() {
       <div className="relative mx-auto flex min-h-customHeader flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
         {!isConnected ? (
           <WelcomeScreen />
-        ) : !isEthereumMainnet ? (
+        ) : !isArbitrumOne ? (
           <NetworkSwitcher
-            onSwitchNetwork={handleSwitchToEthereum}
+            onSwitchNetwork={handleSwitchToArbitrum}
             isSwitchingNetwork={isSwitchingNetwork}
           />
         ) : (
