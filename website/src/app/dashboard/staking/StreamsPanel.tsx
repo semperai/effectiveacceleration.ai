@@ -127,9 +127,35 @@ export function StreamsPanel() {
                !!Config?.sablierLockupAddress &&
                isArbitrumOne &&
                activeStreamIds.length > 0,
-      refetchInterval: 30000, // Refresh data every 30 seconds
+      refetchInterval: 15000, // Refresh data every 15 seconds
     }
   });
+
+  // Set up timer to update withdrawable amounts directly from contract
+  useEffect(() => {
+    // Don't set up timer if no active streams or not connected
+    if (!isConnected || !Config?.sablierLockupAddress || activeStreamIds.length === 0 || !isArbitrumOne) {
+      return;
+    }
+
+    // Function to fetch latest withdrawable amounts
+    const updateWithdrawableAmounts = async () => {
+      try {
+        // Call refetchStreamData which will trigger the withdrawableAmountOf calls
+        await refetchStreamData();
+      } catch (error) {
+        console.error("Error updating withdrawable amounts:", error);
+      }
+    };
+
+    // Initial call
+    updateWithdrawableAmounts();
+    
+    // Set up interval for periodic updates
+    const interval = setInterval(updateWithdrawableAmounts, 15000); // Every 15 seconds
+    
+    return () => clearInterval(interval);
+  }, [isConnected, Config?.sablierLockupAddress, activeStreamIds, isArbitrumOne, refetchStreamData]);
 
   // Process contract data into a format we can use
   const processContractData = useCallback(() => {
@@ -224,35 +250,6 @@ export function StreamsPanel() {
       })
     );
   }, [isStreamDataSuccess, streamContractData, processContractData, calculateRatePerSecond]);
-
-  // Real-time update for withdrawable amounts between contract refreshes
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setStreams(prevStreams =>
-        prevStreams.map(stream => {
-          if (!stream.isActive || parseFloat(stream.ratePerSecond) <= 0) return stream;
-
-          const now = Date.now();
-          const secondsElapsed = (now - stream.lastUpdated) / 1000;
-          const additionalTokens = parseFloat(stream.ratePerSecond) * secondsElapsed;
-
-          // Don't exceed the stream's total capacity
-          const totalAvailable = Math.min(
-            parseFloat(stream.withdrawableAmount) + additionalTokens,
-            parseFloat(stream.deposit) - parseFloat(stream.withdrawnAmount)
-          );
-
-          return {
-            ...stream,
-            withdrawableAmount: totalAvailable.toString(),
-            lastUpdated: now
-          };
-        })
-      );
-    }, 1000); // Update every second
-
-    return () => clearInterval(interval);
-  }, []);
 
   // Fetch streams data from GraphQL
   useEffect(() => {
@@ -355,7 +352,7 @@ export function StreamsPanel() {
             percentComplete,
             isActive,
             isWithdrawing: withdrawingStreams[graphStream.id] || false,
-            // Default values for real-time data until we fetch from contract
+            // We'll get the actual value from the contract soon
             withdrawableAmount: '0',
             ratePerSecond,
             lastUpdated: Date.now()
