@@ -19,6 +19,7 @@ export function useStaking() {
   const [isEACCStaking, setIsEACCStaking] = useState(true);
   const [multiplier, setMultiplier] = useState('0');
   const [isLoading, setIsLoading] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
   const [error, setError] = useState<unknown>(null);
 
   // Check if user is on Ethereum mainnet
@@ -27,7 +28,14 @@ export function useStaking() {
   // Setup write contract
   const { writeContractAsync, isPending: isConfirming, isSuccess: isConfirmed } = useWriteContract();
 
-  // Combined contract read calls
+  const eaccContract = {
+    address: Config?.EACCAddress,
+    abi: EACC_TOKEN_ABI,
+  } as const;
+  const eaccBarContract = {
+    address: Config?.EACCBarAddress,
+    abi: EACC_BAR_ABI,
+  } as const;
   const {
     data: contractsData,
     isSuccess: isContractsSuccess,
@@ -37,32 +45,30 @@ export function useStaking() {
     contracts: [
       // EACC Balance
       {
-        address: Config?.EACCAddress,
-        abi: EACC_TOKEN_ABI,
+        ...eaccContract,
         functionName: 'balanceOf',
         args: [address || '0x'],
         chainId: ETHEREUM_CHAIN_ID,
       },
       // EAXX Balance
       {
-        address: Config?.EACCBarAddress,
-        abi: EACC_BAR_ABI,
+        ...eaccBarContract,
         functionName: 'balanceOf',
         args: [address || '0x'],
         chainId: ETHEREUM_CHAIN_ID,
       },
       // Allowance
-      {
-        address: Config?.EACCAddress,
-        abi: EACC_TOKEN_ABI,
+      ...(isEACCStaking ? [{
+        ...eaccContract,
         functionName: 'allowance',
         args: [address || '0x', Config?.EACCBarAddress || '0x'],
         chainId: ETHEREUM_CHAIN_ID,
-      },
+      }] : []),
       // Multiplier
       {
         address: isEACCStaking ? Config?.EACCBarAddress : Config?.EACCAddress,
         abi: isEACCStaking ? EACC_BAR_ABI : EACC_TOKEN_ABI,
+
         functionName: 'M',
         args: [BigInt(lockupPeriod * 7 * 24 * 60 * 60)], // convert weeks to seconds
         chainId: ETHEREUM_CHAIN_ID,
@@ -75,14 +81,37 @@ export function useStaking() {
     }
   });
 
-  // Extract data from results
-  const eaccBalance = contractsData?.[0]?.result;
-  const eaccxBalance = contractsData?.[1]?.result;
-  const allowance = contractsData?.[2]?.result;
-  const multiplierData = contractsData?.[3]?.result;
+  const eaccBalance = contractsData?.[0]?.result && typeof contractsData[0].result === 'bigint'
+    ? contractsData[0].result
+    : BigInt(0);
 
-  // Check if approved
-  const isApproved = allowance ? BigInt(allowance) > BigInt(0) : false;
+  const eaccxBalance = contractsData?.[1]?.result && typeof contractsData[1].result === 'bigint'
+    ? contractsData[1].result
+    : BigInt(0);
+
+  const allowance = isEACCStaking
+    ? (contractsData?.[2]?.result && typeof contractsData[2].result === 'bigint'
+       ? contractsData[2].result
+       : BigInt(0))
+    : BigInt(0);
+
+  const multiplierIndex = isEACCStaking ? 3 : 2;
+  const multiplierData = contractsData?.[multiplierIndex]?.result &&
+    typeof contractsData[multiplierIndex].result === 'bigint'
+    ? contractsData[multiplierIndex].result
+    : BigInt(0);
+
+  // Update multiplier when data changes
+  useEffect(() => {
+    if (multiplierData && typeof multiplierData === 'bigint') {
+      setMultiplier(formatEther(multiplierData));
+    } else {
+      setMultiplier('0');
+    }
+  }, [multiplierData]);
+
+  // Check if approved - only relevant when staking EACC
+  const isApproved = isEACCStaking ? (allowance ? BigInt(allowance) > BigInt(0) : false) : true;
 
   // Watch for token approval events to update state
   useWatchContractEvent({
@@ -92,7 +121,7 @@ export function useStaking() {
     onLogs: () => {
       console.log("Approval event detected, refetching contracts");
       refetchContracts();
-      setIsLoading(false);
+      setIsApproving(false);  // Reset approval loading state
     },
     enabled: isConnected && !!Config?.EACCAddress,
   });
@@ -128,7 +157,7 @@ export function useStaking() {
   const handleApprove = async () => {
     if (!Config?.EACCBarAddress || !isEthereumMainnet) return;
 
-    setIsLoading(true);
+    setIsApproving(true);  // Use specific approval loading state
     try {
       await writeContractAsync({
         address: Config.EACCAddress,
@@ -142,9 +171,10 @@ export function useStaking() {
       Sentry.captureException(error);
       setError(error as unknown);
       console.error("Error approving tokens:", error);
-      setIsLoading(false);
+      setIsApproving(false);  // Reset approval loading state
     }
   };
+
 
   // Handle staking
   const handleStake = async () => {
@@ -253,6 +283,7 @@ export function useStaking() {
     setIsEACCStaking,
     multiplier,
     isLoading: isLoading || isContractsLoading,
+    isApproving,
     isConfirming,
     isConfirmed,
     error,

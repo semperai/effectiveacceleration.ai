@@ -20,6 +20,7 @@ export default function StakingPage() {
     setIsEACCStaking,
     multiplier,
     isLoading,
+    isApproving,
     isConfirming,
     isConfirmed,
     error,
@@ -90,13 +91,17 @@ export default function StakingPage() {
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="text-sm text-gray-500">EACC Balance</p>
                 <p className="text-xl font-semibold">
-                  {eaccBalance ? parseFloat(formatEther(eaccBalance)).toFixed(4) : '0.0000'}
+                  {eaccBalance && typeof eaccBalance === 'bigint'
+                    ? parseFloat(formatEther(eaccBalance)).toFixed(4)
+                    : '0.0000'}
                 </p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="text-sm text-gray-500">EAXX Balance</p>
                 <p className="text-xl font-semibold">
-                  {eaccxBalance ? parseFloat(formatEther(eaccxBalance)).toFixed(4) : '0.0000'}
+                  {eaccxBalance && typeof eaccxBalance === 'bigint'
+                    ? parseFloat(formatEther(eaccxBalance)).toFixed(4)
+                    : '0.0000'}
                 </p>
               </div>
             </div>
@@ -157,16 +162,16 @@ export default function StakingPage() {
 
               {/* Action Buttons */}
               <div>
-                {!isApproved ? (
+                {isEACCStaking && !isApproved ? (
                   <Button
                     className="w-full"
                     onClick={handleApprove}
-                    disabled={isLoading || isConfirming}
+                    disabled={isApproving || isConfirming}
                   >
-                    {isLoading || isConfirming ? 'Approving...' : 'Approve EACC'}
+                    {isApproving ? 'Approving...' : 'Approve EACC'}
                   </Button>
                 ) : (
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className={`grid ${isEACCStaking ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
                     <Button
                       className="w-full"
                       onClick={handleStake}
