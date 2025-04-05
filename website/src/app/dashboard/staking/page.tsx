@@ -1,16 +1,17 @@
 'use client';
 import { Layout } from '@/components/Dashboard/Layout';
 import { Button } from '@/components/Button';
-import { formatEther } from 'viem';
+import { formatEther, parseEther } from 'viem';
 import { useToast } from '@/hooks/useToast';
 import { WelcomeScreen } from './WelcomeScreen';
 import { NetworkSwitcher } from './NetworkSwitcher';
 import { useStaking } from '@/hooks/wagmi/useStaking';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { StreamsPanel } from './StreamsPanel';
 
 export default function StakingPage() {
   const { showError } = useToast();
+  const streamInputRef = useRef<HTMLInputElement | null>(null);
 
   const {
     stakeAmount,
@@ -37,6 +38,8 @@ export default function StakingPage() {
     eaccBalance,
     eaccxBalance,
     isApproved,
+    eaccxWorthInEACC,
+    eaccxToEACCRatio,
 
     // Actions
     handleApprove,
@@ -45,6 +48,32 @@ export default function StakingPage() {
     handleMaxAmount,
     handleSwitchToArbitrum,
   } = useStaking();
+
+  // Input validation function
+  const validateAmount = (value: string, maxAmount: bigint) => {
+    // Remove non-numeric characters except decimal point
+    const sanitizedValue = value.replace(/[^0-9.]/g, '');
+
+    // Ensure only one decimal point
+    const parts = sanitizedValue.split('.');
+    const cleanValue = parts[0] + (parts.length > 1 ? '.' + parts[1] : '');
+
+    // Compare with max amount if provided
+    if (maxAmount && cleanValue) {
+      try {
+        const inputAmount = parseFloat(cleanValue);
+        const maxAmountFloat = parseFloat(formatEther(maxAmount));
+
+        if (inputAmount > maxAmountFloat) {
+          return maxAmountFloat.toString();
+        }
+      } catch (error) {
+        console.error("Error comparing amounts:", error);
+      }
+    }
+
+    return cleanValue;
+  };
 
   // Show error toast when error occurs
   useEffect(() => {
@@ -76,6 +105,16 @@ export default function StakingPage() {
       setLockupPeriod(52); // Set to minimum for EACC staking
     }
     setIsEACCStaking(stakeMode);
+
+    // If switching to stream creation mode, focus on the input after state update
+    if (!stakeMode) {
+      // Use setTimeout to ensure this runs after the component re-renders
+      setTimeout(() => {
+        if (streamInputRef.current) {
+          streamInputRef.current.focus();
+        }
+      }, 100);
+    }
   };
 
   return (
@@ -128,6 +167,11 @@ export default function StakingPage() {
                     {eaccxBalance && typeof eaccxBalance === 'bigint'
                       ? parseFloat(formatEther(eaccxBalance)).toFixed(4)
                       : '0.0000'}
+                    {eaccxWorthInEACC && typeof eaccxWorthInEACC === 'bigint' && eaccxWorthInEACC > 0 && (
+                      <span className="text-sm text-gray-500 ml-2">
+                        (~{parseFloat(formatEther(eaccxWorthInEACC)).toFixed(4)} EACC)
+                      </span>
+                    )}
                   </p>
                 </div>
               </div>
@@ -177,7 +221,7 @@ export default function StakingPage() {
                           <input
                             type="text"
                             value={stakeAmount}
-                            onChange={(e) => setStakeAmount(e.target.value)}
+                            onChange={(e) => setStakeAmount(validateAmount(e.target.value, eaccBalance))}
                             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 border"
                             placeholder="0.0"
                           />
@@ -216,6 +260,13 @@ export default function StakingPage() {
                   <div className="bg-indigo-50 p-4 rounded-lg">
                     <h3 className="font-medium text-indigo-700 mb-3">Unstake EACC</h3>
                     <div className="space-y-3">
+                      {/* EAXX to EACC Ratio Display */}
+                      {eaccxToEACCRatio && (
+                        <div className="text-sm text-indigo-600 mb-2">
+                          <span>Exchange Rate: 1 EAXX ≈ {parseFloat(eaccxToEACCRatio).toFixed(4)} EACC</span>
+                        </div>
+                      )}
+
                       {/* Amount Input for Unstaking */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -225,7 +276,7 @@ export default function StakingPage() {
                           <input
                             type="text"
                             value={unstakeAmount}
-                            onChange={(e) => setUnstakeAmount(e.target.value)}
+                            onChange={(e) => setUnstakeAmount(validateAmount(e.target.value, eaccxBalance))}
                             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3 border"
                             placeholder="0.0"
                           />
@@ -237,6 +288,11 @@ export default function StakingPage() {
                             MAX
                           </button>
                         </div>
+                        {unstakeAmount && eaccxToEACCRatio && (
+                          <p className="text-xs text-indigo-500 mt-1">
+                            You'll receive approximately {(parseFloat(unstakeAmount) * parseFloat(eaccxToEACCRatio)).toFixed(4)} EACC
+                          </p>
+                        )}
                       </div>
 
                       {/* Action Button for Unstaking */}
@@ -294,9 +350,10 @@ export default function StakingPage() {
                         </label>
                         <div className="relative">
                           <input
+                            ref={streamInputRef}
                             type="text"
                             value={stakeAmount}
-                            onChange={(e) => setStakeAmount(e.target.value)}
+                            onChange={(e) => setStakeAmount(validateAmount(e.target.value, eaccBalance))}
                             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 border"
                             placeholder="0.0"
                           />

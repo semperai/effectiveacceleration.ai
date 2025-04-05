@@ -106,6 +106,18 @@ export function useStaking() {
         ...eaccBarContract,
         functionName: 'K',
         chainId: ARBITRUM_CHAIN_ID,
+      },
+      // Get total supply of EACC
+      {
+        ...eaccContract,
+        functionName: 'totalSupply',
+        chainId: ARBITRUM_CHAIN_ID,
+      },
+      // Get total supply of EAXX
+      {
+        ...eaccBarContract,
+        functionName: 'totalSupply',
+        chainId: ARBITRUM_CHAIN_ID,
       }
     ],
     allowFailure: true,
@@ -132,6 +144,18 @@ export function useStaking() {
   const eaccKValueIndex = 4;
   const eaccxRValueIndex = 5;
   const eaccxKValueIndex = 6;
+  const totalEACCSupplyIndex = 7;
+  const totalEAXXSupplyIndex = 8;
+
+  const totalEACCSupply = contractsData?.[totalEACCSupplyIndex]?.result &&
+    typeof contractsData[totalEACCSupplyIndex].result === 'bigint'
+    ? contractsData[totalEACCSupplyIndex].result
+    : BigInt(0);
+
+  const totalEAXXSupply = contractsData?.[totalEAXXSupplyIndex]?.result &&
+    typeof contractsData[totalEAXXSupplyIndex].result === 'bigint'
+    ? contractsData[totalEAXXSupplyIndex].result
+    : BigInt(0);
 
   // Update R and K values when data is fetched
   useEffect(() => {
@@ -155,7 +179,7 @@ export function useStaking() {
   }, [contractsData, eaccRValueIndex, eaccKValueIndex, eaccxRValueIndex, eaccxKValueIndex]);
 
   // Check if approved - only relevant when staking EACC
-  const isApproved = isEACCStaking ? (allowance ? BigInt(allowance) > BigInt(0) : false) : true;
+  const isApproved = isEACCStaking ? (allowance ? allowance > BigInt(0) : false) : true;
 
   // Calculate multiplier using R and K values
   // This replaces the contract call to get the multiplier
@@ -201,6 +225,37 @@ export function useStaking() {
     }
   }, [lockupPeriod, eaccRValue, eaccKValue, eaccxRValue, eaccxKValue, isEACCStaking]);
 
+  // Calculate EAXX to EACC ratio
+  const eaccxToEACCRatio = useMemo(() => {
+    if (!totalEAXXSupply || totalEAXXSupply === BigInt(0) || !totalEACCSupply) {
+      return "0";
+    }
+
+    try {
+      // Calculate ratio: totalEACCSupply / totalEAXXSupply
+      const ratio = Number(totalEACCSupply) / Number(totalEAXXSupply);
+      return ratio.toFixed(4);
+    } catch (error) {
+      console.error("Error calculating ratio:", error);
+      return "0";
+    }
+  }, [totalEACCSupply, totalEAXXSupply]);
+
+  // Calculate total EACC worth of EAXX balance
+  const eaccxWorthInEACC = useMemo(() => {
+    if (!eaccxBalance || eaccxBalance === BigInt(0) || !totalEAXXSupply || totalEAXXSupply === BigInt(0)) {
+      return BigInt(0);
+    }
+
+    try {
+      // Calculate worth: (eaccxBalance / totalEAXXSupply) * totalEACCSupply
+      return (eaccxBalance * totalEACCSupply) / totalEAXXSupply;
+    } catch (error) {
+      console.error("Error calculating EACC worth:", error);
+      return BigInt(0);
+    }
+  }, [eaccxBalance, totalEACCSupply, totalEAXXSupply]);
+
   // Watch for token approval events to update state
   useWatchContractEvent({
     address: Config?.EACCAddress,
@@ -227,6 +282,31 @@ export function useStaking() {
     enabled: isConnected && !!Config?.EACCAddress,
   });
 
+  // Watch for EACCBar events
+  useWatchContractEvent({
+    address: Config?.EACCBarAddress,
+    abi: EACC_BAR_ABI,
+    eventName: 'Enter',
+    onLogs: () => {
+      console.log("Enter event detected, refetching contracts");
+      refetchContracts();
+      setIsLoading(false);
+    },
+    enabled: isConnected && !!Config?.EACCBarAddress,
+  });
+
+  useWatchContractEvent({
+    address: Config?.EACCBarAddress,
+    abi: EACC_BAR_ABI,
+    eventName: 'Leave',
+    onLogs: () => {
+      console.log("Leave event detected, refetching contracts");
+      refetchContracts();
+      setIsLoading(false);
+    },
+    enabled: isConnected && !!Config?.EACCBarAddress,
+  });
+
   // Update error state when write error occurs
   useEffect(() => {
     if (writeError) {
@@ -241,8 +321,16 @@ export function useStaking() {
     if (isConfirmed) {
       setIsLoading(false);
       setIsApproving(false);
+      // Force a refetch after successful transactions
+      refetchContracts();
     }
-  }, [isConfirmed]);
+  }, [isConfirmed, refetchContracts]);
+
+  // Helper function to be called after successful transactions
+  const transactionOnSuccess = () => {
+    setIsLoading(false);
+    refetchContracts();
+  };
 
   // Handle approval
   const handleApprove = async () => {
@@ -269,10 +357,13 @@ export function useStaking() {
         customErrorMessages: {
           userDenied: 'Approval was denied by the user',
           default: 'Failed to approve tokens'
+        },
+        onSuccess: () => {
+          // Force refresh contracts data on successful approval
+          transactionOnSuccess();
         }
       });
       console.log("Approval initiated successfully");
-      // Refetch will be triggered automatically by the event watcher
     } catch (error) {
       Sentry.captureException(error);
       setError(error);
@@ -282,7 +373,7 @@ export function useStaking() {
   };
 
   // Handle staking
-  const handleStake = async (amountToStake) => {
+  const handleStake = async (amountToStake: string) => {
     if (!amountToStake || !isArbitrumOne) return;
 
     setIsLoading(true);
@@ -298,6 +389,7 @@ export function useStaking() {
           args: [amountWei, tSeconds],
           contracts: {
             eaccBarAddress: Config!.EACCBarAddress,
+            eaccAddress: Config!.EACCAddress,
           },
           successMessage: 'Successfully staked EACC tokens!',
           customErrorMessages: {
@@ -307,6 +399,7 @@ export function useStaking() {
           onSuccess: () => {
             // Reset amount after successful transaction
             setStakeAmount('');
+            transactionOnSuccess();
           }
         });
       } else {
@@ -317,6 +410,7 @@ export function useStaking() {
           args: [amountWei, tSeconds],
           contracts: {
             eaccAddress: Config!.EACCAddress,
+            eaccBarAddress: Config!.EACCBarAddress,
           },
           successMessage: 'Successfully created new stream!',
           customErrorMessages: {
@@ -326,6 +420,7 @@ export function useStaking() {
           onSuccess: () => {
             // Reset amount after successful transaction
             setStakeAmount('');
+            transactionOnSuccess();
           }
         });
       }
@@ -338,7 +433,7 @@ export function useStaking() {
   };
 
   // Handle unstaking
-  const handleUnstake = async (amountToUnstake) => {
+  const handleUnstake = async (amountToUnstake: string) => {
     if (!amountToUnstake || !isArbitrumOne) return;
 
     setIsLoading(true);
@@ -352,6 +447,7 @@ export function useStaking() {
         args: [amountWei],
         contracts: {
           eaccBarAddress: Config!.EACCBarAddress,
+          eaccAddress: Config!.EACCAddress,
         },
         successMessage: 'Successfully unstaked tokens!',
         customErrorMessages: {
@@ -361,6 +457,7 @@ export function useStaking() {
         onSuccess: () => {
           // Reset amount after successful transaction
           setUnstakeAmount('');
+          transactionOnSuccess();
         }
       });
     } catch (error) {
@@ -406,7 +503,11 @@ export function useStaking() {
       eaccxKValue,
       multiplier,
       isApproved,
-      isEACCStaking
+      isEACCStaking,
+      totalEACCSupply,
+      totalEAXXSupply,
+      eaccxToEACCRatio,
+      eaccxWorthInEACC
     });
   }, [
     contractsData,
@@ -419,7 +520,11 @@ export function useStaking() {
     eaccxKValue,
     multiplier,
     isApproved,
-    isEACCStaking
+    isEACCStaking,
+    totalEACCSupply,
+    totalEAXXSupply,
+    eaccxToEACCRatio,
+    eaccxWorthInEACC
   ]);
 
   // Return values and functions
@@ -450,6 +555,8 @@ export function useStaking() {
     eaccBalance,
     eaccxBalance,
     isApproved,
+    eaccxToEACCRatio,
+    eaccxWorthInEACC,
 
     // Actions
     handleApprove,
