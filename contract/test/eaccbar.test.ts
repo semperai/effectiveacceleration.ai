@@ -96,6 +96,322 @@ describe("EACCBar Unit Tests", () => {
     });
   });
 
+  describe("EACCBar Owner Functions - Extended Tests", () => {
+    describe("Lockup Management", () => {
+      it("Should allow owner to set Lockup", async () => {
+        const { eaccBar, deployer, mockSablier } = await loadFixture(deployContractsFixture);
+
+        // Deploy a new mock sablier instance to use as a new address
+        const NewMockSablier = await ethers.getContractFactory("MockSablierLockup");
+        const newMockSablier = await NewMockSablier.deploy();
+
+        // Verify current lockup
+        expect(await eaccBar.lockup()).to.equal(await mockSablier.getAddress());
+
+        // Set to a new address
+        await eaccBar.connect(deployer).setLockup(await newMockSablier.getAddress());
+        expect(await eaccBar.lockup()).to.equal(await newMockSablier.getAddress());
+
+        // Verify event was emitted
+        const events = await eaccBar.queryFilter(eaccBar.filters.LockupSet());
+        expect(events.length).to.be.at.least(1);
+        expect(events[events.length-1].args[0]).to.equal(await newMockSablier.getAddress());
+      });
+
+      it("Should not allow non-owner to set Lockup", async () => {
+        const { eaccBar, alice, mockSablier } = await loadFixture(deployContractsFixture);
+
+        // Deploy a new mock sablier instance
+        const NewMockSablier = await ethers.getContractFactory("MockSablierLockup");
+        const newMockSablier = await NewMockSablier.deploy();
+
+        await expect(
+          eaccBar.connect(alice).setLockup(await newMockSablier.getAddress())
+        ).to.be.revertedWithCustomError(eaccBar, "OwnableUnauthorizedAccount");
+      });
+
+      it("Should approve new Lockup contract to spend tokens", async () => {
+        const { eaccBar, deployer, eaccToken } = await loadFixture(deployContractsFixture);
+
+        // Deploy a new mock sablier instance
+        const NewMockSablier = await ethers.getContractFactory("MockSablierLockup");
+        const newMockSablier = await NewMockSablier.deploy();
+
+        // Set the new lockup
+        await eaccBar.connect(deployer).setLockup(await newMockSablier.getAddress());
+
+        // Verify approval was set
+        const allowance = await eaccToken.allowance(
+          await eaccBar.getAddress(),
+          await newMockSablier.getAddress()
+        );
+
+        // New lockup should be approved to spend EACC tokens
+        expect(allowance).to.equal(ethers.MaxUint256);
+      });
+    });
+
+    describe("Multiplier Parameters", () => {
+      it("Should allow owner to set R", async () => {
+        const { eaccBar, deployer } = await loadFixture(deployContractsFixture);
+
+        // Get current R value
+        const initialR = await eaccBar.R();
+        expect(initialR).to.equal(9696969696n); // Default value from constructor
+
+        // Set a new R value
+        const newR = 12345678;
+        await eaccBar.connect(deployer).setR(newR);
+
+        // Verify R was updated
+        expect(await eaccBar.R()).to.equal(newR);
+
+        // Verify event was emitted
+        const events = await eaccBar.queryFilter(eaccBar.filters.RSet());
+        expect(events.length).to.be.at.least(1);
+        expect(events[events.length-1].args[0]).to.equal(newR);
+      });
+
+      it("Should not allow non-owner to set R", async () => {
+        const { eaccBar, alice } = await loadFixture(deployContractsFixture);
+
+        const newR = 12345678;
+        await expect(
+          eaccBar.connect(alice).setR(newR)
+        ).to.be.revertedWithCustomError(eaccBar, "OwnableUnauthorizedAccount");
+      });
+
+      it("Should allow owner to set K", async () => {
+        const { eaccBar, deployer } = await loadFixture(deployContractsFixture);
+
+        // Get current K value
+        const initialK = await eaccBar.K();
+        expect(initialK).to.equal(33); // Default value from constructor
+
+        // Set a new K value
+        const newK = 420;
+        await eaccBar.connect(deployer).setK(newK);
+
+        // Verify K was updated
+        expect(await eaccBar.K()).to.equal(newK);
+
+        // Verify event was emitted
+        const events = await eaccBar.queryFilter(eaccBar.filters.KSet());
+        expect(events.length).to.be.at.least(1);
+        expect(events[events.length-1].args[0]).to.equal(newK);
+      });
+
+      it("Should not allow non-owner to set K", async () => {
+        const { eaccBar, alice } = await loadFixture(deployContractsFixture);
+
+        const newK = 420;
+        await expect(
+          eaccBar.connect(alice).setK(newK)
+        ).to.be.revertedWithCustomError(eaccBar, "OwnableUnauthorizedAccount");
+      });
+
+      it("Should allow owner to set E", async () => {
+        const { eaccBar, deployer } = await loadFixture(deployContractsFixture);
+
+        // Get current E value
+        const initialE = await eaccBar.E();
+        expect(initialE).to.equal(3n * 10n**18n); // Default value from constructor: 3e18
+
+        // Set a new E value
+        const newE = 2n * 10n**18n; // 2e18
+        await eaccBar.connect(deployer).setE(newE);
+
+        // Verify E was updated
+        expect(await eaccBar.E()).to.equal(BigInt(newE));
+
+        // Verify event was emitted
+        const events = await eaccBar.queryFilter(eaccBar.filters.ESet());
+        expect(events.length).to.be.at.least(1);
+        expect(events[events.length-1].args[0]).to.equal(BigInt(newE));
+      });
+
+      it("Should not allow non-owner to set E", async () => {
+        const { eaccBar, alice } = await loadFixture(deployContractsFixture);
+
+        const newE = 2n * 10n**18n; // 2e18
+        await expect(
+          eaccBar.connect(alice).setE(newE)
+        ).to.be.revertedWithCustomError(eaccBar, "OwnableUnauthorizedAccount");
+      });
+    });
+
+    describe("Multiplier Effects", () => {
+      it("Should verify multiplier changes after parameter updates", async () => {
+        const { eaccBar, deployer } = await loadFixture(deployContractsFixture);
+
+        const oneYear = 52 * 7 * 24 * 60 * 60; // 52 weeks in seconds
+
+        // Get initial multiplier
+        const initialMultiplier = await eaccBar.M(oneYear);
+
+        // Update R, K, and E
+        await eaccBar.connect(deployer).setR(123456789);
+        await eaccBar.connect(deployer).setK(123);
+        await eaccBar.connect(deployer).setE(1n * 10n**18n); // 1e18
+
+        // Get updated multiplier
+        const updatedMultiplier = await eaccBar.M(oneYear);
+
+        // Verify multiplier changed
+        expect(updatedMultiplier).to.not.equal(initialMultiplier);
+
+        // Log the difference for inspection
+        console.log(`Initial multiplier: ${ethers.formatEther(initialMultiplier)}`);
+        console.log(`Updated multiplier: ${ethers.formatEther(updatedMultiplier)}`);
+      });
+    });
+
+    describe("Owner transfer tests", () => {
+      it("Should allow owner transfer and restrict previous owner", async () => {
+        const { eaccBar, deployer, alice } = await loadFixture(deployContractsFixture);
+
+        // Verify initial owner
+        expect(await eaccBar.owner()).to.equal(deployer.address);
+
+        // Transfer ownership to Alice
+        await eaccBar.connect(deployer).transferOwnership(alice.address);
+
+        // Verify new owner
+        expect(await eaccBar.owner()).to.equal(alice.address);
+
+        // Previous owner should no longer be able to call owner functions
+        await expect(
+          eaccBar.connect(deployer).setR(12345678)
+        ).to.be.revertedWithCustomError(eaccBar, "OwnableUnauthorizedAccount");
+
+        // New owner should be able to call owner functions
+        await eaccBar.connect(alice).setR(12345678);
+        expect(await eaccBar.R()).to.equal(12345678);
+      });
+
+      it("Should allow new owner to update all parameters", async () => {
+        const { eaccBar, deployer, alice, mockSablier } = await loadFixture(deployContractsFixture);
+
+        // Transfer ownership to Alice
+        await eaccBar.connect(deployer).transferOwnership(alice.address);
+
+        // Alice should be able to update all owner parameters
+        const NewMockSablier = await ethers.getContractFactory("MockSablierLockup");
+        const newMockSablier = await NewMockSablier.deploy();
+
+        await eaccBar.connect(alice).setLockup(await newMockSablier.getAddress());
+        await eaccBar.connect(alice).setR(111111);
+        await eaccBar.connect(alice).setK(222);
+        await eaccBar.connect(alice).setE(4n * 10n**18n);
+
+        // Verify all parameters were updated
+        expect(await eaccBar.lockup()).to.equal(await newMockSablier.getAddress());
+        expect(await eaccBar.R()).to.equal(111111);
+        expect(await eaccBar.K()).to.equal(222);
+        expect(await eaccBar.E()).to.equal(4n * 10n**18n);
+      });
+    });
+
+    describe("Edge cases for parameter updates", () => {
+      it("Should handle extreme values for R", async () => {
+        const { eaccBar, deployer } = await loadFixture(deployContractsFixture);
+
+        // Set R to a very high value
+        const maxR = ethers.MaxUint256;
+        await eaccBar.connect(deployer).setR(maxR);
+        expect(await eaccBar.R()).to.equal(maxR);
+
+        // Set R to zero
+        await eaccBar.connect(deployer).setR(0);
+        expect(await eaccBar.R()).to.equal(0);
+
+        // Set R back to a normal value
+        await eaccBar.connect(deployer).setR(1000);
+        expect(await eaccBar.R()).to.equal(1000);
+      });
+
+      it("Should handle extreme values for K", async () => {
+        const { eaccBar, deployer } = await loadFixture(deployContractsFixture);
+
+        // Set K to a very high value
+        const maxK = ethers.MaxUint256;
+        await eaccBar.connect(deployer).setK(maxK);
+        expect(await eaccBar.K()).to.equal(maxK);
+
+        // Set K to zero
+        await eaccBar.connect(deployer).setK(0);
+        expect(await eaccBar.K()).to.equal(0);
+
+        // Set K back to a normal value
+        await eaccBar.connect(deployer).setK(10);
+        expect(await eaccBar.K()).to.equal(10);
+      });
+
+      it("Should handle extreme values for E", async () => {
+        const { eaccBar, deployer } = await loadFixture(deployContractsFixture);
+
+        // Set E to a very high value (be careful not to exceed uint64 max)
+        const highE = 2n**64n - 1n; // uint64 max
+        await eaccBar.connect(deployer).setE(highE);
+        expect(await eaccBar.E()).to.equal(highE);
+
+        // Set E to zero (might cause issues with exponentiation)
+        await eaccBar.connect(deployer).setE(0);
+        expect(await eaccBar.E()).to.equal(0);
+
+        // Set E back to a normal value
+        await eaccBar.connect(deployer).setE(1n * 10n**18n);
+        expect(await eaccBar.E()).to.equal(1n * 10n**18n);
+      });
+    });
+
+    describe("Real-world scenarios", () => {
+      it("Should create appropriate multipliers for different lockup periods with updated parameters", async () => {
+        const { eaccBar, deployer } = await loadFixture(deployContractsFixture);
+
+        // Set multiplier parameters to more reasonable values for this test
+        await eaccBar.connect(deployer).setR(100000); // Smaller R
+        await eaccBar.connect(deployer).setK(1000); // Larger K for more quadratic growth
+
+        // Test various lockup periods
+        const oneYear = 52 * 7 * 24 * 60 * 60; // 52 weeks
+        const twoYears = 104 * 7 * 24 * 60 * 60; // 104 weeks
+        const threeYears = 156 * 7 * 24 * 60 * 60; // 156 weeks
+        const fourYears = 208 * 7 * 24 * 60 * 60; // 208 weeks (max)
+
+        // Calculate multipliers
+        const oneYearM = await eaccBar.M(oneYear);
+        const twoYearsM = await eaccBar.M(twoYears);
+        const threeYearsM = await eaccBar.M(threeYears);
+        const fourYearsM = await eaccBar.M(fourYears);
+
+        // Log multipliers
+        console.log(`1 year multiplier: ${ethers.formatEther(oneYearM)}`);
+        console.log(`2 year multiplier: ${ethers.formatEther(twoYearsM)}`);
+        console.log(`3 year multiplier: ${ethers.formatEther(threeYearsM)}`);
+        console.log(`4 year multiplier: ${ethers.formatEther(fourYearsM)}`);
+
+        // Verify multipliers are increasing with time
+        expect(twoYearsM).to.be.gt(oneYearM);
+        expect(threeYearsM).to.be.gt(twoYearsM);
+        expect(fourYearsM).to.be.gt(threeYearsM);
+
+        // Verify the rate of increase (should be faster than linear with K > 0)
+        const oneToTwoYearRatio = Number(twoYearsM) / Number(oneYearM);
+        const twoToThreeYearRatio = Number(threeYearsM) / Number(twoYearsM);
+        const threeToFourYearRatio = Number(fourYearsM) / Number(threeYearsM);
+
+        console.log(`1->2 year ratio: ${oneToTwoYearRatio}`);
+        console.log(`2->3 year ratio: ${twoToThreeYearRatio}`);
+        console.log(`3->4 year ratio: ${threeToFourYearRatio}`);
+
+        // With quadratic growth, ratios should increase
+        expect(twoToThreeYearRatio).to.be.gt(oneToTwoYearRatio);
+        expect(threeToFourYearRatio).to.be.gt(twoToThreeYearRatio);
+      });
+    });
+  });
+
   describe("Multiplier calculation (M function)", () => {
     it("Should calculate multiplier for EACCBar", async () => {
       const { eaccBar } = await loadFixture(deployContractsFixture);

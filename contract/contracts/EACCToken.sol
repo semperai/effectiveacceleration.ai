@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {ERC20Permit} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import { ERC20Permit } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { ud2x18 } from "@prb/math/src/UD2x18.sol";
 import { ud60x18, ud, unwrap } from "@prb/math/src/UD60x18.sol";
 import { exp } from "@prb/math/src/ud60x18/Math.sol";
@@ -18,12 +18,17 @@ contract EACCToken is ERC20, ERC20Permit, Ownable {
     uint256 public eaccBarPercent; // how much of the converted EACC goes to eaccBar
     ISablierLockup public lockup;
 
-    uint256 constant R = 6969696969; // base rate
-    uint256 constant K = 69; // booster
-    uint64 constant E = 6e18; // exponent for stream
+    uint256 public R; // base rate
+    uint256 public K; // booster
+    uint64 public E; // exponent for stream
 
     event EACCBarSet(IERC20 eaccBar);
     event EACCBarPercentSet(uint256 eaccBarPercent);
+    event LockupSet(ISablierLockup lockup);
+
+    event RSet(uint256 r);
+    event KSet(uint256 k);
+    event ESet(uint64 e);
 
     /// @notice Constructor
     /// @param _name the name of the token
@@ -39,6 +44,9 @@ contract EACCToken is ERC20, ERC20Permit, Ownable {
         eaccBarPercent = 0.2 ether; // 20% of converted EACC
         lockup = _lockup;
         _approve(address(this), address(_lockup), type(uint256).max);
+        R = 6969696969;
+        K = 69;
+        E = 3e18;
     }
 
     /// @notice Sets the EACCBar contract
@@ -57,11 +65,41 @@ contract EACCToken is ERC20, ERC20Permit, Ownable {
         emit EACCBarPercentSet(_eaccBarPercent);
     }
 
+    // @notice Sets the lockup contract
+    // @dev The lockup contract is used to create streams
+    // @param _lockup The address of the lockup contract
+    function setLockup(ISablierLockup _lockup) external onlyOwner {
+        lockup = _lockup;
+        _approve(address(this), address(_lockup), type(uint256).max);
+        emit LockupSet(_lockup);
+    }
+
+    /// @notice Sets the exponent for the multiplier
+    /// @param _v the exponent for the multiplier
+    function setR(uint256 _v) external onlyOwner {
+        R = _v;
+        emit RSet(R);
+    }
+
+    /// @notice Sets the boost exponent for the multiplier
+    /// @param _v the boost exponent for the multiplier
+    function setK(uint256 _v) external onlyOwner {
+        K = _v;
+        emit KSet(K);
+    }
+
+    /// @notice Sets the exponent for the stream
+    /// @param _v the exponent for the stream
+    function setE(uint256 _v) external onlyOwner {
+        E = uint64(_v);
+        emit ESet(E);
+    }
+
     // @notice M(t) = e^(R*t + K*t^2)
     // @dev M(t) is the multiplier for the amount of EACC you receive
     // @param _tSeconds The time in seconds
     // @return m The multiplier
-    function M(uint256 _tSeconds) public pure returns (uint256 m) {
+    function M(uint256 _tSeconds) public view returns (uint256 m) {
         uint256 rt = R * _tSeconds;
 
         // K*t²

@@ -149,6 +149,408 @@ describe("EACCToken Unit Tests", () => {
     });
   });
 
+  describe("Owner functions - Extended Tests", () => {
+    it("Should allow owner to set Lockup", async () => {
+      const { eaccToken, deployer, mockSablier } = await loadFixture(deployContractsFixture);
+
+      // Deploy a new mock sablier instance to use as a new address
+      const NewMockSablier = await ethers.getContractFactory("MockSablierLockup");
+      const newMockSablier = await NewMockSablier.deploy();
+
+      // Verify current lockup
+      expect(await eaccToken.lockup()).to.equal(await mockSablier.getAddress());
+
+      // Set to a new address
+      await eaccToken.connect(deployer).setLockup(await newMockSablier.getAddress());
+      expect(await eaccToken.lockup()).to.equal(await newMockSablier.getAddress());
+
+      // Verify event was emitted
+      const events = await eaccToken.queryFilter(eaccToken.filters.LockupSet());
+      expect(events.length).to.be.at.least(1);
+      expect(events[events.length-1].args[0]).to.equal(await newMockSablier.getAddress());
+    });
+
+    it("Should not allow non-owner to set Lockup", async () => {
+      const { eaccToken, alice, mockSablier } = await loadFixture(deployContractsFixture);
+
+      // Deploy a new mock sablier instance
+      const NewMockSablier = await ethers.getContractFactory("MockSablierLockup");
+      const newMockSablier = await NewMockSablier.deploy();
+
+      await expect(
+        eaccToken.connect(alice).setLockup(await newMockSablier.getAddress())
+      ).to.be.revertedWithCustomError(eaccToken, "OwnableUnauthorizedAccount");
+    });
+
+    it("Should approve new Lockup contract to spend tokens", async () => {
+      const { deployer, eaccToken } = await loadFixture(deployContractsFixture);
+
+      // Deploy a new mock sablier instance
+      const NewMockSablier = await ethers.getContractFactory("MockSablierLockup");
+      const newMockSablier = await NewMockSablier.deploy();
+
+      // Set the new lockup
+      await eaccToken.connect(deployer).setLockup(await newMockSablier.getAddress());
+
+      // Verify approval was set
+      const allowance = await eaccToken.allowance(
+        await eaccToken.getAddress(),
+        await newMockSablier.getAddress()
+      );
+
+      // New lockup should be approved to spend EACC tokens
+      expect(allowance).to.equal(ethers.MaxUint256);
+    });
+
+    describe("R, K, and E parameter tests", () => {
+      it("Should allow owner to set R", async () => {
+        const { eaccToken, deployer } = await loadFixture(deployContractsFixture);
+
+        // Get current R value
+        const initialR = await eaccToken.R();
+        expect(initialR).to.equal(6969696969); // Default value from constructor
+
+        // Set a new R value
+        const newR = 12345678;
+        await eaccToken.connect(deployer).setR(newR);
+
+        // Verify R was updated
+        expect(await eaccToken.R()).to.equal(newR);
+
+        // Verify event was emitted
+        const events = await eaccToken.queryFilter(eaccToken.filters.RSet());
+        expect(events.length).to.be.at.least(1);
+        expect(events[events.length-1].args[0]).to.equal(newR);
+      });
+
+      it("Should not allow non-owner to set R", async () => {
+        const { eaccToken, alice } = await loadFixture(deployContractsFixture);
+
+        const newR = 12345678;
+        await expect(
+          eaccToken.connect(alice).setR(newR)
+        ).to.be.revertedWithCustomError(eaccToken, "OwnableUnauthorizedAccount");
+      });
+
+      it("Should allow owner to set K", async () => {
+        const { eaccToken, deployer } = await loadFixture(deployContractsFixture);
+
+        // Get current K value
+        const initialK = await eaccToken.K();
+        expect(initialK).to.equal(69); // Default value from constructor
+
+        // Set a new K value
+        const newK = 420;
+        await eaccToken.connect(deployer).setK(newK);
+
+        // Verify K was updated
+        expect(await eaccToken.K()).to.equal(newK);
+
+        // Verify event was emitted
+        const events = await eaccToken.queryFilter(eaccToken.filters.KSet());
+        expect(events.length).to.be.at.least(1);
+        expect(events[events.length-1].args[0]).to.equal(newK);
+      });
+
+      it("Should not allow non-owner to set K", async () => {
+        const { eaccToken, alice } = await loadFixture(deployContractsFixture);
+
+        const newK = 420;
+        await expect(
+          eaccToken.connect(alice).setK(newK)
+        ).to.be.revertedWithCustomError(eaccToken, "OwnableUnauthorizedAccount");
+      });
+
+      it("Should allow owner to set E", async () => {
+        const { eaccToken, deployer } = await loadFixture(deployContractsFixture);
+
+        // Get current E value
+        const initialE = await eaccToken.E();
+        expect(initialE).to.equal(3n * 10n**18n); // Default value from constructor: 3e18
+
+        // Set a new E value
+        const newE = 2n * 10n**18n; // 2e18
+        await eaccToken.connect(deployer).setE(newE);
+
+        // Verify E was updated
+        expect(await eaccToken.E()).to.equal(BigInt(newE));
+
+        // Verify event was emitted
+        const events = await eaccToken.queryFilter(eaccToken.filters.ESet());
+        expect(events.length).to.be.at.least(1);
+        expect(events[events.length-1].args[0]).to.equal(BigInt(newE));
+      });
+
+      it("Should not allow non-owner to set E", async () => {
+        const { eaccToken, alice } = await loadFixture(deployContractsFixture);
+
+        const newE = 2n * 10n**18n; // 2e18
+        await expect(
+          eaccToken.connect(alice).setE(newE)
+        ).to.be.revertedWithCustomError(eaccToken, "OwnableUnauthorizedAccount");
+      });
+
+      it("Should verify multiplier changes after parameter updates", async () => {
+        const { eaccToken, deployer } = await loadFixture(deployContractsFixture);
+
+        const oneYear = 52 * 7 * 24 * 60 * 60; // 52 weeks in seconds
+
+        // Get initial multiplier
+        const initialMultiplier = await eaccToken.M(oneYear);
+
+        // Update R, K, and E
+        await eaccToken.connect(deployer).setR(123456789);
+        await eaccToken.connect(deployer).setK(123);
+        await eaccToken.connect(deployer).setE(1n * 10n**18n); // 1e18
+
+        // Get updated multiplier
+        const updatedMultiplier = await eaccToken.M(oneYear);
+
+        // Verify multiplier changed
+        expect(updatedMultiplier).to.not.equal(initialMultiplier);
+
+        // Log the difference for inspection
+        console.log(`Initial multiplier: ${ethers.formatEther(initialMultiplier)}`);
+        console.log(`Updated multiplier: ${ethers.formatEther(updatedMultiplier)}`);
+      });
+    });
+
+    describe("Effect of parameter changes on depositForStream", () => {
+      it("Should correctly apply new parameters to stream creation", async () => {
+        const { eaccToken, eaccBar, alice, deployer, mockSablier } = await loadFixture(deployContractsFixture);
+
+        const oneYear = 52 * 7 * 24 * 60 * 60; // 52 weeks in seconds
+        const amount = ethers.parseEther("100");
+
+        // Set next stream ID
+        await mockSablier.setNextStreamId(1);
+
+        // Get multiplier with default parameters
+        const initialMultiplier = await eaccToken.M(oneYear);
+
+        // Create a stream with default parameters
+        await eaccToken.connect(alice).depositForStream(amount, oneYear);
+        const [, , initialStreamAmount] = await mockSablier.getCreateWithDurationsLLCall(0);
+
+        // Update parameters
+        await eaccToken.connect(deployer).setR(123456789); // Increase R
+        await eaccToken.connect(deployer).setK(123);      // Increase K
+
+        // Get updated multiplier
+        const updatedMultiplier = await eaccToken.M(oneYear);
+
+        // Create another stream with new parameters
+        await mockSablier.setNextStreamId(2);
+        await eaccToken.connect(alice).depositForStream(amount, oneYear);
+        const [, , updatedStreamAmount] = await mockSablier.getCreateWithDurationsLLCall(1);
+
+        // Verify the updated stream has a different amount based on new multiplier
+        expect(updatedStreamAmount).to.not.equal(initialStreamAmount);
+
+        // Verify the relationship between multipliers and stream amounts
+        const expectedRatio = updatedMultiplier / initialMultiplier;
+        const actualRatio = updatedStreamAmount / initialStreamAmount;
+
+        // Allow for small rounding differences
+        expect(actualRatio).to.be.closeTo(expectedRatio, ethers.parseEther("0.01"));
+
+        // Log values for inspection
+        console.log(`Initial multiplier: ${ethers.formatEther(initialMultiplier)}`);
+        console.log(`Updated multiplier: ${ethers.formatEther(updatedMultiplier)}`);
+        console.log(`Initial stream amount: ${ethers.formatEther(initialStreamAmount)}`);
+        console.log(`Updated stream amount: ${ethers.formatEther(updatedStreamAmount)}`);
+      });
+    });
+
+    describe("Owner transfer tests", () => {
+      it("Should allow owner transfer and restrict previous owner", async () => {
+        const { eaccToken, deployer, alice } = await loadFixture(deployContractsFixture);
+
+        // Verify initial owner
+        expect(await eaccToken.owner()).to.equal(deployer.address);
+
+        // Transfer ownership to Alice
+        await eaccToken.connect(deployer).transferOwnership(alice.address);
+
+        // Verify new owner
+        expect(await eaccToken.owner()).to.equal(alice.address);
+
+        // Previous owner should no longer be able to call owner functions
+        await expect(
+          eaccToken.connect(deployer).setEACCBarPercent(ethers.parseEther("0.5"))
+        ).to.be.revertedWithCustomError(eaccToken, "OwnableUnauthorizedAccount");
+
+        // New owner should be able to call owner functions
+        await eaccToken.connect(alice).setEACCBarPercent(ethers.parseEther("0.5"));
+        expect(await eaccToken.eaccBarPercent()).to.equal(ethers.parseEther("0.5"));
+      });
+
+      it("Should allow new owner to update all parameters", async () => {
+        const { eaccToken, deployer, alice, mockSablier } = await loadFixture(deployContractsFixture);
+
+        // Transfer ownership to Alice
+        await eaccToken.connect(deployer).transferOwnership(alice.address);
+
+        // Alice should be able to update all owner parameters
+        const NewMockSablier = await ethers.getContractFactory("MockSablierLockup");
+        const newMockSablier = await NewMockSablier.deploy();
+
+        await eaccToken.connect(alice).setLockup(await newMockSablier.getAddress());
+        await eaccToken.connect(alice).setR(111111);
+        await eaccToken.connect(alice).setK(222);
+        await eaccToken.connect(alice).setE(1n * 10n**18n);
+
+        // Verify all parameters were updated
+        expect(await eaccToken.lockup()).to.equal(await newMockSablier.getAddress());
+        expect(await eaccToken.R()).to.equal(111111);
+        expect(await eaccToken.K()).to.equal(222);
+        expect(await eaccToken.E()).to.equal(1n * 10n**18n);
+      });
+
+      it("Should not allow renouncing ownership", async () => {
+        const { eaccToken, deployer } = await loadFixture(deployContractsFixture);
+
+        // Try to renounce ownership (transfer to zero address)
+        await expect(
+          eaccToken.connect(deployer).transferOwnership(ethers.ZeroAddress)
+        ).to.be.reverted;
+
+        // Ownership should remain with deployer
+        expect(await eaccToken.owner()).to.equal(deployer.address);
+      });
+    });
+
+    describe("Interaction with invalid EACCBar", () => {
+      it("Should handle depositForStream with zero address EACCBar", async () => {
+        const { eaccToken, alice, deployer } = await loadFixture(deployContractsFixture);
+
+        // Set EACCBar to zero address
+        await eaccToken.connect(deployer).setEACCBar(ethers.ZeroAddress);
+
+        const oneYear = 52 * 7 * 24 * 60 * 60; // 52 weeks
+        const amount = ethers.parseEther("100");
+
+        // depositForStream should revert when EACCBar is not set
+        await expect(
+          eaccToken.connect(alice).depositForStream(amount, oneYear)
+        ).to.be.revertedWith("EACCToken::depositForStream: eaccBar not set");
+      });
+    });
+
+    describe("Edge cases for parameter updates", () => {
+      it("Should handle extreme values for R", async () => {
+        const { eaccToken, deployer } = await loadFixture(deployContractsFixture);
+
+        // Set R to a very high value
+        const maxR = ethers.MaxUint256;
+        await eaccToken.connect(deployer).setR(maxR);
+        expect(await eaccToken.R()).to.equal(maxR);
+
+        // Set R back to a normal value
+        await eaccToken.connect(deployer).setR(1000);
+        expect(await eaccToken.R()).to.equal(1000);
+      });
+
+      it("Should handle extreme values for K", async () => {
+        const { eaccToken, deployer } = await loadFixture(deployContractsFixture);
+
+        // Set K to a very high value
+        const maxK = ethers.MaxUint256;
+        await eaccToken.connect(deployer).setK(maxK);
+        expect(await eaccToken.K()).to.equal(maxK);
+
+        // Set K back to a normal value
+        await eaccToken.connect(deployer).setK(10);
+        expect(await eaccToken.K()).to.equal(10);
+      });
+
+      it("Should handle extreme values for E", async () => {
+        const { eaccToken, deployer } = await loadFixture(deployContractsFixture);
+
+        // Set E to a very high value (be careful not to exceed uint64 max)
+        const highE = 2n**64n - 1n; // uint64 max
+        await eaccToken.connect(deployer).setE(highE);
+        expect(await eaccToken.E()).to.equal(highE);
+
+        // Set E to zero (might cause issues with exponentiation)
+        await eaccToken.connect(deployer).setE(0);
+        expect(await eaccToken.E()).to.equal(0);
+
+        // Set E back to a normal value
+        await eaccToken.connect(deployer).setE(1n * 10n**18n);
+        expect(await eaccToken.E()).to.equal(1n * 10n**18n);
+      });
+
+      it("Should update eaccBarPercent to zero and verify behavior", async () => {
+        const { eaccToken, eaccBar, alice, deployer, mockSablier } = await loadFixture(deployContractsFixture);
+
+        // Set eaccBarPercent to zero
+        await eaccToken.connect(deployer).setEACCBarPercent(0);
+        expect(await eaccToken.eaccBarPercent()).to.equal(0);
+
+        // Check balances before stream creation
+        const eaccBarBalanceBefore = await eaccToken.balanceOf(await eaccBar.getAddress());
+        const totalSupplyBefore = await eaccToken.totalSupply();
+
+        // Create a stream
+        const oneYear = 52 * 7 * 24 * 60 * 60; // 52 weeks
+        const amount = ethers.parseEther("100");
+        await mockSablier.setNextStreamId(1);
+        await eaccToken.connect(alice).depositForStream(amount, oneYear);
+
+        // Check balances after stream creation
+        const eaccBarBalanceAfter = await eaccToken.balanceOf(await eaccBar.getAddress());
+        const totalSupplyAfter = await eaccToken.totalSupply();
+
+        // EACCBar should receive nothing
+        expect(eaccBarBalanceAfter).to.equal(eaccBarBalanceBefore);
+
+        // The full amount should be burned
+        const multiplier = await eaccToken.M(oneYear);
+        const mintAmount = amount * multiplier / ethers.parseEther("1");
+
+        expect(totalSupplyAfter).to.be.closeTo(
+          totalSupplyBefore - amount + mintAmount,
+          ethers.parseEther("0.1") // Allow small rounding error
+        );
+      });
+
+      it("Should verify 100% eaccBarPercent", async () => {
+        const { eaccToken, eaccBar, alice, deployer, mockSablier } = await loadFixture(deployContractsFixture);
+
+        // Set eaccBarPercent to 100%
+        await eaccToken.connect(deployer).setEACCBarPercent(ethers.parseEther("1"));
+        expect(await eaccToken.eaccBarPercent()).to.equal(ethers.parseEther("1"));
+
+        // Check balances before stream creation
+        const eaccBarBalanceBefore = await eaccToken.balanceOf(await eaccBar.getAddress());
+        const totalSupplyBefore = await eaccToken.totalSupply();
+
+        // Create a stream
+        const oneYear = 52 * 7 * 24 * 60 * 60; // 52 weeks
+        const amount = ethers.parseEther("100");
+        await mockSablier.setNextStreamId(1);
+        await eaccToken.connect(alice).depositForStream(amount, oneYear);
+
+        // Check balances after stream creation
+        const eaccBarBalanceAfter = await eaccToken.balanceOf(await eaccBar.getAddress());
+        const totalSupplyAfter = await eaccToken.totalSupply();
+
+        // EACCBar should receive the full amount
+        expect(eaccBarBalanceAfter).to.equal(eaccBarBalanceBefore + amount);
+
+        // No tokens should be burned, only minted
+        const multiplier = await eaccToken.M(oneYear);
+        const mintAmount = amount * multiplier / ethers.parseEther("1");
+
+        expect(totalSupplyAfter).to.be.closeTo(
+          totalSupplyBefore + mintAmount,
+          ethers.parseEther("0.1") // Allow small rounding error
+        );
+      });
+    });
+  });
+
   describe("Multiplier calculation", () => {
     it("Should calculate multiplier correctly", async () => {
       const { eaccToken } = await loadFixture(deployContractsFixture);

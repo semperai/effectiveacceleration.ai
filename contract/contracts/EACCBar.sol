@@ -2,8 +2,11 @@
 
 pragma solidity 0.8.24;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import { ERC20Permit } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { ud2x18 } from "@prb/math/src/UD2x18.sol";
 import { ud60x18, ud, unwrap } from "@prb/math/src/UD60x18.sol";
 import { exp } from "@prb/math/src/ud60x18/Math.sol";
@@ -13,28 +16,66 @@ import { Broker, Lockup, LockupDynamic } from "@sablier/lockup/src/types/DataTyp
 
 // Based on SushiBar
 // Instead of getting EAXX directly, you receive a stream of EAXX with a multiplier based on lockup time
-contract EACCBar is ERC20("Staked EACC", "EAXX") {
+contract EACCBar is ERC20, ERC20Permit, Ownable {
     IERC20 public eacc;
     ISablierLockup public lockup;
 
-    uint256 constant R = 9696969696; // base rate
-    uint256 constant K = 33; // booster
-    uint64 constant E = 6e18; // exponent for stream
+    uint256 public R = 9696969696; // base rate
+    uint256 public K = 33; // booster
+    uint64 public E = 6e18; // exponent for stream
+
+    event LockupSet(ISablierLockup lockup);
+
+    event RSet(uint256 r);
+    event KSet(uint256 k);
+    event ESet(uint64 e);
 
     event Enter(address indexed user, uint256 amount, uint256 tSeconds, uint256 indexed streamId);
     event Leave(address indexed user, uint256 amount, uint256 share);
 
-    constructor(IERC20 _eacc, ISablierLockup _lockup) {
+    constructor(IERC20 _eacc, ISablierLockup _lockup) ERC20("Staked EACC", "EAXX") ERC20Permit("Staked EACC") Ownable(msg.sender) {
         eacc = _eacc;
         lockup = _lockup;
         eacc.approve(address(lockup), type(uint256).max);
+        R = 9696969696;
+        K = 33;
+        E = 3e18;
+    }
+
+    // @dev The lockup contract is used to create streams
+    // @param _lockup The address of the lockup contract
+    function setLockup(ISablierLockup _lockup) external onlyOwner {
+        lockup = _lockup;
+        eacc.approve(address(lockup), type(uint256).max);
+        emit LockupSet(_lockup);
+    }
+
+    /// @notice Sets the exponent for the multiplier
+    /// @param _v the exponent for the multiplier
+    function setR(uint256 _v) external onlyOwner {
+        R = _v;
+        emit RSet(R);
+    }
+
+    /// @notice Sets the boost exponent for the multiplier
+    /// @param _v the boost exponent for the multiplier
+    function setK(uint256 _v) external onlyOwner {
+        K = _v;
+        emit KSet(K);
+    }
+
+    /// @notice Sets the exponent for the stream
+    /// @param _v the exponent for the stream
+    function setE(uint64 _v) external onlyOwner {
+        E = uint64(_v);
+        emit ESet(E);
     }
 
     // @notice M(t) = e^(R*t + K*t^2)
     // @dev M(t) is the multiplier for the amount of EAXX you receive based on the time you lockup your EACC
     // @param _tSeconds The time in seconds
     // @return m The multiplier
-    function M(uint256 _tSeconds) public pure returns (uint256 m) {
+    function M(uint256 _tSeconds) public view returns (uint256 m) {
         uint256 rt = R * _tSeconds;
 
         // K*t²
@@ -47,6 +88,8 @@ contract EACCBar is ERC20("Staked EACC", "EAXX") {
         // e^exponent
         m = unwrap(exp(ud(exponent)));
     }
+
+    // @notice Sets the lockup contract
 
     // @notice Enter the bar. Pay some EACC. Earn some shares.
     // @dev Locks EACC and mints EAXX
