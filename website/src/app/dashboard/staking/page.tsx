@@ -261,11 +261,9 @@ export default function StakingPage() {
                     <h3 className="font-medium text-indigo-700 mb-3">Unstake EACC</h3>
                     <div className="space-y-3">
                       {/* EAXX to EACC Ratio Display */}
-                      {eaccxToEACCRatio && (
-                        <div className="text-sm text-indigo-600 mb-2">
-                          <span>Exchange Rate: 1 EAXX ≈ {parseFloat(eaccxToEACCRatio).toFixed(4)} EACC</span>
-                        </div>
-                      )}
+                      <div className="text-sm text-indigo-600 mb-2">
+                        <span>Exchange Rate: 1 EAXX ≈ {eaccxToEACCRatio} EACC</span>
+                      </div>
 
                       {/* Amount Input for Unstaking */}
                       <div>
@@ -288,7 +286,7 @@ export default function StakingPage() {
                             MAX
                           </button>
                         </div>
-                        {unstakeAmount && eaccxToEACCRatio && (
+                        {unstakeAmount && eaccxToEACCRatio && parseFloat(eaccxToEACCRatio) > 0 && (
                           <p className="text-xs text-indigo-500 mt-1">
                             You'll receive approximately {(parseFloat(unstakeAmount) * parseFloat(eaccxToEACCRatio)).toFixed(4)} EACC
                           </p>
@@ -301,7 +299,7 @@ export default function StakingPage() {
                         onClick={() => handleUnstake(unstakeAmount)}
                         disabled={isLoading || isConfirming || !unstakeAmount || parseFloat(unstakeAmount) <= 0}
                       >
-                        {isLoading || isConfirming ? 'Processing...' : 'Unstake EACC'}
+                        {isLoading || isConfirming ? 'Processing...' : 'Unstake EAXX'}
                       </Button>
                     </div>
                   </div>

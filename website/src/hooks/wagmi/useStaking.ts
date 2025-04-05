@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAccount, useReadContracts, useSwitchChain, useWatchContractEvent } from 'wagmi';
 import { formatEther, parseEther } from 'viem';
 import { E_A_C_C_TOKEN_ABI as EACC_TOKEN_ABI } from '@effectiveacceleration/contracts/wagmi/EACCToken';
@@ -118,6 +118,13 @@ export function useStaking() {
         ...eaccBarContract,
         functionName: 'totalSupply',
         chainId: ARBITRUM_CHAIN_ID,
+      },
+      // Get EACC balance in EACCBar (required for accurate ratio calculation)
+      {
+        ...eaccContract,
+        functionName: 'balanceOf',
+        args: [Config?.EACCBarAddress || '0x'],
+        chainId: ARBITRUM_CHAIN_ID,
       }
     ],
     allowFailure: true,
@@ -146,6 +153,7 @@ export function useStaking() {
   const eaccxKValueIndex = 6;
   const totalEACCSupplyIndex = 7;
   const totalEAXXSupplyIndex = 8;
+  const eaccInEACCBarIndex = 9;
 
   const totalEACCSupply = contractsData?.[totalEACCSupplyIndex]?.result &&
     typeof contractsData[totalEACCSupplyIndex].result === 'bigint'
@@ -155,6 +163,11 @@ export function useStaking() {
   const totalEAXXSupply = contractsData?.[totalEAXXSupplyIndex]?.result &&
     typeof contractsData[totalEAXXSupplyIndex].result === 'bigint'
     ? contractsData[totalEAXXSupplyIndex].result
+    : BigInt(0);
+
+  const eaccInEACCBar = contractsData?.[eaccInEACCBarIndex]?.result &&
+    typeof contractsData[eaccInEACCBarIndex].result === 'bigint'
+    ? contractsData[eaccInEACCBarIndex].result
     : BigInt(0);
 
   // Update R and K values when data is fetched
@@ -227,34 +240,52 @@ export function useStaking() {
 
   // Calculate EAXX to EACC ratio
   const eaccxToEACCRatio = useMemo(() => {
-    if (!totalEAXXSupply || totalEAXXSupply === BigInt(0) || !totalEACCSupply) {
+    if (!totalEAXXSupply || totalEAXXSupply === BigInt(0)) {
       return "0";
     }
 
     try {
-      // Calculate ratio: totalEACCSupply / totalEAXXSupply
-      const ratio = Number(totalEACCSupply) / Number(totalEAXXSupply);
+      // Based on the EACCBar contract, the ratio is how much EACC you get when you unstake EAXX
+      // From the leave() function: what = _share * eacc.balanceOf(address(this)) / totalShares
+      // So the ratio is: eacc.balanceOf(eaccBarAddress) / totalEAXXSupply
+
+      // Using the actual EACC balance in the EACCBar contract
+      if (eaccInEACCBar === BigInt(0)) {
+        return "0";
+      }
+
+      // Convert to floating point for division and formatting
+      const eaccInBarFloat = parseFloat(formatEther(eaccInEACCBar));
+      const totalEAXXSupplyFloat = parseFloat(formatEther(totalEAXXSupply));
+
+      // Calculate the ratio
+      const ratio = eaccInBarFloat / totalEAXXSupplyFloat;
+
       return ratio.toFixed(4);
     } catch (error) {
       console.error("Error calculating ratio:", error);
       return "0";
     }
-  }, [totalEACCSupply, totalEAXXSupply]);
+  }, [totalEAXXSupply, eaccInEACCBar]);
 
   // Calculate total EACC worth of EAXX balance
   const eaccxWorthInEACC = useMemo(() => {
-    if (!eaccxBalance || eaccxBalance === BigInt(0) || !totalEAXXSupply || totalEAXXSupply === BigInt(0)) {
+    if (!eaccxBalance || eaccxBalance === BigInt(0) || !totalEAXXSupply || totalEAXXSupply === BigInt(0) || !eaccInEACCBar) {
       return BigInt(0);
     }
 
     try {
-      // Calculate worth: (eaccxBalance / totalEAXXSupply) * totalEACCSupply
-      return (eaccxBalance * totalEACCSupply) / totalEAXXSupply;
+      // Calculate worth based on the same formula used in the contract
+      // what = _share * eacc.balanceOf(address(this)) / totalShares
+      // where _share is eaccxBalance, totalShares is totalEAXXSupply
+
+      // This is the exact calculation from the contract
+      return (eaccxBalance * eaccInEACCBar) / totalEAXXSupply;
     } catch (error) {
       console.error("Error calculating EACC worth:", error);
       return BigInt(0);
     }
-  }, [eaccxBalance, totalEACCSupply, totalEAXXSupply]);
+  }, [eaccxBalance, totalEAXXSupply, eaccInEACCBar]);
 
   // Watch for token approval events to update state
   useWatchContractEvent({
@@ -313,8 +344,16 @@ export function useStaking() {
       setError(writeError);
       setIsLoading(false);
       setIsApproving(false);
+      console.error("Transaction error detected:", writeError);
     }
   }, [writeError]);
+
+  // Handle transaction failures in useWriteContractWithNotifications
+  const handleTransactionError = useCallback(() => {
+    setIsLoading(false);
+    setIsApproving(false);
+    console.log("Transaction error handler triggered");
+  }, []);
 
   // Reset loading state on confirmation
   useEffect(() => {
@@ -361,7 +400,8 @@ export function useStaking() {
         onSuccess: () => {
           // Force refresh contracts data on successful approval
           transactionOnSuccess();
-        }
+        },
+        onError: handleTransactionError
       });
       console.log("Approval initiated successfully");
     } catch (error) {
@@ -400,7 +440,8 @@ export function useStaking() {
             // Reset amount after successful transaction
             setStakeAmount('');
             transactionOnSuccess();
-          }
+          },
+          onError: handleTransactionError
         });
       } else {
         await writeContractWithNotifications({
@@ -421,7 +462,8 @@ export function useStaking() {
             // Reset amount after successful transaction
             setStakeAmount('');
             transactionOnSuccess();
-          }
+          },
+          onError: handleTransactionError
         });
       }
     } catch (error) {
@@ -458,7 +500,8 @@ export function useStaking() {
           // Reset amount after successful transaction
           setUnstakeAmount('');
           transactionOnSuccess();
-        }
+        },
+        onError: handleTransactionError
       });
     } catch (error) {
       Sentry.captureException(error);
