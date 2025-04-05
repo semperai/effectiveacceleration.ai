@@ -12,8 +12,8 @@ interface StakingUIProps {
   unstakeAmount: string;
   setUnstakeAmount: (amount: string) => void;
   eaccBalance: bigint;
-  eaccxBalance: bigint;
-  eaccxToEACCRatio: string;
+  eaxxBalance: bigint;
+  eaxxToEACCRatio: string;
   isApproved: boolean;
   isApproving: boolean;
   isStaking: boolean;
@@ -35,8 +35,8 @@ export const StakingUI = ({
   unstakeAmount,
   setUnstakeAmount,
   eaccBalance,
-  eaccxBalance,
-  eaccxToEACCRatio,
+  eaxxBalance,
+  eaxxToEACCRatio,
   isApproved,
   isApproving,
   isStaking,
@@ -232,14 +232,14 @@ export const StakingUI = ({
                   Amount to Unstake
                 </label>
                 <div className="text-sm text-indigo-600">
-                  Rate: 1 EAXX ≈ {eaccxToEACCRatio} EACC
+                  Rate: 1 EAXX ≈ {eaxxToEACCRatio} EACC
                 </div>
               </div>
               <div className="relative">
                 <input
                   type="text"
                   value={unstakeAmount}
-                  onChange={(e) => setUnstakeAmount(validateAmount(e.target.value, eaccxBalance))}
+                  onChange={(e) => setUnstakeAmount(validateAmount(e.target.value, eaxxBalance))}
                   className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-4 border"
                   placeholder="0.0"
                 />
@@ -254,7 +254,7 @@ export const StakingUI = ({
             </div>
 
             {/* Estimated return preview */}
-            {unstakeAmount && parseFloat(unstakeAmount) > 0 && eaccxToEACCRatio && (
+            {unstakeAmount && parseFloat(unstakeAmount) > 0 && eaxxToEACCRatio && (
               <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-100">
                 <h4 className="font-medium text-indigo-800 mb-2">Your Estimated Returns</h4>
                 <div className="space-y-2">
@@ -264,12 +264,12 @@ export const StakingUI = ({
                   </div>
                   <div className="flex justify-between">
                     <span className="text-indigo-700">Exchange rate:</span>
-                    <span className="font-medium">1 EAXX ≈ {eaccxToEACCRatio} EACC</span>
+                    <span className="font-medium">1 EAXX ≈ {eaxxToEACCRatio} EACC</span>
                   </div>
                   <div className="flex justify-between border-t border-indigo-200 pt-2 mt-2">
                     <span className="text-indigo-800 font-medium">You receive:</span>
                     <span className="font-bold text-indigo-800">
-                      {(parseFloat(unstakeAmount || '0') * parseFloat(eaccxToEACCRatio)).toFixed(4)} EACC
+                      {(parseFloat(unstakeAmount || '0') * parseFloat(eaxxToEACCRatio)).toFixed(4)} EACC
                     </span>
                   </div>
                 </div>

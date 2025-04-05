@@ -30,8 +30,8 @@ export function useStaking() {
   // State for R and K constants
   const [eaccRValue, setEaccRValue] = useState(BigInt(6969696969)); // Default from EACCToken contract
   const [eaccKValue, setEaccKValue] = useState(BigInt(69)); // Default from EACCToken contract
-  const [eaccxRValue, setEaccxRValue] = useState(BigInt(9696969696)); // Default from EACCBar contract
-  const [eaccxKValue, setEaccxKValue] = useState(BigInt(33)); // Default from EACCBar contract
+  const [eaxxRValue, seteaxxRValue] = useState(BigInt(9696969696)); // Default from EACCBar contract
+  const [eaxxKValue, seteaxxKValue] = useState(BigInt(33)); // Default from EACCBar contract
 
   // Check if user is on Arbitrum One
   const isArbitrumOne = chain?.id === ARBITRUM_CHAIN_ID;
@@ -139,7 +139,7 @@ export function useStaking() {
     ? contractsData[0].result
     : BigInt(0);
 
-  const eaccxBalance = contractsData?.[1]?.result && typeof contractsData[1].result === 'bigint'
+  const eaxxBalance = contractsData?.[1]?.result && typeof contractsData[1].result === 'bigint'
     ? contractsData[1].result
     : BigInt(0);
 
@@ -150,8 +150,8 @@ export function useStaking() {
   // Get R and K values from both contracts (fixed indices)
   const eaccRValueIndex = 3;
   const eaccKValueIndex = 4;
-  const eaccxRValueIndex = 5;
-  const eaccxKValueIndex = 6;
+  const eaxxRValueIndex = 5;
+  const eaxxKValueIndex = 6;
   const totalEACCSupplyIndex = 7;
   const totalEAXXSupplyIndex = 8;
   const eaccInEACCBarIndex = 9;
@@ -183,14 +183,14 @@ export function useStaking() {
     }
 
     // Update EACCBar R and K values
-    if (contractsData?.[eaccxRValueIndex]?.result && typeof contractsData[eaccxRValueIndex].result === 'bigint') {
-      setEaccxRValue(contractsData[eaccxRValueIndex].result);
+    if (contractsData?.[eaxxRValueIndex]?.result && typeof contractsData[eaxxRValueIndex].result === 'bigint') {
+      seteaxxRValue(contractsData[eaxxRValueIndex].result);
     }
 
-    if (contractsData?.[eaccxKValueIndex]?.result && typeof contractsData[eaccxKValueIndex].result === 'bigint') {
-      setEaccxKValue(contractsData[eaccxKValueIndex].result);
+    if (contractsData?.[eaxxKValueIndex]?.result && typeof contractsData[eaxxKValueIndex].result === 'bigint') {
+      seteaxxKValue(contractsData[eaxxKValueIndex].result);
     }
-  }, [contractsData, eaccRValueIndex, eaccKValueIndex, eaccxRValueIndex, eaccxKValueIndex]);
+  }, [contractsData, eaccRValueIndex, eaccKValueIndex, eaxxRValueIndex, eaxxKValueIndex]);
 
   // Check if approved - only relevant when staking EACC
   const isApproved = isEACCStaking ? (allowance ? allowance > BigInt(0) : false) : true;
@@ -205,8 +205,8 @@ export function useStaking() {
         const tSeconds = BigInt(lockupPeriod * 7 * 24 * 60 * 60);
 
         // Select the appropriate R and K values based on staking mode
-        const rValue = isEACCStaking ? eaccxRValue : eaccRValue;
-        const kValue = isEACCStaking ? eaccxKValue : eaccKValue;
+        const rValue = isEACCStaking ? eaxxRValue : eaccRValue;
+        const kValue = isEACCStaking ? eaxxKValue : eaccKValue;
 
         // Calculate R*t
         const rt = rValue * tSeconds;
@@ -233,14 +233,14 @@ export function useStaking() {
     };
 
     // Only calculate if we have valid R and K values
-    if ((isEACCStaking && eaccxRValue && eaccxKValue) ||
+    if ((isEACCStaking && eaxxRValue && eaxxKValue) ||
         (!isEACCStaking && eaccRValue && eaccKValue)) {
       calculateMultiplier();
     }
-  }, [lockupPeriod, eaccRValue, eaccKValue, eaccxRValue, eaccxKValue, isEACCStaking]);
+  }, [lockupPeriod, eaccRValue, eaccKValue, eaxxRValue, eaxxKValue, isEACCStaking]);
 
   // Calculate EAXX to EACC ratio
-  const eaccxToEACCRatio = useMemo(() => {
+  const eaxxToEACCRatio = useMemo(() => {
     if (!totalEAXXSupply || totalEAXXSupply === BigInt(0)) {
       return "0";
     }
@@ -270,23 +270,23 @@ export function useStaking() {
   }, [totalEAXXSupply, eaccInEACCBar]);
 
   // Calculate total EACC worth of EAXX balance
-  const eaccxWorthInEACC = useMemo(() => {
-    if (!eaccxBalance || eaccxBalance === BigInt(0) || !totalEAXXSupply || totalEAXXSupply === BigInt(0) || !eaccInEACCBar) {
+  const eaxxWorthInEACC = useMemo(() => {
+    if (!eaxxBalance || eaxxBalance === BigInt(0) || !totalEAXXSupply || totalEAXXSupply === BigInt(0) || !eaccInEACCBar) {
       return BigInt(0);
     }
 
     try {
       // Calculate worth based on the same formula used in the contract
       // what = _share * eacc.balanceOf(address(this)) / totalShares
-      // where _share is eaccxBalance, totalShares is totalEAXXSupply
+      // where _share is eaxxBalance, totalShares is totalEAXXSupply
 
       // This is the exact calculation from the contract
-      return (eaccxBalance * eaccInEACCBar) / totalEAXXSupply;
+      return (eaxxBalance * eaccInEACCBar) / totalEAXXSupply;
     } catch (error) {
       console.error("Error calculating EACC worth:", error);
       return BigInt(0);
     }
-  }, [eaccxBalance, totalEAXXSupply, eaccInEACCBar]);
+  }, [eaxxBalance, totalEAXXSupply, eaccInEACCBar]);
 
   // Watch for token approval events to update state
   useWatchContractEvent({
@@ -542,8 +542,8 @@ export function useStaking() {
   const handleMaxAmount = (operation: 'stake' | 'unstake') => {
     if (operation === 'stake' && eaccBalance) {
       setStakeAmount(formatEther(eaccBalance));
-    } else if (operation === 'unstake' && eaccxBalance) {
-      setUnstakeAmount(formatEther(eaccxBalance));
+    } else if (operation === 'unstake' && eaxxBalance) {
+      setUnstakeAmount(formatEther(eaxxBalance));
     }
   };
 
@@ -565,36 +565,36 @@ export function useStaking() {
   useEffect(() => {
     console.log('Contract Data:', {
       eaccBalance,
-      eaccxBalance,
+      eaxxBalance,
       allowance,
       eaccRValue,
       eaccKValue,
-      eaccxRValue,
-      eaccxKValue,
+      eaxxRValue,
+      eaxxKValue,
       multiplier,
       isApproved,
       isEACCStaking,
       totalEACCSupply,
       totalEAXXSupply,
-      eaccxToEACCRatio,
-      eaccxWorthInEACC
+      eaxxToEACCRatio,
+      eaxxWorthInEACC
     });
   }, [
     contractsData,
     eaccBalance,
-    eaccxBalance,
+    eaxxBalance,
     allowance,
     eaccRValue,
     eaccKValue,
-    eaccxRValue,
-    eaccxKValue,
+    eaxxRValue,
+    eaxxKValue,
     multiplier,
     isApproved,
     isEACCStaking,
     totalEACCSupply,
     totalEAXXSupply,
-    eaccxToEACCRatio,
-    eaccxWorthInEACC
+    eaxxToEACCRatio,
+    eaxxWorthInEACC
   ]);
 
   // Return values and functions
@@ -625,10 +625,10 @@ export function useStaking() {
 
     // Balances
     eaccBalance,
-    eaccxBalance,
+    eaxxBalance,
     isApproved,
-    eaccxToEACCRatio,
-    eaccxWorthInEACC,
+    eaxxToEACCRatio,
+    eaxxWorthInEACC,
 
     // Actions
     handleApprove,

@@ -3,11 +3,11 @@ import { formatEther } from 'viem';
 
 interface BalanceDisplayProps {
   eaccBalance: bigint | null;
-  eaccxBalance: bigint | null;
-  eaccxWorthInEACC: bigint | null;
+  eaxxBalance: bigint | null;
+  eaxxWorthInEACC: bigint | null;
 }
 
-export const BalanceDisplay = ({ eaccBalance, eaccxBalance, eaccxWorthInEACC }: BalanceDisplayProps) => {
+export const BalanceDisplay = ({ eaccBalance, eaxxBalance, eaxxWorthInEACC }: BalanceDisplayProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
       <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl p-6">
@@ -39,12 +39,12 @@ export const BalanceDisplay = ({ eaccBalance, eaccxBalance, eaccxWorthInEACC }: 
           <div>
             <p className="text-sm text-indigo-600 font-medium">EAXX Balance</p>
             <p className="text-2xl font-bold text-indigo-900">
-              {eaccxBalance && typeof eaccxBalance === 'bigint'
-                ? parseFloat(formatEther(eaccxBalance)).toFixed(4)
+              {eaxxBalance && typeof eaxxBalance === 'bigint'
+                ? parseFloat(formatEther(eaxxBalance)).toFixed(4)
                 : '0.0000'}
-              {eaccxWorthInEACC && typeof eaccxWorthInEACC === 'bigint' && eaccxWorthInEACC > 0 && (
+              {eaxxWorthInEACC && typeof eaxxWorthInEACC === 'bigint' && eaxxWorthInEACC > 0 && (
                 <span className="text-sm text-indigo-500 ml-2">
-                  (~{parseFloat(formatEther(eaccxWorthInEACC)).toFixed(4)} EACC)
+                  (~{parseFloat(formatEther(eaxxWorthInEACC)).toFixed(4)} EACC)
                 </span>
               )}
             </p>

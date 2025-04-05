@@ -42,10 +42,10 @@ export default function StakingPage() {
 
     // Balances
     eaccBalance,
-    eaccxBalance,
+    eaxxBalance,
     isApproved,
-    eaccxWorthInEACC,
-    eaccxToEACCRatio,
+    eaxxWorthInEACC,
+    eaxxToEACCRatio,
 
     // Actions
     handleApprove,
@@ -159,8 +159,8 @@ export default function StakingPage() {
               <div className="p-8">
                 <BalanceDisplay 
                   eaccBalance={eaccBalance} 
-                  eaccxBalance={eaccxBalance} 
-                  eaccxWorthInEACC={eaccxWorthInEACC} 
+                  eaxxBalance={eaxxBalance} 
+                  eaxxWorthInEACC={eaxxWorthInEACC} 
                 />
 
                 {isEACCStaking ? (
@@ -173,8 +173,8 @@ export default function StakingPage() {
                     unstakeAmount={unstakeAmount}
                     setUnstakeAmount={setUnstakeAmount}
                     eaccBalance={eaccBalance}
-                    eaccxBalance={eaccxBalance}
-                    eaccxToEACCRatio={eaccxToEACCRatio}
+                    eaxxBalance={eaxxBalance}
+                    eaxxToEACCRatio={eaxxToEACCRatio}
                     isApproved={isApproved}
                     isApproving={isApproving}
                     isStaking={isStaking}
