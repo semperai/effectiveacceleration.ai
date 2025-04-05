@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useAccount, useReadContracts } from 'wagmi';
+import { useAccount } from 'wagmi';
 import { Button } from '@/components/Button';
 import { useConfig } from '@/hooks/useConfig';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
@@ -8,35 +8,10 @@ import { useToast } from '@/hooks/useToast';
 import * as Sentry from '@sentry/nextjs';
 import Link from 'next/link';
 import { ARBITRUM_CHAIN_ID } from '@/hooks/wagmi/useStaking';
+import { formatEther } from 'viem';
 
 // Sablier Lockup ABI
 const SABLIER_LOCKUP_ABI = [
-  {
-    inputs: [{ internalType: 'uint256', name: 'streamId', type: 'uint256' }],
-    name: 'streamById',
-    outputs: [
-      {
-        components: [
-          { internalType: 'uint256', name: 'id', type: 'uint256' },
-          { internalType: 'address', name: 'sender', type: 'address' },
-          { internalType: 'address', name: 'recipient', type: 'address' },
-          { internalType: 'uint128', name: 'deposit', type: 'uint128' },
-          { internalType: 'address', name: 'token', type: 'address' },
-          { internalType: 'uint40', name: 'startTime', type: 'uint40' },
-          { internalType: 'uint40', name: 'endTime', type: 'uint40' },
-          { internalType: 'uint128', name: 'lockupAmount', type: 'uint128' },
-          { internalType: 'uint128', name: 'withdrawnAmount', type: 'uint128' },
-          { internalType: 'bool', name: 'isCancelable', type: 'bool' },
-          { internalType: 'bool', name: 'wasCanceled', type: 'bool' }
-        ],
-        internalType: 'struct Stream',
-        name: '',
-        type: 'tuple'
-      }
-    ],
-    stateMutability: 'view',
-    type: 'function'
-  },
   {
     inputs: [{ internalType: 'uint256', name: 'streamId', type: 'uint256' }],
     name: 'withdrawMax',
@@ -62,51 +37,21 @@ interface Stream {
   isWithdrawing: boolean;
 }
 
-// Mock data for streams - to avoid network calls during testing
-const MOCK_STREAMS: Stream[] = [
-  {
-    id: "1",
-    deposit: "1000.0",
-    token: "0x1234...",
-    tokenSymbol: "EACC",
-    startTime: new Date("2023-01-01"),
-    endTime: new Date("2025-01-01"),
-    lockupAmount: "1000.0",
-    withdrawnAmount: "250.0",
-    remainingAmount: "750.0",
-    percentComplete: 25,
-    isActive: true,
-    isWithdrawing: false
-  },
-  {
-    id: "2",
-    deposit: "500.0",
-    token: "0x5678...",
-    tokenSymbol: "EAXX",
-    startTime: new Date("2023-06-01"),
-    endTime: new Date("2024-06-01"),
-    lockupAmount: "500.0",
-    withdrawnAmount: "375.0",
-    remainingAmount: "125.0",
-    percentComplete: 75,
-    isActive: true,
-    isWithdrawing: false
-  },
-  {
-    id: "3",
-    deposit: "200.0",
-    token: "0x1234...",
-    tokenSymbol: "EACC",
-    startTime: new Date("2022-01-01"),
-    endTime: new Date("2023-01-01"),
-    lockupAmount: "200.0",
-    withdrawnAmount: "200.0",
-    remainingAmount: "0.0",
-    percentComplete: 100,
-    isActive: false,
-    isWithdrawing: false
-  }
-];
+// GraphQL Types
+interface GraphQLStream {
+  id: string;
+  tokenId: string;
+  recipient: string;
+  funder: string;
+  endTime: string; // Unix timestamp
+  duration: string;
+  depositAmount: string;
+  withdrawnAmount: string;
+  sender: string;
+  startTime: string; // Unix timestamp
+  canceledTime: string | null;
+  canceled: boolean;
+}
 
 export function StreamsPanel() {
   const { address, isConnected, chain } = useAccount();
@@ -124,15 +69,117 @@ export function StreamsPanel() {
   // Check if user is on Arbitrum One
   const isArbitrumOne = chain?.id === ARBITRUM_CHAIN_ID;
 
-  // Initial data load (simulating API call)
+  // Fetch streams data from GraphQL
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setStreams(MOCK_STREAMS);
-      setIsLoading(false);
-    }, 1000);
+    const fetchStreams = async () => {
+      if (!isConnected || !address) {
+        setIsLoading(false);
+        return;
+      }
 
-    return () => clearTimeout(timer);
-  }, []);
+      setIsLoading(true);
+
+      try {
+        // Create static values for the query to prevent infinite render loops
+        const userAddress = address.toLowerCase();
+        const tokenAddress = Config?.EACCAddress ? `${Config.EACCAddress.toLowerCase()}-42161` : '';
+
+        // Construct the GraphQL query
+        const query = `
+          query FetchStreams {
+            Stream(
+              where: {
+                chainId: {_eq: "42161"},
+                recipient: {_eq: "${userAddress}"},
+                asset_id: {_eq: "${tokenAddress}"}
+              }
+            ) {
+              id
+              tokenId
+              recipient
+              funder
+              endTime
+              duration
+              depositAmount
+              withdrawnAmount
+              sender
+              startTime
+              canceledTime
+              canceled
+            }
+          }
+        `;
+
+        const response = await fetch('https://indexer.hyperindex.xyz/53b7e25/v1/graphql', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ query }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const result = await response.json();
+
+        if (result.errors) {
+          throw new Error(result.errors[0].message);
+        }
+
+        // Process the GraphQL data
+        const graphqlStreams: GraphQLStream[] = result.data.Stream || [];
+
+        // Map GraphQL data to our Stream interface
+        const processedStreams: Stream[] = graphqlStreams.map(graphStream => {
+          const startTime = new Date(parseInt(graphStream.startTime) * 1000);
+          const endTime = new Date(parseInt(graphStream.endTime) * 1000);
+          const now = new Date();
+
+          const deposit = formatEther(BigInt(graphStream.depositAmount));
+          const withdrawn = formatEther(BigInt(graphStream.withdrawnAmount));
+          const remaining = (parseFloat(deposit) - parseFloat(withdrawn)).toString();
+
+          // Calculate percent complete
+          const totalDuration = endTime.getTime() - startTime.getTime();
+          const elapsedDuration = Math.min(now.getTime() - startTime.getTime(), totalDuration);
+          const percentComplete = Math.floor((elapsedDuration / totalDuration) * 100);
+
+          // Determine if stream is active
+          const isActive = !graphStream.canceled && now < endTime;
+
+          return {
+            id: graphStream.id,
+            deposit,
+            token: Config?.EACCAddress || '',
+            tokenSymbol: 'EACC',
+            startTime,
+            endTime,
+            lockupAmount: deposit,
+            withdrawnAmount: withdrawn,
+            remainingAmount: remaining,
+            percentComplete,
+            isActive,
+            isWithdrawing: false
+          };
+        });
+
+        setStreams(processedStreams);
+      } catch (error) {
+        console.error('Error fetching streams:', error);
+        Sentry.captureException(error);
+        showError('Failed to load stream data. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStreams();
+
+    // Only re-run this effect when these specific dependencies change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [address, isConnected]);
 
   // Reset loading state and show error when error occurs
   useEffect(() => {
@@ -161,8 +208,16 @@ export function StreamsPanel() {
           isWithdrawing: false
         }))
       );
+
+      // Create a small delay before refreshing to avoid race conditions
+      const timer = setTimeout(() => {
+        handleRefresh();
+      }, 1000);
+
+      return () => clearTimeout(timer);
     }
-  }, [isConfirmed, showSuccess]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isConfirmed]);
 
   // Handle withdraw from stream
   const handleWithdraw = async (streamId: string) => {
@@ -200,11 +255,111 @@ export function StreamsPanel() {
   const handleRefresh = () => {
     setIsLoading(true);
 
-    // Simulate refresh with a timeout
-    setTimeout(() => {
-      setStreams(MOCK_STREAMS);
-      setIsLoading(false);
-    }, 500);
+    // Create a manual fetch function that doesn't depend on the useEffect
+    const manualFetch = async () => {
+      if (!isConnected || !address) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        // Create static values for the query
+        const userAddress = address.toLowerCase();
+        const tokenAddress = Config?.EACCAddress ? `${Config.EACCAddress.toLowerCase()}-42161` : '';
+
+        const query = `
+          query FetchStreams {
+            Stream(
+              where: {
+                chainId: {_eq: "42161"},
+                recipient: {_eq: "${userAddress}"},
+                asset_id: {_eq: "${tokenAddress}"}
+              }
+            ) {
+              id
+              tokenId
+              recipient
+              funder
+              endTime
+              duration
+              depositAmount
+              withdrawnAmount
+              sender
+              startTime
+              canceledTime
+              canceled
+            }
+          }
+        `;
+
+        const response = await fetch('https://indexer.hyperindex.xyz/53b7e25/v1/graphql', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ query }),
+          cache: 'no-store', // Prevent caching
+        });
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const result = await response.json();
+
+        if (result.errors) {
+          throw new Error(result.errors[0].message);
+        }
+
+        // Process the GraphQL data
+        const graphqlStreams: GraphQLStream[] = result.data.Stream || [];
+
+        // Map GraphQL data to our Stream interface
+        const processedStreams: Stream[] = graphqlStreams.map(graphStream => {
+          const startTime = new Date(parseInt(graphStream.startTime) * 1000);
+          const endTime = new Date(parseInt(graphStream.endTime) * 1000);
+          const now = new Date();
+
+          const deposit = formatEther(BigInt(graphStream.depositAmount));
+          const withdrawn = formatEther(BigInt(graphStream.withdrawnAmount));
+          const remaining = (parseFloat(deposit) - parseFloat(withdrawn)).toString();
+
+          // Calculate percent complete
+          const totalDuration = endTime.getTime() - startTime.getTime();
+          const elapsedDuration = Math.min(now.getTime() - startTime.getTime(), totalDuration);
+          const percentComplete = Math.floor((elapsedDuration / totalDuration) * 100);
+
+          // Determine if stream is active
+          const isActive = !graphStream.canceled && now < endTime;
+
+          return {
+            id: graphStream.id,
+            deposit,
+            token: Config?.EACCAddress || '',
+            tokenSymbol: 'EACC',
+            startTime,
+            endTime,
+            lockupAmount: deposit,
+            withdrawnAmount: withdrawn,
+            remainingAmount: remaining,
+            percentComplete,
+            isActive,
+            isWithdrawing: false
+          };
+        });
+
+        setStreams(processedStreams);
+      } catch (error) {
+        console.error('Error fetching streams:', error);
+        Sentry.captureException(error);
+        showError('Failed to load stream data. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    // Call the manual fetch function instead of trying to trigger the useEffect
+    manualFetch();
   };
 
   // Filter streams based on active filter
