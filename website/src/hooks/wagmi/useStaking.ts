@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAccount, useReadContracts, useSwitchChain, useWatchContractEvent } from 'wagmi';
 import { formatEther, parseEther } from 'viem';
 import { E_A_C_C_TOKEN_ABI as EACC_TOKEN_ABI } from '@effectiveacceleration/contracts/wagmi/EACCToken';
@@ -24,6 +24,12 @@ export function useStaking() {
   const [isApproving, setIsApproving] = useState(false);
   const [error, setError] = useState<unknown>(null);
 
+  // State for R and K constants
+  const [eaccRValue, setEaccRValue] = useState(BigInt(6969696969)); // Default from EACCToken contract
+  const [eaccKValue, setEaccKValue] = useState(BigInt(69)); // Default from EACCToken contract
+  const [eaccxRValue, setEaccxRValue] = useState(BigInt(9696969696)); // Default from EACCBar contract
+  const [eaccxKValue, setEaccxKValue] = useState(BigInt(33)); // Default from EACCBar contract
+
   // Check if user is on Arbitrum One
   const isArbitrumOne = chain?.id === ARBITRUM_CHAIN_ID;
 
@@ -45,6 +51,8 @@ export function useStaking() {
     address: Config?.EACCBarAddress,
     abi: EACC_BAR_ABI,
   } as const;
+
+  // Read contracts data (excluding multiplier calculation)
   const {
     data: contractsData,
     isSuccess: isContractsSuccess,
@@ -66,19 +74,35 @@ export function useStaking() {
         args: [address || '0x'],
         chainId: ARBITRUM_CHAIN_ID,
       },
-      // Allowance
-      ...(isEACCStaking ? [{
+      // Allowance - always fetch this regardless of mode
+      {
         ...eaccContract,
         functionName: 'allowance',
         args: [address || '0x', Config?.EACCBarAddress || '0x'],
         chainId: ARBITRUM_CHAIN_ID,
-      }] : []),
-      // Multiplier
+      },
+      // Get R value from EACCToken
       {
-        address: isEACCStaking ? Config?.EACCBarAddress : Config?.EACCAddress,
-        abi: isEACCStaking ? EACC_BAR_ABI : EACC_TOKEN_ABI,
-        functionName: 'M',
-        args: [BigInt(lockupPeriod * 7 * 24 * 60 * 60)], // convert weeks to seconds
+        ...eaccContract,
+        functionName: 'R',
+        chainId: ARBITRUM_CHAIN_ID,
+      },
+      // Get K value from EACCToken
+      {
+        ...eaccContract,
+        functionName: 'K',
+        chainId: ARBITRUM_CHAIN_ID,
+      },
+      // Get R value from EACCBar
+      {
+        ...eaccBarContract,
+        functionName: 'R',
+        chainId: ARBITRUM_CHAIN_ID,
+      },
+      // Get K value from EACCBar
+      {
+        ...eaccBarContract,
+        functionName: 'K',
         chainId: ARBITRUM_CHAIN_ID,
       }
     ],
@@ -97,29 +121,83 @@ export function useStaking() {
     ? contractsData[1].result
     : BigInt(0);
 
-  const allowance = isEACCStaking
-    ? (contractsData?.[2]?.result && typeof contractsData[2].result === 'bigint'
-       ? contractsData[2].result
-       : BigInt(0))
+  const allowance = contractsData?.[2]?.result && typeof contractsData[2].result === 'bigint'
+    ? contractsData[2].result
     : BigInt(0);
 
-  const multiplierIndex = isEACCStaking ? 3 : 2;
-  const multiplierData = contractsData?.[multiplierIndex]?.result &&
-    typeof contractsData[multiplierIndex].result === 'bigint'
-    ? contractsData[multiplierIndex].result
-    : BigInt(0);
+  // Get R and K values from both contracts (fixed indices)
+  const eaccRValueIndex = 3;
+  const eaccKValueIndex = 4;
+  const eaccxRValueIndex = 5;
+  const eaccxKValueIndex = 6;
 
-  // Update multiplier when data changes
+  // Update R and K values when data is fetched
   useEffect(() => {
-    if (multiplierData && typeof multiplierData === 'bigint') {
-      setMultiplier(formatEther(multiplierData));
-    } else {
-      setMultiplier('0');
+    // Update EACCToken R and K values
+    if (contractsData?.[eaccRValueIndex]?.result && typeof contractsData[eaccRValueIndex].result === 'bigint') {
+      setEaccRValue(contractsData[eaccRValueIndex].result);
     }
-  }, [multiplierData]);
+
+    if (contractsData?.[eaccKValueIndex]?.result && typeof contractsData[eaccKValueIndex].result === 'bigint') {
+      setEaccKValue(contractsData[eaccKValueIndex].result);
+    }
+
+    // Update EACCBar R and K values
+    if (contractsData?.[eaccxRValueIndex]?.result && typeof contractsData[eaccxRValueIndex].result === 'bigint') {
+      setEaccxRValue(contractsData[eaccxRValueIndex].result);
+    }
+
+    if (contractsData?.[eaccxKValueIndex]?.result && typeof contractsData[eaccxKValueIndex].result === 'bigint') {
+      setEaccxKValue(contractsData[eaccxKValueIndex].result);
+    }
+  }, [contractsData, eaccRValueIndex, eaccKValueIndex, eaccxRValueIndex, eaccxKValueIndex]);
 
   // Check if approved - only relevant when staking EACC
   const isApproved = isEACCStaking ? (allowance ? BigInt(allowance) > BigInt(0) : false) : true;
+
+  // Calculate multiplier using R and K values
+  // This replaces the contract call to get the multiplier
+  useEffect(() => {
+    // Calculate the multiplier: M(t) = e^(R*t + K*t^2)
+    const calculateMultiplier = () => {
+      try {
+        // Convert lockupPeriod from weeks to seconds
+        const tSeconds = BigInt(lockupPeriod * 7 * 24 * 60 * 60);
+
+        // Select the appropriate R and K values based on staking mode
+        const rValue = isEACCStaking ? eaccxRValue : eaccRValue;
+        const kValue = isEACCStaking ? eaccxKValue : eaccKValue;
+
+        // Calculate R*t
+        const rt = rValue * tSeconds;
+
+        // Calculate K*t²
+        const tSquared = tSeconds * tSeconds;
+        const ktSquared = kValue * tSquared;
+
+        // Calculate R*t + K*t²
+        const exponent = rt + ktSquared;
+
+        // Using Math.exp because JavaScript can't directly handle BigInt in exponential
+        // Convert to Number for Math.exp, divide by appropriate factor since we're
+        // simulating fixed-point math from the contract
+        const expValue = Math.exp(Number(exponent) / 1e18);
+
+        // Convert back to a string with appropriate precision
+        const multiplierValue = expValue.toFixed(18);
+        setMultiplier(multiplierValue);
+      } catch (err) {
+        console.error("Error calculating multiplier:", err);
+        setMultiplier('0');
+      }
+    };
+
+    // Only calculate if we have valid R and K values
+    if ((isEACCStaking && eaccxRValue && eaccxKValue) ||
+        (!isEACCStaking && eaccRValue && eaccKValue)) {
+      calculateMultiplier();
+    }
+  }, [lockupPeriod, eaccRValue, eaccKValue, eaccxRValue, eaccxKValue, isEACCStaking]);
 
   // Watch for token approval events to update state
   useWatchContractEvent({
@@ -324,10 +402,27 @@ export function useStaking() {
       eaccBalance,
       eaccxBalance,
       allowance,
-      multiplierData,
-      isApproved
+      eaccRValue,
+      eaccKValue,
+      eaccxRValue,
+      eaccxKValue,
+      multiplier,
+      isApproved,
+      isEACCStaking
     });
-  }, [contractsData, eaccBalance, eaccxBalance, allowance, multiplierData, isApproved]);
+  }, [
+    contractsData,
+    eaccBalance,
+    eaccxBalance,
+    allowance,
+    eaccRValue,
+    eaccKValue,
+    eaccxRValue,
+    eaccxKValue,
+    multiplier,
+    isApproved,
+    isEACCStaking
+  ]);
 
   // Return values and functions
   return {

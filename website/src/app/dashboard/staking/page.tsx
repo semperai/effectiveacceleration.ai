@@ -55,6 +55,27 @@ export default function StakingPage() {
     }
   }, [error, isEACCStaking, showError]);
 
+  // Adjust lockup period when switching between staking modes
+  useEffect(() => {
+    // If switching to EACC staking (which requires min 52 weeks) and current period is less than 52
+    if (isEACCStaking && lockupPeriod < 52) {
+      setLockupPeriod(52);
+    }
+  }, [isEACCStaking, lockupPeriod, setLockupPeriod]);
+
+  // Handle toggling between staking modes
+  interface ToggleStakingModeProps {
+    stakeMode: boolean;
+  }
+
+  const handleToggleStakingMode = ({ stakeMode }: ToggleStakingModeProps): void => {
+    // If we're switching to EACC staking and current period is less than 52 weeks
+    if (stakeMode && lockupPeriod < 52) {
+      setLockupPeriod(52); // Set to minimum for EACC staking
+    }
+    setIsEACCStaking(stakeMode);
+  };
+
   return (
     <Layout>
       <div className="relative mx-auto flex min-h-customHeader flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -76,13 +97,13 @@ export default function StakingPage() {
                 <div className="flex bg-gray-100 rounded-lg p-1">
                   <button
                     className={`px-4 py-2 rounded-md ${isEACCStaking ? 'bg-blue-500 text-white' : 'text-gray-700'}`}
-                    onClick={() => setIsEACCStaking(true)}
+                    onClick={() => handleToggleStakingMode({ stakeMode: true })}
                   >
                     Stake EACC
                   </button>
                   <button
                     className={`px-4 py-2 rounded-md ${!isEACCStaking ? 'bg-blue-500 text-white' : 'text-gray-700'}`}
-                    onClick={() => setIsEACCStaking(false)}
+                    onClick={() => handleToggleStakingMode({ stakeMode: false })}
                   >
                     Create Stream
                   </button>
@@ -150,6 +171,11 @@ export default function StakingPage() {
                     />
                     <span className="text-sm font-medium">{lockupPeriod} weeks</span>
                   </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {isEACCStaking
+                      ? "Minimum staking period is 52 weeks (1 year)"
+                      : "Minimum streaming period is 1 week"}
+                  </p>
                 </div>
 
                 {/* Multiplier Display */}
