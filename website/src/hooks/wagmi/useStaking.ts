@@ -16,7 +16,8 @@ export function useStaking() {
   const Config = useConfig();
 
   // State
-  const [amount, setAmount] = useState('');
+  const [stakeAmount, setStakeAmount] = useState('');
+  const [unstakeAmount, setUnstakeAmount] = useState('');
   const [lockupPeriod, setLockupPeriod] = useState(52); // Default to 52 weeks
   const [isEACCStaking, setIsEACCStaking] = useState(true);
   const [multiplier, setMultiplier] = useState('0');
@@ -47,6 +48,7 @@ export function useStaking() {
     address: Config?.EACCAddress,
     abi: EACC_TOKEN_ABI,
   } as const;
+
   const eaccBarContract = {
     address: Config?.EACCBarAddress,
     abi: EACC_BAR_ABI,
@@ -248,13 +250,20 @@ export function useStaking() {
 
     setIsApproving(true);
     try {
+      console.log("Starting approval process...");
+      // Use a pre-calculated max uint256 value to avoid overflow
+      const MAX_UINT256 = BigInt("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+
       await writeContractWithNotifications({
         abi: EACC_TOKEN_ABI,
         address: Config.EACCAddress,
         functionName: 'approve',
-        args: [Config.EACCBarAddress, BigInt(2) ** BigInt(256) - BigInt(1)], // max uint256
+        args: [Config.EACCBarAddress, MAX_UINT256],
         contracts: {
+          marketplaceAddress: Config.marketplaceAddress,
+          marketplaceDataAddress: Config.marketplaceDataAddress,
           eaccAddress: Config.EACCAddress,
+          eaccBarAddress: Config.EACCBarAddress,
         },
         successMessage: 'Approval successful!',
         customErrorMessages: {
@@ -262,6 +271,7 @@ export function useStaking() {
           default: 'Failed to approve tokens'
         }
       });
+      console.log("Approval initiated successfully");
       // Refetch will be triggered automatically by the event watcher
     } catch (error) {
       Sentry.captureException(error);
@@ -272,12 +282,12 @@ export function useStaking() {
   };
 
   // Handle staking
-  const handleStake = async () => {
-    if (!amount || !isArbitrumOne) return;
+  const handleStake = async (amountToStake) => {
+    if (!amountToStake || !isArbitrumOne) return;
 
     setIsLoading(true);
     try {
-      const amountWei = parseEther(amount);
+      const amountWei = parseEther(amountToStake);
       const tSeconds = BigInt(lockupPeriod * 7 * 24 * 60 * 60); // Convert weeks to seconds
 
       if (isEACCStaking) {
@@ -287,9 +297,6 @@ export function useStaking() {
           functionName: 'enter',
           args: [amountWei, tSeconds],
           contracts: {
-            marketplaceAddress: Config!.marketplaceAddress,
-            marketplaceDataAddress: Config!.marketplaceDataAddress,
-            eaccAddress: Config!.EACCAddress,
             eaccBarAddress: Config!.EACCBarAddress,
           },
           successMessage: 'Successfully staked EACC tokens!',
@@ -299,7 +306,7 @@ export function useStaking() {
           },
           onSuccess: () => {
             // Reset amount after successful transaction
-            setAmount('');
+            setStakeAmount('');
           }
         });
       } else {
@@ -309,10 +316,7 @@ export function useStaking() {
           functionName: 'depositForStream',
           args: [amountWei, tSeconds],
           contracts: {
-            marketplaceAddress: Config!.marketplaceAddress,
-            marketplaceDataAddress: Config!.marketplaceDataAddress,
             eaccAddress: Config!.EACCAddress,
-            eaccBarAddress: Config!.EACCBarAddress,
           },
           successMessage: 'Successfully created new stream!',
           customErrorMessages: {
@@ -321,7 +325,7 @@ export function useStaking() {
           },
           onSuccess: () => {
             // Reset amount after successful transaction
-            setAmount('');
+            setStakeAmount('');
           }
         });
       }
@@ -334,12 +338,12 @@ export function useStaking() {
   };
 
   // Handle unstaking
-  const handleUnstake = async () => {
-    if (!amount || !isArbitrumOne) return;
+  const handleUnstake = async (amountToUnstake) => {
+    if (!amountToUnstake || !isArbitrumOne) return;
 
     setIsLoading(true);
     try {
-      const amountWei = parseEther(amount);
+      const amountWei = parseEther(amountToUnstake);
 
       await writeContractWithNotifications({
         address: Config!.EACCBarAddress,
@@ -347,9 +351,6 @@ export function useStaking() {
         functionName: 'leave',
         args: [amountWei],
         contracts: {
-          marketplaceAddress: Config!.marketplaceAddress,
-          marketplaceDataAddress: Config!.marketplaceDataAddress,
-          eaccAddress: Config!.EACCAddress,
           eaccBarAddress: Config!.EACCBarAddress,
         },
         successMessage: 'Successfully unstaked tokens!',
@@ -359,7 +360,7 @@ export function useStaking() {
         },
         onSuccess: () => {
           // Reset amount after successful transaction
-          setAmount('');
+          setUnstakeAmount('');
         }
       });
     } catch (error) {
@@ -371,11 +372,11 @@ export function useStaking() {
   };
 
   // Handle max amount
-  const handleMaxAmount = () => {
-    if (isEACCStaking && eaccBalance) {
-      setAmount(formatEther(eaccBalance));
-    } else if (!isEACCStaking && eaccxBalance) {
-      setAmount(formatEther(eaccxBalance));
+  const handleMaxAmount = (operation: 'stake' | 'unstake') => {
+    if (operation === 'stake' && eaccBalance) {
+      setStakeAmount(formatEther(eaccBalance));
+    } else if (operation === 'unstake' && eaccxBalance) {
+      setUnstakeAmount(formatEther(eaccxBalance));
     }
   };
 
@@ -424,8 +425,10 @@ export function useStaking() {
   // Return values and functions
   return {
     // State
-    amount,
-    setAmount,
+    stakeAmount,
+    setStakeAmount,
+    unstakeAmount,
+    setUnstakeAmount,
     lockupPeriod,
     setLockupPeriod,
     isEACCStaking,

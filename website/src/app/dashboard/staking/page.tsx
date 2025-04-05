@@ -13,8 +13,10 @@ export default function StakingPage() {
   const { showError } = useToast();
 
   const {
-    amount,
-    setAmount,
+    stakeAmount,
+    setStakeAmount,
+    unstakeAmount,
+    setUnstakeAmount,
     lockupPeriod,
     setLockupPeriod,
     isEACCStaking,
@@ -130,97 +132,196 @@ export default function StakingPage() {
                 </div>
               </div>
 
-              {/* Staking Form */}
-              <div className="space-y-4">
-                {/* Amount Input */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {isEACCStaking ? 'Amount to Stake' : 'Amount to Stream'}
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 border"
-                      placeholder="0.0"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleMaxAmount}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-500 text-sm font-medium"
-                    >
-                      MAX
-                    </button>
-                  </div>
-                </div>
-
-                {/* Lockup Period Input */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Lockup Period (weeks)
-                  </label>
-                  <div className="flex items-center space-x-4">
-                    <input
-                      type="range"
-                      min={isEACCStaking ? 52 : 1}
-                      max={208}
-                      value={lockupPeriod}
-                      onChange={(e) => setLockupPeriod(parseInt(e.target.value))}
-                      className="w-full"
-                    />
-                    <span className="text-sm font-medium">{lockupPeriod} weeks</span>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {isEACCStaking
-                      ? "Minimum staking period is 52 weeks (1 year)"
-                      : "Minimum streaming period is 1 week"}
-                  </p>
-                </div>
-
-                {/* Multiplier Display */}
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-500">Multiplier</p>
-                  <p className="text-xl font-semibold">{parseFloat(multiplier).toFixed(4)}x</p>
-                  <p className="text-xs text-gray-500">
-                    {isEACCStaking
-                      ? `You'll receive a stream of ${(parseFloat(amount || '0') * parseFloat(multiplier)).toFixed(4)} EAXX tokens`
-                      : `You'll receive a stream of ${(parseFloat(amount || '0') * parseFloat(multiplier)).toFixed(4)} EACC tokens`}
-                  </p>
-                </div>
-
-                {/* Action Buttons */}
-                <div>
-                  {isEACCStaking && !isApproved ? (
-                    <Button
-                      className="w-full"
-                      onClick={handleApprove}
-                      disabled={isApproving || isConfirming}
-                    >
-                      {isApproving ? 'Approving...' : 'Approve EACC'}
-                    </Button>
-                  ) : (
-                    <div className={`grid ${isEACCStaking ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
-                      <Button
+              {isEACCStaking ? (
+                <div className="space-y-6">
+                  {/* Lockup Period Input */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Lockup Period (weeks)
+                    </label>
+                    <div className="flex items-center space-x-4">
+                      <input
+                        type="range"
+                        min={isEACCStaking ? 52 : 1}
+                        max={208}
+                        value={lockupPeriod}
+                        onChange={(e) => setLockupPeriod(parseInt(e.target.value))}
                         className="w-full"
-                        onClick={handleStake}
-                        disabled={isLoading || isConfirming || !amount || parseFloat(amount) <= 0}
-                      >
-                        {isLoading || isConfirming ? 'Processing...' : isEACCStaking ? 'Stake EACC' : 'Create Stream'}
-                      </Button>
-                      {isEACCStaking && (
+                      />
+                      <span className="text-sm font-medium">{lockupPeriod} weeks</span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Minimum staking period is 52 weeks (1 year). Longer periods provide better multipliers.
+                    </p>
+                  </div>
+
+                  {/* Multiplier Display */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-sm text-gray-500">Multiplier</p>
+                    <p className="text-xl font-semibold">{parseFloat(multiplier).toFixed(4)}x</p>
+                    <p className="text-xs text-gray-500">
+                      {`You'll receive a stream of ${(parseFloat(stakeAmount || '0') * parseFloat(multiplier)).toFixed(4)} EAXX tokens`}
+                    </p>
+                  </div>
+
+                  {/* Staking Section */}
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <h3 className="font-medium text-blue-700 mb-3">Stake EACC</h3>
+                    <div className="space-y-3">
+                      {/* Amount Input for Staking */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Amount to Stake
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={stakeAmount}
+                            onChange={(e) => setStakeAmount(e.target.value)}
+                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 border"
+                            placeholder="0.0"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleMaxAmount('stake')}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-500 text-sm font-medium"
+                          >
+                            MAX
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Action Button for Staking */}
+                      {!isApproved ? (
                         <Button
                           className="w-full"
-                          onClick={handleUnstake}
-                          disabled={isLoading || isConfirming || !amount || parseFloat(amount) <= 0}
+                          onClick={handleApprove}
+                          disabled={isApproving || isConfirming}
                         >
-                          {isLoading || isConfirming ? 'Processing...' : 'Unstake'}
+                          {isApproving ? 'Approving...' : 'Approve EACC'}
+                        </Button>
+                      ) : (
+                        <Button
+                          className="w-full"
+                          onClick={() => handleStake(stakeAmount)}
+                          disabled={isLoading || isConfirming || !stakeAmount || parseFloat(stakeAmount) <= 0}
+                        >
+                          {isLoading || isConfirming ? 'Processing...' : 'Stake EACC'}
                         </Button>
                       )}
                     </div>
-                  )}
+                  </div>
+
+                  {/* Unstaking Section */}
+                  <div className="bg-indigo-50 p-4 rounded-lg">
+                    <h3 className="font-medium text-indigo-700 mb-3">Unstake EACC</h3>
+                    <div className="space-y-3">
+                      {/* Amount Input for Unstaking */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Amount to Unstake
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={unstakeAmount}
+                            onChange={(e) => setUnstakeAmount(e.target.value)}
+                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3 border"
+                            placeholder="0.0"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleMaxAmount('unstake')}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-indigo-500 text-sm font-medium"
+                          >
+                            MAX
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Action Button for Unstaking */}
+                      <Button
+                        className="w-full bg-indigo-600 hover:bg-indigo-700"
+                        onClick={() => handleUnstake(unstakeAmount)}
+                        disabled={isLoading || isConfirming || !unstakeAmount || parseFloat(unstakeAmount) <= 0}
+                      >
+                        {isLoading || isConfirming ? 'Processing...' : 'Unstake EACC'}
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Stream Creation Form */}
+                  {/* Lockup Period Input */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Stream Duration (weeks)
+                    </label>
+                    <div className="flex items-center space-x-4">
+                      <input
+                        type="range"
+                        min={1}
+                        max={208}
+                        value={lockupPeriod}
+                        onChange={(e) => setLockupPeriod(parseInt(e.target.value))}
+                        className="w-full"
+                      />
+                      <span className="text-sm font-medium">{lockupPeriod} weeks</span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Minimum streaming period is 1 week. Longer periods provide better multipliers.
+                    </p>
+                  </div>
+
+                  {/* Multiplier Display */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-sm text-gray-500">Multiplier</p>
+                    <p className="text-xl font-semibold">{parseFloat(multiplier).toFixed(4)}x</p>
+                    <p className="text-xs text-gray-500">
+                      You'll receive a stream of {(parseFloat(stakeAmount || '0') * parseFloat(multiplier)).toFixed(4)} EACC tokens
+                    </p>
+                  </div>
+
+                  {/* Create Stream Section */}
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <h3 className="font-medium text-blue-700 mb-3">Create EACC Stream</h3>
+                    <div className="space-y-3">
+                      {/* Amount Input for Streaming */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Amount to Stream
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={stakeAmount}
+                            onChange={(e) => setStakeAmount(e.target.value)}
+                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-3 border"
+                            placeholder="0.0"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleMaxAmount('stake')}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-500 text-sm font-medium"
+                          >
+                            MAX
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Create Stream Button */}
+                      <Button
+                        className="w-full"
+                        onClick={() => handleStake(stakeAmount)}
+                        disabled={isLoading || isConfirming || !stakeAmount || parseFloat(stakeAmount) <= 0}
+                      >
+                        {isLoading || isConfirming ? 'Processing...' : 'Create Stream'}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Information Box */}
               <div className="mt-8 bg-blue-50 p-4 rounded-lg">
