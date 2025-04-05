@@ -24,6 +24,8 @@ export default function StakingPage() {
     setIsEACCStaking,
     multiplier,
     isLoading,
+    isStaking,           // New specific state for staking
+    isUnstaking,         // New specific state for unstaking
     isApproving,
     isConfirming,
     isConfirmed,
@@ -248,9 +250,9 @@ export default function StakingPage() {
                         <Button
                           className="w-full"
                           onClick={() => handleStake(stakeAmount)}
-                          disabled={isLoading || isConfirming || !stakeAmount || parseFloat(stakeAmount) <= 0}
+                          disabled={isStaking || isConfirming || !stakeAmount || parseFloat(stakeAmount) <= 0}
                         >
-                          {isLoading || isConfirming ? 'Processing...' : 'Stake EACC'}
+                          {isStaking || isConfirming ? 'Processing...' : 'Stake EACC'}
                         </Button>
                       )}
                     </div>
@@ -297,9 +299,9 @@ export default function StakingPage() {
                       <Button
                         className="w-full bg-indigo-600 hover:bg-indigo-700"
                         onClick={() => handleUnstake(unstakeAmount)}
-                        disabled={isLoading || isConfirming || !unstakeAmount || parseFloat(unstakeAmount) <= 0}
+                        disabled={isUnstaking || isConfirming || !unstakeAmount || parseFloat(unstakeAmount) <= 0}
                       >
-                        {isLoading || isConfirming ? 'Processing...' : 'Unstake EAXX'}
+                        {isUnstaking || isConfirming ? 'Processing...' : 'Unstake EAXX'}
                       </Button>
                     </div>
                   </div>
@@ -369,9 +371,9 @@ export default function StakingPage() {
                       <Button
                         className="w-full"
                         onClick={() => handleStake(stakeAmount)}
-                        disabled={isLoading || isConfirming || !stakeAmount || parseFloat(stakeAmount) <= 0}
+                        disabled={isStaking || isConfirming || !stakeAmount || parseFloat(stakeAmount) <= 0}
                       >
-                        {isLoading || isConfirming ? 'Processing...' : 'Create Stream'}
+                        {isStaking || isConfirming ? 'Processing...' : 'Create Stream'}
                       </Button>
                     </div>
                   </div>

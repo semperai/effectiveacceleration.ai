@@ -22,6 +22,8 @@ export function useStaking() {
   const [isEACCStaking, setIsEACCStaking] = useState(true);
   const [multiplier, setMultiplier] = useState('0');
   const [isLoading, setIsLoading] = useState(false);
+  const [isStaking, setIsStaking] = useState(false);        // New state for staking
+  const [isUnstaking, setIsUnstaking] = useState(false);    // New state for unstaking
   const [isApproving, setIsApproving] = useState(false);
   const [error, setError] = useState<unknown>(null);
 
@@ -34,7 +36,6 @@ export function useStaking() {
   // Check if user is on Arbitrum One
   const isArbitrumOne = chain?.id === ARBITRUM_CHAIN_ID;
 
-  // Replace useWriteContract with useWriteContractWithNotifications
   const {
     writeContractWithNotifications,
     isConfirming,
@@ -308,7 +309,10 @@ export function useStaking() {
     onLogs: () => {
       console.log("Transfer event detected, refetching contracts");
       refetchContracts();
+      // Reset all loading states
       setIsLoading(false);
+      setIsStaking(false);
+      setIsUnstaking(false);
     },
     enabled: isConnected && !!Config?.EACCAddress,
   });
@@ -321,7 +325,9 @@ export function useStaking() {
     onLogs: () => {
       console.log("Enter event detected, refetching contracts");
       refetchContracts();
+      // Reset all loading states
       setIsLoading(false);
+      setIsStaking(false);
     },
     enabled: isConnected && !!Config?.EACCBarAddress,
   });
@@ -333,7 +339,9 @@ export function useStaking() {
     onLogs: () => {
       console.log("Leave event detected, refetching contracts");
       refetchContracts();
+      // Reset all loading states
       setIsLoading(false);
+      setIsUnstaking(false);
     },
     enabled: isConnected && !!Config?.EACCBarAddress,
   });
@@ -342,23 +350,40 @@ export function useStaking() {
   useEffect(() => {
     if (writeError) {
       setError(writeError);
+      // Reset all loading states on error
       setIsLoading(false);
+      setIsStaking(false);
+      setIsUnstaking(false);
       setIsApproving(false);
       console.error("Transaction error detected:", writeError);
     }
   }, [writeError]);
 
   // Handle transaction failures in useWriteContractWithNotifications
-  const handleTransactionError = useCallback(() => {
-    setIsLoading(false);
-    setIsApproving(false);
-    console.log("Transaction error handler triggered");
+  const handleTransactionError = useCallback((operation?: 'stake' | 'unstake' | 'approve') => {
+    if (operation === 'stake') {
+      setIsStaking(false);
+    } else if (operation === 'unstake') {
+      setIsUnstaking(false);
+    } else if (operation === 'approve') {
+      setIsApproving(false);
+    } else {
+      // If operation not specified, reset all
+      setIsLoading(false);
+      setIsStaking(false);
+      setIsUnstaking(false);
+      setIsApproving(false);
+    }
+    console.log("Transaction error handler triggered for:", operation || "all operations");
   }, []);
 
   // Reset loading state on confirmation
   useEffect(() => {
     if (isConfirmed) {
+      // Reset all loading states on confirmation
       setIsLoading(false);
+      setIsStaking(false);
+      setIsUnstaking(false);
       setIsApproving(false);
       // Force a refetch after successful transactions
       refetchContracts();
@@ -368,6 +393,8 @@ export function useStaking() {
   // Helper function to be called after successful transactions
   const transactionOnSuccess = () => {
     setIsLoading(false);
+    setIsStaking(false);
+    setIsUnstaking(false);
     refetchContracts();
   };
 
@@ -379,7 +406,7 @@ export function useStaking() {
     try {
       console.log("Starting approval process...");
       // Use a pre-calculated max uint256 value to avoid overflow
-      const MAX_UINT256 = BigInt("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+      const MAX_UINT256 = BigInt(2) ** BigInt(256) - BigInt(1);
 
       await writeContractWithNotifications({
         abi: EACC_TOKEN_ABI,
@@ -399,9 +426,10 @@ export function useStaking() {
         },
         onSuccess: () => {
           // Force refresh contracts data on successful approval
+          setIsApproving(false);
           transactionOnSuccess();
         },
-        onError: handleTransactionError
+        onError: () => handleTransactionError('approve')
       });
       console.log("Approval initiated successfully");
     } catch (error) {
@@ -416,7 +444,7 @@ export function useStaking() {
   const handleStake = async (amountToStake: string) => {
     if (!amountToStake || !isArbitrumOne) return;
 
-    setIsLoading(true);
+    setIsStaking(true); // Use specific staking loading state
     try {
       const amountWei = parseEther(amountToStake);
       const tSeconds = BigInt(lockupPeriod * 7 * 24 * 60 * 60); // Convert weeks to seconds
@@ -439,9 +467,10 @@ export function useStaking() {
           onSuccess: () => {
             // Reset amount after successful transaction
             setStakeAmount('');
-            transactionOnSuccess();
+            setIsStaking(false); // Reset the specific loading state
+            refetchContracts();
           },
-          onError: handleTransactionError
+          onError: () => handleTransactionError('stake')
         });
       } else {
         await writeContractWithNotifications({
@@ -461,16 +490,17 @@ export function useStaking() {
           onSuccess: () => {
             // Reset amount after successful transaction
             setStakeAmount('');
-            transactionOnSuccess();
+            setIsStaking(false); // Reset the specific loading state
+            refetchContracts();
           },
-          onError: handleTransactionError
+          onError: () => handleTransactionError('stake')
         });
       }
     } catch (error) {
       Sentry.captureException(error);
       setError(error);
       console.error("Error staking tokens:", error);
-      setIsLoading(false);
+      setIsStaking(false); // Reset on catch error
     }
   };
 
@@ -478,7 +508,7 @@ export function useStaking() {
   const handleUnstake = async (amountToUnstake: string) => {
     if (!amountToUnstake || !isArbitrumOne) return;
 
-    setIsLoading(true);
+    setIsUnstaking(true); // Use specific unstaking loading state
     try {
       const amountWei = parseEther(amountToUnstake);
 
@@ -499,15 +529,16 @@ export function useStaking() {
         onSuccess: () => {
           // Reset amount after successful transaction
           setUnstakeAmount('');
-          transactionOnSuccess();
+          setIsUnstaking(false); // Reset the specific loading state
+          refetchContracts();
         },
-        onError: handleTransactionError
+        onError: () => handleTransactionError('unstake')
       });
     } catch (error) {
       Sentry.captureException(error);
       setError(error);
       console.error("Error unstaking tokens:", error);
-      setIsLoading(false);
+      setIsUnstaking(false); // Reset on catch error
     }
   };
 
@@ -582,7 +613,9 @@ export function useStaking() {
     isEACCStaking,
     setIsEACCStaking,
     multiplier,
-    isLoading: isLoading || isContractsLoading,
+    isLoading: isContractsLoading,  // Changed to only indicate contract data loading
+    isStaking,         // New specific state for staking
+    isUnstaking,       // New specific state for unstaking
     isApproving,
     isConfirming,
     isConfirmed,
