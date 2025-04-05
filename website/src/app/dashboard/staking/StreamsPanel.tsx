@@ -60,7 +60,7 @@ export function StreamsPanel() {
   const { showError, showSuccess } = useToast();
 
   // UI States
-  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'completed'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'completed'>('active');
   const [isLoading, setIsLoading] = useState(true);
 
   // Data States
