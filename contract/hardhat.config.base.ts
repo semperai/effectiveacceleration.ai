@@ -68,7 +68,7 @@ export function configWithPkey(privateKey: string): HardhatUserConfig {
       },
       arbitrum: {
         accounts: [privateKey],
-        url: "https://arbitrum.llamarpc.com",
+        url: "https://arb1.arbitrum.io/rpc",
         chainId: 42161,
       },
       mainnet: {
