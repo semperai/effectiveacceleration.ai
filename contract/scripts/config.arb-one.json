@@ -8,5 +8,8 @@
   "unicrowDisputeAddress": "0xdC14E36ac67Cd3B8eE25a9c2309EcE6087e93225",
   "unicrowArbitratorAddress": "0xde62AD20611Fe51179Eb8B66c4627B3495C9B1c2",
   "unicrowClaimAddress": "0x5902AF8be15c80794C3229aD4E68aa69845Cc5fC",
-  "multicall3Address": "0xca11bde05977b3631167028862be2a173976ca11"
+  "multicall3Address": "0xca11bde05977b3631167028862be2a173976ca11",
+  "EACCAddress": "0x9b43b45D1F2cd84a091784E920E6556041c820b5",
+  "EACCBarAddress": "0x203861420C0C0Dcc9ad4c59be68020606c12818B",
+  "sablierLockupAddress": "0x467D5Bf8Cfa1a5f99328fBdCb9C751c78934b725"
 }

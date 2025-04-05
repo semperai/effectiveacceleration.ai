@@ -10,7 +10,8 @@ async function main() {
 
   console.log("Deploying contracts with the account:", deployer.address);
 
-  const sablierLockupAddress = "0x7C01AA3783577E15fD7e272443D44B92d5b21056";
+  // const sablierLockupAddress = "0x7C01AA3783577E15fD7e272443D44B92d5b21056";
+  const sablierLockupAddress = "0x467D5Bf8Cfa1a5f99328fBdCb9C751c78934b725";
 
   const EACCToken = await ethers.getContractFactory(
     "EACCToken"
