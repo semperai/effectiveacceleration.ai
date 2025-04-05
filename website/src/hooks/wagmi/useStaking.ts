@@ -254,10 +254,7 @@ export function useStaking() {
         functionName: 'approve',
         args: [Config.EACCBarAddress, BigInt(2) ** BigInt(256) - BigInt(1)], // max uint256
         contracts: {
-          marketplaceAddress: Config.marketplaceAddress,
-          marketplaceDataAddress: Config.marketplaceDataAddress,
           eaccAddress: Config.EACCAddress,
-          eaccBarAddress: Config.EACCBarAddress,
         },
         successMessage: 'Approval successful!',
         customErrorMessages: {
