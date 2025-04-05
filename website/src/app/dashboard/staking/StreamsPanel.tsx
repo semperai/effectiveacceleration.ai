@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { ARBITRUM_CHAIN_ID } from '@/hooks/wagmi/useStaking';
 import { formatEther } from 'viem';
 import { SABLIER_LOCKUP_ABI } from '@/abis/SablierLockup';
-
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
 // Interface representing processed stream data
 interface Stream {
@@ -58,6 +58,11 @@ export function StreamsPanel() {
   const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'completed'>('active');
   const [isLoading, setIsLoading] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Pagination States
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
+  const [totalCount, setTotalCount] = useState(0);
 
   // Data States
   const [streams, setStreams] = useState<Stream[]>([]);
@@ -150,10 +155,10 @@ export function StreamsPanel() {
 
     // Initial call
     updateWithdrawableAmounts();
-    
+
     // Set up interval for periodic updates
     const interval = setInterval(updateWithdrawableAmounts, 15000); // Every 15 seconds
-    
+
     return () => clearInterval(interval);
   }, [isConnected, Config?.sablierLockupAddress, activeStreamIds, isArbitrumOne, refetchStreamData]);
 
@@ -251,7 +256,7 @@ export function StreamsPanel() {
     );
   }, [isStreamDataSuccess, streamContractData, processContractData, calculateRatePerSecond]);
 
-  // Fetch streams data from GraphQL
+  // Fetch streams data from GraphQL with pagination
   useEffect(() => {
     const fetchStreams = async () => {
       if (!isConnected || !address) {
@@ -265,8 +270,12 @@ export function StreamsPanel() {
         // Create static values for the query to prevent infinite render loops
         const userAddress = address.toLowerCase();
         const tokenAddress = Config?.EACCAddress ? `${Config.EACCAddress.toLowerCase()}-42161` : '';
+        const offset = (currentPage - 1) * pageSize;
 
-        // Construct the GraphQL query
+        // Construct the GraphQL query with pagination
+        // We'll fetch one extra item to determine if there are more pages
+        const fetchLimit = pageSize + 1;
+
         const query = `
           query FetchStreams {
             Stream(
@@ -275,6 +284,9 @@ export function StreamsPanel() {
                 recipient: {_eq: "${userAddress}"},
                 asset_id: {_eq: "${tokenAddress}"}
               }
+              limit: ${fetchLimit}
+              offset: ${offset}
+              order_by: {endTime: desc}
             ) {
               id
               tokenId
@@ -312,7 +324,27 @@ export function StreamsPanel() {
         }
 
         // Process the GraphQL data
-        const graphqlStreams: GraphQLStream[] = result.data.Stream || [];
+        let graphqlStreams: GraphQLStream[] = result.data.Stream || [];
+
+        // Check if we have more pages by seeing if we got more items than requested
+        const hasMorePages = graphqlStreams.length > pageSize;
+
+        // Trim the extra item if we fetched more than page size
+        if (hasMorePages) {
+          graphqlStreams = graphqlStreams.slice(0, pageSize);
+        }
+
+        // Update our knowledge about pagination
+        // If we're on page 1, total count is at least the number of streams we got
+        // If we're beyond page 1, total count is at least (currentPage-1)*pageSize + current batch size
+        const minimumTotalCount = (currentPage - 1) * pageSize + graphqlStreams.length;
+
+        // If we know there are more pages, add 1 to ensure "Next" button works
+        const estimatedTotalCount = hasMorePages ? minimumTotalCount + 1 : minimumTotalCount;
+
+        // Only update total count if our new estimate is higher than what we already have
+        // This prevents the count from going down when moving to later pages
+        setTotalCount(prevCount => Math.max(prevCount, estimatedTotalCount));
 
         // Map GraphQL data to our Stream interface
         const processedStreams: Stream[] = graphqlStreams.map(graphStream => {
@@ -378,9 +410,14 @@ export function StreamsPanel() {
 
     fetchStreams();
 
-    // Only re-run this effect when these specific dependencies change
+    // Reset to first page when filter changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [address, isConnected, refreshTrigger, Config]);
+  }, [address, isConnected, refreshTrigger, Config, currentPage, pageSize, activeFilter]);
+
+  // Reset to first page when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeFilter]);
 
   // Reset loading state and show error when error occurs
   useEffect(() => {
@@ -494,6 +531,73 @@ export function StreamsPanel() {
     if (activeFilter === 'completed') return !stream.isActive;
     return true;
   });
+
+  // Calculate if there are more pages
+  const hasMorePages = filteredStreams.length === pageSize && currentPage * pageSize < totalCount;
+
+  // Calculate total pages based on our best estimate
+  const totalPages = Math.max(currentPage, Math.ceil(totalCount / pageSize));
+
+  // Simplified pagination for when we don't have exact page count
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+
+    // If we're in the first few pages, show pages 1 through maxVisiblePages
+    if (currentPage <= Math.ceil(maxVisiblePages / 2)) {
+      for (let i = 1; i <= Math.min(maxVisiblePages, totalPages); i++) {
+        pages.push(i);
+      }
+
+      // Add ellipsis and last page if needed
+      if (totalPages > maxVisiblePages) {
+        pages.push('...');
+        // Only add last page if we're certain it exists
+        if (totalPages > currentPage + 2) {
+          pages.push(totalPages);
+        }
+      }
+    }
+    // If we're near the end (if we know it)
+    else if (totalPages - currentPage < Math.floor(maxVisiblePages / 2)) {
+      // Add first page and ellipsis
+      pages.push(1);
+      pages.push('...');
+
+      // Show last few pages
+      for (let i = Math.max(1, totalPages - maxVisiblePages + 2); i <= totalPages; i++) {
+        pages.push(i);
+      }
+    }
+    // If we're in the middle
+    else {
+      // Add first page and ellipsis
+      pages.push(1);
+      pages.push('...');
+
+      // Show current page and one on each side
+      for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+        if (i > 1 && i < totalPages) {
+          pages.push(i);
+        }
+      }
+
+      // Add ellipsis and last page if needed
+      if (currentPage + 1 < totalPages) {
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+
+    return pages;
+  };
+
+  // Pagination handlers
+  const goToFirstPage = () => setCurrentPage(1);
+  const goToPrevPage = () => setCurrentPage(prev => Math.max(prev - 1, 1));
+  const goToNextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages));
+  const goToLastPage = () => setCurrentPage(totalPages);
+  const goToPage = (page: number) => setCurrentPage(page);
 
   return (
     <div className="w-full">
@@ -625,6 +729,81 @@ export function StreamsPanel() {
               </div>
             </div>
           ))}
+
+          {/* Pagination component */}
+          {totalCount > 0 && (
+            <div className="mt-6">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-500">
+                  Showing {Math.min((currentPage - 1) * pageSize + 1, totalCount)} to {Math.min(currentPage * pageSize, totalCount)} streams
+                </div>
+
+                <nav className="inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                  <button
+                    onClick={goToFirstPage}
+                    disabled={currentPage === 1}
+                    className={`inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${currentPage === 1 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                  >
+                    <ChevronsLeft className="h-5 w-5" aria-hidden="true" />
+                    <span className="sr-only">First</span>
+                  </button>
+
+                  <button
+                    onClick={goToPrevPage}
+                    disabled={currentPage === 1}
+                    className={`inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${currentPage === 1 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                  >
+                    <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+                    <span className="sr-only">Previous</span>
+                  </button>
+
+                  {getPageNumbers().map((page, index) => (
+                    page === '...' ? (
+                      <span
+                        key={`ellipsis-${index}`}
+                        className="inline-flex items-center px-4 py-2 text-sm text-gray-700 ring-1 ring-inset ring-gray-300"
+                      >
+                        ...
+                      </span>
+                    ) : (
+                      <button
+                        key={`page-${page}`}
+                        onClick={() => goToPage(page as number)}
+                        className={`inline-flex items-center px-4 py-2 text-sm ${
+                          currentPage === page
+                            ? 'bg-blue-500 text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
+                            : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    )
+                  ))}
+
+                  <button
+                    onClick={goToNextPage}
+                    disabled={!hasMorePages && currentPage >= totalPages}
+                    className={`inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${!hasMorePages && currentPage >= totalPages ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                  >
+                    <ChevronRight className="h-5 w-5" aria-hidden="true" />
+                    <span className="sr-only">Next</span>
+                  </button>
+
+                  {/* Only show Last Page button if we have a good idea of the total pages */}
+                  {totalPages > 2 && (
+                    <button
+                      onClick={goToLastPage}
+                      disabled={!hasMorePages && currentPage >= totalPages}
+                      className={`inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${!hasMorePages && currentPage >= totalPages ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                    >
+                      <ChevronsRight className="h-5 w-5" aria-hidden="true" />
+                      <span className="sr-only">Last</span>
+                    </button>
+                  )}
+                </nav>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <div className="text-center py-12 bg-gray-50 rounded-lg">
