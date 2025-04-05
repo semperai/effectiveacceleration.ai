@@ -15,6 +15,7 @@ import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { E_A_C_C_TOKEN_ABI as EACC_TOKEN_ABI } from '@effectiveacceleration/contracts/wagmi/EACCToken';
 import { E_A_C_C_BAR_ABI as EACC_BAR_ABI } from '@effectiveacceleration/contracts/wagmi/EACCBar';
+import { SABLIER_LOCKUP_ABI } from '@/abis/SablierLockup';
 import { useApolloClient } from '@apollo/client';
 
 type ParsedEvent = {
@@ -70,6 +71,7 @@ type WriteContractConfig = {
     marketplaceDataAddress?: Address;
     eaccAddress?: Address;
     eaccBarAddress?: Address;
+    sablierLockupAddress?: Address;
   };
   onSuccess?: (
     receipt: TransactionReceipt,
@@ -146,6 +148,13 @@ export function useWriteContractWithNotifications() {
         address: contractsRef.current.eaccBarAddress,
         abi: EACC_BAR_ABI,
         name: 'EACCBar',
+      });
+    }
+    if (contractsRef.current.sablierLockupAddress) {
+      contracts.push({
+        address: contractsRef.current.sablierLockupAddress,
+        abi: SABLIER_LOCKUP_ABI,
+        name: 'SablierLockup',
       });
     }
 

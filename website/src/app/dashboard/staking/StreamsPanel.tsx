@@ -1,6 +1,6 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { useAccount } from 'wagmi';
+import { useState, useEffect, useCallback } from 'react';
+import { useAccount, useReadContracts, useWatchContractEvent } from 'wagmi';
 import { Button } from '@/components/Button';
 import { useConfig } from '@/hooks/useConfig';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
@@ -9,17 +9,8 @@ import * as Sentry from '@sentry/nextjs';
 import Link from 'next/link';
 import { ARBITRUM_CHAIN_ID } from '@/hooks/wagmi/useStaking';
 import { formatEther } from 'viem';
+import { SABLIER_LOCKUP_ABI } from '@/abis/SablierLockup';
 
-// Sablier Lockup ABI
-const SABLIER_LOCKUP_ABI = [
-  {
-    inputs: [{ internalType: 'uint256', name: 'streamId', type: 'uint256' }],
-    name: 'withdrawMax',
-    outputs: [{ internalType: 'uint256', name: 'amount', type: 'uint256' }],
-    stateMutability: 'nonpayable',
-    type: 'function'
-  }
-] as const;
 
 // Interface representing processed stream data
 interface Stream {
@@ -35,6 +26,10 @@ interface Stream {
   percentComplete: number;
   isActive: boolean;
   isWithdrawing: boolean;
+  // Real-time data
+  withdrawableAmount: string;
+  ratePerSecond: string;
+  lastUpdated: number;
 }
 
 // GraphQL Types
@@ -62,12 +57,202 @@ export function StreamsPanel() {
   // UI States
   const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'completed'>('active');
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Data States
   const [streams, setStreams] = useState<Stream[]>([]);
+  const [activeStreamIds, setActiveStreamIds] = useState<string[]>([]);
 
   // Check if user is on Arbitrum One
   const isArbitrumOne = chain?.id === ARBITRUM_CHAIN_ID;
+
+  // Use this to store which streams are currently being withdrawn
+  const [withdrawingStreams, setWithdrawingStreams] = useState<Record<string, boolean>>({});
+
+  // Watch for contract withdrawal events to update streams data
+  useWatchContractEvent({
+    address: Config?.sablierLockupAddress,
+    abi: SABLIER_LOCKUP_ABI,
+    eventName: 'WithdrawFromLockupStream',
+    onLogs: () => {
+      console.log("WithdrawFromLockupStream event detected, refreshing data");
+      handleRefresh();
+    },
+    enabled: isConnected && !!Config?.sablierLockupAddress,
+  });
+
+  // Prepare contracts for reading on-chain data for active streams
+  const {
+    data: streamContractData,
+    isSuccess: isStreamDataSuccess,
+    refetch: refetchStreamData
+  } = useReadContracts({
+    contracts: activeStreamIds.flatMap(streamId => [
+      // Get withdrawable amount for each stream
+      {
+        address: Config?.sablierLockupAddress,
+        abi: SABLIER_LOCKUP_ABI,
+        functionName: 'withdrawableAmountOf',
+        args: [BigInt(streamId.split('-')[0])],
+        chainId: ARBITRUM_CHAIN_ID,
+      },
+      // Get deposited amount
+      {
+        address: Config?.sablierLockupAddress,
+        abi: SABLIER_LOCKUP_ABI,
+        functionName: 'getDepositedAmount',
+        args: [BigInt(streamId.split('-')[0])],
+        chainId: ARBITRUM_CHAIN_ID,
+      },
+      // Get withdrawn amount
+      {
+        address: Config?.sablierLockupAddress,
+        abi: SABLIER_LOCKUP_ABI,
+        functionName: 'getWithdrawnAmount',
+        args: [BigInt(streamId.split('-')[0])],
+        chainId: ARBITRUM_CHAIN_ID,
+      },
+      // Check if stream is cold
+      {
+        address: Config?.sablierLockupAddress,
+        abi: SABLIER_LOCKUP_ABI,
+        functionName: 'isCold',
+        args: [BigInt(streamId.split('-')[0])],
+        chainId: ARBITRUM_CHAIN_ID,
+      }
+    ]),
+    allowFailure: true,
+    query: {
+      enabled: isConnected &&
+               !!Config?.sablierLockupAddress &&
+               isArbitrumOne &&
+               activeStreamIds.length > 0,
+      refetchInterval: 30000, // Refresh data every 30 seconds
+    }
+  });
+
+  // Process contract data into a format we can use
+  const processContractData = useCallback(() => {
+    if (!streamContractData || activeStreamIds.length === 0) return {};
+
+    const processedData: Record<string, {
+      withdrawableAmount: bigint;
+      depositedAmount: bigint;
+      withdrawnAmount: bigint;
+      isCold: boolean;
+    }> = {};
+
+    for (let i = 0; i < activeStreamIds.length; i++) {
+      const streamId = activeStreamIds[i];
+      const baseIdx = i * 4; // Each stream has 4 contract calls
+
+      // Get withdrawable amount
+      const withdrawableAmount = streamContractData[baseIdx]?.result;
+      // Get deposited amount
+      const depositedAmount = streamContractData[baseIdx + 1]?.result;
+      // Get withdrawn amount
+      const withdrawnAmount = streamContractData[baseIdx + 2]?.result;
+      // Check if stream is cold
+      const isCold = streamContractData[baseIdx + 3]?.result;
+
+      if (withdrawableAmount !== undefined && typeof withdrawableAmount === 'bigint' &&
+          depositedAmount !== undefined && typeof depositedAmount === 'bigint' &&
+          withdrawnAmount !== undefined && typeof withdrawnAmount === 'bigint' &&
+          isCold !== undefined && typeof isCold === 'boolean') {
+
+        processedData[streamId] = {
+          withdrawableAmount,
+          depositedAmount,
+          withdrawnAmount,
+          isCold
+        };
+      }
+    }
+
+    return processedData;
+  }, [streamContractData, activeStreamIds]);
+
+  // Calculate rate per second based on stream data
+  const calculateRatePerSecond = useCallback((startTimeMs: number, endTimeMs: number, totalAmount: string): string => {
+    const now = Date.now();
+    const totalDuration = Math.max(endTimeMs - startTimeMs, 1); // Avoid division by zero
+    const remainingDuration = Math.max(endTimeMs - now, 0);
+
+    if (remainingDuration <= 0) return '0'; // Stream completed
+
+    const totalTokens = parseFloat(totalAmount);
+    const ratePerMs = totalTokens / totalDuration;
+    const ratePerSecond = ratePerMs * 1000; // Convert to per second
+
+    return ratePerSecond.toString();
+  }, []);
+
+  // Update streams with on-chain data
+  useEffect(() => {
+    if (!isStreamDataSuccess || !streamContractData) return;
+
+    const onChainData = processContractData();
+
+    if (Object.keys(onChainData).length === 0) return;
+
+    setStreams(prevStreams =>
+      prevStreams.map(stream => {
+        const data = onChainData[stream.id];
+        if (!data) return stream;
+
+        const withdrawableAmount = formatEther(data.withdrawableAmount);
+        const depositedAmount = formatEther(data.depositedAmount);
+        const withdrawnAmount = formatEther(data.withdrawnAmount);
+        const isActive = !data.isCold;
+
+        // Calculate rate per second (tokens streaming per second)
+        const ratePerSecond = calculateRatePerSecond(
+          stream.startTime.getTime(),
+          stream.endTime.getTime(),
+          depositedAmount
+        );
+
+        return {
+          ...stream,
+          withdrawableAmount,
+          deposit: depositedAmount,
+          withdrawnAmount,
+          ratePerSecond,
+          isActive,
+          lastUpdated: Date.now()
+        };
+      })
+    );
+  }, [isStreamDataSuccess, streamContractData, processContractData, calculateRatePerSecond]);
+
+  // Real-time update for withdrawable amounts between contract refreshes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setStreams(prevStreams =>
+        prevStreams.map(stream => {
+          if (!stream.isActive || parseFloat(stream.ratePerSecond) <= 0) return stream;
+
+          const now = Date.now();
+          const secondsElapsed = (now - stream.lastUpdated) / 1000;
+          const additionalTokens = parseFloat(stream.ratePerSecond) * secondsElapsed;
+
+          // Don't exceed the stream's total capacity
+          const totalAvailable = Math.min(
+            parseFloat(stream.withdrawableAmount) + additionalTokens,
+            parseFloat(stream.deposit) - parseFloat(stream.withdrawnAmount)
+          );
+
+          return {
+            ...stream,
+            withdrawableAmount: totalAvailable.toString(),
+            lastUpdated: now
+          };
+        })
+      );
+    }, 1000); // Update every second
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Fetch streams data from GraphQL
   useEffect(() => {
@@ -85,193 +270,6 @@ export function StreamsPanel() {
         const tokenAddress = Config?.EACCAddress ? `${Config.EACCAddress.toLowerCase()}-42161` : '';
 
         // Construct the GraphQL query
-        const query = `
-          query FetchStreams {
-            Stream(
-              where: {
-                chainId: {_eq: "42161"},
-                recipient: {_eq: "${userAddress}"},
-                asset_id: {_eq: "${tokenAddress}"}
-              }
-            ) {
-              id
-              tokenId
-              recipient
-              funder
-              endTime
-              duration
-              depositAmount
-              withdrawnAmount
-              sender
-              startTime
-              canceledTime
-              canceled
-            }
-          }
-        `;
-
-        const response = await fetch('https://indexer.hyperindex.xyz/53b7e25/v1/graphql', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ query }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-
-        const result = await response.json();
-
-        if (result.errors) {
-          throw new Error(result.errors[0].message);
-        }
-
-        // Process the GraphQL data
-        const graphqlStreams: GraphQLStream[] = result.data.Stream || [];
-
-        // Map GraphQL data to our Stream interface
-        const processedStreams: Stream[] = graphqlStreams.map(graphStream => {
-          const startTime = new Date(parseInt(graphStream.startTime) * 1000);
-          const endTime = new Date(parseInt(graphStream.endTime) * 1000);
-          const now = new Date();
-
-          const deposit = formatEther(BigInt(graphStream.depositAmount));
-          const withdrawn = formatEther(BigInt(graphStream.withdrawnAmount));
-          const remaining = (parseFloat(deposit) - parseFloat(withdrawn)).toString();
-
-          // Calculate percent complete
-          const totalDuration = endTime.getTime() - startTime.getTime();
-          const elapsedDuration = Math.min(now.getTime() - startTime.getTime(), totalDuration);
-          const percentComplete = Math.floor((elapsedDuration / totalDuration) * 100);
-
-          // Determine if stream is active
-          const isActive = !graphStream.canceled && now < endTime;
-
-          return {
-            id: graphStream.id,
-            deposit,
-            token: Config?.EACCAddress || '',
-            tokenSymbol: 'EACC',
-            startTime,
-            endTime,
-            lockupAmount: deposit,
-            withdrawnAmount: withdrawn,
-            remainingAmount: remaining,
-            percentComplete,
-            isActive,
-            isWithdrawing: false
-          };
-        });
-
-        setStreams(processedStreams);
-      } catch (error) {
-        console.error('Error fetching streams:', error);
-        Sentry.captureException(error);
-        showError('Failed to load stream data. Please try again.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchStreams();
-
-    // Only re-run this effect when these specific dependencies change
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [address, isConnected]);
-
-  // Reset loading state and show error when error occurs
-  useEffect(() => {
-    if (error) {
-      showError("An error occurred with your stream operation. Please try again.");
-
-      // Reset withdrawing state
-      setStreams(prevStreams =>
-        prevStreams.map(stream => ({
-          ...stream,
-          isWithdrawing: false
-        }))
-      );
-    }
-  }, [error, showError]);
-
-  // Handle refresh after confirmed transaction
-  useEffect(() => {
-    if (isConfirmed) {
-      showSuccess("Stream operation completed successfully");
-
-      // Reset withdrawing state
-      setStreams(prevStreams =>
-        prevStreams.map(stream => ({
-          ...stream,
-          isWithdrawing: false
-        }))
-      );
-
-      // Create a small delay before refreshing to avoid race conditions
-      const timer = setTimeout(() => {
-        handleRefresh();
-      }, 1000);
-
-      return () => clearTimeout(timer);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isConfirmed]);
-
-  // Load streams on component mount or when address, isConnected, or Config changes
-  useEffect(() => {
-    handleRefresh();
-  }, [address, isConnected, Config]);
-
-  // Handle withdraw from stream
-  const handleWithdraw = async (streamId: string) => {
-    if (!isConnected || !Config?.sablierLockupAddress || !isArbitrumOne) return;
-
-    // Update withdrawing state
-    setStreams(prevStreams =>
-      prevStreams.map(stream =>
-        stream.id === streamId ? { ...stream, isWithdrawing: true } : stream
-      )
-    );
-
-    try {
-      await writeContractWithNotifications({
-        address: Config.sablierLockupAddress,
-        abi: SABLIER_LOCKUP_ABI,
-        functionName: 'withdrawMax',
-        args: [BigInt(streamId)],
-      });
-    } catch (error) {
-      Sentry.captureException(error);
-      showError(`Error withdrawing from stream #${streamId}. Please try again.`);
-      console.error("Error withdrawing from stream:", error);
-
-      // Reset withdrawing state
-      setStreams(prevStreams =>
-        prevStreams.map(stream =>
-          stream.id === streamId ? { ...stream, isWithdrawing: false } : stream
-        )
-      );
-    }
-  };
-
-  // Handle refresh button click
-  const handleRefresh = () => {
-    setIsLoading(true);
-
-    // Create a manual fetch function that doesn't depend on the useEffect
-    const manualFetch = async () => {
-      if (!isConnected || !address) {
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        // Create static values for the query
-        const userAddress = address.toLowerCase();
-        const tokenAddress = Config?.EACCAddress ? `${Config.EACCAddress.toLowerCase()}-42161` : '';
-
         const query = `
           query FetchStreams {
             Stream(
@@ -334,8 +332,15 @@ export function StreamsPanel() {
           const elapsedDuration = Math.min(now.getTime() - startTime.getTime(), totalDuration);
           const percentComplete = Math.floor((elapsedDuration / totalDuration) * 100);
 
-          // Determine if stream is active
+          // Determine if stream is active (will be updated with contract data)
           const isActive = !graphStream.canceled && now < endTime;
+
+          // Calculate rate per second
+          const ratePerSecond = calculateRatePerSecond(
+            startTime.getTime(),
+            endTime.getTime(),
+            deposit
+          );
 
           return {
             id: graphStream.id,
@@ -349,11 +354,22 @@ export function StreamsPanel() {
             remainingAmount: remaining,
             percentComplete,
             isActive,
-            isWithdrawing: false
+            isWithdrawing: withdrawingStreams[graphStream.id] || false,
+            // Default values for real-time data until we fetch from contract
+            withdrawableAmount: '0',
+            ratePerSecond,
+            lastUpdated: Date.now()
           };
         });
 
         setStreams(processedStreams);
+
+        // Extract active stream IDs for contract data fetching
+        const newActiveStreamIds = processedStreams
+          .filter(stream => stream.isActive)
+          .map(stream => stream.id);
+
+        setActiveStreamIds(newActiveStreamIds);
       } catch (error) {
         console.error('Error fetching streams:', error);
         Sentry.captureException(error);
@@ -363,17 +379,83 @@ export function StreamsPanel() {
       }
     };
 
-    // Call the manual fetch function instead of trying to trigger the useEffect
-    manualFetch();
+    fetchStreams();
+
+    // Only re-run this effect when these specific dependencies change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [address, isConnected, refreshTrigger, Config]);
+
+  // Reset loading state and show error when error occurs
+  useEffect(() => {
+    if (error) {
+      showError("An error occurred with your stream operation. Please try again.");
+
+      // Reset withdrawing state
+      setWithdrawingStreams({});
+    }
+  }, [error, showError]);
+
+  // Handle refresh after confirmed transaction
+  useEffect(() => {
+    if (isConfirmed) {
+      showSuccess("Stream operation completed successfully");
+
+      // Reset withdrawing state
+      setWithdrawingStreams({});
+
+      // Create a small delay before refreshing to avoid race conditions
+      const timer = setTimeout(() => {
+        handleRefresh();
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isConfirmed]);
+
+  // Handle withdraw from stream
+  const handleWithdraw = async (streamId: string) => {
+    if (!isConnected || !Config?.sablierLockupAddress || !isArbitrumOne) return;
+
+    // Update withdrawing state
+    setWithdrawingStreams(prev => ({
+      ...prev,
+      [streamId]: true
+    }));
+
+    try {
+      await writeContractWithNotifications({
+        address: Config.sablierLockupAddress,
+        abi: SABLIER_LOCKUP_ABI,
+        functionName: 'withdrawMax',
+        args: [BigInt(streamId.split('-')[0])],
+        contracts: {
+          sablierLockupAddress: Config.sablierLockupAddress,
+        },
+        successMessage: 'Successfully withdrew from stream!',
+        customErrorMessages: {
+          userDenied: 'Withdrawal was denied by the user',
+          default: 'Failed to withdraw from stream'
+        }
+      });
+    } catch (error) {
+      Sentry.captureException(error);
+      showError(`Error withdrawing from stream #${streamId}. Please try again.`);
+      console.error("Error withdrawing from stream:", error);
+
+      // Reset withdrawing state
+      setWithdrawingStreams(prev => ({
+        ...prev,
+        [streamId]: false
+      }));
+    }
   };
 
-  // Filter streams based on active filter
-  const filteredStreams = streams.filter(stream => {
-    if (activeFilter === 'all') return true;
-    if (activeFilter === 'active') return stream.isActive;
-    if (activeFilter === 'completed') return !stream.isActive;
-    return true;
-  });
+  // Handle refresh button click
+  const handleRefresh = () => {
+    setRefreshTrigger(prev => prev + 1);
+    refetchStreamData();
+  };
 
   // Format date to readable string
   const formatDate = (date: Date) => {
@@ -391,6 +473,30 @@ export function StreamsPanel() {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return Math.max(0, diffDays);
   };
+
+  // Format number with commas for thousands
+  const formatNumber = (value: string, decimals = 4) => {
+    const num = parseFloat(value);
+    return num.toLocaleString('en-US', {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals
+    });
+  };
+
+  // Calculate tokens per day
+  const getTokensPerDay = (ratePerSecond: string) => {
+    const rate = parseFloat(ratePerSecond);
+    const tokensPerDay = rate * 60 * 60 * 24;
+    return tokensPerDay.toFixed(4);
+  };
+
+  // Filter streams based on active filter
+  const filteredStreams = streams.filter(stream => {
+    if (activeFilter === 'all') return true;
+    if (activeFilter === 'active') return stream.isActive;
+    if (activeFilter === 'completed') return !stream.isActive;
+    return true;
+  });
 
   return (
     <div className="w-full">
@@ -439,7 +545,7 @@ export function StreamsPanel() {
                 <div>
                   <div className="flex items-center">
                     <span className="text-lg font-semibold mr-2">
-                      {parseFloat(stream.deposit).toFixed(4)} {stream.tokenSymbol}
+                      {formatNumber(stream.deposit)} {stream.tokenSymbol}
                     </span>
                     <span className={`px-2 py-0.5 text-xs rounded-full ${
                       stream.isActive
@@ -455,19 +561,23 @@ export function StreamsPanel() {
                   onClick={() => handleWithdraw(stream.id)}
                   disabled={
                     !stream.isActive ||
-                    parseFloat(stream.remainingAmount) <= 0 ||
+                    parseFloat(stream.withdrawableAmount) <= 0 ||
                     stream.isWithdrawing ||
-                    isConfirming
+                    isConfirming ||
+                    withdrawingStreams[stream.id]
                   }
                   className="text-sm px-3 py-1"
                 >
-                  {stream.isWithdrawing ? 'Processing...' : 'Withdraw'}
+                  {stream.isWithdrawing || withdrawingStreams[stream.id] ? 'Processing...' : 'Withdraw'}
                 </Button>
               </div>
 
-              <div className="w-full bg-gray-200 rounded-full h-2 mb-1">
+              {/* Progress bar with animation */}
+              <div className="w-full bg-gray-200 rounded-full h-2 mb-1 overflow-hidden">
                 <div
-                  className={`h-2 rounded-full ${stream.isActive ? 'bg-blue-500' : 'bg-gray-400'}`}
+                  className={`h-2 rounded-full ${stream.isActive ? 'bg-blue-500' : 'bg-gray-400'} ${
+                    stream.isActive && parseFloat(stream.ratePerSecond) > 0 ? 'animate-pulse' : ''
+                  }`}
                   style={{ width: `${stream.percentComplete}%` }}
                 ></div>
               </div>
@@ -481,14 +591,39 @@ export function StreamsPanel() {
                 </span>
               </div>
 
+              {/* Real-time withdrawable tokens with animation */}
+              {stream.isActive && parseFloat(stream.ratePerSecond) > 0 && (
+                <div className="bg-blue-50 p-3 rounded-lg mb-4 relative overflow-hidden">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="text-sm font-medium text-blue-800">Available to Claim</p>
+                      <p className="text-xl font-bold text-blue-900">
+                        {formatNumber(stream.withdrawableAmount)} {stream.tokenSymbol}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-blue-600">Streaming Rate</p>
+                      <p className="text-sm font-medium text-blue-800">
+                        {formatNumber(stream.ratePerSecond, 8)} {stream.tokenSymbol}/sec
+                      </p>
+                      <p className="text-xs text-blue-600">
+                        {getTokensPerDay(stream.ratePerSecond)} {stream.tokenSymbol}/day
+                      </p>
+                    </div>
+                  </div>
+                  {/* Animation for streaming tokens */}
+                  <div className="absolute bottom-0 left-0 h-1 bg-blue-300 opacity-50 animate-stream"></div>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-4 mt-2 text-sm">
                 <div>
                   <p className="text-gray-500">Withdrawn</p>
-                  <p>{parseFloat(stream.withdrawnAmount).toFixed(4)} {stream.tokenSymbol}</p>
+                  <p>{formatNumber(stream.withdrawnAmount)} {stream.tokenSymbol}</p>
                 </div>
                 <div>
                   <p className="text-gray-500">Remaining</p>
-                  <p>{parseFloat(stream.remainingAmount).toFixed(4)} {stream.tokenSymbol}</p>
+                  <p>{formatNumber(stream.remainingAmount)} {stream.tokenSymbol}</p>
                 </div>
               </div>
             </div>
@@ -522,6 +657,32 @@ export function StreamsPanel() {
           </div>
         </div>
       )}
+
+      {/* Add animation styles */}
+      <style jsx global>{`
+        @keyframes stream {
+          0% {
+            width: 0%;
+          }
+          100% {
+            width: 100%;
+          }
+        }
+        .animate-stream {
+          animation: stream 2s infinite linear;
+        }
+        .animate-pulse {
+          animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+          0%, 100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0.7;
+          }
+        }
+      `}</style>
     </div>
   );
 }
