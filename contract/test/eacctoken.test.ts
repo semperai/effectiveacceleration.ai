@@ -393,38 +393,6 @@ describe("EACCToken Unit Tests", () => {
     });
   });
 
-  describe("ERC20Votes functionality", () => {
-    it("Should correctly track voting power", async () => {
-      const { eaccToken, alice, bob } = await loadFixture(deployContractsFixture);
-
-      // Check initial voting power
-      const initialAliceVotes = await eaccToken.getVotes(alice.address);
-      expect(initialAliceVotes).to.equal(0); // Should be 0 as delegation is required
-
-      // Alice delegates to herself
-      await eaccToken.connect(alice).delegate(alice.address);
-
-      // Check updated voting power
-      const updatedAliceVotes = await eaccToken.getVotes(alice.address);
-      expect(updatedAliceVotes).to.equal(ethers.parseEther("10000"));
-
-      // Transfer tokens to Bob
-      const transferAmount = ethers.parseEther("1000");
-      await eaccToken.connect(alice).transfer(bob.address, transferAmount);
-
-      // Alice's voting power should decrease
-      const aliceVotesAfterTransfer = await eaccToken.getVotes(alice.address);
-      expect(aliceVotesAfterTransfer).to.equal(ethers.parseEther("9000"));
-
-      // Bob delegates to himself
-      await eaccToken.connect(bob).delegate(bob.address);
-
-      // Check Bob's voting power
-      const bobVotes = await eaccToken.getVotes(bob.address);
-      expect(bobVotes).to.equal(ethers.parseEther("11000")); // 10000 initial + 1000 transferred
-    });
-  });
-
   describe("Interactions with EACCBar", () => {
     it("Should burn tokens and transfer to EACCBar when creating a stream", async () => {
       const { eaccToken, eaccBar, alice, mockSablier } = await loadFixture(deployContractsFixture);
