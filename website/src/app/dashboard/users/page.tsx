@@ -20,7 +20,7 @@ import { useSearchParams } from 'next/navigation';
 
 const defaultLimit = 10;
 
-export default function OpenJobsPage() {
+export default function UsersPage() {
   const searchParams = useSearchParams();
   const page = Math.max(1, Number(searchParams.get('page')) || 1);
 

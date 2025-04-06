@@ -11,7 +11,7 @@ import { useSearchParams } from 'next/navigation';
 
 const defaultLimit = 1;
 
-export default function OpenJobsPage() {
+export default function ArbitratorsPage() {
   const searchParams = useSearchParams();
   const page = Math.max(1, Number(searchParams.get('page')) || 1);
 
