@@ -19,7 +19,7 @@ export function useStaking() {
   const [stakeAmount, setStakeAmount] = useState('');
   const [unstakeAmount, setUnstakeAmount] = useState('');
   const [lockupPeriod, setLockupPeriod] = useState(52); // Default to 52 weeks
-  const [isEACCStaking, setIsEACCStaking] = useState(true);
+  const [isEACCStaking, setIsEACCStaking] = useState(false);
   const [multiplier, setMultiplier] = useState('0');
   const [isLoading, setIsLoading] = useState(false);
   const [isStaking, setIsStaking] = useState(false);
