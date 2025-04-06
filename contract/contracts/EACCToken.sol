@@ -1,17 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import { ERC20Permit } from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import { ud2x18 } from "@prb/math/src/UD2x18.sol";
-import { ud60x18, ud, unwrap } from "@prb/math/src/UD60x18.sol";
-import { exp } from "@prb/math/src/ud60x18/Math.sol";
-import { ISablierLockup } from "@sablier/lockup/src/interfaces/ISablierLockup.sol";
-import { Broker, Lockup, LockupDynamic } from "@sablier/lockup/src/types/DataTypes.sol";
-
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {ERC20Permit} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ud2x18} from "@prb/math/src/UD2x18.sol";
+import {ud60x18, ud, unwrap} from "@prb/math/src/UD60x18.sol";
+import {exp} from "@prb/math/src/ud60x18/Math.sol";
+import {ISablierLockup} from "@sablier/lockup/src/interfaces/ISablierLockup.sol";
+import {Broker, Lockup, LockupDynamic} from "@sablier/lockup/src/types/DataTypes.sol";
 
 contract EACCToken is ERC20, ERC20Permit, Ownable {
     IERC20 public eaccBar;
@@ -46,7 +45,7 @@ contract EACCToken is ERC20, ERC20Permit, Ownable {
         _approve(address(this), address(_lockup), type(uint256).max);
         R = 6969696969;
         K = 69;
-        E = 3e18;
+        E = 1.5 ether;
     }
 
     /// @notice Sets the EACCBar contract
@@ -118,10 +117,19 @@ contract EACCToken is ERC20, ERC20Permit, Ownable {
     // @param _amount The amount of EACC to stake
     // @param _tSeconds The time in seconds for the stream
     // @return streamId The id of the stream created
-    function depositForStream(uint256 _amount, uint256 _tSeconds) external returns (uint256 streamId) {
+    function depositForStream(
+        uint256 _amount,
+        uint256 _tSeconds
+    ) external returns (uint256 streamId) {
         require(_amount > 0, "EACCToken::depositForStream: Cannot stake 0");
-        require(_tSeconds >= 1 weeks && _tSeconds <= 208 weeks, "EACCToken::depositForStream: Invalid time");
-        require(address(eaccBar) != address(0), "EACCToken::depositForStream: eaccBar not set");
+        require(
+            _tSeconds >= 1 weeks && _tSeconds <= 208 weeks,
+            "EACCToken::depositForStream: Invalid time"
+        );
+        require(
+            address(eaccBar) != address(0),
+            "EACCToken::depositForStream: eaccBar not set"
+        );
 
         uint256 eaccBarAmount = (_amount * eaccBarPercent) / 1 ether;
         uint256 burnAmount = _amount - eaccBarAmount;
@@ -129,12 +137,13 @@ contract EACCToken is ERC20, ERC20Permit, Ownable {
         _burn(msg.sender, burnAmount);
         _transfer(msg.sender, address(eaccBar), eaccBarAmount);
 
-        uint256 mintAmount = _amount * M(_tSeconds) / 1 ether;
+        uint256 mintAmount = (_amount * M(_tSeconds)) / 1 ether;
         _mint(address(this), mintAmount);
 
         Lockup.CreateWithDurations memory params;
 
-        LockupDynamic.SegmentWithDuration[] memory segments = new LockupDynamic.SegmentWithDuration[](1);
+        LockupDynamic.SegmentWithDuration[]
+            memory segments = new LockupDynamic.SegmentWithDuration[](1);
         segments[0] = LockupDynamic.SegmentWithDuration({
             amount: uint128(mintAmount),
             duration: uint40(_tSeconds),
