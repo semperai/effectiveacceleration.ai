@@ -22,13 +22,13 @@ export const LockupSlider: React.FC<LockupSliderProps> = ({
 }) => {
   // Local state to track slider value during user interaction
   const [localValue, setLocalValue] = useState(lockupPeriod);
-  
+
   // Track if user is interacting with the slider
   const isInteracting = useRef(false);
-  
+
   // Store the last value that was committed to the parent
   const lastCommittedValue = useRef(lockupPeriod);
-  
+
   // Reference to the timeout for debouncing
   const debouncedUpdateTimer = useRef<NodeJS.Timeout | null>(null);
 
@@ -52,11 +52,11 @@ export const LockupSlider: React.FC<LockupSliderProps> = ({
     // Only update parent if the value has actually changed
     if (localValue !== lastCommittedValue.current) {
       lastCommittedValue.current = localValue;
-      
+
       // Update the parent component with the new value
       setLockupPeriod(localValue);
     }
-    
+
     // Reset interaction state after a short delay
     setTimeout(() => {
       isInteracting.current = false;

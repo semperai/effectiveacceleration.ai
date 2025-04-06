@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { ARBITRUM_CHAIN_ID } from '@/hooks/wagmi/useStaking';
 import { formatEther } from 'viem';
 import { SABLIER_LOCKUP_ABI } from '@/abis/SablierLockup';
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RefreshCcw, ExternalLink } from 'lucide-react';
 import { StreamCard } from './StreamCard';
 
 // Interface representing processed stream data
@@ -62,7 +62,7 @@ export function StreamsPanel() {
 
   // Pagination States
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(5);
+  const [pageSize, setPageSize] = useState(6); // Increased from 5 to 6 for better grid layout
   const [totalCount, setTotalCount] = useState(0);
 
   // Data States
@@ -71,6 +71,9 @@ export function StreamsPanel() {
 
   // Check if user is on Arbitrum One
   const isArbitrumOne = chain?.id === ARBITRUM_CHAIN_ID;
+
+  // Sablier dashboard URL
+  const sablierDashboardUrl = "https://app.sablier.com/dashboard";
 
   // Use this to store which streams are currently being withdrawn
   const [withdrawingStreams, setWithdrawingStreams] = useState<Record<string, boolean>>({});
@@ -567,161 +570,210 @@ export function StreamsPanel() {
   const goToPage = (page: number) => setCurrentPage(page);
 
   return (
-    <div className="w-full">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Your Streams</h2>
-        <div className="flex space-x-2">
-          <div className="flex bg-gray-100 rounded-md p-1 mr-2 text-sm">
-            <button
-              onClick={() => setActiveFilter('all')}
-              className={`px-3 py-1 rounded ${activeFilter === 'all' ? 'bg-blue-500 text-white' : 'text-gray-700'}`}
-            >
-              All
-            </button>
-            <button
-              onClick={() => setActiveFilter('active')}
-              className={`px-3 py-1 rounded ${activeFilter === 'active' ? 'bg-blue-500 text-white' : 'text-gray-700'}`}
-            >
-              Active
-            </button>
-            <button
-              onClick={() => setActiveFilter('completed')}
-              className={`px-3 py-1 rounded ${activeFilter === 'completed' ? 'bg-blue-500 text-white' : 'text-gray-700'}`}
-            >
-              Completed
-            </button>
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="bg-white rounded-2xl shadow-md overflow-hidden">
+        <div className="p-6 border-b border-gray-100">
+          {/* Header section with title, filters, and actions */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
+            <div className="flex items-center">
+              <h2 className="text-2xl font-bold text-gray-900">Your Streams</h2>
+              <Link
+                href={sablierDashboardUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-3 text-sm text-blue-600 hover:text-blue-800 flex items-center"
+              >
+                Go to Sablier <ExternalLink className="h-3.5 w-3.5 ml-1" />
+              </Link>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex bg-gray-100 rounded-md p-1 text-sm">
+                <button
+                  onClick={() => setActiveFilter('all')}
+                  className={`px-4 py-1.5 rounded-md transition-colors ${activeFilter === 'all'
+                    ? 'bg-blue-500 text-white shadow-sm'
+                    : 'text-gray-700 hover:bg-gray-200'}`}
+                >
+                  All
+                </button>
+                <button
+                  onClick={() => setActiveFilter('active')}
+                  className={`px-4 py-1.5 rounded-md transition-colors ${activeFilter === 'active'
+                    ? 'bg-blue-500 text-white shadow-sm'
+                    : 'text-gray-700 hover:bg-gray-200'}`}
+                >
+                  Active
+                </button>
+                <button
+                  onClick={() => setActiveFilter('completed')}
+                  className={`px-4 py-1.5 rounded-md transition-colors ${activeFilter === 'completed'
+                    ? 'bg-blue-500 text-white shadow-sm'
+                    : 'text-gray-700 hover:bg-gray-200'}`}
+                >
+                  Completed
+                </button>
+              </div>
+
+              <Button
+                onClick={handleRefresh}
+                disabled={isLoading || isConfirming}
+                className="flex items-center px-4 py-2 text-sm bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-md shadow-sm"
+              >
+                <RefreshCcw className={`h-4 w-4 mr-1.5 ${isLoading ? 'animate-spin' : ''}`} />
+                {isLoading ? 'Updating...' : 'Refresh'}
+              </Button>
+            </div>
           </div>
-          <Button
-            onClick={handleRefresh}
-            disabled={isLoading || isConfirming}
-            className="text-sm px-3"
-          >
-            {isLoading ? 'Loading...' : 'Refresh'}
-          </Button>
+
+          {/* Instruction text for clickable cards */}
+          {filteredStreams.length > 0 && filteredStreams.some(stream =>
+            stream.isActive && parseFloat(stream.withdrawableAmount) > 0) && (
+            <div className="text-sm text-gray-500 mt-2 mb-2">
+              Click on any active card to withdraw available tokens.
+            </div>
+          )}
         </div>
-      </div>
 
-      {isLoading ? (
-        <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
-        </div>
-      ) : filteredStreams.length > 0 ? (
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredStreams.map((stream) => (
-              <StreamCard
-                key={stream.id}
-                stream={stream}
-                onWithdraw={handleWithdraw}
-                isConfirming={isConfirming}
-                withdrawingStreams={withdrawingStreams}
-              />
-            ))}
-          </div>
+        {/* Content area */}
+        <div className="p-6">
+          {isLoading && !filteredStreams.length ? (
+            <div className="flex justify-center py-16">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            </div>
+          ) : filteredStreams.length > 0 ? (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredStreams.map((stream) => (
+                  <StreamCard
+                    key={stream.id}
+                    stream={stream}
+                    onWithdraw={handleWithdraw}
+                    isConfirming={isConfirming}
+                    withdrawingStreams={withdrawingStreams}
+                  />
+                ))}
+              </div>
 
-          {/* Pagination component */}
-          {totalCount > 0 && (
-            <div className="mt-6">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-500">
-                  Showing {Math.min((currentPage - 1) * pageSize + 1, totalCount)} to {Math.min(currentPage * pageSize, totalCount)} streams
-                </div>
+              {/* Pagination component */}
+              {totalCount > 0 && (
+                <div className="mt-8 border-t border-gray-100 pt-6">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="text-sm text-gray-500">
+                      Showing {Math.min((currentPage - 1) * pageSize + 1, totalCount)} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount} streams
+                    </div>
 
-                <nav className="inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-                  <button
-                    onClick={goToFirstPage}
-                    disabled={currentPage === 1}
-                    className={`inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${currentPage === 1 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                  >
-                    <ChevronsLeft className="h-5 w-5" aria-hidden="true" />
-                    <span className="sr-only">First</span>
-                  </button>
-
-                  <button
-                    onClick={goToPrevPage}
-                    disabled={currentPage === 1}
-                    className={`inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${currentPage === 1 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                  >
-                    <ChevronLeft className="h-5 w-5" aria-hidden="true" />
-                    <span className="sr-only">Previous</span>
-                  </button>
-
-                  {getPageNumbers().map((page, index) => (
-                    page === '...' ? (
-                      <span
-                        key={`ellipsis-${index}`}
-                        className="inline-flex items-center px-4 py-2 text-sm text-gray-700 ring-1 ring-inset ring-gray-300"
-                      >
-                        ...
-                      </span>
-                    ) : (
+                    <nav className="inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
                       <button
-                        key={`page-${page}`}
-                        onClick={() => goToPage(page as number)}
-                        className={`inline-flex items-center px-4 py-2 text-sm ${
-                          currentPage === page
-                            ? 'bg-blue-500 text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
-                            : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
-                        }`}
+                        onClick={goToFirstPage}
+                        disabled={currentPage === 1}
+                        className={`inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${currentPage === 1 ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
                       >
-                        {page}
+                        <ChevronsLeft className="h-5 w-5" aria-hidden="true" />
+                        <span className="sr-only">First</span>
                       </button>
-                    )
-                  ))}
 
+                      <button
+                        onClick={goToPrevPage}
+                        disabled={currentPage === 1}
+                        className={`inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${currentPage === 1 ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+                      >
+                        <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+                        <span className="sr-only">Previous</span>
+                      </button>
+
+                      {getPageNumbers().map((page, index) => (
+                        page === '...' ? (
+                          <span
+                            key={`ellipsis-${index}`}
+                            className="inline-flex items-center px-4 py-2 text-sm text-gray-700 ring-1 ring-inset ring-gray-300"
+                          >
+                            ...
+                          </span>
+                        ) : (
+                          <button
+                            key={`page-${page}`}
+                            onClick={() => goToPage(page as number)}
+                            className={`inline-flex items-center px-4 py-2 text-sm ${
+                              currentPage === page
+                                ? 'bg-blue-500 text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
+                                : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        )
+                      ))}
+
+                      <button
+                        onClick={goToNextPage}
+                        disabled={!hasMorePages && currentPage >= totalPages}
+                        className={`inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${!hasMorePages && currentPage >= totalPages ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+                      >
+                        <ChevronRight className="h-5 w-5" aria-hidden="true" />
+                        <span className="sr-only">Next</span>
+                      </button>
+
+                      {/* Only show Last Page button if we have a good idea of the total pages */}
+                      {totalPages > 2 && (
+                        <button
+                          onClick={goToLastPage}
+                          disabled={!hasMorePages && currentPage >= totalPages}
+                          className={`inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${!hasMorePages && currentPage >= totalPages ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+                        >
+                          <ChevronsRight className="h-5 w-5" aria-hidden="true" />
+                          <span className="sr-only">Last</span>
+                        </button>
+                      )}
+                    </nav>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-16 rounded-lg bg-gray-50">
+              <div className="flex justify-center mb-6">
+                <div className="w-20 h-20 rounded-full bg-blue-50 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-3">No Streams Found</h3>
+              <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                {activeFilter !== 'all'
+                  ? `You don't have any ${activeFilter} streams at the moment.`
+                  : "You don't have any streams yet."}
+              </p>
+              <div className="flex flex-wrap justify-center gap-4">
+                {activeFilter !== 'all' && (
                   <button
-                    onClick={goToNextPage}
-                    disabled={!hasMorePages && currentPage >= totalPages}
-                    className={`inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${!hasMorePages && currentPage >= totalPages ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                    onClick={() => setActiveFilter('all')}
+                    className="text-blue-600 hover:text-blue-800 px-4 py-2 rounded-md border border-blue-200 hover:border-blue-300 bg-blue-50 hover:bg-blue-100 transition-colors duration-200"
                   >
-                    <ChevronRight className="h-5 w-5" aria-hidden="true" />
-                    <span className="sr-only">Next</span>
+                    View All Streams
                   </button>
-
-                  {/* Only show Last Page button if we have a good idea of the total pages */}
-                  {totalPages > 2 && (
-                    <button
-                      onClick={goToLastPage}
-                      disabled={!hasMorePages && currentPage >= totalPages}
-                      className={`inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${!hasMorePages && currentPage >= totalPages ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                    >
-                      <ChevronsRight className="h-5 w-5" aria-hidden="true" />
-                      <span className="sr-only">Last</span>
-                    </button>
-                  )}
-                </nav>
+                )}
+                <Link href="/dashboard/staking">
+                  <Button
+                    className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-md"
+                  >
+                    Create New Stream
+                  </Button>
+                </Link>
+                <Link
+                  href={sablierDashboardUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  Go to Sablier Dashboard <ExternalLink className="h-4 w-4 ml-2" />
+                </Link>
               </div>
             </div>
           )}
         </div>
-      ) : (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-          </div>
-          <h3 className="text-lg font-medium text-gray-600 mb-2">No Streams Found</h3>
-          <p className="text-gray-500 mb-4">
-            {activeFilter !== 'all'
-              ? `You don't have any ${activeFilter} streams.`
-              : "You don't have any active streams yet."}
-          </p>
-          <div className="flex justify-center">
-            <Link href="#" onClick={() => setActiveFilter('all')} className="text-blue-500 hover:text-blue-700 mr-4">
-              View All Streams
-            </Link>
-            <Button
-              className="text-sm"
-              onClick={() => window.location.href = '/dashboard/staking'}
-            >
-              Create New Stream
-            </Button>
-          </div>
-        </div>
-      )}
+      </div>
 
       {/* Add animation styles */}
       <style jsx global>{`
@@ -736,8 +788,8 @@ export function StreamsPanel() {
         .animate-stream {
           animation: stream 2s infinite linear;
         }
-        .animate-pulse {
-          animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        .animate-pulse-slow {
+          animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
         @keyframes pulse {
           0%, 100% {
@@ -745,6 +797,24 @@ export function StreamsPanel() {
           }
           50% {
             opacity: 0.7;
+          }
+        }
+        .animate-float {
+          animation-name: float;
+          animation-timing-function: ease-in-out;
+          animation-iteration-count: infinite;
+        }
+        @keyframes float {
+          0% {
+            transform: translateY(0px);
+            opacity: 0;
+          }
+          50% {
+            opacity: 0.8;
+          }
+          100% {
+            transform: translateY(-100px);
+            opacity: 0;
           }
         }
       `}</style>
