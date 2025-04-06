@@ -17,14 +17,10 @@ import { StreamCard } from './StreamCard';
 interface Stream {
   id: string;
   tokenId: string;
-  deposit: string;
   token: string;
   tokenSymbol: string;
   startTime: Date;
   endTime: Date;
-  lockupAmount: string;
-  withdrawnAmount: string;
-  remainingAmount: string;
   percentComplete: number;
   isActive: boolean;
   isWithdrawing: boolean;
@@ -38,10 +34,7 @@ interface GraphQLStream {
   id: string;
   tokenId: string;
   endTime: string; // Unix timestamp
-  depositAmount: string;
-  withdrawnAmount: string;
   startTime: string; // Unix timestamp
-  canceled: boolean;
 }
 
 export function StreamsPanel() {
@@ -63,6 +56,7 @@ export function StreamsPanel() {
   // Data States
   const [streams, setStreams] = useState<Stream[]>([]);
   const [activeTokenIds, setActiveTokenIds] = useState<string[]>([]);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
   // Check if user is on Arbitrum One
   const isArbitrumOne = chain?.id === ARBITRUM_CHAIN_ID;
@@ -107,8 +101,6 @@ export function StreamsPanel() {
       refetchInterval: 15000, // Refresh data every 15 seconds
     }
   });
-
-  console.log("Stream contract data:", streamContractData);
 
   // Set up timer to update withdrawable amounts directly from contract
   useEffect(() => {
@@ -229,10 +221,7 @@ export function StreamsPanel() {
               id
               tokenId
               endTime
-              depositAmount
-              withdrawnAmount
               startTime
-              canceled
             }
           }
         `;
@@ -251,7 +240,6 @@ export function StreamsPanel() {
         }
 
         const result = await response.json();
-        console.log('GraphQL result:', result);
 
         if (result.errors) {
           throw new Error(result.errors[0].message);
@@ -280,29 +268,21 @@ export function StreamsPanel() {
           const startTime = new Date(parseInt(graphStream.startTime) * 1000);
           const endTime = new Date(parseInt(graphStream.endTime) * 1000);
 
-          const deposit = formatEther(BigInt(graphStream.depositAmount));
-          const withdrawn = formatEther(BigInt(graphStream.withdrawnAmount));
-          const remaining = (parseFloat(deposit) - parseFloat(withdrawn)).toString();
-
           // Calculate percent complete
           const totalDuration = endTime.getTime() - startTime.getTime();
           const elapsedDuration = Math.min(now.getTime() - startTime.getTime(), totalDuration);
           const percentComplete = Math.floor((elapsedDuration / totalDuration) * 100);
 
-          // Determine if stream is active based ONLY on time and canceled status
-          const isActive = !graphStream.canceled && now < endTime;
+          // Determine if stream is active based ONLY on time
+          const isActive = now < endTime;
 
           return {
             id: graphStream.id,
             tokenId: graphStream.tokenId,
-            deposit,
             token: Config?.EACCAddress || '',
             tokenSymbol: 'EACC',
             startTime,
             endTime,
-            lockupAmount: deposit,
-            withdrawnAmount: withdrawn,
-            remainingAmount: remaining,
             percentComplete,
             isActive,
             isWithdrawing: withdrawingStreams[graphStream.id] || false,
@@ -313,6 +293,11 @@ export function StreamsPanel() {
         });
 
         setStreams(processedStreams);
+
+        // Mark initial load as complete
+        if (!initialLoadComplete) {
+          setInitialLoadComplete(true);
+        }
 
         // Extract active token IDs for contract data fetching - only truly active streams
         const newActiveTokenIds = processedStreams
@@ -490,15 +475,15 @@ export function StreamsPanel() {
         <div className="p-6 border-b border-gray-100">
           {/* Header section with title, filters, and actions */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
-            <div className="flex items-center">
+            <div className="flex items-center space-x-4">
               <h2 className="text-2xl font-bold text-gray-900">Your Streams</h2>
               <Link
                 href={sablierDashboardUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="ml-3 text-sm text-blue-600 hover:text-blue-800 flex items-center"
+                className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors"
               >
-                Go to Sablier <ExternalLink className="h-3.5 w-3.5 ml-1" />
+                Sablier Dashboard <ExternalLink className="h-3.5 w-3.5 ml-1.5" />
               </Link>
             </div>
 
@@ -533,7 +518,11 @@ export function StreamsPanel() {
               <Button
                 onClick={handleRefresh}
                 disabled={isLoading || isConfirming}
-                className="flex items-center px-4 py-2 text-sm bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-md shadow-sm"
+                className={`flex items-center px-4 py-2 text-sm rounded-md shadow-sm transition-colors ${
+                  isLoading || isConfirming
+                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                    : 'bg-blue-500 hover:bg-blue-600 text-white'
+                }`}
               >
                 <RefreshCcw className={`h-4 w-4 mr-1.5 ${isLoading ? 'animate-spin' : ''}`} />
                 {isLoading ? 'Updating...' : 'Refresh'}
@@ -552,9 +541,10 @@ export function StreamsPanel() {
 
         {/* Content area */}
         <div className="p-6">
-          {isLoading && !filteredStreams.length ? (
-            <div className="flex justify-center py-16">
+          {(!initialLoadComplete || (isLoading && !filteredStreams.length)) ? (
+            <div className="flex flex-col items-center justify-center py-16">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+              <p className="mt-4 text-gray-600">Loading your streams...</p>
             </div>
           ) : filteredStreams.length > 0 ? (
             <div className="space-y-6">
