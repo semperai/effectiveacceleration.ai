@@ -3,6 +3,7 @@ import { Button } from '@/components/Button';
 import { formatEther } from 'viem';
 import { validateAmount } from './utils';
 import { SliderInput } from './SliderInput';
+import { LockupSlider } from './LockupSlider';
 import { useState, useEffect } from 'react';
 
 interface StreamCreationUIProps {
@@ -65,36 +66,18 @@ export const StreamCreationUI = ({
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Choose Your Stream Duration</h3>
 
         <div className="mb-6">
-          <input
-            type="range"
+          <LockupSlider
+            lockupPeriod={lockupPeriod}
+            setLockupPeriod={setLockupPeriod}
             min={1}
             max={208}
-            value={lockupPeriod}
-            onChange={(e) => setLockupPeriod(parseInt(e.target.value))}
-            className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+            ticks={[
+              { value: 1, label: '1 Year' },
+              { value: 52, label: '1 Year' },
+              { value: 104, label: '2 Years' },
+              { value: 208, label: '4 Years' }
+            ]}
           />
-
-          <div className="relative h-10 mt-1">
-            {/* Ticks for lockup period */}
-            <div className="absolute inset-x-0 flex justify-between">
-              <div className="flex flex-col items-center">
-                <div className="h-3 w-1 bg-gray-300"></div>
-                <span className="text-xs text-gray-500 mt-1">1 Week</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="h-3 w-1 bg-gray-300"></div>
-                <span className="text-xs text-gray-500 mt-1">1 Year</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="h-3 w-1 bg-gray-300"></div>
-                <span className="text-xs text-gray-500 mt-1">2 Years</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="h-3 w-1 bg-gray-300"></div>
-                <span className="text-xs text-gray-500 mt-1">4 Years</span>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Multiplier Visualization */}
