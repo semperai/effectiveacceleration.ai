@@ -270,7 +270,7 @@ export function StreamsPanel() {
               }
               limit: ${fetchLimit}
               offset: ${offset}
-              order_by: {endTime: desc}
+              order_by: {startTime: desc}
             ) {
               id
               tokenId

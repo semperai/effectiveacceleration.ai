@@ -9,16 +9,16 @@ interface PaginationProps {
   className?: string;
 }
 
-export function Pagination({ 
-  currentPage, 
-  totalCount, 
-  pageSize, 
-  onPageChange, 
-  className = "" 
+export function Pagination({
+  currentPage,
+  totalCount,
+  pageSize,
+  onPageChange,
+  className = ""
 }: PaginationProps) {
   // Calculate total pages
   const totalPages = Math.max(currentPage, Math.ceil(totalCount / pageSize));
-  
+
   // Calculate if there are more pages
   const hasMorePages = currentPage * pageSize < totalCount;
 
@@ -81,7 +81,7 @@ export function Pagination({
   const goToPrevPage = () => onPageChange(Math.max(currentPage - 1, 1));
   const goToNextPage = () => onPageChange(Math.min(currentPage + 1, totalPages));
   const goToLastPage = () => onPageChange(totalPages);
-  const goToPage = (page) => onPageChange(page);
+  const goToPage = (page: number) => onPageChange(page);
 
   return (
     <div className={`mt-8 border-t border-gray-100 pt-6 ${className}`}>
@@ -120,7 +120,7 @@ export function Pagination({
             ) : (
               <button
                 key={`page-${page}`}
-                onClick={() => goToPage(page)}
+                onClick={() => typeof page === 'number' && goToPage(page)}
                 className={`inline-flex items-center px-4 py-2 text-sm ${
                   currentPage === page
                     ? 'bg-blue-500 text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
