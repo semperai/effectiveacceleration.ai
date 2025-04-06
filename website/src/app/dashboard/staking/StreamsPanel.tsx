@@ -10,8 +10,9 @@ import Link from 'next/link';
 import { ARBITRUM_CHAIN_ID } from '@/hooks/wagmi/useStaking';
 import { formatEther } from 'viem';
 import { SABLIER_LOCKUP_ABI } from '@/abis/SablierLockup';
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RefreshCcw, ExternalLink } from 'lucide-react';
+import { RefreshCcw, ExternalLink } from 'lucide-react';
 import { StreamCard } from './StreamCard';
+import { Pagination } from './Pagination'; // Import the new Pagination component
 
 // Define available token types with their properties
 const TOKEN_TYPES = {
@@ -242,17 +243,17 @@ export function StreamsPanel() {
         const userAddress = address.toLowerCase();
         const offset = (currentPage - 1) * pageSize;
 
-        // Build token filter for GraphQL query
-        let tokenCondition = '';
+        const eaccAssetLower = TOKEN_TYPES.EACC.address ?
+          `${TOKEN_TYPES.EACC.address.toLowerCase()}` : '';
+        const eaxxAssetLower = TOKEN_TYPES.EAXX.address ?
+          `${TOKEN_TYPES.EAXX.address.toLowerCase()}` : '';
 
         // Apply token filter if not showing all
         // For 'all' filter, we should include both token types
         const eaccAssetId = TOKEN_TYPES.EACC.address ?
-          `${TOKEN_TYPES.EACC.address.toLowerCase()}-42161` : '';
-        const secondaryAssetId = TOKEN_TYPES.EAXX.address ?
-          `${TOKEN_TYPES.EAXX.address.toLowerCase()}-42161` : '';
-
-        tokenCondition = `, asset_id: {_in: ["${eaccAssetId}", "${secondaryAssetId}"]}`;
+          `${eaccAssetLower}-42161` : '';
+        const eaxxAssetId = TOKEN_TYPES.EAXX.address ?
+          `${eaxxAssetLower}-42161` : '';
 
         // Construct the GraphQL query with pagination
         // We'll fetch one extra item to determine if there are more pages
@@ -263,8 +264,9 @@ export function StreamsPanel() {
             Stream(
               where: {
                 chainId: {_eq: "42161"},
-                recipient: {_eq: "${userAddress}"}
-                ${tokenCondition}
+                recipient: {_eq: "${userAddress}"},
+                sender: {_in: ["${eaccAssetLower}", "${eaxxAssetLower}"]}
+                asset_id: {_in: ["${eaccAssetId}", "${eaxxAssetId}"]}
               }
               limit: ${fetchLimit}
               offset: ${offset}
@@ -468,72 +470,9 @@ export function StreamsPanel() {
     return statusMatch;
   });
 
-  // Calculate if there are more pages
-  const hasMorePages = filteredStreams.length === pageSize && currentPage * pageSize < totalCount;
-
-  // Calculate total pages based on our best estimate
-  const totalPages = Math.max(currentPage, Math.ceil(totalCount / pageSize));
-
-  // Simplified pagination for when we don't have exact page count
-  const getPageNumbers = () => {
-    const pages = [];
-    const maxVisiblePages = 5;
-
-    // If we're in the first few pages, show pages 1 through maxVisiblePages
-    if (currentPage <= Math.ceil(maxVisiblePages / 2)) {
-      for (let i = 1; i <= Math.min(maxVisiblePages, totalPages); i++) {
-        pages.push(i);
-      }
-
-      // Add ellipsis and last page if needed
-      if (totalPages > maxVisiblePages) {
-        pages.push('...');
-        // Only add last page if we're certain it exists
-        if (totalPages > currentPage + 2) {
-          pages.push(totalPages);
-        }
-      }
-    }
-    // If we're near the end (if we know it)
-    else if (totalPages - currentPage < Math.floor(maxVisiblePages / 2)) {
-      // Add first page and ellipsis
-      pages.push(1);
-      pages.push('...');
-
-      // Show last few pages
-      for (let i = Math.max(1, totalPages - maxVisiblePages + 2); i <= totalPages; i++) {
-        pages.push(i);
-      }
-    }
-    // If we're in the middle
-    else {
-      // Add first page and ellipsis
-      pages.push(1);
-      pages.push('...');
-
-      // Show current page and one on each side
-      for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-        if (i > 1 && i < totalPages) {
-          pages.push(i);
-        }
-      }
-
-      // Add ellipsis and last page if needed
-      if (currentPage + 1 < totalPages) {
-        pages.push('...');
-        pages.push(totalPages);
-      }
-    }
-
-    return pages;
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
-
-  // Pagination handlers
-  const goToFirstPage = () => setCurrentPage(1);
-  const goToPrevPage = () => setCurrentPage(prev => Math.max(prev - 1, 1));
-  const goToNextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages));
-  const goToLastPage = () => setCurrentPage(totalPages);
-  const goToPage = (page: number) => setCurrentPage(page);
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -627,93 +566,22 @@ export function StreamsPanel() {
                 ))}
               </div>
 
-              {/* Pagination component */}
+              {/* Use the Pagination component */}
               {totalCount > 0 && (
-                <div className="mt-8 border-t border-gray-100 pt-6">
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div className="text-sm text-gray-500">
-                      Showing {Math.min((currentPage - 1) * pageSize + 1, totalCount)} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount} streams
-                    </div>
-
-                    <nav className="inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-                      <button
-                        onClick={goToFirstPage}
-                        disabled={currentPage === 1}
-                        className={`inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${currentPage === 1 ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
-                      >
-                        <ChevronsLeft className="h-5 w-5" aria-hidden="true" />
-                        <span className="sr-only">First</span>
-                      </button>
-
-                      <button
-                        onClick={goToPrevPage}
-                        disabled={currentPage === 1}
-                        className={`inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${currentPage === 1 ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
-                      >
-                        <ChevronLeft className="h-5 w-5" aria-hidden="true" />
-                        <span className="sr-only">Previous</span>
-                      </button>
-
-                      {getPageNumbers().map((page, index) => (
-                        page === '...' ? (
-                          <span
-                            key={`ellipsis-${index}`}
-                            className="inline-flex items-center px-4 py-2 text-sm text-gray-700 ring-1 ring-inset ring-gray-300"
-                          >
-                            ...
-                          </span>
-                        ) : (
-                          <button
-                            key={`page-${page}`}
-                            onClick={() => goToPage(page as number)}
-                            className={`inline-flex items-center px-4 py-2 text-sm ${
-                              currentPage === page
-                                ? 'bg-blue-500 text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
-                                : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
-                            }`}
-                          >
-                            {page}
-                          </button>
-                        )
-                      ))}
-
-                      <button
-                        onClick={goToNextPage}
-                        disabled={!hasMorePages && currentPage >= totalPages}
-                        className={`inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${!hasMorePages && currentPage >= totalPages ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
-                      >
-                        <ChevronRight className="h-5 w-5" aria-hidden="true" />
-                        <span className="sr-only">Next</span>
-                      </button>
-
-                      {/* Only show Last Page button if we have a good idea of the tot
-l pages */}
-                      {totalPages > 2 && (
-                        <button
-                          onClick={goToLastPage}
-                          disabled={!hasMorePages && currentPage >= totalPages}
-                          className={`inline-flex items-center rounded-r-md px-2 py-2
-ext-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline
-offset-0 ${!hasMorePages && currentPage >= totalPages ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
-                        >
-                          <ChevronsRight className="h-5 w-5" aria-hidden="true" />
-                          <span className="sr-only">Last</span>
-                        </button>
-                      )}
-                    </nav>
-                  </div>
-                </div>
+                <Pagination
+                  currentPage={currentPage}
+                  totalCount={totalCount}
+                  pageSize={pageSize}
+                  onPageChange={handlePageChange}
+                />
               )}
             </div>
           ) : (
             <div className="text-center py-16 rounded-lg bg-gray-50">
               <div className="flex justify-center mb-6">
-                <div className="w-20 h-20 rounded-full bg-blue-50 flex items-center ju
-tify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-bl
-e-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <div className="w-20 h-20 rounded-full bg-blue-50 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
               </div>
@@ -729,17 +597,14 @@ d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 {activeFilter !== 'all' && (
                   <button
                     onClick={() => setActiveFilter('all')}
-                    className="text-blue-600 hover:text-blue-800 px-4 py-2 rounded-md
-order border-blue-200 hover:border-blue-300 bg-blue-50 hover:bg-blue-100 transition-co
-ors duration-200"
+                    className="text-blue-600 hover:text-blue-800 px-4 py-2 rounded-md border border-blue-200 hover:border-blue-300 bg-blue-50 hover:bg-blue-100 transition-colors duration-200"
                   >
                     View All Streams
                   </button>
                 )}
                 <Link href="/dashboard/staking">
                   <Button
-                    className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600
-over:from-blue-600 hover:to-indigo-700 text-white shadow-md"
+                    className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-md"
                   >
                     Create New Stream
                   </Button>
@@ -748,8 +613,7 @@ over:from-blue-600 hover:to-indigo-700 text-white shadow-md"
                   href={sablierDashboardUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center px-4 py-2 rounded-md border border-gray
-300 text-gray-700 hover:bg-gray-50"
+                  className="flex items-center px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
                 >
                   Go to Sablier Dashboard <ExternalLink className="h-4 w-4 ml-2" />
                 </Link>
