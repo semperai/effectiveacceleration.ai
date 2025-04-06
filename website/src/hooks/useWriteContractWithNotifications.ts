@@ -66,6 +66,7 @@ type WriteContractConfig = {
   address: Address;
   functionName: string;
   args: any[];
+  value?: bigint;
   contracts?: {
     marketplaceAddress?: Address;
     marketplaceDataAddress?: Address;
@@ -186,6 +187,7 @@ export function useWriteContractWithNotifications() {
       address,
       functionName,
       args,
+      value,
       contracts,
       onSuccess,
       onReceipt,
@@ -210,6 +212,7 @@ export function useWriteContractWithNotifications() {
             address,
             functionName,
             args,
+            value,
           });
         } catch (e: any) {
           setSimlateError(e);
@@ -221,6 +224,7 @@ export function useWriteContractWithNotifications() {
           address,
           functionName,
           args,
+          value,
         });
       } catch (e: any) {
         Sentry.captureException(e);

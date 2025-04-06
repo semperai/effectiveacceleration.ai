@@ -374,11 +374,13 @@ export function StreamsPanel() {
     }));
 
     try {
+      console.log('Withdraw max from stream:', tokenId, address);
       await writeContractWithNotifications({
         address: Config.sablierLockupAddress,
         abi: SABLIER_LOCKUP_ABI,
         functionName: 'withdrawMax',
         args: [tokenId, address],
+        value: BigInt(0),
         contracts: {
           sablierLockupAddress: Config.sablierLockupAddress,
         },
