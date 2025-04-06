@@ -130,8 +130,8 @@ export const SliderInput: React.FC<SliderInputProps> = ({
   };
 
   return (
-    <div className={`space-y-2 ${className}`}>
-      <label className="block text-sm font-medium text-gray-700">
+    <div className={`space-y-3 ${className}`}>
+      <label className="block text-sm font-medium text-gray-700 mb-1">
         {label}
       </label>
       <div className="relative">
@@ -140,13 +140,13 @@ export const SliderInput: React.FC<SliderInputProps> = ({
           value={localInputValue}
           onChange={handleInputChange}
           onBlur={handleInputBlur}
-          className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-4 border"
+          className="block w-full rounded-lg border border-gray-300 bg-white shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-4"
           placeholder={placeholder}
         />
         <button
           type="button"
           onClick={handleMaxClick}
-          className="absolute right-3 top-1/2 -translate-y-1/2 bg-blue-100 text-blue-700 text-sm font-medium px-2 py-1 rounded"
+          className="absolute right-3 top-1/2 -translate-y-1/2 bg-blue-100 text-blue-700 text-sm font-medium px-2 py-1 rounded hover:bg-blue-200 transition-colors"
         >
           MAX
         </button>
