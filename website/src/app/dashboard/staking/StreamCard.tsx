@@ -3,6 +3,7 @@
 // Interface representing processed stream data
 interface Stream {
   id: string;
+  tokenId: string;
   deposit: string;
   token: string;
   tokenSymbol: string;
@@ -16,13 +17,12 @@ interface Stream {
   isWithdrawing: boolean;
   // Real-time data
   withdrawableAmount: string;
-  ratePerSecond: string;
   lastUpdated: number;
 }
 
 interface StreamCardProps {
   stream: Stream;
-  onWithdraw: (streamId: string) => void;
+  onWithdraw: (streamId: string, tokenId: string) => void;
   isConfirming: boolean;
   withdrawingStreams: Record<string, boolean>;
 }
@@ -41,9 +41,9 @@ export function StreamCard({ stream, onWithdraw, isConfirming, withdrawingStream
   };
 
   // Calculate remaining time in days
-  const getRemainingDays = (endTime: Date): number => {
+  const getRemainingDays = (): number => {
     const now = new Date();
-    const diffTime = endTime.getTime() - now.getTime();
+    const diffTime = stream.endTime.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return Math.max(0, diffDays);
   };
@@ -55,13 +55,6 @@ export function StreamCard({ stream, onWithdraw, isConfirming, withdrawingStream
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals
     });
-  };
-
-  // Calculate tokens per day
-  const getTokensPerDay = (ratePerSecond: string): string => {
-    const rate = parseFloat(ratePerSecond);
-    const tokensPerDay = rate * 60 * 60 * 24;
-    return tokensPerDay.toFixed(4);
   };
 
   // Determine background gradient based on stream status
@@ -83,15 +76,12 @@ export function StreamCard({ stream, onWithdraw, isConfirming, withdrawingStream
   // Calculate time remaining as percentage
   const timeRemainingPercent = () => {
     if (!stream.isActive) return 100;
-    const now = new Date();
-    const totalDuration = stream.endTime.getTime() - stream.startTime.getTime();
-    const elapsed = now.getTime() - stream.startTime.getTime();
-    return Math.min(100, Math.max(0, Math.round((elapsed / totalDuration) * 100)));
+    return stream.percentComplete;
   };
 
   // Calculate remaining days text
   const remainingDaysText = () => {
-    const days = getRemainingDays(stream.endTime);
+    const days = getRemainingDays();
     return days <= 0 ? "Completed" : `${days} days remaining`;
   };
 
@@ -107,7 +97,7 @@ export function StreamCard({ stream, onWithdraw, isConfirming, withdrawingStream
   // Handle card click for withdrawal
   const handleCardClick = () => {
     if (isWithdrawable) {
-      onWithdraw(stream.id);
+      onWithdraw(stream.id, stream.tokenId);
     }
   };
 
@@ -128,7 +118,7 @@ export function StreamCard({ stream, onWithdraw, isConfirming, withdrawingStream
 
       <div className="p-5">
         {/* Withdrawable amount section with pulsing animation */}
-        {stream.isActive && parseFloat(stream.ratePerSecond) > 0 && (
+        {stream.isActive && (
           <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-5 rounded-xl mb-5 text-white relative overflow-hidden shadow-md">
             {/* Animated particle background */}
             <div className="absolute inset-0 overflow-hidden">

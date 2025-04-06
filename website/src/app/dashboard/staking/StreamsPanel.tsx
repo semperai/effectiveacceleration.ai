@@ -16,6 +16,7 @@ import { StreamCard } from './StreamCard';
 // Interface representing processed stream data
 interface Stream {
   id: string;
+  tokenId: string;
   deposit: string;
   token: string;
   tokenSymbol: string;
@@ -29,23 +30,17 @@ interface Stream {
   isWithdrawing: boolean;
   // Real-time data
   withdrawableAmount: string;
-  ratePerSecond: string;
   lastUpdated: number;
 }
 
-// GraphQL Types
+// GraphQL Types - Optimized to include only what we need
 interface GraphQLStream {
   id: string;
   tokenId: string;
-  recipient: string;
-  funder: string;
   endTime: string; // Unix timestamp
-  duration: string;
   depositAmount: string;
   withdrawnAmount: string;
-  sender: string;
   startTime: string; // Unix timestamp
-  canceledTime: string | null;
   canceled: boolean;
 }
 
@@ -62,18 +57,18 @@ export function StreamsPanel() {
 
   // Pagination States
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(6); // Increased from 5 to 6 for better grid layout
+  const [pageSize, setPageSize] = useState(6); // For better grid layout
   const [totalCount, setTotalCount] = useState(0);
 
   // Data States
   const [streams, setStreams] = useState<Stream[]>([]);
-  const [activeStreamIds, setActiveStreamIds] = useState<string[]>([]);
+  const [activeTokenIds, setActiveTokenIds] = useState<string[]>([]);
 
   // Check if user is on Arbitrum One
   const isArbitrumOne = chain?.id === ARBITRUM_CHAIN_ID;
 
   // Sablier dashboard URL
-  const sablierDashboardUrl = "https://app.sablier.com/dashboard";
+  const sablierDashboardUrl = `https://app.sablier.com/vesting/?t=search&c=42161&r=${address}`;
 
   // Use this to store which streams are currently being withdrawn
   const [withdrawingStreams, setWithdrawingStreams] = useState<Record<string, boolean>>({});
@@ -90,67 +85,44 @@ export function StreamsPanel() {
     enabled: isConnected && !!Config?.sablierLockupAddress,
   });
 
-  // Prepare contracts for reading on-chain data for active streams
+  // Simplified contract data fetching - only get withdrawable amounts for active streams
   const {
     data: streamContractData,
     isSuccess: isStreamDataSuccess,
     refetch: refetchStreamData
   } = useReadContracts({
-    contracts: activeStreamIds.flatMap(streamId => [
-      // Get withdrawable amount for each stream
-      {
-        address: Config?.sablierLockupAddress,
-        abi: SABLIER_LOCKUP_ABI,
-        functionName: 'withdrawableAmountOf',
-        args: [BigInt(streamId.split('-')[0])],
-        chainId: ARBITRUM_CHAIN_ID,
-      },
-      // Get deposited amount
-      {
-        address: Config?.sablierLockupAddress,
-        abi: SABLIER_LOCKUP_ABI,
-        functionName: 'getDepositedAmount',
-        args: [BigInt(streamId.split('-')[0])],
-        chainId: ARBITRUM_CHAIN_ID,
-      },
-      // Get withdrawn amount
-      {
-        address: Config?.sablierLockupAddress,
-        abi: SABLIER_LOCKUP_ABI,
-        functionName: 'getWithdrawnAmount',
-        args: [BigInt(streamId.split('-')[0])],
-        chainId: ARBITRUM_CHAIN_ID,
-      },
-      // Check if stream is cold
-      {
-        address: Config?.sablierLockupAddress,
-        abi: SABLIER_LOCKUP_ABI,
-        functionName: 'isCold',
-        args: [BigInt(streamId.split('-')[0])],
-        chainId: ARBITRUM_CHAIN_ID,
-      }
-    ]),
+    contracts: activeTokenIds.map(tokenId => ({
+      address: Config?.sablierLockupAddress,
+      abi: SABLIER_LOCKUP_ABI,
+      functionName: 'withdrawableAmountOf',
+      args: [tokenId],
+      chainId: ARBITRUM_CHAIN_ID,
+    })),
     allowFailure: true,
     query: {
       enabled: isConnected &&
                !!Config?.sablierLockupAddress &&
                isArbitrumOne &&
-               activeStreamIds.length > 0,
+               activeTokenIds.length > 0,
       refetchInterval: 15000, // Refresh data every 15 seconds
     }
   });
 
+  console.log("Stream contract data:", streamContractData);
+
   // Set up timer to update withdrawable amounts directly from contract
   useEffect(() => {
     // Don't set up timer if no active streams or not connected
-    if (!isConnected || !Config?.sablierLockupAddress || activeStreamIds.length === 0 || !isArbitrumOne) {
+    if (!isConnected ||
+        !Config?.sablierLockupAddress ||
+        activeTokenIds.length === 0 ||
+        !isArbitrumOne) {
       return;
     }
 
     // Function to fetch latest withdrawable amounts
     const updateWithdrawableAmounts = async () => {
       try {
-        // Call refetchStreamData which will trigger the withdrawableAmountOf calls
         await refetchStreamData();
       } catch (error) {
         console.error("Error updating withdrawable amounts:", error);
@@ -161,66 +133,42 @@ export function StreamsPanel() {
     updateWithdrawableAmounts();
 
     // Set up interval for periodic updates
-    const interval = setInterval(updateWithdrawableAmounts, 15000); // Every 15 seconds
+    // Dynamic interval based on number of active streams
+    // Fewer active streams = more frequent updates
+    // More active streams = less frequent updates to reduce network load
+    const updateInterval = Math.min(
+      Math.max(10000, activeTokenIds.length * 2000), // Between 10s and scaled by number of streams
+      30000 // But never more than 30s
+    );
 
+    const interval = setInterval(updateWithdrawableAmounts, updateInterval);
+
+    // Clear interval on unmount or when dependencies change
     return () => clearInterval(interval);
-  }, [isConnected, Config?.sablierLockupAddress, activeStreamIds, isArbitrumOne, refetchStreamData]);
+  }, [isConnected, Config?.sablierLockupAddress, activeTokenIds, isArbitrumOne, refetchStreamData]);
 
-  // Process contract data into a format we can use
+  // Process contract data into a format we can use - simplified to just handle withdrawable amounts
   const processContractData = useCallback(() => {
-    if (!streamContractData || activeStreamIds.length === 0) return {};
+    if (!streamContractData || activeTokenIds.length === 0) return {};
 
     const processedData: Record<string, {
       withdrawableAmount: bigint;
-      depositedAmount: bigint;
-      withdrawnAmount: bigint;
-      isCold: boolean;
     }> = {};
 
-    for (let i = 0; i < activeStreamIds.length; i++) {
-      const streamId = activeStreamIds[i];
-      const baseIdx = i * 4; // Each stream has 4 contract calls
+    // Process in batches to avoid excessive loop iterations for large datasets
+    for (let i = 0; i < activeTokenIds.length; i++) {
+      const tokenId = activeTokenIds[i];
+      const withdrawableAmount = streamContractData[i]?.result;
 
-      // Get withdrawable amount
-      const withdrawableAmount = streamContractData[baseIdx]?.result;
-      // Get deposited amount
-      const depositedAmount = streamContractData[baseIdx + 1]?.result;
-      // Get withdrawn amount
-      const withdrawnAmount = streamContractData[baseIdx + 2]?.result;
-      // Check if stream is cold
-      const isCold = streamContractData[baseIdx + 3]?.result;
-
-      if (withdrawableAmount !== undefined && typeof withdrawableAmount === 'bigint' &&
-          depositedAmount !== undefined && typeof depositedAmount === 'bigint' &&
-          withdrawnAmount !== undefined && typeof withdrawnAmount === 'bigint' &&
-          isCold !== undefined && typeof isCold === 'boolean') {
-
-        processedData[streamId] = {
-          withdrawableAmount,
-          depositedAmount,
-          withdrawnAmount,
-          isCold
+      if (withdrawableAmount !== undefined && typeof withdrawableAmount === 'bigint') {
+        processedData[tokenId] = {
+          withdrawableAmount
         };
       }
     }
 
     return processedData;
-  }, [streamContractData, activeStreamIds]);
-
-  // Calculate rate per second based on stream data
-  const calculateRatePerSecond = useCallback((startTimeMs: number, endTimeMs: number, totalAmount: string): string => {
-    const now = Date.now();
-    const totalDuration = Math.max(endTimeMs - startTimeMs, 1); // Avoid division by zero
-    const remainingDuration = Math.max(endTimeMs - now, 0);
-
-    if (remainingDuration <= 0) return '0'; // Stream completed
-
-    const totalTokens = parseFloat(totalAmount);
-    const ratePerMs = totalTokens / totalDuration;
-    const ratePerSecond = ratePerMs * 1000; // Convert to per second
-
-    return ratePerSecond.toString();
-  }, []);
+  }, [streamContractData, activeTokenIds]);
 
   // Update streams with on-chain data
   useEffect(() => {
@@ -232,33 +180,19 @@ export function StreamsPanel() {
 
     setStreams(prevStreams =>
       prevStreams.map(stream => {
-        const data = onChainData[stream.id];
+        const data = onChainData[stream.tokenId];
         if (!data) return stream;
 
         const withdrawableAmount = formatEther(data.withdrawableAmount);
-        const depositedAmount = formatEther(data.depositedAmount);
-        const withdrawnAmount = formatEther(data.withdrawnAmount);
-        const isActive = !data.isCold;
-
-        // Calculate rate per second (tokens streaming per second)
-        const ratePerSecond = calculateRatePerSecond(
-          stream.startTime.getTime(),
-          stream.endTime.getTime(),
-          depositedAmount
-        );
 
         return {
           ...stream,
           withdrawableAmount,
-          deposit: depositedAmount,
-          withdrawnAmount,
-          ratePerSecond,
-          isActive,
           lastUpdated: Date.now()
         };
       })
     );
-  }, [isStreamDataSuccess, streamContractData, processContractData, calculateRatePerSecond]);
+  }, [isStreamDataSuccess, streamContractData, processContractData]);
 
   // Fetch streams data from GraphQL with pagination
   useEffect(() => {
@@ -294,15 +228,10 @@ export function StreamsPanel() {
             ) {
               id
               tokenId
-              recipient
-              funder
               endTime
-              duration
               depositAmount
               withdrawnAmount
-              sender
               startTime
-              canceledTime
               canceled
             }
           }
@@ -322,6 +251,7 @@ export function StreamsPanel() {
         }
 
         const result = await response.json();
+        console.log('GraphQL result:', result);
 
         if (result.errors) {
           throw new Error(result.errors[0].message);
@@ -339,22 +269,16 @@ export function StreamsPanel() {
         }
 
         // Update our knowledge about pagination
-        // If we're on page 1, total count is at least the number of streams we got
-        // If we're beyond page 1, total count is at least (currentPage-1)*pageSize + current batch size
         const minimumTotalCount = (currentPage - 1) * pageSize + graphqlStreams.length;
-
-        // If we know there are more pages, add 1 to ensure "Next" button works
         const estimatedTotalCount = hasMorePages ? minimumTotalCount + 1 : minimumTotalCount;
-
-        // Only update total count if our new estimate is higher than what we already have
-        // This prevents the count from going down when moving to later pages
         setTotalCount(prevCount => Math.max(prevCount, estimatedTotalCount));
 
         // Map GraphQL data to our Stream interface
+        const now = new Date();
+
         const processedStreams: Stream[] = graphqlStreams.map(graphStream => {
           const startTime = new Date(parseInt(graphStream.startTime) * 1000);
           const endTime = new Date(parseInt(graphStream.endTime) * 1000);
-          const now = new Date();
 
           const deposit = formatEther(BigInt(graphStream.depositAmount));
           const withdrawn = formatEther(BigInt(graphStream.withdrawnAmount));
@@ -365,18 +289,12 @@ export function StreamsPanel() {
           const elapsedDuration = Math.min(now.getTime() - startTime.getTime(), totalDuration);
           const percentComplete = Math.floor((elapsedDuration / totalDuration) * 100);
 
-          // Determine if stream is active (will be updated with contract data)
+          // Determine if stream is active based ONLY on time and canceled status
           const isActive = !graphStream.canceled && now < endTime;
-
-          // Calculate rate per second
-          const ratePerSecond = calculateRatePerSecond(
-            startTime.getTime(),
-            endTime.getTime(),
-            deposit
-          );
 
           return {
             id: graphStream.id,
+            tokenId: graphStream.tokenId,
             deposit,
             token: Config?.EACCAddress || '',
             tokenSymbol: 'EACC',
@@ -390,19 +308,18 @@ export function StreamsPanel() {
             isWithdrawing: withdrawingStreams[graphStream.id] || false,
             // We'll get the actual value from the contract soon
             withdrawableAmount: '0',
-            ratePerSecond,
             lastUpdated: Date.now()
           };
         });
 
         setStreams(processedStreams);
 
-        // Extract active stream IDs for contract data fetching
-        const newActiveStreamIds = processedStreams
+        // Extract active token IDs for contract data fetching - only truly active streams
+        const newActiveTokenIds = processedStreams
           .filter(stream => stream.isActive)
-          .map(stream => stream.id);
+          .map(stream => stream.tokenId);
 
-        setActiveStreamIds(newActiveStreamIds);
+        setActiveTokenIds(newActiveTokenIds);
       } catch (error) {
         console.error('Error fetching streams:', error);
         Sentry.captureException(error);
@@ -415,7 +332,7 @@ export function StreamsPanel() {
     fetchStreams();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [address, isConnected, refreshTrigger, Config, currentPage, pageSize, activeFilter, calculateRatePerSecond]);
+  }, [address, isConnected, refreshTrigger, Config, currentPage, pageSize, activeFilter]);
 
   // Reset to first page when filter changes
   useEffect(() => {
@@ -426,8 +343,6 @@ export function StreamsPanel() {
   useEffect(() => {
     if (error) {
       showError("An error occurred with your stream operation. Please try again.");
-
-      // Reset withdrawing state
       setWithdrawingStreams({});
     }
   }, [error, showError]);
@@ -436,8 +351,6 @@ export function StreamsPanel() {
   useEffect(() => {
     if (isConfirmed) {
       showSuccess("Stream operation completed successfully");
-
-      // Reset withdrawing state
       setWithdrawingStreams({});
 
       // Create a small delay before refreshing to avoid race conditions
@@ -451,7 +364,7 @@ export function StreamsPanel() {
   }, [isConfirmed]);
 
   // Handle withdraw from stream
-  const handleWithdraw = async (streamId: string) => {
+  const handleWithdraw = async (streamId: string, tokenId: string) => {
     if (!isConnected || !Config?.sablierLockupAddress || !isArbitrumOne) return;
 
     // Update withdrawing state
@@ -465,7 +378,7 @@ export function StreamsPanel() {
         address: Config.sablierLockupAddress,
         abi: SABLIER_LOCKUP_ABI,
         functionName: 'withdrawMax',
-        args: [BigInt(streamId.split('-')[0])],
+        args: [tokenId, address],
         contracts: {
           sablierLockupAddress: Config.sablierLockupAddress,
         },
