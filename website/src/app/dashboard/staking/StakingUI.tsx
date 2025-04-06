@@ -90,7 +90,7 @@ export const StakingUI = ({
     <div className="space-y-8">
       {/* Lockup Period with Visualization */}
       <div className="bg-gray-50 rounded-2xl p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Choose Your Lock Period</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Choose Your Power Lock Period</h3>
 
         <div className="mb-6">
           <LockupSlider
@@ -173,7 +173,7 @@ export const StakingUI = ({
       {/* Staking Box - Enhanced */}
       <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-1 shadow-xl">
         <div className="bg-white rounded-xl p-6">
-          <h3 className="text-xl font-bold text-blue-900 mb-4">Stake Your EACC</h3>
+          <h3 className="text-xl font-bold text-blue-900 mb-4">Power Stake Your EACC</h3>
           <div className="space-y-4">
             {/* SliderInput with local state management */}
             <SliderInput

@@ -10,9 +10,9 @@ export const HeroSection = ({ apy, multiplier, lockupPeriod }: HeroSectionProps)
   return (
     <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 rounded-3xl overflow-hidden shadow-2xl relative">
       <div className="p-8 md:p-12 text-white relative z-10">
-        <h1 className="text-4xl md:text-5xl text-white font-extrabold mb-4">Maximize Your EACC</h1>
+        <h1 className="text-4xl md:text-5xl text-white font-extrabold mb-4">EACC Algorithmic Yield Engine</h1>
         <p className="text-xl md:text-2xl font-medium text-blue-100 mb-6">
-          Earn up to 716% more with longer staking periods
+          Boost your governance power with strategic staking
         </p>
 
         <div className="flex flex-wrap gap-4 mt-6">

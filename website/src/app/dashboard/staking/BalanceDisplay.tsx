@@ -42,6 +42,7 @@ export const BalanceDisplay = ({ eaccBalance, eaxxBalance, eaxxWorthInEACC }: Ba
               {eaxxBalance && typeof eaxxBalance === 'bigint'
                 ? parseFloat(formatEther(eaxxBalance)).toFixed(4)
                 : '0.0000'}
+              <br />
               {eaxxWorthInEACC && typeof eaxxWorthInEACC === 'bigint' && eaxxWorthInEACC > 0 && (
                 <span className="text-sm text-indigo-500 ml-2">
                   (~{parseFloat(formatEther(eaxxWorthInEACC)).toFixed(4)} EACC)

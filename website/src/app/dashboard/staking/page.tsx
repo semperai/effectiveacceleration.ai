@@ -140,7 +140,7 @@ export default function StakingPage() {
                       }`}
                       onClick={() => handleToggleStakingMode({ stakeMode: true })}
                     >
-                      Stake EACC
+                      Power Stake
                     </button>
                     <button
                       className={`px-6 py-3 rounded-lg font-medium transition-all ${
@@ -150,7 +150,7 @@ export default function StakingPage() {
                       }`}
                       onClick={() => handleToggleStakingMode({ stakeMode: false })}
                     >
-                      Create Stream
+                      Cascade Yield
                     </button>
                   </div>
                 </div>
