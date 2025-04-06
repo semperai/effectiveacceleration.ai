@@ -607,15 +607,17 @@ export function StreamsPanel() {
         </div>
       ) : filteredStreams.length > 0 ? (
         <div className="space-y-4">
-          {filteredStreams.map((stream) => (
-            <StreamCard
-              key={stream.id}
-              stream={stream}
-              onWithdraw={handleWithdraw}
-              isConfirming={isConfirming}
-              withdrawingStreams={withdrawingStreams}
-            />
-          ))}
+          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredStreams.map((stream) => (
+              <StreamCard
+                key={stream.id}
+                stream={stream}
+                onWithdraw={handleWithdraw}
+                isConfirming={isConfirming}
+                withdrawingStreams={withdrawingStreams}
+              />
+            ))}
+          </div>
 
           {/* Pagination component */}
           {totalCount > 0 && (
