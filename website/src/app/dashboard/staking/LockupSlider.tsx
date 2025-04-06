@@ -20,36 +20,47 @@ export const LockupSlider: React.FC<LockupSliderProps> = ({
     { value: 208, label: '4 Years' }
   ]
 }) => {
-  // Local state to track user interaction
+  // Local state to track slider value during user interaction
   const [localValue, setLocalValue] = useState(lockupPeriod);
-  const isUserInteracting = useRef(false);
+  
+  // Track if user is interacting with the slider
+  const isInteracting = useRef(false);
+  
+  // Store the last value that was committed to the parent
+  const lastCommittedValue = useRef(lockupPeriod);
+  
+  // Reference to the timeout for debouncing
   const debouncedUpdateTimer = useRef<NodeJS.Timeout | null>(null);
 
-  // Sync with external state when not interacting
+  // Sync with external state, but only when not actively interacting
   useEffect(() => {
-    if (!isUserInteracting.current) {
+    if (!isInteracting.current) {
       setLocalValue(lockupPeriod);
+      lastCommittedValue.current = lockupPeriod;
     }
   }, [lockupPeriod]);
 
-  // Handle slider change
+  // Handle slider change - only update local state
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = parseInt(e.target.value);
-    isUserInteracting.current = true;
+    isInteracting.current = true;
     setLocalValue(newValue);
+  };
 
-    // Debounce the update to parent to prevent excessive RPC calls
-    if (debouncedUpdateTimer.current) {
-      clearTimeout(debouncedUpdateTimer.current);
+  // Handle when user finishes interacting with the slider
+  const handleSliderCommit = () => {
+    // Only update parent if the value has actually changed
+    if (localValue !== lastCommittedValue.current) {
+      lastCommittedValue.current = localValue;
+      
+      // Update the parent component with the new value
+      setLockupPeriod(localValue);
     }
-
-    debouncedUpdateTimer.current = setTimeout(() => {
-      setLockupPeriod(newValue);
-      // Reset interaction flag after update
-      setTimeout(() => {
-        isUserInteracting.current = false;
-      }, 100);
-    }, 300); // 300ms debounce time
+    
+    // Reset interaction state after a short delay
+    setTimeout(() => {
+      isInteracting.current = false;
+    }, 100);
   };
 
   return (
@@ -60,6 +71,8 @@ export const LockupSlider: React.FC<LockupSliderProps> = ({
         max={max}
         value={localValue}
         onChange={handleSliderChange}
+        onMouseUp={handleSliderCommit}
+        onTouchEnd={handleSliderCommit}
         className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
       />
 
