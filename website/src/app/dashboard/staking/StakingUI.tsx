@@ -2,6 +2,8 @@
 import { Button } from '@/components/Button';
 import { formatEther } from 'viem';
 import { validateAmount } from './utils';
+import { SliderInput } from './SliderInput';
+import { useState, useEffect } from 'react';
 
 interface StakingUIProps {
   lockupPeriod: number;
@@ -30,10 +32,10 @@ export const StakingUI = ({
   lockupPeriod,
   setLockupPeriod,
   multiplier,
-  stakeAmount,
-  setStakeAmount,
-  unstakeAmount,
-  setUnstakeAmount,
+  stakeAmount: externalStakeAmount,
+  setStakeAmount: setExternalStakeAmount,
+  unstakeAmount: externalUnstakeAmount,
+  setUnstakeAmount: setExternalUnstakeAmount,
   eaccBalance,
   eaxxBalance,
   eaxxToEACCRatio,
@@ -48,6 +50,41 @@ export const StakingUI = ({
   handleMaxAmount,
   calculateAPY
 }: StakingUIProps) => {
+  // Local state to prevent RPC calls during UI interactions
+  const [localStakeAmount, setLocalStakeAmount] = useState(externalStakeAmount);
+  const [localUnstakeAmount, setLocalUnstakeAmount] = useState(externalUnstakeAmount);
+
+  // Sync with external state when it changes from outside
+  useEffect(() => {
+    setLocalStakeAmount(externalStakeAmount);
+  }, [externalStakeAmount]);
+
+  useEffect(() => {
+    setLocalUnstakeAmount(externalUnstakeAmount);
+  }, [externalUnstakeAmount]);
+
+  // Helper function to format and parse amounts
+  const formatAmount = (amount: bigint) => formatEther(amount);
+  const parseAmount = (value: string) => BigInt(Math.floor(parseFloat(value || '0') * 10**18));
+
+  // Handle MAX button clicks
+  const handleMaxAmountWrapper = (type: 'stake' | 'unstake') => {
+    handleMaxAmount(type);
+  };
+
+  // Submit functions that trigger RPC calls
+  const submitStake = () => {
+    // Update external state before submitting
+    setExternalStakeAmount(localStakeAmount);
+    handleStake(localStakeAmount);
+  };
+
+  const submitUnstake = () => {
+    // Update external state before submitting
+    setExternalUnstakeAmount(localUnstakeAmount);
+    handleUnstake(localUnstakeAmount);
+  };
+
   return (
     <div className="space-y-8">
       {/* Lockup Period with Visualization */}
@@ -155,36 +192,27 @@ export const StakingUI = ({
         <div className="bg-white rounded-xl p-6">
           <h3 className="text-xl font-bold text-blue-900 mb-4">Stake Your EACC</h3>
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Amount to Stake
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={stakeAmount}
-                  onChange={(e) => setStakeAmount(validateAmount(e.target.value, eaccBalance))}
-                  className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-4 border"
-                  placeholder="0.0"
-                />
-                <button
-                  type="button"
-                  onClick={() => handleMaxAmount('stake')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-blue-100 text-blue-700 text-sm font-medium px-2 py-1 rounded"
-                >
-                  MAX
-                </button>
-              </div>
-            </div>
+            {/* SliderInput with local state management */}
+            <SliderInput
+              value={localStakeAmount}
+              onChange={setLocalStakeAmount} // Only updates local UI state
+              onMaxClick={() => handleMaxAmountWrapper('stake')}
+              maxAmount={eaccBalance}
+              formatAmount={formatAmount}
+              parseAmount={parseAmount}
+              label="Amount to Stake"
+              placeholder="0.0"
+              className=""
+            />
 
             {/* Estimated returns preview */}
-            {stakeAmount && parseFloat(stakeAmount) > 0 && (
+            {localStakeAmount && parseFloat(localStakeAmount) > 0 && (
               <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
                 <h4 className="font-medium text-blue-800 mb-2">Your Estimated Returns</h4>
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-blue-700">You stake:</span>
-                    <span className="font-medium">{stakeAmount} EACC</span>
+                    <span className="font-medium">{localStakeAmount} EACC</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-blue-700">Multiplier:</span>
@@ -193,7 +221,7 @@ export const StakingUI = ({
                   <div className="flex justify-between border-t border-blue-200 pt-2 mt-2">
                     <span className="text-blue-800 font-medium">You receive:</span>
                     <span className="font-bold text-blue-800">
-                      {(parseFloat(stakeAmount || '0') * parseFloat(multiplier)).toFixed(4)} EAXX
+                      {(parseFloat(localStakeAmount || '0') * parseFloat(multiplier)).toFixed(4)} EAXX
                     </span>
                   </div>
                 </div>
@@ -211,8 +239,8 @@ export const StakingUI = ({
             ) : (
               <Button
                 className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white py-3 rounded-xl shadow-lg transition-all transform hover:scale-[1.02] active:scale-[0.98]"
-                onClick={() => handleStake(stakeAmount)}
-                disabled={isStaking || isConfirming}
+                onClick={submitStake} // This now uses the local state value
+                disabled={isStaking || isConfirming || !localStakeAmount || parseFloat(localStakeAmount) <= 0}
               >
                 {isStaking || isConfirming ? 'Processing...' : 'Stake EACC'}
               </Button>
@@ -226,41 +254,33 @@ export const StakingUI = ({
         <div className="bg-white rounded-xl p-6">
           <h3 className="text-xl font-bold text-indigo-900 mb-4">Unstake Your EAXX</h3>
           <div className="space-y-4">
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <label className="block text-sm font-medium text-gray-700">
-                  Amount to Unstake
-                </label>
-                <div className="text-sm text-indigo-600">
-                  Rate: 1 EAXX ≈ {eaxxToEACCRatio} EACC
-                </div>
-              </div>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={unstakeAmount}
-                  onChange={(e) => setUnstakeAmount(validateAmount(e.target.value, eaxxBalance))}
-                  className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-4 border"
-                  placeholder="0.0"
-                />
-                <button
-                  type="button"
-                  onClick={() => handleMaxAmount('unstake')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-indigo-100 text-indigo-700 text-sm font-medium px-2 py-1 rounded"
-                >
-                  MAX
-                </button>
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-sm text-indigo-600">
+                Rate: 1 EAXX ≈ {eaxxToEACCRatio} EACC
               </div>
             </div>
 
+            {/* SliderInput with local state management */}
+            <SliderInput
+              value={localUnstakeAmount}
+              onChange={setLocalUnstakeAmount} // Only updates local UI state
+              onMaxClick={() => handleMaxAmountWrapper('unstake')}
+              maxAmount={eaxxBalance}
+              formatAmount={formatAmount}
+              parseAmount={parseAmount}
+              label="Amount to Unstake"
+              placeholder="0.0"
+              className=""
+            />
+
             {/* Estimated return preview */}
-            {unstakeAmount && parseFloat(unstakeAmount) > 0 && eaxxToEACCRatio && (
+            {localUnstakeAmount && parseFloat(localUnstakeAmount) > 0 && eaxxToEACCRatio && (
               <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-100">
                 <h4 className="font-medium text-indigo-800 mb-2">Your Estimated Returns</h4>
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-indigo-700">You unstake:</span>
-                    <span className="font-medium">{unstakeAmount} EAXX</span>
+                    <span className="font-medium">{localUnstakeAmount} EAXX</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-indigo-700">Exchange rate:</span>
@@ -269,7 +289,7 @@ export const StakingUI = ({
                   <div className="flex justify-between border-t border-indigo-200 pt-2 mt-2">
                     <span className="text-indigo-800 font-medium">You receive:</span>
                     <span className="font-bold text-indigo-800">
-                      {(parseFloat(unstakeAmount || '0') * parseFloat(eaxxToEACCRatio)).toFixed(4)} EACC
+                      {(parseFloat(localUnstakeAmount || '0') * parseFloat(eaxxToEACCRatio)).toFixed(4)} EACC
                     </span>
                   </div>
                 </div>
@@ -278,8 +298,8 @@ export const StakingUI = ({
 
             <Button
               className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white py-3 rounded-xl shadow-lg transition-all transform hover:scale-[1.02] active:scale-[0.98]"
-              onClick={() => handleUnstake(unstakeAmount)}
-              disabled={isUnstaking || isConfirming || !unstakeAmount || parseFloat(unstakeAmount) <= 0}
+              onClick={submitUnstake} // This now uses the local state value
+              disabled={isUnstaking || isConfirming || !localUnstakeAmount || parseFloat(localUnstakeAmount) <= 0}
             >
               {isUnstaking || isConfirming ? 'Processing...' : 'Unstake EAXX'}
             </Button>
