@@ -54,9 +54,9 @@ const navigationItems: NavigationItem[] = [
   },
   {
     name: 'Staking',
-    href: '/staking',
+    href: '/dashboard/staking',
     icon: <PiCoins className='text-2xl' />,
-    target: '_blank',
+    target: '_self',
   },
   {
     name: 'Docs',
