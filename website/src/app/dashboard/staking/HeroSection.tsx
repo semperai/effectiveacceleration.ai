@@ -1,6 +1,12 @@
 'use client';
 
-export const HeroSection = ({ apy, multiplier, lockupPeriod }) => {
+interface HeroSectionProps {
+  apy: string;
+  multiplier: string;
+  lockupPeriod: number;
+}
+
+export const HeroSection = ({ apy, multiplier, lockupPeriod }: HeroSectionProps) => {
   return (
     <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 rounded-3xl overflow-hidden shadow-2xl relative">
       <div className="p-8 md:p-12 text-white relative z-10">

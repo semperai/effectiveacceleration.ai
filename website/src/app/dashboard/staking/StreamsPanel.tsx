@@ -11,6 +11,7 @@ import { ARBITRUM_CHAIN_ID } from '@/hooks/wagmi/useStaking';
 import { formatEther } from 'viem';
 import { SABLIER_LOCKUP_ABI } from '@/abis/SablierLockup';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { StreamCard } from './StreamCard';
 
 // Interface representing processed stream data
 interface Stream {
@@ -410,9 +411,8 @@ export function StreamsPanel() {
 
     fetchStreams();
 
-    // Reset to first page when filter changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [address, isConnected, refreshTrigger, Config, currentPage, pageSize, activeFilter]);
+  }, [address, isConnected, refreshTrigger, Config, currentPage, pageSize, activeFilter, calculateRatePerSecond]);
 
   // Reset to first page when filter changes
   useEffect(() => {
@@ -489,39 +489,6 @@ export function StreamsPanel() {
   const handleRefresh = () => {
     setRefreshTrigger(prev => prev + 1);
     refetchStreamData();
-  };
-
-  // Format date to readable string
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
-  // Calculate remaining time in days
-  const getRemainingDays = (endTime: Date) => {
-    const now = new Date();
-    const diffTime = endTime.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return Math.max(0, diffDays);
-  };
-
-  // Format number with commas for thousands
-  const formatNumber = (value: string, decimals = 4) => {
-    const num = parseFloat(value);
-    return num.toLocaleString('en-US', {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals
-    });
-  };
-
-  // Calculate tokens per day
-  const getTokensPerDay = (ratePerSecond: string) => {
-    const rate = parseFloat(ratePerSecond);
-    const tokensPerDay = rate * 60 * 60 * 24;
-    return tokensPerDay.toFixed(4);
   };
 
   // Filter streams based on active filter
@@ -641,93 +608,13 @@ export function StreamsPanel() {
       ) : filteredStreams.length > 0 ? (
         <div className="space-y-4">
           {filteredStreams.map((stream) => (
-            <div key={stream.id} className="bg-white rounded-lg shadow-sm p-4 border border-gray-100 hover:shadow-md transition-shadow">
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <div className="flex items-center">
-                    <span className="text-lg font-semibold mr-2">
-                      {formatNumber(stream.deposit)} {stream.tokenSymbol}
-                    </span>
-                    <span className={`px-2 py-0.5 text-xs rounded-full ${
-                      stream.isActive
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {stream.isActive ? 'Active' : 'Completed'}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-500">Stream #{stream.id}</p>
-                </div>
-                <Button
-                  onClick={() => handleWithdraw(stream.id)}
-                  disabled={
-                    !stream.isActive ||
-                    parseFloat(stream.withdrawableAmount) <= 0 ||
-                    stream.isWithdrawing ||
-                    isConfirming ||
-                    withdrawingStreams[stream.id]
-                  }
-                  className="text-sm px-3 py-1"
-                >
-                  {stream.isWithdrawing || withdrawingStreams[stream.id] ? 'Processing...' : 'Withdraw'}
-                </Button>
-              </div>
-
-              {/* Progress bar with animation */}
-              <div className="w-full bg-gray-200 rounded-full h-2 mb-1 overflow-hidden">
-                <div
-                  className={`h-2 rounded-full ${stream.isActive ? 'bg-blue-500' : 'bg-gray-400'} ${
-                    stream.isActive && parseFloat(stream.ratePerSecond) > 0 ? 'animate-pulse' : ''
-                  }`}
-                  style={{ width: `${stream.percentComplete}%` }}
-                ></div>
-              </div>
-
-              <div className="flex justify-between text-xs text-gray-500 mb-4">
-                <span>{formatDate(stream.startTime)}</span>
-                <span>
-                  {stream.isActive
-                    ? `${getRemainingDays(stream.endTime)} days remaining`
-                    : formatDate(stream.endTime)}
-                </span>
-              </div>
-
-              {/* Real-time withdrawable tokens with animation */}
-              {stream.isActive && parseFloat(stream.ratePerSecond) > 0 && (
-                <div className="bg-blue-50 p-3 rounded-lg mb-4 relative overflow-hidden">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-sm font-medium text-blue-800">Available to Claim</p>
-                      <p className="text-xl font-bold text-blue-900">
-                        {formatNumber(stream.withdrawableAmount)} {stream.tokenSymbol}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs text-blue-600">Streaming Rate</p>
-                      <p className="text-sm font-medium text-blue-800">
-                        {formatNumber(stream.ratePerSecond, 8)} {stream.tokenSymbol}/sec
-                      </p>
-                      <p className="text-xs text-blue-600">
-                        {getTokensPerDay(stream.ratePerSecond)} {stream.tokenSymbol}/day
-                      </p>
-                    </div>
-                  </div>
-                  {/* Animation for streaming tokens */}
-                  <div className="absolute bottom-0 left-0 h-1 bg-blue-300 opacity-50 animate-stream"></div>
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-4 mt-2 text-sm">
-                <div>
-                  <p className="text-gray-500">Withdrawn</p>
-                  <p>{formatNumber(stream.withdrawnAmount)} {stream.tokenSymbol}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500">Remaining</p>
-                  <p>{formatNumber(stream.remainingAmount)} {stream.tokenSymbol}</p>
-                </div>
-              </div>
-            </div>
+            <StreamCard
+              key={stream.id}
+              stream={stream}
+              onWithdraw={handleWithdraw}
+              isConfirming={isConfirming}
+              withdrawingStreams={withdrawingStreams}
+            />
           ))}
 
           {/* Pagination component */}

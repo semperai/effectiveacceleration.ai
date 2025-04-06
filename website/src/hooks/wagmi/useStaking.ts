@@ -22,8 +22,8 @@ export function useStaking() {
   const [isEACCStaking, setIsEACCStaking] = useState(true);
   const [multiplier, setMultiplier] = useState('0');
   const [isLoading, setIsLoading] = useState(false);
-  const [isStaking, setIsStaking] = useState(false);        // New state for staking
-  const [isUnstaking, setIsUnstaking] = useState(false);    // New state for unstaking
+  const [isStaking, setIsStaking] = useState(false);
+  const [isUnstaking, setIsUnstaking] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   const [error, setError] = useState<unknown>(null);
 
@@ -609,9 +609,9 @@ export function useStaking() {
     isEACCStaking,
     setIsEACCStaking,
     multiplier,
-    isLoading: isContractsLoading,  // Changed to only indicate contract data loading
-    isStaking,         // New specific state for staking
-    isUnstaking,       // New specific state for unstaking
+    isLoading: isContractsLoading,
+    isStaking,
+    isUnstaking,
     isApproving,
     isConfirming,
     isConfirmed,

@@ -1,5 +1,5 @@
 import { ConnectButton } from '@/components/ConnectButton';
-import { PiWallet, PiCoinVertical, PiClock, PiChartLineUp, PiArrowUpRight } from 'react-icons/pi';
+import { PiWallet, PiCoinVertical, PiClock, PiChartLineUp } from 'react-icons/pi';
 
 export const WelcomeScreen = () => {
   return (
