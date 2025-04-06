@@ -13,12 +13,27 @@ import { SABLIER_LOCKUP_ABI } from '@/abis/SablierLockup';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RefreshCcw, ExternalLink } from 'lucide-react';
 import { StreamCard } from './StreamCard';
 
+// Define available token types with their properties
+const TOKEN_TYPES = {
+  EACC: {
+    address: '', // This will be dynamically set from Config
+    symbol: 'EACC',
+    colorScheme: 'blue', // Default color scheme
+  },
+  EAXX: {
+    address: '', // This will be dynamically set from Config
+    symbol: 'EAXX',
+    colorScheme: 'purple', // Different color scheme for the new token
+  }
+};
+
 // Interface representing processed stream data
 interface Stream {
   id: string;
   tokenId: string;
   token: string;
   tokenSymbol: string;
+  tokenType: string; // Added to track which token type this is
   startTime: Date;
   endTime: Date;
   percentComplete: number;
@@ -27,6 +42,7 @@ interface Stream {
   // Real-time data
   withdrawableAmount: string;
   lastUpdated: number;
+  colorScheme: string; // For styling the card based on token type
 }
 
 // GraphQL Types - Optimized to include only what we need
@@ -35,6 +51,7 @@ interface GraphQLStream {
   tokenId: string;
   endTime: string; // Unix timestamp
   startTime: string; // Unix timestamp
+  asset_id: string; // To determine which token this stream is for
 }
 
 export function StreamsPanel() {
@@ -66,6 +83,15 @@ export function StreamsPanel() {
 
   // Use this to store which streams are currently being withdrawn
   const [withdrawingStreams, setWithdrawingStreams] = useState<Record<string, boolean>>({});
+
+  // Update token addresses from config
+  useEffect(() => {
+    if (Config) {
+      TOKEN_TYPES.EACC.address = Config.EACCAddress || '';
+      // Set your secondary token address from config
+      TOKEN_TYPES.EAXX.address = Config.EACCBarAddress || '';
+    }
+  }, [Config]);
 
   // Watch for contract withdrawal events to update streams data
   useWatchContractEvent({
@@ -186,6 +212,21 @@ export function StreamsPanel() {
     );
   }, [isStreamDataSuccess, streamContractData, processContractData]);
 
+  // Determine token type from asset_id
+  const getTokenTypeFromAssetId = (assetId: string): string => {
+    // Format for asset_id is typically "{tokenAddress}-{chainId}"
+    // Extract just the token address part
+    const tokenAddress = assetId.split('-')[0].toLowerCase();
+
+    if (tokenAddress === TOKEN_TYPES.EACC.address.toLowerCase()) {
+      return 'EACC';
+    } else if (tokenAddress === TOKEN_TYPES.EAXX.address.toLowerCase()) {
+      return 'EAXX';
+    }
+
+    return 'UNKNOWN';
+  };
+
   // Fetch streams data from GraphQL with pagination
   useEffect(() => {
     const fetchStreams = async () => {
@@ -199,8 +240,19 @@ export function StreamsPanel() {
       try {
         // Create static values for the query to prevent infinite render loops
         const userAddress = address.toLowerCase();
-        const tokenAddress = Config?.EACCAddress ? `${Config.EACCAddress.toLowerCase()}-42161` : '';
         const offset = (currentPage - 1) * pageSize;
+
+        // Build token filter for GraphQL query
+        let tokenCondition = '';
+
+        // Apply token filter if not showing all
+        // For 'all' filter, we should include both token types
+        const eaccAssetId = TOKEN_TYPES.EACC.address ?
+          `${TOKEN_TYPES.EACC.address.toLowerCase()}-42161` : '';
+        const secondaryAssetId = TOKEN_TYPES.EAXX.address ?
+          `${TOKEN_TYPES.EAXX.address.toLowerCase()}-42161` : '';
+
+        tokenCondition = `, asset_id: {_in: ["${eaccAssetId}", "${secondaryAssetId}"]}`;
 
         // Construct the GraphQL query with pagination
         // We'll fetch one extra item to determine if there are more pages
@@ -211,8 +263,8 @@ export function StreamsPanel() {
             Stream(
               where: {
                 chainId: {_eq: "42161"},
-                recipient: {_eq: "${userAddress}"},
-                asset_id: {_eq: "${tokenAddress}"}
+                recipient: {_eq: "${userAddress}"}
+                ${tokenCondition}
               }
               limit: ${fetchLimit}
               offset: ${offset}
@@ -222,6 +274,7 @@ export function StreamsPanel() {
               tokenId
               endTime
               startTime
+              asset_id
             }
           }
         `;
@@ -276,11 +329,20 @@ export function StreamsPanel() {
           // Determine if stream is active based ONLY on time
           const isActive = now < endTime;
 
+          // Determine token type from asset_id
+          const tokenType = getTokenTypeFromAssetId(graphStream.asset_id);
+          const tokenDetails = TOKEN_TYPES[tokenType as keyof typeof TOKEN_TYPES] || {
+            address: '',
+            symbol: 'UNKNOWN',
+            colorScheme: 'gray'
+          };
+
           return {
             id: graphStream.id,
             tokenId: graphStream.tokenId,
-            token: Config?.EACCAddress || '',
-            tokenSymbol: 'EACC',
+            token: tokenDetails.address,
+            tokenSymbol: tokenDetails.symbol,
+            tokenType: tokenType,
             startTime,
             endTime,
             percentComplete,
@@ -288,7 +350,8 @@ export function StreamsPanel() {
             isWithdrawing: withdrawingStreams[graphStream.id] || false,
             // We'll get the actual value from the contract soon
             withdrawableAmount: '0',
-            lastUpdated: Date.now()
+            lastUpdated: Date.now(),
+            colorScheme: tokenDetails.colorScheme
           };
         });
 
@@ -394,12 +457,15 @@ export function StreamsPanel() {
     refetchStreamData();
   };
 
-  // Filter streams based on active filter
+  // Filter streams based on active filter and token filter
   const filteredStreams = streams.filter(stream => {
-    if (activeFilter === 'all') return true;
-    if (activeFilter === 'active') return stream.isActive;
-    if (activeFilter === 'completed') return !stream.isActive;
-    return true;
+    // Apply status filter (active/completed)
+    const statusMatch =
+      activeFilter === 'all' ||
+      (activeFilter === 'active' && stream.isActive) ||
+      (activeFilter === 'completed' && !stream.isActive);
+
+    return statusMatch;
   });
 
   // Calculate if there are more pages
@@ -488,6 +554,7 @@ export function StreamsPanel() {
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
+              {/* Status filter */}
               <div className="flex bg-gray-100 rounded-md p-1 text-sm">
                 <button
                   onClick={() => setActiveFilter('all')}
@@ -619,12 +686,15 @@ export function StreamsPanel() {
                         <span className="sr-only">Next</span>
                       </button>
 
-                      {/* Only show Last Page button if we have a good idea of the total pages */}
+                      {/* Only show Last Page button if we have a good idea of the tot
+l pages */}
                       {totalPages > 2 && (
                         <button
                           onClick={goToLastPage}
                           disabled={!hasMorePages && currentPage >= totalPages}
-                          className={`inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 ${!hasMorePages && currentPage >= totalPages ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+                          className={`inline-flex items-center rounded-r-md px-2 py-2
+ext-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline
+offset-0 ${!hasMorePages && currentPage >= totalPages ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
                         >
                           <ChevronsRight className="h-5 w-5" aria-hidden="true" />
                           <span className="sr-only">Last</span>
@@ -638,13 +708,18 @@ export function StreamsPanel() {
           ) : (
             <div className="text-center py-16 rounded-lg bg-gray-50">
               <div className="flex justify-center mb-6">
-                <div className="w-20 h-20 rounded-full bg-blue-50 flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <div className="w-20 h-20 rounded-full bg-blue-50 flex items-center ju
+tify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-bl
+e-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
               </div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">No Streams Found</h3>
+              <h3 className="text-xl font-semibold text-gray-800 mb-3">
+                No Streams Found
+              </h3>
               <p className="text-gray-600 mb-6 max-w-md mx-auto">
                 {activeFilter !== 'all'
                   ? `You don't have any ${activeFilter} streams at the moment.`
@@ -654,14 +729,17 @@ export function StreamsPanel() {
                 {activeFilter !== 'all' && (
                   <button
                     onClick={() => setActiveFilter('all')}
-                    className="text-blue-600 hover:text-blue-800 px-4 py-2 rounded-md border border-blue-200 hover:border-blue-300 bg-blue-50 hover:bg-blue-100 transition-colors duration-200"
+                    className="text-blue-600 hover:text-blue-800 px-4 py-2 rounded-md
+order border-blue-200 hover:border-blue-300 bg-blue-50 hover:bg-blue-100 transition-co
+ors duration-200"
                   >
                     View All Streams
                   </button>
                 )}
                 <Link href="/dashboard/staking">
                   <Button
-                    className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-md"
+                    className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600
+over:from-blue-600 hover:to-indigo-700 text-white shadow-md"
                   >
                     Create New Stream
                   </Button>
@@ -670,7 +748,8 @@ export function StreamsPanel() {
                   href={sablierDashboardUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
+                  className="flex items-center px-4 py-2 rounded-md border border-gray
+300 text-gray-700 hover:bg-gray-50"
                 >
                   Go to Sablier Dashboard <ExternalLink className="h-4 w-4 ml-2" />
                 </Link>
