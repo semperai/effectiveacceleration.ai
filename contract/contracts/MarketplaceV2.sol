@@ -828,7 +828,7 @@ contract MarketplaceV2 is OwnableUpgradeable, PausableUpgradeable {
         if (eaccRewardTokensEnabled[job.token] > 0) {
             uint256 reward = (job.amount *
                 eaccRewardTokensEnabled[job.token]) /
-                1 ether * eaccTokensPerToken;
+                1 ether * eaccTokensPerToken / 1 ether;
 
             if (eaccToken.balanceOf(address(this)) >= reward*3) {
                 eaccToken.transfer(job.roles.worker, reward);
