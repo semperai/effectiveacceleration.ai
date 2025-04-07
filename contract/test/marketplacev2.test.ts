@@ -231,26 +231,115 @@ describe("MarketplaceV2 EACC Rewards Tests", () => {
     };
   }
 
-  // Helper function to deploy with no EACC tokens in marketplace
   async function deployContractsWithoutFunding(): Promise<FixtureReturnType> {
-    const fixture = await deployContractsFixture();
-
-    // Create a new marketplace instance without funding
-    const marketplaceAddress = await fixture.marketplace.getAddress();
-
-    // Get the current balance and transfer it to deployer if any exists
-    const currentBalance = await fixture.eaccToken.balanceOf(marketplaceAddress);
-    if (currentBalance > BigInt(0)) {
-      // We need to remove tokens from the marketplace
-      // Since we don't have a withdraw function, we'll create a new marketplace
-
-      // Instead of trying to drain tokens, we'll trace this for debugging
-      console.log(`Marketplace has ${ethers.formatEther(currentBalance)} EACC tokens`);
-      console.log("Note: For this test to work properly, the MarketplaceV2 contract needs a function to withdraw ERC20 tokens");
-    }
-
-    return fixture;
+    // Create a new marketplace with no EACC tokens
+    // Start with a fresh deployment
+    const [deployer, creator, worker, arbitrator] = await ethers.getSigners();
+    const marketplaceFeeAddress = "0x000000000000000000000000000000000000beef";
+  
+    // Deploy Unicrow suite
+    const { unicrow, unicrowDispute, unicrowArbitrator, unicrowProtocolFeeAddress } = await deployUnicrowSuite();
+  
+    // Deploy EACCToken
+    const EACCToken = await ethers.getContractFactory("EACCToken");
+    const MockSablierLockup = await ethers.getContractFactory("MockSablierLockup");
+    const mockSablier = await MockSablierLockup.deploy();
+  
+    const eaccToken = await EACCToken.deploy(
+      "EACCToken",
+      "EACC",
+      ethers.parseEther("1000000"),
+      await mockSablier.getAddress()
+    ) as unknown as EACCToken;
+  
+    // Deploy EACCBar
+    const EACCBar = await ethers.getContractFactory("EACCBar");
+    const eaccBar = await EACCBar.deploy(
+      await eaccToken.getAddress(),
+      await mockSablier.getAddress()
+    ) as unknown as EACCBar;
+  
+    // Set the EACCBar address in EACCToken
+    await eaccToken.setEACCBar(await eaccBar.getAddress());
+  
+    // Deploy tokens for job payments
+    const FakeToken = await ethers.getContractFactory("FakeToken");
+  
+    const rewardToken = await FakeToken.deploy("RewardToken", "RWD") as unknown as FakeToken;
+    await rewardToken.waitForDeployment();
+  
+    const nonRewardToken = await FakeToken.deploy("NonRewardToken", "NRT") as unknown as FakeToken;
+    await nonRewardToken.waitForDeployment();
+  
+    // Deploy MarketplaceV1
+    const MarketplaceV1 = await ethers.getContractFactory("MarketplaceV1");
+    const marketplace = (await upgrades.deployProxy(MarketplaceV1, [
+      await unicrow.getAddress(),
+      await unicrowDispute.getAddress(),
+      await unicrowArbitrator.getAddress(),
+      marketplaceFeeAddress,
+      1931, // 19.31 % fee
+    ])) as unknown as MarketplaceV1;
+    await marketplace.waitForDeployment();
+  
+    // Deploy MarketplaceData
+    const MarketplaceData = await ethers.getContractFactory("MarketplaceDataV1");
+    const marketplaceData = await upgrades.deployProxy(MarketplaceData, [
+      await marketplace.getAddress(),
+    ]) as unknown as MarketplaceData;
+  
+    await marketplaceData.waitForDeployment();
+  
+    // Set MarketplaceData in MarketplaceV1
+    await marketplace.setMarketplaceDataAddress(await marketplaceData.getAddress());
+  
+    // Upgrade to MarketplaceV2
+    const MarketplaceV2 = await ethers.getContractFactory("MarketplaceV2");
+    const marketplace2 = (await upgrades.upgradeProxy(await marketplace.getAddress(), MarketplaceV2)) as unknown as MarketplaceV2;
+    await marketplace2.waitForDeployment();
+  
+    // Initialize MarketplaceV2 with EACC token settings
+    await marketplace2.initialize(
+      await eaccToken.getAddress(),
+      await eaccBar.getAddress(),
+      ethers.parseEther("10") // This value might need adjustment
+    );
+  
+    // Configure EACC rewards (100% of scaling)
+    await marketplace2.setEACCRewardTokensEnabled(
+      await rewardToken.getAddress(),
+      ethers.parseEther("1")
+    );
+  
+    // Fund creator with tokens for job creation
+    await rewardToken.connect(deployer).transfer(await creator.getAddress(), ethers.parseEther("10000"));
+    await nonRewardToken.connect(deployer).transfer(await creator.getAddress(), ethers.parseEther("10000"));
+  
+    // Approve tokens for marketplace
+    await rewardToken.connect(creator).approve(await marketplace.getAddress(), ethers.parseEther("10000"));
+    await nonRewardToken.connect(creator).approve(await marketplace.getAddress(), ethers.parseEther("10000"));
+  
+    // Register users in marketplace
+    await marketplaceData.connect(creator).registerUser("0x" + "11".repeat(33), "Creator", "Creator Bio", "Creator Avatar");
+    await marketplaceData.connect(worker).registerUser("0x" + "22".repeat(33), "Worker", "Worker Bio", "Worker Avatar");
+    await marketplaceData.connect(arbitrator).registerArbitrator("0x" + "33".repeat(33), "Arbitrator", "Arbitrator Bio", "Arbitrator Avatar", 100);
+  
+    // Do NOT fund marketplace with EACC tokens
+  
+    return {
+      marketplace: marketplace2,
+      marketplaceData,
+      eaccToken,
+      eaccBar,
+      rewardToken,
+      nonRewardToken,
+      deployer,
+      creator,
+      worker,
+      arbitrator
+    };
   }
+
 
   // Helper function to create a job and have it taken by worker
   async function createAndTakeJob(
