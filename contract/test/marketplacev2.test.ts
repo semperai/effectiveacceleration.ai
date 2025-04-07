@@ -236,41 +236,41 @@ describe("MarketplaceV2 EACC Rewards Tests", () => {
     // Start with a fresh deployment
     const [deployer, creator, worker, arbitrator] = await ethers.getSigners();
     const marketplaceFeeAddress = "0x000000000000000000000000000000000000beef";
-  
+
     // Deploy Unicrow suite
     const { unicrow, unicrowDispute, unicrowArbitrator, unicrowProtocolFeeAddress } = await deployUnicrowSuite();
-  
+
     // Deploy EACCToken
     const EACCToken = await ethers.getContractFactory("EACCToken");
     const MockSablierLockup = await ethers.getContractFactory("MockSablierLockup");
     const mockSablier = await MockSablierLockup.deploy();
-  
+
     const eaccToken = await EACCToken.deploy(
       "EACCToken",
       "EACC",
       ethers.parseEther("1000000"),
       await mockSablier.getAddress()
     ) as unknown as EACCToken;
-  
+
     // Deploy EACCBar
     const EACCBar = await ethers.getContractFactory("EACCBar");
     const eaccBar = await EACCBar.deploy(
       await eaccToken.getAddress(),
       await mockSablier.getAddress()
     ) as unknown as EACCBar;
-  
+
     // Set the EACCBar address in EACCToken
     await eaccToken.setEACCBar(await eaccBar.getAddress());
-  
+
     // Deploy tokens for job payments
     const FakeToken = await ethers.getContractFactory("FakeToken");
-  
+
     const rewardToken = await FakeToken.deploy("RewardToken", "RWD") as unknown as FakeToken;
     await rewardToken.waitForDeployment();
-  
+
     const nonRewardToken = await FakeToken.deploy("NonRewardToken", "NRT") as unknown as FakeToken;
     await nonRewardToken.waitForDeployment();
-  
+
     // Deploy MarketplaceV1
     const MarketplaceV1 = await ethers.getContractFactory("MarketplaceV1");
     const marketplace = (await upgrades.deployProxy(MarketplaceV1, [
@@ -281,51 +281,51 @@ describe("MarketplaceV2 EACC Rewards Tests", () => {
       1931, // 19.31 % fee
     ])) as unknown as MarketplaceV1;
     await marketplace.waitForDeployment();
-  
+
     // Deploy MarketplaceData
     const MarketplaceData = await ethers.getContractFactory("MarketplaceDataV1");
     const marketplaceData = await upgrades.deployProxy(MarketplaceData, [
       await marketplace.getAddress(),
     ]) as unknown as MarketplaceData;
-  
+
     await marketplaceData.waitForDeployment();
-  
+
     // Set MarketplaceData in MarketplaceV1
     await marketplace.setMarketplaceDataAddress(await marketplaceData.getAddress());
-  
+
     // Upgrade to MarketplaceV2
     const MarketplaceV2 = await ethers.getContractFactory("MarketplaceV2");
     const marketplace2 = (await upgrades.upgradeProxy(await marketplace.getAddress(), MarketplaceV2)) as unknown as MarketplaceV2;
     await marketplace2.waitForDeployment();
-  
+
     // Initialize MarketplaceV2 with EACC token settings
     await marketplace2.initialize(
       await eaccToken.getAddress(),
       await eaccBar.getAddress(),
       ethers.parseEther("10") // This value might need adjustment
     );
-  
+
     // Configure EACC rewards (100% of scaling)
     await marketplace2.setEACCRewardTokensEnabled(
       await rewardToken.getAddress(),
       ethers.parseEther("1")
     );
-  
+
     // Fund creator with tokens for job creation
     await rewardToken.connect(deployer).transfer(await creator.getAddress(), ethers.parseEther("10000"));
     await nonRewardToken.connect(deployer).transfer(await creator.getAddress(), ethers.parseEther("10000"));
-  
+
     // Approve tokens for marketplace
     await rewardToken.connect(creator).approve(await marketplace.getAddress(), ethers.parseEther("10000"));
     await nonRewardToken.connect(creator).approve(await marketplace.getAddress(), ethers.parseEther("10000"));
-  
+
     // Register users in marketplace
     await marketplaceData.connect(creator).registerUser("0x" + "11".repeat(33), "Creator", "Creator Bio", "Creator Avatar");
     await marketplaceData.connect(worker).registerUser("0x" + "22".repeat(33), "Worker", "Worker Bio", "Worker Avatar");
     await marketplaceData.connect(arbitrator).registerArbitrator("0x" + "33".repeat(33), "Arbitrator", "Arbitrator Bio", "Arbitrator Avatar", 100);
-  
+
     // Do NOT fund marketplace with EACC tokens
-  
+
     return {
       marketplace: marketplace2,
       marketplaceData,
@@ -438,6 +438,15 @@ describe("MarketplaceV2 EACC Rewards Tests", () => {
         await loadFixture(deployContractsFixture);
 
       const jobAmount = ethers.parseEther("100");
+
+      // Make sure marketplace has enough tokens for rewards - this is critical!
+      const requiredTokens = ethers.parseEther("100000");  // Much more than needed
+      await eaccToken.transfer(await marketplace.getAddress(), requiredTokens);
+
+      // Verify marketplace has tokens
+      const marketplaceAddr = await marketplace.getAddress();
+      const marketplaceBalance = await eaccToken.balanceOf(marketplaceAddr);
+      console.log(`Marketplace EACC token balance: ${ethers.formatEther(marketplaceBalance)} EACC`);
 
       // Create and take job with reward token
       const jobId = await createAndTakeJob(
@@ -656,6 +665,7 @@ describe("MarketplaceV2 EACC Rewards Tests", () => {
       }
     });
 
+
     it("should disable rewards for a token by setting rate to 0", async () => {
       const { marketplace, marketplaceData, eaccToken, eaccBar, rewardToken, creator, worker, arbitrator, deployer } =
         await loadFixture(deployContractsFixture);
@@ -701,46 +711,18 @@ describe("MarketplaceV2 EACC Rewards Tests", () => {
       expect(eaccBarBalanceAfter).to.equal(eaccBarBalanceBefore);
     });
 
-    // Note: This test is skipped because initialize can only be called once during deployment
-    it.skip("should allow changing eaccTokensPerToken setting", async () => {
-      const { marketplace, marketplaceData, eaccToken, eaccBar, rewardToken, creator, worker, arbitrator, deployer } =
-        await loadFixture(deployContractsFixture);
-
-      // Initial eaccTokensPerToken is 10
-      expect(await marketplace.eaccTokensPerToken()).to.equal(ethers.parseEther("10"));
-
-      // To test this parameter's effect, we would need to deploy a new marketplace
-      // or have a setter function to change this value after initialization
-
-      // For demonstration, we can still verify how the reward calculation would change
-      // if this parameter were doubled
-      const rewardRate = await marketplace.eaccRewardTokensEnabled(await rewardToken.getAddress());
-      const initialTokensPerToken = await marketplace.eaccTokensPerToken();
-      const jobAmount = ethers.parseEther("100");
-
-      // Calculate reward with initial tokens per token
-      const initialReward = calculateExpectedReward(jobAmount, rewardRate, initialTokensPerToken);
-
-      // Calculate what the reward would be with doubled tokens per token
-      const doubledTokensPerToken = initialTokensPerToken * 2n;
-      const doubledReward = calculateExpectedReward(jobAmount, rewardRate, doubledTokensPerToken);
-
-      console.log(`Initial tokens per token: ${ethers.formatEther(initialTokensPerToken)}`);
-      console.log(`Doubled tokens per token: ${ethers.formatEther(doubledTokensPerToken)}`);
-      console.log(`Initial reward: ${ethers.formatEther(initialReward)} EACC`);
-      console.log(`Doubled reward: ${ethers.formatEther(doubledReward)} EACC`);
-
-      // Verify doubled formula produces double the rewards
-      const ratio = Number(ethers.formatEther(doubledReward)) / Number(ethers.formatEther(initialReward));
-      expect(ratio).to.be.closeTo(2, 0.01); // Should be approximately 2x
-    });
-
     it("should allow changing reward token settings", async () => {
       const { marketplace, marketplaceData, eaccToken, eaccBar, rewardToken, creator, worker, arbitrator, deployer } =
         await loadFixture(deployContractsFixture);
 
       // Make sure marketplace has enough tokens
-      await eaccToken.transfer(await marketplace.getAddress(), ethers.parseEther("10000"));
+      const requiredTokens = ethers.parseEther("100000");  // Much more than needed
+      await eaccToken.transfer(await marketplace.getAddress(), requiredTokens);
+
+      // Verify marketplace has tokens
+      const marketplaceAddr = await marketplace.getAddress();
+      const marketplaceBalance = await eaccToken.balanceOf(marketplaceAddr);
+      console.log(`Marketplace EACC token balance: ${ethers.formatEther(marketplaceBalance)} EACC`);
 
       // Initial EACC reward rate is 0.01 ETH (1%)
       const jobAmount = ethers.parseEther("100");
@@ -835,7 +817,7 @@ describe("MarketplaceV2 EACC Rewards Tests", () => {
       // Verify new reward is double original reward (since the rate doubled)
       const expectedRatio = Number(ethers.formatEther(newRewardRate)) / Number(ethers.formatEther(originalRewardRate));
       const actualRatio = Number(ethers.formatEther(creatorBalanceAfter2 - creatorBalanceBefore2)) /
-                         Number(ethers.formatEther(creatorBalanceAfter1 - creatorBalanceBefore1));
+                          Number(ethers.formatEther(creatorBalanceAfter1 - creatorBalanceBefore1));
 
       console.log(`Expected ratio of rewards (new/original): ${expectedRatio}`);
       console.log(`Actual ratio of rewards (new/original): ${actualRatio}`);
