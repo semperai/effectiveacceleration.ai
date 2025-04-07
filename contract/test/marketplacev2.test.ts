@@ -44,7 +44,7 @@ describe("MarketplaceV2 EACC Rewards Tests", () => {
     const UnicrowArbitrator = await ethers.getContractFactory("UnicrowArbitrator");
     const UnicrowClaim = await ethers.getContractFactory("UnicrowClaim");
 
-    console.log(`\nDeploying contracts with the account: ${deployer.address}`);
+    // console.log(`\nDeploying contracts with the account: ${deployer.address}`);
 
     let transactionCount = await deployer.getNonce();
 
@@ -161,7 +161,7 @@ describe("MarketplaceV2 EACC Rewards Tests", () => {
       1931, // 19.31 % fee
     ])) as unknown as MarketplaceV1;
     await marketplace.waitForDeployment();
-    console.log("Marketplace deployed to:", await marketplace.getAddress());
+    // console.log("Marketplace deployed to:", await marketplace.getAddress());
 
     // Deploy MarketplaceData
     const MarketplaceData = await ethers.getContractFactory("MarketplaceDataV1");
@@ -170,17 +170,17 @@ describe("MarketplaceV2 EACC Rewards Tests", () => {
     ]) as unknown as MarketplaceData;
 
     await marketplaceData.waitForDeployment();
-    console.log("MarketplaceData deployed to:", await marketplaceData.getAddress());
+    // console.log("MarketplaceData deployed to:", await marketplaceData.getAddress());
 
     // Set MarketplaceData in MarketplaceV1
     await marketplace.setMarketplaceDataAddress(await marketplaceData.getAddress());
-    console.log("MarketplaceData set in MarketplaceV1");
+    // console.log("MarketplaceData set in MarketplaceV1");
 
     // Upgrade to MarketplaceV2
     const MarketplaceV2 = await ethers.getContractFactory("MarketplaceV2");
     const marketplace2 = (await upgrades.upgradeProxy(await marketplace.getAddress(), MarketplaceV2)) as unknown as MarketplaceV2;
     await marketplace2.waitForDeployment();
-    console.log("Marketplace upgraded to V2 at:", await marketplace2.getAddress());
+    // console.log("Marketplace upgraded to V2 at:", await marketplace2.getAddress());
 
     // Initialize MarketplaceV2 with EACC token settings
     await marketplace2.initialize(
@@ -188,7 +188,7 @@ describe("MarketplaceV2 EACC Rewards Tests", () => {
       await eaccBar.getAddress(),
       ethers.parseEther("100")
     );
-    console.log("MarketplaceV2 initialized with EACCToken and EACCBar");
+    // console.log("MarketplaceV2 initialized with EACCToken and EACCBar");
 
     // Configure EACC rewards (100% of scaling)
     await marketplace2.setEACCRewardTokensEnabled(
@@ -215,7 +215,7 @@ describe("MarketplaceV2 EACC Rewards Tests", () => {
 
     // Verify marketplace has tokens
     const marketplaceEACCBalance = await eaccToken.balanceOf(await marketplace2.getAddress());
-    console.log(`Marketplace EACC token balance: ${ethers.formatEther(marketplaceEACCBalance)} EACC`);
+    // console.log(`Marketplace EACC token balance: ${ethers.formatEther(marketplaceEACCBalance)} EACC`);
 
     return {
       marketplace: marketplace2, // Use upgraded MarketplaceV2
@@ -381,7 +381,7 @@ describe("MarketplaceV2 EACC Rewards Tests", () => {
     );
     const signature = await worker.signMessage(ethers.getBytes(messageHash));
 
-    console.log('jobId', jobId);
+    // console.log('jobId', jobId);
 
     // Worker takes job
     await marketplace.connect(worker).takeJob(jobId, signature);
@@ -446,7 +446,7 @@ describe("MarketplaceV2 EACC Rewards Tests", () => {
       // Verify marketplace has tokens
       const marketplaceAddr = await marketplace.getAddress();
       const marketplaceBalance = await eaccToken.balanceOf(marketplaceAddr);
-      console.log(`Marketplace EACC token balance: ${ethers.formatEther(marketplaceBalance)} EACC`);
+      // console.log(`Marketplace EACC token balance: ${ethers.formatEther(marketplaceBalance)} EACC`);
 
       // Create and take job with reward token
       const jobId = await createAndTakeJob(
@@ -479,11 +479,11 @@ describe("MarketplaceV2 EACC Rewards Tests", () => {
       // Calculate expected reward
       const expectedReward = calculateExpectedReward(jobAmount, rewardRate, eaccTokensPerToken);
 
-      console.log(`Job amount: ${ethers.formatEther(jobAmount)} RWD`);
-      console.log(`Reward rate: ${ethers.formatEther(rewardRate)}`);
-      console.log(`EACC tokens per token: ${ethers.formatEther(eaccTokensPerToken)}`);
-      console.log(`Expected reward: ${ethers.formatEther(expectedReward)} EACC`);
-      console.log(`Creator received: ${ethers.formatEther(creatorBalanceAfter - creatorBalanceBefore)} EACC`);
+      // console.log(`Job amount: ${ethers.formatEther(jobAmount)} RWD`);
+      // console.log(`Reward rate: ${ethers.formatEther(rewardRate)}`);
+      // console.log(`EACC tokens per token: ${ethers.formatEther(eaccTokensPerToken)}`);
+      // console.log(`Expected reward: ${ethers.formatEther(expectedReward)} EACC`);
+      // console.log(`Creator received: ${ethers.formatEther(creatorBalanceAfter - creatorBalanceBefore)} EACC`);
 
       // Allow a small tolerance for rounding errors
       const tolerance = ethers.parseEther("0.0001"); // Small allowance for potential rounding
@@ -506,8 +506,8 @@ describe("MarketplaceV2 EACC Rewards Tests", () => {
 
       // If marketplace already has tokens, we'll need to modify our approach
       if (marketplaceBalance > ethers.parseEther("1")) {
-        console.log(`Marketplace already has ${ethers.formatEther(marketplaceBalance)} EACC tokens.`);
-        console.log("Checking behavior with a much larger expected reward than available balance...");
+        // console.log(`Marketplace already has ${ethers.formatEther(marketplaceBalance)} EACC tokens.`);
+        // console.log("Checking behavior with a much larger expected reward than available balance...");
 
         // Create a very large job to trigger the "not enough tokens" condition
         const veryLargeJobAmount = ethers.parseEther("1000000"); // 1 million tokens
@@ -541,24 +541,24 @@ describe("MarketplaceV2 EACC Rewards Tests", () => {
         const eaccTokensPerToken = await marketplace.eaccTokensPerToken();
         const expectedReward = calculateExpectedReward(veryLargeJobAmount, rewardRate, eaccTokensPerToken);
 
-        console.log(`Expected reward for large job: ${ethers.formatEther(expectedReward)} EACC`);
-        console.log(`Marketplace balance: ${ethers.formatEther(marketplaceBalance)} EACC`);
+        // console.log(`Expected reward for large job: ${ethers.formatEther(expectedReward)} EACC`);
+        // console.log(`Marketplace balance: ${ethers.formatEther(marketplaceBalance)} EACC`);
 
         if (expectedReward > marketplaceBalance) {
           // The reward needed is more than marketplace has, so no rewards should be distributed
-          console.log("Expected reward exceeds marketplace balance, no rewards should be distributed");
+          // console.log("Expected reward exceeds marketplace balance, no rewards should be distributed");
           expect(creatorBalanceAfter).to.equal(creatorBalanceBefore);
           expect(workerBalanceAfter).to.equal(workerBalanceBefore);
           expect(eaccBarBalanceAfter).to.equal(eaccBarBalanceBefore);
         } else {
           // Skip this test case as we can't properly simulate
-          console.log("Cannot properly simulate 'not enough tokens' condition");
+          // console.log("Cannot properly simulate 'not enough tokens' condition");
           // this.skip();
-          console.log('FIXME');
+          // console.log('FIXME');
         }
       } else {
         // Marketplace has no tokens, run the original test
-        console.log("Marketplace has no tokens, running standard test");
+        // console.log("Marketplace has no tokens, running standard test");
 
         // Create and take job with reward token
         const jobId = await createAndTakeJob(
@@ -636,9 +636,9 @@ describe("MarketplaceV2 EACC Rewards Tests", () => {
         // Calculate expected reward
         const expectedReward = calculateExpectedReward(jobAmounts[i], rewardRate, eaccTokensPerToken);
 
-        console.log(`Job amount ${i+1}: ${ethers.formatEther(jobAmounts[i])} RWD`);
-        console.log(`Expected reward ${i+1}: ${ethers.formatEther(expectedReward)} EACC`);
-        console.log(`Actual creator reward ${i+1}: ${ethers.formatEther(creatorBalanceAfter - creatorBalanceBefore)} EACC`);
+        // console.log(`Job amount ${i+1}: ${ethers.formatEther(jobAmounts[i])} RWD`);
+        // console.log(`Expected reward ${i+1}: ${ethers.formatEther(expectedReward)} EACC`);
+        // console.log(`Actual creator reward ${i+1}: ${ethers.formatEther(creatorBalanceAfter - creatorBalanceBefore)} EACC`);
 
         // Allow a small tolerance for rounding errors
         const tolerance = ethers.parseEther("0.0001");
@@ -656,8 +656,8 @@ describe("MarketplaceV2 EACC Rewards Tests", () => {
           const ratio = Number(ethers.formatEther(jobAmounts[i])) / Number(ethers.formatEther(prevJobAmount));
           const rewardRatio = Number(ethers.formatEther(expectedReward)) / Number(ethers.formatEther(prevExpectedReward));
 
-          console.log(`Job amount ratio ${i}/${i-1}: ${ratio}`);
-          console.log(`Reward ratio ${i}/${i-1}: ${rewardRatio}`);
+          // console.log(`Job amount ratio ${i}/${i-1}: ${ratio}`);
+          // console.log(`Reward ratio ${i}/${i-1}: ${rewardRatio}`);
 
           // The ratios should be approximately equal
           expect(Math.abs(ratio - rewardRatio)).to.be.lessThan(0.01); // Allow 1% difference due to rounding
@@ -722,7 +722,7 @@ describe("MarketplaceV2 EACC Rewards Tests", () => {
       // Verify marketplace has tokens
       const marketplaceAddr = await marketplace.getAddress();
       const marketplaceBalance = await eaccToken.balanceOf(marketplaceAddr);
-      console.log(`Marketplace EACC token balance: ${ethers.formatEther(marketplaceBalance)} EACC`);
+      // console.log(`Marketplace EACC token balance: ${ethers.formatEther(marketplaceBalance)} EACC`);
 
       // Initial EACC reward rate is 0.01 ETH (1%)
       const jobAmount = ethers.parseEther("100");
@@ -756,9 +756,9 @@ describe("MarketplaceV2 EACC Rewards Tests", () => {
       const eaccTokensPerToken = await marketplace.eaccTokensPerToken();
       const expectedReward1 = calculateExpectedReward(jobAmount, originalRewardRate, eaccTokensPerToken);
 
-      console.log(`Original reward rate: ${ethers.formatEther(originalRewardRate)}`);
-      console.log(`Expected reward 1: ${ethers.formatEther(expectedReward1)} EACC`);
-      console.log(`Actual creator reward 1: ${ethers.formatEther(creatorBalanceAfter1 - creatorBalanceBefore1)} EACC`);
+      // console.log(`Original reward rate: ${ethers.formatEther(originalRewardRate)}`);
+      // console.log(`Expected reward 1: ${ethers.formatEther(expectedReward1)} EACC`);
+      // console.log(`Actual creator reward 1: ${ethers.formatEther(creatorBalanceAfter1 - creatorBalanceBefore1)} EACC`);
 
       // Allow a small tolerance for rounding errors
       const tolerance = ethers.parseEther("0.0001");
@@ -805,9 +805,9 @@ describe("MarketplaceV2 EACC Rewards Tests", () => {
       // Calculate expected reward with new rate
       const expectedReward2 = calculateExpectedReward(jobAmount, newRewardRate, eaccTokensPerToken);
 
-      console.log(`New reward rate: ${ethers.formatEther(newRewardRate)}`);
-      console.log(`Expected reward 2: ${ethers.formatEther(expectedReward2)} EACC`);
-      console.log(`Actual creator reward 2: ${ethers.formatEther(creatorBalanceAfter2 - creatorBalanceBefore2)} EACC`);
+      // console.log(`New reward rate: ${ethers.formatEther(newRewardRate)}`);
+      // console.log(`Expected reward 2: ${ethers.formatEther(expectedReward2)} EACC`);
+      // console.log(`Actual creator reward 2: ${ethers.formatEther(creatorBalanceAfter2 - creatorBalanceBefore2)} EACC`);
 
       // Verify rewards at new rate
       expect(creatorBalanceAfter2 - creatorBalanceBefore2).to.be.closeTo(expectedReward2, tolerance);
@@ -819,8 +819,8 @@ describe("MarketplaceV2 EACC Rewards Tests", () => {
       const actualRatio = Number(ethers.formatEther(creatorBalanceAfter2 - creatorBalanceBefore2)) /
                           Number(ethers.formatEther(creatorBalanceAfter1 - creatorBalanceBefore1));
 
-      console.log(`Expected ratio of rewards (new/original): ${expectedRatio}`);
-      console.log(`Actual ratio of rewards (new/original): ${actualRatio}`);
+      // console.log(`Expected ratio of rewards (new/original): ${expectedRatio}`);
+      // console.log(`Actual ratio of rewards (new/original): ${actualRatio}`);
 
       // The ratios should be approximately equal
       expect(Math.abs(expectedRatio - actualRatio)).to.be.lessThan(0.01); // Allow 1% difference due to rounding
