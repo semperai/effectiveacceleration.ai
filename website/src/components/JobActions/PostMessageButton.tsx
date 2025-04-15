@@ -73,18 +73,18 @@ export function PostMessageButton({
       return;
     }
 
-    const sessionKey = sessionKeys[`${address}-${selectedUserRecipient}`];
+    const initialAddress = address;
+    const initialRecipient = recipient === initialAddress 
+      ? job.roles.creator 
+      : recipient;
+
+    const sessionKey = sessionKeys[`${initialAddress}-${initialRecipient}`];
+
     if (!sessionKey) {
       throw new Error('PostMessageButton: No session key found');
     }
     let contentHash = ZeroHash;
 
-    try {
-      const contentCall = await safeGetFromIpfs('0xc7043d48132d84a040c63871406a706a86bf1bbdce36800d26a66d9ba6c30adf', sessionKey);
-      console.log(contentCall, 'TEST');
-    } catch (error) {
-      console.error('Error fetching content from IPFS:', error);
-    }
     if (message.length > 0) {
       dismissLoadingToast();
       loadingToastIdRef.current = showLoading('Publishing job message to IPFS...');
@@ -92,12 +92,6 @@ export function PostMessageButton({
       try {
         const { hash } = await publishToIpfs(message, sessionKey);
         contentHash = hash;
-        console.log('Posting job message on-IPFS:',
-          'sessionKey: ',sessionKey, 
-          'sessionKeyRaw', sessionKeys[`${address}-${selectedUserRecipient}`],
-          'userAddress: ', address, 
-          'contentHash: ', contentHash, 
-          'selectedUserRecipient: ', selectedUserRecipient);
       } catch (err) {
         Sentry.captureException(err);
         dismissLoadingToast();
@@ -109,18 +103,19 @@ export function PostMessageButton({
       showSuccess('Job message published to IPFS');
     }
 
+    const currentAddress = user.address_;
+    if (currentAddress !== initialAddress) {
+      showError('Account changed during transaction. Please reconnect with original account.');
+      setIsPostingMessage(false);
+      return;
+    }
+
     try {
-      console.log('Posting job message on-chain:',
-        'sessionKey: ',sessionKey, 
-        'sessionKeyRaw', sessionKeys[`${address}-${selectedUserRecipient}`],
-        'userAddress: ', address, 
-        'contentHash: ', contentHash, 
-        'selectedUserRecipient: ', selectedUserRecipient);
       await writeContractWithNotifications({
         abi: MARKETPLACE_V1_ABI,
         address: Config!.marketplaceAddress,
         functionName: 'postThreadMessage',
-        args: [BigInt(job.id!), contentHash, selectedUserRecipient],
+        args: [BigInt(job.id!), contentHash, initialRecipient],
       });
     
     } catch (err: any) {
