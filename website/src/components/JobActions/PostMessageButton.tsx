@@ -37,7 +37,7 @@ export function PostMessageButton({
   const [message, setMessage] = useState<string>('');
   const selectedUserRecipient =
     recipient === address ? job.roles.creator : recipient;
-
+  const initialAddressRef = useRef<string | undefined>();
   const [isPostingMessage, setIsPostingMessage] = useState(false);
   const { showError, showSuccess, showLoading, toast } = useToast();
 
@@ -61,17 +61,29 @@ export function PostMessageButton({
       if (isConfirmed) {
           setMessage('');
           setIsPostingMessage(false);
+          initialAddressRef.current = address;
       }
       if (error) {
         setIsPostingMessage(false);
+        initialAddressRef.current = address;
       }
   }, [isConfirmed, contractLoadingToastIdRef.current, error]);
+
+  useEffect(() => {
+    if (isPostingMessage && address !== initialAddressRef.current) {
+      showError('Account changed during transaction. Process cancelled.');
+      setIsPostingMessage(false);
+      dismissLoadingToast();
+      initialAddressRef.current = address;
+    }
+  }, [address, isPostingMessage, showError, dismissLoadingToast]);
 
   async function handlePostMessage() {
     if (!user) {
       router.push('/register');
       return;
     }
+    initialAddressRef.current = address;
 
     const initialAddress = address;
     const initialRecipient = recipient === initialAddress 
@@ -103,9 +115,8 @@ export function PostMessageButton({
       showSuccess('Job message published to IPFS');
     }
 
-    const currentAddress = user.address_;
-    if (currentAddress !== initialAddress) {
-      showError('Account changed during transaction. Please reconnect with original account.');
+    if (address !== initialAddress) {
+      showError('Account changed during transaction.');
       setIsPostingMessage(false);
       return;
     }
