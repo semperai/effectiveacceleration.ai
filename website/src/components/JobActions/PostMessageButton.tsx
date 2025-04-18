@@ -119,7 +119,8 @@ export function PostMessageButton({
           'Session Key:', sessionKey,
           'Message:', message,
           'Sender-Recipient Pair:', `${initialAddress}-${initialRecipient}`,
-          'Initial Address Reference:', initialAddressRef.current
+          'Initial Address Reference:', initialAddressRef.current,
+          'Session Key:', sessionKeys,
         );
       } catch (err) {
         Sentry.captureException(err);
@@ -147,7 +148,8 @@ export function PostMessageButton({
         'Session Key:', sessionKey,
         'Message:', message,
         'Sender-Recipient Pair:', `${initialAddress}-${initialRecipient}`,
-        'Initial Address Reference:', initialAddressRef.current
+        'Initial Address Reference:', initialAddressRef.current,
+        'Session Key:', sessionKeys,
       );
       await writeContractWithNotifications({
         abi: MARKETPLACE_V1_ABI,
@@ -168,7 +170,8 @@ export function PostMessageButton({
         'Session Key:', sessionKey,
         'Message:', message,
         'Sender-Recipient Pair:', `${initialAddress}-${initialRecipient}`,
-        'Initial Address Reference:', initialAddressRef.current
+        'Initial Address Reference:', initialAddressRef.current,
+        'Session Key:', sessionKeys,
       );
     }
   }
