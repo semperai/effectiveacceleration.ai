@@ -71,6 +71,14 @@ export function PostMessageButton({
 
   useEffect(() => {
     if (isPostingMessage && address !== initialAddressRef.current) {
+      console.log(
+        'BEFORE ACCOUNT CHANGE',
+        'Hash:', hash,
+        'Session Key:', sessionKeys,
+        'Message:', message,
+        'Sender-Recipient Pair:', `${job.roles.creator}-${recipient}`,
+        'Initial Address Reference:', initialAddressRef.current
+      );
       showError('Account changed during transaction. Process cancelled.');
       setIsPostingMessage(false);
       dismissLoadingToast();
@@ -104,6 +112,15 @@ export function PostMessageButton({
       try {
         const { hash } = await publishToIpfs(message, sessionKey);
         contentHash = hash;
+        console.log(
+          'AFTER PUBLISHING TO IPFS',
+          'IPFS Content Hash:', contentHash,
+          'Hash:', hash,
+          'Session Key:', sessionKey,
+          'Message:', message,
+          'Sender-Recipient Pair:', `${initialAddress}-${initialRecipient}`,
+          'Initial Address Reference:', initialAddressRef.current
+        );
       } catch (err) {
         Sentry.captureException(err);
         dismissLoadingToast();
@@ -122,6 +139,16 @@ export function PostMessageButton({
     }
 
     try {
+
+      console.log(
+        'BEFORE TRY WRITECONTRACTWITHNOTIFICATIONS',
+        'IPFS Content Hash:', contentHash,
+        'Hash:', hash,
+        'Session Key:', sessionKey,
+        'Message:', message,
+        'Sender-Recipient Pair:', `${initialAddress}-${initialRecipient}`,
+        'Initial Address Reference:', initialAddressRef.current
+      );
       await writeContractWithNotifications({
         abi: MARKETPLACE_V1_ABI,
         address: Config!.marketplaceAddress,
@@ -134,6 +161,15 @@ export function PostMessageButton({
       showError(`Error posting job message: ${err.message}`);
     } finally {
       setIsPostingMessage(false);
+      console.log(
+        'FINALLY',
+        'IPFS Content Hash:', contentHash,
+        'Hash:', hash,
+        'Session Key:', sessionKey,
+        'Message:', message,
+        'Sender-Recipient Pair:', `${initialAddress}-${initialRecipient}`,
+        'Initial Address Reference:', initialAddressRef.current
+      );
     }
   }
 
