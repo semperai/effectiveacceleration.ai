@@ -13,6 +13,9 @@ import * as Sentry from '@sentry/nextjs';
 
 import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
+import { E_A_C_C_TOKEN_ABI as EACC_TOKEN_ABI } from '@effectiveacceleration/contracts/wagmi/EACCToken';
+import { E_A_C_C_BAR_ABI as EACC_BAR_ABI } from '@effectiveacceleration/contracts/wagmi/EACCBar';
+import { SABLIER_LOCKUP_ABI } from '@/abis/SablierLockup';
 import { useApolloClient } from '@apollo/client';
 
 type ParsedEvent = {
@@ -63,9 +66,13 @@ type WriteContractConfig = {
   address: Address;
   functionName: string;
   args: any[];
+  value?: bigint;
   contracts?: {
-    marketplaceAddress: Address;
-    marketplaceDataAddress: Address;
+    marketplaceAddress?: Address;
+    marketplaceDataAddress?: Address;
+    eaccAddress?: Address;
+    eaccBarAddress?: Address;
+    sablierLockupAddress?: Address;
   };
   onSuccess?: (
     receipt: TransactionReceipt,
@@ -115,18 +122,42 @@ export function useWriteContractWithNotifications() {
   const parseEvents = useCallback((receipt: TransactionReceipt) => {
     if (!contractsRef.current) return [];
 
-    const contracts = [
-      {
+    const contracts = [];
+    if (contractsRef.current.marketplaceAddress) {
+      contracts.push({
         address: contractsRef.current.marketplaceAddress,
         abi: MARKETPLACE_V1_ABI,
         name: 'MarketplaceV1',
-      },
-      {
+      });
+    }
+    if (contractsRef.current.marketplaceDataAddress) {
+      contracts.push({
         address: contractsRef.current.marketplaceDataAddress,
         abi: MARKETPLACE_DATA_V1_ABI,
         name: 'MarketplaceDataV1',
-      },
-    ];
+      });
+    }
+    if (contractsRef.current.eaccAddress) {
+      contracts.push({
+        address: contractsRef.current.eaccAddress,
+        abi: EACC_TOKEN_ABI,
+        name: 'EACCToken',
+      });
+    }
+    if (contractsRef.current.eaccBarAddress) {
+      contracts.push({
+        address: contractsRef.current.eaccBarAddress,
+        abi: EACC_BAR_ABI,
+        name: 'EACCBar',
+      });
+    }
+    if (contractsRef.current.sablierLockupAddress) {
+      contracts.push({
+        address: contractsRef.current.sablierLockupAddress,
+        abi: SABLIER_LOCKUP_ABI,
+        name: 'SablierLockup',
+      });
+    }
 
     return parseContractEvents(receipt.logs, contracts);
   }, []);
@@ -156,6 +187,7 @@ export function useWriteContractWithNotifications() {
       address,
       functionName,
       args,
+      value,
       contracts,
       onSuccess,
       onReceipt,
@@ -176,10 +208,11 @@ export function useWriteContractWithNotifications() {
       try {
         try {
           await simulateContract(config, {
-            abi,
+            abi: abi as any,
             address,
             functionName,
             args,
+            value,
           });
         } catch (e: any) {
           setSimlateError(e);
@@ -187,10 +220,11 @@ export function useWriteContractWithNotifications() {
         }
 
         await writeContract({
-          abi,
+          abi: abi as any,
           address,
           functionName,
           args,
+          value,
         });
       } catch (e: any) {
         Sentry.captureException(e);
