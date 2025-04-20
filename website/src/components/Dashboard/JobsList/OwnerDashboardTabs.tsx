@@ -66,7 +66,9 @@ export const OwnerDashboardTabs = () => {
       </TabsList>
       <TabsContent value='Open Jobs'>
       {!address ? (
-          <EmptyJobsList image={NoJobsOpenImage} text='No address provided' />
+          <>
+            <EmptyJobsList image={NoJobsOpenImage} text='No address provided' />
+          </>
         ) : openJobs ? (
           <>
             <JobsList jobs={openJobs} />
@@ -79,7 +81,11 @@ export const OwnerDashboardTabs = () => {
         )}
       </TabsContent>
       <TabsContent value='In Progress'>
-        {takenJobs ? (
+        {!address ? (
+          <>
+            <EmptyJobsList image={NoJobsProgessImage} text='No address provided' />
+          </>
+        ) : takenJobs ? (
           <>
             <JobsList jobs={takenJobs} />
             {takenJobs.length === 0 && (
@@ -94,7 +100,11 @@ export const OwnerDashboardTabs = () => {
         )}
       </TabsContent>
       <TabsContent value='Completed'>
-        {completedJobs ? (
+        {!address ? (
+          <>
+            <EmptyJobsList image={NoJobsCompletedImage} text='No address provided' />
+          </>
+        ) : completedJobs ? (
           <>
             <JobsList jobs={completedJobs} />
             {completedJobs.length === 0 && (
@@ -109,7 +119,11 @@ export const OwnerDashboardTabs = () => {
         )}
       </TabsContent>
       <TabsContent value='Disputed'>
-        {disputedJobs ? (
+        {!address ? (
+          <>
+            <EmptyJobsList image={NoJobsDisputedImage} text='No address provided' />
+          </>
+        ) : disputedJobs ? (
           <>
             <JobsList jobs={disputedJobs} />
             {disputedJobs.length === 0 && (
@@ -124,7 +138,11 @@ export const OwnerDashboardTabs = () => {
         )}
       </TabsContent>
       <TabsContent value='Closed'>
-        {closedJobs ? (
+        {!address ? (
+          <>
+            <EmptyJobsList image={NojobsClosedImage} text='No address provided' />
+          </>
+        ) : closedJobs ? (
           <>
             <JobsList jobs={closedJobs} />
             {closedJobs.length === 0 && (

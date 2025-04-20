@@ -60,7 +60,12 @@ export const WorkerDashboardTabs = () => {
           )}
         </TabsContent>
         <TabsContent value='Started Jobs'>
-          {takenJobs ? (
+          {!address ? (
+            <>
+              {console.log('No address provided for Started Jobs')}
+              <EmptyJobsList image={NoJobsProgressImage} text='No address provided' />
+            </>
+          ) : takenJobs ? (
             <>
               <JobsList jobs={takenJobs} />
               {takenJobs?.length === 0 && (
@@ -75,7 +80,11 @@ export const WorkerDashboardTabs = () => {
           )}
         </TabsContent>
         <TabsContent value='Completed Jobs'>
-          {completedJobs ? (
+          {!address ? (
+            <>
+              <EmptyJobsList image={NoJobsCompletedImage} text='No address provided' />
+            </>
+          ) : completedJobs ? (
             <>
               <JobsList jobs={completedJobs} />
               {completedJobs.length === 0 && (
