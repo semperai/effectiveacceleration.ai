@@ -62,7 +62,6 @@ export const WorkerDashboardTabs = () => {
         <TabsContent value='Started Jobs'>
           {!address ? (
             <>
-              {console.log('No address provided for Started Jobs')}
               <EmptyJobsList image={NoJobsProgressImage} text='No address provided' />
             </>
           ) : takenJobs ? (
