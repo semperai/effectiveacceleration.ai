@@ -35,28 +35,19 @@ const platformStats = {
   avgCompletionTime: '4.2 hrs',
 };
 
-const SecurityFeaturesPopover = ({mainText, popoverText}: {mainText: string, popoverText: string}) => {
+const SecurityFeatureItem = ({mainText, subText}: {mainText: string, subText: string}) => {
   return (
-      <Popover>
-        <PopoverAnchor asChild>
-          <div className='flex items-center gap-3 rounded-lg bg-white p-4'>
-            <Shield className='h-6 w-6 text-blue-600' />
-            <div className='font-medium'>
-              {mainText}
-            </div>
-            <div className="grow flex">
-              <PopoverTrigger className="ml-auto align-middle">
-                <Info className='h-5 w-5 text-gray-600'/>
-              </PopoverTrigger>
-            </div>
-            <PopoverContent side="top">
-              <p>
-                {popoverText}
-              </p>
-            </PopoverContent>
-          </div>
-        </PopoverAnchor>
-      </Popover>
+    <div className='flex flex-col gap-2 rounded-lg bg-white p-4'>
+      <div className='flex items-center gap-3'>
+        <Shield className='h-6 w-6 text-blue-600' />
+        <div className='font-medium'>
+          {mainText}
+        </div>
+      </div>
+      <div className='pl-9 text-sm text-gray-600'>
+        {subText}
+      </div>
+    </div>
   );
 }
 
@@ -65,9 +56,18 @@ const SecurityFeatures = () => {
     <div className='rounded-2xl bg-gray-50 p-8'>
       <h2 className='mb-6 text-2xl font-bold'>Enterprise-Grade Security</h2>
       <div className='grid gap-6 md:grid-cols-3'>
-        <SecurityFeaturesPopover mainText="End-to-End Encryption" popoverText="All messages and sensitive data are encrypted using industry-standard protocols" />
-        <SecurityFeaturesPopover mainText="Smart Contract Audited" popoverText="All smart contracts are thoroughly audited by 0xguard" />
-        <SecurityFeaturesPopover mainText="Decentralized Storage" popoverText="All data is stored on IPFS. EACC is unstoppable." />
+        <SecurityFeatureItem
+          mainText="End-to-End Encryption"
+          subText="All messages and sensitive data are encrypted using industry-standard protocols"
+        />
+        <SecurityFeatureItem
+          mainText="Smart Contract Audited"
+          subText="All smart contracts are thoroughly audited by 0xguard"
+        />
+        <SecurityFeatureItem
+          mainText="Decentralized Storage"
+          subText="All data is stored on IPFS. EACC is unstoppable."
+        />
       </div>
     </div>
   );
