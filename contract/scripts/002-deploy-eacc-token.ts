@@ -1,8 +1,4 @@
-// import { ethers } from "ethers";
-// import "@nomicfoundation/hardhat-ethers";
-// import "@openzeppelin/hardhat-upgrades";
-const { ethers, upgrades } = require("hardhat");
-const hre = require("hardhat");
+const { ethers } = require("hardhat");
 
 import { MarketplaceV1 as Marketplace } from '../typechain-types/contracts/MarketplaceV1';
 import { MarketplaceDataV1 as MarketplaceData } from "../typechain-types/contracts/MarketplaceDataV1";

@@ -103,7 +103,7 @@ contract EACCToken is ERC20, ERC20Permit, ERC20Votes, Ownable {
 
     /// @notice Withdraws tokens from the contract to the treasury
     /// @param _token the token to withdraw
-    function withdraw(address _token) public {
+    function withdraw(address _token) public onlyOwner {
         IERC20 token = IERC20(_token);
         uint256 balance = token.balanceOf(address(this));
         token.transfer(treasury, balance);
