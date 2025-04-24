@@ -406,7 +406,7 @@ export default function WelcomePage() {
         <Hero />
         <div className='lg:mx-40'>
           <SecurityFeatures />
-          <TokenSection />
+          {/* <TokenSection /> */ }
           <FeatureCards />
           <Stats />
           <AIArbitrationDAO />
