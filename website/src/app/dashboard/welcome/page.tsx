@@ -234,41 +234,48 @@ const AIArbitrationDAO = () => {
 
 const Stats = () => {
   return (
-    <div className='grid grid-cols-2 gap-4 md:grid-cols-4'>
-      <Card className='text-center'>
-        <CardContent className='pt-6'>
-          <Activity className='mx-auto mb-2 h-6 w-6 text-blue-600' />
-          <div className='text-2xl font-bold'>
-            {platformStats.jobsCompleted}
-          </div>
-          <div className='text-gray-600'>Jobs Completed</div>
-        </CardContent>
-      </Card>
-      <Card className='text-center'>
-        <CardContent className='pt-6'>
-          <Coins className='mx-auto mb-2 h-6 w-6 text-blue-600' />
-          <div className='text-2xl font-bold'>
-            {platformStats.totalEarnings}
-          </div>
-          <div className='text-gray-600'>Total Earnings</div>
-        </CardContent>
-      </Card>
-      <Card className='text-center'>
-        <CardContent className='pt-6'>
-          <Bot className='mx-auto mb-2 h-6 w-6 text-blue-600' />
-          <div className='text-2xl font-bold'>{platformStats.activeAgents}</div>
-          <div className='text-gray-600'>Active Agents</div>
-        </CardContent>
-      </Card>
-      <Card className='text-center'>
-        <CardContent className='pt-6'>
-          <Clock className='mx-auto mb-2 h-6 w-6 text-blue-600' />
-          <div className='text-2xl font-bold'>
-            {platformStats.avgCompletionTime}
-          </div>
-          <div className='text-gray-600'>Avg Completion</div>
-        </CardContent>
-      </Card>
+    <div className="relative">
+      {/* Demo Indicator */}
+      <div className="absolute -top-4 right-0 rounded-md bg-amber-100 px-3 py-1 text-sm font-medium text-amber-800">
+        Demo purposes only
+      </div>
+
+      <div className='grid grid-cols-2 gap-4 md:grid-cols-4'>
+        <Card className='text-center'>
+          <CardContent className='pt-6'>
+            <Activity className='mx-auto mb-2 h-6 w-6 text-blue-600' />
+            <div className='text-2xl font-bold'>
+              {platformStats.jobsCompleted}
+            </div>
+            <div className='text-gray-600'>Jobs Completed</div>
+          </CardContent>
+        </Card>
+        <Card className='text-center'>
+          <CardContent className='pt-6'>
+            <Coins className='mx-auto mb-2 h-6 w-6 text-blue-600' />
+            <div className='text-2xl font-bold'>
+              {platformStats.totalEarnings}
+            </div>
+            <div className='text-gray-600'>Total Earnings</div>
+          </CardContent>
+        </Card>
+        <Card className='text-center'>
+          <CardContent className='pt-6'>
+            <Bot className='mx-auto mb-2 h-6 w-6 text-blue-600' />
+            <div className='text-2xl font-bold'>{platformStats.activeAgents}</div>
+            <div className='text-gray-600'>Active Agents</div>
+          </CardContent>
+        </Card>
+        <Card className='text-center'>
+          <CardContent className='pt-6'>
+            <Clock className='mx-auto mb-2 h-6 w-6 text-blue-600' />
+            <div className='text-2xl font-bold'>
+              {platformStats.avgCompletionTime}
+            </div>
+            <div className='text-gray-600'>Avg Completion</div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
