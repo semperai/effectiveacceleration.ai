@@ -37,7 +37,7 @@ export function PostMessageButton({
   const [message, setMessage] = useState<string>('');
   const selectedUserRecipient =
     recipient === address ? job.roles.creator : recipient;
-
+  const initialAddressRef = useRef<string | undefined>();
   const [isPostingMessage, setIsPostingMessage] = useState(false);
   const { showError, showSuccess, showLoading, toast } = useToast();
 
@@ -61,30 +61,50 @@ export function PostMessageButton({
       if (isConfirmed) {
           setMessage('');
           setIsPostingMessage(false);
+          initialAddressRef.current = address;
       }
       if (error) {
         setIsPostingMessage(false);
+        initialAddressRef.current = address;
       }
   }, [isConfirmed, contractLoadingToastIdRef.current, error]);
+
+  useEffect(() => {
+    if (isPostingMessage && address !== initialAddressRef.current) {
+      console.log(
+        'BEFORE ACCOUNT CHANGE',
+        'Hash:', hash,
+        'Session Key:', sessionKeys,
+        'Message:', message,
+        'Sender-Recipient Pair:', `${job.roles.creator}-${recipient}`,
+        'Initial Address Reference:', initialAddressRef.current
+      );
+      showError('Account changed during transaction. Process cancelled.');
+      setIsPostingMessage(false);
+      dismissLoadingToast();
+      initialAddressRef.current = address;
+    }
+  }, [address, isPostingMessage, showError, dismissLoadingToast]);
 
   async function handlePostMessage() {
     if (!user) {
       router.push('/register');
       return;
     }
+    initialAddressRef.current = address;
 
-    const sessionKey = sessionKeys[`${address}-${selectedUserRecipient}`];
+    const initialAddress = address;
+    const initialRecipient = recipient === initialAddress 
+      ? job.roles.creator 
+      : recipient;
+
+    const sessionKey = sessionKeys[`${initialAddress}-${initialRecipient}`];
+
     if (!sessionKey) {
       throw new Error('PostMessageButton: No session key found');
     }
     let contentHash = ZeroHash;
 
-    try {
-      const contentCall = await safeGetFromIpfs('0xc7043d48132d84a040c63871406a706a86bf1bbdce36800d26a66d9ba6c30adf', sessionKey);
-      console.log(contentCall, 'TEST');
-    } catch (error) {
-      console.error('Error fetching content from IPFS:', error);
-    }
     if (message.length > 0) {
       dismissLoadingToast();
       loadingToastIdRef.current = showLoading('Publishing job message to IPFS...');
@@ -92,12 +112,16 @@ export function PostMessageButton({
       try {
         const { hash } = await publishToIpfs(message, sessionKey);
         contentHash = hash;
-        console.log('Posting job message on-IPFS:',
-          'sessionKey: ',sessionKey, 
-          'sessionKeyRaw', sessionKeys[`${address}-${selectedUserRecipient}`],
-          'userAddress: ', address, 
-          'contentHash: ', contentHash, 
-          'selectedUserRecipient: ', selectedUserRecipient);
+        console.log(
+          'AFTER PUBLISHING TO IPFS',
+          'IPFS Content Hash:', contentHash,
+          'Hash:', hash,
+          'Session Key:', sessionKey,
+          'Message:', message,
+          'Sender-Recipient Pair:', `${initialAddress}-${initialRecipient}`,
+          'Initial Address Reference:', initialAddressRef.current,
+          'Session Key:', sessionKeys,
+        );
       } catch (err) {
         Sentry.captureException(err);
         dismissLoadingToast();
@@ -109,18 +133,29 @@ export function PostMessageButton({
       showSuccess('Job message published to IPFS');
     }
 
+    if (address !== initialAddress) {
+      showError('Account changed during transaction.');
+      setIsPostingMessage(false);
+      return;
+    }
+
     try {
-      console.log('Posting job message on-chain:',
-        'sessionKey: ',sessionKey, 
-        'sessionKeyRaw', sessionKeys[`${address}-${selectedUserRecipient}`],
-        'userAddress: ', address, 
-        'contentHash: ', contentHash, 
-        'selectedUserRecipient: ', selectedUserRecipient);
+
+      console.log(
+        'BEFORE TRY WRITECONTRACTWITHNOTIFICATIONS',
+        'IPFS Content Hash:', contentHash,
+        'Hash:', hash,
+        'Session Key:', sessionKey,
+        'Message:', message,
+        'Sender-Recipient Pair:', `${initialAddress}-${initialRecipient}`,
+        'Initial Address Reference:', initialAddressRef.current,
+        'Session Key:', sessionKeys,
+      );
       await writeContractWithNotifications({
         abi: MARKETPLACE_V1_ABI,
         address: Config!.marketplaceAddress,
         functionName: 'postThreadMessage',
-        args: [BigInt(job.id!), contentHash, selectedUserRecipient],
+        args: [BigInt(job.id!), contentHash, initialRecipient],
       });
     
     } catch (err: any) {
@@ -128,6 +163,16 @@ export function PostMessageButton({
       showError(`Error posting job message: ${err.message}`);
     } finally {
       setIsPostingMessage(false);
+      console.log(
+        'FINALLY',
+        'IPFS Content Hash:', contentHash,
+        'Hash:', hash,
+        'Session Key:', sessionKey,
+        'Message:', message,
+        'Sender-Recipient Pair:', `${initialAddress}-${initialRecipient}`,
+        'Initial Address Reference:', initialAddressRef.current,
+        'Session Key:', sessionKeys,
+      );
     }
   }
 
