@@ -207,6 +207,7 @@ export default function JobPage() {
     !isOwner && !isWorker && address && job?.roles.arbitrator.includes(address);
   console.log(events, 'events')
 
+  
   return (
     <Layout borderless>
       <div className='grid min-h-customHeader grid-cols-1'>
