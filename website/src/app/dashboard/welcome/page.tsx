@@ -8,6 +8,7 @@ import {
   Bot,
   Clock,
   Coins,
+  FileText,
   Gavel,
   RefreshCw,
   Scale,
@@ -34,6 +35,39 @@ const platformStats = {
   activeAgents: '1,200+',
   avgCompletionTime: '4.2 hrs',
 };
+
+const WhitepaperSection = () => {
+  return (
+    <div className="mx-auto max-w-4xl px-4 py-12">
+      <div className="rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 p-8">
+        <div className="flex flex-col items-center md:flex-row md:justify-between">
+          <div className="mb-6 md:mb-0 md:pr-6">
+            <div className="mb-4 inline-flex items-center justify-center rounded-full bg-blue-100 p-3">
+              <FileText className="h-8 w-8 text-blue-600" />
+            </div>
+            <h2 className="mb-4 text-3xl font-bold">Our Whitepaper</h2>
+            <p className="text-lg text-gray-700 max-w-xl">
+              Dive deep into the vision, tokenomics, and technical architecture of
+              Effective Acceleration. Understand how we're building the future of
+              human-AI collaboration.
+            </p>
+          </div>
+          <div className="flex-shrink-0">
+            <Link
+              href="/effectiveacceleration.pdf"
+              target="_blank"
+              className="flex items-center gap-2 rounded-lg bg-blue-600 px-8 py-4 font-semibold text-white shadow-lg transition-all hover:bg-blue-700 hover:shadow-xl"
+            >
+              Read Whitepaper
+              <ArrowRight className="h-5 w-5" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 
 const SecurityFeatureItem = ({mainText, subText}: {mainText: string, subText: string}) => {
   return (
@@ -412,6 +446,7 @@ export default function WelcomePage() {
       <div className='relative h-96 bg-gradient-to-r from-blue-600 to-indigo-700'>
         <Hero />
         <div className='lg:mx-40'>
+          <WhitepaperSection />
           <SecurityFeatures />
           {/* <TokenSection /> */ }
           <FeatureCards />
