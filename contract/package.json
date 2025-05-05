@@ -1,7 +1,7 @@
 {
   "name": "@effectiveacceleration/contracts",
   "version": "1.1.1",
-  "description": "arbius",
+  "description": "Effective Acceleration decentralized marketplace",
   "author": "Kasumi Null <kasumi.null@yandex.com>",
   "license": "MIT",
   "main": "dist/src/index.js",
