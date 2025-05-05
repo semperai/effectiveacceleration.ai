@@ -5,7 +5,7 @@ import '@rainbow-me/rainbowkit/styles.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { defineChain } from 'viem';
 import { WagmiProvider } from 'wagmi';
-import { arbitrum, arbitrumSepolia, hardhat } from 'wagmi/chains';
+import { arbitrum, arbitrumSepolia, mainnet, hardhat } from 'wagmi/chains';
 
 import {
   ApolloClient,
@@ -67,8 +67,8 @@ export const config = getDefaultConfig({
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!,
   chains:
     process.env.NODE_ENV === 'production'
-      ? [arbitrum, arbitrumSepolia]
-      : [staging, hardhat, arbitrum, arbitrumSepolia],
+      ? [arbitrum, arbitrumSepolia, mainnet]
+      : [staging, hardhat, arbitrum, arbitrumSepolia, mainnet],
   ssr: true, // If your dApp uses server side rendering (SSR)
 }) as any;
 

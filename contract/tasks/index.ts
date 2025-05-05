@@ -76,13 +76,35 @@ async function getEACCToken(hre: HardhatRuntimeEnvironment) {
   }
 
   if (hre.network.name === 'localhost') {
-    const eacc = await EACCToken.attach(LocalConfig.eaccTokenAddress);
+    const eacc = await EACCToken.attach(LocalConfig.EACCAddress);
     return eacc;
   }
 
   if (hre.network.name === 'arbitrum') {
-    const eacc = await EACCToken.attach(Config.eaccTokenAddress);
+    const eacc = await EACCToken.attach(Config.EACCAddress);
     return eacc;
+  }
+
+  console.log(`Unknown network ${hre.network.name}`);
+  process.exit(1);
+}
+
+async function getEACCBar(hre: HardhatRuntimeEnvironment) {
+  const EACCBar = await hre.ethers.getContractFactory("EACCBar");
+
+  if (hre.network.name === 'hardhat') {
+    console.log('You are on hardhat network, try localhost');
+    process.exit(1);
+  }
+
+  if (hre.network.name === 'localhost') {
+    const bar = await EACCBar.attach(LocalConfig.EACCBarAddress);
+    return bar;
+  }
+
+  if (hre.network.name === 'arbitrum') {
+    const bar = await EACCBar.attach(Config.EACCBarAddress);
+    return bar;
   }
 
   console.log(`Unknown network ${hre.network.name}`);
@@ -1044,53 +1066,6 @@ task("job:refund", "Refund job")
   console.log("Transaction hash:", receipt.hash);
 });
 
-task("eacc:info", "Get EACC info")
-.setAction(async ({ }, hre) => {
-  const eacc = await getEACCToken(hre);
-
-  console.log('eacc', await eacc.getAddress());
-  console.log('treasury', await eacc.treasury());
-  console.log('arbiusToken', await eacc.arbiusToken());
-  console.log('router', await eacc.router());
-  console.log('tax', hre.ethers.formatEther(await eacc.tax()));
-});
-
-task("eacc:settax", "Set EACC tax")
-.addParam("tax", "Tax %")
-.setAction(async ({ tax }, hre) => {
-  const eacc = await getEACCToken(hre);
-
-  // convert percentage to ether
-  const amount = hre.ethers.parseUnits(tax, 16);
-  const tx = await eacc.setTax(amount);
-  const receipt = await tx.wait();
-
-  console.log("Transaction hash:", receipt.hash);
-});
-
-task("eacc:whitelist", "Update EACC whitelist")
-.addParam("address", "Address")
-.addParam("whitelist", "Whitelist (true / false)")
-.setAction(async ({ address, whitelist }, hre) => {
-  const eacc = await getEACCToken(hre);
-
-  const tx = await eacc.updateWhitelist(address, whitelist === 'true');
-  const receipt = await tx.wait();
-
-  console.log("Transaction hash:", receipt.hash);
-});
-
-task("eacc:withdraw", "Withdraw tokens sent to contract")
-.addParam("token", "Token address")
-.setAction(async ({ token }, hre) => {
-  const eacc = await getEACCToken(hre);
-
-  const tx = await eacc.withdraw(token);
-  const receipt = await tx.wait();
-
-  console.log("Transaction hash:", receipt.hash);
-});
-
 task("eacc:multisend", "Multisend EACC tokens")
 .addParam("file", "CSV file with address and amount")
 .setAction(async ({ file }, hre) => {
@@ -1143,4 +1118,42 @@ task("eacc:multisend", "Multisend EACC tokens")
   if (amounts.length > 0) {
     await sendBatch(amounts);
   }
+});
+
+task("eacc:setEACCBar", "Set EACCBar address")
+.addParam("address", "EACCBar address")
+.setAction(async ({ address }, hre) => {
+  const eacc = await getEACCToken(hre);
+
+  const tx = await eacc.setEACCBar(address);
+  const receipt = await tx.wait();
+
+  console.log("Transaction hash:", receipt.hash);
+});
+
+task("eacc:setEACCBarPercent", "Set EACCBar percent")
+.addParam("percent", "EACCBar percent")
+.setAction(async ({ percent }, hre) => {
+  const eacc = await getEACCToken(hre);
+
+  const tx = await eacc.setEACCBarPercent(hre.ethers.parseEther(percent));
+  const receipt = await tx.wait();
+
+  console.log("Transaction hash:", receipt.hash);
+});
+
+task("eacc:M", "Query M")
+.addParam("t", "time (in seconds)")
+.setAction(async ({ t }, hre) => {
+  const eacc = await getEACCToken(hre);
+  const m = await eacc.M(t);
+  console.log(hre.ethers.formatEther(m));
+});
+
+task("eaccbar:M", "Query M")
+.addParam("t", "time (in seconds)")
+.setAction(async ({ t }, hre) => {
+  const eacc = await getEACCBar(hre);
+  const m = await eacc.M(t);
+  console.log(hre.ethers.formatEther(m));
 });
