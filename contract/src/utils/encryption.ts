@@ -140,10 +140,11 @@ export const getFromIpfs = async (cidOrHash: string, sessionKey: string | undefi
 export const safeGetFromIpfs = async (cidOrHash: string, sessionKey: string | undefined = undefined): Promise<string> => {
   try {
     const decodedData = decodeBase64(await getFromIpfsRaw(cidOrHash));
+
     return decryptUtf8Data(decodedData, sessionKey);
   } catch (error: any) {
-    console.log('Fetching encrypted data failed with the following error: ', error);
-    return `<encrypted message>`;
+    console.trace('Fetching encrypted data failed with the following error: ', error);
+    return `<encrypted message ${error.message}>`;
   }
 }
 
@@ -184,6 +185,10 @@ export const getEncryptionSigningKey = async (signer: Signer | JsonRpcSigner): P
 }
 
 export const getSessionKey = async (signer: Signer | JsonRpcSigner, otherCompressedPublicKey: string, jobId: string | bigint): Promise<string> => {
+  if (typeof signer.getAddress !== "function" || typeof signer.signMessage !== "function") {
+    throw new Error("Invalid signer: must be an instance of Signer or JsonRpcSigner");
+  }
+
   if (getBytes(otherCompressedPublicKey).length !== 33) {
     throw new Error("Invalid public key, must be compressed");
   }

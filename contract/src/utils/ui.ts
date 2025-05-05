@@ -516,7 +516,7 @@ export const fetchEventContents = async (events: JobEventWithDiffs[], sessionKey
 
   const workerCandidates: Set<string> = new Set<string>;
 
-  await Promise.allSettled(result.filter((jobEvent) => [JobEventType.OwnerMessage, JobEventType.WorkerMessage, JobEventType.Arbitrated, JobEventType.Delivered, JobEventType.Created, JobEventType.Updated].includes(Number(jobEvent.type_))).map((jobEvent) => {
+  const pairs = result.filter((jobEvent) => [JobEventType.OwnerMessage, JobEventType.WorkerMessage, JobEventType.Arbitrated, JobEventType.Delivered, JobEventType.Created, JobEventType.Updated].includes(Number(jobEvent.type_))).map((jobEvent) => {
     if (Number(jobEvent.type_) === JobEventType.Created) {
       return {
         contentHash: (jobEvent.details as JobCreatedEvent).contentHash,
@@ -548,20 +548,22 @@ export const fetchEventContents = async (events: JobEventWithDiffs[], sessionKey
       workerCandidates.add(getAddress(jobEvent.address_));
     }
 
-    if (jobEvent.job.roles.worker !== ZeroAddress) {
-      return {
-        contentHash: details.contentHash,
-        sessionKey: sessionKeys[`${jobEvent.job.roles.creator}-${jobEvent.job.roles.worker}`]
-      };
-    }
+    // if (jobEvent.job.roles.worker !== ZeroAddress) {
+    //   return {
+    //     contentHash: details.contentHash,
+    //     sessionKey: sessionKeys[`${jobEvent.job.roles.creator}-${jobEvent.job.roles.worker}`]
+    //   };
+    // }
 
     const pairs = [...workerCandidates].map(workerAddress => ({
       contentHash: details.contentHash,
       sessionKey: sessionKeys[`${workerAddress}-${jobEvent.job.roles.creator}`]
     }));
     return pairs;
-  }).flat(1).map(async ({contentHash, sessionKey}) => {
-    const badResponses = ["<encrypted message>", "Error: Failed to fetch data"];
+  }).flat(1);
+
+  for (const {contentHash, sessionKey} of pairs) {
+    const badResponses = ["<encrypted message invalid tag>", "Error: Failed to fetch data"];
     try {
       if (!contents[contentHash] || badResponses.includes(contents[contentHash])) {
         try {
@@ -581,9 +583,7 @@ export const fetchEventContents = async (events: JobEventWithDiffs[], sessionKey
     } catch {
       contents[contentHash] = "Error: Failed to fetch data";
     }
-
-    return contents[contentHash];
-  }));
+  };
 
   let previousState: JobEventWithDiffs | undefined = undefined;
   for (const event of result) {
