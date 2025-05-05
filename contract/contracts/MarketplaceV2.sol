@@ -74,8 +74,12 @@ contract MarketplaceV2 is OwnableUpgradeable, PausableUpgradeable {
     event TreasuryAddressChanged(address treasuryAddress);
 
     event EACCRewardTokensEnabledChanged(address indexed token, uint256 amount); // v2
-    event EACCRewardsDistributed(uint256 indexed jobId, address indexed worker, address indexed creator, uint256 rewardAmount); // v2
-
+    event EACCRewardsDistributed(
+        uint256 indexed jobId,
+        address indexed worker,
+        address indexed creator,
+        uint256 rewardAmount
+    ); // v2
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -826,11 +830,11 @@ contract MarketplaceV2 is OwnableUpgradeable, PausableUpgradeable {
 
         // v2
         if (eaccRewardTokensEnabled[job.token] > 0) {
-            uint256 reward = (job.amount *
-                eaccRewardTokensEnabled[job.token]) /
-                1 ether * eaccTokensPerToken / 1 ether;
+            uint256 reward = (((job.amount *
+                eaccRewardTokensEnabled[job.token]) / 1 ether) *
+                eaccTokensPerToken) / 1 ether;
 
-            if (eaccToken.balanceOf(address(this)) >= reward*3) {
+            if (eaccToken.balanceOf(address(this)) >= reward * 3) {
                 eaccToken.transfer(job.roles.worker, reward);
                 eaccToken.transfer(job.roles.creator, reward);
                 eaccToken.transfer(eaccBar, reward);
