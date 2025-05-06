@@ -7,7 +7,12 @@ export const useConfig = () => {
   const { data: walletClient } = useWalletClient();
 
   useEffect(() => {
-    setConfig(Config(walletClient?.chain.name ?? 'Arbitrum One'));
+    try {
+      setConfig(Config(walletClient?.chain.name ?? 'Arbitrum One'));
+    } catch (error) {
+      console.error('Error setting config:', error);
+      setConfig('Arbitrum One' as unknown as IConfig);
+    }
   }, [walletClient]);
 
   return useMemo(() => config, [config]);
