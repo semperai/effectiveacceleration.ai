@@ -527,6 +527,11 @@ processor.run(db, async (ctx) => {
                 const jobUpdated = decodeJobUpdatedEvent(event.data_);
                 job.title = jobUpdated.title;
                 job.contentHash = jobUpdated.contentHash;
+                try {
+                  job.content = await getFromIpfs(job.contentHash);
+                } catch {
+                  job.content = "";
+                }
                 job.tags = jobUpdated.tags;
                 job.maxTime = jobUpdated.maxTime;
                 job.roles.arbitrator = getAddress(jobUpdated.arbitrator);
