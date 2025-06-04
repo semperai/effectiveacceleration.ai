@@ -13,6 +13,7 @@ import SideJobInfo from '../SideJobInfo';
 import InfoIcon from '@mui/icons-material/Info';
 import { JobSidebarProps } from './OpenJobMobileMenu';
 import EventProfileImage from '@/components/Events/Components/EventProfileImage';
+import { UserProfile } from './UserProfile';
 
 const ProfileUserHeader: React.FC<JobSidebarProps> = ({
   selectedWorker,
@@ -60,10 +61,19 @@ const ProfileUserHeader: React.FC<JobSidebarProps> = ({
                     )}
                     <EventProfileImage user={isApplicantUser ? users[job.roles.creator] :  userAccount}></EventProfileImage>
                     <span className='block font-extrabold self-center pl-4'>
-                      {isWorker
-                        ? users[job.roles.creator]?.name ||
-                          'Unregistered Account'
-                        : users[selectedWorker]?.name || 'Unregistered Account'}
+                      {isWorker ? (
+                        <>
+                          <UserProfile selectedUser={users[job.roles.creator]}>
+                            {users[job.roles.creator]?.name || 'Unregistered Account'}
+                          </UserProfile>
+                        </>
+                      ) : (
+                        <>
+                          <UserProfile selectedUser={users[selectedWorker]} >
+                            {users[selectedWorker]?.name || 'Unregistered Account'}
+                          </UserProfile>
+                        </>
+                      )}
                     </span>
                   </div>
                   <div className='self-center !text-md mr-1 block md:hidden'>

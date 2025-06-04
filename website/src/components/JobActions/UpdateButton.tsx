@@ -11,7 +11,7 @@ import {
   getUnitAndValueFromSeconds,
   unitsDeliveryTime,
 } from '@/utils/utils';
-import { Job, publishToIpfs } from '@effectiveacceleration/contracts';
+import { getFromIpfs, Job, publishToIpfs } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { Dialog, Transition } from '@headlessui/react';
 import { CheckIcon } from '@heroicons/react/20/solid';
