@@ -17,7 +17,7 @@ const EventProfileImage = ({ user }: { user: User | Arbitrator }) => {
   return (
     <>
       {isImgValid && avatarUrl ? (
-        <div className='relative flex h-10 min-w-10 items-center bg-gray-400 overflow-hidden rounded-full p-2 align-middle'>
+        <div className='w-full h-full relative flex min-h-10 min-w-10 items-center bg-gray-400 overflow-hidden rounded-full p-2 align-middle'>
           <Image
             className='h-full w-full object-cover'
             fill

@@ -1,26 +1,19 @@
 import { Button } from '@/components/Button';
-import { ConnectButton } from '@/components/ConnectButton';
 import useArbitrator from '@/hooks/subsquid/useArbitrator';
 import { useEthersSigner } from '@/hooks/useEthersSigner';
 import useUser from '@/hooks/subsquid/useUser';
 import { isImageValid } from '@/utils/ImageValidity';
 import { Dialog, Transition } from '@headlessui/react';
-import { CheckIcon } from '@heroicons/react/20/solid';
-import { PiUser } from 'react-icons/pi';
 import { getEncryptionSigningKey, User } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
-import { StaticImport } from 'next/dist/shared/lib/get-img-props';
-import Image from 'next/image';
 import { Fragment, useEffect, useState } from 'react';
 import { useAccount } from 'wagmi';
 import { Field, Label } from '@/components/Fieldset';
 import { Input } from '@/components/Input';
-import UploadAvatar from '@/components/UploadAvatar';
 import { useConfig } from '@/hooks/useConfig';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import * as Sentry from '@sentry/nextjs';
 import useFetchAvatar from '@/hooks/useFetchAvatar';
-import { BsPersonPlus } from 'react-icons/bs';
 import EventProfileImage from '@/components/Events/Components/EventProfileImage';
 import { ReviewsList } from './ReviewsList';
 
@@ -235,22 +228,22 @@ export function UserProfile({ selectedUser, children, ...rest }: UserProfileProp
                 leaveFrom='opacity-100 scale-100'
                 leaveTo='opacity-0 scale-95'
               >
-                <Dialog.Panel className='w-full p-8 max-w-md transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all'>
-                  <div className='mb-3 mt-5 flex flex-col gap-2'>
+                <Dialog.Panel className='w-full p-8 max-w-md transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all '>
+                  <div className='mb-2 flex flex-col gap-2 items-center'>
                     {(user || arbitrator) && (
                       <>
                         {!showReviews ? ( // 3. Conditionally render
                           <>
-                            <div className='w-[140px] h-[140px] justify-center flex items-center'>
-                                {user && <EventProfileImage user={user}></EventProfileImage>}
+                            <div className='w-[110px] h-[110px] justify-center flex items-center'>
+                                {selectedUser?.name && <EventProfileImage user={selectedUser}></EventProfileImage>}
                             </div>
                             <Dialog.Title
                                 as='h3'
                                 className='text-lg font-medium leading-6 text-gray-900'
                             >
-                                {user?.name}
+                                {selectedUser?.name}
                             </Dialog.Title>
-                            <span className='text-sm font-bold'>{user?.bio}</span>
+                            <span className='text-sm font-md'>{selectedUser?.bio}</span>
                             {userIndex === 1 && (
                               <Field>
                                 <Label>Fee</Label>
@@ -267,14 +260,8 @@ export function UserProfile({ selectedUser, children, ...rest }: UserProfileProp
                             )}
                             {user && userIndex === 0 && (
                               <Reputation
-                                positiveCount={user.reputationUp}
-                                negativeCount={user.reputationDown}
-                              />
-                            )}
-                            {arbitrator && userIndex === 1 && (
-                              <Reputation
-                                positiveCount={arbitrator.settledCount}
-                                negativeCount={arbitrator.refusedCount}
+                                positiveCount={selectedUser?.reputationUp ?? 0}
+                                negativeCount={selectedUser?.reputationDown ?? 0}
                               />
                             )}
                             {users[userIndex] && (
@@ -291,7 +278,7 @@ export function UserProfile({ selectedUser, children, ...rest }: UserProfileProp
                             )}
                           </>
                         ) : (
-                          <ReviewsList address={selectedUser?.address_}  />
+                          <ReviewsList selectedUser={selectedUser} setShowReviews={setShowReviews} address={selectedUser?.address_}  />
                         )}
                       </>
                     )}

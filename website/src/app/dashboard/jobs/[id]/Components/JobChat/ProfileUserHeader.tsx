@@ -63,7 +63,7 @@ const ProfileUserHeader: React.FC<JobSidebarProps> = ({
                     <span className='block font-extrabold self-center pl-4'>
                       {isWorker ? (
                         <>
-                          <UserProfile selectedUser={users[job.roles.creator]}>
+                          <UserProfile selectedUser={users[selectedWorker]}>
                             {users[job.roles.creator]?.name || 'Unregistered Account'}
                           </UserProfile>
                         </>
