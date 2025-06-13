@@ -235,7 +235,7 @@ export function UserProfile({ selectedUser, children, ...rest }: UserProfileProp
                         {!showReviews ? ( // 3. Conditionally render
                           <>
                             <div className='w-[110px] h-[110px] justify-center flex items-center'>
-                                {selectedUser?.name && <EventProfileImage user={selectedUser}></EventProfileImage>}
+                                {selectedUser?.name && <EventProfileImage className={'h-full w-full'} user={selectedUser}></EventProfileImage>}
                             </div>
                             <Dialog.Title
                                 as='h3'
