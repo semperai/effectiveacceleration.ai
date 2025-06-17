@@ -476,7 +476,7 @@ export function StreamsPanel() {
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="bg-white rounded-2xl shadow-md overflow-hidden">
+      <div className="bg-white rounded-2xl overflow-hidden">
         <div className="p-6 border-b border-gray-100">
           {/* Header section with title, filters, and actions */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">

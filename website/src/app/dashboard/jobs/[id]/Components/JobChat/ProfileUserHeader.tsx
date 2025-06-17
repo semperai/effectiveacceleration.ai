@@ -51,7 +51,7 @@ const ProfileUserHeader: React.FC<JobSidebarProps> = ({
               <div className='h-fit'>
                 <div className='flex flex-row justify-between'>
                   <div className='flex self-center pr-4'>
-                    {job?.state === JobState.Open && (
+                    {job?.state === JobState.Open && isCreator && (
                       <div className='self-center !text-md mr-1 block md:hidden'>
                         <ArrowBackIosNewIcon 
                           onClick={() => setSideJobListOpen(prevState => !prevState)} 

@@ -64,12 +64,12 @@ const navigationItems: NavigationItem[] = [
     icon: <PiBooks className='text-2xl' />,
     target: '_blank',
   },
-  {
-    name: 'Changelog',
-    href: '/dashboard/changelog',
-    icon: <PiMegaphoneSimple className='text-2xl' />,
-    target: '_self',
-  },
+  // {
+  //   name: 'Changelog',
+  //   href: '/dashboard/changelog',
+  //   icon: <PiMegaphoneSimple className='text-2xl' />,
+  //   target: '_self',
+  // },
 ];
 
 const SharedMenu = () => {

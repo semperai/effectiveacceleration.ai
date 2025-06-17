@@ -29,7 +29,7 @@ type NavigationItem = {
 
 interface SideJobListProps {
   sidebarOpen: boolean;
-  setSidebarOpen: (value: boolean) => void;
+  setSidebarOpen: Dispatch<SetStateAction<boolean>>;
   users: Record<string, User>;
   address: string | undefined;
   job: Job;
@@ -105,6 +105,7 @@ const SideJobList: React.FC<SideJobListProps> = ({
                     users={users} 
                     job={job} 
                     setSelectedWorker={setSelectedWorker} 
+                    setSidebarOpen={setSidebarOpen}
                   />
                 </div>
               </Dialog.Panel>
