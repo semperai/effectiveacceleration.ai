@@ -101,8 +101,8 @@ export const JobFilter = ({
         {showAdvanced && (
           <div className='mt-4 space-y-6'>
             <div className=''>
-              <div className='flex gap-x-16'>
-                <div className='flex w-1/2 flex-col gap-y-3'>
+              <div className='flex sm:flex-row flex-col gap-x-16'>
+                <div className='flex w-full sm:w-1/2 flex-col gap-y-3'>
                   {/* Token Settings Section */}
                   <div className=''>
                     <h3 className='text-sm font-medium text-gray-700'>
@@ -128,12 +128,12 @@ export const JobFilter = ({
                   </div>
 
                   {/* Delivery Time Section */}
-                  <div className=''>
+                  <div className='flex-row'>
                     <h3 className='text-sm font-medium text-gray-700'>
                       Delivery Time
                     </h3>
-                    <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
-                      <div className='flex-1'>
+                    <div className='flex flex-row gap-4 sm:flex-row sm:items-center'>
+                      <div className='flex-1 w-1/2'>
                         <Input
                           type='number'
                           placeholder={`Minimum delivery time in ${selectedUnitTime.name}`}
@@ -147,7 +147,7 @@ export const JobFilter = ({
                           className='w-full'
                         />
                       </div>
-                      <div className='w-full sm:w-40'>
+                      <div className='m:w-40  w-1/2'>
                       <ListBox
                         placeholder='Select Time Units'
                         value={selectedUnitTime}
@@ -192,7 +192,7 @@ export const JobFilter = ({
                     </div>
                   </div>
                 </div>
-                <div className='flex w-1/2 flex-col gap-y-3'>
+                <div className='flex w-full sm:w-1/2 flex-col gap-y-3'>
                   <div className='w-full'>
                     <h3 className='text-sm font-medium text-gray-700'>Tags</h3>
                     <TagsInput tags={tags} setTags={setTags} />
