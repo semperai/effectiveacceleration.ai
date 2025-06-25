@@ -25,7 +25,7 @@ export default function JobPage() {
           <nav className='flex' aria-label='Breadcrumb'>
             <ol role='list' className='flex items-center space-x-4'>
               <li>
-                <div className='flex'>
+                <div className='flex flex-1'>
                   <Link
                     href='/dashboard/users'
                     className='text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
