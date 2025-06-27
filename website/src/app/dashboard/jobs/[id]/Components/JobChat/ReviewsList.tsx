@@ -25,8 +25,7 @@ export function ReviewsList({
     totalReviews === 0
       ? 0
       : Math.round(((selectedUser?.reputationUp ?? 0) / totalReviews) * 100);
-  console.log(reviews, users, 'reviews and users data in ReviewsList', selectedUser);
-  // ...existing code...
+
   return (
     <div>
       <div className="flex items-center">

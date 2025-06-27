@@ -41,6 +41,9 @@ export default {
   		minHeight: {
   			customHeader: 'calc(100vh - 64px)'
   		},
+		height: {
+			height: 'calc(100vh - 64px)'
+		},
   		maxHeight: {
   			customHeader: 'calc(100vh - 64px)'
   		},

@@ -49,3 +49,7 @@ span {
 .download-markdown strong:hover {
   @apply text-darkBlueFont;
 }
+
+html, body, #__next {
+  height: 100%;
+}
