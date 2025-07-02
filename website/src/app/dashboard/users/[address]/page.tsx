@@ -10,6 +10,7 @@ import useReviews from '@/hooks/subsquid/useReviews';
 import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
 import { Button } from '@/components/Button';
 import { LinkIcon } from '@heroicons/react/20/solid';
+import EventProfileImage from '@/components/Events/Components/EventProfileImage';
 
 export default function JobPage() {
   const address = useParams().address as string;
@@ -32,11 +33,9 @@ export default function JobPage() {
       <div className='flex min-h-full flex-col h-full'>
         <div className='flex w-full basis-1/5 justify-between p-6 min-h-[20%] '>
           <div className='relative flex flex-row'>
-            <img
-              className='flex h-10 w-10 items-center justify-center rounded-full ring-8 ring-white'
-              src={user?.avatar}
-              alt=''
-            />
+            {user && (
+              <EventProfileImage className='min-h-20 min-w-20 mr-4' user={user}/>
+            )}
             <div className='flex flex-col gap-y-1'>
               <span className='flex text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-xl sm:tracking-tight dark:text-gray-100'>
                 {user?.name}
@@ -82,16 +81,6 @@ export default function JobPage() {
               vestibulum bibendum urna, a elementum ligula accumsan eget. Donec
               et lobortis turpis. Quisque tristique convallis neque non egestas.
               Sed convallis felis et eros euismod scelerisque eget id arcu.
-              <br /> <br />
-              Curabitur tincidunt eget metus at egestas. Quisque sed lobortis
-              tortor. Sed vitae est vitae risus tempus egestas. Nunc in nulla
-              molestie, consequat nulla non, rutrum augue. Cras dictum hendrerit
-              fringilla. Aliquam auctor, neque a pulvinar commodo, arcu ipsum
-              facilisis nibh, quis tincidunt sem magna sed lorem. Suspendisse
-              nisl magna, vehicula vel eleifend a, blandit eget tortor. Nulla
-              semper luctus odio sit amet interdum. Orci varius natoque
-              penatibus et magnis dis parturient montes, nascetur ridiculus mus.
-              Nulla hendrerit dui eget elit fauci
             </div>
           </div>
           <div className='flex basis-1/4 p-6 overflow-y-scroll'>
