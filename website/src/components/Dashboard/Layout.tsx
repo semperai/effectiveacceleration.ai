@@ -26,7 +26,7 @@ export function Layout({
         <main
           className={clsx(
             borderless ? 'py-0 sm:px-0 lg:px-0' : 'px-4 py-7 sm:px-6 lg:px-8',
-            'min-h-customHeader h-customHeader bg-softBlue'
+            'min-h-customHeader bg-softBlue'
           )}
         >
           {children}
