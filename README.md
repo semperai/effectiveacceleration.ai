@@ -1,6 +1,6 @@
 # Effective Acceleration
 
-Peer-to-peer decentralized marketplace - https://effectiveacceleration.ai
+Peer-to-peer decentralized marketplace - /* STAGING */ https://staging.effectiveacceleration.ai/dashboard/welcome
 
 ## Project Layout
 
