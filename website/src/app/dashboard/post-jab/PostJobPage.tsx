@@ -33,6 +33,7 @@ import Link from 'next/link';
 import React, {
   ChangeEvent,
   LegacyRef,
+  SetStateAction,
   useEffect,
   useRef,
   useState,
@@ -135,7 +136,7 @@ const JobSummary = ({
         <div className='divide-y divide-gray-200'>
           <Row label='Job Title'>{title}</Row>
           <Row label='Description'>{description}</Row>
-          <Row label='Category'>{selectedCategory.name}</Row>
+          <Row label='Category'>{selectedCategory?.name}</Row>
           <Row label='Token'>
             <div className='flex items-center gap-2'>
               <span className='mr-1 inline'>{selectedToken?.id}</span>
@@ -169,17 +170,17 @@ const JobSummary = ({
         <Button outline onClick={handleSummary} className='px-6'>
           Go back
         </Button>
-        <SubmitJobButton
+        {/* <SubmitJobButton
           title={title}
           description={description}
           multipleApplicants={imFeelingLucky === 'No'}
-          tags={[selectedCategory.id, ...tags.map((tag) => tag.name)]}
+          tags={[selectedCategory?.id, ...tags.map((tag) => tag.name)]}
           token={selectedToken?.id as string}
           amount={ethers.parseUnits(amount, selectedToken?.decimals!)}
           deadline={BigInt(deadline)}
           deliveryMethod={deliveryMethod}
           arbitrator={selectedArbitratorAddress as string}
-        />
+        /> */}
       </div>
     </div>
   );
@@ -221,10 +222,13 @@ const PostJob = () => {
   );
 
   const [tags, setTags] = useState<Tag[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<{
-    id: string;
-    name: string;
-  }>();
+  const [selectedCategory, setSelectedCategory] = useState<
+    | {
+        id: string;
+        name: string;
+      }
+    | undefined
+  >(undefined);
   const [selectedArbitratorAddress, setSelectedArbitratorAddress] =
     useState<string>();
   const [titleError, setTitleError] = useState<string>('');
@@ -242,7 +246,7 @@ const PostJob = () => {
   const jobArbitratorRef = useRef<HTMLDivElement>(null);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [isLoadingModalOpen, setIsLoadingModalOpen] = useState(false);
-
+  const [step, setStep] = useState<number>(0);
   const { data: balanceData } = useReadContract({
     account: address,
     abi: ERC20Abi,
@@ -434,299 +438,113 @@ const PostJob = () => {
       return;
     }
   };
+  const steps = [
+    <FormStepTitle
+      title={title}
+      description={description}
+      jobTitleRef={jobTitleRef}
+      jobDescriptionRef={jobDescriptionRef}
+      validateTitle={validateTitle}
+      setDescription={setDescription}
+      titleError={titleError}
+      descriptionError={descriptionError}
+    />,
+    <FormStepSkills
+      imFeelingLucky={imFeelingLucky}
+      setImFeelingLucky={setImFeelingLucky}
+      noYes={noYes}
+      selectedCategory={selectedCategory}
+      setSelectedCategory={setSelectedCategory}
+      setCategoryError={setCategoryError}
+      jobCategoryRef={jobCategoryRef}
+      categoryError={categoryError}
+      tags={tags}
+      setTags={setTags}
+    />,
+    <FormStepPayment
+      selectedToken={selectedToken}
+      amount={amount}
+      deliveryMethod={deliveryMethod}
+      deadline={deadline}
+      selectedArbitratorAddress={selectedArbitratorAddress}
+      selectedCategory={selectedCategory}
+      handleSummary={handleSummary}
+      jobAmountRef={jobAmountRef}
+      validatePaymentAmount={validatePaymentAmount}
+      paymentTokenError={paymentTokenError}
+      setSelectedToken={setSelectedToken}
+      balanceData={balanceData as ethers.BigNumberish}
+      setDeliveryMethod={setDeliveryMethod}
+      setCategoryError={setCategoryError}
+      validateArbitratorRequired={validateArbitratorRequired}
+      noYes={noYes}
+      jobArbitratorRef={jobArbitratorRef}
+      arbitratorAddresses={arbitratorAddresses}
+      arbitratorNames={arbitratorNames}
+      validateArbitrator={validateArbitrator}
+      jobDeadlineRef={jobDeadlineRef}
+      validateDeadline={validateDeadline}
+      setselectedUnitTime={setselectedUnitTime}
+    />,
+    // <JobSummary
+    //   handleSummary={handleSummary}    overflow-x: hidden;
+    //   title={title}
+    //   description={description}
+    //   imFeelingLucky={imFeelingLucky}
+    //   tags={tags}
+    //   deliveryMethod={deliveryMethod}
+    //   selectedToken={selectedToken}
+    //   amount={amount}
+    //   selectedCategory={selectedCategory as { id: string; name: string }}
+    //   deadline={convertToSeconds(deadline, selectedUnitTime.name)}
+    //   selectedArbitratorAddress={selectedArbitratorAddress}
+    // />,
+    // <div>successs</div>
+  ];
 
+  const maxStep = steps.length - 1;
   return (
     <div>
       {!showSummary && (
         <Fieldset className='w-full'>
-          <div className='mb-10'>
+          <div className='px-4 pb-4 pt-7 sm:px-6 lg:px-8'>
             <h1 className='mb-2 text-3xl font-bold'>Create a Job Post</h1>
             <span>
               Complete the form below to post your job and connect with
               potential candidates.
             </span>
           </div>
-
-          <div className='flex w-full flex-col gap-8 lg:flex-row lg:gap-24'>
-            <FieldGroup className='flex-1'>
-              <Field>
-                <Label>Job Title</Label>
-                <div className='scroll-mt-20' ref={jobTitleRef} />
-                <Input
-                  name='title'
-                  value={title}
-                  placeholder='A short descriptive title for the job post'
-                  required
-                  minLength={3}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                    validateTitle(e.target.value)
-                  }
-                />
-                {titleError && (
-                  <div className='text-xs' style={{ color: 'red' }}>
-                    {titleError}
-                  </div>
-                )}
-              </Field>
-              <Field>
-                <Label>Description</Label>
-                <div className='scroll-mt-20' ref={jobDescriptionRef} />
-                <Textarea
-                  rows={10}
-                  name='description'
-                  placeholder='Provide a thorough description of the job, omitting any private details which may be revealed in chat. Include the job requirements, deliverables, and any other relevant information. Too simple of a job description may make it difficult for agents to infer what you actually are asking for.'
-                  value={description}
-                  onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
-                    // TODO add max length validation
-                    setDescription(e.target.value);
-                  }}
-                />
-                {descriptionError && (
-                  <div className='text-xs' style={{ color: 'red' }}>
-                    {descriptionError}
-                  </div>
-                )}
-              </Field>
-              <Field>
-                <div className='flex flex-row items-center justify-between'>
-                  <Label className='items-center'>I&apos;m feeling lucky</Label>
-                  <RadioGroup
-                    className='!mt-0 flex'
-                    value={imFeelingLucky}
-                    onChange={setImFeelingLucky}
-                    aria-label='Server size'
-                  >
-                    {noYes.map((option) => (
-                      <Field
-                        className='!mt-0 ml-5 flex items-center'
-                        key={option}
-                      >
-                        <Radio className='mr-2' color='default' value={option}>
-                          <span>{option}</span>
-                        </Radio>
-                        <Label>{option}</Label>
-                      </Field>
-                    ))}
-                  </RadioGroup>
+          <div className='border-gray h-full w-full overflow-x-hidden border-t bg-white'>
+            <div
+              className='flex transition-transform duration-500 ease-in-out'
+              style={{ transform: `translateX(-${step * 100}%)` }}
+            >
+              {steps.map((stepContent, index) => (
+                <div
+                  key={index}
+                  className='w-full flex-shrink-0 px-4 pb-4 pt-7 sm:px-8'
+                >
+                  {stepContent}
                 </div>
-                <Description>
-                  Enabling this allows worker to automatically start the job
-                  without you approving them first.
-                </Description>
-              </Field>
-              <Field>
-                <Label>Category</Label>
-                <div ref={jobCategoryRef} className='scroll-mt-20' />
-                <ListBox
-                  placeholder='Select Category'
-                  value={selectedCategory}
-                  onChange={(category) => {
-                    if (typeof category !== 'string') {
-                      setSelectedCategory(category);
-                      setCategoryError('');
-                    }
-                  }}
-                  options={jobMeceTags}
-                />
-                {categoryError && (
-                  <div className='text-xs' style={{ color: 'red' }}>
-                    {categoryError}
-                  </div>
-                )}
-              </Field>
-              <Field>
-                <Label>Tags</Label>
-                <TagsInput tags={tags} setTags={setTags} />
-                <Description>
-                  Tags help workers find your job post. Select tags that best
-                  describe the job and its requirements.
-                </Description>
-              </Field>
-            </FieldGroup>
-            <FieldGroup className='flex-1'>
-              <div className='flex flex-row justify-between gap-5'>
-                <Field className='flex-1'>
-                  <Label>Payment Amount</Label>
-                  <div className='scroll-mt-20' ref={jobAmountRef} />
-                  <Input
-                    name='amount'
-                    placeholder='1.00'
-                    type='number'
-                    value={amount}
-                    onChange={(e) => validatePaymentAmount(e.target.value)}
-                  />
-                  {paymentTokenError && (
-                    <div className='text-xs' style={{ color: 'red' }}>
-                      {paymentTokenError}
-                    </div>
-                  )}
-                  <Description>
-                    Your funds will be locked until the job is completed. Or, if
-                    you cancel the job posting, available for withdraw after a
-                    24 hour period.
-                  </Description>
-                </Field>
-                <Field className='flex-1'>
-                  <Label>Payment Token</Label>
-                  <div className='mt-[7px] flex flex-col gap-y-2'>
-                    <div className='flex items-center gap-x-2'>
-                      <div>
-                        <div className='flex flex-col gap-4'>
-                          <TokenSelector
-                            selectedToken={selectedToken}
-                            onClick={(token: Token) => setSelectedToken(token)}
-                          />
-                        </div>
-                        {selectedToken &&
-                        balanceData !== null &&
-                        balanceData !== undefined ? (
-                          <Text className='text-xs'>
-                            Balance:{' '}
-                            {ethers.formatUnits(
-                              balanceData as ethers.BigNumberish,
-                              selectedToken.decimals
-                            )}{' '}
-                            {selectedToken.symbol}
-                          </Text>
-                        ) : (
-                          <Text className='!text-xs' style={{ color: 'red' }}>
-                            Balance: 0.0 {selectedToken?.symbol}
-                          </Text>
-                        )}
-                      </div>
-                    </div>
-                    <div className='max-w-[200px] truncate text-xs text-gray-500'>
-                      <Link
-                        href={`https://arbiscan.io/address/${selectedToken?.id}`}
-                        target='_blank'
-                        rel='noopener noreferrer'
-                      >
-                        {selectedToken?.id}
-                      </Link>
-                    </div>
-                  </div>
-                </Field>
-              </div>
-              <Field>
-                <Label>Delivery Method</Label>
-                <ListBox
-                  placeholder='Delivery Method'
-                  value={deliveryMethod}
-                  onChange={(method) => {
-                    if (typeof method !== 'string') {
-                      setDeliveryMethod(method.id);
-                      setCategoryError('');
-                    }
-                  }}
-                  options={deliveryMethods}
-                />
-                <Description>
-                  What delivery method should the worker use? For digital items
-                  usually IPFS is the correct choice. For jobs that do not
-                  involve a digital deliverable (such as posting online),
-                  digital proof can be used. For physical items such as selling
-                  computer equipment use courier.
-                </Description>
-              </Field>
-              <Field>
-                <div className='flex flex-row items-center justify-between'>
-                  <Label className='mb-0 items-center pb-0 !font-bold'>
-                    Arbitrator Required
-                  </Label>
-                  <RadioGroup
-                    className='!mt-0 flex'
-                    value={arbitratorRequired}
-                    onChange={(value) => validateArbitratorRequired(value)}
-                    aria-label='Arbitrator Required'
-                  >
-                    {noYes.map((option) => (
-                      <Field
-                        className='!mt-0 ml-5 flex items-center'
-                        key={option}
-                      >
-                        <Radio color='default' className='mr-2' value={option}>
-                          <span>{option}</span>
-                        </Radio>
-                        <Label>{option}</Label>
-                      </Field>
-                    ))}
-                  </RadioGroup>
-                </div>
-                <Description>
-                  Without an arbitrator, disputes on job completion must be
-                  handled by the creator and worker directly. Arbitrators are
-                  third-party entities that can help resolve disputes.
-                </Description>
-              </Field>
+              ))}
+            </div>
 
-              {arbitratorRequired === 'Yes' && (
-                <>
-                  <Field>
-                    <div className='scroll-mt-20' ref={jobArbitratorRef} />
-                    <Combobox
-                      placeholder='Select Arbitrator'
-                      value={selectedArbitratorAddress || ''}
-                      options={arbitratorAddresses.map((address, index) => ({
-                        value: address,
-                        label: `${arbitratorNames[index]} ${shortenText({ text: address, maxLength: 11 })} ${+arbitratorFees[index] / 100}%`,
-                      }))}
-                      onChange={(addr) => validateArbitrator(addr)}
-                    />
-                    {arbitratorError && (
-                      <div className='text-xs' style={{ color: 'red' }}>
-                        {arbitratorError}
-                      </div>
-                    )}
-                    <Description>
-                      Make sure to choose an arbitrator that you trust to
-                      resolve disputes fairly. Arbitrators charge a small fee
-                      for their services, which is deducted from the job
-                      payment. ArbitrationDAO is a decentralized arbitration
-                      service that can be used.
-                    </Description>
-                  </Field>
-                </>
-              )}
-
-              <div className='flex flex-row justify-between gap-5'>
-                <Field className='flex-1'>
-                  <Label>
-                    Maximum delivery time in {selectedUnitTime.name}
-                  </Label>
-                  <div className='scroll-mt-20' ref={jobDeadlineRef} />
-                  <Input
-                    name='deadline'
-                    type='number'
-                    placeholder={`Maximum delivery time in ${selectedUnitTime.name}`}
-                    value={deadline}
-                    min={1}
-                    step={1}
-                    onChange={(e) => validateDeadline(e.target.value)}
-                  />
-                  {deadlineError && (
-                    <div className='text-xs' style={{ color: 'red' }}>
-                      {deadlineError}
-                    </div>
-                  )}
-                </Field>
-                <Field className='flex-1'>
-                  <Label>Units</Label>
-                  <ListBox
-                    placeholder='Select Time Units'
-                    value={selectedUnitTime}
-                    onChange={(unit) => {
-                      if (typeof unit !== 'string') {
-                        setselectedUnitTime(unit);
-                      }
-                    }}
-                    options={unitsDeliveryTime.map((unit) => ({
-                      id: unit.id.toString(),
-                      name: unit.name,
-                    }))}
-                  />
-                </Field>
-              </div>
-            </FieldGroup>
+            <div className='mt-4 flex justify-between px-4'>
+              <Button
+                className='rounded bg-gray-300 px-4 py-2 disabled:opacity-50'
+                onClick={() => setStep((prev) => Math.max(prev - 1, 0))}
+                disabled={step === 0}
+              >
+                Prev
+              </Button>
+              <Button
+                className='rounded bg-blue-500 px-4 py-2 text-white disabled:opacity-50'
+                onClick={() => setStep((prev) => Math.min(prev + 1, maxStep))}
+                disabled={step === maxStep}
+              >
+                Next
+              </Button>
+            </div>
           </div>
           {!showSummary && (
             <div className='mb-40 mt-5 flex justify-end'>
@@ -800,6 +618,14 @@ const FormStepTitle = ({
 }: FormStepTitleProps) => {
   return (
     <div className='flex w-full flex-col gap-8 lg:flex-row lg:gap-24'>
+            <div className='flex-1'>
+        <span>1/4 Title</span>
+        <h2 className='text-4xl font-bold'>First, let’s create a title and description</h2>
+        <span>
+          This will make your post easy to find and understand for the right
+          freelancer
+        </span>
+      </div>
       <FieldGroup className='flex-1'>
         <Field>
           <Label>Job Title</Label>
@@ -854,7 +680,9 @@ interface FormStepSkillsProps {
         name: string;
       }
     | undefined;
-  setSelectedCategory: (value: string) => void;
+  setSelectedCategory: React.Dispatch<
+    React.SetStateAction<{ id: string; name: string } | undefined>
+  >;
   setCategoryError: (value: string) => void;
   jobCategoryRef: LegacyRef<HTMLDivElement> | undefined;
   categoryError: string;
@@ -909,7 +737,7 @@ const FormStepSkills = ({
             value={selectedCategory}
             onChange={(category) => {
               if (typeof category !== 'string') {
-                setSelectedCategory(category.name);
+                setSelectedCategory(category);
                 setCategoryError('');
               }
             }}
@@ -940,7 +768,12 @@ interface FormStepPaymentProps {
   deliveryMethod: string;
   deadline: number;
   selectedArbitratorAddress: string | undefined;
-  selectedCategory: { id: string; name: string };
+  selectedCategory:
+    | {
+        id: string;
+        name: string;
+      }
+    | undefined;
   handleSummary: () => void;
   jobAmountRef: LegacyRef<HTMLDivElement> | undefined;
   validatePaymentAmount: (paymentAmount: string) => void;
