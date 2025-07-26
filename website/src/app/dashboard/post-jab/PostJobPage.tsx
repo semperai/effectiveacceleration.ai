@@ -461,6 +461,7 @@ const PostJob = () => {
       tags={tags}
       setTags={setTags}
     />,
+
     <FormStepPayment
       selectedToken={selectedToken}
       amount={amount}
@@ -522,7 +523,7 @@ const PostJob = () => {
               {steps.map((stepContent, index) => (
                 <div
                   key={index}
-                  className='w-full flex-shrink-0 px-4 pb-4 pt-7 sm:px-8'
+                  className='w-full  px-4 pb-4 pt-12 sm:px-12 min-w-full '
                 >
                   {stepContent}
                 </div>
@@ -595,6 +596,30 @@ const PostJob = () => {
 
 export default PostJob;
 
+interface FormStepInfoProps {
+  stepInfo: string;
+  stepTitle: string;
+  stepDescription: string;
+}
+
+const FormStepInfo = ({
+  stepInfo,
+  stepTitle,
+  stepDescription,
+}: FormStepInfoProps) => {
+  return (
+    <div className='flex-1'>
+      <span className=''>{stepInfo}</span>
+      <h2 className='text-4xl font-bold py-4'>
+        {stepTitle}
+      </h2>
+      <span>
+        {stepDescription}
+      </span>
+    </div>
+  );
+};
+
 interface FormStepTitleProps {
   title: string;
   description: string;
@@ -618,14 +643,11 @@ const FormStepTitle = ({
 }: FormStepTitleProps) => {
   return (
     <div className='flex w-full flex-col gap-8 lg:flex-row lg:gap-24'>
-            <div className='flex-1'>
-        <span>1/4 Title</span>
-        <h2 className='text-4xl font-bold'>First, let’s create a title and description</h2>
-        <span>
-          This will make your post easy to find and understand for the right
-          freelancer
-        </span>
-      </div>
+      <FormStepInfo 
+        stepInfo={'1/4 Title'} 
+        stepTitle={'First, let’s create a title and description'} 
+        stepDescription={'This will make your post easy to find and understand for the right freelancer'}
+      />
       <FieldGroup className='flex-1'>
         <Field>
           <Label>Job Title</Label>
@@ -704,18 +726,23 @@ const FormStepSkills = ({
 }: FormStepSkillsProps) => {
   return (
     <div className='flex w-full flex-col gap-8 lg:flex-row lg:gap-24'>
+      <FormStepInfo 
+        stepInfo={'2/4 Skills'} 
+        stepTitle={'Now let’s describe the ideal freelancer'} 
+        stepDescription={'What is the ideal skillset of the freelancer in charge of bringing your project to life'}
+      />
       <FieldGroup className='flex-1'>
         <Field>
           <div className='flex flex-row items-center justify-between'>
             <Label className='items-center'>I&apos;m feeling lucky</Label>
             <RadioGroup
-              className='!mt-0 flex'
+              className='!mt-0'
               value={imFeelingLucky}
               onChange={setImFeelingLucky}
               aria-label='Server size'
             >
               {noYes.map((option) => (
-                <Field className='!mt-0 ml-5 flex items-center' key={option}>
+                <Field className='!mt-0 ml-5 items-center inline-block' key={option}>
                   <Radio className='mr-2' color='default' value={option}>
                     <span>{option}</span>
                   </Radio>
@@ -830,6 +857,11 @@ const FormStepPayment = ({
 }: FormStepPaymentProps) => {
   return (
     <div className='flex w-full flex-col gap-8 lg:flex-row lg:gap-24'>
+      <FormStepInfo 
+        stepInfo={'3/4 Payment'} 
+        stepTitle={'What’s your budget?'} 
+        stepDescription={'Add the amount you are willing to pay and what token you are using'}
+      />
       <FieldGroup className='flex-1'>
         <div className='flex flex-row justify-between gap-5'>
           <Field className='flex-1'>
@@ -921,13 +953,13 @@ const FormStepPayment = ({
               Arbitrator Required
             </Label>
             <RadioGroup
-              className='!mt-0 flex'
+              className='!mt-0'
               value={arbitratorRequired}
               onChange={(value) => validateArbitratorRequired(value)}
               aria-label='Arbitrator Required'
             >
               {noYes.map((option) => (
-                <Field className='!mt-0 ml-5 flex items-center' key={option}>
+                <Field className='!mt-0 ml-5 inline-block items-center' key={option}>
                   <Radio color='default' className='mr-2' value={option}>
                     <span>{option}</span>
                   </Radio>
