@@ -2,10 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
+  --sidebar-width-desktop: 17vw;
+  --layout-width-nosidebar-desktop: 83vw;
 }
 
 body {
@@ -21,6 +25,7 @@ body {
 [data-slot='label'] {
   @apply font-bold;
 }
+
 
 h1,
 h2,
@@ -52,4 +57,25 @@ span {
 
 html, body, #__next {
   height: 100%;
+}
+
+.sidebarWidth {
+  @media screen and (min-width: 1024px) {
+    width: var(--sidebar-width-desktop) !important;
+  }
+}
+
+.layoutWidthDesktop {
+  @media screen and (min-width: 1024px) {
+    width: 100%;
+    padding-left: var(--sidebar-width-desktop);
+  }
+}
+
+.formStepsWidth {
+  @media screen and (min-width: 1024px) {
+    /* new post-job slider width */
+    max-width: calc(100vw - (var(--sidebar-width-desktop) + 1vw));
+    scrollbar-gutter: stable both-edges;
+  }
 }

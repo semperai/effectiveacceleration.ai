@@ -45,6 +45,9 @@ import RegisterModal from './RegisterModal';
 import { SubmitJobButton } from './SubmitJobButton';
 import { Combobox } from '@/components/ComboBox';
 import ListBox from '@/components/ListBox';
+import Image from 'next/image';
+import SuccessJobPostComputer from '@/images/SuccessJobPostComputer.svg';
+
 
 const deliveryMethods = [
   {
@@ -124,15 +127,13 @@ const JobSummary = ({
   )?.name;
 
   return (
-    <div className='mx-auto max-w-4xl'>
-      <div className='mb-8'>
-        <h1 className='mb-2 text-3xl font-bold text-gray-900'>Summary</h1>
-        <p className='text-gray-600'>
-          Before you submit your job, please double check your answers.
-        </p>
-      </div>
-
-      <div className='mb-8 rounded-2xl bg-white p-8 shadow-lg'>
+    <div className='flex w-full flex-col gap-8 lg:flex-row lg:gap-24 '>
+      <FormStepInfo 
+        stepInfo={'4/4 Summary'} 
+        stepTitle={'Summary'} 
+        stepDescription={'Before you submit your job, please double check your answers.'}
+      />
+      <div className='mb-8  bg-white p-8'>
         <div className='divide-y divide-gray-200'>
           <Row label='Job Title'>{title}</Row>
           <Row label='Description'>{description}</Row>
@@ -167,9 +168,6 @@ const JobSummary = ({
       </div>
 
       <div className='flex justify-end gap-4 pb-16'>
-        <Button outline onClick={handleSummary} className='px-6'>
-          Go back
-        </Button>
         {/* <SubmitJobButton
           title={title}
           description={description}
@@ -487,43 +485,43 @@ const PostJob = () => {
       validateDeadline={validateDeadline}
       setselectedUnitTime={setselectedUnitTime}
     />,
-    // <JobSummary
-    //   handleSummary={handleSummary}    overflow-x: hidden;
-    //   title={title}
-    //   description={description}
-    //   imFeelingLucky={imFeelingLucky}
-    //   tags={tags}
-    //   deliveryMethod={deliveryMethod}
-    //   selectedToken={selectedToken}
-    //   amount={amount}
-    //   selectedCategory={selectedCategory as { id: string; name: string }}
-    //   deadline={convertToSeconds(deadline, selectedUnitTime.name)}
-    //   selectedArbitratorAddress={selectedArbitratorAddress}
-    // />,
-    // <div>successs</div>
+    <JobSummary
+      handleSummary={handleSummary} 
+      title={title}
+      description={description}
+      imFeelingLucky={imFeelingLucky}
+      tags={tags}
+      deliveryMethod={deliveryMethod}
+      selectedToken={selectedToken}
+      amount={amount}
+      selectedCategory={selectedCategory as { id: string; name: string }}
+      deadline={convertToSeconds(deadline, selectedUnitTime.name)}
+      selectedArbitratorAddress={selectedArbitratorAddress}
+    />,
+    <FormStepSuccess/>,
   ];
 
   const maxStep = steps.length - 1;
   return (
-    <div>
+    <>
       {!showSummary && (
-        <Fieldset className='w-full'>
-          <div className='px-4 pb-4 pt-7 sm:px-6 lg:px-8'>
+        <div>
+          <div className='bg-softBlue px-4 pb-4 pt-7 sm:px-6 lg:px-8'>
             <h1 className='mb-2 text-3xl font-bold'>Create a Job Post</h1>
             <span>
               Complete the form below to post your job and connect with
               potential candidates.
             </span>
           </div>
-          <div className='border-gray h-full w-full overflow-x-hidden border-t bg-white'>
+          <div className='w-auto border-gray h-full overflow-x-hidden border-t bg-white'>
             <div
-              className='flex transition-transform duration-500 ease-in-out'
+              className='formStepsWidth flex transition-transform duration-500 ease-in-out h-full '
               style={{ transform: `translateX(-${step * 100}%)` }}
             >
               {steps.map((stepContent, index) => (
                 <div
                   key={index}
-                  className='w-full  px-4 pb-4 pt-12 sm:px-12 min-w-full '
+                  className='flex-shrink-0 w-full px-4 pb-4 pt-12 sm:px-12 '
                 >
                   {stepContent}
                 </div>
@@ -536,7 +534,7 @@ const PostJob = () => {
                 onClick={() => setStep((prev) => Math.max(prev - 1, 0))}
                 disabled={step === 0}
               >
-                Prev
+                Cancel
               </Button>
               <Button
                 className='rounded bg-blue-500 px-4 py-2 text-white disabled:opacity-50'
@@ -547,7 +545,7 @@ const PostJob = () => {
               </Button>
             </div>
           </div>
-          {!showSummary && (
+          {/* {!showSummary && (
             <div className='mb-40 mt-5 flex justify-end'>
               {isConnected && (
                 <Button
@@ -559,8 +557,8 @@ const PostJob = () => {
               )}
               {!isConnected && <ConnectButton />}
             </div>
-          )}
-        </Fieldset>
+          )} */}
+        </div>
       )}
       {showSummary && (
         <JobSummary
@@ -590,7 +588,7 @@ const PostJob = () => {
         }}
       />
       <AddToHomescreen />
-    </div>
+    </>
   );
 };
 
@@ -1041,6 +1039,22 @@ const FormStepPayment = ({
           </Field>
         </div>
       </FieldGroup>
+    </div>
+  );
+};
+
+const FormStepSuccess = () => {
+  return (
+    <div className='flex w-full flex-col gap-8 lg:flex-row lg:gap-24'>
+      <FormStepInfo 
+        stepInfo={'Job Posted'} 
+        stepTitle={'Success!'} 
+        stepDescription={'Your job has been succesfully posted, we will notify you when someone is interested'}
+      />
+      <div className='flex flex-1 flex-col items-center gap-y-6'>
+        <Image alt='Success Job Post' width={350} height={350}  src={SuccessJobPostComputer.src}/>
+        <Button className={'max-w-52'}>View Posted Jobs</Button>
+      </div>
     </div>
   );
 };

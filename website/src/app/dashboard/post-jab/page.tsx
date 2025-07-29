@@ -4,7 +4,7 @@ import PostJob from './PostJobPage';
 
 const PostJobPage = () => {
   return (
-    <Layout borderless>
+    <Layout borderless classNames='bg-white'>
       <PostJob />
     </Layout>
   );
