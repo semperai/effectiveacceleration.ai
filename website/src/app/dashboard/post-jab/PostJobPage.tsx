@@ -545,7 +545,7 @@ const PostJob = () => {
                   Cancel
                 </Button>
                 <Button
-                  className='rounded bg-blue-500 px-4 py-2 text-white disabled:opacity-50'
+                  className='rounded bg-blue-500 px-4 py-2 mr-[150px] text-white disabled:opacity-50'
                   onClick={() => setStep((prev) => Math.min(prev + 1, maxStep))}
                   disabled={step === maxStep}
                 >
