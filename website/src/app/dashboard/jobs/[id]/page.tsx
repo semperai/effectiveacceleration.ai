@@ -3,7 +3,6 @@
 import { Layout } from '@/components/Dashboard/Layout';
 import { PostMessageButton } from '@/components/JobActions/PostMessageButton';
 import { Text } from '@/components/Text';
-import { TooltipButton } from '@/components/TooltipButton';
 import useJob from '@/hooks/subsquid/useJob';
 import useJobEventsWithDiffs from '@/hooks/subsquid/useJobEventsWithDiffs';
 import useUser from '@/hooks/subsquid/useUser';

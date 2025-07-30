@@ -47,7 +47,14 @@ import { Combobox } from '@/components/ComboBox';
 import ListBox from '@/components/ListBox';
 import Image from 'next/image';
 import SuccessJobPostComputer from '@/images/SuccessJobPostComputer.svg';
-
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/Tooltip';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import { TooltipInfo } from '@/components/TooltipInfo';
 
 const deliveryMethods = [
   {
@@ -127,13 +134,15 @@ const JobSummary = ({
   )?.name;
 
   return (
-    <div className='flex w-full flex-col gap-8 lg:flex-row lg:gap-24 '>
-      <FormStepInfo 
-        stepInfo={'4/4 Summary'} 
-        stepTitle={'Summary'} 
-        stepDescription={'Before you submit your job, please double check your answers.'}
+    <div className='flex w-full flex-col gap-8 lg:flex-row lg:gap-24'>
+      <FormStepInfo
+        stepInfo={'4/4 Summary'}
+        stepTitle={'Summary'}
+        stepDescription={
+          'Before you submit your job, please double check your answers.'
+        }
       />
-      <div className='mb-8  bg-white p-8'>
+      <div className='mb-8 bg-white p-8'>
         <div className='divide-y divide-gray-200'>
           <Row label='Job Title'>{title}</Row>
           <Row label='Description'>{description}</Row>
@@ -486,7 +495,7 @@ const PostJob = () => {
       setselectedUnitTime={setselectedUnitTime}
     />,
     <JobSummary
-      handleSummary={handleSummary} 
+      handleSummary={handleSummary}
       title={title}
       description={description}
       imFeelingLucky={imFeelingLucky}
@@ -498,51 +507,56 @@ const PostJob = () => {
       deadline={convertToSeconds(deadline, selectedUnitTime.name)}
       selectedArbitratorAddress={selectedArbitratorAddress}
     />,
-    <FormStepSuccess/>,
+    <FormStepSuccess />,
   ];
 
   const maxStep = steps.length - 1;
   return (
     <>
       {!showSummary && (
-        <div>
-          <div className='bg-softBlue px-4 pb-4 pt-7 sm:px-6 lg:px-8'>
+        <div className='flex h-customHeader flex-1 flex-col'>
+          <div className='flex flex-1 flex-col bg-softBlue px-4 pb-4 pt-7 sm:px-6 lg:px-8'>
             <h1 className='mb-2 text-3xl font-bold'>Create a Job Post</h1>
             <span>
               Complete the form below to post your job and connect with
               potential candidates.
             </span>
           </div>
-          <div className='w-auto border-gray h-full overflow-x-hidden border-t bg-white'>
+          <div className='border-gray flex w-auto flex-[10] flex-col place-content-between overflow-x-hidden border-t bg-white'>
             <div
-              className='formStepsWidth flex transition-transform duration-500 ease-in-out h-full '
+              className='formStepsWidth flex transition-transform duration-500 ease-in-out'
               style={{ transform: `translateX(-${step * 100}%)` }}
             >
               {steps.map((stepContent, index) => (
                 <div
                   key={index}
-                  className='flex-shrink-0 w-full px-4 pb-4 pt-12 sm:px-12 '
+                  className='w-full flex-shrink-0 px-4 pb-4 pt-12 sm:px-12'
                 >
                   {stepContent}
                 </div>
               ))}
             </div>
 
-            <div className='mt-4 flex justify-between px-4'>
-              <Button
-                className='rounded bg-gray-300 px-4 py-2 disabled:opacity-50'
-                onClick={() => setStep((prev) => Math.max(prev - 1, 0))}
-                disabled={step === 0}
-              >
-                Cancel
-              </Button>
-              <Button
-                className='rounded bg-blue-500 px-4 py-2 text-white disabled:opacity-50'
-                onClick={() => setStep((prev) => Math.min(prev + 1, maxStep))}
-                disabled={step === maxStep}
-              >
-                Next
-              </Button>
+            <div className='mt-4 flex flex-col '>
+              <div className='h-1 w-full bg-gray-200 flex-row'>
+                <div style={{ transform: `${step === 4 ? 'translateX(0%)' : `translateX(${step * 100}%)`}` }} className={`${step === 4 ? 'w-[100%]' : ''} bg-lightPurple h-1 w-[25%] transition-transform duration-500 ease-in-out`}></div>
+              </div>
+              <div  className='flex justify-between  px-6 pb-6 pt-6'>
+                <Button
+                  className='rounded bg-gray-300 px-4 py-2 disabled:opacity-50'
+                  onClick={() => setStep((prev) => Math.max(prev - 1, 0))}
+                  disabled={step === 0}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className='rounded bg-blue-500 px-4 py-2 text-white disabled:opacity-50'
+                  onClick={() => setStep((prev) => Math.min(prev + 1, maxStep))}
+                  disabled={step === maxStep}
+                >
+                  Next
+                </Button>
+              </div>
             </div>
           </div>
           {/* {!showSummary && (
@@ -608,12 +622,8 @@ const FormStepInfo = ({
   return (
     <div className='flex-1'>
       <span className=''>{stepInfo}</span>
-      <h2 className='text-4xl font-bold py-4'>
-        {stepTitle}
-      </h2>
-      <span>
-        {stepDescription}
-      </span>
+      <h2 className='py-4 text-4xl font-bold'>{stepTitle}</h2>
+      <span>{stepDescription}</span>
     </div>
   );
 };
@@ -641,10 +651,12 @@ const FormStepTitle = ({
 }: FormStepTitleProps) => {
   return (
     <div className='flex w-full flex-col gap-8 lg:flex-row lg:gap-24'>
-      <FormStepInfo 
-        stepInfo={'1/4 Title'} 
-        stepTitle={'First, let’s create a title and description'} 
-        stepDescription={'This will make your post easy to find and understand for the right freelancer'}
+      <FormStepInfo
+        stepInfo={'1/4 Title'}
+        stepTitle={'First, let’s create a title and description'}
+        stepDescription={
+          'This will make your post easy to find and understand for the right freelancer'
+        }
       />
       <FieldGroup className='flex-1'>
         <Field>
@@ -724,10 +736,12 @@ const FormStepSkills = ({
 }: FormStepSkillsProps) => {
   return (
     <div className='flex w-full flex-col gap-8 lg:flex-row lg:gap-24'>
-      <FormStepInfo 
-        stepInfo={'2/4 Skills'} 
-        stepTitle={'Now let’s describe the ideal freelancer'} 
-        stepDescription={'What is the ideal skillset of the freelancer in charge of bringing your project to life'}
+      <FormStepInfo
+        stepInfo={'2/4 Skills'}
+        stepTitle={'Now let’s describe the ideal freelancer'}
+        stepDescription={
+          'What is the ideal skillset of the freelancer in charge of bringing your project to life'
+        }
       />
       <FieldGroup className='flex-1'>
         <Field>
@@ -740,7 +754,10 @@ const FormStepSkills = ({
               aria-label='Server size'
             >
               {noYes.map((option) => (
-                <Field className='!mt-0 ml-5 items-center inline-block' key={option}>
+                <Field
+                  className='!mt-0 ml-5 inline-block items-center'
+                  key={option}
+                >
                   <Radio className='mr-2' color='default' value={option}>
                     <span>{option}</span>
                   </Radio>
@@ -829,8 +846,6 @@ const FormStepPayment = ({
   deliveryMethod,
   deadline,
   selectedArbitratorAddress,
-  selectedCategory,
-  handleSummary,
   jobAmountRef,
   validatePaymentAmount,
   paymentTokenError,
@@ -855,10 +870,12 @@ const FormStepPayment = ({
 }: FormStepPaymentProps) => {
   return (
     <div className='flex w-full flex-col gap-8 lg:flex-row lg:gap-24'>
-      <FormStepInfo 
-        stepInfo={'3/4 Payment'} 
-        stepTitle={'What’s your budget?'} 
-        stepDescription={'Add the amount you are willing to pay and what token you are using'}
+      <FormStepInfo
+        stepInfo={'3/4 Payment'}
+        stepTitle={'What’s your budget?'}
+        stepDescription={
+          'Add the amount you are willing to pay and what token you are using'
+        }
       />
       <FieldGroup className='flex-1'>
         <div className='flex flex-row justify-between gap-5'>
@@ -925,7 +942,17 @@ const FormStepPayment = ({
           </Field>
         </div>
         <Field>
-          <Label>Delivery Method</Label>
+          <div>
+            <Label>Delivery Method</Label>
+            <TooltipInfo
+              tooltipContent="What delivery method should the worker use? For digital items usually IPFS is the correct choice. For jobs that do not involve a digital deliverable (such as posting online), digital proof can be used. For physical items such as selling computer equipment use courier."
+              popoverContent={<div>What delivery method should the worker use? For digital items usually IPFS is the correct choice. For jobs that do not involve a digital deliverable (such as posting online), digital proof can be used. For physical items such as selling computer equipment use courier.</div>}
+              className={'max-w-64! bg-black!'}
+            >
+              My Info
+            </TooltipInfo>
+          </div>
+
           <ListBox
             placeholder='Delivery Method'
             value={deliveryMethod}
@@ -957,7 +984,10 @@ const FormStepPayment = ({
               aria-label='Arbitrator Required'
             >
               {noYes.map((option) => (
-                <Field className='!mt-0 ml-5 inline-block items-center' key={option}>
+                <Field
+                  className='!mt-0 ml-5 inline-block items-center'
+                  key={option}
+                >
                   <Radio color='default' className='mr-2' value={option}>
                     <span>{option}</span>
                   </Radio>
@@ -1046,13 +1076,20 @@ const FormStepPayment = ({
 const FormStepSuccess = () => {
   return (
     <div className='flex w-full flex-col gap-8 lg:flex-row lg:gap-24'>
-      <FormStepInfo 
-        stepInfo={'Job Posted'} 
-        stepTitle={'Success!'} 
-        stepDescription={'Your job has been succesfully posted, we will notify you when someone is interested'}
+      <FormStepInfo
+        stepInfo={'Job Posted'}
+        stepTitle={'Success!'}
+        stepDescription={
+          'Your job has been succesfully posted, we will notify you when someone is interested'
+        }
       />
       <div className='flex flex-1 flex-col items-center gap-y-6'>
-        <Image alt='Success Job Post' width={350} height={350}  src={SuccessJobPostComputer.src}/>
+        <Image
+          alt='Success Job Post'
+          width={350}
+          height={350}
+          src={SuccessJobPostComputer.src}
+        />
         <Button className={'max-w-52'}>View Posted Jobs</Button>
       </div>
     </div>
