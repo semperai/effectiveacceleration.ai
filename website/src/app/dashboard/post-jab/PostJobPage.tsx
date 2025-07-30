@@ -47,12 +47,7 @@ import { Combobox } from '@/components/ComboBox';
 import ListBox from '@/components/ListBox';
 import Image from 'next/image';
 import SuccessJobPostComputer from '@/images/SuccessJobPostComputer.svg';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/Tooltip';
+import PostJobFormImage from '@/images/PostJobForm.svg';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { TooltipInfo } from '@/components/TooltipInfo';
 
@@ -122,7 +117,7 @@ const JobSummary = ({
     label: string;
     children?: React.ReactNode;
   }) => (
-    <div className='py-4 first:pt-0 last:pb-0'>
+    <div className='py-3 first:pt-0 last:pb-0'>
       <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
         <div className='text-sm font-medium text-gray-500'>{label}</div>
         <div className='text-sm text-gray-900 md:col-span-2'>{children}</div>
@@ -142,7 +137,7 @@ const JobSummary = ({
           'Before you submit your job, please double check your answers.'
         }
       />
-      <div className='mb-8 bg-white p-8'>
+      <div className='mb-8 bg-white px-8 py-0'>
         <div className='divide-y divide-gray-200'>
           <Row label='Job Title'>{title}</Row>
           <Row label='Description'>{description}</Row>
@@ -446,6 +441,7 @@ const PostJob = () => {
     }
   };
   const steps = [
+    <FormStepCreate />,
     <FormStepTitle
       title={title}
       description={description}
@@ -514,38 +510,37 @@ const PostJob = () => {
   return (
     <>
       {!showSummary && (
-        <div className='flex h-customHeader flex-1 flex-col'>
-          <div className='flex flex-1 flex-col bg-softBlue px-4 pb-4 pt-7 sm:px-6 lg:px-8'>
-            <h1 className='mb-2 text-3xl font-bold'>Create a Job Post</h1>
-            <span>
-              Complete the form below to post your job and connect with
-              potential candidates.
-            </span>
-          </div>
+        <div className='flex h-customHeader flex-1 flex-col  min-h-[580px]'>
           <div className='border-gray flex w-auto flex-[10] flex-col place-content-between overflow-x-hidden border-t bg-white'>
             <div
-              className='formStepsWidth flex transition-transform duration-500 ease-in-out'
+              className='formStepsWidth flex transition-transform duration-500 ease-in-out flex-1 items-center'
               style={{ transform: `translateX(-${step * 100}%)` }}
             >
               {steps.map((stepContent, index) => (
                 <div
                   key={index}
-                  className='w-full flex-shrink-0 px-4 pb-4 pt-12 sm:px-12'
+                  className='w-full flex-shrink-0 px-4 sm:px-12 py-5'
                 >
                   {stepContent}
                 </div>
               ))}
             </div>
 
-            <div className='mt-4 flex flex-col '>
-              <div className='h-1 w-full bg-gray-200 flex-row'>
-                <div style={{ transform: `${step === 4 ? 'translateX(0%)' : `translateX(${step * 100}%)`}` }} className={`${step === 4 ? 'w-[100%]' : ''} bg-lightPurple h-1 w-[25%] transition-transform duration-500 ease-in-out`}></div>
+            <div className='flex flex-col'>
+              <div className='h-1 w-full flex-row bg-gray-200'>
+                <div
+                  style={{
+                    transform: `${step === 5 ? 'translateX(0%)' : `${ step === 0 ? 'translateX(-100%)' : `translateX(${(step - 1) * 100}%)`}`}`,
+                    width: `${step === 5 ? '100%' : `25%`}`,
+                  }}
+                  className={`h-1 bg-lightPurple transition-transform duration-500 ease-in-out`}
+                ></div>
               </div>
-              <div  className='flex justify-between  px-6 pb-6 pt-6'>
+              <div className='flex justify-between px-6 pb-6 pt-6'>
                 <Button
                   className='rounded bg-gray-300 px-4 py-2 disabled:opacity-50'
-                  onClick={() => setStep((prev) => Math.max(prev - 1, 0))}
-                  disabled={step === 0}
+                  onClick={() => setStep((prev) => Math.max(prev - 1, -1))}
+                  disabled={step === -1}
                 >
                   Cancel
                 </Button>
@@ -620,7 +615,7 @@ const FormStepInfo = ({
   stepDescription,
 }: FormStepInfoProps) => {
   return (
-    <div className='flex-1'>
+    <div className='flex-1 content-center'>
       <span className=''>{stepInfo}</span>
       <h2 className='py-4 text-4xl font-bold'>{stepTitle}</h2>
       <span>{stepDescription}</span>
@@ -746,7 +741,23 @@ const FormStepSkills = ({
       <FieldGroup className='flex-1'>
         <Field>
           <div className='flex flex-row items-center justify-between'>
-            <Label className='items-center'>I&apos;m feeling lucky</Label>
+            <div className='flex'>
+              <Label className={'mr-1 items-center'}>
+                I&apos;m feeling lucky
+              </Label>
+              <TooltipInfo
+                tooltipContent='Enabling this allows worker to automatically start the job without you approving them first.'
+                popoverContent={
+                  <span className='max-w-64!'>
+                    Enabling this allows worker to automatically start the job
+                    without you approving them first.
+                  </span>
+                }
+                className={'max-w-64! bg-black!'}
+              >
+                <HelpOutlineIcon className='mb-1 text-lightPurple' />
+              </TooltipInfo>
+            </div>
             <RadioGroup
               className='!mt-0'
               value={imFeelingLucky}
@@ -766,10 +777,6 @@ const FormStepSkills = ({
               ))}
             </RadioGroup>
           </div>
-          <Description>
-            Enabling this allows worker to automatically start the job without
-            you approving them first.
-          </Description>
         </Field>
         <Field>
           <Label>Category</Label>
@@ -792,12 +799,22 @@ const FormStepSkills = ({
           )}
         </Field>
         <Field>
-          <Label>Tags</Label>
+          <div className='flex'>
+            <Label className={'mr-1 items-center'}>Tags</Label>
+            <TooltipInfo
+              tooltipContent='Tags help workers find your job post. Select tags that best describe the job and its requirements.'
+              popoverContent={
+                <span className='max-w-64!'>
+                  Tags help workers find your job post. Select tags that best
+                  describe the job and its requirements.
+                </span>
+              }
+              className={'max-w-64! bg-black!'}
+            >
+              <HelpOutlineIcon className='mb-1 text-lightPurple' />
+            </TooltipInfo>
+          </div>
           <TagsInput tags={tags} setTags={setTags} />
-          <Description>
-            Tags help workers find your job post. Select tags that best describe
-            the job and its requirements.
-          </Description>
         </Field>
       </FieldGroup>
     </div>
@@ -880,7 +897,24 @@ const FormStepPayment = ({
       <FieldGroup className='flex-1'>
         <div className='flex flex-row justify-between gap-5'>
           <Field className='flex-1'>
-            <Label>Payment Amount</Label>
+            <div className='flex'>
+              <Label className={'mr-1'}>Payment Amount</Label>
+              <TooltipInfo
+                tooltipContent='                    Your funds will be locked until the job is completed. Or, if
+                    you cancel the job posting, available for withdraw after a
+                    24 hour period.'
+                popoverContent={
+                  <span className='max-w-64!'>
+                    Your funds will be locked until the job is completed. Or, if
+                    you cancel the job posting, available for withdraw after a
+                    24 hour period.
+                  </span>
+                }
+                className={'max-w-64! bg-black!'}
+              >
+                <HelpOutlineIcon className='mb-1 text-lightPurple' />
+              </TooltipInfo>
+            </div>
             <div className='scroll-mt-20' ref={jobAmountRef} />
             <Input
               name='amount'
@@ -894,11 +928,6 @@ const FormStepPayment = ({
                 {paymentTokenError}
               </div>
             )}
-            <Description>
-              Your funds will be locked until the job is completed. Or, if you
-              cancel the job posting, available for withdraw after a 24 hour
-              period.
-            </Description>
           </Field>
           <Field className='flex-1'>
             <Label>Payment Token</Label>
@@ -942,14 +971,22 @@ const FormStepPayment = ({
           </Field>
         </div>
         <Field>
-          <div>
-            <Label>Delivery Method</Label>
+          <div className='flex'>
+            <Label className={'mr-1'}>Delivery Method</Label>
             <TooltipInfo
-              tooltipContent="What delivery method should the worker use? For digital items usually IPFS is the correct choice. For jobs that do not involve a digital deliverable (such as posting online), digital proof can be used. For physical items such as selling computer equipment use courier."
-              popoverContent={<div>What delivery method should the worker use? For digital items usually IPFS is the correct choice. For jobs that do not involve a digital deliverable (such as posting online), digital proof can be used. For physical items such as selling computer equipment use courier.</div>}
+              tooltipContent='What delivery method should the worker use? For digital items usually IPFS is the correct choice. For jobs that do not involve a digital deliverable (such as posting online), digital proof can be used. For physical items such as selling computer equipment use courier.'
+              popoverContent={
+                <span className='max-w-64!'>
+                  What delivery method should the worker use? For digital items
+                  usually IPFS is the correct choice. For jobs that do not
+                  involve a digital deliverable (such as posting online),
+                  digital proof can be used. For physical items such as selling
+                  computer equipment use courier.
+                </span>
+              }
               className={'max-w-64! bg-black!'}
             >
-              My Info
+              <HelpOutlineIcon className='mb-1 text-lightPurple' />
             </TooltipInfo>
           </div>
 
@@ -964,19 +1001,27 @@ const FormStepPayment = ({
             }}
             options={deliveryMethods}
           />
-          <Description>
-            What delivery method should the worker use? For digital items
-            usually IPFS is the correct choice. For jobs that do not involve a
-            digital deliverable (such as posting online), digital proof can be
-            used. For physical items such as selling computer equipment use
-            courier.
-          </Description>
         </Field>
         <Field>
           <div className='flex flex-row items-center justify-between'>
-            <Label className='mb-0 items-center pb-0 !font-bold'>
-              Arbitrator Required
-            </Label>
+            <div className='flex'>
+              <Label className={'mr-1 items-center pb-0 !font-bold'}>
+                Arbitrator Required
+              </Label>
+              <TooltipInfo
+                tooltipContent='Without an arbitrator, disputes on job completion must be handled by the creator and worker directly. Arbitrators are third-party entities that can help resolve disputes.'
+                popoverContent={
+                  <span className='max-w-64!'>
+                    Without an arbitrator, disputes on job completion must be
+                    handled by the creator and worker directly. Arbitrators are
+                    third-party entities that can help resolve disputes.
+                  </span>
+                }
+                className={'max-w-64! bg-black!'}
+              >
+                <HelpOutlineIcon className='mb-1 text-lightPurple' />
+              </TooltipInfo>
+            </div>
             <RadioGroup
               className='!mt-0'
               value={arbitratorRequired}
@@ -996,11 +1041,6 @@ const FormStepPayment = ({
               ))}
             </RadioGroup>
           </div>
-          <Description>
-            Without an arbitrator, disputes on job completion must be handled by
-            the creator and worker directly. Arbitrators are third-party
-            entities that can help resolve disputes.
-          </Description>
         </Field>
 
         {arbitratorRequired === 'Yes' && (
@@ -1086,11 +1126,33 @@ const FormStepSuccess = () => {
       <div className='flex flex-1 flex-col items-center gap-y-6'>
         <Image
           alt='Success Job Post'
-          width={350}
-          height={350}
+          width={300}
+          height={300}
           src={SuccessJobPostComputer.src}
         />
         <Button className={'max-w-52'}>View Posted Jobs</Button>
+      </div>
+    </div>
+  );
+};
+
+const FormStepCreate = () => {
+  return (
+    <div className='flex w-full flex-col gap-8 lg:flex-row lg:gap-24'>
+      <FormStepInfo
+        stepInfo={'Create Your Job Post'}
+        stepTitle={'Start by filling out the form below to craft an effective job post'}
+        stepDescription={
+          `This will help you attract the right AI freelancers by clearly outlining your project's needs and expectations`
+        }
+      />
+      <div className='flex flex-1 flex-col items-center gap-y-6'>
+        <Image
+          alt='Post Job Form Image'
+          width={300}
+          height={300}
+          src={PostJobFormImage.src}
+        />
       </div>
     </div>
   );
