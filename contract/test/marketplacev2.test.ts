@@ -9,7 +9,6 @@ import { MarketplaceV2 } from "../typechain-types/contracts/MarketplaceV2";
 import { JobEventDataStructOutput, MarketplaceDataV1 as MarketplaceData } from "../typechain-types/contracts/MarketplaceDataV1";
 import { FakeToken } from "../typechain-types/contracts/unicrow/FakeToken";
 import { EACCToken } from "../typechain-types/contracts/EACCToken";
-import { EACCBar } from "../typechain-types/contracts/EACCBar";
 import chai from "chai";
 import chaiAsPromised from 'chai-as-promised';
 import chaiSubset from "chai-subset";
@@ -27,7 +26,6 @@ describe("MarketplaceV2 EACC Rewards Tests", () => {
     marketplace: MarketplaceV2; // MarketplaceV2
     marketplaceData: MarketplaceData; // MarketplaceDataV1
     eaccToken: EACCToken; // EACCToken
-    eaccBar: EACCBar; // Address where some rewards go
     rewardToken: FakeToken; // Token used for job payment that's eligible for rewards
     nonRewardToken: FakeToken; // Token used for job payment that's NOT eligible for rewards
     deployer: SignerWithAddress;
@@ -132,16 +130,6 @@ describe("MarketplaceV2 EACC Rewards Tests", () => {
       await mockSablier.getAddress()
     ) as unknown as EACCToken;
 
-    // Deploy EACCBar
-    const EACCBar = await ethers.getContractFactory("EACCBar");
-    const eaccBar = await EACCBar.deploy(
-      await eaccToken.getAddress(),
-      await mockSablier.getAddress()
-    ) as unknown as EACCBar;
-
-    // Set the EACCBar address in EACCToken
-    await eaccToken.setEACCBar(await eaccBar.getAddress());
-
     // Deploy tokens for job payments
     const FakeToken = await ethers.getContractFactory("FakeToken");
 
@@ -188,7 +176,7 @@ describe("MarketplaceV2 EACC Rewards Tests", () => {
       await eaccBar.getAddress(),
       ethers.parseEther("100")
     );
-    // console.log("MarketplaceV2 initialized with EACCToken and EACCBar");
+    // console.log("MarketplaceV2 initialized with EACCToken");
 
     // Configure EACC rewards (100% of scaling)
     await marketplace2.setEACCRewardTokensEnabled(
@@ -221,7 +209,6 @@ describe("MarketplaceV2 EACC Rewards Tests", () => {
       marketplace: marketplace2, // Use upgraded MarketplaceV2
       marketplaceData,
       eaccToken,
-      eaccBar,
       rewardToken,
       nonRewardToken,
       deployer,

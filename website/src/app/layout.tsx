@@ -9,7 +9,6 @@ import { Providers } from '@/app/providers';
 import '@/styles/tailwind.css';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import type { Metadata, Viewport } from 'next';
-import Head from 'next/head';
 import { ToastProvider } from '@/providers/ToastProvider';
 
 const APP_NAME = 'Effective Acceleration';
@@ -28,6 +27,18 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || 'https://effectiveacceleration.ai'
   ),
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180' },
+    ],
+    shortcut: '/favicon.ico',
+  },
+  manifest: '/site.webmanifest',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -75,26 +86,6 @@ export default function RootLayout({
       className='h-full bg-white antialiased dark:bg-black'
       suppressHydrationWarning
     >
-      <Head>
-        <link
-          rel='icon'
-          type='image/png'
-          href='/favicon-96x96.png'
-          sizes='96x96'
-        />
-        <link rel='icon' type='image/svg+xml' href='/favicon.svg' />
-        <link rel='shortcut icon' href='/favicon.ico' />
-        <link
-          rel='apple-touch-icon'
-          sizes='180x180'
-          href='/apple-touch-icon.png'
-        />
-        <meta
-          name='apple-mobile-web-app-title'
-          content='Effective Acceleration'
-        />
-        <link rel='manifest' href='/site.webmanifest' />
-      </Head>
       <body className='flex h-full min-h-full flex-col bg-white dark:bg-black'>
         <Providers>{children}</Providers>
         {process.env.NODE_ENV === 'production' && (

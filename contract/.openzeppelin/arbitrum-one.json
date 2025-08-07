@@ -2732,7 +2732,7 @@
             "label": "marketplaceData",
             "offset": 0,
             "slot": "0",
-            "type": "t_contract(MarketplaceDataV1)3160",
+            "type": "t_contract(MarketplaceDataV1)6237",
             "contract": "MarketplaceV2",
             "src": "contracts/MarketplaceV2.sol:19"
           },
@@ -2748,7 +2748,7 @@
             "label": "jobs",
             "offset": 0,
             "slot": "2",
-            "type": "t_array(t_struct(JobPost)3230_storage)dyn_storage",
+            "type": "t_array(t_struct(JobPost)6307_storage)dyn_storage",
             "contract": "MarketplaceV2",
             "src": "contracts/MarketplaceV2.sol:23"
           },
@@ -2804,7 +2804,7 @@
             "label": "eaccToken",
             "offset": 0,
             "slot": "8",
-            "type": "t_contract(IERC20)748",
+            "type": "t_contract(IERC20)1425",
             "contract": "MarketplaceV2",
             "src": "contracts/MarketplaceV2.sol:35"
           },
@@ -2900,7 +2900,7 @@
             "label": "string[]",
             "numberOfBytes": "32"
           },
-          "t_array(t_struct(JobPost)3230_storage)dyn_storage": {
+          "t_array(t_struct(JobPost)6307_storage)dyn_storage": {
             "label": "struct JobPost[]",
             "numberOfBytes": "32"
           },
@@ -2912,11 +2912,11 @@
             "label": "bytes32",
             "numberOfBytes": "32"
           },
-          "t_contract(IERC20)748": {
+          "t_contract(IERC20)1425": {
             "label": "contract IERC20",
             "numberOfBytes": "20"
           },
-          "t_contract(MarketplaceDataV1)3160": {
+          "t_contract(MarketplaceDataV1)6237": {
             "label": "contract MarketplaceDataV1",
             "numberOfBytes": "20"
           },
@@ -2936,7 +2936,7 @@
             "label": "string",
             "numberOfBytes": "32"
           },
-          "t_struct(JobPost)3230_storage": {
+          "t_struct(JobPost)6307_storage": {
             "label": "struct JobPost",
             "members": [
               {
@@ -2953,7 +2953,7 @@
               },
               {
                 "label": "roles",
-                "type": "t_struct(JobRoles)3193_storage",
+                "type": "t_struct(JobRoles)6270_storage",
                 "offset": 0,
                 "slot": "1"
               },
@@ -3044,7 +3044,7 @@
             ],
             "numberOfBytes": "480"
           },
-          "t_struct(JobRoles)3193_storage": {
+          "t_struct(JobRoles)6270_storage": {
             "label": "struct JobRoles",
             "members": [
               {
