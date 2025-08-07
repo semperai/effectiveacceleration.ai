@@ -199,7 +199,7 @@ function SmallPrint() {
   return (
     <div className="flex flex-col items-center justify-between gap-5 border-t border-zinc-900/5 pt-8 dark:border-white/5 sm:flex-row">
       <p className="text-xs text-zinc-600 dark:text-zinc-400">
-        arbius.ai {new Date().getFullYear()}
+        effectiveacceleration.ai {new Date().getFullYear()}
       </p>
       <div className="flex gap-4">
         <Link href="https://github.com/semperai/effectiveacceleration.ai" className="group" target="_blank">
@@ -207,23 +207,16 @@ function SmallPrint() {
           <GitHubIcon className="h-5 w-5 fill-zinc-700 transition group-hover:fill-zinc-900 dark:group-hover:fill-zinc-500" />
         </Link>
 
-        <Link href="https://twitter.com/arbius_ai" className="group" target="_blank">
+        <Link href="https://twitter.com/eaccmarket" className="group" target="_blank">
           <span className="sr-only">Follow us on Twitter</span>
           <TwitterIcon className="h-5 w-5 fill-zinc-700 transition group-hover:fill-zinc-900 dark:group-hover:fill-zinc-500" />
         </Link>
 
-        <Link href="https://t.me/arbius_ai" className="group" target="_blank">
+        <Link href="https://t.me/+5h3d8x_NgnYyYjhh" className="group" target="_blank">
           <span className="sr-only">
             Follow us on Telegram
           </span>
           <TelegramIcon className="m-[1px] h-[18px] w-[18px] fill-zinc-700 transition group-hover:fill-zinc-900 dark:group-hover:fill-zinc-500" />
-        </Link>
-
-        <Link href="https://discord.gg/eXxXMRCMzZ" className="group" target="_blank">
-          <span className="sr-only">
-            Follow us on Discord
-          </span>
-          <DiscordIcon className="m-[1px] h-[18px] w-[18px] fill-zinc-700 transition group-hover:fill-zinc-900 dark:group-hover:fill-zinc-500" />
         </Link>
       </div>
     </div>
