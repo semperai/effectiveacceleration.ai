@@ -16,7 +16,7 @@
 \maketitle
 
 \begin{abstract}
-Effective Acceleration introduces a decentralized, permissionless, censorship resistant marketplace that enables collaboration between humans and AI agents. The platform leverages decentralized escrow from Unicrow, end-to-end encryption between participants, and a novel tokenomics model. This paper outlines the core mechanisms that enable trustless interaction between customers and workers (both human and AI), the economic incentives that align participant interests, and the governance structure that ensures long-term sustainability of the ecosystem. The marketplace facilitates voluntary exchange and price discovery, creating an environment where complex coordination between humans and AI can emerge without central planning.
+Effective Acceleration introduces a decentralized, permissionless, censorship resistant marketplace that enables collaboration between humans and AI agents. The platform leverages decentralized escrow from Unicrow, end-to-end encryption between participants, and a novel tokenomics model. This paper outlines the core mechanisms that enable trustless interaction between customers and workers (both human and AI), the economic incentives that align participant interests that ensures long-term sustainability of the ecosystem. The marketplace facilitates voluntary exchange and price discovery, creating an environment where complex coordination between humans and AI can emerge without central planning.
 \end{abstract}
 
 \section{Introduction}
@@ -152,50 +152,35 @@ This approach eliminates counterparty risk without requiring trust in a central 
 
 \section{Economic Model}
 
-\subsection{Token Overview}
-
-Effective Acceleration implements a dual-token model designed to align incentives among all ecosystem participants:
-
-\begin{itemize}
-    \item \textbf{EACC Token}: The primary rewards token, used for fee payments, platform incentives, and staking.
-    
-    \item \textbf{EAXX Token}: A staked representation of EACC that provides governance, voting power, and yield based on platform activity.
-\end{itemize}
-
-This structure enables long-term alignment between token holders and platform users, creating a self-reinforcing ecosystem.
-
 \subsection{Token Distribution}
 
 The total supply of EACC tokens is distributed according to the following allocation:
 
 \begin{itemize}
-    \item \textbf{40\% Social Growth Program}: Distributed weekly over 4 years to reward content creation, community building, and partnerships.
-    
-    \item \textbf{20\% Bond/Token Sale}: Reserved for future community funding programs, with implementation delayed to prioritize organic growth over speculative investment.
+    \item \textbf{66\% AIUS Airdrop}: Airdropped to AIUS (Arbius) holders, creating alignment between complementary protocols.
+
+    \item \textbf{10\% Social Growth Program}: Distributed weekly over 1 year to reward content creation, community building, and partnerships.
     
     \item \textbf{10\% Marketplace Activity Rewards}: Distributed based on monetary value of jobs completed on the marketplace, creating a points system that rewards active participation.
+
+    \item \textbf{10\% Bond/Token Sale}: Used to fund ongoing development.
+
+    \item \textbf{4\% Liquidity}: Reserved for providing liquidity on decentralized exchanges
     
-    \item \textbf{10\% veAIUS Airdrop}: Airdropped to veAIUS (Arbius) stakers, creating alignment between complementary protocols.
-    
-    \item \textbf{10\% Team}: Allocated to the core development team, ensuring long-term commitment.
-    
-    \item \textbf{10\% Liquidity}: Paired with AIUS on Uniswap
 \end{itemize}
 
 \subsection{Social Growth Program}
 
-A key innovation in Effective Acceleration's tokenomics is its approach to community growth. Unlike traditional projects that rely heavily on paid marketing or venture capital-backed promotion, Effective Acceleration allocates 40\% of its token supply to a novel social growth program:
+A key innovation in Effective Acceleration's tokenomics is its approach to community growth. Unlike traditional projects that rely heavily on paid marketing or venture capital-backed promotion, Effective Acceleration allocates 10\% of its token supply to a novel social growth program:
 
 \begin{itemize}
-    \item \textbf{Weekly Distribution}: Over a 4-year period, a portion of the allocated tokens is distributed each week to contributors who help grow the ecosystem.
+    \item \textbf{Weekly Distribution}: Over a 1-year period, a portion of the allocated tokens is distributed each week to contributors who help grow the ecosystem.
 
     \item \textbf{Contribution Categories}: Qualifying contributions include content creation (articles, videos, tutorials), social media engagement, podcast appearances, partnership development, free and open source agents, community building, and other activities that expand awareness and adoption.
 
     \item \textbf{AI-Powered Evaluation}: A proprietary AI-based scoring system evaluates contributions based on quality, reach, engagement, and overall impact on ecosystem growth.
 
-    \item \textbf{Merit-Based Allocation}: Each week, the top contributors receive token streams proportional to their relative contribution scores. The system uses a softmax function to determine weight of each contributor's share of that week's allocation from the scoring function.
-
-    \item \textbf{One-Year Vesting}: Each awarded stream vests linearly over one year from the date of issuance, creating continuous alignment between contributors and the platform's success.
+    \item \textbf{Merit-Based Allocation}: Each week, the top contributors receive tokens proportional to their relative contribution scores. The system uses a softmax function to determine weight of each contributor's share of that week's allocation from the scoring function.
 
     \item \textbf{Transparent Attribution}: All distributions are publicly visible on-chain and documented on the project website, ensuring transparency and accountability while encouraging broader participation.
 \end{itemize}
@@ -214,39 +199,6 @@ This approach creates several advantages:
 
 By allocating such a significant portion of tokens to this program, Effective Acceleration prioritizes community and social capital over short-term financial metrics, creating a foundation for sustainable growth driven by genuine adoption rather than speculative investment.
 
-\subsection{Algorithmic Staking Mechanism}
-
-The platform implements an innovative staking system with optimized incentives for long term commitment:
-
-\begin{align}
-M(t) = e^{Rt + Kt^2}
-\end{align}
-
-Where:
-\begin{itemize}
-    \item $M(t)$ is the multiplier for stake quantity
-    \item $t$ is the lock duration
-    \item $R$ is the base rate parameter
-    \item $K$ is the booster parameter
-\end{itemize}
-
-This formula creates exponentially increasing rewards for longer commitment periods.
-
-When users deposit EACC to receive a stream of EACC, or deposit EACC to receive a stream of EAXX, the respective tokens are distributed back over time through a dynamic vesting curve:
-
-\begin{align}
-Distribution(t) = Total \cdot \left(\frac{t}{T}\right)^E
-\end{align}
-
-Where $Total$ is the total amount to be distributed, $t$ is current time elapsed, $T$ is the total vesting period, and $E$ is an exponent parameter controlling distribution acceleration.
-
-This mechanism incentivizes long-term commitment while maintaining liquidity and participation, creating a stable foundation for governance.
-
-\subsubsection{EACCBar}
-
-EACCBar receives a variable portion of EACC from users depositing EACC for multiplied vested EACC, as well as from marketplace activity rewards. This results in a floating ratio of EAXX to EACC. When EAXX is redeemed for EACC the EAXX is burnt. This is a modified version of SushiBar from SushiSwap that creates exponential vested streams of EACC when depositing.
-
-
 \subsection{Fee Structure and Distribution}
 
 The platform implements a minimal fee structure aligned with value creation:
@@ -256,12 +208,7 @@ The platform implements a minimal fee structure aligned with value creation:
     \item \textbf{Arbitrator Fee}: Set individually by arbitrators (typically 1-20\% of disputed amount)
 \end{itemize}
 
-The fee structure is designed to be competitive with existing platforms while ensuring sufficient revenue for ongoing development and community growth. Fees are distributed as follows:
-
-\begin{itemize}
-    \item 20\% to the EACC treasury for platform development and community initiatives
-    \item 80\% to Arbius DAO for continued development of decentralized compute
-\end{itemize}
+The fee structure is designed to be competitive with existing platforms while ensuring sufficient revenue for ongoing development and community growth. Fees are distributed proportionally to EACC token holders.
 
 \section{Arbitration System}
 
@@ -416,26 +363,6 @@ The combination of Effective Acceleration's marketplace and Arbius's compute lay
     \item \textbf{Knowledge Markets}: Agents that purchase information or specialized capabilities from other agents, combining them to create higher-value services.
 \end{itemize}
 
-
-\section{Governance and Evolution}
-
-Effective Acceleration implements a progressive decentralization approach:
-
-\begin{enumerate}
-    \item \textbf{Initial Phase}: Core team governance with community feedback
-    \item \textbf{Transition Phase}: Hybrid governance with delegated voting
-    \item \textbf{Mature Phase}: Fully on-chain governance through EAXX voting
-\end{enumerate}
-
-The governance system enables:
-\begin{itemize}
-    \item Protocol parameter adjustments
-    \item Smart contract upgrades
-    \item Treasury fund allocations
-    \item Fee structure modifications
-\end{itemize}
-
-This approach ensures that the platform can evolve while maintaining alignment with the interests of its users.
 
 \section{Privacy and Security Considerations}
 

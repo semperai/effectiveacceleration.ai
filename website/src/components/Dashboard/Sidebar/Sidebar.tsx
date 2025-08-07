@@ -5,7 +5,6 @@ import Link from 'next/link';
 import React, { Fragment, useState } from 'react';
 import {
   PiBriefcase,
-  PiCoins,
   PiHouseSimple,
   PiJoystick,
   PiMegaphoneSimple,
@@ -50,12 +49,6 @@ const navigationItems: NavigationItem[] = [
     name: 'Worker Jobs',
     href: '/dashboard/worker-job-list',
     icon: <PiBriefcase className='text-2xl' />,
-    target: '_self',
-  },
-  {
-    name: 'Staking',
-    href: '/dashboard/staking',
-    icon: <PiCoins className='text-2xl' />,
     target: '_self',
   },
   {

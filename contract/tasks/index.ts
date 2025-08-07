@@ -1,10 +1,10 @@
 import * as fs from 'fs';
-import { MarketplaceV1 as Marketplace } from '../typechain-types/contracts/MarketplaceV1';
+import { MarketplaceV3 as Marketplace } from '../typechain-types/contracts/MarketplaceV3';
 import { MarketplaceDataV1 as MarketplaceData } from '../typechain-types/contracts/MarketplaceDataV1';
 import { FakeToken } from '../typechain-types/contracts/unicrow/FakeToken';
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { task } from "hardhat/config";
-import Config from '../scripts/config.json';
+import Config from '../scripts/config.arb-one.json';
 import LocalConfig from '../scripts/config.local.json';
 import { AbiCoder, getBytes, hexlify, keccak256, ZeroAddress } from 'ethers';
 import {
@@ -24,7 +24,7 @@ import yesno from 'yesno';
 
 
 async function getMarketplace(hre: HardhatRuntimeEnvironment) {
-  const Marketplace = await hre.ethers.getContractFactory("MarketplaceV1");
+  const Marketplace = await hre.ethers.getContractFactory("MarketplaceV3");
 
   if (hre.network.name === 'hardhat') {
     console.log('You are on hardhat network, try localhost');
@@ -144,91 +144,9 @@ task("gen-wallet", "Creates a new wallet", async (taskArgs, hre) => {
   console.log('privateKey', wallet.privateKey);
 });
 
-// task("send-eth", "Send ether")
-// .addParam("to", "Receiver address")
-// .addParam("amount", "Eth")
-// .setAction(async ({ to, amount }, hre) => {
-//   const [account] = await hre.ethers.getSigners();
-//   console.log(`Sending ${amount} ETH to ${to}`);
-//   const receipt = await account.sendTransaction({
-//     to,
-//     value: hre.ethers.parseEther(amount),
-//   });
-//   console.log(`Transaction hash: ${receipt.hash}`);
-// });
-
-// task("send-token", "Mint test tokens")
-// .addParam("to", "address")
-// .addParam("amount", "amount")
-// .setAction(async ({ to, amount }, hre) => {
-//     console.log(`Sending ${amount} TST to ${to}`);
-//     const Token = await hre.ethers.getContractFactory("FakeToken");
-//     const fakeToken = await Token.attach(Config.fakeTokenAddress) as FakeToken;
-//     const tx = await fakeToken.transfer(to, hre.ethers.parseEther(amount));
-//     const receipt = await tx.wait();
-//     console.log(`Transaction hash: ${receipt.hash}`);
-// });
-
-
-// task("marketplace:transferOwnership", "Transfer admin ownership of Marketplace")
-// .addParam("address", "To who?")
-// .setAction(async ({ address }, hre) => {
-//   const Marketplace = await hre.ethers.getContractFactory("MarketplaceV1");
-//   const marketplace = await Marketplace.attach(Config.marketplaceAddress) as Marketplace;
-//   const tx = await marketplace.transferOwnership(address);
-//   await tx.wait();
-// });
-
-// task("marketplace:transferPauser", "Transfer pause ability of Marketplace")
-// .addParam("address", "To who?")
-// .setAction(async ({ address }, hre) => {
-//   const Marketplace = await hre.ethers.getContractFactory("MarketplaceV1");
-//   const marketplace = await Marketplace.attach(Config.marketplaceAddress) as Marketplace;
-//   const tx = await marketplace.transferPauser(address);
-//   await tx.wait();
-// });
-
-// task("marketplace:isPaused", "Check if marketplace is paused")
-// .setAction(async ({ }, hre) => {
-//   const Marketplace = await hre.ethers.getContractFactory("MarketplaceV1");
-//   const marketplace = await Marketplace.attach(Config.marketplaceAddress) as Marketplace;
-//   const paused = await marketplace.paused();
-//   console.log(`Marketplace is paused: ${paused}`);
-// });
-
-// task("marketplace:setPaused", "Pause engine")
-// .addParam("pause", "Pause/Unpause")
-// .setAction(async ({ pause }, hre) => {
-//   const Marketplace = await hre.ethers.getContractFactory("MarketplaceV1");
-//   const marketplace = await Marketplace.attach(Config.marketplaceAddress) as Marketplace;
-//   const tx = await marketplace.setPaused(pause === 'true');
-//   await tx.wait();
-//   const paused = await marketplace.paused();
-//   console.log(`Marketplace is now ${paused ? 'paused' : 'unpaused'}`);
-// });
-
-// task("marketplace:setVersion", "Set engine version for miner check")
-// .addParam("n", "Version Number")
-// .setAction(async ({ n }, hre) => {
-//   const Marketplace = await hre.ethers.getContractFactory("MarketplaceV1");
-//   const marketplace = await Marketplace.attach(Config.marketplaceAddress) as Marketplace;
-//   const tx = await marketplace.setVersion(n);
-//   await tx.wait();
-//   const versionNow = await marketplace.version();
-//   console.log(`Marketplace is now version ${versionNow}`);
-// });
-
-// task("marketplace:version", "Set engine version for miner check")
-// .setAction(async ({ }, hre) => {
-//   const Marketplace = await hre.ethers.getContractFactory("MarketplaceV1");
-//   const marketplace = await Marketplace.attach(Config.marketplaceAddress) as Marketplace;
-//   const versionNow = await marketplace.version();
-//   console.log(`Marketplace is now version ${versionNow}`);
-// });
-
 task("marketplace:seed", "Seed local marketplace instance")
 .setAction(async ({ }, hre) => {
-  const Marketplace = await hre.ethers.getContractFactory("MarketplaceV1");
+  const Marketplace = await hre.ethers.getContractFactory("MarketplaceV3");
   const marketplace = await Marketplace.attach(Config.marketplaceAddress) as unknown as Marketplace;
 
   const MarketplaceData = await hre.ethers.getContractFactory("MarketplaceDataV1");
@@ -1071,12 +989,16 @@ task("eacc:multisend", "Multisend EACC tokens")
 .setAction(async ({ file }, hre) => {
   const eacc = await getEACCToken(hre);
 
+  console.log(`${await eacc.getAddress()} EACC token address`);
+
   const data = fs.readFileSync(file, 'utf8');
   const lines = data.split('\n');
   if (lines[lines.length - 1] === '') {
     lines.pop();
   }
   let amounts: { address: string, amount: string }[] = [];
+
+  let total = 0;
 
   // check file first
   let i=1;
@@ -1088,14 +1010,17 @@ task("eacc:multisend", "Multisend EACC tokens")
     }
 
     const parsed = parseFloat(amount);
-    if (parsed <= 0 || isNaN(parsed) || parsed.toString() !== amount) {
+    if (parsed <= 0 || isNaN(parsed)) {
       console.log("Invalid amount", amount);
       console.log("On line", i, line);
       process.exit(1);
     }
 
+    total += parsed;
+
     ++i;
   }
+  console.log("Total amount to send:", total, "EACC");
 
   async function sendBatch(amounts: { address: string, amount: string }[]) {
     console.log("Sending batch of ", amounts.length);
@@ -1106,6 +1031,7 @@ task("eacc:multisend", "Multisend EACC tokens")
 
   for (let line of lines) {
     const [address, amount] = line.split(',');
+    console.log(address, amount);
 
     amounts.push({ address, amount });
 
@@ -1120,40 +1046,29 @@ task("eacc:multisend", "Multisend EACC tokens")
   }
 });
 
-task("eacc:setEACCBar", "Set EACCBar address")
-.addParam("address", "EACCBar address")
-.setAction(async ({ address }, hre) => {
-  const eacc = await getEACCToken(hre);
+task("eacc:setEACCRewardTokensEnabled", "Set EACC reward tokens enabled")
+.addParam("token", "Token address")
+.addParam("reward", "Reward rate")
+.setAction(async ({ token, reward }, hre) => {
+  const marketplace = await getMarketplace(hre);
 
-  const tx = await eacc.setEACCBar(address);
+  console.log(`Setting EACC reward tokens enabled for ${token} with reward rate ${reward}`);
+
+  const tx = await marketplace.setEACCRewardTokensEnabled(token, hre.ethers.parseEther(reward));
   const receipt = await tx.wait();
 
   console.log("Transaction hash:", receipt.hash);
 });
 
-task("eacc:setEACCBarPercent", "Set EACCBar percent")
-.addParam("percent", "EACCBar percent")
-.setAction(async ({ percent }, hre) => {
-  const eacc = await getEACCToken(hre);
+task("eacc:setFee", "Set EACC fee")
+.addParam("bips", "Fee in bps (10000 = 100%)")
+.setAction(async ({ bips }, hre) => {
+  const marketplace = await getMarketplace(hre);
 
-  const tx = await eacc.setEACCBarPercent(hre.ethers.parseEther(percent));
+  console.log(`Setting EACC fee to ${bips} bps`);
+
+  const tx = await marketplace.setUnicrowMarketplaceFee(bips);
   const receipt = await tx.wait();
 
   console.log("Transaction hash:", receipt.hash);
-});
-
-task("eacc:M", "Query M")
-.addParam("t", "time (in seconds)")
-.setAction(async ({ t }, hre) => {
-  const eacc = await getEACCToken(hre);
-  const m = await eacc.M(t);
-  console.log(hre.ethers.formatEther(m));
-});
-
-task("eaccbar:M", "Query M")
-.addParam("t", "time (in seconds)")
-.setAction(async ({ t }, hre) => {
-  const eacc = await getEACCBar(hre);
-  const m = await eacc.M(t);
-  console.log(hre.ethers.formatEther(m));
 });

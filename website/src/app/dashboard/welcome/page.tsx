@@ -342,8 +342,8 @@ const TokenSection = () => {
           <Card className='flex-1 bg-white'>
             <CardContent className='pt-6'>
               <Users className='mb-2 h-6 w-6 text-blue-600' />
-              <div className='text-2xl font-bold'>86%</div>
-              <div className='text-gray-600'>Burnt Liquidity</div>
+              <div className='text-2xl font-bold'>66%</div>
+              <div className='text-gray-600'>Distributed</div>
             </CardContent>
           </Card>
         </div>
@@ -440,17 +440,68 @@ const Hero = () => {
   );
 };
 
+const PartnersSection = () => {
+  const partners = [
+    {
+      id: 1,
+      name: 'Arbius',
+      logo: '/partners/arbius.webp',
+      website: 'https://arbius.ai',
+    },
+    {
+      id: 2,
+      name: 'Unicrow',
+      logo: '/partners/unicrow.png',
+      website: 'https://unicrow.io',
+    },
+    {
+      id: 3,
+      name: 'Arbitrum',
+      logo: '/partners/arbitrum.png',
+      website: 'https://arbitrum.io',
+    },
+  ];
+
+  return (
+    <div className="bg-gray-50 py-8">
+      <div className="mx-auto max-w-7xl px-4">
+        <div className="flex items-center justify-center gap-12 md:gap-20">
+          {partners.map((partner) => (
+            <a
+              key={partner.id}
+              href={partner.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="opacity-60 hover:opacity-100 transition-opacity duration-300"
+            >
+              <Image
+                src={partner.logo}
+                alt={`${partner.name} logo`}
+                width={120}
+                height={40}
+                className="object-contain"
+              />
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function WelcomePage() {
   return (
     <Layout borderless noSidebar>
       <div className='relative h-96 bg-gradient-to-r from-blue-600 to-indigo-700'>
         <Hero />
+        <PartnersSection />
+
         <div className='lg:mx-40'>
           <WhitepaperSection />
           <SecurityFeatures />
-          {/* <TokenSection /> */ }
+          <TokenSection />
           <FeatureCards />
-          <Stats />
+          {/*<Stats />*/}
           <AIArbitrationDAO />
         </div>
         <DeveloperCTA />
