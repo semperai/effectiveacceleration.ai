@@ -61,6 +61,10 @@ export const OpenJobsFeed = () => {
       }),
       state: JobState.Open,
       ...(selectedToken && { token: selectedToken.id }),
+      ...(minTokens !== undefined && !isNaN(minTokens) && {
+        amount_gte: minTokens,
+      }),
+
       ...((selectedArbitratorAddress || creatorAddress) && { roles: { creator: creatorAddress ?? '', arbitrator: selectedArbitratorAddress ?? '', worker: '' } }),
       ...(typeof multipleApplicants !== 'undefined' && { multipleApplicants }),
     },
@@ -78,6 +82,9 @@ export const OpenJobsFeed = () => {
       }),
       state: JobState.Open,
       ...(selectedToken && { token: selectedToken.id }),
+      ...(minTokens !== undefined && !isNaN(minTokens) && {
+        amount_gte: minTokens,
+      }),
       ...((selectedArbitratorAddress || creatorAddress) && { roles: { creator: creatorAddress ?? '', arbitrator: selectedArbitratorAddress ?? '', worker: '' } }),
       ...(typeof multipleApplicants !== 'undefined' && { multipleApplicants }),
     },
