@@ -27,11 +27,7 @@ export const OpenJobsFeed = () => {
   const { address } = useAccount();
   const [tags, setTags] = useState<Tag[]>([]);
   const [limit, setLimit] = useState<number>(100);
-  const [selectedToken, setSelectedToken] = useState<Token | undefined>(
-    process.env.NODE_ENV === 'development'
-      ? tokens.find((token) => token.symbol === 'FAKE')
-      : tokens.find((token) => token.symbol === 'USDC')
-  );
+  const [selectedToken, setSelectedToken] = useState<Token | undefined>(undefined);
   const [minDeadline, setMinDeadline] = useState<number | undefined>(undefined);
   const [selectedUnitTime, setSelectedUnitTime] = useState<ComboBoxOption>(
     unitsDeliveryTime[2]
