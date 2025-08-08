@@ -1072,3 +1072,16 @@ task("eacc:setFee", "Set EACC fee")
 
   console.log("Transaction hash:", receipt.hash);
 });
+
+task("eacc:setTreasury", "Set EACC treasury address")
+.addParam("address", "Treasury address")
+.setAction(async ({ address }, hre) => {
+  const marketplace = await getMarketplace(hre);
+
+  console.log(`Setting EACC treasury address to ${address}`);
+
+  const tx = await marketplace.setTreasuryAddress(address);
+  const receipt = await tx.wait();
+
+  console.log("Transaction hash:", receipt.hash);
+});

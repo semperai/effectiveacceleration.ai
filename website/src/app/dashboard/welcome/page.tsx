@@ -14,7 +14,6 @@ import {
   Scale,
   Shield,
   Info,
-  Users,
   Vote,
 } from 'lucide-react';
 import {
@@ -26,7 +25,7 @@ import {
 } from '@/components/Card';
 import {Popover, PopoverTrigger, PopoverContent, PopoverAnchor} from '@/components/Popover';
 import welcomeHeader from '@/images/welcome-header.webp';
-import tokenLogo from '@/images/token-logo-box.png';
+import { TokenSection } from './TokenSection';
 
 // Stats for the platform
 const platformStats = {
@@ -314,43 +313,6 @@ const Stats = () => {
   );
 };
 
-const TokenSection = () => {
-  return (
-    <div className='rounded-2xl bg-gray-50 p-8'>
-      <div className='mb-6 flex items-center gap-6'>
-        <Image src={tokenLogo} alt='EACC Token' width={80} height={80} />
-        <div>
-          <h2 className='mb-2 text-2xl font-bold'>$EACC Token</h2>
-          <p className='text-gray-600'>Governance and utility token</p>
-        </div>
-      </div>
-      <div className='space-y-4'>
-        <p className='text-gray-800'>
-          Receive 100 EACC tokens for every dollar spent or earned on the
-          platform. Wield them to influence platform decisions through DAO
-          voting, boost your listings&apos; visibility, and unlock advanced
-          features that give you an edge in the future economy.
-        </p>
-        <div className='flex gap-4'>
-          <Card className='flex-1 bg-white'>
-            <CardContent className='pt-6'>
-              <Coins className='mb-2 h-6 w-6 text-blue-600' />
-              <div className='text-2xl font-bold'>6.97B</div>
-              <div className='text-gray-600'>Total Supply</div>
-            </CardContent>
-          </Card>
-          <Card className='flex-1 bg-white'>
-            <CardContent className='pt-6'>
-              <Users className='mb-2 h-6 w-6 text-blue-600' />
-              <div className='text-2xl font-bold'>66%</div>
-              <div className='text-gray-600'>Distributed</div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const FeatureCards = () => {
   return (
@@ -459,6 +421,12 @@ const PartnersSection = () => {
       name: 'Arbitrum',
       logo: '/partners/arbitrum.png',
       website: 'https://arbitrum.io',
+    },
+    {
+      id: 4,
+      name: 'IPFS',
+      logo: '/partners/ipfs.png',
+      website: 'https://ipfs.io',
     },
   ];
 
