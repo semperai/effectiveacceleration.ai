@@ -40,6 +40,13 @@ export const tokens: Token[] = [
     decimals: 18,
   },
   {
+    id: '0x9Eeab030a17528eFb2aC0F81D76fab8754e461BD',
+    name: 'EACCToken',
+    symbol: 'EACC',
+    icon: '/eacc-200x200.png',
+    decimals: 18,
+  },
+  {
     id: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
     name: 'Wrapped Ether',
     symbol: 'WETH',
