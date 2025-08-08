@@ -422,6 +422,12 @@ const PartnersSection = () => {
       logo: '/partners/arbitrum.png',
       website: 'https://arbitrum.io',
     },
+    {
+      id: 4,
+      name: 'IPFS',
+      logo: '/partners/ipfs.png',
+      website: 'https://ipfs.io',
+    },
   ];
 
   return (
