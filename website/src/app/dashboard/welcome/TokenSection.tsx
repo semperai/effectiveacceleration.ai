@@ -62,7 +62,7 @@ export const TokenSection = () => {
           <Card className='flex-1 bg-white'>
             <CardContent className='pt-6'>
               <Users className='mb-2 h-6 w-6 text-blue-600' />
-              <div className='text-2xl font-bold'>66%</div>
+              <div className='text-2xl font-bold'>68%</div>
               <div className='text-gray-600'>Distributed</div>
             </CardContent>
           </Card>
