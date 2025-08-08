@@ -39,7 +39,7 @@ export const OpenJobsFeed = () => {
     zeroAddress,
     ...(arbitrators?.map((worker) => worker.address_) ?? []),
   ];
-  const [multipleApplicants, setMultipleApplicants] = useState<boolean>(true);
+  const [multipleApplicants, setMultipleApplicants] = useState<boolean | undefined>(undefined);
   const [selectedArbitratorAddress, setSelectedArbitratorAddress] =
     useState<string>();
   const arbitratorNames = [
@@ -62,7 +62,7 @@ export const OpenJobsFeed = () => {
       state: JobState.Open,
       ...(selectedToken && { token: selectedToken.id }),
       ...((selectedArbitratorAddress || creatorAddress) && { roles: { creator: creatorAddress ?? '', arbitrator: selectedArbitratorAddress ?? '', worker: '' } }),
-      multipleApplicants: multipleApplicants,
+      ...(typeof multipleApplicants !== 'undefined' && { multipleApplicants }),
     },
     orderBy: 'jobTimes_openedAt_DESC',
     userAddress: address,
@@ -79,7 +79,7 @@ export const OpenJobsFeed = () => {
       state: JobState.Open,
       ...(selectedToken && { token: selectedToken.id }),
       ...((selectedArbitratorAddress || creatorAddress) && { roles: { creator: creatorAddress ?? '', arbitrator: selectedArbitratorAddress ?? '', worker: '' } }),
-      multipleApplicants: multipleApplicants,
+      ...(typeof multipleApplicants !== 'undefined' && { multipleApplicants }),
     },
     orderBy: 'jobTimes_openedAt_DESC',
     userAddress: address,

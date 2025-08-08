@@ -9,7 +9,7 @@ import { Token } from '@/tokens';
 import { shortenText, unitsDeliveryTime } from '@/utils/utils';
 import { Field, Label } from '@headlessui/react';
 import { Radio, RadioGroup } from '@/components/Radio';
-import { ChevronDown, ChevronUp, Filter, Search } from 'lucide-react';
+import { ChevronDown, ChevronUp, Filter, Search, X } from 'lucide-react';
 import React, { useState } from 'react';
 import { Combobox } from '@/components/ComboBox';
 import ListBox from '@/components/ListBox';
@@ -34,8 +34,8 @@ type JobFilterProps = {
   arbitratorAddresses: string[];
   arbitratorNames: string[];
   arbitratorFees: (string | number)[];
-  multipleApplicants: boolean;
-  setMultipleApplicants: React.Dispatch<React.SetStateAction<boolean>>;
+  multipleApplicants: boolean | undefined;
+  setMultipleApplicants: React.Dispatch<React.SetStateAction<boolean | undefined>>;
   setCreatorAddress: React.Dispatch<React.SetStateAction<string | undefined>>;
   creatorAddress: string | undefined;
 };
@@ -66,6 +66,10 @@ export const JobFilter = ({
   creatorAddress,
 }: JobFilterProps) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
+
+  const handleClearMultipleApplicants = () => {
+    setMultipleApplicants(undefined);
+  };
 
   return (
     <Card className='mb-4 w-full'>
@@ -201,30 +205,43 @@ export const JobFilter = ({
                     <h3 className='text-sm font-medium text-gray-700'>
                       Multiple Applicants
                     </h3>
-                    <RadioGroup
-                      className='!mt-0 flex'
-                      value={multipleApplicants ? 'Yes' : 'No'}
-                      onChange={(value) =>
-                        setMultipleApplicants(value === 'Yes')
-                      }
-                      aria-label='Server size'
-                    >
-                      {noYes.map((option) => (
-                        <Field
-                          className='!mt-0 ml-5 flex items-center'
-                          key={option}
+                    <div>
+                      <div className='flex items-center gap-2'>
+                        <RadioGroup
+                          className='!mt-0 flex'
+                          value={typeof multipleApplicants === 'undefined' ? '' : multipleApplicants ? 'Yes' : 'No'}
+                          onChange={(value) =>
+                            setMultipleApplicants(value === 'Yes')
+                          }
+                          aria-label='Multiple applicants selection'
                         >
-                          <Radio
-                            className='mr-2'
-                            color='default'
-                            value={option}
-                          >
-                            <span>{option}</span>
-                          </Radio>
-                          <Label>{option}</Label>
-                        </Field>
-                      ))}
-                    </RadioGroup>
+                          {noYes.map((option) => (
+                            <Field
+                              className='!mt-0 ml-5 flex items-center'
+                              key={option}
+                            >
+                              <Radio
+                                className='mr-2'
+                                color='default'
+                                value={option}
+                              >
+                                <span>{option}</span>
+                              </Radio>
+                              <Label>{option}</Label>
+                            </Field>
+                          ))}
+                        </RadioGroup>
+                        <Button
+                          onClick={handleClearMultipleApplicants}
+                          className='ml-1 h-6 pl-0 pr-0 rounded-full hover:bg-gray-100'
+                          outline
+                          disabled={typeof multipleApplicants === 'undefined'}
+                          title="Clear"
+                        >
+                          <X className='h-3 w-3' />
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
