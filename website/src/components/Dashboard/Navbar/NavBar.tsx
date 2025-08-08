@@ -1,20 +1,85 @@
 import { usePathname } from 'next/navigation';
 import { Bars3Icon } from '@heroicons/react/24/outline';
 import { MdOutlineArrowForwardIos } from 'react-icons/md';
-
 import BreadCrumbs from '@/components/BreadCrumbs';
 import { NotificationsButton } from './NotificationsButton';
 import { UserButton } from './UserButton';
-import { useAccount } from 'wagmi';
+import { useAccount, useReadContract } from 'wagmi';
 import useUser from '@/hooks/subsquid/useUser';
 import { Button } from '@/components/Button';
 import { ConnectButton } from '@/components/ConnectButton';
 import useArbitrator from '@/hooks/subsquid/useArbitrator';
+import ERC20Abi from '@/abis/ERC20.json';
+import { formatUnits } from 'viem';
+import { Coins } from 'lucide-react';
+import Image from 'next/image';
 
 interface NavbarProps {
   setSidebarOpen: (value: boolean) => void;
   noSidebar?: boolean;
 }
+
+const EACC_TOKEN_ADDRESS = '0x9Eeab030a17528eFb2aC0F81D76fab8754e461BD';
+
+const EACCBalance = () => {
+  const { address } = useAccount();
+
+  const { data: balance, isLoading } = useReadContract({
+    address: EACC_TOKEN_ADDRESS,
+    abi: ERC20Abi,
+    functionName: 'balanceOf',
+    args: [address],
+    query: {
+      enabled: !!address,
+    },
+  });
+
+  if (!address || isLoading) return null;
+
+  const formattedBalance = balance ? formatUnits(balance as bigint, 18) : '0';
+  const displayBalance = parseFloat(formattedBalance).toLocaleString(undefined, {
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 0,
+  });
+
+  return (
+    <button
+      onClick={async () => {
+        try {
+          await window.ethereum.request({
+            method: 'wallet_watchAsset',
+            params: {
+              type: 'ERC20',
+              options: {
+                address: EACC_TOKEN_ADDRESS,
+                symbol: 'EACC',
+                decimals: 18,
+                image: window.location.origin + '/eacc-200x200.png',
+              },
+            },
+          });
+        } catch (error) {
+          console.error('Error adding token to MetaMask:', error);
+        }
+      }}
+      className='flex items-center gap-1.5 rounded-full bg-gray-100 pl-1.5 pr-2.5 py-1.5 text-sm font-medium transition-all hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700'
+      title={`${formattedBalance} EACC - Click to add to wallet`}
+    >
+      <div className='h-5 w-5 overflow-hidden rounded-full'>
+        <Image
+          src='/eacc-200x200.png'
+          alt='EACC'
+          width={20}
+          height={20}
+          className='h-full w-full object-cover'
+        />
+      </div>
+      <span className='text-gray-900 dark:text-gray-100'>
+        {displayBalance}
+      </span>
+    </button>
+  );
+};
 
 const Navbar = ({ setSidebarOpen, noSidebar }: NavbarProps) => {
   const { address } = useAccount();
@@ -63,6 +128,7 @@ const Navbar = ({ setSidebarOpen, noSidebar }: NavbarProps) => {
             {/* Right side actions */}
             {user || arbitrator ? (
               <div className='flex items-center justify-end gap-x-4'>
+                <EACCBalance />
                 <NotificationsButton />
                 <UserButton />
               </div>
