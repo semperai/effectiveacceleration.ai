@@ -1045,19 +1045,85 @@ task("eacc:multisend", "Multisend EACC tokens")
     await sendBatch(amounts);
   }
 });
-
 task("eacc:setEACCRewardTokensEnabled", "Set EACC reward tokens enabled")
 .addParam("token", "Token address")
 .addParam("reward", "Reward rate")
 .setAction(async ({ token, reward }, hre) => {
   const marketplace = await getMarketplace(hre);
 
-  console.log(`Setting EACC reward tokens enabled for ${token} with reward rate ${reward}`);
+  // Get token contract to fetch decimals
+  const tokenContract = await hre.ethers.getContractAt(
+    ["function decimals() view returns (uint8)", "function symbol() view returns (string)"],
+    token
+  );
 
-  const tx = await marketplace.setEACCRewardTokensEnabled(token, hre.ethers.parseEther(reward));
+  let decimals, symbol;
+  try {
+    decimals = await tokenContract.decimals();
+    symbol = await tokenContract.symbol();
+  } catch (error) {
+    console.error("Error fetching token information. Make sure the address is a valid ERC20 token.");
+    return;
+  }
+
+  // Get current eaccTokensPerToken from contract
+  const eaccTokensPerToken = await marketplace.eaccTokensPerToken();
+
+  // Parse the reward value
+  const rewardParsed = hre.ethers.parseEther(reward);
+
+  // Calculate reward for 1 token with proper decimals
+  // The contract formula: reward = (((amount * eaccRewardTokensEnabled[token]) / 1e18) * eaccTokensPerToken) / 1e18
+  const oneTokenInUnits = hre.ethers.parseUnits("1", decimals);
+  const calculatedReward = (oneTokenInUnits * rewardParsed / hre.ethers.parseEther("1")) * eaccTokensPerToken / hre.ethers.parseEther("1");
+
+  // Format for display
+  const rewardPerToken = hre.ethers.formatEther(calculatedReward);
+  const totalPerTransaction = hre.ethers.formatEther(calculatedReward * 3n); // 3x for worker, creator, eaccBar
+
+  console.log("\n=== EACC Reward Calculation ===");
+  console.log(`Token: ${symbol} (${token})`);
+  console.log(`Token decimals: ${decimals}`);
+  console.log(`Reward rate to set: ${reward} ETH`);
+  console.log(`Current eaccTokensPerToken: ${hre.ethers.formatEther(eaccTokensPerToken)} EACC`);
+  console.log(`\nFor a job spending 1 ${symbol}:`);
+  console.log(`- Worker will receive: ${rewardPerToken} EACC`);
+  console.log(`- Creator will receive: ${rewardPerToken} EACC`);
+  console.log(`- eaccBar will receive: ${rewardPerToken} EACC`);
+  console.log(`- Total EACC distributed: ${totalPerTransaction} EACC`);
+
+  // Show required values for common configurations
+  if (decimals !== BigInt(18)) {
+    const adjustmentFactor = 18 - decimals;
+    console.log(`\n💡 Tip: For ${decimals}-decimal tokens like ${symbol}:`);
+    console.log(`   To give 100 EACC per token, use reward: ${BigInt(10) ** BigInt(adjustmentFactor)}`);
+  }
+
+  console.log("================================\n");
+
+  // Get user confirmation
+  const readline = require('readline').createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  const confirm = await new Promise((resolve) => {
+    readline.question('Do you want to continue with this configuration? (yes/no): ', (answer) => {
+      readline.close();
+      resolve(answer.toLowerCase() === 'yes' || answer.toLowerCase() === 'y');
+    });
+  });
+
+  if (!confirm) {
+    console.log("Operation cancelled by user");
+    return;
+  }
+
+  console.log(`\nSetting EACC reward tokens enabled for ${token} with reward rate ${reward}`);
+  const tx = await marketplace.setEACCRewardTokensEnabled(token, rewardParsed);
   const receipt = await tx.wait();
-
   console.log("Transaction hash:", receipt.hash);
+  console.log("✅ EACC reward tokens enabled successfully!");
 });
 
 task("eacc:setFee", "Set EACC fee")
