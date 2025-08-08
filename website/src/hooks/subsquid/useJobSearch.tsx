@@ -34,9 +34,13 @@ export default function useJobSearch({
 
     return [...search, ...Object.entries(obj)
       .map(([key, value]) => {
-        if (typeof value === 'string') {
+        // Handle special cases for comparison operators
+        if (key.includes('_gte') || key.includes('_gt') || key.includes('_lte') || key.includes('_lt')) {
+          // If the key already has an operator, use it directly
+          return `${key}: ${value}`;
+        } else if (typeof value === 'string') {
           return `${key}_containsInsensitive: "${value}"`;
-        }  else if (typeof value === 'bigint') {
+        } else if (typeof value === 'bigint') {
           return `${key}_eq: ${value.toString()}`;
         } else if (Array.isArray(value)) {
           return `${key}_containsAny: [${value.map((element) => `"${element}"`).join(', ')}]`;
@@ -49,8 +53,9 @@ export default function useJobSearch({
       .join(',\n');
   };
 
+  // Rest of the function remains the same...
   const searchConditions = buildSearchConditions(jobSearch);
-    const search = userAddress
+  const search = userAddress
     ? `
       OR: [
         { 
@@ -77,7 +82,6 @@ export default function useJobSearch({
       variables: {},
     }
   );
-
 
   return useMemo(
     () => ({ data: data ? (data?.jobs as Job[]) : undefined, ...rest }),

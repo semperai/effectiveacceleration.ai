@@ -57,7 +57,7 @@ export const OpenJobsFeed = () => {
       ...(search && { title: search }),
       ...(tags.length > 0 && { tags: tags.map((tag) => tag.name) }),
       ...(minDeadline !== undefined && !isNaN(minDeadline) && {
-        maxTime: convertToSeconds(minDeadline, selectedUnitTime.name),
+        maxTime_gte: convertToSeconds(minDeadline, selectedUnitTime.name),
       }),
       state: JobState.Open,
       ...(selectedToken && { token: selectedToken.id }),
@@ -74,7 +74,7 @@ export const OpenJobsFeed = () => {
       ...(search && { title: search }),
       ...(tags.length > 0 && { tags: tags.map((tag) => tag.name) }),
       ...(minDeadline !== undefined && !isNaN(minDeadline) && {
-        maxTime: convertToSeconds(minDeadline, selectedUnitTime.name),
+        maxTime_gte: convertToSeconds(minDeadline, selectedUnitTime.name),
       }),
       state: JobState.Open,
       ...(selectedToken && { token: selectedToken.id }),
