@@ -459,7 +459,7 @@ const PartnersSection = () => {
 
 export default function WelcomePage() {
   return (
-    <Layout borderless noSidebar>
+    <Layout borderless hiddenSidebar>
       <div className='relative h-96 bg-gradient-to-r from-blue-600 to-indigo-700'>
         <Hero />
         <PartnersSection />

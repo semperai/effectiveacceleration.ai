@@ -2,14 +2,9 @@
 import { Logo } from '@/components/Logo';
 import clsx from 'clsx';
 import Link from 'next/link';
-import React, { Fragment, useState } from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
 import {
   PiBriefcase,
-  PiHouseSimple,
-  PiJoystick,
-  PiMegaphoneSimple,
-  PiFinnTheHuman,
-  PiPerson,
   PiPaperPlaneTilt,
   PiNetwork,
   PiListHeart,
@@ -57,12 +52,6 @@ const navigationItems: NavigationItem[] = [
     icon: <PiBooks className='text-2xl' />,
     target: '_blank',
   },
-  // {
-  //   name: 'Changelog',
-  //   href: '/dashboard/changelog',
-  //   icon: <PiMegaphoneSimple className='text-2xl' />,
-  //   target: '_self',
-  // },
 ];
 
 const SharedMenu = () => {
@@ -109,13 +98,34 @@ const SharedMenu = () => {
 const Sidebar = ({
   sidebarOpen,
   setSidebarOpen,
+  hiddenSidebar,
 }: {
   sidebarOpen: boolean;
   setSidebarOpen: (value: boolean) => void;
+  hiddenSidebar?: boolean;
 }) => {
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const checkIsDesktop = () => {
+      setIsDesktop(window.innerWidth >= 1024);
+    };
+    
+    checkIsDesktop();
+    window.addEventListener('resize', checkIsDesktop);
+    return () => window.removeEventListener('resize', checkIsDesktop);
+  }, []);
+
+  // Only show mobile dialog on mobile screens
+  const showMobileDialog = sidebarOpen && !isDesktop;
+  
+  // Desktop sidebar visibility
+  const showDesktopSidebar = isDesktop && sidebarOpen;
+
   return (
     <>
-      <Transition.Root show={sidebarOpen} as={Fragment}>
+      {/* Mobile sidebar - only render on mobile */}
+      <Transition.Root show={showMobileDialog} as={Fragment}>
         <Dialog
           as='div'
           className='relative z-50 lg:hidden'
@@ -180,13 +190,30 @@ const Sidebar = ({
         </Dialog>
       </Transition.Root>
 
-      {/* desktop view */}
-      <div className='hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex sidebarWidth lg:flex-col'>
-        <div className='background: rgb(195,141,193); flex grow flex-col gap-y-5 overflow-y-auto bg-[rgb(195,141,193)] bg-[linear-gradient(34deg,_rgba(195,141,193,1)_5%,_rgba(157,139,227,1)_18%,_rgba(114,124,251,1)_28%,_rgba(104,118,241,1)_38%,_rgba(73,81,224,1)_48%,_rgba(78,58,193,1)_58%,_rgba(78,55,189,1)_65%,_rgba(75,42,178,1)_82%,_rgba(59,59,174,1)_92%,_rgba(65,130,180,1)_100%)] px-6 py-5 pb-4 dark:bg-black'>
+      {/* Desktop sidebar */}
+      <div 
+        className={clsx(
+          'hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col transition-transform duration-300',
+          showDesktopSidebar ? 'translate-x-0' : '-translate-x-full'
+        )}
+      >
+        <div className='flex grow flex-col gap-y-5 overflow-y-auto bg-[rgb(195,141,193)] bg-[linear-gradient(34deg,_rgba(195,141,193,1)_5%,_rgba(157,139,227,1)_18%,_rgba(114,124,251,1)_28%,_rgba(104,118,241,1)_38%,_rgba(73,81,224,1)_48%,_rgba(78,58,193,1)_58%,_rgba(78,55,189,1)_65%,_rgba(75,42,178,1)_82%,_rgba(59,59,174,1)_92%,_rgba(65,130,180,1)_100%)] px-6 py-5 pb-4 dark:bg-black'>
           <div className='flex h-10 shrink-0 items-center'>
             <Logo className='h-8 w-auto' />
           </div>
           <SharedMenu />
+          
+          {/* Add close button for desktop when in hiddenSidebar mode */}
+          {hiddenSidebar && (
+            <button
+              type='button'
+              className='absolute right-2 top-5 p-2 text-white/70 hover:text-white'
+              onClick={() => setSidebarOpen(false)}
+            >
+              <span className='sr-only'>Close sidebar</span>
+              <XMarkIcon className='h-5 w-5' aria-hidden='true' />
+            </button>
+          )}
         </div>
       </div>
     </>

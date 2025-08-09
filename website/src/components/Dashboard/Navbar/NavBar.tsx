@@ -14,10 +14,11 @@ import { UserPlus } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import clsx from 'clsx';
 
 interface NavbarProps {
   setSidebarOpen: (value: boolean) => void;
-  noSidebar?: boolean;
+  hiddenSidebar?: boolean;
 }
 
 const EACC_TOKEN_ADDRESS = '0x9Eeab030a17528eFb2aC0F81D76fab8754e461BD';
@@ -110,7 +111,7 @@ const SignUpButton = () => {
   );
 };
 
-const Navbar = ({ setSidebarOpen, noSidebar }: NavbarProps) => {
+const Navbar = ({ setSidebarOpen, hiddenSidebar }: NavbarProps) => {
   const { address, isConnected, isReconnecting, isConnecting } = useAccount();
   const { data: user, isLoading: isLoadingUser } = useUser(address!);
   const { data: arbitrator, isLoading: isLoadingArbitrator } = useArbitrator(address!);
@@ -171,19 +172,26 @@ const Navbar = ({ setSidebarOpen, noSidebar }: NavbarProps) => {
 
         {/* Navbar content */}
         <div className='relative flex h-16 items-center gap-x-4 border-b border-gray-200 px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8 dark:border-gray-800'>
-          {/* Mobile menu button */}
+          {/* Mobile menu button - now handles hiddenSidebar */}
           <button
             type='button'
             onClick={() => setSidebarOpen(true)}
-            className={noSidebar ? 'hidden' : 'lg:hidden'}
+            className={clsx(
+              'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100',
+              // Show on mobile always, and on desktop when hiddenSidebar is true
+              hiddenSidebar ? 'lg:block' : 'lg:hidden'
+            )}
           >
             <span className='sr-only'>Open sidebar</span>
-            <Bars3Icon className='h-6 w-6 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100' />
+            <Bars3Icon className='h-6 w-6' />
           </button>
 
-          {/* Vertical divider - mobile only */}
+          {/* Vertical divider - show on mobile, and on desktop when hiddenSidebar is true */}
           <div
-            className='h-6 w-px bg-gray-200 lg:hidden dark:bg-gray-700'
+            className={clsx(
+              'h-6 w-px bg-gray-200 dark:bg-gray-700',
+              hiddenSidebar ? 'lg:block' : 'lg:hidden'
+            )}
             aria-hidden='true'
           />
 
