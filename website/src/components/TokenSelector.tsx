@@ -1,5 +1,5 @@
 import { Avatar } from '@/components/Avatar';
-import { Token, tokens } from '@/tokens';
+import { type Token, tokens } from '@/tokens';
 import { Dialog, Transition } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import clsx from 'clsx';
@@ -86,7 +86,7 @@ export function TokenSelector({
   selectedToken: Token | undefined;
   onClick: (token: Token) => void;
 }) {
-  let [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   function closeModal() {
     setIsOpen(false);

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAccount, useReadContract } from 'wagmi';
-import { type Address } from 'viem';
+import type { Address } from 'viem';
 import { MaxUint256 } from 'ethers';
 import { Button } from '@/components/Button';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import ERC20Abi from '@/abis/ERC20.json';
 import { Alert, AlertDescription } from '@/components/Alert';
-import { Loader2 } from 'lucide-react';
+import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import * as Sentry from '@sentry/nextjs';
 
 interface ApproveButtonProps {
@@ -84,8 +84,9 @@ export const ApproveButton = ({
 
   if (allowanceIsError) {
     return (
-      <Alert variant='destructive'>
-        <AlertDescription>
+      <Alert variant='destructive' className='bg-red-50 border-red-200'>
+        <AlertCircle className='h-4 w-4 text-red-600' />
+        <AlertDescription className='text-red-600'>
           Error checking token allowance. Please try again.
         </AlertDescription>
       </Alert>
@@ -96,18 +97,35 @@ export const ApproveButton = ({
     ? 'Approved'
     : isApproving || isConfirming
       ? 'Approving...'
-      : 'Approve';
+      : 'Approve Token';
 
   return (
     <Button
       onClick={handleApprove}
       disabled={isApproving || isConfirming || isApproved || allowanceIsLoading}
-      className='min-w-[120px]'
+      className={`
+        min-w-[140px] px-6 py-3 rounded-xl font-medium transition-all duration-200
+        ${isApproved 
+          ? 'bg-green-50 text-green-700 border border-green-200 cursor-not-allowed' 
+          : isApproving || isConfirming || allowanceIsLoading
+            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
+        }
+      `}
     >
-      {(isApproving || isConfirming) && (
-        <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+      {isApproved ? (
+        <span className='flex items-center gap-2'>
+          <CheckCircle className='h-4 w-4' />
+          {buttonText}
+        </span>
+      ) : (isApproving || isConfirming) ? (
+        <span className='flex items-center gap-2'>
+          <Loader2 className='h-4 w-4 animate-spin' />
+          {buttonText}
+        </span>
+      ) : (
+        buttonText
       )}
-      {buttonText}
     </Button>
   );
 };

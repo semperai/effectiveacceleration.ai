@@ -1,4 +1,4 @@
-import { User as ContractUser } from '@effectiveacceleration/contracts';
+import type { User as ContractUser } from '@effectiveacceleration/contracts';
 import { useMemo } from 'react';
 import { useQuery } from '@apollo/client';
 import { GET_USER_BY_ADDRESS } from './queries';
@@ -20,13 +20,31 @@ export interface ExtendedUser extends ContractUser {
 }
 
 export default function useUser(userAddress: string) {
-  const { data, ...rest } = useQuery(GET_USER_BY_ADDRESS, {
+  const { data, loading, error, ...rest } = useQuery(GET_USER_BY_ADDRESS, {
     variables: { userAddress: userAddress ?? '' },
     skip: !userAddress,
   });
 
   return useMemo(
-    () => ({ data: data ? (data?.users[0] as ExtendedUser) : undefined, ...rest }),
-    [userAddress, data, rest]
+    () => {
+      // If no address provided, return null data with not loading
+      if (!userAddress) {
+        return {
+          data: null,
+          loading: false,  // Changed from isLoading to loading
+          error: undefined,
+          ...rest
+        };
+      }
+
+      // Return proper loading state
+      return {
+        data: data?.users?.[0] as ExtendedUser | null | undefined,
+        loading,  // Changed from isLoading to loading
+        error,
+        ...rest
+      };
+    },
+    [userAddress, data, loading, error, rest]
   );
 }

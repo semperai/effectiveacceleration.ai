@@ -2,7 +2,7 @@ import { Button } from '@/components/Button';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
-import { Job } from '@effectiveacceleration/contracts';
+import type { Job } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { CheckIcon } from '@heroicons/react/20/solid';
 import * as Sentry from '@sentry/nextjs';
@@ -43,7 +43,7 @@ export function RefuseArbitrationButton({
       setIsRefusing(false);
     }
   }
-  let [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   function closeModal() {
     setIsOpen(false);

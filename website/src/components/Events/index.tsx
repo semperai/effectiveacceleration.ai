@@ -1,8 +1,8 @@
 import {
   JobEventType,
-  JobEventWithDiffs,
+  type JobEventWithDiffs,
 } from '@effectiveacceleration/contracts';
-import React from 'react';
+import type React from 'react';
 import { ArbitratedEvent } from './ArbitratedEvent';
 import { ArbitrationRefusedEvent } from './ArbitrationRefusedEvent';
 import { AssignedEvent } from './AssignmentEvent';

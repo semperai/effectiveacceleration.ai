@@ -4,7 +4,7 @@ import moment from 'moment';
 import { Fragment } from 'react';
 import { getAddress } from 'viem';
 import EventProfileImage from './Components/EventProfileImage';
-import { type EventProps } from './index';
+import type { EventProps } from './index';
 
 export function UpdateEvent({
   event,

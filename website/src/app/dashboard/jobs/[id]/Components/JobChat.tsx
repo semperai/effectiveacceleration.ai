@@ -1,28 +1,18 @@
 import React from 'react';
-import Image from 'next/image';
-import { Button } from '@/components/Button';
-import { renderEvent } from '@/components/Events';
-import {
-  CustomJobEvent,
-  Job,
-  JobArbitratedEvent,
-  JobEvent,
-  JobEventType,
-  JobEventWithDiffs,
-  JobState,
-  User,
-} from '@effectiveacceleration/contracts';
 import { PostMessageButton } from '@/components/JobActions/PostMessageButton';
-import Link from 'next/link';
-import { title } from 'process';
-import { zeroAddress, zeroHash } from 'viem';
-import { DisputeButton } from '@/components/JobActions/DisputeButton';
-import { ApproveButton } from '@/components/JobActions/ApproveButton';
-import { AssignWorkerButton } from '@/components/JobActions/AssignWorkerButton';
-import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
-import JobChatStatus from './JobChat/JobChatStatus';
-import ProfileUserHeader from './JobChat/ProfileUserHeader';
+import {
+  type Job,
+  JobState,
+  type JobEventWithDiffs,
+  type User,
+} from '@effectiveacceleration/contracts';
+import { zeroAddress } from 'viem';
 import JobChatEvents from './JobChat/JobChat';
+import { 
+  PiChatCircleDots,
+  PiSparkle,
+  PiLockKey
+} from 'react-icons/pi';
 
 const JobChat = ({
   users,
@@ -50,45 +40,108 @@ const JobChat = ({
     address !== job.roles.arbitrator;
   const isUserArbitrator = address === job.roles.arbitrator;
   const isUserWorker = address === job.roles.worker;
+  const isUserCreator = address === job.roles.creator;
+  const isJobTaken = job.state === JobState.Taken;
+  
+  // Show message input for:
+  // 1. Creator when job is taken (in progress)
+  // 2. Creator when they have selected a worker to chat with
+  // 3. Worker when they are assigned to the job
+  // 4. Worker when job is open and they can apply
   const isUserCreatorWithSelectedWorkerOrTaken =
-    (address === job.roles.creator && selectedWorker) ||
-    (address === job.roles.creator && job.state === JobState.Taken);
+    (isUserCreator && selectedWorker) ||
+    (isUserCreator && isJobTaken);
+    
   const shouldShowPostMessageButton =
     job.state !== JobState.Closed &&
     addresses.length &&
     Object.keys(sessionKeys).length > 0;
+
   return (
-    <div className='grid min-h-customHeader grid-rows-[74px_70%_10%]'>
-      {/* <ProfileUserHeader
-        users={users}
-        selectedWorker={selectedWorker}
-        eventMessages={eventMessages}
-        address={address as `0x${string}`}
-        job={job}
-      /> */}
-      <JobChatEvents
-        users={users}
-        selectedWorker={selectedWorker}
-        events={eventMessages as JobEventWithDiffs[]}
-        job={job}
-        address={address}
-      />
+    <div className='flex flex-col h-full bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden'>
+      {/* Enhanced header with gradient */}
+      <div className='relative bg-gradient-to-r from-blue-50 via-purple-50 to-blue-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800 border-b border-gray-200 dark:border-gray-700'>
+        <div className='px-6 py-4'>
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center gap-3'>
+              <div className='p-2 rounded-lg bg-gradient-to-br from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20'>
+                <PiChatCircleDots className='w-5 h-5 text-blue-600 dark:text-blue-400' />
+              </div>
+              <div>
+                <h3 className='text-lg font-semibold text-gray-900 dark:text-white'>
+                  Job Discussion
+                </h3>
+                <p className='text-xs text-gray-500 dark:text-gray-400'>
+                  {eventMessages.length} messages
+                </p>
+              </div>
+            </div>
+            
+            {/* Connection status indicator */}
+            <div className='flex items-center gap-2'>
+              {Object.keys(sessionKeys).length > 0 ? (
+                <div className='flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-100 dark:bg-green-900/30'>
+                  <div className='w-2 h-2 rounded-full bg-green-500 animate-pulse' />
+                  <span className='text-xs font-medium text-green-700 dark:text-green-400'>
+                    Encrypted
+                  </span>
+                </div>
+              ) : (
+                <div className='flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800'>
+                  <PiLockKey className='w-3 h-3 text-gray-500 dark:text-gray-400' />
+                  <span className='text-xs font-medium text-gray-600 dark:text-gray-400'>
+                    Not Connected
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Chat messages area with improved styling */}
+      <div className='flex-1 overflow-hidden bg-gray-50 dark:bg-gray-900/50'>
+        <div className='h-full overflow-y-auto'>
+          <JobChatEvents
+            users={users}
+            selectedWorker={selectedWorker}
+            events={eventMessages as JobEventWithDiffs[]}
+            job={job}
+            address={address}
+          />
+        </div>
+      </div>
+
+      {/* Enhanced message input area */}
       {job &&
         (isJobOpenForWorker ||
           isUserWorker ||
-          isUserCreatorWithSelectedWorkerOrTaken) &&
+          isUserCreatorWithSelectedWorkerOrTaken ||
+          (isUserCreator && isJobTaken)) &&
         shouldShowPostMessageButton && (
-          <>
-            <div className='row-span-1 flex flex-1 border border-gray-100'>
-              <PostMessageButton
-                address={address}
-                recipient={selectedWorker}
-                addresses={addresses as any}
-                sessionKeys={sessionKeys}
-                job={job}
-              />
+          <div className='relative border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'>
+            <div className='p-4'>
+              <div className='flex items-center gap-3'>
+                <div className='flex-1'>
+                  <PostMessageButton
+                    address={address}
+                    recipient={selectedWorker}
+                    addresses={addresses as any}
+                    sessionKeys={sessionKeys}
+                    job={job}
+                  />
+                </div>
+              </div>
+              
+              {/* Typing indicator or helper text */}
+              <div className='mt-2 flex items-center gap-2'>
+                <PiSparkle className='w-3 h-3 text-purple-500 animate-pulse' />
+                <span className='text-xs text-gray-500 dark:text-gray-400'>
+                  Messages are end-to-end encrypted
+                </span>
+              </div>
             </div>
-          </>
+          </div>
         )}
     </div>
   );

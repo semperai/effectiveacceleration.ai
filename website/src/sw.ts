@@ -1,4 +1,4 @@
-import { JobEvent, JobEventType } from '@effectiveacceleration/contracts';
+import { type JobEvent, JobEventType } from '@effectiveacceleration/contracts';
 import { defaultCache } from '@serwist/next/worker';
 import type { PrecacheEntry, SerwistGlobalConfig } from 'serwist';
 import { Serwist } from 'serwist';
@@ -33,7 +33,7 @@ type BroadcastMessage = { text: string; href?: string };
 type JobEventMessage = Omit<JobEvent, 'data_' | 'details'>;
 
 // Register event listener for the 'push' event.
-self.addEventListener('push', function (event) {
+self.addEventListener('push', (event) => {
   let body = '';
   let data: JobEventMessage | BroadcastMessage | undefined;
 

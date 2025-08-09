@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import type React from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { BsPersonPlus } from 'react-icons/bs';
 import { Field } from './Fieldset';
 import * as Sentry from '@sentry/nextjs';

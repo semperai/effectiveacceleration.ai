@@ -1,10 +1,11 @@
-import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import type React from 'react';
+import { type Dispatch, type SetStateAction, useEffect, useState } from 'react'
 
 import {
   Job,
-  JobEventWithDiffs,
+  type JobEventWithDiffs,
   JobState,
-  User,
+  type User,
 } from '@effectiveacceleration/contracts';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import Image from 'next/image';

@@ -1,4 +1,4 @@
-import { UserRating } from '@effectiveacceleration/contracts';
+import type { UserRating } from '@effectiveacceleration/contracts';
 import { useEffect, useMemo, useState } from 'react';
 import useUsersByAddresses from './useUsersByAddresses';
 

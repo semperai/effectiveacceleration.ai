@@ -7,6 +7,12 @@ export const useToast = () => {
     });
   };
 
+  const showWarning = (message: string) => {
+    toast.warning(message, {
+      duration: 3500,
+    });
+  };
+
   const showSuccess = (message: string) => {
     toast.success(message, {
       duration: 3000,
@@ -21,6 +27,7 @@ export const useToast = () => {
 
   return {
     showError,
+    showWarning,
     showSuccess,
     showLoading,
     toast, // Expose the raw toast function for custom needs

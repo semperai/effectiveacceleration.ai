@@ -3,7 +3,7 @@ import useArbitrators from '@/hooks/subsquid/useArbitrators';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
-import { ComboBoxOption } from '@/service/FormsTypes';
+import type { ComboBoxOption, Tag } from '@/service/FormsTypes';
 import { tokenIcon, tokensMap } from '@/tokens';
 import { jobMeceTags } from '@/utils/jobMeceTags';
 import {
@@ -11,14 +11,30 @@ import {
   getUnitAndValueFromSeconds,
   unitsDeliveryTime,
 } from '@/utils/utils';
-import { getFromIpfs, Job, publishToIpfs } from '@effectiveacceleration/contracts';
+import { getFromIpfs, type Job, publishToIpfs } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { Dialog, Transition } from '@headlessui/react';
-import { CheckIcon } from '@heroicons/react/20/solid';
+import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { 
+  PiSparkle, 
+  PiFileText, 
+  PiTag, 
+  PiHash, 
+  PiCurrencyDollar,
+  PiClock,
+  PiUser,
+  PiWarning,
+  PiPencilSimple,
+  PiArrowRight,
+  PiInfo,
+  PiCoins,
+  PiTimer,
+  PiUsersThree
+} from 'react-icons/pi';
 import * as Sentry from '@sentry/nextjs';
 import { formatUnits, parseUnits, ZeroHash } from 'ethers';
 import {
-  ChangeEvent,
+  type ChangeEvent,
   Fragment,
   useCallback,
   useEffect,
@@ -26,11 +42,12 @@ import {
   useState,
 } from 'react';
 import { zeroAddress } from 'viem';
-import CustomSelect from '../CustomSelect';
-import { Field, Label } from '../Fieldset';
+import { Field, Label, Description, FieldGroup } from '../Fieldset';
 import { Input } from '../Input';
-import { Radio, RadioGroup } from '../Radio';
 import { Textarea } from '../Textarea';
+import ListBox from '../ListBox';
+import TagsInput from '../TagsInput';
+import { Combobox } from '../ComboBox';
 
 export type UpdateButtonProps = {
   address: string | undefined;
@@ -73,6 +90,99 @@ const handleInputChange =
     errorSetter(errorMessage);
   };
 
+// Enhanced Section Header Component
+const SectionHeader = ({ 
+  icon: Icon, 
+  title, 
+  subtitle 
+}: { 
+  icon: any; 
+  title: string; 
+  subtitle?: string; 
+}) => (
+  <div className='mb-6 pb-4 border-b border-gray-100 dark:border-gray-800'>
+    <div className='flex items-center gap-3'>
+      <div className='p-2 rounded-lg bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30'>
+        <Icon className='w-5 h-5 text-blue-600 dark:text-blue-400' />
+      </div>
+      <div>
+        <h3 className='text-base font-semibold text-gray-900 dark:text-white'>
+          {title}
+        </h3>
+        {subtitle && (
+          <p className='text-xs text-gray-500 dark:text-gray-400 mt-0.5'>
+            {subtitle}
+          </p>
+        )}
+      </div>
+    </div>
+  </div>
+);
+
+// Enhanced Field Component with better styling
+const EnhancedField = ({ 
+  children, 
+  className = '' 
+}: { 
+  children: React.ReactNode; 
+  className?: string; 
+}) => (
+  <div className={`group relative ${className}`}>
+    <div className='absolute inset-0 bg-gradient-to-r from-blue-500/0 via-blue-500/5 to-purple-500/0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
+    <div className='relative'>
+      {children}
+    </div>
+  </div>
+);
+
+// Styled Radio Group with modern design
+const StyledRadioGroup = ({ 
+  label, 
+  options, 
+  value, 
+  onChange,
+  description,
+  icon: Icon
+}: {
+  label: string;
+  options: string[];
+  value: string;
+  onChange: (value: string) => void;
+  description?: string;
+  icon?: any;
+}) => (
+  <EnhancedField>
+    <Field>
+      <div className='flex flex-row items-center justify-between mb-2'>
+        <Label className='mb-0 pb-0 flex items-center gap-2'>
+          {Icon && <Icon className='w-4 h-4 text-gray-500 dark:text-gray-400' />}
+          {label}
+        </Label>
+        <div className='flex gap-2'>
+          {options.map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => onChange(option)}
+              className={`
+                px-4 py-2 rounded-lg text-sm font-medium
+                transition-all duration-200 border
+                ${value === option
+                  ? 'bg-gradient-to-r from-blue-500 to-purple-500 border-transparent text-white shadow-lg shadow-blue-500/25'
+                  : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 dark:bg-gray-800/50 dark:border-gray-700 dark:text-gray-400 dark:hover:border-gray-600'
+                }
+              `}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      </div>
+      {description && <Description>{description}</Description>}
+    </Field>
+  </EnhancedField>
+);
+
 export function UpdateButton({
   address,
   job,
@@ -81,11 +191,12 @@ export function UpdateButton({
   const Config = useConfig();
   const [title, setTitle] = useState<string>(job.title);
   const [titleError, setTitleError] = useState('');
-  const [descriptionError, setDescriptionError] = useState('');
   const [tagsError, setTagsError] = useState('');
   const [amountError, setAmountError] = useState('');
   const [maxJobTimeError, setMaxJobTimeError] = useState('');
-  const [tags, setTags] = useState<string[]>(job.tags.slice(1));
+  const [tags, setTags] = useState<Tag[]>(
+    job.tags.slice(1).map((tag, idx) => ({ id: Date.now() + idx, name: tag }))
+  );
   const [amount, setAmount] = useState<string>(
     formatUnits(job.amount, tokensMap[job.token]?.decimals)
   );
@@ -97,7 +208,6 @@ export function UpdateButton({
   const [selectedUnitTime, setSelectedUnitTime] = useState<ComboBoxOption>(
     unitsDeliveryTime[2]
   );
-  const [contentError, setContentError] = useState<string>('');
   const [deadlineError, setDeadlineError] = useState<string>('');
   const whitelistWorkersValues = ['Yes', 'No'];
   const [whitelistWorkers, setWhitelistWorkers] = useState<string>(
@@ -107,8 +217,8 @@ export function UpdateButton({
   const [content, setContent] = useState<string>(job.content!);
   const { data: arbitrators } = useArbitrators();
   const excludes = [address];
-  const userList = [
-    { address_: zeroAddress, name: 'None' },
+  const arbitratorList = [
+    { address_: zeroAddress, name: 'None', fee: '0' },
     ...Object.values(arbitrators ?? {}).filter(
       (user) => !excludes.includes(user.address_)
     ),
@@ -149,8 +259,6 @@ export function UpdateButton({
     }
   }, [job]);
 
-  const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
-
   async function handleUpdate() {
     setIsUpdating(true);
     // Validate all fields before submission
@@ -159,10 +267,8 @@ export function UpdateButton({
       minLength: 3,
     });
 
-    const tagsValidationMessage = tags
-      .map((tag) => validateField(tag, { required: true }))
-      .find((message) => message !== '');
-    setTagsError(tagsValidationMessage || '');
+    const tagsValidationMessage = tags.length === 0 ? 'At least one tag is required' : '';
+    setTagsError(tagsValidationMessage);
 
     const amountValidationMessage = validateField(amount, {
       required: true,
@@ -174,11 +280,10 @@ export function UpdateButton({
     const maxJobTimeValidationMessage = validateField(maxTime.toString(), {
       required: true,
       custom: (value) =>
-        parseFloat(value) > 0 ? '' : 'Amount must be greater than 0',
+        parseFloat(value) > 0 ? '' : 'Must be greater than 0',
     });
     setMaxJobTimeError(maxJobTimeValidationMessage);
     setTitleError(titleValidationMessage);
-    setButtonDisabled(true);
 
     if (
       !titleValidationMessage &&
@@ -207,10 +312,7 @@ export function UpdateButton({
         showSuccess('Job post published to IPFS');
       }
 
-      const tokenDecimals = tokensMap[job.token]?.decimals;
       const rawAmount = parseUnits(amount, tokensMap[job.token]?.decimals);
-      // Proceed with form submission
-      console.log('Form is valid');
       const deadlineInSeconds = maxTime
         ? convertToSeconds(maxTime, selectedUnitTime.name)
         : 0;
@@ -223,7 +325,7 @@ export function UpdateButton({
             BigInt(job.id!),
             title,
             contentHash,
-            [selectedCategory?.id || '', ...tags.map((tag) => tag)],
+            [selectedCategory?.id || '', ...tags.map((tag) => tag.name)],
             rawAmount,
             deadlineInSeconds,
             selectedArbitratorAddress,
@@ -241,8 +343,8 @@ export function UpdateButton({
       console.log('Form has errors');
     }
   }
-  const buttonText = isUpdating ? 'Refunding...' : 'Refund';
-  let [isOpen, setIsOpen] = useState(false);
+  
+  const [isOpen, setIsOpen] = useState(false);
 
   function closeModal() {
     setIsOpen(false);
@@ -252,18 +354,59 @@ export function UpdateButton({
     setIsOpen(true);
   }
 
+  const validateDeadline = (deadlineStr: string) => {
+    if (deadlineStr === '') {
+      setMaxTime(0);
+      setDeadlineError('This field is required');
+      return;
+    }
+  
+    let deadline = parseInt(deadlineStr);
+
+    if (deadline < 0) {
+      deadline = -deadline;
+    }
+
+    if (deadline === 0 || isNaN(deadline)) {
+      setDeadlineError('Please enter a valid deadline');
+      return;
+    }
+
+    setMaxTime(deadline);
+    setDeadlineError('');
+  };
+
   return (
     <>
-      <Button
+      {/* Enhanced Button with gradient and hover effects */}
+      <button
         disabled={isUpdating || isConfirming}
         onClick={() => openModal()}
-        color={'borderlessGray'}
-        className={'w-full'}
+        className='
+          relative w-full group
+          px-4 py-3 rounded-xl
+          bg-gradient-to-r from-gray-50 to-gray-100 
+          dark:from-gray-800/50 dark:to-gray-900/50
+          border border-gray-200 dark:border-gray-700
+          transition-all duration-300
+          hover:shadow-lg hover:shadow-gray-200/50 dark:hover:shadow-black/30
+          hover:border-gray-300 dark:hover:border-gray-600
+          hover:-translate-y-0.5
+          disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none
+        '
       >
-        Edit Details
-      </Button>
+        <div className='flex items-center justify-center gap-2'>
+          <PiPencilSimple className='w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200 transition-colors' />
+          <span className='text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors'>
+            Edit Details
+          </span>
+        </div>
+        {/* Subtle gradient overlay on hover */}
+        <div className='absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/0 via-blue-500/5 to-purple-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
+      </button>
+      
       <Transition appear show={isOpen} as={Fragment}>
-        <Dialog as='div' className='relative  z-50' onClose={closeModal}>
+        <Dialog as='div' className='relative z-50' onClose={closeModal}>
           <Transition.Child
             as={Fragment}
             enter='ease-out duration-300'
@@ -273,242 +416,339 @@ export function UpdateButton({
             leaveFrom='opacity-100'
             leaveTo='opacity-0'
           >
-            <div className='fixed inset-0 bg-black bg-opacity-25' />
+            <div className='fixed inset-0 bg-black/70 backdrop-blur-md' />
           </Transition.Child>
 
           <div className='fixed inset-0 overflow-y-auto'>
-            <div className='flex min-h-full items-center justify-center p-4 text-center'>
+            <div className='flex min-h-full items-center justify-center p-4'>
               <Transition.Child
                 as={Fragment}
                 enter='ease-out duration-300'
-                enterFrom='opacity-0 scale-95'
-                enterTo='opacity-100 scale-100'
+                enterFrom='opacity-0 scale-95 translate-y-4'
+                enterTo='opacity-100 scale-100 translate-y-0'
                 leave='ease-in duration-200'
-                leaveFrom='opacity-100 scale-100'
-                leaveTo='opacity-0 scale-95'
+                leaveFrom='opacity-100 scale-100 translate-y-0'
+                leaveTo='opacity-0 scale-95 translate-y-4'
               >
-                <Dialog.Panel className='w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-8 text-left align-middle shadow-xl transition-all'>
-                  <Dialog.Title
-                    as='h3'
-                    className='text-lg font-medium leading-6 text-gray-900'
-                  >
-                    Update job
-                  </Dialog.Title>
-                  <div className='mb-3 mt-5 flex flex-col gap-5 h-[450px] overflow-auto pr-4'>
-                    <Field>
-                      <Label>Title</Label>
-                      <Input
-                        value={title}
-                        placeholder='Title'
-                        onChange={handleInputChange(setTitle, setTitleError, {
-                          required: true,
-                          minLength: 3,
-                        })}
-                      />
-                      {titleError && (
-                        <div className='text-xs' style={{ color: 'red' }}>
-                          {titleError}
-                        </div>
-                      )}
-                    </Field>
-                    <Field>
-                      <Label>Description</Label>
-                      <Textarea
-                        rows={4}
-                        value={content}
-                        onChange={(e) => setContent(e.target.value)}
-                        placeholder='Message'
-                        className='mt-5'
-                      />
-                    </Field>
-                    <Field>
-                      <Label>Category</Label>
-                      <br />
-                      <CustomSelect
-                        name='category'
-                        value={selectedCategory}
-                        onChange={(value) => {
-                          setSelectedCategory(
-                            value as { id: string; name: string }
-                          );
-                        }}
-                        className='rounded-md border border-gray-300 shadow-sm'
-                      >
-                        {jobMeceTags.map(
-                          (category, index) =>
-                            index > 0 && (
-                              <option key={index} value={category.id}>
-                                {category.name}
-                              </option>
-                            )
-                        )}
-                      </CustomSelect>
-                    </Field>
-                    <Field>
-                      <Label>
-                        Tags{' '}
-                        <span style={{ fontSize: '0.8em', color: '#888' }}>
-                          (comma separated)
-                        </span>
-                      </Label>
-                      <Input
-                        value={tags.join(', ')}
-                        onChange={(e) =>
-                          setTags(
-                            e.target.value
-                              .split(',')
-                              .map((tag) => tag.trim())
-                              .filter(
-                                (tag, index, array) =>
-                                  tag.length || index === array.length - 1
-                              )
-                          )
-                        }
-                      />
-                      {tagsError && (
-                        <div className='text-xs' style={{ color: 'red' }}>
-                          {tagsError}
-                        </div>
-                      )}
-                    </Field>
-                    <Field>
-                      <Label>Amount</Label>
-                      <div className='flex flex-row items-center gap-2'>
-                        <Input
-                          type='number'
-                          value={amount}
-                          onChange={(e) => setAmount(e.target.value)}
-                          invalid={['-', 'e'].some((char) =>
-                            amount.includes(char)
-                          )}
-                        />
-                        <img
-                          src={tokenIcon(job.token)}
-                          alt=''
-                          className='mr-1 h-[2em] w-auto flex-none'
-                        />
-                        <span>{tokensMap[job.token]?.symbol}</span>
-                      </div>
-                      {amountError && (
-                        <div className='text-xs' style={{ color: 'red' }}>
-                          {amountError}
-                        </div>
-                      )}
-                    </Field>
-
-                    <div className='flex flex-row justify-between gap-5'>
-                      <Field className='flex-1'>
-                        <Label>
-                          Max delivery time in {selectedUnitTime.name}
-                        </Label>
-                        <div className='scroll-mt-20' />
-                        <Input
-                          name='deadline'
-                          type='number'
-                          placeholder={`Maximum delivery time in ${selectedUnitTime.name}`}
-                          value={maxTime}
-                          min={1}
-                          step={1}
-                          onChange={(e) => {
-                            let deadline = parseInt(e.target.value);
-                            if (deadline < 0) {
-                              deadline = -deadline;
-                            }
-                            setMaxTime(deadline);
-                            if (deadline === 0 || e.target.value === '') {
-                              setDeadlineError('Please enter a valid deadline');
-                            } else {
-                              if (deadlineError) {
-                                setDeadlineError('');
-                              }
-                            }
-                          }}
-                        />
-                        {deadlineError && (
-                          <div className='text-xs' style={{ color: 'red' }}>
-                            {deadlineError}
+                <Dialog.Panel className='
+                  w-full max-w-5xl transform overflow-hidden rounded-2xl 
+                  bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-900 dark:to-black
+                  shadow-2xl transition-all
+                  relative
+                '>
+                  {/* Enhanced gradient orbs */}
+                  <div className="absolute -top-40 -left-40 w-96 h-96 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl animate-pulse" />
+                  <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-full blur-3xl animate-pulse" />
+                  
+                  {/* Content */}
+                  <div className="relative">
+                    {/* Enhanced Header */}
+                    <div className='relative overflow-hidden'>
+                      {/* Header gradient background */}
+                      <div className='absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-blue-500/5' />
+                      
+                      <div className='relative flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800'>
+                        <div className='flex items-center gap-4'>
+                          <div className='relative'>
+                            <div className='absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl blur-xl opacity-50' />
+                            <div className='relative p-3 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500'>
+                              <PiSparkle className='w-6 h-6 text-white' />
+                            </div>
                           </div>
-                        )}
-                      </Field>
-                      <Field className='flex-1'>
-                        <Label>Units</Label>
-                        <br />
-                        <CustomSelect
-                          name='units'
-                          value={selectedUnitTime.id}
-                          onChange={(value) => {
-                            const selectedValue = isNaN(Number(value))
-                              ? value
-                              : Number(value);
-                            const selectedOption = unitsDeliveryTime.find(
-                              (option) => option.id === selectedValue
-                            );
-                            if (selectedOption) {
-                              setSelectedUnitTime(selectedOption);
-                            }
-                          }}
+                          <div className='text-left'>
+                            <Dialog.Title className='text-xl font-bold text-gray-900 dark:text-white'>
+                              Update Job Details
+                            </Dialog.Title>
+                            <p className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
+                              Make changes to your job posting
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={closeModal}
+                          className='
+                            p-2.5 rounded-xl text-gray-500 dark:text-gray-400 
+                            hover:text-gray-700 dark:hover:text-white 
+                            bg-gray-100 dark:bg-gray-800/50
+                            hover:bg-gray-200 dark:hover:bg-gray-700/50 
+                            transition-all duration-200
+                          '
                         >
-                          {unitsDeliveryTime.map((unit, index) => (
-                            <option key={index} value={unit.id}>
-                              {unit.name}
-                            </option>
-                          ))}
-                        </CustomSelect>
-                        {maxJobTimeError && (
-                          <div className='text-xs' style={{ color: 'red' }}>
-                            {maxJobTimeError}
-                          </div>
-                        )}
-                      </Field>
+                          <XMarkIcon className='w-5 h-5' />
+                        </button>
+                      </div>
                     </div>
-                    <Field>
-                      <Label>Arbitrator</Label>
-                      <CustomSelect
-                        name='arbitrator'
-                        value={selectedArbitratorAddress}
-                        onChange={(value) =>
-                          setSelectedArbitratorAddress(value as string)
-                        }
-                      >
-                        {userList.map((user, index) => (
-                          <option key={index} value={user.address_}>
-                            {user.name}
-                          </option>
-                        ))}
-                      </CustomSelect>
-                    </Field>
 
-                    <Field className='flex flex-row items-center justify-between'>
-                      <Label className='items-center'>Whitelist workers</Label>
-                      <RadioGroup
-                        className='!mt-0 flex'
-                        value={whitelistWorkers}
-                        onChange={setWhitelistWorkers}
-                        aria-label='Server size'
-                      >
-                        {whitelistWorkersValues.map((option) => (
-                          <Field
-                            className='!mt-0 ml-5 flex items-center'
-                            key={option}
-                          >
-                            <Radio className='mr-2' value={option}>
-                              <span>{option}</span>
-                            </Radio>
-                            <Label>{option}</Label>
-                          </Field>
-                        ))}
-                      </RadioGroup>
-                    </Field>
+                    {/* Enhanced Form Content */}
+                    <div className='p-8 max-h-[70vh] overflow-y-auto'>
+                      {/* Job Details Section */}
+                      <div className='mb-8'>
+                        <SectionHeader 
+                          icon={PiFileText} 
+                          title='Job Information' 
+                          subtitle='Basic details about your job posting'
+                        />
+                        
+                        <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+                          <EnhancedField className='lg:col-span-2'>
+                            <Field>
+                              <Label>Job Title</Label>
+                              <Input
+                                value={title}
+                                placeholder='Enter a descriptive job title'
+                                onChange={handleInputChange(setTitle, setTitleError, {
+                                  required: true,
+                                  minLength: 3,
+                                })}
+                                className='transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-600'
+                              />
+                              {titleError && (
+                                <div className='text-xs text-red-500 dark:text-red-400 flex items-center gap-1 mt-1'>
+                                  <PiWarning className='w-3 h-3' />
+                                  {titleError}
+                                </div>
+                              )}
+                            </Field>
+                          </EnhancedField>
 
+                          <EnhancedField className='lg:col-span-2'>
+                            <Field>
+                              <Label>Description</Label>
+                              <Textarea
+                                rows={5}
+                                value={content}
+                                onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setContent(e.target.value)}
+                                placeholder='Provide detailed information about the job requirements, deliverables, and expectations...'
+                                className='transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-600'
+                              />
+                            </Field>
+                          </EnhancedField>
 
+                          <EnhancedField>
+                            <Field>
+                              <Label>Category</Label>
+                              <ListBox
+                                placeholder='Select Category'
+                                value={selectedCategory}
+                                onChange={(category) => {
+                                  if (typeof category !== 'string') {
+                                    setSelectedCategory(category);
+                                  }
+                                }}
+                                options={jobMeceTags}
+                              />
+                            </Field>
+                          </EnhancedField>
+
+                          <EnhancedField>
+                            <Field>
+                              <Label>Tags</Label>
+                              <TagsInput tags={tags} setTags={setTags} />
+                              {tagsError && (
+                                <div className='text-xs text-red-500 dark:text-red-400 flex items-center gap-1 mt-1'>
+                                  <PiWarning className='w-3 h-3' />
+                                  {tagsError}
+                                </div>
+                              )}
+                            </Field>
+                          </EnhancedField>
+                        </div>
+                      </div>
+
+                      {/* Payment Section */}
+                      <div className='mb-8'>
+                        <SectionHeader 
+                          icon={PiCoins} 
+                          title='Payment & Timeline' 
+                          subtitle='Set your budget and delivery expectations'
+                        />
+                        
+                        <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+                          <EnhancedField>
+                            <div className='flex gap-3'>
+                              <Field className='flex-1'>
+                                <Label>Payment Amount</Label>
+                                <Input
+                                  type='number'
+                                  value={amount}
+                                  onChange={(e) => {
+                                    setAmount(e.target.value);
+                                    const validation = validateField(e.target.value, {
+                                      required: true,
+                                      custom: (value) =>
+                                        parseFloat(value) > 0 ? '' : 'Amount must be greater than 0',
+                                    });
+                                    setAmountError(validation);
+                                  }}
+                                  placeholder='0.00'
+                                  className='transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-600'
+                                />
+                                {amountError && (
+                                  <div className='text-xs text-red-500 dark:text-red-400 flex items-center gap-1 mt-1'>
+                                    <PiWarning className='w-3 h-3' />
+                                    {amountError}
+                                  </div>
+                                )}
+                              </Field>
+                              <Field className='flex-none'>
+                                <Label>Token</Label>
+                                <div className='flex items-center gap-2 px-4 py-2.5 mt-[7px] rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 border border-blue-200 dark:border-blue-800'>
+                                  <img
+                                    src={tokenIcon(job.token)}
+                                    alt=''
+                                    className='h-5 w-5'
+                                  />
+                                  <span className='text-sm font-semibold text-blue-700 dark:text-blue-300'>
+                                    {tokensMap[job.token]?.symbol}
+                                  </span>
+                                </div>
+                              </Field>
+                            </div>
+                          </EnhancedField>
+
+                          <EnhancedField>
+                            <div className='flex gap-3'>
+                              <Field className='flex-1'>
+                                <Label>Delivery Time</Label>
+                                <Input
+                                  type='number'
+                                  value={maxTime || ''}
+                                  min={1}
+                                  step={1}
+                                  placeholder='Enter time'
+                                  onChange={(e) => validateDeadline(e.target.value)}
+                                  className='transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-600'
+                                />
+                                {deadlineError && (
+                                  <div className='text-xs text-red-500 dark:text-red-400 flex items-center gap-1 mt-1'>
+                                    <PiWarning className='w-3 h-3' />
+                                    {deadlineError}
+                                  </div>
+                                )}
+                              </Field>
+                              <Field className='flex-1'>
+                                <Label>Time Unit</Label>
+                                <ListBox
+                                  placeholder='Select unit'
+                                  value={selectedUnitTime}
+                                  onChange={(unit) => {
+                                    if (typeof unit !== 'string') {
+                                      setSelectedUnitTime(unit);
+                                    }
+                                  }}
+                                  options={unitsDeliveryTime.map(unit => ({ 
+                                    id: unit.id.toString(), 
+                                    name: unit.name 
+                                  }))}
+                                />
+                              </Field>
+                            </div>
+                          </EnhancedField>
+                        </div>
+                      </div>
+
+                      {/* Settings Section */}
+                      <div>
+                        <SectionHeader 
+                          icon={PiUsersThree} 
+                          title='Job Settings' 
+                          subtitle='Configure arbitration and worker preferences'
+                        />
+                        
+                        <div className='space-y-6'>
+                          <EnhancedField>
+                            <Field>
+                              <Label>Arbitrator</Label>
+                              <Combobox
+                                placeholder='Select Arbitrator'
+                                value={selectedArbitratorAddress || ''}
+                                options={arbitratorList.map((arb) => ({
+                                  value: arb.address_,
+                                  label: `${arb.name} ${arb.address_ !== zeroAddress ? `• ${(+arb.fee / 100).toFixed(1)}% fee` : ''}`,
+                                }))}
+                                onChange={(addr) => setSelectedArbitratorAddress(addr)}
+                              />
+                              <Description>
+                                An arbitrator can help resolve disputes between you and the worker
+                              </Description>
+                            </Field>
+                          </EnhancedField>
+
+                          <StyledRadioGroup
+                            label='Whitelist Workers'
+                            options={['Yes', 'No']}
+                            value={whitelistWorkers}
+                            onChange={setWhitelistWorkers}
+                            description='Restrict who can apply to work on your job'
+                            icon={PiUsersThree}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Enhanced Footer */}
+                    <div className='relative overflow-hidden'>
+                      {/* Footer gradient background */}
+                      <div className='absolute inset-0 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900/50 dark:to-gray-800/50' />
+                      
+                      <div className='relative p-6 border-t border-gray-200 dark:border-gray-800'>
+                        <div className='flex justify-between items-center'>
+                          <p className='text-sm text-gray-500 dark:text-gray-400'>
+                            <PiInfo className='inline w-4 h-4 mr-1' />
+                            Changes will be published to the blockchain
+                          </p>
+                          <div className='flex gap-3'>
+                            <button
+                              onClick={closeModal}
+                              className='
+                                px-6 py-2.5 rounded-xl
+                                bg-gray-100 dark:bg-gray-800
+                                border border-gray-200 dark:border-gray-700
+                                text-sm font-medium text-gray-700 dark:text-gray-300
+                                transition-all duration-200
+                                hover:bg-gray-200 dark:hover:bg-gray-700
+                                hover:border-gray-300 dark:hover:border-gray-600
+                                active:scale-[0.98]
+                              '
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={handleUpdate}
+                              disabled={isUpdating || isConfirming}
+                              className='
+                                px-6 py-2.5 rounded-xl
+                                bg-gradient-to-r from-blue-500 to-purple-500
+                                text-sm font-medium text-white
+                                transition-all duration-200
+                                hover:from-blue-600 hover:to-purple-600
+                                active:scale-[0.98]
+                                disabled:opacity-50 disabled:cursor-not-allowed
+                                shadow-lg shadow-blue-500/25
+                                hover:shadow-xl hover:shadow-blue-500/30
+                                hover:-translate-y-0.5
+                              '
+                            >
+                              {isUpdating || isConfirming ? (
+                                <span className='flex items-center gap-2'>
+                                  <svg className='animate-spin h-4 w-4' fill='none' viewBox='0 0 24 24'>
+                                    <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />
+                                    <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z' />
+                                  </svg>
+                                  Updating...
+                                </span>
+                              ) : (
+                                <span className='flex items-center gap-2 text-white'>
+                                  <CheckIcon className='w-4 h-4' />
+                                  Update Job
+                                </span>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <Button
-                      className='w-full '
-                      disabled={isUpdating || isConfirming}
-                      onClick={handleUpdate}
-                    >
-                      Confirm
-                    </Button>
                 </Dialog.Panel>
               </Transition.Child>
             </div>

@@ -1,9 +1,9 @@
 import useUser from '@/hooks/subsquid/useUser';
-import { JobSignedEvent } from '@effectiveacceleration/contracts';
+import type { JobSignedEvent } from '@effectiveacceleration/contracts';
 import moment from 'moment';
 import { getAddress } from 'viem';
 import EventProfileImage from './Components/EventProfileImage';
-import { type EventProps } from './index';
+import type { EventProps } from './index';
 
 export function SignedEvent({
   event,

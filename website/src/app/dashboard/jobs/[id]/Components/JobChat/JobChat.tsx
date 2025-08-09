@@ -1,13 +1,13 @@
-import React from 'react';
+import type React from 'react';
 import Image from 'next/image';
 
 import {
-  Job,
+  type Job,
   JobArbitratedEvent,
   JobEventType,
-  JobEventWithDiffs,
+  type JobEventWithDiffs,
   JobState,
-  User,
+  type User,
 } from '@effectiveacceleration/contracts';
 import { formatTokenNameAndAmount } from '@/tokens';
 import JobChatStatus from './JobChatStatus';

@@ -15,12 +15,11 @@ import {
 import { jobMeceTags } from '@/utils/jobMeceTags';
 import { shortenText, formatTimeLeft } from '@/utils/utils';
 import {
-  getFromIpfs,
-  Job,
+  type Job,
   JobArbitratedEvent,
   JobEventType,
-  JobEventWithDiffs,
-  JobMessageEvent,
+  type JobEventWithDiffs,
+  type JobMessageEvent,
   JobState,
   User,
 } from '@effectiveacceleration/contracts';
@@ -251,7 +250,7 @@ export default function JobPageClient({ id }: JobPageClientProps) {
                   tokenIcon={tokenIcon}
                   setSelectedWorker={setSelectedWorker}
                   whitelistedWorkers={whitelistedWorkers}
-                  user={user}
+                  user={user ?? undefined}
                 />
                 <OpenJobMobileMenu
                   users={users ?? {}}

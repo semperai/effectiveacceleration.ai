@@ -1,7 +1,7 @@
 import useReviews from '@/hooks/subsquid/useReviews';
 import useUser from '@/hooks/subsquid/useUser';
 import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
-import { User } from '@effectiveacceleration/contracts/dist/src/interfaces';
+import type { User } from '@effectiveacceleration/contracts/dist/src/interfaces';
 import moment from 'moment';
 import { IoChevronBack } from 'react-icons/io5';
 
@@ -63,7 +63,7 @@ export function ReviewsList({
               </div>
               <div className='flex flex-col items-center flex-1'>
                 <span className='text-2xl text-primary font-semibold'>{positiveReviewPercentage}%</span>
-                <span className='text-xs text-center leading-3'>Positive percentaje</span>
+                <span className='text-xs text-center leading-3'>Positive percentage</span>
               </div>
             </div>
           </>

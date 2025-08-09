@@ -203,7 +203,7 @@ const lscacheModule = {
    * @param number time
    * @returns boolean whether the value was inserted successfully
    */
-  set: function (key: tKEY, value: any, time: number = Infinity) {
+  set: (key: tKEY, value: any, time: number = Infinity) => {
     if (!supportsStorage()) return false;
 
     // If we don't get a string value, try to stringify
@@ -228,7 +228,7 @@ const lscacheModule = {
         // by the expire time, and then remove the N oldest
         const storedKeys: any[] = [];
         let storedKey;
-        eachKey(function (key: any, exprKey: any) {
+        eachKey((key: any, exprKey: any) => {
           let expiration: any = getItem(exprKey);
           if (expiration) {
             expiration = parseInt(expiration, EXPIRY_RADIX);
@@ -243,9 +243,7 @@ const lscacheModule = {
           });
         });
         // Sorts the keys with oldest expiration time last
-        storedKeys.sort(function (a, b) {
-          return b.expiration - a.expiration;
-        });
+        storedKeys.sort((a, b) => b.expiration - a.expiration);
 
         let targetSize = (value || '').length;
         while (storedKeys.length && targetSize > 0) {
@@ -294,7 +292,7 @@ const lscacheModule = {
    * @param string key
    * @returns string|Object
    */
-  get: function (key: tKEY) {
+  get: (key: tKEY) => {
     if (!supportsStorage()) return null;
 
     // Return the de-serialized item if not expired
@@ -322,7 +320,7 @@ const lscacheModule = {
    * Equivalent to 'delete' in memcache, but that's a keyword in JS.
    * @param string key
    */
-  remove: function (key: string) {
+  remove: (key: string) => {
     if (!supportsStorage()) return;
 
     flushItem(key);
@@ -333,17 +331,15 @@ const lscacheModule = {
    * Currently exposed for testing purposes.
    * @returns boolean
    */
-  supported: function () {
-    return supportsStorage();
-  },
+  supported: () => supportsStorage(),
 
   /**
    * Flushes all lscache items and expiry markers without affecting rest of localStorage
    */
-  flush: function () {
+  flush: () => {
     if (!supportsStorage()) return;
 
-    eachKey(function (key: string) {
+    eachKey((key: string) => {
       flushItem(key);
     });
   },
@@ -351,10 +347,10 @@ const lscacheModule = {
   /**
    * Flushes expired lscache items and expiry markers without affecting rest of localStorage
    */
-  flushExpired: function () {
+  flushExpired: () => {
     if (!supportsStorage()) return;
 
-    eachKey(function (key: string) {
+    eachKey((key: string) => {
       flushExpiredItem(key);
     });
   },
@@ -363,14 +359,14 @@ const lscacheModule = {
    * Appends CACHE_PREFIX so lscache will partition data in to different buckets.
    * @param string bucket
    */
-  setBucket: function (bucket: string) {
+  setBucket: (bucket: string) => {
     cacheBucket = bucket;
   },
 
   /**
    * Resets the string being appended to CACHE_PREFIX so lscache will use the default storage behavior.
    */
-  resetBucket: function () {
+  resetBucket: () => {
     cacheBucket = '';
   },
 
@@ -378,9 +374,7 @@ const lscacheModule = {
    * @returns number The currently set number of milliseconds each time unit represents in
    *   the set() function's "time" argument.
    */
-  getExpiryMilliseconds: function () {
-    return expiryMilliseconds;
-  },
+  getExpiryMilliseconds: () => expiryMilliseconds,
 
   /**
    * Sets the number of milliseconds each time unit represents in the set() function's
@@ -392,7 +386,7 @@ const lscacheModule = {
    *  360000: each time unit = 1 hour
    * @param number milliseconds
    */
-  setExpiryMilliseconds: function (milliseconds: number) {
+  setExpiryMilliseconds: (milliseconds: number) => {
     expiryMilliseconds = milliseconds;
     maxDate = calculateMaxDate(expiryMilliseconds);
   },
@@ -400,7 +394,7 @@ const lscacheModule = {
   /**
    * Sets whether to display warnings when an item is removed from the cache or not.
    */
-  enableWarnings: function (enabled: boolean) {
+  enableWarnings: (enabled: boolean) => {
     warnings = enabled;
   },
 };

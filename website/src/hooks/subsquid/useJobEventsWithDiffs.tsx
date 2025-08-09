@@ -5,12 +5,12 @@ import {
   JobEventType,
   computeJobStateDiffs,
   fetchEventContents,
-  JobDisputedEvent,
+  type JobDisputedEvent,
   decryptJobDisputedEvent,
 } from '@effectiveacceleration/contracts';
 import { useEthersSigner } from '../useEthersSigner';
 import usePublicKeys from './usePublicKeys';
-import { JobEventWithDiffs } from '@effectiveacceleration/contracts';
+import type { JobEventWithDiffs } from '@effectiveacceleration/contracts';
 import { getAddress, ZeroAddress } from 'ethers';
 import useArbitratorPublicKeys from './useArbitratorPublicKeys';
 import useJobEvents from './useJobEvents';

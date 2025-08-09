@@ -1,4 +1,4 @@
-import { Job } from '@effectiveacceleration/contracts';
+import type { Job } from '@effectiveacceleration/contracts';
 import { ActionButton } from './ActionButton';
 
 export type ReopenButtonProps = {

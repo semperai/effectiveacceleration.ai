@@ -1,10 +1,10 @@
 import {
-  Job,
+  type Job,
   JobEvent,
-  JobEventWithDiffs,
-  User,
+  type JobEventWithDiffs,
+  type User,
 } from '@effectiveacceleration/contracts';
-import { Dispatch, SetStateAction } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 
 export interface JobViewProps {
   users: Record<string, User>;

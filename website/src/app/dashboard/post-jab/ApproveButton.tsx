@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAccount, useReadContract } from 'wagmi';
-import { type Address } from 'viem';
+import type { Address } from 'viem';
 import { MaxUint256 } from 'ethers';
 import { Button } from '@/components/Button';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';

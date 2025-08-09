@@ -1,4 +1,4 @@
-import { RefObject, useMemo, useSyncExternalStore } from 'react';
+import { type RefObject, useMemo, useSyncExternalStore } from 'react';
 
 type ThrottleFunction = (...args: any[]) => void;
 

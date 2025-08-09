@@ -46,9 +46,7 @@ export const useMediaDownloadHandler = () => {
         const blob = new Blob([mediaBytes], { type: mimeType });
         const url = URL.createObjectURL(blob);
         downloadURL(url, filename);
-        setTimeout(function () {
-          return URL.revokeObjectURL(url);
-        }, 1000);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
       };
 
       history.replaceState(

@@ -19,8 +19,8 @@ import { TokenSelector } from '@/components/TokenSelector';
 import useArbitrators from '@/hooks/subsquid/useArbitrators';
 import useUser from '@/hooks/subsquid/useUser';
 import { useConfig } from '@/hooks/useConfig';
-import { ComboBoxOption, Tag } from '@/service/FormsTypes';
-import { Token, tokens } from '@/tokens';
+import type { ComboBoxOption, Tag } from '@/service/FormsTypes';
+import { type Token, tokens } from '@/tokens';
 import { jobMeceTags } from '@/utils/jobMeceTags';
 import {
   convertToSeconds,
@@ -30,14 +30,15 @@ import {
 import { ethers } from 'ethers';
 import moment from 'moment';
 import Link from 'next/link';
-import React, {
-  ChangeEvent,
+import type React from 'react';
+import {type 
+  ChangeEvent,type 
   LegacyRef,
   SetStateAction,
   useEffect,
   useRef,
   useState,
-} from 'react';
+} from 'react'
 import { zeroAddress } from 'viem';
 import { useAccount, useReadContract } from 'wagmi';
 import LoadingModal from './LoadingModal';

@@ -10,7 +10,7 @@ import Unicrow from '@unicrowio/sdk';
 import { Input } from '@/components/Input';
 import {
   getMediaFromIpfs,
-  JobCreatedEvent,
+  type JobCreatedEvent,
   publishMediaToIpfs,
 } from '@effectiveacceleration/contracts';
 import { Button } from '@/components/Button';
@@ -93,7 +93,7 @@ const Test = () => {
     }
 
     const registration = (await navigator.serviceWorker.getRegistration())!;
-    let subscription = await registration.pushManager.getSubscription();
+    const subscription = await registration.pushManager.getSubscription();
 
     const delay = 2; // seconds
     const ttl = 60; // seconds

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { JobEvent } from '@effectiveacceleration/contracts';
+import type { JobEvent } from '@effectiveacceleration/contracts';
 import { useApolloClient } from '@apollo/client';
 
 type JobEventMessage = Omit<JobEvent, 'data_' | 'details'>;

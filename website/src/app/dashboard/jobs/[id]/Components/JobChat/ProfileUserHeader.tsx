@@ -1,4 +1,5 @@
-import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import type React from 'react';
+import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 
 import {
   Job,
@@ -11,7 +12,7 @@ import Image from 'next/image';
 import SideJobList from '../SideJobList';
 import SideJobInfo from '../SideJobInfo';
 import InfoIcon from '@mui/icons-material/Info';
-import { JobSidebarProps } from './OpenJobMobileMenu';
+import type { JobSidebarProps } from './OpenJobMobileMenu';
 import EventProfileImage from '@/components/Events/Components/EventProfileImage';
 import { UserProfile } from './UserProfile';
 

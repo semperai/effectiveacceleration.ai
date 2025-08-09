@@ -65,6 +65,7 @@
     "wagmi": "^2.14.15"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.1.4",
     "@types/node": "^22.9.1",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",

@@ -1,4 +1,4 @@
-import { type EventProps } from './index';
+import type { EventProps } from './index';
 import moment from 'moment';
 import useUser from '@/hooks/subsquid/useUser';
 import { getAddress } from 'viem';

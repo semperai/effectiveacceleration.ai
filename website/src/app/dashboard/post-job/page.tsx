@@ -1,4 +1,4 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 import { Layout } from '@/components/Dashboard/Layout';
 import PostJob from './PostJobPage';
 
