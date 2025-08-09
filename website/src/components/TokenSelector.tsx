@@ -139,9 +139,9 @@ function TokenButton({
     } else {
       icon = (selectedToken as Token).icon;
     }
-    
+
     const symbol = selectedToken.symbol;
-    
+
     return (
       <button
         type="button"
@@ -154,8 +154,8 @@ function TokenButton({
       >
         <div style={contentStyle}>
           {icon ? (
-            <img 
-              src={icon} 
+            <img
+              src={icon}
               alt={symbol}
               style={avatarStyle}
               onError={(e: any) => {
@@ -164,8 +164,8 @@ function TokenButton({
               }}
             />
           ) : (
-            <img 
-              src={DEFAULT_TOKEN_ICON} 
+            <img
+              src={DEFAULT_TOKEN_ICON}
               alt={symbol}
               style={avatarStyle}
             />
@@ -244,42 +244,42 @@ export function TokenSelector({
     const appTokens = tokens.map(convertToArbitrumToken);
     const networkTokensList = networkTokens?.tokens || [];
     const tokenMap = new Map<string, IArbitrumToken>();
-    
+
     // Also include custom tokens from localStorage
     const customTokens = lscacheModule.get('custom-tokens') || [];
-    
+
     appTokens.forEach(token => {
       tokenMap.set(token.address.toLowerCase(), token);
     });
-    
+
     networkTokensList.forEach((token: IArbitrumToken) => {
       const key = token.address.toLowerCase();
       if (!tokenMap.has(key)) {
         tokenMap.set(key, token);
       }
     });
-    
+
     customTokens.forEach((token: IArbitrumToken) => {
       const key = token.address.toLowerCase();
       if (!tokenMap.has(key)) {
         tokenMap.set(key, token);
       }
     });
-    
+
     const mergedTokens = Array.from(tokenMap.values()).sort((a, b) => {
       const prioritySymbols = ['USDC', 'USDT', 'WETH', 'ETH', 'AIUS', 'EACC'];
       const aIndex = prioritySymbols.indexOf(a.symbol);
       const bIndex = prioritySymbols.indexOf(b.symbol);
-      
+
       if (aIndex !== -1 && bIndex !== -1) {
         return aIndex - bIndex;
       }
       if (aIndex !== -1) return -1;
       if (bIndex !== -1) return 1;
-      
+
       return a.symbol.localeCompare(b.symbol);
     });
-    
+
     return { tokens: mergedTokens };
   };
 
@@ -308,12 +308,12 @@ export function TokenSelector({
     if (!hasLoadedFromStorage) {
       if (persistSelection) {
         const lastSelected = lscacheModule.get('last-token-selected');
-        
+
         if (lastSelected) {
           // We have a saved token
           setInternalSelectedToken(lastSelected);
           setHasLoadedFromStorage(true);
-          
+
           // Notify parent component of the restored selection
           const token = convertToToken(lastSelected);
           onClick(token);
@@ -378,18 +378,18 @@ export function TokenSelector({
         return convertToArbitrumToken(internalSelectedToken as Token);
       }
     }
-    
+
     // Try to load last selected from localStorage
     const lastSelected = lscacheModule.get('last-token-selected');
     if (lastSelected) {
       return lastSelected;
     }
-    
+
     const usdcToken = tokens.find(t => t.symbol === 'USDC');
     if (usdcToken) {
       return convertToArbitrumToken(usdcToken);
     }
-    
+
     return selectableTokens?.tokens?.[0] || {
       address: '0x0000000000000000000000000000000000000000',
       name: 'Ethereum',
@@ -401,9 +401,9 @@ export function TokenSelector({
 
   return (
     <>
-      <TokenButton 
-        selectedToken={internalSelectedToken} 
-        onClick={openModal} 
+      <TokenButton
+        selectedToken={internalSelectedToken}
+        onClick={openModal}
       />
 
       {isOpen && selectableTokens && (

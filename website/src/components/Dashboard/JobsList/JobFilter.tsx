@@ -6,12 +6,12 @@ import type { Token } from '@/tokens';
 import { shortenText, unitsDeliveryTime } from '@/utils/utils';
 import { Field, Label } from '@headlessui/react';
 import { Radio, RadioGroup } from '@/components/Radio';
-import { 
-  ChevronDown, 
-  ChevronUp, 
-  Filter, 
-  Search, 
-  X, 
+import {
+  ChevronDown,
+  ChevronUp,
+  Filter,
+  Search,
+  X,
   Sparkles,
   Clock,
   Coins,
@@ -148,7 +148,7 @@ export const JobFilter = ({
       <div className='relative rounded-xl backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 overflow-hidden'>
         {/* Decorative gradient line at top */}
         <div className='absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-400/50 to-transparent' />
-        
+
         <div className='p-5'>
           {/* Search Section */}
           <div className='space-y-3'>
@@ -158,11 +158,11 @@ export const JobFilter = ({
               <div className='relative'>
                 {/* Search Icon with animation */}
                 <Search className={`
-                  absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 
+                  absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4
                   transition-all duration-200
                   ${isFocused ? 'text-blue-500 scale-110' : 'text-gray-400'}
                 `} />
-                
+
                 {/* Main search input */}
                 <Input
                   placeholder={isFocused ? 'Type to search...' : 'Search jobs by title, description, skills...'}
@@ -180,7 +180,7 @@ export const JobFilter = ({
                   }}
                   className='bg-white/60 dark:bg-gray-900/60 border-gray-200/50 dark:border-gray-700/50 focus:bg-white/80 dark:focus:bg-gray-900/80 transition-all duration-200'
                 />
-                
+
                 {/* Suggestion overlay */}
                 {searchSuggestion && isFocused && (
                   <div className='absolute inset-0 pl-10 pr-24 flex items-center pointer-events-none'>
@@ -300,7 +300,7 @@ export const JobFilter = ({
                   <button
                     onClick={handleClearToken}
                     className={`
-                      p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 
+                      p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100
                       dark:hover:text-gray-200 dark:hover:bg-gray-800
                       transition-all duration-200
                       ${(selectedToken || minTokens) ? 'opacity-100' : 'opacity-0 pointer-events-none'}
@@ -381,9 +381,9 @@ export const JobFilter = ({
                           setSelectedUnitTime(unit);
                         }
                       }}
-                      options={unitsDeliveryTime.map(unit => ({ 
-                        id: unit.id.toString(), 
-                        name: unit.name 
+                      options={unitsDeliveryTime.map(unit => ({
+                        id: unit.id.toString(),
+                        name: unit.name
                       }))}
                     />
                   </div>

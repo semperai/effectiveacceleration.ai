@@ -89,7 +89,7 @@ const AssignWorker: React.FC<AssignWorkerProps> = ({
               <div className='rounded-xl bg-white/70 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-200 dark:border-gray-700 p-5'>
                 <div className='flex items-center gap-4'>
                   {/* Avatar - Clickable link to profile */}
-                  <Link 
+                  <Link
                     href={`/dashboard/users/${selectedWorker}`}
                     className='relative group'
                   >
@@ -104,7 +104,7 @@ const AssignWorker: React.FC<AssignWorkerProps> = ({
                   </Link>
                   <div className='flex-1'>
                     {/* Name - Clickable link to profile with hover effect */}
-                    <Link 
+                    <Link
                       href={`/dashboard/users/${selectedWorker}`}
                       className='group inline-flex items-center gap-1'
                     >

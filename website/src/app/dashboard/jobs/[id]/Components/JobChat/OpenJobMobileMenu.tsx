@@ -53,7 +53,7 @@ const OpenJobMobileMenu: React.FC<JobSidebarProps> = ({
   const isCreator: boolean = address === job.roles.creator;
   const isArbitrator: boolean = address === job.roles.arbitrator;
   const isGuest = !users[address];
-  
+
   const [sideJobListOpen, setSideJobListOpen] = useState(false);
   const [sideJobInfoOpen, setSideJobInfoOpen] = useState(false);
 
@@ -62,7 +62,7 @@ const OpenJobMobileMenu: React.FC<JobSidebarProps> = ({
 
   // Show the applicant list button only for creators when job is open
   const showApplicantListButton = isCreator && job.state === JobState.Open;
-  
+
   // Always show the info button on mobile
   const showInfoButton = true;
 
@@ -71,7 +71,7 @@ const OpenJobMobileMenu: React.FC<JobSidebarProps> = ({
     return null;
   }
 
-  return (  
+  return (
     <>
       {/* Mobile Menu Header - Only visible on mobile */}
       <div className='block md:hidden bg-softBlue border-l border-r border-gray-100'>
@@ -150,18 +150,18 @@ const OpenJobMobileMenu: React.FC<JobSidebarProps> = ({
       </div>
 
       {/* Side panels - Applicant List */}
-      <SideJobList 
-        sidebarOpen={sideJobListOpen} 
-        setSidebarOpen={setSideJobListOpen} 
-        users={users} 
-        address={address} 
-        job={job} 
-        setSelectedWorker={setSelectedWorker} 
+      <SideJobList
+        sidebarOpen={sideJobListOpen}
+        setSidebarOpen={setSideJobListOpen}
+        users={users}
+        address={address}
+        job={job}
+        setSelectedWorker={setSelectedWorker}
         selectedWorker={selectedWorker}
       />
-      
+
       {/* Side panels - Job Info */}
-      <SideJobInfo 
+      <SideJobInfo
         sidebarOpen={sideJobInfoOpen}
         setSidebarOpen={setSideJobInfoOpen}
         users={users}

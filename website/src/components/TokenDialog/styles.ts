@@ -621,7 +621,7 @@ export const mobileStyles = {
     maxHeight: '100vh',
     borderRadius: 0,
   } as CSSProperties,
-  
+
   tokenListContainer: {
     maxHeight: 'calc(100vh - 280px)',
   } as CSSProperties,

@@ -62,7 +62,7 @@ const TokenDialog = ({
   const [showAddToken, setShowAddToken] = useState(false);
   const publicClient = usePublicClient();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  
+
   const noTokensFound = !filteredTokens || filteredTokens.length === 0;
 
   useEffect(() => {
@@ -78,11 +78,11 @@ const TokenDialog = ({
 
   const handleSelectToken = (token: IArbitrumToken, event: any) => {
     event.stopPropagation();
-    
+
     const target = event.target as HTMLElement;
     const isPin = target.closest('.pin-button');
     const isLink = target.closest('a');
-    
+
     if (!isPin && !isLink) {
       setSelectedToken(token);
       // Save last selected token to localStorage only if persistence is enabled
@@ -95,7 +95,7 @@ const TokenDialog = ({
 
   const addCustomToken = async () => {
     setTokenLoadError('');
-    
+
     if (!ethers.isAddress(searchValue)) {
       setTokenLoadError('Please provide a valid contract address');
       toast('Please provide a valid contract address', 'error');
@@ -105,7 +105,7 @@ const TokenDialog = ({
     const existingToken = [...tokensList, ...customTokens].find(
       t => t.address.toLowerCase() === searchValue.toLowerCase()
     );
-    
+
     if (existingToken) {
       // Select the token to highlight it
       setSelectedToken(existingToken);
@@ -113,7 +113,7 @@ const TokenDialog = ({
       if (persistSelection) {
         lscacheModule.set('last-token-selected', existingToken, Infinity);
       }
-      
+
       // Auto-add to favorites if not already there
       if (!favoriteTokens.find(t => t.address.toLowerCase() === existingToken.address.toLowerCase())) {
         const newFavorites = uniqueBy('address', [...favoriteTokens, existingToken], 'symbol');
@@ -123,15 +123,15 @@ const TokenDialog = ({
       } else {
         toast(`${existingToken.symbol} selected`, 'success');
       }
-      
+
       // Clear search to show all tokens with the selected one highlighted
       setSearchValue('');
-      
+
       // Scroll to top if token is in favorites
       if (scrollContainerRef.current && favoriteTokens.find(t => t.address.toLowerCase() === existingToken.address.toLowerCase())) {
         scrollContainerRef.current.scrollTop = 0;
       }
-      
+
       // Don't close immediately - let user see the selection
       setTimeout(() => {
         closeCallback(existingToken);
@@ -150,9 +150,9 @@ const TokenDialog = ({
         // Fallback to public RPC
         provider = new ethers.JsonRpcProvider('https://eth.llamarpc.com');
       }
-      
+
       const isValid = await isValidTokenContract(searchValue, provider);
-      
+
       if (!isValid) {
         setTokenLoadError('Address is not a valid ERC20 token contract');
         toast('Address is not a valid ERC20 token contract', 'error');
@@ -161,7 +161,7 @@ const TokenDialog = ({
       }
 
       const tokenMetadata = await fetchTokenMetadata(searchValue, provider);
-      
+
       if (!tokenMetadata) {
         setTokenLoadError('Failed to fetch token information');
         toast('Failed to fetch token information', 'error');
@@ -175,16 +175,16 @@ const TokenDialog = ({
       const newList = [...customTokens, tokenMetadata];
       lscacheModule.set('custom-tokens', newList, Infinity);
       setCustomTokens(newList);
-      
+
       if (filteredTokens) {
         setFilteredTokens([...filteredTokens, tokenMetadata]);
       }
-      
+
       // Auto-add to favorites and save to localStorage
       const newFavorites = uniqueBy('address', [...favoriteTokens, tokenMetadata], 'symbol');
       setFavoriteTokens(newFavorites);
       lscacheModule.set('preferred-tokens', newFavorites, Infinity);
-      
+
       // Select the token to highlight it
       setSelectedToken(tokenMetadata);
       // Save last selected token to localStorage only if persistence is enabled
@@ -193,14 +193,14 @@ const TokenDialog = ({
       }
       setSearchValue('');
       setShowAddToken(false);
-      
+
       // Scroll to top to show the newly added favorite token
       if (scrollContainerRef.current) {
         scrollContainerRef.current.scrollTop = 0;
       }
-      
+
       toast(`Added ${tokenMetadata.symbol} successfully and pinned to favorites`, 'success');
-      
+
     } catch (error) {
       console.error('Error adding custom token:', error);
       setTokenLoadError('Failed to add token. Please check the address.');
@@ -268,10 +268,10 @@ const TokenDialog = ({
   useEffect(() => {
     if (!favoriteTokens?.length && tokensList?.length > 0) {
       const prioritySymbols = ['USDC', 'USDT', 'WETH', 'AIUS', 'EACC'];
-      const priorityTokens = tokensList.filter(token => 
+      const priorityTokens = tokensList.filter(token =>
         prioritySymbols.includes(token.symbol)
       ).slice(0, 5);
-      
+
       if (priorityTokens.length > 0) {
         setFavoriteTokens(priorityTokens);
         lscacheModule.set('preferred-tokens', priorityTokens, Infinity);
@@ -279,7 +279,7 @@ const TokenDialog = ({
         setFavoriteTokens(preferredTokenList);
       }
     }
-    
+
     if (filteredTokens?.length === 0) {
       setFilteredTokens([...tokensList, ...customTokens]);
     }
@@ -291,7 +291,7 @@ const TokenDialog = ({
         const existingToken = [...tokensList, ...customTokens].find(
           t => t.address.toLowerCase() === searchValue.toLowerCase()
         );
-        
+
         setShowAddToken(!existingToken);
       } else {
         setShowAddToken(false);
@@ -310,7 +310,7 @@ const TokenDialog = ({
           : []),
       ...(Array.isArray(customTokens) ? customTokens : []),
     ];
-    
+
     const _value = `${searchValue}`.toLowerCase();
 
     if (_value !== '') {
@@ -332,8 +332,8 @@ const TokenDialog = ({
   const AvatarNonEth = (token: any) => {
     if (token.logoURI) {
       return (
-        <img 
-          src={token.logoURI} 
+        <img
+          src={token.logoURI}
           alt={token.symbol}
           onError={(e: any) => {
             e.target.onerror = null;
@@ -344,37 +344,37 @@ const TokenDialog = ({
             height: '20px',
             borderRadius: '50%',
             objectFit: 'cover' as const,
-          }} 
+          }}
         />
       );
     }
-    
+
     return (
-      <img 
-        src={DEFAULT_TOKEN_ICON} 
+      <img
+        src={DEFAULT_TOKEN_ICON}
         alt={token.symbol}
         style={{
           width: '20px',
           height: '20px',
           borderRadius: '50%',
-        }} 
+        }}
       />
     );
   };
 
   return (
     <div style={styles.overlay} onClick={() => closeCallback(selectedToken)}>
-      <div 
+      <div
         style={mergeStyles(
           styles.container,
           isMobile ? mobileStyles.container : undefined
-        )} 
+        )}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Gradient orbs */}
         <div style={mergeStyles(styles.gradientOrb, styles.gradientOrb1)} />
         <div style={mergeStyles(styles.gradientOrb, styles.gradientOrb2)} />
-        
+
         {/* Header */}
         <div style={styles.header}>
           <h2 style={styles.headerTitle}>
@@ -417,8 +417,8 @@ const TokenDialog = ({
                 }}
               >
                 <div className="token-dialog-icon-wrapper" style={{ width: '20px', height: '20px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {token.name === 'ETH' || token.symbol === 'ETH' 
-                    ? <EthereumIcon /> 
+                  {token.name === 'ETH' || token.symbol === 'ETH'
+                    ? <EthereumIcon />
                     : AvatarNonEth(token)}
                 </div>
                 <span>{token.symbol}</span>
@@ -514,7 +514,7 @@ const TokenDialog = ({
         )}
 
         {/* Token List */}
-        <div 
+        <div
           ref={scrollContainerRef}
           style={mergeStyles(
             styles.tokenListContainer,
@@ -575,8 +575,8 @@ const TokenItem = ({
 
     if (token.logoURI) {
       return (
-        <img 
-          src={token.logoURI} 
+        <img
+          src={token.logoURI}
           alt={token.symbol}
           onError={(e: any) => {
             e.target.onerror = null;
@@ -588,8 +588,8 @@ const TokenItem = ({
     }
 
     return (
-      <img 
-        src={DEFAULT_TOKEN_ICON} 
+      <img
+        src={DEFAULT_TOKEN_ICON}
         alt={token.symbol}
         style={styles.tokenAvatar}
       />
@@ -608,7 +608,7 @@ const TokenItem = ({
       onClick={(e) => handleSelectToken(token, e)}
     >
       {isHovered && <div style={styles.tokenItemShimmer} />}
-      
+
       <div style={styles.tokenAvatarContainer}>
         {getTokenAvatar()}
       </div>

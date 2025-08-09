@@ -150,7 +150,7 @@ export default function UserPageClient({ address }: UserPageClientProps) {
               <span className='flex text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-xl sm:tracking-tight dark:text-gray-100'>
                 {user?.name || 'Unnamed User'}
               </span>
-              
+
               {/* Address and Arbiscan link */}
               <div className='flex items-center gap-2 text-sm'>
                 <span className='text-gray-600 dark:text-gray-400 font-mono'>
@@ -177,7 +177,7 @@ export default function UserPageClient({ address }: UserPageClientProps) {
                   <ArrowTopRightOnSquareIcon className='h-3.5 w-3.5' />
                 </a>
               </div>
-              
+
               <span className='text-gray-600 dark:text-gray-400'>
                 {user?.bio || 'No bio available'}
               </span>

@@ -28,11 +28,11 @@ interface TokenSelectModalProps {
   initialToken?: IArbitrumToken;
 }
 
-const TokenSelectModal = ({ 
-  isOpen = true, 
-  onClose, 
+const TokenSelectModal = ({
+  isOpen = true,
+  onClose,
   onTokenSelect,
-  initialToken 
+  initialToken
 }: TokenSelectModalProps) => {
   const chainId = useChainId();
   const [selectedToken, setSelectedToken] = React.useState<IArbitrumToken>(
@@ -86,7 +86,7 @@ const TokenSelectModal = ({
         tokensList={selectableTokens?.tokens || []}
         closeCallback={handleTokenSelection}
       />
-      
+
       {/* Import the CSS styles if not already imported globally */}
       <link rel="stylesheet" href="/components/TokenDialog/styles.css" />
     </>

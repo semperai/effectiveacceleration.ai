@@ -93,7 +93,7 @@ const DisputeStarted: React.FC<DisputeStartedProps> = ({ job, address, users = {
           {/* Arbitrator Info Card */}
           <div className='mb-6 rounded-xl bg-white/70 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-200 dark:border-gray-700 p-5'>
             <div className='flex items-start gap-4'>
-              <Link 
+              <Link
                 href={`/dashboard/arbitrators/${job.roles.arbitrator}`}
                 className='group'
               >
@@ -106,7 +106,7 @@ const DisputeStarted: React.FC<DisputeStartedProps> = ({ job, address, users = {
                   <h4 className='text-sm font-semibold text-gray-900 dark:text-white'>
                     Arbitrator Has Joined
                   </h4>
-                  <Link 
+                  <Link
                     href={`/dashboard/arbitrators/${job.roles.arbitrator}`}
                     className='inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 group'
                   >
@@ -120,7 +120,7 @@ const DisputeStarted: React.FC<DisputeStartedProps> = ({ job, address, users = {
 
                 {/* Arbitrator Avatar and Name if available */}
                 {arbitratorData && (
-                  <Link 
+                  <Link
                     href={`/dashboard/arbitrators/${job.roles.arbitrator}`}
                     className='inline-flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors'
                   >

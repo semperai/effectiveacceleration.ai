@@ -96,7 +96,7 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
 
             {/* Arbitrator Link */}
             {arbitratorData && (
-              <Link 
+              <Link
                 href={`/dashboard/arbitrators/${job.roles.arbitrator}`}
                 className='mt-2 inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 group'
               >
@@ -155,7 +155,7 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
                     Creator {isCreator && '(You)'}
                   </span>
                   {creatorData && !isCreator && (
-                    <Link 
+                    <Link
                       href={`/dashboard/users/${job.roles.creator}`}
                       className='ml-auto'
                     >
@@ -164,7 +164,7 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
                   )}
                 </div>
                 {creatorData && !isCreator && (
-                  <Link 
+                  <Link
                     href={`/dashboard/users/${job.roles.creator}`}
                     className='text-xs text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 hover:underline'
                   >
@@ -196,7 +196,7 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
                     Worker {isWorker && '(You)'}
                   </span>
                   {workerData && !isWorker && (
-                    <Link 
+                    <Link
                       href={`/dashboard/users/${job.roles.worker}`}
                       className='ml-auto'
                     >
@@ -205,7 +205,7 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
                   )}
                 </div>
                 {workerData && !isWorker && (
-                  <Link 
+                  <Link
                     href={`/dashboard/users/${job.roles.worker}`}
                     className='text-xs text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 hover:underline'
                   >
@@ -237,7 +237,7 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
                     Arbitrator Fee {isArbitrator && '(You)'}
                   </span>
                   {arbitratorData && !isArbitrator && (
-                    <Link 
+                    <Link
                       href={`/dashboard/arbitrators/${job.roles.arbitrator}`}
                       className='ml-auto'
                     >
@@ -246,7 +246,7 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
                   )}
                 </div>
                 {arbitratorData && !isArbitrator && (
-                  <Link 
+                  <Link
                     href={`/dashboard/arbitrators/${job.roles.arbitrator}`}
                     className='text-xs text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 hover:underline'
                   >

@@ -147,7 +147,7 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
                   Completed by
                 </span>
               </div>
-              <Link 
+              <Link
                 href={`/dashboard/users/${workerAddress}`}
                 className='flex items-center gap-2 group'
               >
@@ -320,7 +320,7 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
               <span className='flex items-center gap-1'>
                 {isJobCreator ? 'Payment has been released to' : 'Payment received from job creator'}
                 {isJobCreator && (
-                  <Link 
+                  <Link
                     href={`/dashboard/users/${workerAddress}`}
                     className='text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 hover:underline'
                   >

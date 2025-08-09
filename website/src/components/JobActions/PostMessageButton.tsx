@@ -143,7 +143,7 @@ export function PostMessageButton({
     <div className='w-full'>
       {/* Unified container with better styling */}
       <div className='flex items-end gap-2 p-2 bg-white dark:bg-gray-800/50 backdrop-blur-sm rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-200 focus-within:shadow-md'>
-        
+
         {/* Message Input with improved styling - no outline/border */}
         <textarea
           rows={1}
@@ -160,7 +160,7 @@ export function PostMessageButton({
             const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight || '20');
             const minHeight = lineHeight * 1.5; // Minimum height for better alignment
             const maxHeight = lineHeight * 6; // Maximum 6 lines
-            
+
             // Set the height based on content
             if (textarea.scrollHeight > minHeight) {
               textarea.style.height = `${Math.min(textarea.scrollHeight, maxHeight)}px`;
@@ -182,7 +182,7 @@ export function PostMessageButton({
             px-2 py-1
             bg-transparent
             border-0 outline-none
-            rounded-lg 
+            rounded-lg
             resize-none
             text-sm text-gray-900 dark:text-gray-100
             placeholder:text-gray-400 dark:placeholder:text-gray-500
@@ -207,7 +207,7 @@ export function PostMessageButton({
             mb-0 self-end
             rounded-xl
             transition-all duration-200 transform
-            ${canSend 
+            ${canSend
               ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg shadow-blue-500/20'
               : 'bg-gray-100 dark:bg-gray-700/50 cursor-not-allowed'
             }
@@ -218,22 +218,22 @@ export function PostMessageButton({
           {isProcessing ? (
             <div className='relative flex items-center justify-center'>
               {/* Spinner ring */}
-              <svg 
-                className='w-5 h-5 animate-spin text-white/30 absolute' 
-                fill='none' 
+              <svg
+                className='w-5 h-5 animate-spin text-white/30 absolute'
+                fill='none'
                 viewBox='0 0 24 24'
               >
-                <circle 
-                  className='opacity-25' 
-                  cx='12' 
-                  cy='12' 
-                  r='10' 
-                  stroke='currentColor' 
+                <circle
+                  className='opacity-25'
+                  cx='12'
+                  cy='12'
+                  r='10'
+                  stroke='currentColor'
                   strokeWidth='3'
                 />
-                <path 
-                  className='opacity-75' 
-                  fill='currentColor' 
+                <path
+                  className='opacity-75'
+                  fill='currentColor'
                   d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
                 />
               </svg>
@@ -242,11 +242,11 @@ export function PostMessageButton({
             </div>
           ) : (
             /* Normal state - send icon */
-            <PiPaperPlaneRight 
+            <PiPaperPlaneRight
               className={`
                 w-4 h-4 transition-all duration-200
-                ${canSend 
-                  ? 'text-white' 
+                ${canSend
+                  ? 'text-white'
                   : 'text-gray-400 dark:text-gray-500'
                 }
               `}
@@ -257,7 +257,7 @@ export function PostMessageButton({
           {canSend && !isProcessing && (
             <>
               <span className='absolute inset-0 rounded-xl bg-white opacity-0 hover:opacity-20 transition-opacity duration-200' />
-              <span className='absolute inset-0 rounded-xl animate-ping bg-blue-400 opacity-30' 
+              <span className='absolute inset-0 rounded-xl animate-ping bg-blue-400 opacity-30'
                     style={{ animationDuration: '2s', animationIterationCount: '1' }} />
             </>
           )}

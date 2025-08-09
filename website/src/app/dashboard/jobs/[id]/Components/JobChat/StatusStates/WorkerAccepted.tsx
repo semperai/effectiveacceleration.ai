@@ -106,7 +106,7 @@ const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({ job, address, users = {
 
             {/* Show worker/creator info */}
             {isCreator && workerData && (
-              <Link 
+              <Link
                 href={`/dashboard/users/${job.roles.worker}`}
                 className='mt-2 inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 group'
               >
@@ -115,7 +115,7 @@ const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({ job, address, users = {
               </Link>
             )}
             {isWorker && creatorData && (
-              <Link 
+              <Link
                 href={`/dashboard/users/${job.roles.creator}`}
                 className='mt-2 inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 group'
               >
@@ -185,7 +185,7 @@ const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({ job, address, users = {
                 <div>
                   <p className='text-xs text-gray-500 dark:text-gray-400'>Worker</p>
                   {workerData ? (
-                    <Link 
+                    <Link
                       href={`/dashboard/users/${job.roles.worker}`}
                       className='inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 group'
                     >
@@ -220,7 +220,7 @@ const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({ job, address, users = {
                     <span>
                       {workerData ? (
                         <>
-                          <Link 
+                          <Link
                             href={`/dashboard/users/${job.roles.worker}`}
                             className='text-amber-700 dark:text-amber-300 hover:underline font-medium'
                           >
@@ -256,7 +256,7 @@ const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({ job, address, users = {
                     <span className='text-amber-600 dark:text-amber-500 mt-0.5'>3.</span>
                     <span>
                       Communicate with {creatorData ? (
-                        <Link 
+                        <Link
                           href={`/dashboard/users/${job.roles.creator}`}
                           className='text-amber-700 dark:text-amber-300 hover:underline font-medium'
                         >
@@ -274,7 +274,7 @@ const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({ job, address, users = {
                     <PiRocket className='w-4 h-4 text-amber-600 dark:text-amber-500 mt-0.5' />
                     <span>
                       Job is currently being worked on by {workerData ? (
-                        <Link 
+                        <Link
                           href={`/dashboard/users/${job.roles.worker}`}
                           className='text-amber-700 dark:text-amber-300 hover:underline font-medium'
                         >

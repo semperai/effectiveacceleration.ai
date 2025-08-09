@@ -106,10 +106,10 @@ export async function isValidTokenContract(
 
     // Try to call basic ERC20 methods
     const contract = new ethers.Contract(address, ERC20_ABI, provider);
-    
+
     // Try to get decimals - most reliable check for ERC20
     await contract.decimals();
-    
+
     return true;
   } catch (error) {
     return false;

@@ -121,7 +121,7 @@ const ResultVerification: React.FC<ResultAcceptedProps> = ({
           {/* Worker Info Badge with Link */}
           <div className='flex justify-center mb-6'>
             <div className='inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm'>
-              <Link 
+              <Link
                 href={`/dashboard/users/${workerAddress}`}
                 className='flex items-center gap-2 group'
               >
@@ -209,7 +209,7 @@ const ResultVerification: React.FC<ResultAcceptedProps> = ({
                     <PiChatCircle className='w-4 h-4 mt-0.5 flex-shrink-0' />
                     <span>
                       Send a message to{' '}
-                      <Link 
+                      <Link
                         href={`/dashboard/users/${workerAddress}`}
                         className='text-amber-700 dark:text-amber-300 hover:underline font-medium'
                       >
