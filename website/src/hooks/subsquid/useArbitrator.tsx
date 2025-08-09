@@ -9,16 +9,33 @@ export type ArbitratorWithTimestamp = Arbitrator & {
 };
 
 export default function useArbitrator(arbitratorAddress: string) {
-  const { data, ...rest } = useQuery(GET_ARBITRATOR_BY_ADDRESS, {
+  const { data, loading, error, ...rest } = useQuery(GET_ARBITRATOR_BY_ADDRESS, {
     variables: { arbitratorAddress: arbitratorAddress ?? '' },
     skip: !arbitratorAddress,
   });
 
   return useMemo(
-    () => ({
-      data: data ? (data?.arbitrators[0] as ArbitratorWithTimestamp) : undefined,
-      ...rest,
-    }),
-    [arbitratorAddress, data, rest]
+    () => {
+      // If no address provided, return null data with not loading
+      if (!arbitratorAddress) {
+        return {
+          data: null,
+          isLoading: false,
+          isError: false,
+          error: undefined,
+          ...rest
+        };
+      }
+
+      // Return proper loading state
+      return {
+        data: data?.arbitrators?.[0] as ArbitratorWithTimestamp | null | undefined,
+        isLoading: loading,
+        isError: !!error,
+        error,
+        ...rest
+      };
+    },
+    [arbitratorAddress, data, loading, error, rest]
   );
 }

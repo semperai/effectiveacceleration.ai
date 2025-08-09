@@ -6,13 +6,14 @@ import { NotificationsButton } from './NotificationsButton';
 import { UserButton } from './UserButton';
 import { useAccount, useReadContract } from 'wagmi';
 import useUser from '@/hooks/subsquid/useUser';
-import { Button } from '@/components/Button';
 import { ConnectButton } from '@/components/ConnectButton';
 import useArbitrator from '@/hooks/subsquid/useArbitrator';
 import ERC20Abi from '@/abis/ERC20.json';
 import { formatUnits } from 'viem';
-import { Coins } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 import Image from 'next/image';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface NavbarProps {
   setSidebarOpen: (value: boolean) => void;
@@ -81,10 +82,86 @@ const EACCBalance = () => {
   );
 };
 
+// Loading skeleton component for the right side actions
+const NavbarLoadingSkeleton = () => (
+  <div className='flex items-center justify-end gap-x-3'>
+    {/* EACC Balance skeleton */}
+    <div className='h-8 w-20 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700' />
+    {/* Notification button skeleton */}
+    <div className='h-10 w-10 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700' />
+    {/* User button skeleton */}
+    <div className='h-10 w-10 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700' />
+  </div>
+);
+
+// Sign Up button component matching the design system
+const SignUpButton = () => {
+  const router = useRouter();
+  
+  return (
+    <button
+      onClick={() => router.push('/register')}
+      className='flex items-center gap-2 rounded-full bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600'
+      title='Sign up for an account'
+    >
+      <UserPlus className='h-4 w-4 text-white' />
+      <span className='text-white'>Sign Up</span>
+    </button>
+  );
+};
+
 const Navbar = ({ setSidebarOpen, noSidebar }: NavbarProps) => {
-  const { address } = useAccount();
-  const { data: user } = useUser(address!);
-  const { data: arbitrator } = useArbitrator(address!);
+  const { address, isConnected, isReconnecting, isConnecting } = useAccount();
+  const { data: user, isLoading: isLoadingUser } = useUser(address!);
+  const { data: arbitrator, isLoading: isLoadingArbitrator } = useArbitrator(address!);
+  
+  // Track if this is the initial mount to show skeleton while wagmi initializes
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  // Show skeleton on initial mount or while wagmi is determining connection status
+  const isInitializing = !hasMounted || isReconnecting || isConnecting;
+  
+  // We're loading user data if connected and either hook is still loading
+  const isLoadingUserData = isConnected && (isLoadingUser || isLoadingArbitrator);
+  
+  // User is registered if they have either a user or arbitrator profile
+  const isRegistered = !!(user || arbitrator);
+
+  // Determine what to show in the right section
+  const renderRightSection = () => {
+    // Always show skeleton during initial mount or reconnection
+    if (isInitializing) {
+      return <NavbarLoadingSkeleton />;
+    }
+    
+    // Show loading skeleton while checking user registration status
+    if (isLoadingUserData) {
+      return <NavbarLoadingSkeleton />;
+    }
+
+    // Show full UI if user is registered
+    if (isRegistered) {
+      return (
+        <div className='flex items-center justify-end gap-x-3'>
+          <EACCBalance />
+          <NotificationsButton />
+          <UserButton />
+        </div>
+      );
+    }
+
+    // Show connect/signup for unregistered or disconnected users
+    return (
+      <div className='flex items-center justify-end gap-x-3'>
+        <ConnectButton variant='navbar' />
+        <SignUpButton />
+      </div>
+    );
+  };
 
   return (
     <header className='sticky top-0 z-40 w-full'>
@@ -125,25 +202,8 @@ const Navbar = ({ setSidebarOpen, noSidebar }: NavbarProps) => {
               />
             </div>
 
-            {/* Right side actions */}
-            {user || arbitrator ? (
-              <div className='flex items-center justify-end gap-x-4'>
-                <EACCBalance />
-                <NotificationsButton />
-                <UserButton />
-              </div>
-            ) : (
-              <div className='flex items-center justify-end gap-x-4'>
-                <ConnectButton />
-                <Button
-                  className='rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700'
-                  onClick={() => console.log('Redirect to register page')}
-                  href={'/register'}
-                >
-                  Sign Up
-                </Button>
-              </div>
-            )}
+            {/* Right side actions with proper loading state */}
+            {renderRightSection()}
           </div>
         </div>
       </div>

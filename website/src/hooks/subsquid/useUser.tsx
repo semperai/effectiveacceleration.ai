@@ -20,13 +20,33 @@ export interface ExtendedUser extends ContractUser {
 }
 
 export default function useUser(userAddress: string) {
-  const { data, ...rest } = useQuery(GET_USER_BY_ADDRESS, {
+  const { data, loading, error, ...rest } = useQuery(GET_USER_BY_ADDRESS, {
     variables: { userAddress: userAddress ?? '' },
     skip: !userAddress,
   });
 
   return useMemo(
-    () => ({ data: data ? (data?.users[0] as ExtendedUser) : undefined, ...rest }),
-    [userAddress, data, rest]
+    () => {
+      // If no address provided, return null data with not loading
+      if (!userAddress) {
+        return {
+          data: null,
+          isLoading: false,
+          isError: false,
+          error: undefined,
+          ...rest
+        };
+      }
+
+      // Return proper loading state
+      return {
+        data: data?.users?.[0] as ExtendedUser | null | undefined,
+        isLoading: loading,
+        isError: !!error,
+        error,
+        ...rest
+      };
+    },
+    [userAddress, data, loading, error, rest]
   );
 }
