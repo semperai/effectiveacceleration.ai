@@ -162,7 +162,7 @@ const Navbar = ({ setSidebarOpen, sidebarOpen, hiddenSidebar }: NavbarProps) => 
         <div className='flex items-center justify-end gap-x-3'>
           <EACCBalance />
           <NotificationsButton />
-          <UserButton />
+          <UserButton user={user} arbitrator={arbitrator} />
         </div>
       );
     }

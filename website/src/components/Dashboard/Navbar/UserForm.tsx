@@ -28,8 +28,8 @@ export const UserForm = ({ isArbitrator, user, arbitrator, address }: UserFormPr
   
   const [name, setName] = useState<string>('');
   const [bio, setBio] = useState<string>('');
+  const [avatar, setAvatar] = useState<string | undefined>(''); // Fix: Allow undefined
   const [avatarFileUrl, setAvatarFileUrl] = useState<string | undefined>('');
-  const [newAvatar, setNewAvatar] = useState<string | undefined>('');
   const [fee, setFee] = useState<number>(0);
   const [errors, setErrors] = useState({ name: '', bio: '', fee: '' });
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -41,8 +41,8 @@ export const UserForm = ({ isArbitrator, user, arbitrator, address }: UserFormPr
     if (currentEntity) {
       setName(currentEntity.name || '');
       setBio(currentEntity.bio || '');
-      setAvatarFileUrl(currentEntity.avatar);
-      setNewAvatar(currentEntity.avatar);
+      setAvatar(currentEntity.avatar || ''); // Set both avatar states
+      setAvatarFileUrl(currentEntity.avatar || '');
     }
     if (arbitrator) {
       setFee(arbitrator.fee || 0);
@@ -149,8 +149,8 @@ export const UserForm = ({ isArbitrator, user, arbitrator, address }: UserFormPr
       <Field>
         <Label>Avatar</Label>
         <UploadAvatar
-          avatar={newAvatar}
-          setAvatar={setNewAvatar}
+          avatar={avatar}
+          setAvatar={setAvatar}
           setAvatarFileUrl={setAvatarFileUrl}
         />
       </Field>
