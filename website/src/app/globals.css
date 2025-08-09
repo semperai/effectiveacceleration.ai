@@ -116,3 +116,11 @@ html, body, #__next {
 .dark .notifications-scroll {
   scrollbar-color: rgb(71 85 105) transparent;
 }
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
