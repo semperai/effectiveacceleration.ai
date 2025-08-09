@@ -28,8 +28,8 @@ export const UserForm = ({ isArbitrator, user, arbitrator, address }: UserFormPr
   
   const [name, setName] = useState<string>('');
   const [bio, setBio] = useState<string>('');
-  const [avatar, setAvatar] = useState<string>(''); // Add this state for the preview
-  const [avatarFileUrl, setAvatarFileUrl] = useState<string>('');
+  const [avatar, setAvatar] = useState<string | undefined>(''); // Fix: Allow undefined
+  const [avatarFileUrl, setAvatarFileUrl] = useState<string | undefined>('');
   const [fee, setFee] = useState<number>(0);
   const [errors, setErrors] = useState({ name: '', bio: '', fee: '' });
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
