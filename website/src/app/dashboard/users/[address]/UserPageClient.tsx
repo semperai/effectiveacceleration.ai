@@ -10,6 +10,7 @@ import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
 import { Button } from '@/components/Button';
 import { LinkIcon } from '@heroicons/react/20/solid';
 import EventProfileImage from '@/components/Events/Components/EventProfileImage';
+import { useMemo } from 'react';
 
 interface UserPageClientProps {
   address: string;
@@ -61,6 +62,19 @@ export default function UserPageClient({ address }: UserPageClientProps) {
     totalReviews === 0
       ? 0
       : Math.round(((user?.reputationUp ?? 0) / totalReviews) * 100);
+
+  // Calculate actual average rating from reviews
+  const actualAverageRating = useMemo(() => {
+    if (reviews && reviews.length > 0) {
+      const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+      return totalRating / reviews.length;
+    }
+    // Fallback to calculated average if reviews not loaded
+    if (user?.numberOfReviews && user.numberOfReviews > 0) {
+      return user.averageRating / user.numberOfReviews;
+    }
+    return 0;
+  }, [reviews, user]);
 
   // Loading state
   if (userLoading || reviewsLoading) {
@@ -130,7 +144,7 @@ export default function UserPageClient({ address }: UserPageClientProps) {
               </span>
               {user?.numberOfReviews !== undefined && (
                 <span className='text-sm text-gray-500 dark:text-gray-400'>
-                  {user.numberOfReviews} total reviews • {user.averageRating?.toFixed(1) || '0'} avg rating
+                  {user.numberOfReviews} total reviews • {actualAverageRating?.toFixed(1) || '0'} avg rating
                 </span>
               )}
             </div>
@@ -193,7 +207,7 @@ export default function UserPageClient({ address }: UserPageClientProps) {
                     </div>
                     <div className='bg-gray-50 dark:bg-gray-800 p-4 rounded-lg'>
                       <div className='text-2xl font-bold text-primary'>
-                        {user?.averageRating?.toFixed(1) || '0'}
+                        {actualAverageRating?.toFixed(1) || '0'}
                       </div>
                       <div className='text-sm text-gray-600 dark:text-gray-400'>
                         Average Rating

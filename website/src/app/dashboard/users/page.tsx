@@ -3,7 +3,7 @@ import { unstable_cache } from 'next/cache';
 import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
 import UsersListClient from './UsersListClient';
 
-// GraphQL query to fetch all users
+// GraphQL query to fetch all users with their review ratings
 const GET_USERS_QUERY = gql`
   query GetUsers {
     users(orderBy: numberOfReviews_DESC) {
@@ -18,11 +18,18 @@ const GET_USERS_QUERY = gql`
       reputationUp
       reputationDown
       timestamp
+      reviews {
+        rating
+      }
     }
   }
 `;
 
-// Define the User type
+// Define the User type with reviews
+interface Review {
+  rating: number;
+}
+
 interface User {
   id: string;
   address_: string;
@@ -35,6 +42,7 @@ interface User {
   reputationUp: number;
   reputationDown: number;
   timestamp: number;
+  reviews?: Review[];
 }
 
 // Cache the users list query
@@ -75,8 +83,19 @@ export async function generateMetadata(): Promise<Metadata> {
 
   const totalUsers = users.length;
   const totalReviews = users.reduce((sum, user) => sum + (user.numberOfReviews || 0), 0);
-  const avgRating = users.length > 0
-    ? (users.reduce((sum, user) => sum + (user.averageRating || 0), 0) / users.filter(u => u.averageRating > 0).length).toFixed(1)
+  
+  // Calculate actual average rating correctly
+  const usersWithReviews = users.filter(u => u.numberOfReviews > 0);
+  const avgRating = usersWithReviews.length > 0
+    ? (usersWithReviews.reduce((sum, user) => {
+        // Calculate from actual reviews if available
+        if (user.reviews && user.reviews.length > 0) {
+          const userAvg = user.reviews.reduce((s, r) => s + r.rating, 0) / user.reviews.length;
+          return sum + userAvg;
+        }
+        // Fallback - should not happen if data is consistent
+        return sum;
+      }, 0) / usersWithReviews.length).toFixed(1)
     : '0';
 
   const description = `Discover ${totalUsers} skilled professionals on Effective Acceleration. ${totalReviews} reviews with ${avgRating} average rating. Find trusted freelancers and service providers.`;

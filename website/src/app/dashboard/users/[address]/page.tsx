@@ -236,7 +236,16 @@ export async function generateMetadata(
   // Calculate statistics
   const successRate = calculateSuccessRate(user.reputationUp || 0, user.reputationDown || 0);
   const totalReviews = user.numberOfReviews || 0;
-  const avgRating = user.averageRating || 0;
+  
+  // Calculate actual average rating
+  let avgRating = 0;
+  if (reviews && reviews.length > 0) {
+    const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+    avgRating = totalRating / reviews.length;
+  } else if (totalReviews > 0) {
+    // Fallback: the averageRating field is a sum, divide by numberOfReviews
+    avgRating = user.averageRating / totalReviews;
+  }
 
   // Build dynamic title and description
   const title = user.name 

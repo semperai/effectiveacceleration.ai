@@ -20,6 +20,10 @@ import {
 import EventProfileImage from '@/components/Events/Components/EventProfileImage';
 import moment from 'moment';
 
+interface Review {
+  rating: number;
+}
+
 interface User {
   id: string;
   address_: string;
@@ -32,6 +36,7 @@ interface User {
   reputationUp: number;
   reputationDown: number;
   timestamp: number;
+  reviews?: Review[];
 }
 
 interface UsersListClientProps {
@@ -54,6 +59,17 @@ export default function UsersListClient({ initialUsers }: UsersListClientProps) 
         ? Math.round((user.reputationUp / totalReputation) * 100)
         : 0;
 
+      // Calculate the actual average rating
+      let actualAverageRating = 0;
+      if (user.reviews && user.reviews.length > 0) {
+        // Calculate from actual review ratings
+        const totalRating = user.reviews.reduce((sum, review) => sum + review.rating, 0);
+        actualAverageRating = totalRating / user.reviews.length;
+      } else if (user.numberOfReviews > 0) {
+        // Fallback: averageRating field is a SUM, not an average
+        actualAverageRating = user.averageRating / user.numberOfReviews;
+      }
+
       // Determine user level based on reviews and rating
       let userLevel: string;
       if (user.numberOfReviews === 0) userLevel = 'New';
@@ -71,6 +87,7 @@ export default function UsersListClient({ initialUsers }: UsersListClientProps) 
 
       return {
         ...user,
+        calculatedAverageRating: actualAverageRating, // Add new field for calculated average
         successRate,
         userLevel,
         badgeColor,
@@ -95,7 +112,7 @@ export default function UsersListClient({ initialUsers }: UsersListClientProps) 
     // Apply category filter
     switch (filterBy) {
       case 'highRated':
-        filtered = filtered.filter(user => user.averageRating >= 4 && user.numberOfReviews > 0);
+        filtered = filtered.filter(user => user.calculatedAverageRating >= 4 && user.numberOfReviews > 0);
         break;
       case 'experienced':
         filtered = filtered.filter(user => user.numberOfReviews >= 10);
@@ -115,7 +132,7 @@ export default function UsersListClient({ initialUsers }: UsersListClientProps) 
           // Users with no reviews go to the end
           if (a.numberOfReviews === 0) return 1;
           if (b.numberOfReviews === 0) return -1;
-          return b.averageRating - a.averageRating;
+          return b.calculatedAverageRating - a.calculatedAverageRating;
         });
         break;
       case 'reputation':
@@ -140,11 +157,19 @@ export default function UsersListClient({ initialUsers }: UsersListClientProps) 
   // Calculate summary statistics
   const stats = useMemo(() => {
     const total = filteredUsers.length;
-    const withReviews = filteredUsers.filter(user => user.numberOfReviews > 0).length;
-    const avgRating = withReviews > 0
-      ? (filteredUsers.reduce((sum, user) => sum + (user.averageRating || 0), 0) / withReviews).toFixed(1)
-      : '0';
-    const topRated = filteredUsers.filter(user => user.averageRating >= 4.5 && user.numberOfReviews >= 5).length;
+    const usersWithReviews = filteredUsers.filter(user => user.numberOfReviews > 0);
+    const withReviews = usersWithReviews.length;
+    
+    // Calculate average rating properly
+    let avgRating = '0';
+    if (withReviews > 0) {
+      const sumOfAverages = usersWithReviews.reduce((sum, user) => {
+        return sum + user.calculatedAverageRating;
+      }, 0);
+      avgRating = (sumOfAverages / withReviews).toFixed(1);
+    }
+    
+    const topRated = filteredUsers.filter(user => user.calculatedAverageRating >= 4.5 && user.numberOfReviews >= 5).length;
 
     return { total, withReviews, avgRating, topRated };
   }, [filteredUsers]);
@@ -344,9 +369,9 @@ export default function UsersListClient({ initialUsers }: UsersListClientProps) 
                     {/* Rating */}
                     {user.numberOfReviews > 0 && (
                       <div className='mt-3 flex items-center gap-2'>
-                        {getRatingStars(user.averageRating)}
+                        {getRatingStars(user.calculatedAverageRating)}
                         <span className='text-sm font-medium text-gray-900 dark:text-gray-100'>
-                          {user.averageRating.toFixed(1)}
+                          {user.calculatedAverageRating.toFixed(1)}
                         </span>
                         <span className='text-sm text-gray-500 dark:text-gray-400'>
                           ({user.numberOfReviews} reviews)
