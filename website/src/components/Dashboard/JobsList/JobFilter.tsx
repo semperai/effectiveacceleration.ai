@@ -9,7 +9,7 @@ import { Token } from '@/tokens';
 import { shortenText, unitsDeliveryTime } from '@/utils/utils';
 import { Field, Label } from '@headlessui/react';
 import { Radio, RadioGroup } from '@/components/Radio';
-import { ChevronDown, ChevronUp, Filter, Search } from 'lucide-react';
+import { ChevronDown, ChevronUp, Filter, Search, X } from 'lucide-react';
 import React, { useState } from 'react';
 import { Combobox } from '@/components/ComboBox';
 import ListBox from '@/components/ListBox';
@@ -34,8 +34,8 @@ type JobFilterProps = {
   arbitratorAddresses: string[];
   arbitratorNames: string[];
   arbitratorFees: (string | number)[];
-  multipleApplicants: boolean;
-  setMultipleApplicants: React.Dispatch<React.SetStateAction<boolean>>;
+  multipleApplicants: boolean | undefined;
+  setMultipleApplicants: React.Dispatch<React.SetStateAction<boolean | undefined>>;
   setCreatorAddress: React.Dispatch<React.SetStateAction<string | undefined>>;
   creatorAddress: string | undefined;
 };
@@ -66,6 +66,31 @@ export const JobFilter = ({
   creatorAddress,
 }: JobFilterProps) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
+
+  const handleClearMultipleApplicants = () => {
+    setMultipleApplicants(undefined);
+  };
+
+  const handleClearToken = () => {
+    setSelectedToken(undefined);
+    setMinTokens(undefined);
+  };
+
+  const handleClearArbitrator = () => {
+    setSelectedArbitratorAddress(undefined);
+  };
+
+  const handleClearDeliveryTime = () => {
+    setMinDeadline(undefined);
+  };
+
+  const handleClearTags = () => {
+    setTags([]);
+  };
+
+  const handleClearCreatorAddress = () => {
+    setCreatorAddress(undefined);
+  };
 
   return (
     <Card className='mb-4 w-full'>
@@ -105,9 +130,23 @@ export const JobFilter = ({
                 <div className='flex w-full sm:w-1/2 flex-col gap-y-3'>
                   {/* Token Settings Section */}
                   <div className=''>
-                    <h3 className='text-sm font-medium text-gray-700'>
-                      Token Settings
-                    </h3>
+                    <div className='flex items-center justify-between mb-2'>
+                      <h3 className='text-sm font-medium text-gray-700'>
+                        Token Settings
+                      </h3>
+                      <button
+                        onClick={handleClearToken}
+                        className={`text-gray-400 hover:text-gray-600 transition-all p-1 ${
+                          (selectedToken || minTokens)
+                            ? 'opacity-100 pointer-events-auto'
+                            : 'opacity-0 pointer-events-none'
+                        }`}
+                        title="Clear token settings"
+                        aria-hidden={!(selectedToken || minTokens)}
+                      >
+                        <X className='h-4 w-4' />
+                      </button>
+                    </div>
                     <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
                       <div className='flex-1'>
                         <TokenSelector
@@ -118,8 +157,8 @@ export const JobFilter = ({
                       <div className='w-full sm:w-40'>
                         <Input
                           type='number'
-                          value={minTokens}
-                          onChange={(e) => setMinTokens(Number(e.target.value))}
+                          value={minTokens || ''}
+                          onChange={(e) => setMinTokens(e.target.value ? Number(e.target.value) : undefined)}
                           placeholder='Min. tokens'
                           className='w-full'
                         />
@@ -129,89 +168,169 @@ export const JobFilter = ({
 
                   {/* Delivery Time Section */}
                   <div className='flex-row'>
-                    <h3 className='text-sm font-medium text-gray-700'>
-                      Delivery Time
-                    </h3>
+                    <div className='flex items-center justify-between mb-2'>
+                      <h3 className='text-sm font-medium text-gray-700'>
+                        Delivery Time
+                      </h3>
+                      <button
+                        onClick={handleClearDeliveryTime}
+                        className={`text-gray-400 hover:text-gray-600 transition-all p-1 ${
+                          minDeadline
+                            ? 'opacity-100 pointer-events-auto'
+                            : 'opacity-0 pointer-events-none'
+                        }`}
+                        title="Clear delivery time"
+                        aria-hidden={!minDeadline}
+                      >
+                        <X className='h-4 w-4' />
+                      </button>
+                    </div>
                     <div className='flex flex-row gap-4 sm:flex-row sm:items-center'>
                       <div className='flex-1 w-1/2'>
                         <Input
                           type='number'
                           placeholder={`Minimum delivery time in ${selectedUnitTime.name}`}
-                          value={minDeadline}
+                          value={minDeadline || ''}
                           min={1}
                           step={1}
                           onChange={(e) => {
-                            let deadline = Math.abs(parseInt(e.target.value));
-                            setMinDeadline(deadline);
+                            if (e.target.value) {
+                              let deadline = Math.abs(parseInt(e.target.value));
+                              setMinDeadline(deadline);
+                            } else {
+                              setMinDeadline(undefined);
+                            }
                           }}
                           className='w-full'
                         />
                       </div>
-                      <div className='m:w-40  w-1/2'>
-                      <ListBox
-                        placeholder='Select Time Units'
-                        value={selectedUnitTime}
-                        onChange={(unit) => {
-                          if (typeof unit !== 'string') {
-                            setSelectedUnitTime(unit);
-                          }
-                        }}
-                        options={unitsDeliveryTime.map(unit => ({ id: unit.id.toString(), name: unit.name }))}
-                      />
+                      <div className='sm:w-40 w-1/2'>
+                        <ListBox
+                          placeholder='Select Time Units'
+                          value={selectedUnitTime}
+                          onChange={(unit) => {
+                            if (typeof unit !== 'string') {
+                              setSelectedUnitTime(unit);
+                            }
+                          }}
+                          options={unitsDeliveryTime.map(unit => ({ id: unit.id.toString(), name: unit.name }))}
+                        />
                       </div>
                     </div>
                   </div>
+
+                  {/* Arbitrator Section */}
                   <div>
-                    <h3 className='mb-2 text-sm font-medium text-gray-700'>
-                      Search for Arbitrator
-                    </h3>
-                    <div className='flex flex-col gap-4 sm:flex-row sm:items-center'>
-                      <div className='flex-1'>
-                        <Combobox
-                          placeholder='Select Arbitrator'
-                          value={selectedArbitratorAddress || ''}
-                          options={arbitratorAddresses.map(
-                            (arbitratorAddress, index) => ({
-                              value: arbitratorAddress,
-                              label: `${arbitratorNames[index]} ${shortenText({ text: arbitratorAddress, maxLength: 11 })} ${+arbitratorFees[index] / 100}%`,
-                            })
-                          )}
-                          onChange={(addr) =>
-                            setSelectedArbitratorAddress(addr)
-                          }
-                        />
-                      </div>
-                      <div className='flex-1'>
-                        <Input
-                          placeholder='Enter Creator Address'
-                          value={creatorAddress}
-                          onChange={(e) => setCreatorAddress(e.target.value)}
-                          className='w-full'
-                        />
-                      </div>
+                    <div className='flex items-center justify-between mb-2'>
+                      <h3 className='text-sm font-medium text-gray-700'>
+                        Search for Arbitrator
+                      </h3>
+                      <button
+                        onClick={handleClearArbitrator}
+                        className={`text-gray-400 hover:text-gray-600 transition-all p-1 ${
+                          selectedArbitratorAddress
+                            ? 'opacity-100 pointer-events-auto'
+                            : 'opacity-0 pointer-events-none'
+                        }`}
+                        title="Clear arbitrator"
+                        aria-hidden={!selectedArbitratorAddress}
+                      >
+                        <X className='h-4 w-4' />
+                      </button>
                     </div>
+                    <Combobox
+                      placeholder='Select Arbitrator'
+                      value={selectedArbitratorAddress || ''}
+                      options={arbitratorAddresses.map(
+                        (arbitratorAddress, index) => ({
+                          value: arbitratorAddress,
+                          label: `${arbitratorNames[index]} ${shortenText({ text: arbitratorAddress, maxLength: 11 })} ${+arbitratorFees[index] / 100}%`,
+                        })
+                      )}
+                      onChange={(addr) =>
+                        setSelectedArbitratorAddress(addr)
+                      }
+                    />
                   </div>
                 </div>
                 <div className='flex w-full sm:w-1/2 flex-col gap-y-3'>
+                  {/* Tags Section */}
                   <div className='w-full'>
-                    <h3 className='text-sm font-medium text-gray-700'>Tags</h3>
+                    <div className='flex items-center justify-between mb-2'>
+                      <h3 className='text-sm font-medium text-gray-700'>Tags</h3>
+                      <button
+                        onClick={handleClearTags}
+                        className={`text-gray-400 hover:text-gray-600 transition-all p-1 ${
+                          tags.length > 0
+                            ? 'opacity-100 pointer-events-auto'
+                            : 'opacity-0 pointer-events-none'
+                        }`}
+                        title="Clear tags"
+                        aria-hidden={tags.length === 0}
+                      >
+                        <X className='h-4 w-4' />
+                      </button>
+                    </div>
                     <TagsInput tags={tags} setTags={setTags} />
                   </div>
-                  <div className='flex w-full flex-row items-center justify-between'>
-                    <h3 className='text-sm font-medium text-gray-700'>
-                      Multiple Applicants
-                    </h3>
+
+                  {/* Creator Address Section */}
+                  <div>
+                    <div className='flex items-center justify-between mb-2'>
+                      <h3 className='text-sm font-medium text-gray-700'>
+                        Creator Address
+                      </h3>
+                      <button
+                        onClick={handleClearCreatorAddress}
+                        className={`text-gray-400 hover:text-gray-600 transition-all p-1 ${
+                          creatorAddress
+                            ? 'opacity-100 pointer-events-auto'
+                            : 'opacity-0 pointer-events-none'
+                        }`}
+                        title="Clear creator address"
+                        aria-hidden={!creatorAddress}
+                      >
+                        <X className='h-4 w-4' />
+                      </button>
+                    </div>
+                    <Input
+                      placeholder='Enter Creator Address'
+                      value={creatorAddress || ''}
+                      onChange={(e) => setCreatorAddress(e.target.value || undefined)}
+                      className='w-full'
+                    />
+                  </div>
+
+                  {/* Multiple Applicants Section */}
+                  <div className='flex w-full flex-col'>
+                    <div className='flex items-center justify-between mb-2'>
+                      <h3 className='text-sm font-medium text-gray-700'>
+                        Multiple Applicants
+                      </h3>
+                      <button
+                        onClick={handleClearMultipleApplicants}
+                        className={`text-gray-400 hover:text-gray-600 transition-all p-1 ${
+                          typeof multipleApplicants !== 'undefined'
+                            ? 'opacity-100 pointer-events-auto'
+                            : 'opacity-0 pointer-events-none'
+                        }`}
+                        title="Clear selection"
+                        aria-hidden={typeof multipleApplicants === 'undefined'}
+                      >
+                        <X className='h-4 w-4' />
+                      </button>
+                    </div>
                     <RadioGroup
                       className='!mt-0 flex'
-                      value={multipleApplicants ? 'Yes' : 'No'}
+                      value={typeof multipleApplicants === 'undefined' ? '' : multipleApplicants ? 'Yes' : 'No'}
                       onChange={(value) =>
                         setMultipleApplicants(value === 'Yes')
                       }
-                      aria-label='Server size'
+                      aria-label='Multiple applicants selection'
                     >
                       {noYes.map((option) => (
                         <Field
-                          className='!mt-0 ml-5 flex items-center'
+                          className='!mt-0 mr-5 flex items-center'
                           key={option}
                         >
                           <Radio
