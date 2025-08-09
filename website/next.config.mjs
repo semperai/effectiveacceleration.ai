@@ -1,29 +1,15 @@
 import { withSentryConfig } from '@sentry/nextjs';
 import withSerwistInit from '@serwist/next';
-import nextMDX from '@next/mdx';
-
-import { recmaPlugins } from './mdx/recma.mjs';
-import { rehypePlugins } from './mdx/rehype.mjs';
-import { remarkPlugins } from './mdx/remark.mjs';
 
 const withSerwist = withSerwistInit({
   swSrc: 'src/sw.ts',
   swDest: 'public/sw.js',
 });
 
-const withMDX = nextMDX({
-  extension: /\.mdx?$/,
-  options: {
-    remarkPlugins,
-    rehypePlugins,
-    recmaPlugins,
-  },
-});
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'mdx'],
+  pageExtensions: ['js', 'jsx', 'ts', 'tsx'],
   webpack: (config) => {
     config.externals.push('pino-pretty', 'lokijs', 'encoding');
     return config;
@@ -49,7 +35,7 @@ const nextConfig = {
 };
 
 export default withSerwist(
-  withSentryConfig(withMDX(nextConfig), {
+  withSentryConfig(nextConfig, {
     // For all available options, see:
     // https://github.com/getsentry/sentry-webpack-plugin#options
 
