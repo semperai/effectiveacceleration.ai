@@ -1,4 +1,3 @@
-// app/dashboard/arbitrators/ArbitratorsListClient.tsx
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -17,6 +16,7 @@ import {
   StarIcon,
   ClockIcon
 } from '@heroicons/react/20/solid';
+import EventProfileImage from '@/components/Events/Components/EventProfileImage';
 import moment from 'moment';
 
 interface Arbitrator {
@@ -254,18 +254,11 @@ export default function ArbitratorsListClient({ initialArbitrators }: Arbitrator
                   <div className='p-6'>
                     <div className='flex items-start justify-between'>
                       <div className='flex items-center space-x-3'>
-                        {/* Avatar */}
-                        {arbitrator.avatar ? (
-                          <img
-                            className='h-12 w-12 rounded-full object-cover'
-                            src={arbitrator.avatar}
-                            alt={arbitrator.name || 'Arbitrator'}
-                          />
-                        ) : (
-                          <div className='h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center'>
-                            <UserIcon className='h-6 w-6 text-white' />
-                          </div>
-                        )}
+                        {/* Avatar - Using EventProfileImage component */}
+                        <EventProfileImage
+                          className='h-12 w-12'
+                          user={arbitrator}
+                        />
 
                         {/* Name and Address */}
                         <div>

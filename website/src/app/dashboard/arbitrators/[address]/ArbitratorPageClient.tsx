@@ -13,6 +13,7 @@ import {
   LinkIcon,
   UserIcon
 } from '@heroicons/react/20/solid';
+import EventProfileImage from '@/components/Events/Components/EventProfileImage';
 import useArbitrator, { ArbitratorWithTimestamp } from '@/hooks/subsquid/useArbitrator';
 import moment from 'moment';
 
@@ -149,19 +150,12 @@ export default function ArbitratorPageClient({ address }: ArbitratorPageClientPr
         <div className='bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 mb-8'>
           <div className='flex flex-col md:flex-row md:items-start md:justify-between'>
             <div className='flex items-start space-x-6'>
-              {/* Avatar */}
+              {/* Avatar - Using EventProfileImage component */}
               <div className='relative'>
-                {arbitrator.avatar ? (
-                  <img
-                    className='h-24 w-24 rounded-full object-cover ring-4 ring-white dark:ring-gray-800'
-                    src={arbitrator.avatar}
-                    alt={arbitrator.name || 'Arbitrator avatar'}
-                  />
-                ) : (
-                  <div className='h-24 w-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center ring-4 ring-white dark:ring-gray-800'>
-                    <UserIcon className='h-12 w-12 text-white' />
-                  </div>
-                )}
+                <EventProfileImage
+                  className='h-24 w-24 ring-4 ring-white dark:ring-gray-800'
+                  user={arbitrator}
+                />
                 <div className='absolute -bottom-2 -right-2 bg-green-500 rounded-full p-1'>
                   <ScaleIcon className='h-5 w-5 text-white' />
                 </div>
