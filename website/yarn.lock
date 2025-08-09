@@ -5975,6 +5975,50 @@ get-tsconfig@^4.10.0:
   dependencies:
     resolve-pkg-maps "^1.0.0"
 
+git-cliff-darwin-arm64@2.7.0:
+  version "2.7.0"
+  resolved "https://registry.yarnpkg.com/git-cliff-darwin-arm64/-/git-cliff-darwin-arm64-2.7.0.tgz#d0b88ee5d01dbace55f07cd4e18dbfaf8ddb9595"
+  integrity sha512-8D6Zxk9onts9r16yzuJEUq4ixGMJYvUI47GujUbs3ifsXB7x8SCOX7QCwmylRkZKnRC95fZ3jwi+gy95SwVaPQ==
+
+git-cliff-darwin-x64@2.7.0:
+  version "2.7.0"
+  resolved "https://registry.yarnpkg.com/git-cliff-darwin-x64/-/git-cliff-darwin-x64-2.7.0.tgz#b3372d36dd0c7612d4d8473bafd095512caf071e"
+  integrity sha512-CkADqy5hif6P6rrTIWkkSkrsQzbcTv1kr5dAIpRq9SkjWVpRHQftouhNyB2qfNe0SH73R9N9oCIocIA1bSnVeQ==
+
+git-cliff-linux-arm64@2.7.0:
+  version "2.7.0"
+  resolved "https://registry.yarnpkg.com/git-cliff-linux-arm64/-/git-cliff-linux-arm64-2.7.0.tgz#a4d595b97588a0af7a6fca0b9444e4197abaf144"
+  integrity sha512-kuJz+hL+nDqmK2E3/uahufdAHKjn76F0rv/oZpaQgUSmdE8vy9x1J28YSoXTlXIr0BfuzZjxCKrrfr8b7wU/Xw==
+
+git-cliff-linux-x64@2.7.0:
+  version "2.7.0"
+  resolved "https://registry.yarnpkg.com/git-cliff-linux-x64/-/git-cliff-linux-x64-2.7.0.tgz#ff7cb5915b36c5baaa15d0dc42e82d3f4b5fc749"
+  integrity sha512-0qHHPEsAo9HQZpifM9wdnjot90yB7C+LIHSFfGhkTsmzr/Daxnekt0um6mb3yEA7YuFnE9+c8mvLDoXlgJ5eaA==
+
+git-cliff-windows-arm64@2.7.0:
+  version "2.7.0"
+  resolved "https://registry.yarnpkg.com/git-cliff-windows-arm64/-/git-cliff-windows-arm64-2.7.0.tgz#3430010b68a1b80378c345b93254ffea95d6ef53"
+  integrity sha512-uq5qGuWkO6YCEGg9nDk3butX0F80hfICsBh6LWicL9bfpyfEzdSbuv4AS1hJ2jTIjqRMOP2NRSii4pM9bqjfsw==
+
+git-cliff-windows-x64@2.7.0:
+  version "2.7.0"
+  resolved "https://registry.yarnpkg.com/git-cliff-windows-x64/-/git-cliff-windows-x64-2.7.0.tgz#46cac9844c61d8321d953f0a621c198a3ac3621d"
+  integrity sha512-WOoKrlYvRMaWcEdQZD1I+Pg+W6yjztxzUkid7qqyum6J2e21kfw8asL5gDnTX9rZAKu+MV29/zG7RdFqKD2qsA==
+
+git-cliff@^2.7.0:
+  version "2.7.0"
+  resolved "https://registry.yarnpkg.com/git-cliff/-/git-cliff-2.7.0.tgz#59b4c601b404021607cc222174a15ed6a723f993"
+  integrity sha512-gO4rb3VCAvzv+vWPPspxSCAeDAQbvknYioO43Wb+Dn0MWFC3zc89uwkxx36yAmCa7qui9TL2E3vSz6j9GbbzqA==
+  dependencies:
+    execa "^8.0.1"
+  optionalDependencies:
+    git-cliff-darwin-arm64 "2.7.0"
+    git-cliff-darwin-x64 "2.7.0"
+    git-cliff-linux-arm64 "2.7.0"
+    git-cliff-linux-x64 "2.7.0"
+    git-cliff-windows-arm64 "2.7.0"
+    git-cliff-windows-x64 "2.7.0"
+
 github-slugger@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/github-slugger/-/github-slugger-2.0.0.tgz#52cf2f9279a21eb6c59dd385b410f0c0adda8f1a"
