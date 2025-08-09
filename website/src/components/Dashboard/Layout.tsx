@@ -55,8 +55,8 @@ export function Layout({
 
   return (
     <div className='h-full'>
-      <Sidebar 
-        sidebarOpen={sidebarOpen} 
+      <Sidebar
+        sidebarOpen={sidebarOpen}
         setSidebarOpen={handleSetSidebarOpen}
         hiddenSidebar={hiddenSidebar}
       />
@@ -65,8 +65,9 @@ export function Layout({
         // Add left padding when sidebar is open on desktop
         shouldAddPadding ? 'lg:pl-72' : ''
       )}>
-        <Navbar 
-          setSidebarOpen={handleSetSidebarOpen} 
+        <Navbar
+          setSidebarOpen={handleSetSidebarOpen}
+          sidebarOpen={sidebarOpen}
           hiddenSidebar={hiddenSidebar}
         />
         <main

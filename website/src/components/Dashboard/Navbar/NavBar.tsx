@@ -18,6 +18,7 @@ import clsx from 'clsx';
 
 interface NavbarProps {
   setSidebarOpen: (value: boolean) => void;
+  sidebarOpen?: boolean;
   hiddenSidebar?: boolean;
 }
 
@@ -111,7 +112,7 @@ const SignUpButton = () => {
   );
 };
 
-const Navbar = ({ setSidebarOpen, hiddenSidebar }: NavbarProps) => {
+const Navbar = ({ setSidebarOpen, sidebarOpen, hiddenSidebar }: NavbarProps) => {
   const { address, isConnected, isReconnecting, isConnecting } = useAccount();
   const { data: user, isLoading: isLoadingUser } = useUser(address!);
   const { data: arbitrator, isLoading: isLoadingArbitrator } = useArbitrator(address!);
@@ -122,6 +123,17 @@ const Navbar = ({ setSidebarOpen, hiddenSidebar }: NavbarProps) => {
   useEffect(() => {
     setHasMounted(true);
   }, []);
+
+  // Handle sidebar toggle
+  const handleSidebarToggle = () => {
+    if (hiddenSidebar) {
+      // In hiddenSidebar mode, toggle the state
+      setSidebarOpen(!sidebarOpen);
+    } else {
+      // In normal mode, just open
+      setSidebarOpen(true);
+    }
+  };
 
   // Show skeleton on initial mount or while wagmi is determining connection status
   const isInitializing = !hasMounted || isReconnecting || isConnecting;
@@ -175,14 +187,14 @@ const Navbar = ({ setSidebarOpen, hiddenSidebar }: NavbarProps) => {
           {/* Mobile menu button - now handles hiddenSidebar */}
           <button
             type='button'
-            onClick={() => setSidebarOpen(true)}
+            onClick={handleSidebarToggle}
             className={clsx(
               'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100',
               // Show on mobile always, and on desktop when hiddenSidebar is true
               hiddenSidebar ? 'lg:block' : 'lg:hidden'
             )}
           >
-            <span className='sr-only'>Open sidebar</span>
+            <span className='sr-only'>Toggle sidebar</span>
             <Bars3Icon className='h-6 w-6' />
           </button>
 
