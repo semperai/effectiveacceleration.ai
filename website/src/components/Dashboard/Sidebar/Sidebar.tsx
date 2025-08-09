@@ -118,8 +118,8 @@ const SharedMenu = ({ pathname }: { pathname: string }) => {
                 {/* Hover effect overlay */}
                 <div className={`
                   absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100
-                  transition-opacity duration-300
-                  bg-gradient-to-r from-transparent via-white/[0.02] to-transparent
+                  transition-opacity duration-600
+                  bg-gradient-to-r from-transparent via-white/[0.02] to-transparent overflow-hidden
                   ${isHovered ? 'animate-shimmer' : ''}
                 `} />
               </Link>
@@ -232,17 +232,6 @@ const Sidebar = ({
 
   return (
     <>
-      {/* Add shimmer animation styles */}
-      <style jsx>{`
-        @keyframes shimmer {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-        .animate-shimmer {
-          animation: shimmer 2s infinite;
-        }
-      `}</style>
-
       {/* Mobile sidebar - slide from left */}
       {!isDesktop && sidebarOpen && (
         <div className='fixed inset-0 z-50 lg:hidden'>
