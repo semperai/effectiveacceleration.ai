@@ -94,24 +94,52 @@ const OpenJobMobileMenu: React.FC<JobSidebarProps> = ({
 
           {/* Center - Status/Title */}
           <div className='flex-1 flex justify-center items-center px-2'>
-            {selectedWorker && users[selectedWorker] ? (
+            {/* Show user pill when job is taken/closed or when there's a selected worker */}
+            {(selectedWorker && users[selectedWorker] && job.state === JobState.Open) ||
+             (job.state !== JobState.Open && (isCreator || isWorker)) ? (
               // Beautiful clickable pill for selected user
-              <Link href={`/dashboard/users/${selectedWorker}`}>
-                <div className='relative group cursor-pointer'>
-                  {/* Enhanced gradient border effect */}
-                  <div className='absolute -inset-[2px] bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 rounded-full opacity-70 group-hover:opacity-90 group-hover:bg-gradient-to-r group-hover:from-pink-400 group-hover:via-purple-400 group-hover:to-blue-400 transition-all duration-500'></div>
-                  <div className='relative flex items-center gap-1.5 bg-white dark:bg-gray-900 px-2.5 py-1 rounded-full'>
-                    {/* User avatar - text sized */}
-                    <EventProfileImage
-                      user={users[selectedWorker]}
-                      className='h-3.5 w-3.5'
-                    />
-                    <span className='text-sm font-medium text-gray-800 dark:text-gray-200'>
-                      {users[selectedWorker].name}
-                    </span>
-                  </div>
-                </div>
-              </Link>
+              (() => {
+                // Determine which user to show
+                let userToShow;
+                let userAddress;
+
+                if (isWorker) {
+                  // Worker sees creator
+                  userToShow = users[job.roles.creator];
+                  userAddress = job.roles.creator;
+                } else if (isCreator && job.state !== JobState.Open) {
+                  // Creator sees worker (on taken/closed jobs)
+                  userToShow = users[job.roles.worker];
+                  userAddress = job.roles.worker;
+                } else if (isCreator && selectedWorker) {
+                  // Creator sees selected applicant (on open jobs)
+                  userToShow = users[selectedWorker];
+                  userAddress = selectedWorker;
+                } else {
+                  return null;
+                }
+
+                if (!userToShow) return null;
+
+                return (
+                  <Link href={`/dashboard/users/${userAddress}`}>
+                    <div className='relative group cursor-pointer'>
+                      {/* Enhanced gradient border effect */}
+                      <div className='absolute -inset-[2px] bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 rounded-full opacity-70 group-hover:opacity-90 group-hover:bg-gradient-to-r group-hover:from-pink-400 group-hover:via-purple-400 group-hover:to-blue-400 transition-all duration-500'></div>
+                      <div className='relative flex items-center gap-1.5 bg-white dark:bg-gray-900 px-2.5 py-1 rounded-full'>
+                        {/* User avatar - text sized */}
+                        <EventProfileImage
+                          user={userToShow}
+                          className='h-3.5 w-3.5'
+                        />
+                        <span className='text-sm font-medium text-gray-800 dark:text-gray-200'>
+                          {userToShow.name}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })()
             ) : (
               // Simple text for other states
               <span className='text-sm font-medium text-gray-600 dark:text-gray-400'>
