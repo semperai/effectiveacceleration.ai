@@ -242,6 +242,41 @@ export const GET_USER_NOTIFICATIONS = gql`
   }
 `;
 
+// Updated notification query to potentially include event data
+export const GET_USER_NOTIFICATIONS_WITH_EVENTS = gql`
+  query GetUserNotificationsWithEvents(
+    $userAddress: String!
+    $minTimestamp: Int!
+    $offset: Int!
+    $limit: Int!
+  ) {
+    notifications(
+      orderBy: timestamp_DESC
+      where: { address_eq: $userAddress, timestamp_gt: $minTimestamp }
+      offset: $offset
+      limit: $limit
+    ) {
+      id
+      type
+      address
+      timestamp
+      jobId
+    }
+  }
+`;
+
+// Add a query to fetch job events for notification job IDs
+export const GET_JOB_EVENTS_FOR_NOTIFICATIONS = gql`
+  query GetJobEventsForNotifications($jobIds: [BigInt!]) {
+    jobEvents(
+      orderBy: timestamp__DESC
+      where: { jobId_in: $jobIds }
+    ) {
+      ${JobEventFields}
+    }
+  }
+`;
+
 export const GET_USER_JOB_NOTIFICATIONS = gql`
   query GetUserNotifications(
     $userAddress: String!

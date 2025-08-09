@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { PiBellSimple } from 'react-icons/pi';
 import { useAccount } from 'wagmi';
 import useUserNotifications from '@/hooks/subsquid/useUserNotifications';
-import { Notification } from '@/service/Interfaces';
+import { NotificationWithJob } from '@/hooks/subsquid/useUserNotifications';
 import { NotificationsDropdown } from './NotificationsDropdown';
 
 export const NotificationsButton = () => {
@@ -12,7 +12,6 @@ export const NotificationsButton = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { address } = useAccount();
   
-  // Using your existing hook with pagination support
   const [limit, setLimit] = useState(20);
   const { data: notifications, refetch } = useUserNotifications(
     address ?? '',
@@ -23,7 +22,7 @@ export const NotificationsButton = () => {
 
   const unreadCount = notifications?.filter((n) => !n.read).length ?? 0;
 
-  const readNotification = useCallback((notification: Notification) => {
+  const readNotification = useCallback((notification: NotificationWithJob) => {
     const readNotifications = new Set<string>(
       JSON.parse(localStorage.getItem('ReadNotifications') ?? '[]')
     );

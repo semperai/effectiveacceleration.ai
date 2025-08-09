@@ -1,13 +1,13 @@
 // src/components/Dashboard/Navbar/NotificationsDropdown.tsx
 import { forwardRef, useState, useEffect, useRef } from 'react';
-import { Notification } from '@/service/Interfaces';
+import { NotificationWithJob } from '@/hooks/subsquid/useUserNotifications';
 import { NotificationItem } from './NotificationItem';
-import { PiCheck, PiEye, PiEyeSlash, PiX } from 'react-icons/pi';
+import { CheckCheck, Eye, EyeOff, X, BellOff } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
 interface NotificationsDropdownProps {
-  notifications: Notification[];
-  onReadNotification: (notification: Notification) => void;
+  notifications: NotificationWithJob[];
+  onReadNotification: (notification: NotificationWithJob) => void;
   onReadAll: () => void;
   onClose: () => void;
   onLoadMore: () => void;
@@ -125,7 +125,7 @@ export const NotificationsDropdown = forwardRef<
     return () => observer.disconnect();
   }, [hasMore, onLoadMore]);
 
-  const handleNotificationClick = (notification: Notification) => {
+  const handleNotificationClick = (notification: NotificationWithJob) => {
     onReadNotification(notification);
     onClose();
   };
@@ -140,7 +140,7 @@ export const NotificationsDropdown = forwardRef<
           </h3>
           {unreadCount > 0 && (
             <span className='rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-600 dark:bg-rose-900/30 dark:text-rose-400'>
-              {unreadCount} new
+              {unreadCount} unread
             </span>
           )}
         </div>
@@ -151,9 +151,9 @@ export const NotificationsDropdown = forwardRef<
             title={showAll ? 'Show unread only' : 'Show all notifications'}
           >
             {showAll ? (
-              <PiEyeSlash className='h-4 w-4' />
+              <EyeOff className='h-4 w-4' />
             ) : (
-              <PiEye className='h-4 w-4' />
+              <Eye className='h-4 w-4' />
             )}
           </button>
           {unreadCount > 0 && (
@@ -162,7 +162,7 @@ export const NotificationsDropdown = forwardRef<
               className='rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
               title='Mark all as read'
             >
-              <PiCheck className='h-4 w-4' />
+              <CheckCheck className='h-4 w-4' />
             </button>
           )}
           {isMobile && (
@@ -171,7 +171,7 @@ export const NotificationsDropdown = forwardRef<
               className='rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200 sm:hidden'
               title='Close notifications'
             >
-              <PiX className='h-5 w-5' />
+              <X className='h-5 w-5' />
             </button>
           )}
         </div>
@@ -190,19 +190,7 @@ export const NotificationsDropdown = forwardRef<
         <div ref={innerContentRef}>
           {displayedNotifications.length === 0 ? (
             <div className='flex flex-col items-center justify-center py-12 text-gray-500'>
-              <svg
-                className='mb-3 h-12 w-12 text-gray-300 dark:text-gray-600'
-                fill='none'
-                viewBox='0 0 24 24'
-                stroke='currentColor'
-              >
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth={1.5}
-                  d='M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9'
-                />
-              </svg>
+              <BellOff className='mb-3 h-12 w-12 text-gray-300 dark:text-gray-600' />
               <p className='text-sm font-medium'>No notifications</p>
               <p className='text-xs text-gray-400 dark:text-gray-500'>
                 {showAll ? 'You have no notifications' : 'All caught up!'}
