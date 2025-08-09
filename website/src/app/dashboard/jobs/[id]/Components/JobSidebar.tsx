@@ -1,4 +1,3 @@
-
 'use client';
 
 import { TooltipButton } from '@/components/TooltipButton';
@@ -14,14 +13,26 @@ import {
   CurrencyDollarIcon,
   LinkIcon,
   UserIcon,
-} from '@heroicons/react/20/solid';
+  ClockIcon,
+  TagIcon,
+} from '@heroicons/react/24/outline';
+import { 
+  PiCoin,
+  PiTimer,
+  PiMapPin,
+  PiUsers,
+  PiTag,
+  PiInfo,
+  PiSparkle,
+  PiClock,
+  PiPackage
+} from 'react-icons/pi';
 import LinearProgress from '@mui/material/LinearProgress';
 import moment from 'moment';
 import Link from 'next/link';
 import { zeroAddress, zeroHash } from 'viem';
 import JobButtonActions from './JobButtonActions';
 import JobStatusWrapper from './JobStatusWrapper';
-
 
 type JobSidebarProps = {
   job: Job;
@@ -37,91 +48,173 @@ type JobSidebarProps = {
   tokenIcon: (token: string) => string;
 };
 
-
-
 export default function JobSidebar({
-    job,
-    address,
-    events,
-    addresses,
-    sessionKeys,
-    users,
-    jobMeceTag,
-    timePassed,
-    adjustedProgressValue,
-    whitelistedWorkers,
-    tokenIcon,
-  }: JobSidebarProps) {
-    const InfoSection = ({
-      title,
-      children,
-      className = '',
-    }: {
-      title?: string;
-      children: React.ReactNode;
-      className?: string;
-    }) => (
-      <div className={`border-b border-gray-100 p-6 ${className}`}>
-        {title && (
-          <h3 className='mb-4 text-lg font-semibold text-gray-900'>{title}</h3>
-        )}
-        {children}
-      </div>
-    );
-  
-    const DetailRow = ({
-      label,
-      value,
-      icon: Icon,
-    }: {
-      label: string;
-      value: React.ReactNode;
-      icon?: React.ElementType;
-    }) => (
-      <div className='flex items-center justify-between py-2'>
-        <span className='text-gray-600'>{label}</span>
-        <div className='flex items-center gap-2 text-gray-900'>
-          {Icon && <Icon className='h-5 w-5 text-gray-400' />}
-          {value}
+  job,
+  address,
+  events,
+  addresses,
+  sessionKeys,
+  users,
+  jobMeceTag,
+  timePassed,
+  adjustedProgressValue,
+  whitelistedWorkers,
+  tokenIcon,
+}: JobSidebarProps) {
+  // Enhanced section component with gradient backgrounds
+  const InfoSection = ({
+    title,
+    icon: Icon,
+    children,
+    className = '',
+    variant = 'default',
+  }: {
+    title?: string;
+    icon?: any;
+    children: React.ReactNode;
+    className?: string;
+    variant?: 'default' | 'highlight' | 'warning' | 'success';
+  }) => {
+    const variantStyles = {
+      default: 'bg-white dark:bg-gray-900/50',
+      highlight: 'bg-gradient-to-br from-blue-50/50 to-purple-50/50 dark:from-blue-950/20 dark:to-purple-950/20',
+      warning: 'bg-gradient-to-br from-amber-50/50 to-orange-50/50 dark:from-amber-950/20 dark:to-orange-950/20',
+      success: 'bg-gradient-to-br from-emerald-50/50 to-green-50/50 dark:from-emerald-950/20 dark:to-green-950/20',
+    };
+
+    return (
+      <div className={`
+        relative overflow-hidden
+        ${variantStyles[variant]}
+        border-b border-gray-100 dark:border-gray-800
+        p-6 
+        transition-all duration-200
+        hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20
+        ${className}
+      `}>
+        {/* Decorative gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300" />
+        
+        <div className="relative">
+          {title && (
+            <div className='flex items-center gap-2 mb-4'>
+              {Icon && (
+                <div className='p-2 rounded-lg bg-gradient-to-br from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20'>
+                  <Icon className='w-4 h-4 text-blue-600 dark:text-blue-400' />
+                </div>
+              )}
+              <h3 className='text-base font-semibold text-gray-900 dark:text-white'>
+                {title}
+              </h3>
+            </div>
+          )}
+          {children}
         </div>
       </div>
     );
-  
-    const Tag = ({ children }: { children: React.ReactNode }) => (
-      <span className='m-1 inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700'>
-        {children}
+  };
+
+  // Enhanced detail row with better styling
+  const DetailRow = ({
+    label,
+    value,
+    icon: Icon,
+    highlighted = false,
+  }: {
+    label: string;
+    value: React.ReactNode;
+    icon?: React.ElementType;
+    highlighted?: boolean;
+  }) => (
+    <div className={`
+      flex items-center justify-between py-3 px-3 -mx-3 rounded-lg
+      transition-all duration-200
+      ${highlighted ? 'bg-blue-50/50 dark:bg-blue-950/20' : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'}
+    `}>
+      <span className='text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2'>
+        {Icon && <Icon className='h-4 w-4 text-gray-400 dark:text-gray-500' />}
+        {label}
       </span>
-    );
-  
-    let timeLeft = 0;
-    // TODO there must be nicer way to do this..
-    if (job && job.jobTimes) {
-      timeLeft += job.jobTimes.assignedAt;
-    }
-    timeLeft -= ((+new Date() / 1000) | 0) + job.maxTime;
-  
-    return (
-      <div className='h-full  md:max-h-customHeader divide-y divide-gray-100 overflow-y-auto rounded-lg bg-white shadow-sm'>
+      <div className='flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-gray-100'>
+        {value}
+      </div>
+    </div>
+  );
+
+  // Enhanced tag component
+  const Tag = ({ children, variant = 'default' }: { 
+    children: React.ReactNode;
+    variant?: 'default' | 'category';
+  }) => (
+    <span className={`
+      inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium
+      transition-all duration-200 hover:scale-105
+      ${variant === 'category' 
+        ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/25' 
+        : 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600'
+      }
+    `}>
+      {children}
+    </span>
+  );
+
+  // Progress bar component
+  const ProgressBar = ({ value, label }: { value: number; label?: string }) => (
+    <div className="space-y-2">
+      {label && (
+        <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400">
+          <span>{label}</span>
+          <span>{value}%</span>
+        </div>
+      )}
+      <div className="relative h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+        <div 
+          className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500"
+          style={{ width: `${value}%` }}
+        >
+          <div className="absolute inset-0 bg-white/20 animate-pulse" />
+        </div>
+      </div>
+    </div>
+  );
+
+  let timeLeft = 0;
+  if (job && job.jobTimes) {
+    timeLeft += job.jobTimes.assignedAt;
+  }
+  timeLeft -= ((+new Date() / 1000) | 0) + job.maxTime;
+
+  return (
+    <div className='h-full md:max-h-customHeader overflow-y-auto rounded-xl bg-white dark:bg-gray-900 shadow-xl dark:shadow-2xl dark:shadow-black/20'>
+      <div>
+        {/* Status Section */}
         {job && address && events && (
-          <JobStatusWrapper
-            job={job}
-            events={events}
-            address={address}
-            zeroHash={zeroHash}
-            addresses={addresses}
-            sessionKeys={sessionKeys}
-          />
+          <div className="p-4 border-b border-gray-100 dark:border-gray-800">
+            <JobStatusWrapper
+              job={job}
+              events={events}
+              address={address}
+              zeroHash={zeroHash}
+              addresses={addresses}
+              sessionKeys={sessionKeys}
+            />
+          </div>
         )}
-  
-        <InfoSection>
+
+        {/* Job Header Section */}
+        <InfoSection variant="highlight">
           {job && (
             <>
-              <h2 className='mb-2 text-xl font-semibold text-gray-900'>
+              <h2 className='mb-3 text-xl font-bold text-gray-900 dark:text-white'>
                 {job.title}
               </h2>
-              <p className='text-sm text-gray-600'>{job.content}</p>
+              <p className='text-sm text-gray-600 dark:text-gray-400 leading-relaxed'>
+                {job.content}
+              </p>
             </>
           )}
+          
+          {/* Action Buttons */}
           <div className='mt-6 space-y-3'>
             <JobButtonActions
               job={job}
@@ -132,9 +225,14 @@ export default function JobSidebar({
               address={address}
               timePassed={timePassed}
             />
+            
             <TooltipButton
               outline
-              className='flex w-full items-center justify-center gap-2'
+              className='flex w-full items-center justify-center gap-2 
+                bg-white dark:bg-gray-800 
+                hover:bg-gray-50 dark:hover:bg-gray-700
+                border-gray-200 dark:border-gray-600
+                transition-all duration-200'
               tooltipContent='Copy link to clipboard'
               popoverContent='Copied!'
               onClick={async () => {
@@ -142,137 +240,183 @@ export default function JobSidebar({
               }}
             >
               <LinkIcon className='h-4 w-4' />
-              Share
+              Share Job
             </TooltipButton>
           </div>
         </InfoSection>
-  
-        <InfoSection title='Project Details'>
+
+        {/* Project Details Section */}
+        <InfoSection title='Project Details' icon={PiInfo}>
           <DetailRow
-            label='Price'
+            label='Budget'
+            icon={PiCoin}
+            highlighted
             value={
               job && (
                 <div className='flex items-center gap-2'>
-                  {formatTokenNameAndAmount(job.token, job.amount)}
-                  <img src={tokenIcon(job.token)} alt='' className='h-4 w-4' />
+                  <span className="font-semibold">{formatTokenNameAndAmount(job.token, job.amount)}</span>
+                  <img src={tokenIcon(job.token)} alt='' className='h-5 w-5' />
                 </div>
               )
             }
-            icon={CurrencyDollarIcon}
           />
           <DetailRow
             label='Multiple Applicants'
-            value={job?.multipleApplicants ? 'Allowed' : 'Not Allowed'}
+            icon={PiUsers}
+            value={
+              <span className={`
+                px-2 py-0.5 rounded-full text-xs font-medium
+                ${job?.multipleApplicants 
+                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                  : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                }
+              `}>
+                {job?.multipleApplicants ? 'Allowed' : 'Not Allowed'}
+              </span>
+            }
           />
-          <DetailRow label='Delivery Method' value={job?.deliveryMethod} />
-          <div className='mt-4 flex items-center gap-2 text-sm text-gray-500'>
-            <UserIcon className='h-5 w-5 text-gray-400' />
-            <span>
-              last updated by {users[job?.roles.creator!]?.name}{' '}
-              {moment(job?.timestamp! * 1000).fromNow()}
-            </span>
+          <DetailRow 
+            label='Delivery Method' 
+            icon={PiPackage}
+            value={
+              <span className="px-2 py-0.5 rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-xs font-medium">
+                {job?.deliveryMethod}
+              </span>
+            } 
+          />
+          
+          {/* Last Updated Info */}
+          <div className='mt-4 pt-3 border-t border-gray-100 dark:border-gray-800'>
+            <div className='flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400'>
+              <UserIcon className='h-4 w-4' />
+              <span>
+                Last updated by <span className="font-medium">{users[job?.roles.creator!]?.name}</span>
+                {' '}{moment(job?.timestamp! * 1000).fromNow()}
+              </span>
+            </div>
           </div>
         </InfoSection>
-  
+
+        {/* Collateral Withdrawal Section */}
         {job?.state === JobState.Closed &&
           address === job.roles.creator &&
           job.collateralOwed > 0n && (
-            <InfoSection title='Collateral Withdrawal'>
+            <InfoSection title='Collateral Withdrawal' icon={PiCoin} variant="warning">
               <div className='space-y-4'>
-                <div className='text-sm text-gray-600'>
+                <div className='text-sm text-gray-600 dark:text-gray-400'>
                   {(() => {
                     if (!job || job.timestamp === undefined) return;
                     const ts = moment.unix(job.timestamp);
                     return ts.add(24, 'hours').isAfter(moment())
-                      ? ts.from(moment(), true)
-                      : 'Ready to withdraw';
+                      ? `Available in ${ts.from(moment(), true)}`
+                      : '✅ Ready to withdraw';
                   })()}
                 </div>
-                <LinearProgress
+                <ProgressBar 
                   value={timePassed ? 100 : adjustedProgressValue}
-                  className='w-full'
+                  label="Withdrawal Progress"
                 />
                 <DetailRow
-                  label='Collateral'
+                  label='Collateral Amount'
+                  icon={PiCoin}
+                  highlighted
                   value={
                     job && (
                       <div className='flex items-center gap-2'>
-                        {formatTokenNameAndAmount(job.token, job.amount)}
-                        <img
-                          src={tokenIcon(job.token)}
-                          alt=''
-                          className='h-4 w-4'
-                        />
+                        <span className="font-semibold">{formatTokenNameAndAmount(job.token, job.amount)}</span>
+                        <img src={tokenIcon(job.token)} alt='' className='h-5 w-5' />
                       </div>
                     )
                   }
-                  icon={CurrencyDollarIcon}
                 />
               </div>
             </InfoSection>
           )}
-  
+
+        {/* Delivery Status Section */}
         {job?.state === JobState.Taken &&
           job.resultHash === zeroHash &&
           address === job.roles.creator &&
           events.length > 0 && (
-            <InfoSection title='Delivery Status'>
+            <InfoSection title='Delivery Status' icon={PiClock} variant="warning">
               <div className='space-y-4'>
                 <DetailRow
                   label='Time Remaining'
+                  icon={PiTimer}
                   value={
-                    timeLeft > 0
-                      ? formatTimeLeft(timeLeft)
-                      : `Due in ${formatTimeLeft(-timeLeft)}`
+                    <span className={`
+                      px-2 py-0.5 rounded-lg text-xs font-medium
+                      ${timeLeft > 0 
+                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                        : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                      }
+                    `}>
+                      {timeLeft > 0
+                        ? formatTimeLeft(timeLeft)
+                        : `Overdue by ${formatTimeLeft(-timeLeft)}`}
+                    </span>
                   }
                 />
-                <LinearProgress value={5} className='w-full' />
+                <ProgressBar value={5} label="Progress" />
               </div>
             </InfoSection>
           )}
-  
+
+        {/* Max Delivery Time for Open Jobs */}
         {job?.state === JobState.Open && (
           <InfoSection>
             <DetailRow
               label='Max Delivery Time'
-              value={moment.duration(job?.maxTime, 'seconds').humanize()}
+              icon={PiClock}
+              value={
+                <span className="px-2 py-0.5 rounded-lg bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 text-xs font-medium">
+                  {moment.duration(job?.maxTime, 'seconds').humanize()}
+                </span>
+              }
             />
           </InfoSection>
         )}
-  
+
+        {/* Arbitrator Section */}
         {job?.roles.arbitrator !== zeroAddress && (
-          <InfoSection title='Addresses'>
+          <InfoSection title='Arbitration' icon={PiMapPin}>
             <DetailRow
-              label='Arbitrator Address'
+              label='Arbitrator'
               value={
                 <Link
                   href={`/dashboard/arbitrators/${job?.roles.arbitrator}`}
-                  className='text-blue-600 hover:text-blue-700'
+                  className='text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors'
                 >
-                  {shortenText({ text: job?.roles.arbitrator, maxLength: 12 }) ||
-                    ''}
+                  {shortenText({ text: job?.roles.arbitrator, maxLength: 12 }) || ''}
                 </Link>
               }
             />
           </InfoSection>
         )}
-  
+
+        {/* Tags Section */}
         <InfoSection>
           <div className='space-y-4'>
-            <div>
-              <h4 className='mb-2 font-medium text-gray-900'>Category</h4>
-              <Tag>{jobMeceTag}</Tag>
-            </div>
-            <div>
-              <h4 className='mb-2 font-medium text-gray-900'>Tags</h4>
-              <div className='flex flex-wrap gap-2'>
-                {job?.tags
-                  .slice(1)
-                  .map((value: string) => <Tag key={value}>{value}</Tag>)}
+            {jobMeceTag && (
+              <div>
+                <h4 className='mb-2 text-sm font-medium text-gray-700 dark:text-gray-300'>Category</h4>
+                <Tag variant="category">{jobMeceTag}</Tag>
               </div>
-            </div>
+            )}
+            
+            {job?.tags && job.tags.length > 1 && (
+              <div>
+                <h4 className='mb-2 text-sm font-medium text-gray-700 dark:text-gray-300'>Tags</h4>
+                <div className='flex flex-wrap gap-2'>
+                  {job.tags.slice(1).map((value: string) => (
+                    <Tag key={value}>{value}</Tag>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </InfoSection>
       </div>
-    );
-  };
+    </div>
+  );
+}
