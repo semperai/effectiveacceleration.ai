@@ -75,6 +75,7 @@ export const UserFields = `
 `;
 
 export const ReviewFields = `
+      id
       user
       reviewer
       jobId

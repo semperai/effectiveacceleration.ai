@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { unstable_cache } from 'next/cache';
 import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
+import { getAddress } from 'viem';
 import ArbitratorPageClient from './ArbitratorPageClient';
 
 // Define the GraphQL query for fetching arbitrator data
@@ -13,11 +14,10 @@ const GET_ARBITRATOR_QUERY = gql`
       bio
       avatar
       fee
-      rating
-      disputed
-      jobsArbitrated
-      createdAt
-      updatedAt
+      publicKey
+      timestamp
+      settledCount
+      refusedCount
     }
   }
 `;
@@ -29,18 +29,20 @@ interface Arbitrator {
   name: string;
   bio: string;
   avatar: string;
-  fee: string;
-  rating: number;
-  disputed: number;
-  jobsArbitrated: number;
-  createdAt: string;
-  updatedAt: string;
+  fee: number;
+  publicKey: string;
+  timestamp: number;
+  settledCount: number;
+  refusedCount: number;
 }
 
 // Cache the Apollo query result using unstable_cache
 const getCachedArbitratorData = unstable_cache(
   async (address: string): Promise<Arbitrator | null> => {
     try {
+      // Convert address to checksummed format
+      const checksummedAddress = getAddress(address);
+
       const client = new ApolloClient({
         uri: process.env.NEXT_PUBLIC_SUBSQUID_API_URL || 'https://arbius.squids.live/eacc-arb-one@v1/api/graphql',
         cache: new InMemoryCache(),
@@ -53,7 +55,7 @@ const getCachedArbitratorData = unstable_cache(
 
       const { data } = await client.query({
         query: GET_ARBITRATOR_QUERY,
-        variables: { address },
+        variables: { address: checksummedAddress },
       });
 
       return data?.arbitrators?.[0] || null;
@@ -64,7 +66,7 @@ const getCachedArbitratorData = unstable_cache(
   },
   ['arbitrator-metadata'], // Cache key prefix
   {
-    revalidate: 86400, // Cache for 1 day
+    revalidate: 7200, // Cache for 2 hours (arbitrator data changes less frequently)
     tags: ['arbitrator-metadata'], // Cache tags for invalidation
   }
 );
@@ -88,8 +90,35 @@ export async function generateMetadata(
   const address = params.address;
   console.log('Generating metadata for arbitrator address:', address);
 
-  // Fetch arbitrator data using cached version
-  const arbitrator = await getCachedArbitratorData(address);
+  // Handle invalid addresses gracefully
+  let checksummedAddress: string;
+  try {
+    checksummedAddress = getAddress(address);
+  } catch (error) {
+    console.log('Invalid address format:', address);
+    // Return fallback metadata for invalid addresses
+    return {
+      title: `Invalid Address - Effective Acceleration`,
+      description: `The provided address is not a valid Ethereum address.`,
+      openGraph: {
+        title: `Invalid Address - Effective Acceleration`,
+        description: `The provided address is not a valid Ethereum address.`,
+        type: 'website',
+        url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/arbitrators/${address}`,
+        images: [
+          {
+            url: '/og.webp',
+            width: 1200,
+            height: 630,
+            alt: 'Invalid Address',
+          },
+        ],
+      },
+    };
+  }
+
+  // Fetch arbitrator data using cached version with checksummed address
+  const arbitrator = await getCachedArbitratorData(checksummedAddress);
 
   if (!arbitrator) {
     console.log('Arbitrator not found for metadata, returning fallback metadata for address:', address);
@@ -129,9 +158,17 @@ export async function generateMetadata(
     ? `${arbitrator.name} - Arbitrator Profile`
     : `Arbitrator ${shortenAddress(arbitrator.address_)}`;
 
-  const description = truncateBio(
-    arbitrator.bio || `Professional arbitrator on Effective Acceleration marketplace. ${arbitrator.jobsArbitrated || 0} jobs arbitrated with a ${arbitrator.rating || 0} star rating.`
-  );
+  const totalCases = arbitrator.settledCount + arbitrator.refusedCount;
+  const settlementRate = totalCases > 0
+    ? Math.round((arbitrator.settledCount / totalCases) * 100)
+    : 0;
+
+  // Convert fee from basis points to percentage
+  const feePercentage = (arbitrator.fee / 100).toFixed(2);
+
+  const description = arbitrator.bio && arbitrator.bio.trim()
+    ? truncateBio(arbitrator.bio)
+    : `Professional arbitrator on Effective Acceleration marketplace. ${arbitrator.settledCount} cases settled • ${arbitrator.refusedCount} cases refused • ${feePercentage}% fee`;
 
   // Generate keywords
   const keywords = [
@@ -176,13 +213,15 @@ export async function generateMetadata(
     other: {
       'arbitrator:address': arbitrator.address_,
       'arbitrator:name': arbitrator.name || '',
-      'arbitrator:rating': String(arbitrator.rating || 0),
-      'arbitrator:jobs_arbitrated': String(arbitrator.jobsArbitrated || 0),
-      'arbitrator:fee': arbitrator.fee || '',
+      'arbitrator:settled_count': String(arbitrator.settledCount || 0),
+      'arbitrator:refused_count': String(arbitrator.refusedCount || 0),
+      'arbitrator:settlement_rate': `${settlementRate}%`,
+      'arbitrator:fee': String(arbitrator.fee || 0),
     },
   };
 }
 
+// Server Component - passes the address to the client component
 export default function ArbitratorPage({ params }: { params: { address: string } }) {
   return <ArbitratorPageClient address={params.address} />;
 }

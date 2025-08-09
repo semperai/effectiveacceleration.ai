@@ -1,100 +1,139 @@
-'use client';
+import type { Metadata } from 'next';
+import { unstable_cache } from 'next/cache';
+import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
+import UsersListClient from './UsersListClient';
 
-import { clsx } from 'clsx';
-import { Layout } from '@/components/Dashboard/Layout';
-import { Link } from '@/components/Link';
-import { ChevronRightIcon } from '@heroicons/react/20/solid';
-import {
-  Pagination,
-  PaginationComponent,
-  PaginationGap,
-  PaginationList,
-  PaginationNext,
-  PaginationPage,
-  PaginationPrevious,
-} from '@/components/Pagination';
-import useUsers from '@/hooks/subsquid/useUsers';
-import useUserRatings from '@/hooks/subsquid/useUserRatings';
-import useUsersLength from '@/hooks/subsquid/useUsersLength';
-import { useSearchParams } from 'next/navigation';
+// GraphQL query to fetch all users with their review ratings
+const GET_USERS_QUERY = gql`
+  query GetUsers {
+    users(orderBy: numberOfReviews_DESC) {
+      id
+      address_
+      name
+      bio
+      avatar
+      publicKey
+      averageRating
+      numberOfReviews
+      reputationUp
+      reputationDown
+      timestamp
+      reviews {
+        rating
+      }
+    }
+  }
+`;
 
-const defaultLimit = 10;
+// Define the User type with reviews
+interface Review {
+  rating: number;
+}
 
-export default function UsersPage() {
-  const searchParams = useSearchParams();
-  const page = Math.max(1, Number(searchParams.get('page')) || 1);
+interface User {
+  id: string;
+  address_: string;
+  name: string;
+  bio: string;
+  avatar: string;
+  publicKey: string;
+  averageRating: number;
+  numberOfReviews: number;
+  reputationUp: number;
+  reputationDown: number;
+  timestamp: number;
+  reviews?: Review[];
+}
 
-  const { data: arbitratorsCount } = useUsersLength();
-  const pages = Math.ceil((arbitratorsCount ?? 0) / defaultLimit);
+// Cache the users list query
+const getCachedUsers = unstable_cache(
+  async (): Promise<User[]> => {
+    try {
+      const client = new ApolloClient({
+        uri: process.env.NEXT_PUBLIC_SUBSQUID_API_URL || 'https://arbius.squids.live/eacc-arb-one@v1/api/graphql',
+        cache: new InMemoryCache(),
+        defaultOptions: {
+          query: {
+            fetchPolicy: 'no-cache',
+          },
+        },
+      });
 
-  const { data: users } = useUsers((page - 1) * defaultLimit, defaultLimit);
+      const { data } = await client.query({
+        query: GET_USERS_QUERY,
+      });
 
-  const { data: userRatings } = useUserRatings(
-    users?.map((user) => user.address_) ?? []
-  );
+      return data?.users || [];
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      return [];
+    }
+  },
+  ['users-list'], // Cache key
+  {
+    revalidate: 1800, // Cache for 30 minutes
+    tags: ['users-list'],
+  }
+);
 
-  return (
-    <Layout>
-      <h1 className='mb-8 ml-2 text-xl font-medium'>Users</h1>
-      {users?.map((user, idx) => (
-        <li
-          key={idx}
-          className='relative flex items-center space-x-4 rounded-md px-2 py-4 transition ease-in-out hover:bg-zinc-50 dark:hover:bg-zinc-950'
-        >
-          <div className='min-w-0 flex-auto'>
-            <div className='flex items-center gap-x-3'>
-              <h2 className='min-w-0 text-sm font-semibold leading-6 text-black dark:text-white'>
-                <Link
-                  href={`/dashboard/users/${user.address_}`}
-                  className='flex gap-x-2'
-                >
-                  <span className='truncate'>{user.name}</span>
-                  <span className='text-gray-600 dark:text-gray-400'>/</span>
-                  {/* <span className="whitespace-nowrap text-gray-500 dark:text-gray-500">{moment.duration(user.maxTime, "seconds").humanize()}</span> */}
-                  <span className='absolute inset-0' />
-                </Link>
-              </h2>
-            </div>
-            <div className='mt-3 flex items-center gap-x-2.5 text-xs leading-5 text-gray-600 dark:text-gray-400'>
-              {/* <p className="truncate">{user.roles.creator}</p> */}
-              <svg
-                viewBox='0 0 2 2'
-                className='h-0.5 w-0.5 flex-none fill-gray-300'
-              >
-                <circle cx={1} cy={1} r={1} />
-              </svg>
-              <p className='whitespace-nowrap'>
-                <span className='text-green-500 dark:text-green-400'>
-                  +{user.reputationUp}
-                </span>
-                <span className='text-red-500 dark:text-red-400'>
-                  -{user.reputationDown}
-                </span>{' '}
-                reputation
-              </p>
-              <p className='whitespace-nowrap'>
-                <span className='text-orange-500 dark:text-orange-400'>
-                  {(userRatings?.[user.address_]?.averageRating ?? 0) / 10000}
-                </span>{' '}
-                average rating
-              </p>
-            </div>
-          </div>
-          <div
-            className={clsx(
-              'flex-none rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset'
-            )}
-          >
-            {user.bio.toString()}
-          </div>
-          <ChevronRightIcon
-            className='h-5 w-5 flex-none text-gray-400'
-            aria-hidden='true'
-          />
-        </li>
-      ))}
+// Generate metadata for the users listing page
+export async function generateMetadata(): Promise<Metadata> {
+  // Fetch users for metadata
+  const users = await getCachedUsers();
 
-      <PaginationComponent page={page} pages={pages} />
-    </Layout>
-  );
+  const totalUsers = users.length;
+  const totalReviews = users.reduce((sum, user) => sum + (user.numberOfReviews || 0), 0);
+  
+  // Calculate actual average rating correctly
+  const usersWithReviews = users.filter(u => u.numberOfReviews > 0);
+  const avgRating = usersWithReviews.length > 0
+    ? (usersWithReviews.reduce((sum, user) => {
+        // Calculate from actual reviews if available
+        if (user.reviews && user.reviews.length > 0) {
+          const userAvg = user.reviews.reduce((s, r) => s + r.rating, 0) / user.reviews.length;
+          return sum + userAvg;
+        }
+        // Fallback - should not happen if data is consistent
+        return sum;
+      }, 0) / usersWithReviews.length).toFixed(1)
+    : '0';
+
+  const description = `Discover ${totalUsers} skilled professionals on Effective Acceleration. ${totalReviews} reviews with ${avgRating} average rating. Find trusted freelancers and service providers.`;
+
+  return {
+    title: 'Users - Effective Acceleration',
+    description,
+    keywords: 'users, freelancers, professionals, service providers, effective acceleration, marketplace, blockchain, reviews',
+    openGraph: {
+      title: 'Browse Users - Effective Acceleration',
+      description,
+      type: 'website',
+      url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/users`,
+      images: [
+        {
+          url: '/og.webp',
+          width: 1200,
+          height: 630,
+          alt: 'Effective Acceleration Users',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Browse Users - Effective Acceleration',
+      description,
+      images: ['/og.webp'],
+    },
+    alternates: {
+      canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/users`,
+    },
+  };
+}
+
+// Server Component
+export default async function UsersPage() {
+  // Fetch users data on the server
+  const users = await getCachedUsers();
+
+  return <UsersListClient initialUsers={users} />;
 }

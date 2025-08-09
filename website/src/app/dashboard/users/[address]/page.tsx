@@ -1,161 +1,323 @@
-'use client';
+// app/dashboard/users/[address]/page.tsx
+import type { Metadata } from 'next';
+import { unstable_cache } from 'next/cache';
+import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
+import { getAddress } from 'viem';
+import UserPageClient from './UserPageClient';
 
-import { Layout } from '@/components/Dashboard/Layout';
-import { Link } from '@/components/Link';
-import { ChevronRightIcon } from '@heroicons/react/20/solid';
-import { useParams } from 'next/navigation';
-import moment from 'moment';
-import useUser from '@/hooks/subsquid/useUser';
-import useReviews from '@/hooks/subsquid/useReviews';
-import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
-import { Button } from '@/components/Button';
-import { LinkIcon } from '@heroicons/react/20/solid';
-import EventProfileImage from '@/components/Events/Components/EventProfileImage';
+// Define the GraphQL queries
+const GET_USER_QUERY = gql`
+  query GetUser($address: String!) {
+    users(where: { address__eq: $address }) {
+      id
+      address_
+      name
+      bio
+      avatar
+      publicKey
+      averageRating
+      numberOfReviews
+      reputationUp
+      reputationDown
+      timestamp
+      myReviews {
+        id
+        jobId
+        rating
+        reviewer
+        text
+        timestamp
+        user
+      }
+    }
+  }
+`;
 
-export default function JobPage() {
-  const address = useParams().address as string;
+const GET_USER_REVIEWS_QUERY = gql`
+  query GetUserReviews($address: String!) {
+    reviews(where: { user_eq: $address }, orderBy: timestamp_DESC) {
+      id
+      jobId
+      reviewer
+      user
+      rating
+      text
+      timestamp
+    }
+  }
+`;
 
-  const { data: user } = useUser(address as string);
-  const { data: reviews } = useReviews(address as string);
-  const { data: users } = useUsersByAddresses(
-    reviews?.map((review) => review.reviewer) ?? []
-  );
+// Define types based on your data structure
+interface User {
+  id: string;
+  address_: string;
+  name: string;
+  bio: string;
+  avatar: string;
+  publicKey: string;
+  averageRating: number;
+  numberOfReviews: number;
+  reputationUp: number;
+  reputationDown: number;
+  timestamp: number;
+  myReviews: Review[];
+}
 
-  const totalReviews = (user?.reputationUp ?? 0) + (user?.reputationDown ?? 0);
-  const positiveReviewPercentage =
-    totalReviews === 0
-      ? 0
-      : Math.round(((user?.reputationUp ?? 0) / totalReviews) * 100);
+interface Review {
+  id: string;
+  jobId: string;
+  reviewer: string;
+  reviewee: string;
+  rating: number;
+  text: string;
+  timestamp: number;
+}
 
-  console.log(user, reviews);
-  return (
-    <Layout borderless>
-      <div className='flex min-h-full flex-col h-full'>
-        <div className='flex w-full basis-1/5 justify-between p-6 min-h-[20%] '>
-          <div className='relative flex flex-row'>
-            {user && (
-              <EventProfileImage className='min-h-20 min-w-20 mr-4' user={user}/>
-            )}
-            <div className='flex flex-col gap-y-1'>
-              <span className='flex text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-xl sm:tracking-tight dark:text-gray-100'>
-                {user?.name}
-              </span>
-              <span className=''>{user?.bio}</span>
-              <span>Job success 100%</span>
-            </div>
-          </div>
-          <div>
-            <Button color={'borderlessGray'} className={'mt-2 w-full'}>
-              <LinkIcon
-                className='-ml-0.5 mr-1.5 h-5 w-5 text-primary'
-                aria-hidden='true'
-              />
-              Share
-            </Button>
-          </div>
-        </div>
-        <div className='flex   basis-4/5 flex-row bg-white  border-t min-h-[80%]'>
-          <div className='flex basis-3/4 border-r p-6 min-h-full'>
-            <div>
-              <h2 className='mb-2 text-lg font-bold text-black'>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean
-                lacinia leo non velit bibendum tempus. Aliquam sodales molestie.
-              </h2>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean
-              lacinia leo non velit bibendum tempus. Aliquam sodales molestie
-              felis malesuada dapibus.
-              <br />
-              <br />
-              Pellentesque ultrices vitae felis sed hendrerit. Duis viverra
-              placerat pharetra. Cras rutrum nisl non elit cursus, ut consequat
-              lorem imperdiet. Mauris vel placerat
-              <br />
-              <br />
-              sem. Duis lorem tortor, dignissim ut pellentesque vel, hendrerit
-              et velit. Donec cursus eros a pellentesque pulvinar. Praesent vel
-              libero id enim feugiat egestas vel sed leo. Fusce ac suscipit
-              tortor. Nulla nec eros id mauris efficitur fermentum. Aliquam sit
-              amet enim placerat, viverra lacus non, hendrerit nunc. Aenean non
-              luctus orci. Proin nisi urna, ornare vel tortor a, imperdiet
-              ullamcorper enim. Phasellus ullamcorper rhoncus elit. Aliquam
-              vestibulum bibendum urna, a elementum ligula accumsan eget. Donec
-              et lobortis turpis. Quisque tristique convallis neque non egestas.
-              Sed convallis felis et eros euismod scelerisque eget id arcu.
-            </div>
-          </div>
-          <div className='flex basis-1/4 p-6 overflow-y-scroll'>
-            <div
-              className={`max-h-[30vh] ${
-                reviews && reviews.length > 0 ? '' : ''
-              }`}
-            >
-              {reviews && reviews.length > 0 && (
-                <div className='my-0 mr-3 flex flex-row gap-4 mb-10'>
-                  <div className='flex flex-1 flex-col items-center'>
-                    <span className='text-2xl font-semibold text-primary'>
-                      {totalReviews}
-                    </span>
-                    <span className='text-center text-xs leading-3'>
-                      Reviews
-                    </span>
-                  </div>
-                  <div className='flex flex-1 flex-col items-center'>
-                    <span className='text-2xl font-semibold text-primary'>
-                      {user?.reputationUp ?? 0}
-                    </span>
-                    <span className='text-center text-xs leading-3'>
-                      Positive reviews
-                    </span>
-                  </div>
-                  <div className='flex flex-1 flex-col items-center'>
-                    <span className='text-2xl font-semibold text-primary'>
-                      {user?.reputationDown ?? 0}
-                    </span>
-                    <span className='text-center text-xs leading-3'>
-                      Negative reviews
-                    </span>
-                  </div>
-                  <div className='flex flex-1 flex-col items-center'>
-                    <span className='text-2xl font-semibold text-primary'>
-                      {positiveReviewPercentage}%
-                    </span>
-                    <span className='text-center text-xs leading-3'>
-                      Positive percentaje
-                    </span>
-                  </div>
-                </div>
-              )}
-              {!reviews || reviews.length === 0 ? (
-                <div className='flex h-48 items-center justify-center'>
-                  <span className='text-md text-center font-semibold'>
-                    <b className='text-primary'>{user?.name}</b> doesn't have
-                    previous reviews
-                  </span>
-                </div>
-              ) : (
-                reviews.map((review, index) => (
-                  <div key={index} className='mb-4'>
-                    <p className='text-sm font-semibold text-gray-500 dark:text-gray-400'>
-                      {users?.[review.reviewer]?.name} left a review for Job Id{' '}
-                      <b>{review.jobId.toString()} </b>
-                    </p>
-                    <p className='text-sm'>{review.text}</p>
-                    <span className='whitespace-nowrap'>
-                      <b className='mr-2 text-primary'>
-                        {'★'.repeat(review.rating)}
-                        {'☆'.repeat(5 - review.rating)}
-                      </b>
-                      <span className='text-xs'>
-                        {moment(review.timestamp * 1000).fromNow()}
-                      </span>
-                    </span>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </Layout>
-  );
+// Cache the user data query
+const getCachedUserData = unstable_cache(
+  async (address: string): Promise<User | null> => {
+    try {
+      // Convert address to checksummed format
+      const checksummedAddress = getAddress(address);
+      
+      const client = new ApolloClient({
+        uri: process.env.NEXT_PUBLIC_SUBSQUID_API_URL || 'https://arbius.squids.live/eacc-arb-one@v1/api/graphql',
+        cache: new InMemoryCache(),
+        defaultOptions: {
+          query: {
+            fetchPolicy: 'no-cache',
+          },
+        },
+      });
+
+      const { data } = await client.query({
+        query: GET_USER_QUERY,
+        variables: { address: checksummedAddress },
+      });
+
+      return data?.users?.[0] || null;
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      return null;
+    }
+  },
+  ['user-metadata'], // Cache key prefix
+  {
+    revalidate: 3600, // Cache for 1 hour
+    tags: ['user-metadata'], // Cache tags for invalidation
+  }
+);
+
+// Cache the reviews data query
+const getCachedUserReviews = unstable_cache(
+  async (address: string): Promise<Review[]> => {
+    try {
+      // Convert address to checksummed format
+      const checksummedAddress = getAddress(address);
+      
+      const client = new ApolloClient({
+        uri: process.env.NEXT_PUBLIC_SUBSQUID_API_URL || 'https://arbius.squids.live/eacc-arb-one@v1/api/graphql',
+        cache: new InMemoryCache(),
+        defaultOptions: {
+          query: {
+            fetchPolicy: 'no-cache',
+          },
+        },
+      });
+
+      const { data } = await client.query({
+        query: GET_USER_REVIEWS_QUERY,
+        variables: { address: checksummedAddress },
+      });
+
+      return data?.reviews || [];
+    } catch (error) {
+      console.error('Error fetching user reviews:', error);
+      return [];
+    }
+  },
+  ['user-reviews'], // Cache key prefix
+  {
+    revalidate: 1800, // Cache for 30 minutes (reviews update more frequently)
+    tags: ['user-reviews'], // Cache tags for invalidation
+  }
+);
+
+// Helper functions
+function truncateBio(text: string, maxLength: number = 160): string {
+  if (!text || text.length <= maxLength) return text || '';
+  return text.substring(0, maxLength - 3) + '...';
+}
+
+function shortenAddress(address: string): string {
+  if (!address) return '';
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
+
+function calculateSuccessRate(reputationUp: number, reputationDown: number): number {
+  const total = reputationUp + reputationDown;
+  if (total === 0) return 0;
+  return Math.round((reputationUp / total) * 100);
+}
+
+// Generate dynamic metadata for the user page
+export async function generateMetadata(
+  { params }: { params: { address: string } }
+): Promise<Metadata> {
+  const address = params.address;
+  console.log('Generating metadata for user address:', address);
+  
+  // Handle invalid addresses gracefully
+  let checksummedAddress: string;
+  try {
+    checksummedAddress = getAddress(address);
+  } catch (error) {
+    console.log('Invalid address format:', address);
+    // Return fallback metadata for invalid addresses
+    return {
+      title: `Invalid Address - Effective Acceleration`,
+      description: `The provided address is not a valid Ethereum address.`,
+      openGraph: {
+        title: `Invalid Address - Effective Acceleration`,
+        description: `The provided address is not a valid Ethereum address.`,
+        type: 'website',
+        url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/users/${address}`,
+        images: [
+          {
+            url: '/og.webp',
+            width: 1200,
+            height: 630,
+            alt: 'Invalid Address',
+          },
+        ],
+      },
+    };
+  }
+
+  // Fetch user data and reviews using cached versions with checksummed address
+  const [user, reviews] = await Promise.all([
+    getCachedUserData(checksummedAddress),
+    getCachedUserReviews(checksummedAddress)
+  ]);
+
+  if (!user) {
+    console.log('User not found for metadata, returning fallback metadata for address:', address);
+    const shortAddress = shortenAddress(address);
+    
+    return {
+      title: `User ${shortAddress} - Effective Acceleration`,
+      description: `View user profile for ${shortAddress} on Effective Acceleration marketplace.`,
+      openGraph: {
+        title: `User ${shortAddress} - Effective Acceleration`,
+        description: `View user profile for ${shortAddress} on Effective Acceleration marketplace.`,
+        type: 'profile',
+        url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/users/${address}`,
+        images: [
+          {
+            url: '/og.webp',
+            width: 1200,
+            height: 630,
+            alt: `User ${shortAddress}`,
+          },
+        ],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: `User ${shortAddress} - Effective Acceleration`,
+        description: `View user profile for ${shortAddress} on Effective Acceleration marketplace.`,
+        images: ['/og.webp'],
+      },
+      alternates: {
+        canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/users/${address}`,
+      },
+    };
+  }
+
+  // Calculate statistics
+  const successRate = calculateSuccessRate(user.reputationUp || 0, user.reputationDown || 0);
+  const totalReviews = user.numberOfReviews || 0;
+  
+  // Calculate actual average rating
+  let avgRating = 0;
+  if (reviews && reviews.length > 0) {
+    const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+    avgRating = totalRating / reviews.length;
+  } else if (totalReviews > 0) {
+    // Fallback: the averageRating field is a sum, divide by numberOfReviews
+    avgRating = user.averageRating / totalReviews;
+  }
+
+  // Build dynamic title and description
+  const title = user.name 
+    ? `${user.name} - Effective Acceleration` 
+    : `User ${shortenAddress(user.address_)} - Effective Acceleration`;
+  
+  // For description, prioritize the bio if it exists, otherwise show stats
+  let description: string;
+  if (user.bio && user.bio.trim()) {
+    // If bio exists, use it (truncated if needed)
+    description = truncateBio(user.bio);
+  } else {
+    // If no bio, show stats as description
+    const statsText = `${successRate}% success rate • ${totalReviews} reviews • ${avgRating.toFixed(1)} average rating`;
+    description = `Professional on Effective Acceleration marketplace. ${statsText}`;
+  }
+
+  // Generate keywords
+  const keywords = [
+    'user profile',
+    'freelancer',
+    'effective acceleration',
+    'marketplace',
+    'blockchain',
+    user.name,
+    'reviews',
+    'reputation',
+  ].filter(Boolean).join(', ');
+
+  // Use user avatar if available, otherwise fallback to default OG image
+  const ogImage = user.avatar || '/og.webp';
+
+  return {
+    title,
+    description,
+    keywords,
+    openGraph: {
+      title,
+      description,
+      type: 'profile',
+      url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/users/${address}`,
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [ogImage],
+    },
+    alternates: {
+      canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/users/${address}`,
+    },
+    other: {
+      'user:address': user.address_,
+      'user:name': user.name || '',
+      'user:average_rating': String(avgRating.toFixed(1)),
+      'user:reputation_up': String(user.reputationUp || 0),
+      'user:reputation_down': String(user.reputationDown || 0),
+      'user:success_rate': `${successRate}%`,
+      'user:total_reviews': String(totalReviews),
+    },
+  };
+}
+
+// Server Component - passes the address to the client component
+export default function UserPage({ params }: { params: { address: string } }) {
+  return <UserPageClient address={params.address} />;
 }
