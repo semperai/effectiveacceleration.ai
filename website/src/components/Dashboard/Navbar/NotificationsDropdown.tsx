@@ -1,4 +1,3 @@
-// src/components/Dashboard/Navbar/NotificationsDropdown.tsx
 import { forwardRef, useState, useEffect, useRef } from 'react';
 import { Notification } from '@/service/Interfaces';
 import { NotificationItem } from './NotificationItem';
@@ -14,11 +13,21 @@ interface NotificationsDropdownProps {
   hasMore: boolean;
 }
 
+const NOTIFICATION_VIEW_PREFERENCE_KEY = 'notificationViewPreference';
+
 export const NotificationsDropdown = forwardRef<
   HTMLDivElement,
   NotificationsDropdownProps
 >(({ notifications, onReadNotification, onReadAll, onClose, onLoadMore, hasMore }, ref) => {
-  const [showAll, setShowAll] = useState(false);
+  // Initialize showAll from localStorage, defaulting to false (show unread only)
+  const [showAll, setShowAll] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(NOTIFICATION_VIEW_PREFERENCE_KEY);
+      return saved === 'true';
+    }
+    return false;
+  });
+  
   const [isMobile, setIsMobile] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const loadMoreTriggerRef = useRef<HTMLDivElement>(null);
@@ -28,6 +37,13 @@ export const NotificationsDropdown = forwardRef<
     : notifications.filter((n) => !n.read);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
+
+  // Persist view preference when it changes
+  const handleToggleView = () => {
+    const newValue = !showAll;
+    setShowAll(newValue);
+    localStorage.setItem(NOTIFICATION_VIEW_PREFERENCE_KEY, String(newValue));
+  };
 
   // Detect mobile viewport
   useEffect(() => {
@@ -89,7 +105,7 @@ export const NotificationsDropdown = forwardRef<
         </div>
         <div className='flex items-center gap-1'>
           <button
-            onClick={() => setShowAll(!showAll)}
+            onClick={handleToggleView}
             className='rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
             title={showAll ? 'Show unread only' : 'Show all notifications'}
           >
