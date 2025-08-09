@@ -1,3 +1,4 @@
+// src/components/Dashboard/Navbar/NotificationsDropdown.tsx
 import { forwardRef, useState, useEffect, useRef } from 'react';
 import { Notification } from '@/service/Interfaces';
 import { NotificationItem } from './NotificationItem';
@@ -31,12 +32,52 @@ export const NotificationsDropdown = forwardRef<
   const [isMobile, setIsMobile] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const loadMoreTriggerRef = useRef<HTMLDivElement>(null);
+  const innerContentRef = useRef<HTMLDivElement>(null);
 
   const displayedNotifications = showAll
     ? notifications
     : notifications.filter((n) => !n.read);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
+
+  // Smooth height animation using ResizeObserver
+  useEffect(() => {
+    if (!scrollContainerRef.current || !innerContentRef.current) return;
+
+    const scrollContainer = scrollContainerRef.current;
+    const innerContent = innerContentRef.current;
+    const maxHeight = isMobile ? window.innerHeight - 128 : 448;
+
+    // Create ResizeObserver to watch for content size changes
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { height } = entry.contentRect;
+        const targetHeight = Math.min(height, maxHeight);
+        
+        // Only update if height actually changed
+        if (scrollContainer.style.height !== `${targetHeight}px`) {
+          // Add transition class if not already present
+          if (!scrollContainer.classList.contains('transition-[height]')) {
+            scrollContainer.classList.add('transition-[height]', 'duration-300', 'ease-in-out');
+          }
+          
+          // Update height
+          scrollContainer.style.height = `${targetHeight}px`;
+        }
+      }
+    });
+
+    // Start observing
+    resizeObserver.observe(innerContent);
+
+    // Set initial height
+    const initialHeight = Math.min(innerContent.scrollHeight, maxHeight);
+    scrollContainer.style.height = `${initialHeight}px`;
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [isMobile, displayedNotifications.length, showAll]);
 
   // Persist view preference when it changes
   const handleToggleView = () => {
@@ -136,62 +177,63 @@ export const NotificationsDropdown = forwardRef<
         </div>
       </div>
 
-      {/* Notifications list */}
+      {/* Notifications list with smooth height transition */}
       <div
         ref={scrollContainerRef}
-        className={`${
-          isMobile ? 'max-h-[calc(100vh-8rem)]' : 'max-h-[28rem]'
-        } overflow-y-auto overscroll-contain`}
+        className='relative overflow-y-auto transition-[height] duration-300 ease-in-out'
         style={{
+          maxHeight: isMobile ? 'calc(100vh - 8rem)' : '28rem',
           scrollbarWidth: 'thin',
           scrollbarColor: 'rgb(203 213 225) transparent',
         }}
       >
-        {displayedNotifications.length === 0 ? (
-          <div className='flex flex-col items-center justify-center py-12 text-gray-500'>
-            <svg
-              className='mb-3 h-12 w-12 text-gray-300 dark:text-gray-600'
-              fill='none'
-              viewBox='0 0 24 24'
-              stroke='currentColor'
-            >
-              <path
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                strokeWidth={1.5}
-                d='M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9'
-              />
-            </svg>
-            <p className='text-sm font-medium'>No notifications</p>
-            <p className='text-xs text-gray-400 dark:text-gray-500'>
-              {showAll ? 'You have no notifications' : 'All caught up!'}
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className='divide-y divide-gray-100 dark:divide-gray-800'>
-              {displayedNotifications.map((notification) => (
-                <NotificationItem
-                  key={notification.id}
-                  notification={notification}
-                  onRead={onReadNotification}
-                  onClick={handleNotificationClick}
-                />
-              ))}
-            </div>
-            {hasMore && (
-              <div
-                ref={loadMoreTriggerRef}
-                className='flex items-center justify-center py-3'
+        <div ref={innerContentRef}>
+          {displayedNotifications.length === 0 ? (
+            <div className='flex flex-col items-center justify-center py-12 text-gray-500'>
+              <svg
+                className='mb-3 h-12 w-12 text-gray-300 dark:text-gray-600'
+                fill='none'
+                viewBox='0 0 24 24'
+                stroke='currentColor'
               >
-                <div className='flex items-center gap-2 text-xs text-gray-500'>
-                  <div className='h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-transparent' />
-                  Loading more...
-                </div>
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={1.5}
+                  d='M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9'
+                />
+              </svg>
+              <p className='text-sm font-medium'>No notifications</p>
+              <p className='text-xs text-gray-400 dark:text-gray-500'>
+                {showAll ? 'You have no notifications' : 'All caught up!'}
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className='divide-y divide-gray-100 dark:divide-gray-800'>
+                {displayedNotifications.map((notification) => (
+                  <NotificationItem
+                    key={notification.id}
+                    notification={notification}
+                    onRead={onReadNotification}
+                    onClick={handleNotificationClick}
+                  />
+                ))}
               </div>
-            )}
-          </>
-        )}
+              {hasMore && (
+                <div
+                  ref={loadMoreTriggerRef}
+                  className='flex items-center justify-center py-3'
+                >
+                  <div className='flex items-center gap-2 text-xs text-gray-500'>
+                    <div className='h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-transparent' />
+                    Loading more...
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
 
       {/* Footer - only show on desktop */}
