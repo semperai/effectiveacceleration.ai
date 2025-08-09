@@ -130,7 +130,7 @@ export default function UserPageClient({ address }: UserPageClientProps) {
         <div className='flex w-full basis-1/5 justify-between p-6 min-h-[20%]'>
           <div className='relative flex flex-row'>
             {user && (
-              <EventProfileImage className='min-h-20 min-w-20 mr-4' user={user}/>
+              <EventProfileImage className='h-20 w-20 mr-4 rounded-full' user={user}/>
             )}
             <div className='flex flex-col gap-y-1'>
               <span className='flex text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-xl sm:tracking-tight dark:text-gray-100'>

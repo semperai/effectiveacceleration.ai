@@ -3,21 +3,26 @@ import { createPortal } from 'react-dom';
 import { PiX } from 'react-icons/pi';
 import { useAccount } from 'wagmi';
 import { ConnectButton } from '@/components/ConnectButton';
-import useUser from '@/hooks/subsquid/useUser';
-import useArbitrator from '@/hooks/subsquid/useArbitrator';
 import { UserForm } from './UserForm';
+import EventProfileImage from '@/components/Events/Components/EventProfileImage';
+import type { User, Arbitrator } from '@effectiveacceleration/contracts';
 
 interface UserDropdownProps {
   onClose: () => void;
+  user?: User | null;
+  arbitrator?: Arbitrator | null;
 }
 
 export const UserDropdown = forwardRef<HTMLDivElement, UserDropdownProps>(
-  ({ onClose }, ref) => {
+  ({ onClose, user, arbitrator }, ref) => {
     const { address } = useAccount();
-    const { data: user } = useUser(address!);
-    const { data: arbitrator } = useArbitrator(address!);
     const [isMobile, setIsMobile] = useState(false);
     const [activeTab, setActiveTab] = useState<'user' | 'arbitrator'>('user');
+
+    // Get the current profile for display
+    const currentProfile = activeTab === 'user' ? user : arbitrator;
+    const displayName = currentProfile?.name || 'Anonymous';
+    const displayAddress = address ? `${address.slice(0, 6)}...${address.slice(-4)}` : '';
 
     // Detect mobile viewport
     useEffect(() => {
@@ -42,20 +47,57 @@ export const UserDropdown = forwardRef<HTMLDivElement, UserDropdownProps>(
 
     const dropdownContent = (
       <>
-        {/* Header */}
-        <div className='flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700'>
-          <h3 className='text-sm font-semibold text-gray-900 dark:text-gray-100'>
-            Account Settings
-          </h3>
-          {isMobile && (
-            <button
-              onClick={onClose}
-              className='rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
-              title='Close'
-            >
-              <PiX className='h-5 w-5' />
-            </button>
-          )}
+        {/* Header with Avatar */}
+        <div className='border-b border-gray-200 px-4 py-3 dark:border-gray-700'>
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center gap-3'>
+              {/* Avatar */}
+              {currentProfile?.avatar ? (
+                <EventProfileImage
+                  user={currentProfile}
+                  className='h-10 w-10'
+                />
+              ) : (
+                <div className='h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center'>
+                  <svg
+                    className='h-6 w-6 text-gray-400'
+                    fill='none'
+                    stroke='currentColor'
+                    viewBox='0 0 24 24'
+                  >
+                    <path
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      strokeWidth={2}
+                      d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
+                    />
+                  </svg>
+                </div>
+              )}
+              
+              {/* User Info */}
+              <div>
+                <h3 className='text-sm font-semibold text-gray-900 dark:text-gray-100'>
+                  {displayName}
+                </h3>
+                {address && (
+                  <p className='text-xs text-gray-500 dark:text-gray-400 font-mono'>
+                    {displayAddress}
+                  </p>
+                )}
+              </div>
+            </div>
+            
+            {isMobile && (
+              <button
+                onClick={onClose}
+                className='rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
+                title='Close'
+              >
+                <PiX className='h-5 w-5' />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Tab Navigation - if user has both roles */}

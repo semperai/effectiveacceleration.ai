@@ -15,6 +15,7 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useAccount } from 'wagmi';
 import useUser from '@/hooks/subsquid/useUser';
 import useArbitrator from '@/hooks/subsquid/useArbitrator';
+import EventProfileImage from '@/components/Events/Components/EventProfileImage';
 
 // Navigation items
 const navigationItems = [
@@ -107,15 +108,6 @@ const SharedMenu = ({ pathname }: { pathname: string }) => {
                   {item.name}
                 </span>
 
-                {/* Special badge for Post Job */}
-                {/*
-                {item.special && (
-                  <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold">
-                    NEW
-                  </span>
-                )}
-                */}
-
                 {/* External link indicator */}
                 {item.target === '_blank' && (
                   <svg className="ml-auto w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -175,8 +167,11 @@ const Sidebar = ({
   const displayRole = arbitrator ? 'Arbitrator' : user ? 'Member' : 'Guest';
   const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'AN';
   
-  const jobCount = 0; // TODO
-  const rating = 0;   // TODO
+  // TODO: Get actual values from user data
+  const jobCount = user?.reputationUp || 0; // Using reputation as placeholder
+  const rating = userInfo && (user?.reputationUp || 0) > 0 
+    ? ((user?.reputationUp || 0) / ((user?.reputationUp || 0) + (user?.reputationDown || 0))) * 5 
+    : 0;
 
   const sidebarContent = (
     <>
@@ -202,9 +197,18 @@ const Sidebar = ({
         <div className="mt-auto p-4 mx-3 mb-4">
           <div className="rounded-xl bg-gradient-to-r from-blue-500/10 to-purple-500/10 backdrop-blur-sm border border-white/10 p-4">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center">
-                <span className="text-white font-bold text-sm">{initials}</span>
-              </div>
+              {/* User Avatar */}
+              {userInfo.avatar ? (
+                <EventProfileImage
+                  user={userInfo}
+                  className="w-10 h-10"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">{initials}</span>
+                </div>
+              )}
+              
               <div className="flex-1">
                 <p className="text-sm font-medium text-white truncate">{displayName}</p>
                 <p className="text-xs text-gray-400">{displayRole}</p>
