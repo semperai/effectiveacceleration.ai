@@ -12,14 +12,14 @@ const TagsInput: React.FC<{ tags: Tag[]; setTags: (tags: Tag[]) => void }> = ({
   const [inputValue, setInputValue] = useState('');
   const [showAddButton, setShowAddButton] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setInputValue(value);
     // Show add button when there's text
     setShowAddButton(value.trim().length > 0);
   };
-  
+
   const addTag = () => {
     if (inputValue.trim()) {
       const newTag: Tag = {
@@ -33,7 +33,7 @@ const TagsInput: React.FC<{ tags: Tag[]; setTags: (tags: Tag[]) => void }> = ({
       inputRef.current?.focus();
     }
   };
-  
+
   const handleInputKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -45,7 +45,7 @@ const TagsInput: React.FC<{ tags: Tag[]; setTags: (tags: Tag[]) => void }> = ({
       addTag();
     }
   };
-  
+
   // Handle space bar as tag separator (optional - you can remove this if not desired)
   const handleSpaceAsSeparator = (e: KeyboardEvent<HTMLInputElement>) => {
     // Uncomment the following lines if you want space to create tags
@@ -54,7 +54,7 @@ const TagsInput: React.FC<{ tags: Tag[]; setTags: (tags: Tag[]) => void }> = ({
     //   addTag();
     // }
   };
-  
+
   const handleInputBlur = () => {
     // Optional: Auto-add tag on blur if there's content
     // This helps on mobile when users tap outside
@@ -69,7 +69,7 @@ const TagsInput: React.FC<{ tags: Tag[]; setTags: (tags: Tag[]) => void }> = ({
       }, 200);
     }
   };
-  
+
   const removeTag = (tagId: number) => {
     setTags(tags.filter((tag) => tag.id !== tagId));
   };
@@ -110,7 +110,7 @@ const TagsInput: React.FC<{ tags: Tag[]; setTags: (tags: Tag[]) => void }> = ({
               'data-[disabled]:border-zinc-950/20 dark:data-[hover]:data-[disabled]:border-white/15 data-[disabled]:dark:border-white/15 data-[disabled]:dark:bg-white/[2.5%]',
             ])}
           />
-          
+
           {/* Add button for mobile */}
           {showAddButton && (
             <button
@@ -124,7 +124,7 @@ const TagsInput: React.FC<{ tags: Tag[]; setTags: (tags: Tag[]) => void }> = ({
           )}
         </div>
       </div>
-      
+
       {/* Tags display */}
       {tags.length > 0 && (
         <ul className='px-2 py-1 pt-2'>
@@ -157,7 +157,7 @@ const TagsInput: React.FC<{ tags: Tag[]; setTags: (tags: Tag[]) => void }> = ({
           ))}
         </ul>
       )}
-      
+
       {/* Optional: Suggested tags for quick addition */}
       {/* Uncomment and customize if you want to show suggested tags
       {suggestedTags && suggestedTags.length > 0 && (

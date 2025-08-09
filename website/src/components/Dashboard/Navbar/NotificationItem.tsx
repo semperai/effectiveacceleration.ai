@@ -25,23 +25,23 @@ export const NotificationItem = ({
   const { address } = useAccount();
   const formattedTime = moment(notification.timestamp * 1000).fromNow();
   const isUnread = !notification.read;
-  
+
   // Check if this is a message notification
-  const isMessage = notification.type === JobEventType.OwnerMessage || 
+  const isMessage = notification.type === JobEventType.OwnerMessage ||
                    notification.type === JobEventType.WorkerMessage;
-  
+
   // Use the enhanced notification with message content
   const enhancedNotification = { ...notification, messageContent };
   const content = getNotificationContent(enhancedNotification, address);
-  
+
   // Format job title with ID
-  const jobTitle = notification.job?.title 
+  const jobTitle = notification.job?.title
     ? `#${notification.jobId} ${notification.job.title}`
     : `#${notification.jobId}`;
-  
+
   // Truncate job title if too long
-  const truncatedJobTitle = jobTitle.length > 30 
-    ? `${jobTitle.substring(0, 30)}...` 
+  const truncatedJobTitle = jobTitle.length > 30
+    ? `${jobTitle.substring(0, 30)}...`
     : jobTitle;
 
   const handleMarkAsRead = (e: React.MouseEvent) => {
@@ -52,7 +52,7 @@ export const NotificationItem = ({
 
   const getPriorityIndicator = () => {
     if (!isUnread) return null;
-    
+
     switch (content.priority) {
       case 'high':
         return <div className="absolute left-0 top-0 bottom-0 w-1 bg-rose-500 rounded-l" />;
@@ -72,7 +72,7 @@ export const NotificationItem = ({
       }`}
     >
       {getPriorityIndicator()}
-      
+
       <Link
         href={`/dashboard/jobs/${notification.jobId}?eventId=${notification.id}`}
         className='flex items-start gap-3 px-4 py-3.5'
@@ -83,14 +83,14 @@ export const NotificationItem = ({
           <div className='flex items-start justify-between gap-2'>
             {/* Title with inline icon */}
             <div className={`flex items-center gap-1.5 text-sm leading-tight ${
-              isUnread 
-                ? 'font-semibold text-gray-900 dark:text-gray-100' 
+              isUnread
+                ? 'font-semibold text-gray-900 dark:text-gray-100'
                 : 'font-medium text-gray-700 dark:text-gray-300'
             }`}>
               {content.icon && (
                 <span className={`flex-shrink-0 ${
-                  isUnread 
-                    ? 'text-blue-600 dark:text-blue-400' 
+                  isUnread
+                    ? 'text-blue-600 dark:text-blue-400'
                     : 'text-gray-500 dark:text-gray-400'
                 }`}>
                   {content.icon}
@@ -98,13 +98,13 @@ export const NotificationItem = ({
               )}
               <span>{content.title}</span>
             </div>
-            
+
             {/* Job Title Pill */}
             <span className='flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 border border-gray-200 dark:border-gray-700'>
               {truncatedJobTitle}
             </span>
           </div>
-          
+
           {/* Message content or description */}
           <div className={`text-sm leading-relaxed ${
             isUnread
@@ -123,7 +123,7 @@ export const NotificationItem = ({
               </p>
             )}
           </div>
-          
+
           <p className='text-xs text-gray-400 dark:text-gray-500'>
             {formattedTime}
           </p>

@@ -24,7 +24,7 @@ const RegisterModal = ({
         >
           <div className='fixed inset-0 bg-black/25 backdrop-blur-sm' />
         </Transition.Child>
-        
+
         <div className='fixed inset-0 overflow-y-auto'>
           <div className='flex min-h-full items-center justify-center p-4'>
             <Transition.Child
@@ -40,7 +40,7 @@ const RegisterModal = ({
                 {/* Background gradient effects */}
                 <div className='absolute top-0 right-0 w-32 h-32 bg-blue-100/50 rounded-full blur-2xl' />
                 <div className='absolute bottom-0 left-0 w-32 h-32 bg-purple-100/50 rounded-full blur-2xl' />
-                
+
                 {/* Content */}
                 <div className='relative'>
                   <div className='flex flex-col items-center gap-6'>
@@ -48,19 +48,19 @@ const RegisterModal = ({
                     <div className='p-3 rounded-xl bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-100'>
                       <UserPlus className='h-8 w-8 text-blue-600' />
                     </div>
-                    
+
                     <Dialog.Title
                       as='h3'
                       className='text-center text-xl font-semibold text-gray-900'
                     >
                       Registration Required
                     </Dialog.Title>
-                    
+
                     <p className='text-center text-sm text-gray-600'>
                       Create an account to start posting jobs and connecting with
                       talented workers and AI agents.
                     </p>
-                    
+
                     <Button
                       href='/register'
                       target='_blank'
@@ -69,7 +69,7 @@ const RegisterModal = ({
                       Register Now
                       <ArrowRight className='h-4 w-4' />
                     </Button>
-                    
+
                     <button
                       onClick={close}
                       className='text-xs text-gray-500 hover:text-gray-700 transition-colors'

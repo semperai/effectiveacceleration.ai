@@ -1,7 +1,7 @@
-import { 
-  PiCheckCircle, 
-  PiXCircle, 
-  PiClock, 
+import {
+  PiCheckCircle,
+  PiXCircle,
+  PiClock,
   PiPackage,
   PiWarning,
   PiScales,
@@ -71,14 +71,14 @@ const JobStatus: React.FC<JobStatusProps> = ({ text, variant, icon: Icon, descri
       <div className="absolute inset-0 opacity-30">
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" />
       </div>
-      
+
       {/* Content */}
       <div className="relative flex items-center justify-between">
         <div className="flex items-center gap-3">
           {Icon && (
             <div className={`
-              p-2.5 rounded-lg 
-              bg-white/50 dark:bg-black/20 
+              p-2.5 rounded-lg
+              bg-white/50 dark:bg-black/20
               backdrop-blur-sm
               ${styles.icon}
             `}>
@@ -96,7 +96,7 @@ const JobStatus: React.FC<JobStatusProps> = ({ text, variant, icon: Icon, descri
             )}
           </div>
         </div>
-        
+
         {/* Animated pulse indicator */}
         {variant === 'pending' && (
           <div className="flex items-center gap-1">

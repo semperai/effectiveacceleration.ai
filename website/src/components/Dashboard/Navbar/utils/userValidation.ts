@@ -12,11 +12,11 @@ interface ValidationErrors {
   fee: string;
 }
 
-export const validateUserForm = ({ 
-  name, 
-  bio, 
-  fee, 
-  isArbitrator 
+export const validateUserForm = ({
+  name,
+  bio,
+  fee,
+  isArbitrator
 }: ValidationInput): ValidationErrors => {
   const errors: ValidationErrors = {
     name: '',

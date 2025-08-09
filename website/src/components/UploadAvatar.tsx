@@ -39,25 +39,25 @@ const UploadAvatar = ({
   const uploadToIPFS = async (file: File): Promise<void> => {
     setIsUploading(true);
     dismissLoadingToast();
-    
+
     try {
       // Show loading toast
       loadingToastIdRef.current = showLoading('Uploading avatar to IPFS...');
-      
+
       const formData = new FormData();
       formData.append('file', file);
       const dataFile = await file.arrayBuffer();
       const mimeType = file.type;
-      
+
       const { cid } = await publishMediaToIpfs(
         file.name,
         mimeType,
         new Uint8Array(dataFile),
         sessionKey
       );
-      
+
       setAvatarFileUrl(cid);
-      
+
       // Dismiss loading and show success
       dismissLoadingToast();
       showSuccess('Avatar uploaded to IPFS successfully!');
@@ -65,12 +65,12 @@ const UploadAvatar = ({
     } catch (error) {
       Sentry.captureException(error);
       console.error('Error uploading file to IPFS:', error);
-      
+
       // Dismiss loading and show error
       dismissLoadingToast();
       showError('Failed to upload avatar to IPFS. Please try again.');
       setIsUploading(false);
-      
+
       // Reset avatar preview on error
       setAvatar(undefined);
     }
@@ -101,8 +101,8 @@ const UploadAvatar = ({
       }
 
       // Show immediate feedback that file was selected
-      const fileName = file.name.length > 20 
-        ? file.name.substring(0, 17) + '...' 
+      const fileName = file.name.length > 20
+        ? file.name.substring(0, 17) + '...'
         : file.name;
       showSuccess(`Selected: ${fileName}`);
 
@@ -133,18 +133,18 @@ const UploadAvatar = ({
         onChange={handleFileChange}
         disabled={isUploading}
       />
-      
+
       <div className='flex flex-col items-start gap-2'>
         <div className='relative'>
           <button
             onClick={handleAvatarClick}
             disabled={isUploading}
             className={`
-              relative flex h-12 w-12 items-center justify-center rounded-full 
-              ${isUploading 
-                ? 'bg-gray-100 cursor-not-allowed' 
+              relative flex h-12 w-12 items-center justify-center rounded-full
+              ${isUploading
+                ? 'bg-gray-100 cursor-not-allowed'
                 : 'bg-gray-200 hover:bg-gray-300 cursor-pointer'
-              } 
+              }
               text-gray-500 transition-colors
             `}
             title={isUploading ? 'Uploading to IPFS...' : 'Click to upload avatar'}
@@ -159,23 +159,23 @@ const UploadAvatar = ({
                 {isUploading && (
                   <div className='absolute inset-0 flex items-center justify-center'>
                     <div className='h-8 w-8 rounded-full bg-white/90 flex items-center justify-center'>
-                      <svg 
-                        className='h-5 w-5 animate-spin text-blue-600' 
-                        fill='none' 
+                      <svg
+                        className='h-5 w-5 animate-spin text-blue-600'
+                        fill='none'
                         viewBox='0 0 24 24'
                       >
-                        <circle 
-                          className='opacity-25' 
-                          cx='12' 
-                          cy='12' 
-                          r='10' 
-                          stroke='currentColor' 
-                          strokeWidth='4' 
+                        <circle
+                          className='opacity-25'
+                          cx='12'
+                          cy='12'
+                          r='10'
+                          stroke='currentColor'
+                          strokeWidth='4'
                         />
-                        <path 
-                          className='opacity-75' 
-                          fill='currentColor' 
-                          d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' 
+                        <path
+                          className='opacity-75'
+                          fill='currentColor'
+                          d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
                         />
                       </svg>
                     </div>

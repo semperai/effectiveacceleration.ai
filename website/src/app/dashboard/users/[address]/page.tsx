@@ -79,7 +79,7 @@ const getCachedUserData = unstable_cache(
     try {
       // Convert address to checksummed format
       const checksummedAddress = getAddress(address);
-      
+
       const client = new ApolloClient({
         uri: process.env.NEXT_PUBLIC_SUBSQUID_API_URL || 'https://arbius.squids.live/eacc-arb-one@v1/api/graphql',
         cache: new InMemoryCache(),
@@ -114,7 +114,7 @@ const getCachedUserReviews = unstable_cache(
     try {
       // Convert address to checksummed format
       const checksummedAddress = getAddress(address);
-      
+
       const client = new ApolloClient({
         uri: process.env.NEXT_PUBLIC_SUBSQUID_API_URL || 'https://arbius.squids.live/eacc-arb-one@v1/api/graphql',
         cache: new InMemoryCache(),
@@ -166,7 +166,7 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const address = params.address;
   console.log('Generating metadata for user address:', address);
-  
+
   // Handle invalid addresses gracefully
   let checksummedAddress: string;
   try {
@@ -203,7 +203,7 @@ export async function generateMetadata(
   if (!user) {
     console.log('User not found for metadata, returning fallback metadata for address:', address);
     const shortAddress = shortenAddress(address);
-    
+
     return {
       title: `User ${shortAddress} - Effective Acceleration`,
       description: `View user profile for ${shortAddress} on Effective Acceleration marketplace.`,
@@ -236,7 +236,7 @@ export async function generateMetadata(
   // Calculate statistics
   const successRate = calculateSuccessRate(user.reputationUp || 0, user.reputationDown || 0);
   const totalReviews = user.numberOfReviews || 0;
-  
+
   // Calculate actual average rating
   let avgRating = 0;
   if (reviews && reviews.length > 0) {
@@ -248,10 +248,10 @@ export async function generateMetadata(
   }
 
   // Build dynamic title and description
-  const title = user.name 
-    ? `${user.name} - Effective Acceleration` 
+  const title = user.name
+    ? `${user.name} - Effective Acceleration`
     : `User ${shortenAddress(user.address_)} - Effective Acceleration`;
-  
+
   // For description, prioritize the bio if it exists, otherwise show stats
   let description: string;
   if (user.bio && user.bio.trim()) {

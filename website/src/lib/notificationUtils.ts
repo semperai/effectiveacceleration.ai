@@ -2,24 +2,24 @@
 import { JobEventType } from '@effectiveacceleration/contracts';
 import type { NotificationWithJob } from '@/hooks/subsquid/useUserNotifications';
 import { formatTokenNameAndAmount } from '@/tokens';
-import { 
-  FileText, 
-  UserCheck, 
-  DollarSign, 
-  Edit, 
-  PenTool, 
-  CheckCircle, 
-  Package, 
-  Star, 
-  RotateCcw, 
-  AlertTriangle, 
-  Scale, 
-  XCircle, 
-  UserPlus, 
-  UserMinus, 
-  Banknote, 
-  Lock, 
-  Unlock, 
+import {
+  FileText,
+  UserCheck,
+  DollarSign,
+  Edit,
+  PenTool,
+  CheckCircle,
+  Package,
+  Star,
+  RotateCcw,
+  AlertTriangle,
+  Scale,
+  XCircle,
+  UserPlus,
+  UserMinus,
+  Banknote,
+  Lock,
+  Unlock,
   MessageSquare,
   FileCheck
 } from 'lucide-react';
@@ -47,7 +47,7 @@ export const getNotificationContent = (
 ): NotificationContent => {
   const { type, job, address } = notification;
   const isRead = notification.read;
-  
+
   // Helper to determine if current user is creator, worker, or arbitrator
   const getUserRole = () => {
     if (!currentUserAddress || !job) return 'participant';
@@ -75,7 +75,7 @@ export const getNotificationContent = (
     case JobEventType.Created:
       return {
         title: isRead ? 'Job Created' : 'New Job Created',
-        description: userRole === 'arbitrator' 
+        description: userRole === 'arbitrator'
           ? 'You have been assigned as the arbitrator for this job'
           : 'A job has been created',
         icon: React.createElement(FileText, { className: 'h-3.5 w-3.5' }),
@@ -95,7 +95,7 @@ export const getNotificationContent = (
     case JobEventType.Paid:
       return {
         title: 'Payment Received',
-        description: job?.amount 
+        description: job?.amount
           ? `Payment of ${formatTokenNameAndAmount(job.token, job.amount)} has been made`
           : 'Payment has been made for this job',
         icon: React.createElement(DollarSign, { className: 'h-3.5 w-3.5' }),
@@ -211,7 +211,7 @@ export const getNotificationContent = (
     case JobEventType.CollateralWithdrawn:
       return {
         title: 'Collateral Withdrawn',
-        description: job?.collateralOwed 
+        description: job?.collateralOwed
           ? `${formatTokenNameAndAmount(job.token, job.collateralOwed)} withdrawn`
           : 'Collateral has been withdrawn',
         icon: React.createElement(Banknote, { className: 'h-3.5 w-3.5' }),
@@ -238,13 +238,13 @@ export const getNotificationContent = (
     case JobEventType.WorkerMessage: {
       const messageContent = notification.messageContent;
       const isOwnerMessage = type === JobEventType.OwnerMessage;
-      
+
       // Determine description based on content availability
       let description = '';
-      
+
       if (messageContent && messageContent.trim()) {
         // We have actual content
-        if (messageContent === '[Unable to load message]' || 
+        if (messageContent === '[Unable to load message]' ||
             messageContent === '[Error loading message]') {
           // Error states from the fetch
           description = messageContent;
@@ -258,18 +258,18 @@ export const getNotificationContent = (
       } else {
         // No content available yet or undefined
         // This provides a fallback that's better than empty string
-        description = isOwnerMessage 
+        description = isOwnerMessage
           ? `Message from ${userRole === 'worker' ? 'job owner' : 'owner'}`
           : `Message from ${userRole === 'creator' ? 'worker' : 'worker'}`;
       }
-      
+
       console.log('[notificationUtils] Message notification result:', {
         notificationId: notification.id,
         hasContent: !!messageContent,
         contentLength: messageContent?.length,
         finalDescription: description
       });
-      
+
       return {
         title: isRead ? 'Message' : 'New Message',
         description,

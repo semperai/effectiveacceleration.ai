@@ -31,8 +31,8 @@ import { ethers } from 'ethers';
 import moment from 'moment';
 import Link from 'next/link';
 import type React from 'react';
-import {type 
-  ChangeEvent,type 
+import {type
+  ChangeEvent,type
   LegacyRef,
   SetStateAction,
   useEffect,

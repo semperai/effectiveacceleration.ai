@@ -38,9 +38,9 @@ import RegisterModal from './RegisterModal';
 import { SubmitJobButton } from './SubmitJobButton';
 import { Combobox } from '@/components/ComboBox';
 import ListBox from '@/components/ListBox';
-import { 
-  PiSparkle, 
-  PiBriefcase, 
+import {
+  PiSparkle,
+  PiBriefcase,
   PiCurrencyDollar,
   PiClock,
   PiScales,
@@ -91,8 +91,8 @@ const StyledField = React.memo(({ children, error }: { children: React.ReactNode
   <div className='relative group'>
     <div className={`
       rounded-xl transition-all duration-200
-      ${error 
-        ? 'bg-red-50 border border-red-200' 
+      ${error
+        ? 'bg-red-50 border border-red-200'
         : 'bg-gray-50 hover:bg-gray-100 border border-gray-200 hover:border-gray-300'
       }
       p-4
@@ -156,7 +156,7 @@ const JobSummary = ({
       </div>
     </div>
   );
-  
+
   const deliveryMethodName = deliveryMethods.find(method => method.id === deliveryMethod)?.name;
 
   return (
@@ -181,7 +181,7 @@ const JobSummary = ({
         {/* Background gradient orbs */}
         <div className='absolute top-0 right-0 w-40 h-40 bg-blue-100/50 rounded-full blur-3xl' />
         <div className='absolute bottom-0 left-0 w-40 h-40 bg-purple-100/50 rounded-full blur-3xl' />
-        
+
         {/* Card content */}
         <div className='relative rounded-2xl bg-white/80 backdrop-blur-sm border border-gray-200 p-8 shadow-lg'>
           <div className='divide-y divide-gray-200'>
@@ -241,9 +241,9 @@ const JobSummary = ({
 
       {/* Action buttons */}
       <div className='flex justify-end gap-4 pb-16'>
-        <Button 
-          outline 
-          onClick={handleSummary} 
+        <Button
+          outline
+          onClick={handleSummary}
           className='px-6'
         >
           Go Back
@@ -270,17 +270,17 @@ const PostJob = () => {
   const { data: user } = useUser(address!);
   const { data: arbitrators } = useArbitrators();
   const searchParams = useSearchParams();
-  
+
   const arbitratorAddresses = useMemo(() => [
     zeroAddress,
     ...(arbitrators?.map((worker) => worker.address_) ?? []),
   ], [arbitrators]);
-  
+
   const arbitratorNames = useMemo(() => [
     'None',
     ...(arbitrators?.map((worker) => worker.name) ?? []),
   ], [arbitrators]);
-  
+
   const arbitratorFees = useMemo(() => [
     '0',
     ...(arbitrators?.map((worker) => worker.fee) ?? []),
@@ -300,7 +300,7 @@ const PostJob = () => {
     // Find token from address
     let initialToken = tokens.find((token) => token.symbol === 'USDC');
     if (tokenAddress) {
-      const foundToken = tokens.find((token) => 
+      const foundToken = tokens.find((token) =>
         token.id.toLowerCase() === tokenAddress.toLowerCase()
       );
       if (foundToken) {
@@ -356,9 +356,9 @@ const PostJob = () => {
       amount,
     };
   }, [searchParams]);
-  
+
   const initialValues = useMemo(() => getInitialValues(), [getInitialValues]);
-  
+
   const [selectedToken, setSelectedToken] = useState<Token | undefined>(initialValues.token);
   const noYes = ['No', 'Yes'];
   const [showSummary, setShowSummary] = useState(false);
@@ -498,7 +498,7 @@ const PostJob = () => {
       setDeadlineError('');
       return;
     }
-  
+
     let deadline = parseInt(deadlineStr);
 
     if (deadline < 0) {
@@ -656,7 +656,7 @@ const PostJob = () => {
                   <PiBriefcase className='h-5 w-5 text-blue-600' />
                   Job Details
                 </h2>
-                
+
                 <FieldGroup className='space-y-4'>
                   <StyledField error={titleError}>
                     <Label className='text-gray-700 mb-2'>Job Title</Label>
@@ -708,9 +708,9 @@ const PostJob = () => {
                             className='!mt-0 flex items-center'
                             key={option}
                           >
-                            <Radio 
-                              className='mr-2' 
-                              color='default' 
+                            <Radio
+                              className='mr-2'
+                              color='default'
                               value={option}
                             >
                               <span>{option}</span>
@@ -838,9 +838,9 @@ const PostJob = () => {
                             className='!mt-0 flex items-center'
                             key={option}
                           >
-                            <Radio 
-                              color='default' 
-                              className='mr-2' 
+                            <Radio
+                              color='default'
+                              className='mr-2'
                               value={option}
                             >
                               <span>{option}</span>
@@ -914,8 +914,8 @@ const PostJob = () => {
                   onClick={handleSubmit}
                   className={`
                     px-8 py-3 rounded-xl font-medium transition-all duration-200
-                    ${continueButtonDisabled 
-                      ? 'bg-gray-100 text-gray-500 border border-gray-200 cursor-not-allowed' 
+                    ${continueButtonDisabled
+                      ? 'bg-gray-100 text-gray-500 border border-gray-200 cursor-not-allowed'
                       : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
                     }
                   `}
@@ -932,7 +932,7 @@ const PostJob = () => {
           )}
         </Fieldset>
       )}
-      
+
       {showSummary && (
         <JobSummary
           handleSummary={handleSummary}
@@ -948,7 +948,7 @@ const PostJob = () => {
           selectedArbitratorAddress={selectedArbitratorAddress}
         />
       )}
-      
+
       <RegisterModal
         open={isRegisterModalOpen}
         close={() => {

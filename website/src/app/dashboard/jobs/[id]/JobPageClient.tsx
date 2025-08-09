@@ -100,7 +100,7 @@ export default function JobPageClient({ id }: JobPageClientProps) {
   const workerJobCache = `${address}${LOCAL_JOBS_WORKER_CACHE}`;
   const ownerJobCache = `${address}${LOCAL_JOBS_OWNER_CACHE}`;
   const prevJobRef = useRef<Job | undefined>(undefined);
-  
+
   useSwResetMessage(jobId);
 
   // Calculate the time passed since the job was closed
@@ -183,7 +183,7 @@ export default function JobPageClient({ id }: JobPageClientProps) {
       setEventMessages(events);
     }
   }, [events, selectedWorker]);
-  
+
   // TODO - this should be centered
   if (error) {
     return (
@@ -208,7 +208,7 @@ export default function JobPageClient({ id }: JobPageClientProps) {
     !isOwner && !isWorker && address && job?.roles.arbitrator.includes(address);
   console.log(events, 'events')
 
-  
+
   return (
     <Layout borderless>
       <div className='grid min-h-customHeader grid-cols-1'>

@@ -43,7 +43,7 @@ const LoadingModal = ({
                 {/* Background gradient effects */}
                 <div className='absolute top-0 right-0 w-32 h-32 bg-blue-100/50 rounded-full blur-2xl' />
                 <div className='absolute bottom-0 left-0 w-32 h-32 bg-purple-100/50 rounded-full blur-2xl' />
-                
+
                 {/* Content */}
                 <div className='relative'>
                   <div className='flex flex-col items-center gap-6'>

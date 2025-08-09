@@ -48,14 +48,14 @@ const ResultVerification: React.FC<ResultAcceptedProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [formattedComment, setFormattedComment] = useState<string>('');
   const [isFormatted, setIsFormatted] = useState(false);
-  
+
   // Get the delivery event
   const deliveryEvent = events.filter(
     (event: JobEventWithDiffs) => event.type_ === JobEventType.Delivered
   )[0];
-  
+
   const rawComment: string = deliveryEvent?.job?.result || '';
-  
+
   // Fix: Get the worker address from the job or delivery event, not selectedWorker
   const workerAddress = job.roles.worker || deliveryEvent?.address_ || selectedWorker;
   const workerData = users[workerAddress];
@@ -77,12 +77,12 @@ const ResultVerification: React.FC<ResultAcceptedProps> = ({
   };
 
   const shouldTruncate = formattedComment.length > 200 && !isFormatted;
-  const displayContent = shouldTruncate && !isExpanded 
-    ? `${formattedComment.slice(0, 200)}...` 
+  const displayContent = shouldTruncate && !isExpanded
+    ? `${formattedComment.slice(0, 200)}...`
     : formattedComment;
 
   // Check if dispute button should be shown
-  const showDisputeButton = 
+  const showDisputeButton =
     job?.state === JobState.Taken &&
     job.roles.arbitrator !== zeroAddress &&
     address === job.roles.creator &&
@@ -96,7 +96,7 @@ const ResultVerification: React.FC<ResultAcceptedProps> = ({
         {/* Decorative elements */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-full blur-3xl" />
-        
+
         {/* Content */}
         <div className='relative p-8'>
           {/* Header Section */}
@@ -138,7 +138,7 @@ const ResultVerification: React.FC<ResultAcceptedProps> = ({
                   Delivery Message
                 </h4>
               </div>
-              
+
               {/* Message Content */}
               <div className='prose prose-sm dark:prose-invert max-w-none'>
                 <Markdown className='text-gray-700 dark:text-gray-300'>
@@ -213,12 +213,12 @@ const ResultVerification: React.FC<ResultAcceptedProps> = ({
                   <ApproveButton address={address} job={job} />
                 </div>
               )}
-            
+
             {showDisputeButton && (
               <div className='flex-1 sm:max-w-xs'>
-                <DisputeButton 
-                  address={address} 
-                  job={job} 
+                <DisputeButton
+                  address={address}
+                  job={job}
                   sessionKeys={sessionKeys}
                 />
               </div>

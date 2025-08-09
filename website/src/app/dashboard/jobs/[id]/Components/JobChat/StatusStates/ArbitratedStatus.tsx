@@ -66,7 +66,7 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
         {/* Decorative elements */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-br from-purple-500/5 to-indigo-500/5 rounded-full blur-3xl" />
-        
+
         {/* Content */}
         <div className='relative p-6 lg:p-8'>
           {/* Verdict Header */}
@@ -77,12 +77,12 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
                 <PiGavel className='w-10 h-10 text-white' />
               </div>
             </div>
-            
+
             {/* Main Status Message */}
             <h3 className='text-xl lg:text-2xl font-bold text-gray-900 dark:text-white mb-2'>
               Arbitration Complete
             </h3>
-            
+
             <p className='text-sm text-gray-600 dark:text-gray-400 text-center max-w-md'>
               The arbitrator has made a final decision on this dispute
             </p>
@@ -123,12 +123,12 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
               <PiCoin className='w-4 h-4' />
               Fund Distribution
             </h4>
-            
+
             <div className='grid grid-cols-1 lg:grid-cols-3 gap-4'>
               {/* Creator's Portion */}
               <div className={`p-4 rounded-xl border ${
-                isCreator 
-                  ? 'bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-blue-300 dark:border-blue-700' 
+                isCreator
+                  ? 'bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-blue-300 dark:border-blue-700'
                   : 'bg-white/50 dark:bg-gray-900/30 border-gray-200 dark:border-gray-700'
               }`}>
                 <div className='flex items-center gap-2 mb-2'>
@@ -152,8 +152,8 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
 
               {/* Worker's Portion */}
               <div className={`p-4 rounded-xl border ${
-                isWorker 
-                  ? 'bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-green-300 dark:border-green-700' 
+                isWorker
+                  ? 'bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-green-300 dark:border-green-700'
                   : 'bg-white/50 dark:bg-gray-900/30 border-gray-200 dark:border-gray-700'
               }`}>
                 <div className='flex items-center gap-2 mb-2'>
@@ -177,8 +177,8 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
 
               {/* Arbitrator's Fee */}
               <div className={`p-4 rounded-xl border ${
-                isArbitrator 
-                  ? 'bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/30 dark:to-violet-950/30 border-purple-300 dark:border-purple-700' 
+                isArbitrator
+                  ? 'bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/30 dark:to-violet-950/30 border-purple-300 dark:border-purple-700'
                   : 'bg-white/50 dark:bg-gray-900/30 border-gray-200 dark:border-gray-700'
               }`}>
                 <div className='flex items-center gap-2 mb-2'>

@@ -15,11 +15,11 @@ import { getFromIpfs, type Job, publishToIpfs } from '@effectiveacceleration/con
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { Dialog, Transition } from '@headlessui/react';
 import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { 
-  PiSparkle, 
-  PiFileText, 
-  PiTag, 
-  PiHash, 
+import {
+  PiSparkle,
+  PiFileText,
+  PiTag,
+  PiHash,
   PiCurrencyDollar,
   PiClock,
   PiUser,
@@ -91,14 +91,14 @@ const handleInputChange =
   };
 
 // Enhanced Section Header Component
-const SectionHeader = ({ 
-  icon: Icon, 
-  title, 
-  subtitle 
-}: { 
-  icon: any; 
-  title: string; 
-  subtitle?: string; 
+const SectionHeader = ({
+  icon: Icon,
+  title,
+  subtitle
+}: {
+  icon: any;
+  title: string;
+  subtitle?: string;
 }) => (
   <div className='mb-6 pb-4 border-b border-gray-100 dark:border-gray-800'>
     <div className='flex items-center gap-3'>
@@ -120,12 +120,12 @@ const SectionHeader = ({
 );
 
 // Enhanced Field Component with better styling
-const EnhancedField = ({ 
-  children, 
-  className = '' 
-}: { 
-  children: React.ReactNode; 
-  className?: string; 
+const EnhancedField = ({
+  children,
+  className = ''
+}: {
+  children: React.ReactNode;
+  className?: string;
 }) => (
   <div className={`group relative ${className}`}>
     <div className='absolute inset-0 bg-gradient-to-r from-blue-500/0 via-blue-500/5 to-purple-500/0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
@@ -136,10 +136,10 @@ const EnhancedField = ({
 );
 
 // Styled Radio Group with modern design
-const StyledRadioGroup = ({ 
-  label, 
-  options, 
-  value, 
+const StyledRadioGroup = ({
+  label,
+  options,
+  value,
   onChange,
   description,
   icon: Icon
@@ -343,7 +343,7 @@ export function UpdateButton({
       console.log('Form has errors');
     }
   }
-  
+
   const [isOpen, setIsOpen] = useState(false);
 
   function closeModal() {
@@ -360,7 +360,7 @@ export function UpdateButton({
       setDeadlineError('This field is required');
       return;
     }
-  
+
     let deadline = parseInt(deadlineStr);
 
     if (deadline < 0) {
@@ -385,7 +385,7 @@ export function UpdateButton({
         className='
           relative w-full group
           px-4 py-3 rounded-xl
-          bg-gradient-to-r from-gray-50 to-gray-100 
+          bg-gradient-to-r from-gray-50 to-gray-100
           dark:from-gray-800/50 dark:to-gray-900/50
           border border-gray-200 dark:border-gray-700
           transition-all duration-300
@@ -404,7 +404,7 @@ export function UpdateButton({
         {/* Subtle gradient overlay on hover */}
         <div className='absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/0 via-blue-500/5 to-purple-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
       </button>
-      
+
       <Transition appear show={isOpen} as={Fragment}>
         <Dialog as='div' className='relative z-50' onClose={closeModal}>
           <Transition.Child
@@ -431,7 +431,7 @@ export function UpdateButton({
                 leaveTo='opacity-0 scale-95 translate-y-4'
               >
                 <Dialog.Panel className='
-                  w-full max-w-5xl transform overflow-hidden rounded-2xl 
+                  w-full max-w-5xl transform overflow-hidden rounded-2xl
                   bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-900 dark:to-black
                   shadow-2xl transition-all
                   relative
@@ -439,14 +439,14 @@ export function UpdateButton({
                   {/* Enhanced gradient orbs */}
                   <div className="absolute -top-40 -left-40 w-96 h-96 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl animate-pulse" />
                   <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-full blur-3xl animate-pulse" />
-                  
+
                   {/* Content */}
                   <div className="relative">
                     {/* Enhanced Header */}
                     <div className='relative overflow-hidden'>
                       {/* Header gradient background */}
                       <div className='absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-blue-500/5' />
-                      
+
                       <div className='relative flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800'>
                         <div className='flex items-center gap-4'>
                           <div className='relative'>
@@ -467,10 +467,10 @@ export function UpdateButton({
                         <button
                           onClick={closeModal}
                           className='
-                            p-2.5 rounded-xl text-gray-500 dark:text-gray-400 
-                            hover:text-gray-700 dark:hover:text-white 
+                            p-2.5 rounded-xl text-gray-500 dark:text-gray-400
+                            hover:text-gray-700 dark:hover:text-white
                             bg-gray-100 dark:bg-gray-800/50
-                            hover:bg-gray-200 dark:hover:bg-gray-700/50 
+                            hover:bg-gray-200 dark:hover:bg-gray-700/50
                             transition-all duration-200
                           '
                         >
@@ -483,12 +483,12 @@ export function UpdateButton({
                     <div className='p-8 max-h-[70vh] overflow-y-auto'>
                       {/* Job Details Section */}
                       <div className='mb-8'>
-                        <SectionHeader 
-                          icon={PiFileText} 
-                          title='Job Information' 
+                        <SectionHeader
+                          icon={PiFileText}
+                          title='Job Information'
                           subtitle='Basic details about your job posting'
                         />
-                        
+
                         <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
                           <EnhancedField className='lg:col-span-2'>
                             <Field>
@@ -557,12 +557,12 @@ export function UpdateButton({
 
                       {/* Payment Section */}
                       <div className='mb-8'>
-                        <SectionHeader 
-                          icon={PiCoins} 
-                          title='Payment & Timeline' 
+                        <SectionHeader
+                          icon={PiCoins}
+                          title='Payment & Timeline'
                           subtitle='Set your budget and delivery expectations'
                         />
-                        
+
                         <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
                           <EnhancedField>
                             <div className='flex gap-3'>
@@ -636,9 +636,9 @@ export function UpdateButton({
                                       setSelectedUnitTime(unit);
                                     }
                                   }}
-                                  options={unitsDeliveryTime.map(unit => ({ 
-                                    id: unit.id.toString(), 
-                                    name: unit.name 
+                                  options={unitsDeliveryTime.map(unit => ({
+                                    id: unit.id.toString(),
+                                    name: unit.name
                                   }))}
                                 />
                               </Field>
@@ -649,12 +649,12 @@ export function UpdateButton({
 
                       {/* Settings Section */}
                       <div>
-                        <SectionHeader 
-                          icon={PiUsersThree} 
-                          title='Job Settings' 
+                        <SectionHeader
+                          icon={PiUsersThree}
+                          title='Job Settings'
                           subtitle='Configure arbitration and worker preferences'
                         />
-                        
+
                         <div className='space-y-6'>
                           <EnhancedField>
                             <Field>
@@ -690,7 +690,7 @@ export function UpdateButton({
                     <div className='relative overflow-hidden'>
                       {/* Footer gradient background */}
                       <div className='absolute inset-0 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900/50 dark:to-gray-800/50' />
-                      
+
                       <div className='relative p-6 border-t border-gray-200 dark:border-gray-800'>
                         <div className='flex justify-between items-center'>
                           <p className='text-sm text-gray-500 dark:text-gray-400'>

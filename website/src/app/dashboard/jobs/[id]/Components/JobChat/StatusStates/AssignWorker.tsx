@@ -48,7 +48,7 @@ const AssignWorker: React.FC<AssignWorkerProps> = ({
         {/* Decorative elements */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-br from-purple-500/10 to-indigo-500/10 rounded-full blur-3xl animate-pulse" />
-        
+
         {/* Animated decorative icons */}
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-10 left-10 animate-bounce delay-100">
@@ -61,7 +61,7 @@ const AssignWorker: React.FC<AssignWorkerProps> = ({
             <PiRocket className="w-6 h-6 text-indigo-500" />
           </div>
         </div>
-        
+
         {/* Content */}
         <div className='relative px-6 py-8 lg:px-8 lg:py-10'>
           {/* Header Section */}
@@ -72,11 +72,11 @@ const AssignWorker: React.FC<AssignWorkerProps> = ({
                 <PiHandshake className='w-10 h-10 text-white' />
               </div>
             </div>
-            
+
             <h3 className='text-xl lg:text-2xl font-bold text-gray-900 dark:text-white mb-2'>
               Ready to Assign Worker
             </h3>
-            
+
             <p className='text-sm text-gray-600 dark:text-gray-400 text-center max-w-md'>
               You're about to assign this job to your selected candidate
             </p>

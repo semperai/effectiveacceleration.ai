@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
+// src/components/TokenDialog/index.tsx
 
 import React from 'react';
 import {
@@ -14,6 +15,7 @@ import {
   ClickAwayListener,
   Slide,
   ListItemButton,
+  CircularProgress,
 } from '@mui/material';
 import {
   ContainerListPreferredTokens,
@@ -36,19 +38,7 @@ import { PinIcon } from './Dependencies/Icons/PinIcon';
 import { toast } from './Dependencies/toast';
 import Unicrow from '@unicrowio/sdk';
 import { reduceAddress } from './Dependencies/addressFormatter';
-
-interface IArbitrumToken {
-  logoURI?: string;
-  chainId: number;
-  address: string;
-  name: string;
-  symbol: string;
-  decimals: number;
-  extensions?: any;
-  l1Address?: string;
-  l2GatewayAddress?: string;
-  l1GatewayAddress?: string;
-}
+import { fetchTokenMetadata, isValidTokenContract, type IArbitrumToken } from './Dependencies/tokenHelpers';
 
 const TokenDialog = ({
   initiallySelectedToken,
@@ -76,6 +66,9 @@ const TokenDialog = ({
   const [provider, setProvider] = React.useState<any>(null);
   const [sortedTokensList, setSortedTokensList] = React.useState([]);
   const [isAddCustomToken, setAddCustomToken] = React.useState(false);
+  const [isLoadingToken, setIsLoadingToken] = React.useState(false);
+  const [tokenLoadError, setTokenLoadError] = React.useState<string>('');
+  
   const noTokensFound = !filteredTokens || filteredTokens.length === 0;
 
   const getBalance = async (token: IArbitrumToken) => {
@@ -92,23 +85,84 @@ const TokenDialog = ({
     }
   };
 
-  const addCustomToken = () => {
-    if (!Unicrow.helpers.isValidAddress(customTokenValue)) {
+  const addCustomToken = async () => {
+    setTokenLoadError('');
+    
+    // Basic address validation
+    if (!ethers.isAddress(customTokenValue)) {
+      setTokenLoadError('Please provide a valid address');
       toast('Please provide a valid address', 'error');
       return;
     }
 
-    const newToken = {
-      symbol: 'UNK',
-      name: `UNKNOWN (${reduceAddress(customTokenValue)})`,
-      address: customTokenValue,
-    } as IArbitrumToken;
+    // Check if token already exists
+    const existingToken = [...tokensList, ...customTokens].find(
+      t => t.address.toLowerCase() === customTokenValue.toLowerCase()
+    );
+    
+    if (existingToken) {
+      toast('Token already in list', 'error');
+      setSelectedToken(existingToken);
+      closeCallback(existingToken);
+      return;
+    }
 
-    const newList = Array.from(new Set([...customTokens, newToken]));
-    lscacheModule.set('custom-tokens', newList, Infinity);
-    setCustomTokens(newList);
-    setFilteredTokens([...filteredTokens!, newToken]);
-    setAddCustomToken(false);
+    setIsLoadingToken(true);
+
+    try {
+      // Get provider
+      const provider = await Unicrow.wallet.getWeb3Provider();
+      
+      // Validate if it's a token contract
+      const isValid = await isValidTokenContract(customTokenValue, provider);
+      
+      if (!isValid) {
+        setTokenLoadError('Address is not a valid ERC20 token contract');
+        toast('Address is not a valid ERC20 token contract', 'error');
+        setIsLoadingToken(false);
+        return;
+      }
+
+      // Fetch token metadata
+      const tokenMetadata = await fetchTokenMetadata(customTokenValue, provider);
+      
+      if (!tokenMetadata) {
+        setTokenLoadError('Failed to fetch token information');
+        toast('Failed to fetch token information', 'error');
+        setIsLoadingToken(false);
+        return;
+      }
+
+      // Add to custom tokens list
+      const newList = [...customTokens, tokenMetadata];
+      lscacheModule.set('custom-tokens', newList, Infinity);
+      setCustomTokens(newList);
+      
+      // Update filtered tokens if search is active
+      if (filteredTokens) {
+        setFilteredTokens([...filteredTokens, tokenMetadata]);
+      }
+      
+      // Select the newly added token
+      setSelectedToken(tokenMetadata);
+      
+      // Reset form
+      setAddCustomToken(false);
+      setAddTokenValue('');
+      setSearchValue('');
+      
+      toast(`Added ${tokenMetadata.symbol} successfully`, 'success');
+      
+      // Optionally close the dialog after adding
+      // closeCallback(tokenMetadata);
+      
+    } catch (error) {
+      console.error('Error adding custom token:', error);
+      setTokenLoadError('Failed to add token. Please check the address.');
+      toast('Failed to add token', 'error');
+    } finally {
+      setIsLoadingToken(false);
+    }
   };
 
   const addFavoriteTokens = (token: IArbitrumToken) => {
@@ -167,12 +221,29 @@ const TokenDialog = ({
     }
   }, [tokensList]);
 
+  // Enhanced search to detect contract addresses
+  React.useEffect(() => {
+    const checkIfAddressAndLoad = async () => {
+      // Check if search value is a valid address
+      if (ethers.isAddress(searchValue)) {
+        // Check if this address is already in our lists
+        const existingToken = [...tokensList, ...customTokens].find(
+          t => t.address.toLowerCase() === searchValue.toLowerCase()
+        );
+        
+        if (!existingToken) {
+          // Automatically show add token UI for valid addresses
+          setAddTokenValue(searchValue);
+          setAddCustomToken(true);
+        }
+      }
+    };
+
+    checkIfAddressAndLoad();
+  }, [searchValue]);
+
   // filters tokens by search input
   React.useEffect(() => {
-    // const list = [
-    //   ...(sortedTokensList?.length > 0 ? sortedTokensList : tokensList),
-    //   ...customTokens,
-    // ];
     const list = [
       ...(Array.isArray(sortedTokensList) && sortedTokensList.length > 0
         ? sortedTokensList
@@ -181,8 +252,7 @@ const TokenDialog = ({
           : []),
       ...(Array.isArray(customTokens) ? customTokens : []),
     ];
-    console.log(sortedTokensList, 'sortedTokensList');
-    console.log(tokensList, 'tokensList');
+    
     const _value = `${searchValue}`.toLowerCase();
 
     if (_value !== '') {
@@ -196,12 +266,10 @@ const TokenDialog = ({
         }
       }
       setFilteredTokens(newList);
-      console.log('Newlist');
     } else {
-      console.log('default');
-      // setFilteredTokens(list);
+      setFilteredTokens(list);
     }
-  }, [searchValue, tokensList, sortedTokensList]);
+  }, [searchValue, tokensList, sortedTokensList, customTokens]);
 
   // gets all balances and converts them in USD, after that `sortedTokensList` is used to filter tokens
   // => to improve the user experience, the fetch is delayed - until then tokens are already displayed and searchable (tokensList)
@@ -232,7 +300,7 @@ const TokenDialog = ({
       token.logoURI ? (
         <Avatar src={token.logoURI} />
       ) : (
-        <Avatar>{token.symbol}</Avatar>
+        <Avatar>{token.symbol?.substring(0, 3) || '?'}</Avatar>
       );
 
     return favoriteTokens?.length ? (
@@ -241,7 +309,9 @@ const TokenDialog = ({
           <Chip
             key={token.address}
             avatar={
-              token.name === 'ETH' ? <EthereumIcon /> : AvatarNonEth(token)
+              token.name === 'ETH' || token.symbol === 'ETH' 
+                ? <EthereumIcon /> 
+                : AvatarNonEth(token)
             }
             label={token.symbol}
             clickable
@@ -263,6 +333,8 @@ const TokenDialog = ({
         onClick={() => {
           setSearchValue('');
           setAddCustomToken(false);
+          setAddTokenValue('');
+          setTokenLoadError('');
         }}
         title='Clear'
         onMouseDown={(e) => e.preventDefault()}
@@ -309,6 +381,7 @@ const TokenDialog = ({
               value={searchValue}
               onChange={(e) => {
                 setAddCustomToken(false);
+                setTokenLoadError('');
                 setSearchValue(e.target.value);
               }}
               endAdornment={
@@ -327,10 +400,10 @@ const TokenDialog = ({
             $noTokensFound={noTokensFound}
           >
             <List>
-              {noTokensFound ? (
+              {noTokensFound && !isAddCustomToken ? (
                 <li className='text-black'>No results found.</li>
               ) : (
-                filteredTokens.map((token) => (
+                filteredTokens?.map((token) => (
                   <TokenItem
                     key={token.address}
                     token={token}
@@ -343,29 +416,51 @@ const TokenDialog = ({
             </List>
           </StyledDialogContent>
         </DialogWrapper>
-        {noTokensFound && (
+        {(noTokensFound || ethers.isAddress(searchValue)) && (
           <AddTokenWrapper isAddCustomToken={isAddCustomToken}>
-            <p
-              onClick={() => {
-                setAddTokenValue(searchValue);
-                setAddCustomToken(true);
-              }}
-            >
-              Add Token {!isAddCustomToken && '+'}
-            </p>
+            {!isAddCustomToken && (
+              <p
+                onClick={() => {
+                  setAddTokenValue(searchValue);
+                  setAddCustomToken(true);
+                }}
+                style={{ cursor: 'pointer' }}
+              >
+                Add Token +
+              </p>
+            )}
             {isAddCustomToken && (
               <>
                 <Input
                   type='text'
-                  placeholder='Search name or paste address'
-                  title='Search'
+                  placeholder='Enter token contract address'
+                  title='Token Address'
                   fullWidth
                   autoFocus
                   value={customTokenValue}
-                  onChange={(e) => setAddTokenValue(e.target.value)}
-                  endAdornment={InputResetButton(customTokenValue)}
+                  onChange={(e) => {
+                    setAddTokenValue(e.target.value);
+                    setTokenLoadError('');
+                  }}
+                  error={!!tokenLoadError}
+                  endAdornment={
+                    <>
+                      {isLoadingToken && <CircularProgress size={20} />}
+                      {!isLoadingToken && InputResetButton(customTokenValue)}
+                    </>
+                  }
                 />
-                <Button onClick={addCustomToken}>Add</Button>
+                {tokenLoadError && (
+                  <p style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>
+                    {tokenLoadError}
+                  </p>
+                )}
+                <Button 
+                  onClick={addCustomToken} 
+                  disabled={isLoadingToken || !customTokenValue}
+                >
+                  {isLoadingToken ? 'Loading...' : 'Add Token'}
+                </Button>
               </>
             )}
           </AddTokenWrapper>
@@ -381,10 +476,10 @@ const TokenItem = ({
   handleSelectToken,
   addFavoriteTokens,
 }: {
-  token: any;
-  selectedToken: any | null;
-  handleSelectToken: (token: any, event: React.MouseEvent) => void;
-  addFavoriteTokens: (token: any) => void;
+  token: IArbitrumToken;
+  selectedToken: IArbitrumToken | null;
+  handleSelectToken: (token: IArbitrumToken, event: React.MouseEvent) => void;
+  addFavoriteTokens: (token: IArbitrumToken) => void;
 }) => {
   return (
     <Slide
@@ -401,25 +496,41 @@ const TokenItem = ({
           {token.logoURI ? (
             <Avatar src={token.logoURI} />
           ) : (
-            <Avatar>{token.symbol}</Avatar>
+            <Avatar>
+              {token.symbol ? token.symbol.substring(0, 3) : '?'}
+            </Avatar>
           )}
         </ListItemIcon>
 
         <ListItemText disableTypography>
           <span className='token'>
-            <span>{token.name}</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {token.name}
+              {token.isCustom && (
+                <Chip 
+                  label="Custom" 
+                  size="small" 
+                  style={{ height: '20px' }}
+                  color="secondary"
+                />
+              )}
+            </span>
             <span className='balance'>
               {token?.balance ? token.balance : ''}
             </span>
           </span>
 
-          <span className='pin' onClick={() => addFavoriteTokens(token)}>
+          <span className='pin' onClick={(e) => {
+            e.stopPropagation();
+            addFavoriteTokens(token);
+          }}>
             <PinIcon />
           </span>
           <Link
             href={`https://arbiscan.io/token/${token.address}`}
             target='_blank'
             rel='noreferrer nofollow'
+            onClick={(e) => e.stopPropagation()}
           >
             <ExternalLinkIcon />
           </Link>

@@ -8,7 +8,7 @@ import {
   ClockIcon,
   TagIcon,
 } from '@heroicons/react/20/solid';
-import { 
+import {
   PiCoin,
   PiTimer,
   PiMapPin,
@@ -137,7 +137,7 @@ const JobChatDetails = ({
   // Enhanced tag component
   const Tag = ({ children }: { children: React.ReactNode }) => (
     <span className='
-      inline-flex items-center px-3 py-1.5 m-1 rounded-full 
+      inline-flex items-center px-3 py-1.5 m-1 rounded-full
       bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30
       text-xs font-medium text-blue-700 dark:text-blue-300
       border border-blue-200 dark:border-blue-700
@@ -148,8 +148,8 @@ const JobChatDetails = ({
   );
 
   // Progress bar component
-  const ProgressBar = ({ value, label, variant = 'default' }: { 
-    value: number; 
+  const ProgressBar = ({ value, label, variant = 'default' }: {
+    value: number;
     label?: string;
     variant?: 'default' | 'success' | 'warning';
   }) => {
@@ -168,7 +168,7 @@ const JobChatDetails = ({
           </div>
         )}
         <div className="relative h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-          <div 
+          <div
             className={`absolute inset-y-0 left-0 bg-gradient-to-r ${variantColors[variant]} rounded-full transition-all duration-500`}
             style={{ width: `${value}%` }}
           >
@@ -219,7 +219,7 @@ const JobChatDetails = ({
           timePassed={timePassed}
         />
         <button className='
-          w-full mt-3 flex items-center justify-center gap-2 
+          w-full mt-3 flex items-center justify-center gap-2
           px-4 py-2.5 rounded-xl
           bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900
           border border-gray-200 dark:border-gray-700
@@ -253,8 +253,8 @@ const JobChatDetails = ({
           value={
             <span className={`
               px-2 py-0.5 rounded-full text-xs font-medium
-              ${job?.multipleApplicants 
-                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+              ${job?.multipleApplicants
+                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                 : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
               }
             `}>
@@ -262,8 +262,8 @@ const JobChatDetails = ({
             </span>
           }
         />
-        <DetailRow 
-          label='Delivery Method' 
+        <DetailRow
+          label='Delivery Method'
           icon={PiPackage}
           value={
             <span className="px-2 py-0.5 rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-xs font-medium">
@@ -271,7 +271,7 @@ const JobChatDetails = ({
             </span>
           }
         />
-        
+
         <div className='mt-4 pt-3 border-t border-gray-100 dark:border-gray-800'>
           <div className='flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400'>
             <UserIcon className='h-4 w-4' />
@@ -289,7 +289,7 @@ const JobChatDetails = ({
         job.collateralOwed > 0n && (
           <DetailSection title="Collateral Withdrawal" icon={PiCoin} variant="warning">
             <div className='space-y-4'>
-              <ProgressBar 
+              <ProgressBar
                 value={timePassed ? 100 : adjustedProgressValue}
                 label="Time until withdrawal"
                 variant={timePassed ? 'success' : 'warning'}

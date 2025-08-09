@@ -19,7 +19,7 @@ export function DeliveredEvent({
 
   const result = event.job.result;
   const [markdownContent, setMarkdownContent] = useState<string>();
-  
+
   useEffect(() => {
     formatMarkdownContent(result ?? '', setMarkdownContent);
   }, [result]);

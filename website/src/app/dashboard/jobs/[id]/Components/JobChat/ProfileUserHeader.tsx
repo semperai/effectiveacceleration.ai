@@ -54,8 +54,8 @@ const ProfileUserHeader: React.FC<JobSidebarProps> = ({
                   <div className='flex self-center pr-4'>
                     {job?.state === JobState.Open && isCreator && (
                       <div className='self-center !text-md mr-1 block md:hidden'>
-                        <ArrowBackIosNewIcon 
-                          onClick={() => setSideJobListOpen(prevState => !prevState)} 
+                        <ArrowBackIosNewIcon
+                          onClick={() => setSideJobListOpen(prevState => !prevState)}
                           className='self-center !text-md mr-1 block md:hidden text-lightPurple'>
                         </ArrowBackIosNewIcon>
                       </div>
@@ -84,22 +84,22 @@ const ProfileUserHeader: React.FC<JobSidebarProps> = ({
               </div>
             </div>
           </div>
-           <SideJobList 
-              sidebarOpen={sideJobListOpen} 
-              setSidebarOpen={setSideJobListOpen} 
-              users={users} 
-              address={address} 
-              job={job} 
-              setSelectedWorker={setSelectedWorker} 
+           <SideJobList
+              sidebarOpen={sideJobListOpen}
+              setSidebarOpen={setSideJobListOpen}
+              users={users}
+              address={address}
+              job={job}
+              setSelectedWorker={setSelectedWorker}
               selectedWorker={selectedWorker}
             />
-          <SideJobInfo 
+          <SideJobInfo
               sidebarOpen={sideJobInfoOpen}
               setSidebarOpen={setSideJobInfoOpen}
               users={users}
               address={address as `0x${string}`}
               job={job}
-              setSelectedWorker={setSelectedWorker} 
+              setSelectedWorker={setSelectedWorker}
               eventMessages={eventMessages}
               addresses={addresses}
               sessionKeys={sessionKeys}

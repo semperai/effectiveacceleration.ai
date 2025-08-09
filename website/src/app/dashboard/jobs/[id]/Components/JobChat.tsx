@@ -8,7 +8,7 @@ import {
 } from '@effectiveacceleration/contracts';
 import { zeroAddress } from 'viem';
 import JobChatEvents from './JobChat/JobChat';
-import { 
+import {
   PiChatCircleDots,
   PiSparkle,
   PiLockKey
@@ -42,7 +42,7 @@ const JobChat = ({
   const isUserWorker = address === job.roles.worker;
   const isUserCreator = address === job.roles.creator;
   const isJobTaken = job.state === JobState.Taken;
-  
+
   // Show message input for:
   // 1. Creator when job is taken (in progress)
   // 2. Creator when they have selected a worker to chat with
@@ -51,7 +51,7 @@ const JobChat = ({
   const isUserCreatorWithSelectedWorkerOrTaken =
     (isUserCreator && selectedWorker) ||
     (isUserCreator && isJobTaken);
-    
+
   const shouldShowPostMessageButton =
     job.state !== JobState.Closed &&
     addresses.length &&
@@ -76,7 +76,7 @@ const JobChat = ({
                 </p>
               </div>
             </div>
-            
+
             {/* Connection status indicator */}
             <div className='flex items-center gap-2'>
               {Object.keys(sessionKeys).length > 0 ? (
@@ -132,7 +132,7 @@ const JobChat = ({
                   />
                 </div>
               </div>
-              
+
               {/* Typing indicator or helper text */}
               <div className='mt-2 flex items-center gap-2'>
                 <PiSparkle className='w-3 h-3 text-purple-500 animate-pulse' />

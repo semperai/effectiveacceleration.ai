@@ -1,7 +1,7 @@
 import EventProfileImage from '@/components/Events/Components/EventProfileImage';
 import type { Job, User } from '@effectiveacceleration/contracts';
 import type { Dispatch, SetStateAction } from 'react';
-import { 
+import {
   PiUsers,
   PiUserCircle,
   PiChatCircle,
@@ -45,7 +45,7 @@ const JobChatsList = ({
                 </p>
               </div>
             </div>
-            
+
             {/* Applicant count badge */}
             {numberOfWorkers > 0 && (
               <div className='px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30'>
@@ -95,8 +95,8 @@ const JobChatsList = ({
                   className={`
                     relative group cursor-pointer
                     transition-all duration-200
-                    ${selectedWorker === key 
-                      ? 'bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30' 
+                    ${selectedWorker === key
+                      ? 'bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30'
                       : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'
                     }
                   `}
@@ -109,14 +109,14 @@ const JobChatsList = ({
                   {selectedWorker === key && (
                     <div className='absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-purple-500' />
                   )}
-                  
+
                   <div className='flex items-center gap-3 p-4'>
                     {/* Profile image with online indicator */}
                     <div className='relative flex-shrink-0'>
                       <EventProfileImage user={value} />
                       <div className='absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full' />
                     </div>
-                    
+
                     {/* User info */}
                     <div className='flex-1 min-w-0'>
                       <div className='flex items-center gap-2'>
@@ -132,7 +132,7 @@ const JobChatsList = ({
                       <p className='text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5'>
                         {value.bio || 'No bio available'}
                       </p>
-                      
+
                       {/* Stats */}
                       <div className='flex items-center gap-3 mt-2'>
                         {/* TODO
@@ -145,7 +145,7 @@ const JobChatsList = ({
                         </span>
                       </div>
                     </div>
-                    
+
                     {/* Time/Status indicator */}
                     <div className='flex flex-col items-end gap-1'>
                       <PiClock className='w-3 h-3 text-gray-400' />
@@ -154,7 +154,7 @@ const JobChatsList = ({
                       </span>
                     </div>
                   </div>
-                  
+
                   {/* Hover effect gradient */}
                   <div className='absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none' />
                 </li>

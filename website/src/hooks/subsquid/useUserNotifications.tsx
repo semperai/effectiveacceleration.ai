@@ -42,11 +42,11 @@ export default function useUserNotifications(
   // Extract unique job IDs from notifications with proper typing
   const jobIds = useMemo(() => {
     if (!data?.notifications) return [];
-    
+
     const ids = data.notifications
       .map((n: any) => n.jobId as string)  // Explicitly cast to string
       .filter((id: string): id is string => !!id);  // Type guard to ensure non-empty strings
-    
+
     return [...new Set(ids)] as string[];  // Ensure the result is string[]
   }, [data]);
 
@@ -60,11 +60,11 @@ export default function useUserNotifications(
     if (!rawNotifications?.length) {
       return undefined;
     }
-    
+
     const readNotifications = JSON.parse(
       localStorage.getItem('ReadNotifications') || '[]'
     ) as string[];
-    
+
     // Create a map of jobs for quick lookup
     const jobMap = new Map<string, Job>();
     jobsData?.forEach(job => {
@@ -72,7 +72,7 @@ export default function useUserNotifications(
         jobMap.set(job.id, job);
       }
     });
-    
+
     return rawNotifications.map((notification: any) => ({
       id: notification.id,
       type: notification.type,
@@ -104,18 +104,18 @@ export default function useUserNotifications(
     };
 
     window.addEventListener('storage', handler);
-    
+
     return () => {
       window.removeEventListener('storage', handler);
     };
   }, [data, jobs]);
 
   return useMemo(
-    () => ({ 
-      data: notifications, 
+    () => ({
+      data: notifications,
       loading: loading || !jobs,
       error,
-      ...rest 
+      ...rest
     }),
     [notifications, loading, error, jobs, rest]
   );

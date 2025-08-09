@@ -28,9 +28,9 @@ function MessageNotificationWrapper({
   onRead: (notification: NotificationWithJob) => void;
   onClick: (notification: NotificationWithJob) => void;
 }) {
-  const isMessage = notification.type === JobEventType.OwnerMessage || 
+  const isMessage = notification.type === JobEventType.OwnerMessage ||
                    notification.type === JobEventType.WorkerMessage;
-  
+
   // Use the working hook for message notifications
   const { messageContent, isLoading } = useNotificationWithEvent(
     isMessage ? notification : undefined,
@@ -72,7 +72,7 @@ export const NotificationsDropdown = forwardRef<
     }
     return false;
   });
-  
+
   const [isMobile, setIsMobile] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const loadMoreTriggerRef = useRef<HTMLDivElement>(null);
@@ -109,14 +109,14 @@ export const NotificationsDropdown = forwardRef<
       for (const entry of entries) {
         const { height } = entry.contentRect;
         const targetHeight = Math.min(height, maxHeight);
-        
+
         // Only update if height actually changed
         if (scrollContainer.style.height !== `${targetHeight}px`) {
           // Add transition class if not already present
           if (!scrollContainer.classList.contains('transition-[height]')) {
             scrollContainer.classList.add('transition-[height]', 'duration-300', 'ease-in-out');
           }
-          
+
           // Update height
           scrollContainer.style.height = `${targetHeight}px`;
         }
@@ -147,7 +147,7 @@ export const NotificationsDropdown = forwardRef<
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 640); // sm breakpoint
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
@@ -256,9 +256,9 @@ export const NotificationsDropdown = forwardRef<
             <>
               <div className='divide-y divide-gray-100 dark:divide-gray-800'>
                 {displayedNotifications.map((notification) => {
-                  const isMessage = notification.type === JobEventType.OwnerMessage || 
+                  const isMessage = notification.type === JobEventType.OwnerMessage ||
                                   notification.type === JobEventType.WorkerMessage;
-                  
+
                   // Use the wrapper component for message notifications
                   // This uses the working useNotificationWithEvent hook
                   if (isMessage) {
@@ -271,7 +271,7 @@ export const NotificationsDropdown = forwardRef<
                       />
                     );
                   }
-                  
+
                   // For non-message notifications, use the regular component
                   return (
                     <NotificationItem
@@ -320,13 +320,13 @@ export const NotificationsDropdown = forwardRef<
     return createPortal(
       <div className='fixed inset-0 z-[10000] sm:hidden'>
         {/* Backdrop */}
-        <div 
+        <div
           className='absolute inset-0 bg-black/50 backdrop-blur-sm'
           onClick={onClose}
         />
-        
+
         {/* Modal content - slides up from bottom */}
-        <div 
+        <div
           ref={ref}
           className='absolute inset-x-0 bottom-0 animate-in slide-in-from-bottom duration-300'
         >

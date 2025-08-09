@@ -83,7 +83,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   const totalUsers = users.length;
   const totalReviews = users.reduce((sum, user) => sum + (user.numberOfReviews || 0), 0);
-  
+
   // Calculate actual average rating correctly
   const usersWithReviews = users.filter(u => u.numberOfReviews > 0);
   const avgRating = usersWithReviews.length > 0

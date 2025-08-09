@@ -11,7 +11,7 @@ interface ConnectButtonProps {
 
 export function ConnectButton({ variant = 'navbar', className }: ConnectButtonProps) {
   const { address } = useAccount();
-  
+
   return (
     <RainbowConnectButton.Custom>
       {({
@@ -26,7 +26,7 @@ export function ConnectButton({ variant = 'navbar', className }: ConnectButtonPr
         const connected = ready && account && chain;
         let error = false;
         let onClick = connected ? openAccountModal : openConnectModal;
-        
+
         if (chain?.unsupported) {
           onClick = openChainModal;
           error = true;

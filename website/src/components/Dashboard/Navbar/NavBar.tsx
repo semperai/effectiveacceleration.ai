@@ -99,7 +99,7 @@ const NavbarLoadingSkeleton = () => (
 // Sign Up button component matching the design system
 const SignUpButton = () => {
   const router = useRouter();
-  
+
   return (
     <button
       onClick={() => router.push('/register')}
@@ -116,7 +116,7 @@ const Navbar = ({ setSidebarOpen, sidebarOpen, hiddenSidebar }: NavbarProps) => 
   const { address, isConnected, isReconnecting, isConnecting } = useAccount();
   const { data: user, loading: isLoadingUser } = useUser(address!);
   const { data: arbitrator, loading: isLoadingArbitrator } = useArbitrator(address!);
-  
+
   // Track if this is the initial mount to show skeleton while wagmi initializes
   const [hasMounted, setHasMounted] = useState(false);
 
@@ -137,10 +137,10 @@ const Navbar = ({ setSidebarOpen, sidebarOpen, hiddenSidebar }: NavbarProps) => 
 
   // Show skeleton on initial mount or while wagmi is determining connection status
   const isInitializing = !hasMounted || isReconnecting || isConnecting;
-  
+
   // We're loading user data if connected and either hook is still loading
   const isLoadingUserData = isConnected && (isLoadingUser || isLoadingArbitrator);
-  
+
   // User is registered if they have either a user or arbitrator profile
   const isRegistered = !!(user || arbitrator);
 
@@ -150,7 +150,7 @@ const Navbar = ({ setSidebarOpen, sidebarOpen, hiddenSidebar }: NavbarProps) => 
     if (isInitializing) {
       return <NavbarLoadingSkeleton />;
     }
-    
+
     // Show loading skeleton while checking user registration status
     if (isLoadingUserData) {
       return <NavbarLoadingSkeleton />;

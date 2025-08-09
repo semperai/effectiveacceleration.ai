@@ -102,7 +102,7 @@ export function RefuseArbitrationButton({
                   </Dialog.Title>
                   <div>
                   <span>
-                    If you refuse this arbitration, the job will be unassigned and the funds will be returned to the client. <br/> 
+                    If you refuse this arbitration, the job will be unassigned and the funds will be returned to the client. <br/>
                   </span>
                   <Button
                       disabled={isRefusing}

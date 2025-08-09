@@ -159,7 +159,7 @@ export default function UsersListClient({ initialUsers }: UsersListClientProps) 
     const total = filteredUsers.length;
     const usersWithReviews = filteredUsers.filter(user => user.numberOfReviews > 0);
     const withReviews = usersWithReviews.length;
-    
+
     // Calculate average rating properly
     let avgRating = '0';
     if (withReviews > 0) {
@@ -168,7 +168,7 @@ export default function UsersListClient({ initialUsers }: UsersListClientProps) 
       }, 0);
       avgRating = (sumOfAverages / withReviews).toFixed(1);
     }
-    
+
     const topRated = filteredUsers.filter(user => user.calculatedAverageRating >= 4.5 && user.numberOfReviews >= 5).length;
 
     return { total, withReviews, avgRating, topRated };

@@ -46,7 +46,7 @@ const JobChatEvents: React.FC<ResultAcceptedProps> = ({
       const isAtBottom = (chatContainerRef.current.scrollTop + 100 + chatContainerRef.current.clientHeight) >= chatContainerRef.current.scrollHeight;
       if (isAtBottom) {
         setNewMessage(false);
-        setShowNotification(false) 
+        setShowNotification(false)
       } else {
         setShowNotification(true)
       }
@@ -171,7 +171,7 @@ const JobChatEvents: React.FC<ResultAcceptedProps> = ({
       )}
       {showNotification && (
         <div className='absolute bottom-3 right-12'>
-          <div className="fixed py-[4px] max-h-[32px] px-[16px] hover:cursor-pointer bottom-20 rounded-full bg-gray-400 w-6 text-white place-items-center animate-[slideIn_0.5s_ease-out]">         
+          <div className="fixed py-[4px] max-h-[32px] px-[16px] hover:cursor-pointer bottom-20 rounded-full bg-gray-400 w-6 text-white place-items-center animate-[slideIn_0.5s_ease-out]">
             <ChevronDown size='2' onClick={() => scrollToEnd()} className='w-6 h-6 text-sm text-white' />
             {newMessage && (
             <div className="top-[-38px] p-0.5 rounded-full left-[-12px] bg-rose-600 relative">
@@ -180,7 +180,7 @@ const JobChatEvents: React.FC<ResultAcceptedProps> = ({
           )}
           </div>
         </div>
-        
+
       )}
     </div>
   );

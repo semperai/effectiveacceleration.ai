@@ -75,7 +75,7 @@ const NavButton = ({ name, avatar, children, openModal }: NavButtonProps) => {
 };
 
 interface UserProfileProps extends React.ComponentPropsWithoutRef<'div'> {
-  selectedUser?: User; 
+  selectedUser?: User;
   children?: React.ReactNode;
 }
 

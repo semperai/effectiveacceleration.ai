@@ -34,7 +34,7 @@ interface WorkerAcceptedProps {
 const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({ job, address }) => {
   const isCreator = address === job.roles.creator;
   const isWorker = address === job.roles.worker;
-  
+
   // Calculate time remaining if job is in progress
   const timeRemaining = job.maxTime ? moment.duration(job.maxTime, 'seconds').humanize() : null;
 
@@ -45,7 +45,7 @@ const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({ job, address }) => {
         {/* Decorative elements */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-br from-purple-500/10 to-indigo-500/10 rounded-full blur-3xl animate-pulse" />
-        
+
         {/* Animated decorative icons */}
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-10 left-10 animate-float">
@@ -58,7 +58,7 @@ const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({ job, address }) => {
             <PiBriefcase className="w-6 h-6 text-indigo-500" />
           </div>
         </div>
-        
+
         {/* Content */}
         <div className='relative p-8'>
           {/* Status Header */}
@@ -73,7 +73,7 @@ const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({ job, address }) => {
                 )}
               </div>
             </div>
-            
+
             {/* Main Status Message */}
             <h3 className='text-2xl font-bold text-gray-900 dark:text-white mb-2'>
               {isCreator ? (
@@ -84,7 +84,7 @@ const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({ job, address }) => {
                 <>Job In Progress 🔄</>
               )}
             </h3>
-            
+
             <p className='text-sm text-gray-600 dark:text-gray-400 text-center max-w-md'>
               {isCreator ? (
                 'The worker has been assigned and work has begun'
@@ -112,7 +112,7 @@ const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({ job, address }) => {
               <PiInfo className='w-4 h-4' />
               Job Information
             </h4>
-            
+
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
               {/* Job Title */}
               <div className='flex items-start gap-3'>
@@ -124,7 +124,7 @@ const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({ job, address }) => {
                   </p>
                 </div>
               </div>
-              
+
               {/* Payment */}
               <div className='flex items-start gap-3'>
                 <PiCoin className='w-5 h-5 text-gray-400 mt-0.5' />
@@ -138,7 +138,7 @@ const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({ job, address }) => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Delivery Time */}
               <div className='flex items-start gap-3'>
                 <PiClock className='w-5 h-5 text-gray-400 mt-0.5' />
@@ -149,7 +149,7 @@ const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({ job, address }) => {
                   </p>
                 </div>
               </div>
-              
+
               {/* Status */}
               <div className='flex items-start gap-3'>
                 <PiCheckCircle className='w-5 h-5 text-gray-400 mt-0.5' />
@@ -169,7 +169,7 @@ const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({ job, address }) => {
               <PiTimer className='w-4 h-4' />
               {isCreator ? 'What Happens Next' : isWorker ? 'Your Next Steps' : 'Current Status'}
             </h4>
-            
+
             <ul className='space-y-2 text-sm text-amber-800 dark:text-amber-400'>
               {isCreator ? (
                 <>

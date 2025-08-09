@@ -68,12 +68,12 @@ const SideJobInfo = ({
       }
     };
   }, [sidebarOpen]);
-  
+
   return (
     <Transition.Root show={sidebarOpen} as={Fragment}>
-      <Dialog 
-        as='div' 
-        className='relative z-50 lg:hidden' 
+      <Dialog
+        as='div'
+        className='relative z-50 lg:hidden'
         onClose={setSidebarOpen ?? (() => {})}
       >
         <Transition.Child
@@ -127,7 +127,7 @@ const SideJobInfo = ({
               </Transition.Child>
 
               <div className='flex grow flex-col overflow-y-auto bg-white dark:bg-gray-900 shadow-2xl'>
-                <JobSidebar 
+                <JobSidebar
                   job={job}
                   address={address as `0x${string}`}
                   events={eventMessages as JobEventWithDiffs[]}

@@ -166,11 +166,11 @@ const Sidebar = ({
   const displayName = userInfo?.name || 'Anonymous';
   const displayRole = arbitrator ? 'Arbitrator' : user ? 'Member' : 'Guest';
   const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'AN';
-  
+
   // TODO: Get actual values from user data
   const jobCount = user?.reputationUp || 0; // Using reputation as placeholder
-  const rating = userInfo && (user?.reputationUp || 0) > 0 
-    ? ((user?.reputationUp || 0) / ((user?.reputationUp || 0) + (user?.reputationDown || 0))) * 5 
+  const rating = userInfo && (user?.reputationUp || 0) > 0
+    ? ((user?.reputationUp || 0) / ((user?.reputationUp || 0) + (user?.reputationDown || 0))) * 5
     : 0;
 
   const sidebarContent = (
@@ -208,7 +208,7 @@ const Sidebar = ({
                   <span className="text-white font-bold text-sm">{initials}</span>
                 </div>
               )}
-              
+
               <div className="flex-1">
                 <p className="text-sm font-medium text-white truncate">{displayName}</p>
                 <p className="text-xs text-gray-400">{displayRole}</p>

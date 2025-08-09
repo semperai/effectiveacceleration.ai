@@ -150,8 +150,8 @@ export default function UserPageClient({ address }: UserPageClientProps) {
             </div>
           </div>
           <div>
-            <Button 
-              color={'borderlessGray'} 
+            <Button
+              color={'borderlessGray'}
               className={'mt-2 w-full'}
               onClick={handleShare}
             >
@@ -163,7 +163,7 @@ export default function UserPageClient({ address }: UserPageClientProps) {
             </Button>
           </div>
         </div>
-        
+
         <div className='flex basis-4/5 flex-row bg-white border-t min-h-[80%]'>
           <div className='flex basis-3/4 border-r p-6 min-h-full'>
             <div className='w-full'>
@@ -247,7 +247,7 @@ export default function UserPageClient({ address }: UserPageClientProps) {
               </div>
             </div>
           </div>
-          
+
           <div className='flex basis-1/4 p-6 overflow-y-auto'>
             <div className='w-full'>
               {reviews && reviews.length > 0 && (
@@ -286,11 +286,11 @@ export default function UserPageClient({ address }: UserPageClientProps) {
                   </div>
                 </div>
               )}
-              
+
               <h3 className='text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4'>
                 Reviews
               </h3>
-              
+
               {!reviews || reviews.length === 0 ? (
                 <div className='flex h-48 items-center justify-center'>
                   <span className='text-md text-center font-semibold text-gray-500 dark:text-gray-400'>
@@ -304,7 +304,7 @@ export default function UserPageClient({ address }: UserPageClientProps) {
                     <div key={review.id || index} className='pb-4 border-b border-gray-200 dark:border-gray-700 last:border-0'>
                       <p className='text-sm font-semibold text-gray-500 dark:text-gray-400'>
                         {users?.[review.reviewer]?.name || 'Anonymous'} reviewed{' '}
-                        <Link 
+                        <Link
                           href={`/dashboard/jobs/${review.jobId}`}
                           className='text-primary hover:underline'
                         >

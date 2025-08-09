@@ -38,12 +38,12 @@ const DisputeStarted: React.FC<DisputeStartedProps> = ({ job, address }) => {
         {/* Decorative elements */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-amber-500/10 to-orange-500/10 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-br from-orange-500/10 to-red-500/10 rounded-full blur-3xl" />
-        
+
         {/* Animated warning pattern */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute inset-0 bg-stripes"></div>
         </div>
-        
+
         {/* Content */}
         <div className='relative p-6 lg:p-8'>
           {/* Status Header */}
@@ -54,12 +54,12 @@ const DisputeStarted: React.FC<DisputeStartedProps> = ({ job, address }) => {
                 <PiScales className='w-10 h-10 text-white' />
               </div>
             </div>
-            
+
             {/* Main Status Message */}
             <h3 className='text-xl lg:text-2xl font-bold text-gray-900 dark:text-white mb-2'>
               Dispute Resolution In Progress
             </h3>
-            
+
             <p className='text-sm text-gray-600 dark:text-gray-400 text-center max-w-md'>
               An arbitrator has been assigned to review and resolve this dispute
             </p>
@@ -73,7 +73,7 @@ const DisputeStarted: React.FC<DisputeStartedProps> = ({ job, address }) => {
                 Dispute Active
               </span>
             </div>
-            
+
             <div className='inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700'>
               <PiUserCirclePlus className='w-4 h-4 text-blue-600 dark:text-blue-400' />
               <span className='text-sm font-medium text-blue-800 dark:text-blue-300'>
@@ -95,7 +95,7 @@ const DisputeStarted: React.FC<DisputeStartedProps> = ({ job, address }) => {
                 <p className='text-sm text-gray-600 dark:text-gray-400 mb-3'>
                   The arbitrator has received all case information and is now part of the conversation
                 </p>
-                
+
                 {/* Communication Notice */}
                 <div className='flex items-center gap-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800'>
                   <PiChatCircleDots className='w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0' />

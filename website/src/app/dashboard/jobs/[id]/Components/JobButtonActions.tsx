@@ -18,7 +18,7 @@ import {
   JobState,
 } from '@effectiveacceleration/contracts';
 import { zeroAddress, zeroHash } from 'viem';
-import { 
+import {
   PiWarning,
   PiCheckCircle,
   PiXCircle,
@@ -32,12 +32,12 @@ import {
 } from 'react-icons/pi';
 
 // Section wrapper for grouping related actions
-const ActionSection = ({ 
-  title, 
+const ActionSection = ({
+  title,
   icon: Icon,
   children,
   variant = 'default'
-}: { 
+}: {
   title?: string;
   icon?: any;
   children: React.ReactNode;

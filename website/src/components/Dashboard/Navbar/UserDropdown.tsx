@@ -29,7 +29,7 @@ export const UserDropdown = forwardRef<HTMLDivElement, UserDropdownProps>(
       const checkMobile = () => {
         setIsMobile(window.innerWidth < 640);
       };
-      
+
       checkMobile();
       window.addEventListener('resize', checkMobile);
       return () => window.removeEventListener('resize', checkMobile);
@@ -74,7 +74,7 @@ export const UserDropdown = forwardRef<HTMLDivElement, UserDropdownProps>(
                   </svg>
                 </div>
               )}
-              
+
               {/* User Info */}
               <div>
                 <h3 className='text-sm font-semibold text-gray-900 dark:text-gray-100'>
@@ -87,7 +87,7 @@ export const UserDropdown = forwardRef<HTMLDivElement, UserDropdownProps>(
                 )}
               </div>
             </div>
-            
+
             {isMobile && (
               <button
                 onClick={onClose}
@@ -129,7 +129,7 @@ export const UserDropdown = forwardRef<HTMLDivElement, UserDropdownProps>(
         {/* Content */}
         <div className='max-h-[calc(100vh-8rem)] overflow-y-auto p-4 sm:max-h-[32rem]'>
           {address ? (
-            <UserForm 
+            <UserForm
               isArbitrator={activeTab === 'arbitrator'}
               user={activeTab === 'user' ? (user ?? undefined) : undefined}
               arbitrator={activeTab === 'arbitrator' ? (arbitrator ?? undefined) : undefined}
@@ -164,13 +164,13 @@ export const UserDropdown = forwardRef<HTMLDivElement, UserDropdownProps>(
       return createPortal(
         <div className='fixed inset-0 z-[10000] sm:hidden'>
           {/* Backdrop */}
-          <div 
+          <div
             className='absolute inset-0 bg-black/50 backdrop-blur-sm'
             onClick={onClose}
           />
-          
+
           {/* Modal content - slides up from bottom */}
-          <div 
+          <div
             ref={ref}
             className='absolute inset-x-0 bottom-0 animate-in slide-in-from-bottom duration-300'
           >
