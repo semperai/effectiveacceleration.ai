@@ -197,9 +197,11 @@ function TokenButton({
 export function TokenSelector({
   selectedToken,
   onClick,
+  persistSelection = true,
 }: {
   selectedToken: Token | undefined;
   onClick: (token: Token) => void;
+  persistSelection?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const chainId = useChainId();
@@ -294,40 +296,52 @@ export function TokenSelector({
     }
   }, [chainId]);
 
-  // Load last selected token from localStorage on mount
+  // Load last selected token from localStorage on mount (only if persistSelection is enabled)
   useEffect(() => {
     if (!hasLoadedFromStorage) {
-      const lastSelected = lscacheModule.get('last-token-selected');
-      
-      if (lastSelected) {
-        // We have a saved token
-        setInternalSelectedToken(lastSelected);
-        setHasLoadedFromStorage(true);
+      if (persistSelection) {
+        const lastSelected = lscacheModule.get('last-token-selected');
         
-        // Notify parent component of the restored selection
-        const token = convertToToken(lastSelected);
-        onClick(token);
-      } else if (selectedToken) {
-        // No saved token, but we have a prop
-        const arbitrumToken = convertToArbitrumToken(selectedToken);
-        setInternalSelectedToken(arbitrumToken);
-        lscacheModule.set('last-token-selected', arbitrumToken, Infinity);
-        setHasLoadedFromStorage(true);
+        if (lastSelected) {
+          // We have a saved token
+          setInternalSelectedToken(lastSelected);
+          setHasLoadedFromStorage(true);
+          
+          // Notify parent component of the restored selection
+          const token = convertToToken(lastSelected);
+          onClick(token);
+        } else if (selectedToken) {
+          // No saved token, but we have a prop
+          const arbitrumToken = convertToArbitrumToken(selectedToken);
+          setInternalSelectedToken(arbitrumToken);
+          lscacheModule.set('last-token-selected', arbitrumToken, Infinity);
+          setHasLoadedFromStorage(true);
+        } else {
+          // No saved token and no prop - nothing to do
+          setHasLoadedFromStorage(true);
+        }
       } else {
-        // No saved token and no prop - nothing to do
+        // Persistence is disabled, just use the prop
+        if (selectedToken) {
+          const arbitrumToken = convertToArbitrumToken(selectedToken);
+          setInternalSelectedToken(arbitrumToken);
+        }
         setHasLoadedFromStorage(true);
       }
     }
-  }, [hasLoadedFromStorage, selectedToken, onClick, chainId]);
+  }, [hasLoadedFromStorage, selectedToken, onClick, chainId, persistSelection]);
 
   // Update when external prop changes (after initial load)
   useEffect(() => {
     if (hasLoadedFromStorage && selectedToken) {
       const arbitrumToken = convertToArbitrumToken(selectedToken);
       setInternalSelectedToken(arbitrumToken);
-      lscacheModule.set('last-token-selected', arbitrumToken, Infinity);
+      // Only save to localStorage if persistence is enabled
+      if (persistSelection) {
+        lscacheModule.set('last-token-selected', arbitrumToken, Infinity);
+      }
     }
-  }, [selectedToken, hasLoadedFromStorage, chainId]);
+  }, [selectedToken, hasLoadedFromStorage, chainId, persistSelection]);
 
   function openModal() {
     setIsOpen(true);
@@ -337,8 +351,10 @@ export function TokenSelector({
     if (dialogSelectedToken) {
       setInternalSelectedToken(dialogSelectedToken);
       const token = convertToToken(dialogSelectedToken);
-      // Save to localStorage
-      lscacheModule.set('last-token-selected', dialogSelectedToken, Infinity);
+      // Save to localStorage only if persistence is enabled
+      if (persistSelection) {
+        lscacheModule.set('last-token-selected', dialogSelectedToken, Infinity);
+      }
       onClick(token);
     }
     setIsOpen(false);
@@ -387,6 +403,7 @@ export function TokenSelector({
           preferredTokenList={mockTokens(preferredTokens)}
           tokensList={selectableTokens?.tokens || []}
           closeCallback={handleTokenSelect}
+          persistSelection={persistSelection}
         />
       )}
     </>

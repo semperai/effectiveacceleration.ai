@@ -153,6 +153,7 @@ export const JobFilter = ({
                         <TokenSelector
                           selectedToken={selectedToken}
                           onClick={setSelectedToken}
+                          persistSelection={false}
                         />
                       </div>
                       <div className='w-full sm:w-40'>

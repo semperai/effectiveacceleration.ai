@@ -36,11 +36,13 @@ const TokenDialog = ({
   tokensList,
   preferredTokenList,
   closeCallback,
+  persistSelection = true,
 }: {
   initiallySelectedToken: IArbitrumToken;
   tokensList: IArbitrumToken[];
   preferredTokenList: IArbitrumToken[];
   closeCallback: (arg0: IArbitrumToken) => void;
+  persistSelection?: boolean;
 }) => {
   const [selectedToken, setSelectedToken] = useState<IArbitrumToken>(
     initiallySelectedToken
@@ -83,8 +85,10 @@ const TokenDialog = ({
     
     if (!isPin && !isLink) {
       setSelectedToken(token);
-      // Save last selected token to localStorage
-      lscacheModule.set('last-token-selected', token, Infinity);
+      // Save last selected token to localStorage only if persistence is enabled
+      if (persistSelection) {
+        lscacheModule.set('last-token-selected', token, Infinity);
+      }
       closeCallback(token);
     }
   };
@@ -105,8 +109,10 @@ const TokenDialog = ({
     if (existingToken) {
       // Select the token to highlight it
       setSelectedToken(existingToken);
-      // Save last selected token to localStorage
-      lscacheModule.set('last-token-selected', existingToken, Infinity);
+      // Save last selected token to localStorage only if persistence is enabled
+      if (persistSelection) {
+        lscacheModule.set('last-token-selected', existingToken, Infinity);
+      }
       
       // Auto-add to favorites if not already there
       if (!favoriteTokens.find(t => t.address.toLowerCase() === existingToken.address.toLowerCase())) {
@@ -181,8 +187,10 @@ const TokenDialog = ({
       
       // Select the token to highlight it
       setSelectedToken(tokenMetadata);
-      // Save last selected token to localStorage
-      lscacheModule.set('last-token-selected', tokenMetadata, Infinity);
+      // Save last selected token to localStorage only if persistence is enabled
+      if (persistSelection) {
+        lscacheModule.set('last-token-selected', tokenMetadata, Infinity);
+      }
       setSearchValue('');
       setShowAddToken(false);
       
@@ -401,8 +409,10 @@ const TokenDialog = ({
                 onMouseLeave={() => setHovered(`fav-${token.address}`, false)}
                 onClick={() => {
                   setSelectedToken(token);
-                  // Save last selected token to localStorage
-                  lscacheModule.set('last-token-selected', token, Infinity);
+                  // Save last selected token to localStorage only if persistence is enabled
+                  if (persistSelection) {
+                    lscacheModule.set('last-token-selected', token, Infinity);
+                  }
                   closeCallback(token);
                 }}
               >
