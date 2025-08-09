@@ -1,37 +1,10 @@
 /* eslint-disable @next/next/no-img-element */
-// src/components/TokenDialog/index.tsx
 
-import React from 'react';
-import {
-  Dialog,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  IconButton,
-  Avatar,
-  Chip,
-  Input,
-  List,
-  ClickAwayListener,
-  Slide,
-  ListItemButton,
-  CircularProgress,
-} from '@mui/material';
-import {
-  ContainerListPreferredTokens,
-  StyledDialogTitle,
-  ContainerSearchInput,
-  StyledDialogContent,
-  DialogWrapper,
-  AddTokenWrapper,
-} from './styles';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { ethers } from 'ethers';
 import lscacheModule from './Dependencies/lscache';
-import { CloseOutlined, SearchOutlined } from '@mui/icons-material';
-
 import { uniqueBy } from './Dependencies/uniqueBy';
-import { Button } from '@/components/Button';
 import { EthereumIcon } from './Dependencies/Icons/EthereumIcon';
 import { ExternalLinkIcon } from './Dependencies/Icons/ExternalLinkIcon';
 import { PinIcon } from './Dependencies/Icons/PinIcon';
@@ -39,6 +12,21 @@ import { toast } from './Dependencies/toast';
 import { reduceAddress } from './Dependencies/addressFormatter';
 import { fetchTokenMetadata, isValidTokenContract, type IArbitrumToken } from './Dependencies/tokenHelpers';
 import { usePublicClient } from 'wagmi';
+import { X, Search, Plus, Loader2, ChevronRight, Sparkles, Star } from 'lucide-react';
+import { styles, mergeStyles, keyframes, mobileStyles } from './styles';
+
+// Inject keyframe animations and icon styles
+if (typeof document !== 'undefined' && !document.getElementById('token-dialog-animations')) {
+  const style = document.createElement('style');
+  style.id = 'token-dialog-animations';
+  style.innerHTML = keyframes + `
+    .token-dialog-icon-wrapper svg {
+      width: 100% !important;
+      height: 100% !important;
+    }
+  `;
+  document.head.appendChild(style);
+}
 
 const TokenDialog = ({
   initiallySelectedToken,
@@ -51,40 +39,44 @@ const TokenDialog = ({
   preferredTokenList: IArbitrumToken[];
   closeCallback: (arg0: IArbitrumToken) => void;
 }) => {
-  const [selectedToken, setSelectedToken] = React.useState<IArbitrumToken>(
+  const [selectedToken, setSelectedToken] = useState<IArbitrumToken>(
     initiallySelectedToken
   );
-  const [favoriteTokens, setFavoriteTokens] =
-    React.useState<IArbitrumToken[]>(preferredTokenList);
-  const [filteredTokens, setFilteredTokens] =
-    React.useState<IArbitrumToken[]>();
-  const [customTokens, setCustomTokens] = React.useState<IArbitrumToken[]>(
+  const [favoriteTokens, setFavoriteTokens] = useState<IArbitrumToken[]>(preferredTokenList);
+  const [filteredTokens, setFilteredTokens] = useState<IArbitrumToken[]>();
+  const [customTokens, setCustomTokens] = useState<IArbitrumToken[]>(
     lscacheModule.get('custom-tokens') || []
   );
-  const [searchValue, setSearchValue] = React.useState<string>('');
-  const [customTokenValue, setAddTokenValue] = React.useState<string>('');
-  const [provider, setProvider] = React.useState<ethers.Provider | null>(null);
-  const [sortedTokensList, setSortedTokensList] = React.useState([]);
-  const [isAddCustomToken, setAddCustomToken] = React.useState(false);
-  const [isLoadingToken, setIsLoadingToken] = React.useState(false);
-  const [tokenLoadError, setTokenLoadError] = React.useState<string>('');
+  const [searchValue, setSearchValue] = useState<string>('');
+  const [customTokenValue, setAddTokenValue] = useState<string>('');
+  const [provider, setProvider] = useState<ethers.Provider | null>(null);
+  const [sortedTokensList, setSortedTokensList] = useState([]);
+  const [isAddCustomToken, setAddCustomToken] = useState(false);
+  const [isLoadingToken, setIsLoadingToken] = useState(false);
+  const [tokenLoadError, setTokenLoadError] = useState<string>('');
+  const [hoveredStates, setHoveredStates] = useState<{ [key: string]: boolean }>({});
+  const [isMobile, setIsMobile] = useState(false);
   const publicClient = usePublicClient();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   
   const noTokensFound = !filteredTokens || filteredTokens.length === 0;
 
-  const getBalance = async (token: IArbitrumToken) => {
-    const balance = await provider.getBalance(token.address);
-    const balanceInEth = ethers.formatEther(balance);
-    return balanceInEth;
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 640);
+    const handleResize = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const setHovered = (key: string, value: boolean) => {
+    setHoveredStates(prev => ({ ...prev, [key]: value }));
   };
 
   const handleSelectToken = (token: IArbitrumToken, event: any) => {
-    // Prevent event from bubbling up
     event.stopPropagation();
     
-    // Don't select if clicking on pin or external link
     const target = event.target as HTMLElement;
-    const isPin = target.closest('.pin');
+    const isPin = target.closest('.pin-button');
     const isLink = target.closest('a');
     
     if (!isPin && !isLink) {
@@ -96,14 +88,12 @@ const TokenDialog = ({
   const addCustomToken = async () => {
     setTokenLoadError('');
     
-    // Basic address validation
     if (!ethers.isAddress(customTokenValue)) {
       setTokenLoadError('Please provide a valid address');
       toast('Please provide a valid address', 'error');
       return;
     }
 
-    // Check if token already exists
     const existingToken = [...tokensList, ...customTokens].find(
       t => t.address.toLowerCase() === customTokenValue.toLowerCase()
     );
@@ -118,15 +108,12 @@ const TokenDialog = ({
     setIsLoadingToken(true);
 
     try {
-      // Get provider from publicClient
       if (!publicClient) {
         throw new Error('No public client available');
       }
       
-      // Create ethers provider from viem publicClient
       const provider = new ethers.BrowserProvider(window.ethereum as any);
       
-      // Validate if it's a token contract
       const isValid = await isValidTokenContract(customTokenValue, provider);
       
       if (!isValid) {
@@ -136,7 +123,6 @@ const TokenDialog = ({
         return;
       }
 
-      // Fetch token metadata
       const tokenMetadata = await fetchTokenMetadata(customTokenValue, provider);
       
       if (!tokenMetadata) {
@@ -146,28 +132,20 @@ const TokenDialog = ({
         return;
       }
 
-      // Add to custom tokens list
       const newList = [...customTokens, tokenMetadata];
       lscacheModule.set('custom-tokens', newList, Infinity);
       setCustomTokens(newList);
       
-      // Update filtered tokens if search is active
       if (filteredTokens) {
         setFilteredTokens([...filteredTokens, tokenMetadata]);
       }
       
-      // Select the newly added token
       setSelectedToken(tokenMetadata);
-      
-      // Reset form
       setAddCustomToken(false);
       setAddTokenValue('');
       setSearchValue('');
       
       toast(`Added ${tokenMetadata.symbol} successfully`, 'success');
-      
-      // Optionally close the dialog after adding
-      // closeCallback(tokenMetadata);
       
     } catch (error) {
       console.error('Error adding custom token:', error);
@@ -205,18 +183,18 @@ const TokenDialog = ({
     const atBottom = t.scrollHeight - t.scrollTop === t.clientHeight;
 
     if (atTop) {
-      t.classList.add('hidden-before');
-      t.classList.remove('hidden-after');
+      t.classList.add('scroll-at-top');
+      t.classList.remove('scroll-at-bottom');
     } else if (atBottom) {
-      t.classList.add('hidden-after');
-      t.classList.remove('hidden-before');
+      t.classList.add('scroll-at-bottom');
+      t.classList.remove('scroll-at-top');
     } else {
-      t.classList.remove('hidden-after');
-      t.classList.remove('hidden-before');
+      t.classList.remove('scroll-at-bottom');
+      t.classList.remove('scroll-at-top');
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     const getProvider = async () => {
       try {
         if (window.ethereum) {
@@ -233,9 +211,8 @@ const TokenDialog = ({
     return () => setProvider(null);
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!favoriteTokens?.length && tokensList?.length > 0) {
-      // Set default favorite tokens to priority tokens
       const prioritySymbols = ['USDC', 'USDT', 'WETH', 'AIUS', 'EACC'];
       const priorityTokens = tokensList.filter(token => 
         prioritySymbols.includes(token.symbol)
@@ -254,18 +231,14 @@ const TokenDialog = ({
     }
   }, [tokensList, preferredTokenList, customTokens]);
 
-  // Enhanced search to detect contract addresses
-  React.useEffect(() => {
+  useEffect(() => {
     const checkIfAddressAndLoad = async () => {
-      // Check if search value is a valid address
       if (ethers.isAddress(searchValue)) {
-        // Check if this address is already in our lists
         const existingToken = [...tokensList, ...customTokens].find(
           t => t.address.toLowerCase() === searchValue.toLowerCase()
         );
         
         if (!existingToken) {
-          // Automatically show add token UI for valid addresses
           setAddTokenValue(searchValue);
           setAddCustomToken(true);
         }
@@ -273,10 +246,9 @@ const TokenDialog = ({
     };
 
     checkIfAddressAndLoad();
-  }, [searchValue]);
+  }, [searchValue, tokensList, customTokens]);
 
-  // filters tokens by search input
-  React.useEffect(() => {
+  useEffect(() => {
     const list = [
       ...(Array.isArray(sortedTokensList) && sortedTokensList.length > 0
         ? sortedTokensList
@@ -304,209 +276,252 @@ const TokenDialog = ({
     }
   }, [searchValue, tokensList, sortedTokensList, customTokens]);
 
-  // gets all balances and converts them in USD, after that `sortedTokensList` is used to filter tokens
-  // => to improve the user experience, the fetch is delayed - until then tokens are already displayed and searchable (tokensList)
-  React.useEffect(() => {
-    if (provider && sortedTokensList?.length === 0 && tokensList?.length > 0) {
-      // TODO: make sure the balances are correct (for now they are probably not, hence following code is commented out to not execute costly requests)
-      /*
-      setTimeout(async () => {
-        const promises = tokensList.map(getBalance);
-        const listWithBalance = await Promise.all(promises).then((results) =>
-          tokensList.map((t, idx) => ({ ...t, balance: results[idx] })),
-        );
-        // Would need to implement getExchangeRates separately
-        // const ethPrice = await getExchangeRates(["ETH"]);
-        // const listMerged = listWithBalance.map((t) => {
-        //   const balance =
-        //     t.balance === "0.0" ? "0.0" : (t.balance * ethPrice.ETH).toFixed(2);
-        //   return { ...t, balance };
-        // });
-
-        // setSortedTokensList(listMerged.sort((a, b) => b.balance - a.balance));
-      }, 200);
-      */
-    }
-  }, [tokensList, sortedTokensList, provider]);
-
-  const FavoriteTokens = React.useMemo(() => {
-    const AvatarNonEth = (token: any) =>
-      token.logoURI ? (
-        <Avatar src={token.logoURI} />
-      ) : (
-        <Avatar>{token.symbol?.substring(0, 3) || '?'}</Avatar>
-      );
-
-    return favoriteTokens?.length ? (
-      <ContainerListPreferredTokens>
-        {(favoriteTokens || []).map((token) => (
-          <Chip
-            key={token.address}
-            avatar={
-              token.name === 'ETH' || token.symbol === 'ETH' 
-                ? <EthereumIcon /> 
-                : AvatarNonEth(token)
-            }
-            label={token.symbol}
-            clickable
-            color={
-              token.address === selectedToken?.address ? 'primary' : 'default'
-            }
-            onDelete={(e) => {
-              e.stopPropagation();
-              deleteTokenFromFavorites(token);
-            }}
-            variant='outlined'
-            onClick={() => {
-              setSelectedToken(token);
-              closeCallback(token);
-            }}
-          />
-        ))}
-      </ContainerListPreferredTokens>
-    ) : null;
-  }, [favoriteTokens, selectedToken]);
-
-  const InputResetButton = (value: any) =>
-    value.length > 0 && (
-      <IconButton
-        onClick={() => {
-          setSearchValue('');
-          setAddCustomToken(false);
-          setAddTokenValue('');
-          setTokenLoadError('');
-        }}
-        title='Clear'
-        onMouseDown={(e) => e.preventDefault()}
-        color='secondary'
-        size='large'
-      >
-        <CloseOutlined />
-      </IconButton>
+  const AvatarNonEth = (token: any) =>
+    token.logoURI ? (
+      <img 
+        src={token.logoURI} 
+        alt={token.symbol} 
+        style={{
+          width: '20px',
+          height: '20px',
+          borderRadius: '50%',
+          objectFit: 'cover' as const,
+        }} 
+      />
+    ) : (
+      <div style={{
+        width: '20px',
+        height: '20px',
+        borderRadius: '50%',
+        background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(147, 51, 234, 0.2))',
+        border: '1px solid rgba(255, 255, 255, 0.2)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '0.5rem',
+        fontWeight: 600,
+        color: '#ffffff',
+        flexShrink: 0,
+      }}>
+        {token.symbol?.substring(0, 3) || '?'}
+      </div>
     );
 
   return (
-    <ClickAwayListener onClickAway={() => closeCallback(selectedToken)}>
-      <Dialog
-        open={true}
-        onClose={() => closeCallback(selectedToken)}
-        aria-labelledby='simple-dialog-title'
-        maxWidth={false}
-        scroll='paper'
+    <div style={styles.overlay} onClick={() => closeCallback(selectedToken)}>
+      <div 
+        style={mergeStyles(
+          styles.container,
+          isMobile ? mobileStyles.container : undefined
+        )} 
+        onClick={(e) => e.stopPropagation()}
       >
-        <DialogWrapper>
-          <StyledDialogTitle id='simple-dialog-title'>
-            <div>
-              <h2>Select a Token</h2>
-
-              <IconButton
-                aria-label='close'
-                onClick={(e) => handleSelectToken(selectedToken, e)}
-                size='large'
-              >
-                <CloseOutlined />
-              </IconButton>
-            </div>
-          </StyledDialogTitle>
-
-          {FavoriteTokens}
-
-          <ContainerSearchInput>
-            <Input
-              type='text'
-              placeholder='Search name or paste address'
-              title='Search'
-              fullWidth
-              autoFocus
-              value={searchValue}
-              onChange={(e) => {
-                setAddCustomToken(false);
-                setTokenLoadError('');
-                setSearchValue(e.target.value);
-              }}
-              endAdornment={
-                <>
-                  {InputResetButton(searchValue)}
-                  <SearchOutlined color='secondary' />
-                </>
-              }
-            />
-          </ContainerSearchInput>
-
-          <StyledDialogContent
-            className='hidden-before'
-            onScroll={handleTokenListScroll}
-            $isAddCustomToken={isAddCustomToken}
-            $noTokensFound={noTokensFound}
+        {/* Gradient orbs */}
+        <div style={mergeStyles(styles.gradientOrb, styles.gradientOrb1)} />
+        <div style={mergeStyles(styles.gradientOrb, styles.gradientOrb2)} />
+        
+        {/* Header */}
+        <div style={styles.header}>
+          <h2 style={styles.headerTitle}>
+            <Sparkles style={styles.headerIcon} />
+            Select a Token
+          </h2>
+          <button
+            style={mergeStyles(
+              styles.closeButton,
+              hoveredStates.closeButton ? styles.closeButtonHover : undefined
+            )}
+            onMouseEnter={() => setHovered('closeButton', true)}
+            onMouseLeave={() => setHovered('closeButton', false)}
+            onClick={() => closeCallback(selectedToken)}
           >
-            <List>
-              {noTokensFound && !isAddCustomToken ? (
-                <li className='text-black'>No results found.</li>
-              ) : (
-                filteredTokens?.map((token) => (
-                  <TokenItem
-                    key={token.address}
-                    token={token}
-                    selectedToken={selectedToken}
-                    handleSelectToken={handleSelectToken}
-                    addFavoriteTokens={addFavoriteTokens}
-                  />
-                ))
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Favorite Tokens */}
+        {favoriteTokens?.length > 0 && (
+          <div style={styles.favoriteTokensContainer}>
+            {favoriteTokens.map((token) => (
+              <div
+                key={token.address}
+                style={mergeStyles(
+                  styles.favoriteTokenChip,
+                  token.address === selectedToken?.address ? styles.favoriteTokenChipSelected : undefined,
+                  hoveredStates[`fav-${token.address}`] ? styles.favoriteTokenChipHover : undefined
+                )}
+                onMouseEnter={() => setHovered(`fav-${token.address}`, true)}
+                onMouseLeave={() => setHovered(`fav-${token.address}`, false)}
+                onClick={() => {
+                  setSelectedToken(token);
+                  closeCallback(token);
+                }}
+              >
+                <div className="token-dialog-icon-wrapper" style={{ width: '20px', height: '20px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {token.name === 'ETH' || token.symbol === 'ETH' 
+                    ? <EthereumIcon /> 
+                    : AvatarNonEth(token)}
+                </div>
+                <span>{token.symbol}</span>
+                <button
+                  style={mergeStyles(
+                    styles.removeFavorite,
+                    hoveredStates[`remove-${token.address}`] ? styles.removeFavoriteHover : undefined
+                  )}
+                  onMouseEnter={() => setHovered(`remove-${token.address}`, true)}
+                  onMouseLeave={() => setHovered(`remove-${token.address}`, false)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteTokenFromFavorites(token);
+                  }}
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Search Input */}
+        <div style={styles.searchContainer}>
+          <Search style={styles.searchIcon} />
+          <input
+            type="text"
+            placeholder="Search name or paste address"
+            value={searchValue}
+            onChange={(e) => {
+              setAddCustomToken(false);
+              setTokenLoadError('');
+              setSearchValue(e.target.value);
+            }}
+            style={mergeStyles(
+              styles.searchInput,
+              hoveredStates.searchInput ? styles.searchInputHover : undefined
+            )}
+            onMouseEnter={() => setHovered('searchInput', true)}
+            onMouseLeave={() => setHovered('searchInput', false)}
+            onFocus={() => setHovered('searchInputFocus', true)}
+            onBlur={() => setHovered('searchInputFocus', false)}
+            autoFocus
+          />
+          {searchValue.length > 0 && (
+            <button
+              style={mergeStyles(
+                styles.clearButton,
+                hoveredStates.clearButton ? styles.clearButtonHover : undefined
               )}
-            </List>
-          </StyledDialogContent>
-        </DialogWrapper>
+              onMouseEnter={() => setHovered('clearButton', true)}
+              onMouseLeave={() => setHovered('clearButton', false)}
+              onClick={() => {
+                setSearchValue('');
+                setAddCustomToken(false);
+                setAddTokenValue('');
+                setTokenLoadError('');
+              }}
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
+        {/* Token List */}
+        <div 
+          ref={scrollContainerRef}
+          style={mergeStyles(
+            styles.tokenListContainer,
+            isMobile ? mobileStyles.tokenListContainer : undefined
+          )}
+          onScroll={handleTokenListScroll}
+        >
+          {noTokensFound && !isAddCustomToken ? (
+            <div style={styles.noTokensFound}>
+              <p>No tokens found</p>
+            </div>
+          ) : (
+            <div style={styles.tokenList}>
+              {filteredTokens?.map((token) => (
+                <TokenItem
+                  key={token.address}
+                  token={token}
+                  selectedToken={selectedToken}
+                  handleSelectToken={handleSelectToken}
+                  addFavoriteTokens={addFavoriteTokens}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Add Custom Token */}
         {(noTokensFound || ethers.isAddress(searchValue)) && (
-          <AddTokenWrapper isAddCustomToken={isAddCustomToken}>
-            {!isAddCustomToken && (
-              <p
+          <div style={styles.addTokenContainer}>
+            {!isAddCustomToken ? (
+              <button
+                style={mergeStyles(
+                  styles.addTokenButton,
+                  hoveredStates.addTokenButton ? styles.addTokenButtonHover : undefined
+                )}
+                onMouseEnter={() => setHovered('addTokenButton', true)}
+                onMouseLeave={() => setHovered('addTokenButton', false)}
                 onClick={() => {
                   setAddTokenValue(searchValue);
                   setAddCustomToken(true);
                 }}
-                style={{ cursor: 'pointer' }}
               >
-                Add Token +
-              </p>
-            )}
-            {isAddCustomToken && (
-              <>
-                <Input
-                  type='text'
-                  placeholder='Enter token contract address'
-                  title='Token Address'
-                  fullWidth
-                  autoFocus
+                <Plus className="w-4 h-4" />
+                Add Custom Token
+              </button>
+            ) : (
+              <div style={styles.addTokenForm}>
+                <input
+                  type="text"
+                  placeholder="Enter token contract address"
                   value={customTokenValue}
                   onChange={(e) => {
                     setAddTokenValue(e.target.value);
                     setTokenLoadError('');
                   }}
-                  error={!!tokenLoadError}
-                  endAdornment={
-                    <>
-                      {isLoadingToken && <CircularProgress size={20} />}
-                      {!isLoadingToken && InputResetButton(customTokenValue)}
-                    </>
-                  }
+                  style={mergeStyles(
+                    styles.tokenAddressInput,
+                    tokenLoadError ? styles.tokenAddressInputError : undefined,
+                    hoveredStates.tokenAddressInput ? styles.tokenAddressInputFocus : undefined
+                  )}
+                  onFocus={() => setHovered('tokenAddressInput', true)}
+                  onBlur={() => setHovered('tokenAddressInput', false)}
+                  autoFocus
                 />
                 {tokenLoadError && (
-                  <p style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>
-                    {tokenLoadError}
-                  </p>
+                  <p style={styles.errorMessage}>{tokenLoadError}</p>
                 )}
-                <Button 
+                <button 
                   onClick={addCustomToken} 
                   disabled={isLoadingToken || !customTokenValue}
+                  style={mergeStyles(
+                    styles.confirmAddButton,
+                    !isLoadingToken && customTokenValue && hoveredStates.confirmAddButton ? styles.confirmAddButtonHover : undefined,
+                    (isLoadingToken || !customTokenValue) ? styles.confirmAddButtonDisabled : undefined
+                  )}
+                  onMouseEnter={() => setHovered('confirmAddButton', true)}
+                  onMouseLeave={() => setHovered('confirmAddButton', false)}
                 >
-                  {isLoadingToken ? 'Loading...' : 'Add Token'}
-                </Button>
-              </>
+                  {isLoadingToken ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4" />
+                      Add Token
+                    </>
+                  )}
+                </button>
+              </div>
             )}
-          </AddTokenWrapper>
+          </div>
         )}
-      </Dialog>
-    </ClickAwayListener>
+      </div>
+    </div>
   );
 };
 
@@ -521,67 +536,81 @@ const TokenItem = ({
   handleSelectToken: (token: IArbitrumToken, event: React.MouseEvent) => void;
   addFavoriteTokens: (token: IArbitrumToken) => void;
 }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [buttonHovers, setButtonHovers] = useState({ pin: false, link: false });
+
   return (
-    <Slide
-      key={token.address}
-      direction='down'
-      in={true}
-      timeout={{ enter: 200 }}
+    <div
+      style={mergeStyles(
+        styles.tokenItem,
+        selectedToken?.address === token.address ? styles.tokenItemSelected : undefined,
+        isHovered ? styles.tokenItemHover : undefined
+      )}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={(e) => handleSelectToken(token, e)}
     >
-      <ListItemButton
-        selected={selectedToken?.address === token.address}
-        onClick={(e) => handleSelectToken(token, e)}
-        sx={{ cursor: 'pointer' }}
-      >
-        <ListItemIcon>
-          {token.logoURI ? (
-            <Avatar src={token.logoURI} />
-          ) : (
-            <Avatar>
-              {token.symbol ? token.symbol.substring(0, 3) : '?'}
-            </Avatar>
+      {isHovered && <div style={styles.tokenItemShimmer} />}
+      
+      <div style={styles.tokenAvatarContainer}>
+        {token.logoURI ? (
+          <img src={token.logoURI} alt={token.symbol} style={styles.tokenAvatar} />
+        ) : (
+          <div style={styles.tokenAvatarPlaceholder}>
+            {token.symbol ? token.symbol.substring(0, 3) : '?'}
+          </div>
+        )}
+      </div>
+
+      <div style={styles.tokenInfo}>
+        <div style={styles.tokenNameRow}>
+          <span style={styles.tokenName}>{token.name}</span>
+          {token.isCustom && (
+            <span style={styles.customBadge}>Custom</span>
           )}
-        </ListItemIcon>
+        </div>
+        <div style={styles.tokenMeta}>
+          <span style={styles.tokenSymbol}>{token.symbol}</span>
+          {token.balance && (
+            <span style={styles.tokenBalance}>{token.balance}</span>
+          )}
+        </div>
+      </div>
 
-        <ListItemText disableTypography>
-          <span className='token'>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              {token.name}
-              {token.isCustom && (
-                <Chip 
-                  label="Custom" 
-                  size="small" 
-                  style={{ height: '20px' }}
-                  color="secondary"
-                />
-              )}
-            </span>
-            <span className='balance'>
-              {token?.balance ? token.balance : ''}
-            </span>
-          </span>
-
-          <span 
-            className='pin' 
-            onClick={(e) => {
-              e.stopPropagation();
-              addFavoriteTokens(token);
-            }}
-            style={{ cursor: 'pointer' }}
-          >
-            <PinIcon />
-          </span>
-          <Link
-            href={`https://arbiscan.io/token/${token.address}`}
-            target='_blank'
-            rel='noreferrer nofollow'
-            onClick={(e) => e.stopPropagation()}
-          >
-            <ExternalLinkIcon />
-          </Link>
-        </ListItemText>
-      </ListItemButton>
-    </Slide>
+      <div style={styles.tokenActions}>
+        <button
+          className="pin-button"
+          style={mergeStyles(
+            styles.actionButton,
+            buttonHovers.pin ? styles.actionButtonHover : undefined
+          )}
+          onMouseEnter={() => setButtonHovers(prev => ({ ...prev, pin: true }))}
+          onMouseLeave={() => setButtonHovers(prev => ({ ...prev, pin: false }))}
+          onClick={(e) => {
+            e.stopPropagation();
+            addFavoriteTokens(token);
+          }}
+          title="Add to favorites"
+        >
+          <Star className="w-4 h-4" />
+        </button>
+        <Link
+          href={`https://arbiscan.io/token/${token.address}`}
+          target="_blank"
+          rel="noreferrer nofollow"
+          onClick={(e) => e.stopPropagation()}
+          style={mergeStyles(
+            styles.actionButton,
+            buttonHovers.link ? styles.actionButtonHover : undefined
+          )}
+          onMouseEnter={() => setButtonHovers(prev => ({ ...prev, link: true }))}
+          onMouseLeave={() => setButtonHovers(prev => ({ ...prev, link: false }))}
+          title="View on Arbiscan"
+        >
+          <ExternalLinkIcon />
+        </Link>
+      </div>
+    </div>
   );
 };
 

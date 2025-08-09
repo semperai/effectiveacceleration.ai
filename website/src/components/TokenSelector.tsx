@@ -1,9 +1,7 @@
-// src/components/TokenSelector.tsx
 'use client';
 
 import { type Token, tokens } from '@/tokens';
-import { ChevronDownIcon } from '@heroicons/react/20/solid';
-import clsx from 'clsx';
+import { ChevronDown } from 'lucide-react';
 import { Fragment, useState, useEffect } from 'react';
 import TokenDialog from '@/components/TokenDialog';
 import arbitrumTokens from '@/components/TokenDialog/Dependencies/arbitrumTokens.json';
@@ -11,7 +9,6 @@ import mainnetTokens from '@/components/TokenDialog/Dependencies/mainnetTokens.j
 import { mockTokens } from '@/components/TokenDialog/Dependencies/mockTokens';
 import lscacheModule from '@/components/TokenDialog/Dependencies/lscache';
 import { useChainId } from 'wagmi';
-import { Avatar } from '@/components/Avatar';
 
 interface IArbitrumToken {
   logoURI?: string;
@@ -34,8 +31,102 @@ function TokenButton({
   onClick: () => void;
   selectedToken: Token | IArbitrumToken | undefined;
 }) {
-  const baseClass =
-    'w-fit rounded-lg font-medium flex gap-2 items-center transition ease-in-out delay-50 duration-150 h-10 rounded-xl p-1.5';
+  const [isHovered, setIsHovered] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+
+  const buttonStyle = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    width: '100%',
+    height: '56px',
+    padding: '0 16px',
+    background: isHovered ? 'rgba(59, 130, 246, 0.04)' : 'transparent',
+    border: isFocused ? '2px solid rgba(59, 130, 246, 0.2)' : 'none',
+    borderRadius: '0.75rem',
+    fontSize: '0.875rem',
+    fontWeight: 500,
+    cursor: 'pointer',
+    transition: 'all 0.15s ease',
+    outline: 'none',
+    position: 'relative' as const,
+    overflow: 'hidden',
+    transform: isHovered ? 'scale(1.01)' : 'scale(1)',
+    color: selectedToken ? '#111827' : '#6b7280',
+  };
+
+  const contentStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    width: '100%',
+  };
+
+  const avatarStyle = {
+    width: '24px',
+    height: '24px',
+    minWidth: '24px',
+    minHeight: '24px',
+    maxWidth: '24px',
+    maxHeight: '24px',
+    borderRadius: '50%',
+    objectFit: 'cover' as const,
+    background: 'rgba(0, 0, 0, 0.02)',
+    flexShrink: 0,
+    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+  };
+
+  const placeholderAvatarStyle = {
+    width: '24px',
+    height: '24px',
+    minWidth: '24px',
+    minHeight: '24px',
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg, #f3f4f6, #e5e7eb)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '10px',
+    fontWeight: 600,
+    color: '#6b7280',
+    flexShrink: 0,
+    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+  };
+
+  const symbolStyle = {
+    fontSize: '0.875rem',
+    fontWeight: 600,
+    flex: 1,
+    textAlign: 'left' as const,
+    letterSpacing: '-0.01em',
+  };
+
+  const textStyle = {
+    fontSize: '0.875rem',
+    fontWeight: 500,
+    flex: 1,
+    textAlign: 'left' as const,
+    color: '#6b7280',
+  };
+
+  const chevronStyle = {
+    width: '16px',
+    height: '16px',
+    minWidth: '16px',
+    color: isHovered ? '#6b7280' : '#9ca3af',
+    transition: 'all 0.15s ease',
+    marginLeft: 'auto',
+    transform: isHovered ? 'translateY(1px)' : 'translateY(0)',
+  };
+
+  const placeholderIconStyle = {
+    width: '24px',
+    height: '24px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#9ca3af',
+    flexShrink: 0,
+  };
 
   if (selectedToken) {
     const icon = 'logoURI' in selectedToken ? selectedToken.logoURI : selectedToken.icon;
@@ -43,32 +134,52 @@ function TokenButton({
     
     return (
       <button
+        type="button"
         onClick={onClick}
-        className={clsx(
-          baseClass,
-          'bg-slate-100 text-slate-900 hover:bg-slate-200'
-        )}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+        style={buttonStyle}
       >
-        <Avatar className='size-8' src={icon} />
-        <div className='flex items-center gap-1'>
-          <span>{symbol}</span>
-          {'isCustom' in selectedToken && selectedToken.isCustom && (
-            <span className='text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded'>
-              Custom
-            </span>
+        <div style={contentStyle}>
+          {icon ? (
+            <img 
+              src={icon} 
+              alt={symbol}
+              style={avatarStyle}
+            />
+          ) : (
+            <div style={placeholderAvatarStyle}>
+              {symbol?.substring(0, 2)?.toUpperCase() || '??'}
+            </div>
           )}
+          <span style={symbolStyle}>{symbol}</span>
+          <ChevronDown style={chevronStyle} />
         </div>
-        <ChevronDownIcon className='h-6 w-6 text-black' aria-hidden='true' />
       </button>
     );
   } else {
     return (
       <button
+        type="button"
         onClick={onClick}
-        className={clsx(baseClass, 'bg-blue-500 text-white hover:bg-blue-600')}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+        style={buttonStyle}
       >
-        <div className='px-2'>Select token</div>
-        <ChevronDownIcon className='h-6 w-6 text-white' aria-hidden='true' />
+        <div style={contentStyle}>
+          <div style={placeholderIconStyle}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 6v6l4 2"/>
+            </svg>
+          </div>
+          <span style={textStyle}>Select Token</span>
+          <ChevronDown style={chevronStyle} />
+        </div>
       </button>
     );
   }
@@ -111,21 +222,14 @@ export function TokenSelector({
 
   // Merge tokens from tokens.ts with network-specific tokens
   const mergeTokenLists = (networkTokens: any) => {
-    // Convert tokens from tokens.ts to IArbitrumToken format
     const appTokens = tokens.map(convertToArbitrumToken);
-    
-    // Get the network tokens
     const networkTokensList = networkTokens?.tokens || [];
-    
-    // Create a map to avoid duplicates (using lowercase address as key)
     const tokenMap = new Map<string, IArbitrumToken>();
     
-    // Add app tokens first (they have priority)
     appTokens.forEach(token => {
       tokenMap.set(token.address.toLowerCase(), token);
     });
     
-    // Add network tokens (only if not already present)
     networkTokensList.forEach((token: IArbitrumToken) => {
       const key = token.address.toLowerCase();
       if (!tokenMap.has(key)) {
@@ -133,9 +237,7 @@ export function TokenSelector({
       }
     });
     
-    // Convert back to array and sort by symbol
     const mergedTokens = Array.from(tokenMap.values()).sort((a, b) => {
-      // Put priority tokens first
       const prioritySymbols = ['USDC', 'USDT', 'WETH', 'ETH', 'AIUS', 'EACC'];
       const aIndex = prioritySymbols.indexOf(a.symbol);
       const bIndex = prioritySymbols.indexOf(b.symbol);
@@ -166,10 +268,8 @@ export function TokenSelector({
     if (cached && Array.isArray(cached)) {
       setPreferredTokens(cached);
     } else {
-      // Convert tokens from tokens.ts to IArbitrumToken format and use as default preferred
       const defaultPreferred = tokens.map(convertToArbitrumToken);
       setPreferredTokens(defaultPreferred);
-      // Save to cache
       lscacheModule.set('preferred-tokens', defaultPreferred, Infinity);
     }
   }, [chainId]);
@@ -188,7 +288,6 @@ export function TokenSelector({
   function handleTokenSelect(dialogSelectedToken: IArbitrumToken) {
     if (dialogSelectedToken) {
       setInternalSelectedToken(dialogSelectedToken);
-      // Convert to Token format and pass to parent
       const token = convertToToken(dialogSelectedToken);
       onClick(token);
     }
@@ -205,13 +304,11 @@ export function TokenSelector({
       }
     }
     
-    // Default to USDC if available, otherwise first token
     const usdcToken = tokens.find(t => t.symbol === 'USDC');
     if (usdcToken) {
       return convertToArbitrumToken(usdcToken);
     }
     
-    // Default to first token in the list
     return selectableTokens?.tokens?.[0] || {
       address: '0x0000000000000000000000000000000000000000',
       name: 'Ethereum',
