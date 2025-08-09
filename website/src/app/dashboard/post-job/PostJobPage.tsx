@@ -332,7 +332,7 @@ const PostJob = () => {
     }
 
     // Parse tags to find category
-    let category: { id: string; name: string } | undefined = undefined;
+    let category: { id: string; name: string } | undefined ;
     const remainingTags: Tag[] = [];
     tags.forEach((tag, idx) => {
       const foundCategory = jobMeceTags.find(cat => cat.id === tag);

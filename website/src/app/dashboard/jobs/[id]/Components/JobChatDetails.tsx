@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 import { Button } from '@/components/Button';
 import { shortenText } from '@/utils/utils';
 import {
