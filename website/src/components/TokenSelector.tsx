@@ -24,6 +24,9 @@ interface IArbitrumToken {
   isCustom?: boolean;
 }
 
+// Import default token icon from TokenDialog
+const DEFAULT_TOKEN_ICON = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9InVybCgjcGFpbnQwX2xpbmVhcl80MF8xMjQpIi8+CjxjaXJjbGUgY3g9IjIwIiBjeT0iMjAiIHI9IjE5LjUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjEiLz4KPHBhdGggZD0iTTIwIDEwVjIwTDI2IDIzIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIyIiBmaWxsPSJ3aGl0ZSIvPgo8ZGVmcz4KPGxpbmVhckdyYWRpZW50IGlkPSJwYWludDBfbGluZWFyXzQwXzEyNCIgeDE9IjIwIiB5MT0iMCIgeDI9IjIwIiB5Mj0iNDAiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KPHN0b3Agc3RvcC1jb2xvcj0iIzNCODJGNiIvPgo8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM5MzMzRUEiLz4KPC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8L3N2Zz4=';
+
 function TokenButton({
   onClick,
   selectedToken,
@@ -148,11 +151,17 @@ function TokenButton({
               src={icon} 
               alt={symbol}
               style={avatarStyle}
+              onError={(e: any) => {
+                e.target.onerror = null;
+                e.target.src = DEFAULT_TOKEN_ICON;
+              }}
             />
           ) : (
-            <div style={placeholderAvatarStyle}>
-              {symbol?.substring(0, 2)?.toUpperCase() || '??'}
-            </div>
+            <img 
+              src={DEFAULT_TOKEN_ICON} 
+              alt={symbol}
+              style={avatarStyle}
+            />
           )}
           <span style={symbolStyle}>{symbol}</span>
           <ChevronDown style={chevronStyle} />
@@ -196,7 +205,8 @@ export function TokenSelector({
   const chainId = useChainId();
   const [selectableTokens, setSelectableTokens] = useState<any>();
   const [preferredTokens, setPreferredTokens] = useState<IArbitrumToken[]>([]);
-  const [internalSelectedToken, setInternalSelectedToken] = useState<IArbitrumToken | Token | undefined>(selectedToken);
+  const [internalSelectedToken, setInternalSelectedToken] = useState<IArbitrumToken | Token | undefined>();
+  const [hasLoadedFromStorage, setHasLoadedFromStorage] = useState(false);
 
   // Convert between Token and IArbitrumToken formats
   const convertToToken = (arbitrumToken: IArbitrumToken): Token => {
@@ -226,11 +236,21 @@ export function TokenSelector({
     const networkTokensList = networkTokens?.tokens || [];
     const tokenMap = new Map<string, IArbitrumToken>();
     
+    // Also include custom tokens from localStorage
+    const customTokens = lscacheModule.get('custom-tokens') || [];
+    
     appTokens.forEach(token => {
       tokenMap.set(token.address.toLowerCase(), token);
     });
     
     networkTokensList.forEach((token: IArbitrumToken) => {
+      const key = token.address.toLowerCase();
+      if (!tokenMap.has(key)) {
+        tokenMap.set(key, token);
+      }
+    });
+    
+    customTokens.forEach((token: IArbitrumToken) => {
       const key = token.address.toLowerCase();
       if (!tokenMap.has(key)) {
         tokenMap.set(key, token);
@@ -262,7 +282,7 @@ export function TokenSelector({
     setSelectableTokens(mergedTokens);
   }, [chainId]);
 
-  // Load preferred tokens from cache or use default from tokens.ts
+  // Load preferred tokens from cache
   useEffect(() => {
     const cached = lscacheModule.get('preferred-tokens');
     if (cached && Array.isArray(cached)) {
@@ -274,12 +294,40 @@ export function TokenSelector({
     }
   }, [chainId]);
 
-  // Sync internal token with external prop
+  // Load last selected token from localStorage on mount
   useEffect(() => {
-    if (selectedToken) {
-      setInternalSelectedToken(selectedToken);
+    if (!hasLoadedFromStorage) {
+      const lastSelected = lscacheModule.get('last-token-selected');
+      
+      if (lastSelected) {
+        // We have a saved token
+        setInternalSelectedToken(lastSelected);
+        setHasLoadedFromStorage(true);
+        
+        // Notify parent component of the restored selection
+        const token = convertToToken(lastSelected);
+        onClick(token);
+      } else if (selectedToken) {
+        // No saved token, but we have a prop
+        const arbitrumToken = convertToArbitrumToken(selectedToken);
+        setInternalSelectedToken(arbitrumToken);
+        lscacheModule.set('last-token-selected', arbitrumToken, Infinity);
+        setHasLoadedFromStorage(true);
+      } else {
+        // No saved token and no prop - nothing to do
+        setHasLoadedFromStorage(true);
+      }
     }
-  }, [selectedToken]);
+  }, [hasLoadedFromStorage, selectedToken, onClick, chainId]);
+
+  // Update when external prop changes (after initial load)
+  useEffect(() => {
+    if (hasLoadedFromStorage && selectedToken) {
+      const arbitrumToken = convertToArbitrumToken(selectedToken);
+      setInternalSelectedToken(arbitrumToken);
+      lscacheModule.set('last-token-selected', arbitrumToken, Infinity);
+    }
+  }, [selectedToken, hasLoadedFromStorage, chainId]);
 
   function openModal() {
     setIsOpen(true);
@@ -289,6 +337,8 @@ export function TokenSelector({
     if (dialogSelectedToken) {
       setInternalSelectedToken(dialogSelectedToken);
       const token = convertToToken(dialogSelectedToken);
+      // Save to localStorage
+      lscacheModule.set('last-token-selected', dialogSelectedToken, Infinity);
       onClick(token);
     }
     setIsOpen(false);
@@ -302,6 +352,12 @@ export function TokenSelector({
       } else {
         return convertToArbitrumToken(internalSelectedToken);
       }
+    }
+    
+    // Try to load last selected from localStorage
+    const lastSelected = lscacheModule.get('last-token-selected');
+    if (lastSelected) {
+      return lastSelected;
     }
     
     const usdcToken = tokens.find(t => t.symbol === 'USDC');
