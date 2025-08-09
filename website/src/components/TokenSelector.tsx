@@ -1,21 +1,46 @@
-import { Avatar } from '@/components/Avatar';
+// src/components/TokenSelector.tsx
+'use client';
+
 import { type Token, tokens } from '@/tokens';
-import { Dialog, Transition } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import clsx from 'clsx';
-import { Fragment, useState } from 'react';
+import { Fragment, useState, useEffect } from 'react';
+import TokenDialog from '@/components/TokenDialog';
+import arbitrumTokens from '@/components/TokenDialog/Dependencies/arbitrumTokens.json';
+import mainnetTokens from '@/components/TokenDialog/Dependencies/mainnetTokens.json';
+import { mockTokens } from '@/components/TokenDialog/Dependencies/mockTokens';
+import lscacheModule from '@/components/TokenDialog/Dependencies/lscache';
+import { useChainId } from 'wagmi';
+import { Avatar } from '@/components/Avatar';
+
+interface IArbitrumToken {
+  logoURI?: string;
+  chainId: number;
+  address: string;
+  name: string;
+  symbol: string;
+  decimals: number;
+  extensions?: any;
+  l1Address?: string;
+  l2GatewayAddress?: string;
+  l1GatewayAddress?: string;
+  isCustom?: boolean;
+}
 
 function TokenButton({
   onClick,
   selectedToken,
 }: {
   onClick: () => void;
-  selectedToken: Token | undefined;
+  selectedToken: Token | IArbitrumToken | undefined;
 }) {
   const baseClass =
     'w-fit rounded-lg font-medium flex gap-2 items-center transition ease-in-out delay-50 duration-150 h-10 rounded-xl p-1.5';
 
   if (selectedToken) {
+    const icon = 'logoURI' in selectedToken ? selectedToken.logoURI : selectedToken.icon;
+    const symbol = selectedToken.symbol;
+    
     return (
       <button
         onClick={onClick}
@@ -24,8 +49,15 @@ function TokenButton({
           'bg-slate-100 text-slate-900 hover:bg-slate-200'
         )}
       >
-        <Avatar className='size-8' src={selectedToken.icon} />
-        <div>{selectedToken.symbol}</div>
+        <Avatar className='size-8' src={icon} />
+        <div className='flex items-center gap-1'>
+          <span>{symbol}</span>
+          {'isCustom' in selectedToken && selectedToken.isCustom && (
+            <span className='text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded'>
+              Custom
+            </span>
+          )}
+        </div>
         <ChevronDownIcon className='h-6 w-6 text-black' aria-hidden='true' />
       </button>
     );
@@ -42,43 +74,6 @@ function TokenButton({
   }
 }
 
-function TokenListItem({
-  token,
-  selected = false,
-  onClick,
-}: {
-  token: Token;
-  selected: boolean;
-  onClick: (token: Token) => void;
-}) {
-  return (
-    <>
-      <button
-        className={`flex items-center justify-between px-2 hover:bg-slate-50 ${selected ? 'opacity-40' : ''}`}
-        onClick={() => onClick(token)}
-      >
-        <div className='flex items-center gap-4'>
-          <Avatar className='size-8' src={token.icon} />
-          <div className='flex flex-col items-start'>
-            <div className='text-md text-slate-900'>{token.name}</div>
-            <div className='text-sm font-medium text-slate-400'>
-              {token.symbol}
-            </div>
-          </div>
-        </div>
-        <div>
-          {selected && (
-            <ChevronDownIcon
-              className='h-6 w-6 text-white'
-              aria-hidden='true'
-            />
-          )}
-        </div>
-      </button>
-    </>
-  );
-}
-
 export function TokenSelector({
   selectedToken,
   onClick,
@@ -87,75 +82,160 @@ export function TokenSelector({
   onClick: (token: Token) => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const chainId = useChainId();
+  const [selectableTokens, setSelectableTokens] = useState<any>();
+  const [preferredTokens, setPreferredTokens] = useState<IArbitrumToken[]>([]);
+  const [internalSelectedToken, setInternalSelectedToken] = useState<IArbitrumToken | Token | undefined>(selectedToken);
 
-  function closeModal() {
-    setIsOpen(false);
-  }
+  // Convert between Token and IArbitrumToken formats
+  const convertToToken = (arbitrumToken: IArbitrumToken): Token => {
+    return {
+      id: arbitrumToken.address,
+      name: arbitrumToken.name,
+      symbol: arbitrumToken.symbol,
+      decimals: arbitrumToken.decimals,
+      icon: arbitrumToken.logoURI || '',
+    };
+  };
+
+  const convertToArbitrumToken = (token: Token): IArbitrumToken => {
+    return {
+      address: token.id,
+      name: token.name,
+      symbol: token.symbol,
+      decimals: token.decimals,
+      logoURI: token.icon,
+      chainId: chainId || 1,
+    };
+  };
+
+  // Merge tokens from tokens.ts with network-specific tokens
+  const mergeTokenLists = (networkTokens: any) => {
+    // Convert tokens from tokens.ts to IArbitrumToken format
+    const appTokens = tokens.map(convertToArbitrumToken);
+    
+    // Get the network tokens
+    const networkTokensList = networkTokens?.tokens || [];
+    
+    // Create a map to avoid duplicates (using lowercase address as key)
+    const tokenMap = new Map<string, IArbitrumToken>();
+    
+    // Add app tokens first (they have priority)
+    appTokens.forEach(token => {
+      tokenMap.set(token.address.toLowerCase(), token);
+    });
+    
+    // Add network tokens (only if not already present)
+    networkTokensList.forEach((token: IArbitrumToken) => {
+      const key = token.address.toLowerCase();
+      if (!tokenMap.has(key)) {
+        tokenMap.set(key, token);
+      }
+    });
+    
+    // Convert back to array and sort by symbol
+    const mergedTokens = Array.from(tokenMap.values()).sort((a, b) => {
+      // Put priority tokens first
+      const prioritySymbols = ['USDC', 'USDT', 'WETH', 'ETH', 'AIUS', 'EACC'];
+      const aIndex = prioritySymbols.indexOf(a.symbol);
+      const bIndex = prioritySymbols.indexOf(b.symbol);
+      
+      if (aIndex !== -1 && bIndex !== -1) {
+        return aIndex - bIndex;
+      }
+      if (aIndex !== -1) return -1;
+      if (bIndex !== -1) return 1;
+      
+      return a.symbol.localeCompare(b.symbol);
+    });
+    
+    return { tokens: mergedTokens };
+  };
+
+  // Load tokens based on network
+  useEffect(() => {
+    const currentChainId = chainId || 1;
+    const networkTokens = currentChainId === 42161 ? arbitrumTokens : mainnetTokens;
+    const mergedTokens = mergeTokenLists(networkTokens);
+    setSelectableTokens(mergedTokens);
+  }, [chainId]);
+
+  // Load preferred tokens from cache or use default from tokens.ts
+  useEffect(() => {
+    const cached = lscacheModule.get('preferred-tokens');
+    if (cached && Array.isArray(cached)) {
+      setPreferredTokens(cached);
+    } else {
+      // Convert tokens from tokens.ts to IArbitrumToken format and use as default preferred
+      const defaultPreferred = tokens.map(convertToArbitrumToken);
+      setPreferredTokens(defaultPreferred);
+      // Save to cache
+      lscacheModule.set('preferred-tokens', defaultPreferred, Infinity);
+    }
+  }, [chainId]);
+
+  // Sync internal token with external prop
+  useEffect(() => {
+    if (selectedToken) {
+      setInternalSelectedToken(selectedToken);
+    }
+  }, [selectedToken]);
 
   function openModal() {
     setIsOpen(true);
   }
 
-  // we add a function handleClick
-  function handleClick(token: Token) {
-    onClick(token);
-    closeModal();
+  function handleTokenSelect(dialogSelectedToken: IArbitrumToken) {
+    if (dialogSelectedToken) {
+      setInternalSelectedToken(dialogSelectedToken);
+      // Convert to Token format and pass to parent
+      const token = convertToToken(dialogSelectedToken);
+      onClick(token);
+    }
+    setIsOpen(false);
   }
+
+  // Find initial token for dialog
+  const getInitialDialogToken = (): IArbitrumToken => {
+    if (internalSelectedToken) {
+      if ('logoURI' in internalSelectedToken) {
+        return internalSelectedToken;
+      } else {
+        return convertToArbitrumToken(internalSelectedToken);
+      }
+    }
+    
+    // Default to USDC if available, otherwise first token
+    const usdcToken = tokens.find(t => t.symbol === 'USDC');
+    if (usdcToken) {
+      return convertToArbitrumToken(usdcToken);
+    }
+    
+    // Default to first token in the list
+    return selectableTokens?.tokens?.[0] || {
+      address: '0x0000000000000000000000000000000000000000',
+      name: 'Ethereum',
+      symbol: 'ETH',
+      decimals: 18,
+      chainId: chainId || 1,
+    };
+  };
 
   return (
     <>
-      <TokenButton selectedToken={selectedToken} onClick={() => openModal()} />
+      <TokenButton 
+        selectedToken={internalSelectedToken} 
+        onClick={openModal} 
+      />
 
-      <Transition appear show={isOpen} as={Fragment}>
-        <Dialog as='div' className='relative z-10' onClose={closeModal}>
-          <Transition.Child
-            as={Fragment}
-            enter='ease-out duration-300'
-            enterFrom='opacity-0'
-            enterTo='opacity-100'
-            leave='ease-in duration-200'
-            leaveFrom='opacity-100'
-            leaveTo='opacity-0'
-          >
-            <div className='fixed inset-0 bg-black bg-opacity-25' />
-          </Transition.Child>
-
-          <div className='fixed inset-0 overflow-y-auto'>
-            <div className='flex min-h-full items-center justify-center p-4 text-center'>
-              <Transition.Child
-                as={Fragment}
-                enter='ease-out duration-300'
-                enterFrom='opacity-0 scale-95'
-                enterTo='opacity-100 scale-100'
-                leave='ease-in duration-200'
-                leaveFrom='opacity-100 scale-100'
-                leaveTo='opacity-0 scale-95'
-              >
-                <Dialog.Panel className='w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all'>
-                  <Dialog.Title
-                    as='h3'
-                    className='text-lg font-medium leading-6 text-gray-900'
-                  >
-                    Select a token
-                  </Dialog.Title>
-                  <div className='mt-2'>
-                    <div className='flex flex-col gap-4'>
-                      {tokens.map((token, idx) => (
-                        <TokenListItem
-                          token={token}
-                          selected={token.id == selectedToken?.id}
-                          onClick={handleClick}
-                          key={idx}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </Dialog.Panel>
-              </Transition.Child>
-            </div>
-          </div>
-        </Dialog>
-      </Transition>
+      {isOpen && selectableTokens && (
+        <TokenDialog
+          initiallySelectedToken={getInitialDialogToken()}
+          preferredTokenList={mockTokens(preferredTokens)}
+          tokensList={selectableTokens?.tokens || []}
+          closeCallback={handleTokenSelect}
+        />
+      )}
     </>
   );
 }

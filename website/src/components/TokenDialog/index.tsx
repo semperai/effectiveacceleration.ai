@@ -36,9 +36,9 @@ import { EthereumIcon } from './Dependencies/Icons/EthereumIcon';
 import { ExternalLinkIcon } from './Dependencies/Icons/ExternalLinkIcon';
 import { PinIcon } from './Dependencies/Icons/PinIcon';
 import { toast } from './Dependencies/toast';
-import Unicrow from '@unicrowio/sdk';
 import { reduceAddress } from './Dependencies/addressFormatter';
 import { fetchTokenMetadata, isValidTokenContract, type IArbitrumToken } from './Dependencies/tokenHelpers';
+import { usePublicClient } from 'wagmi';
 
 const TokenDialog = ({
   initiallySelectedToken,
@@ -63,11 +63,12 @@ const TokenDialog = ({
   );
   const [searchValue, setSearchValue] = React.useState<string>('');
   const [customTokenValue, setAddTokenValue] = React.useState<string>('');
-  const [provider, setProvider] = React.useState<any>(null);
+  const [provider, setProvider] = React.useState<ethers.Provider | null>(null);
   const [sortedTokensList, setSortedTokensList] = React.useState([]);
   const [isAddCustomToken, setAddCustomToken] = React.useState(false);
   const [isLoadingToken, setIsLoadingToken] = React.useState(false);
   const [tokenLoadError, setTokenLoadError] = React.useState<string>('');
+  const publicClient = usePublicClient();
   
   const noTokensFound = !filteredTokens || filteredTokens.length === 0;
 
@@ -78,8 +79,15 @@ const TokenDialog = ({
   };
 
   const handleSelectToken = (token: IArbitrumToken, event: any) => {
-    // DIV = preferred token (chip) or TokenItem, BUTTON = close button
-    if (['DIV', 'BUTTON'].includes(event.target.nodeName)) {
+    // Prevent event from bubbling up
+    event.stopPropagation();
+    
+    // Don't select if clicking on pin or external link
+    const target = event.target as HTMLElement;
+    const isPin = target.closest('.pin');
+    const isLink = target.closest('a');
+    
+    if (!isPin && !isLink) {
       setSelectedToken(token);
       closeCallback(token);
     }
@@ -110,8 +118,13 @@ const TokenDialog = ({
     setIsLoadingToken(true);
 
     try {
-      // Get provider
-      const provider = await Unicrow.wallet.getWeb3Provider();
+      // Get provider from publicClient
+      if (!publicClient) {
+        throw new Error('No public client available');
+      }
+      
+      // Create ethers provider from viem publicClient
+      const provider = new ethers.BrowserProvider(window.ethereum as any);
       
       // Validate if it's a token contract
       const isValid = await isValidTokenContract(customTokenValue, provider);
@@ -205,8 +218,14 @@ const TokenDialog = ({
 
   React.useEffect(() => {
     const getProvider = async () => {
-      const provider = await Unicrow.wallet.getWeb3Provider();
-      setProvider(provider);
+      try {
+        if (window.ethereum) {
+          const browserProvider = new ethers.BrowserProvider(window.ethereum as any);
+          setProvider(browserProvider);
+        }
+      } catch (error) {
+        console.error('Error getting provider:', error);
+      }
     };
 
     getProvider();
@@ -215,11 +234,25 @@ const TokenDialog = ({
   }, []);
 
   React.useEffect(() => {
+    if (!favoriteTokens?.length && tokensList?.length > 0) {
+      // Set default favorite tokens to priority tokens
+      const prioritySymbols = ['USDC', 'USDT', 'WETH', 'AIUS', 'EACC'];
+      const priorityTokens = tokensList.filter(token => 
+        prioritySymbols.includes(token.symbol)
+      ).slice(0, 5);
+      
+      if (priorityTokens.length > 0) {
+        setFavoriteTokens(priorityTokens);
+        lscacheModule.set('preferred-tokens', priorityTokens, Infinity);
+      } else {
+        setFavoriteTokens(preferredTokenList);
+      }
+    }
+    
     if (filteredTokens?.length === 0) {
       setFilteredTokens([...tokensList, ...customTokens]);
-      setFavoriteTokens(preferredTokenList);
     }
-  }, [tokensList]);
+  }, [tokensList, preferredTokenList, customTokens]);
 
   // Enhanced search to detect contract addresses
   React.useEffect(() => {
@@ -282,14 +315,15 @@ const TokenDialog = ({
         const listWithBalance = await Promise.all(promises).then((results) =>
           tokensList.map((t, idx) => ({ ...t, balance: results[idx] })),
         );
-        const ethPrice = await Unicrow.helpers.getExchangeRates(["ETH"]);
-        const listMerged = listWithBalance.map((t) => {
-          const balance =
-            t.balance === "0.0" ? "0.0" : (t.balance * ethPrice.ETH).toFixed(2);
-          return { ...t, balance };
-        });
+        // Would need to implement getExchangeRates separately
+        // const ethPrice = await getExchangeRates(["ETH"]);
+        // const listMerged = listWithBalance.map((t) => {
+        //   const balance =
+        //     t.balance === "0.0" ? "0.0" : (t.balance * ethPrice.ETH).toFixed(2);
+        //   return { ...t, balance };
+        // });
 
-        setSortedTokensList(listMerged.sort((a, b) => b.balance - a.balance));
+        // setSortedTokensList(listMerged.sort((a, b) => b.balance - a.balance));
       }, 200);
       */
     }
@@ -318,9 +352,15 @@ const TokenDialog = ({
             color={
               token.address === selectedToken?.address ? 'primary' : 'default'
             }
-            onDelete={() => deleteTokenFromFavorites(token)}
+            onDelete={(e) => {
+              e.stopPropagation();
+              deleteTokenFromFavorites(token);
+            }}
             variant='outlined'
-            onClick={(e) => handleSelectToken(token, e)}
+            onClick={() => {
+              setSelectedToken(token);
+              closeCallback(token);
+            }}
           />
         ))}
       </ContainerListPreferredTokens>
@@ -491,6 +531,7 @@ const TokenItem = ({
       <ListItemButton
         selected={selectedToken?.address === token.address}
         onClick={(e) => handleSelectToken(token, e)}
+        sx={{ cursor: 'pointer' }}
       >
         <ListItemIcon>
           {token.logoURI ? (
@@ -520,10 +561,14 @@ const TokenItem = ({
             </span>
           </span>
 
-          <span className='pin' onClick={(e) => {
-            e.stopPropagation();
-            addFavoriteTokens(token);
-          }}>
+          <span 
+            className='pin' 
+            onClick={(e) => {
+              e.stopPropagation();
+              addFavoriteTokens(token);
+            }}
+            style={{ cursor: 'pointer' }}
+          >
             <PinIcon />
           </span>
           <Link

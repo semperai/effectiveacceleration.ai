@@ -1,8 +1,9 @@
+// src/components/TokenSelectModal/index.tsx
 import TokenDialog from '@/components/TokenDialog';
 import arbitrumTokens from '@/components/TokenDialog/Dependencies/arbitrumTokens.json';
 import mainnetTokens from '@/components/TokenDialog/Dependencies/mainnetTokens.json';
 import { mockTokens } from '@/components/TokenDialog/Dependencies/mockTokens';
-import Unicrow from '@unicrowio/sdk';
+import { useChainId } from 'wagmi';
 import React from 'react';
 
 interface IArbitrumToken {
@@ -19,6 +20,7 @@ interface IArbitrumToken {
 }
 
 const TokenSelectModal = () => {
+  const chainId = useChainId();
   const [selectedToken, setSelectedToken] = React.useState<IArbitrumToken>(
     arbitrumTokens.tokens[0]
   );
@@ -26,7 +28,7 @@ const TokenSelectModal = () => {
     IArbitrumToken[]
   >([]);
 
-  const getTokensOfNetwork = (id: number | bigint) =>
+  const getTokensOfNetwork = (id: number) =>
     id === 42161 ? arbitrumTokens : mainnetTokens;
 
   const [tokenSelectionDialogOpen, setTokenSelectionDialogOpen] =
@@ -34,13 +36,10 @@ const TokenSelectModal = () => {
   const [selectableTokens, setSelectableTokens] = React.useState<any>();
 
   React.useEffect(() => {
-    Unicrow.wallet.startListeningNetwork((id) =>
-      setSelectableTokens(getTokensOfNetwork(id))
-    ); // listens to network changes
-    Unicrow.wallet
-      .getNetwork()
-      .then((n) => setSelectableTokens(getTokensOfNetwork(n?.chainId)));
-  }, []);
+    // Set tokens based on current chain
+    const currentChainId = chainId || 1;
+    setSelectableTokens(getTokensOfNetwork(currentChainId));
+  }, [chainId]);
 
   return (
     <TokenDialog
