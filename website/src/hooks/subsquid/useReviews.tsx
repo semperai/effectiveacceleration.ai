@@ -1,26 +1,29 @@
-import { Review } from '@effectiveacceleration/contracts';
+import { Review as ContractReview } from '@effectiveacceleration/contracts';
 import { useMemo } from 'react';
 import { useQuery } from '@apollo/client';
 import { GET_REVIEWS } from './queries';
 
-export default function useReviews(
-  targetAddress: string,
-  offset: number = 0,
-  limit: number = 0
-) {
+// Extend the base Review type with id field from GraphQL
+export interface ExtendedReview extends ContractReview {
+  id?: string;
+  user: string;  // Add this if it's missing from the base type
+}
+
+export default function useReviews(targetAddress: string, offset: number = 0, limit: number = 100) {
   const { data, ...rest } = useQuery(GET_REVIEWS, {
-    variables: {
+    variables: { 
+      targetAddress: targetAddress ?? '',
       offset,
-      limit: limit === 0 ? 1000 : limit,
-      targetAddress,
+      limit
     },
+    skip: !targetAddress,
   });
 
   return useMemo(
-    () => ({
-      data: data ? (data?.reviews as Review[]) : undefined,
-      ...rest,
+    () => ({ 
+      data: data ? (data?.reviews as ExtendedReview[]) : undefined, 
+      ...rest 
     }),
-    [offset, limit, data, rest]
+    [targetAddress, offset, limit, data, rest]
   );
 }
