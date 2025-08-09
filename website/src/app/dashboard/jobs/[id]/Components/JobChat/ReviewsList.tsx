@@ -63,7 +63,7 @@ export function ReviewsList({
               </div>
               <div className='flex flex-col items-center flex-1'>
                 <span className='text-2xl text-primary font-semibold'>{positiveReviewPercentage}%</span>
-                <span className='text-xs text-center leading-3'>Positive percentaje</span>
+                <span className='text-xs text-center leading-3'>Positive percentage</span>
               </div>
             </div>
           </>
