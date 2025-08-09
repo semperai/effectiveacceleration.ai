@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
+import { unstable_cache } from 'next/cache';
 import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
 import { Job } from '@effectiveacceleration/contracts';
 import JobPageClient from './JobPageClient';
 
 // Define the query directly in the server component
-// This ensures it works in the server environment
 const GET_JOB_BY_ID_QUERY = gql`
   query GetJobById($jobId: String!) {
     jobs(where: { id_eq: $jobId }) {
@@ -42,30 +42,38 @@ const GET_JOB_BY_ID_QUERY = gql`
   }
 `;
 
-// Helper function to fetch job data server-side
-async function getJobData(jobId: string): Promise<Job | null> {
-  try {
-    // Create a new client instance for each request to avoid caching issues
-    const client = new ApolloClient({
-      uri: process.env.NEXT_PUBLIC_SUBSQUID_API_URL || 'https://arbius.squids.live/eacc-arb-one@v1/api/graphql',
-      cache: new InMemoryCache(),
-      defaultOptions: {
-        query: {
-          fetchPolicy: 'no-cache',
+// Cache the Apollo query result using unstable_cache
+const getCachedJobData = unstable_cache(
+  async (jobId: string): Promise<Job | null> => {
+    try {
+      // Create a new client instance for each request to avoid caching issues
+      const client = new ApolloClient({
+        uri: process.env.NEXT_PUBLIC_SUBSQUID_API_URL || 'https://arbius.squids.live/eacc-arb-one@v1/api/graphql',
+        cache: new InMemoryCache(),
+        defaultOptions: {
+          query: {
+            fetchPolicy: 'no-cache',
+          },
         },
-      },
-    });
+      });
 
-    const { data } = await client.query({
-      query: GET_JOB_BY_ID_QUERY,
-      variables: { jobId },
-    });
+      const { data } = await client.query({
+        query: GET_JOB_BY_ID_QUERY,
+        variables: { jobId },
+      });
 
-    return data?.jobs?.[0] || null;
-  } catch (error) {
-    return null;
+      return data?.jobs?.[0] || null;
+    } catch (error) {
+      console.error('Error fetching job data:', error);
+      return null;
+    }
+  },
+  ['job-metadata'], // Cache key prefix
+  {
+    revalidate: 3600, // Cache for 1 hour (3600 seconds)
+    tags: ['job-metadata'], // Cache tags for invalidation
   }
-}
+);
 
 // Helper to truncate description
 function truncateDescription(text: string, maxLength: number = 160): string {
@@ -90,8 +98,8 @@ export async function generateMetadata(
   const jobId = params.id;
   console.log('Generating metadata for job ID:', jobId);
 
-  // Fetch job data using the same query as your hook
-  const job = await getJobData(jobId);
+  // Fetch job data using cached version
+  const job = await getCachedJobData(jobId);
 
   if (!job) {
     console.log('Job not found for metadata, returning fallback metadata for job ID:', jobId);
