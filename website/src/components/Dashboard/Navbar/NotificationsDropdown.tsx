@@ -4,6 +4,8 @@ import { NotificationWithJob } from '@/hooks/subsquid/useUserNotifications';
 import { NotificationItem } from './NotificationItem';
 import { CheckCheck, Eye, EyeOff, X, BellOff } from 'lucide-react';
 import { createPortal } from 'react-dom';
+import { JobEventType } from '@effectiveacceleration/contracts';
+import useNotificationWithEvent from '@/hooks/subsquid/useNotificationWithEvent';
 
 interface NotificationsDropdownProps {
   notifications: NotificationWithJob[];
@@ -15,6 +17,48 @@ interface NotificationsDropdownProps {
 }
 
 const NOTIFICATION_VIEW_PREFERENCE_KEY = 'notificationViewPreference';
+
+// Component to handle individual message fetching using the working hook
+function MessageNotificationWrapper({
+  notification,
+  onRead,
+  onClick
+}: {
+  notification: NotificationWithJob;
+  onRead: (notification: NotificationWithJob) => void;
+  onClick: (notification: NotificationWithJob) => void;
+}) {
+  const isMessage = notification.type === JobEventType.OwnerMessage || 
+                   notification.type === JobEventType.WorkerMessage;
+  
+  // Use the working hook for message notifications
+  const { messageContent, isLoading } = useNotificationWithEvent(
+    isMessage ? notification : undefined,
+    isMessage
+  );
+
+  // Debug log
+  useEffect(() => {
+    if (isMessage) {
+      console.log('[MessageNotificationWrapper] State for notification:', {
+        notificationId: notification.id,
+        isLoading,
+        hasContent: !!messageContent,
+        contentPreview: messageContent?.substring(0, 50)
+      });
+    }
+  }, [isMessage, notification.id, isLoading, messageContent]);
+
+  return (
+    <NotificationItem
+      notification={notification}
+      onRead={onRead}
+      onClick={onClick}
+      messageContent={messageContent}
+      isLoadingMessage={isLoading}
+    />
+  );
+}
 
 export const NotificationsDropdown = forwardRef<
   HTMLDivElement,
@@ -39,6 +83,18 @@ export const NotificationsDropdown = forwardRef<
     : notifications.filter((n) => !n.read);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
+
+  // Count message notifications for debugging
+  const messageNotificationCount = displayedNotifications.filter(
+    n => n.type === JobEventType.OwnerMessage || n.type === JobEventType.WorkerMessage
+  ).length;
+
+  console.log('[NotificationsDropdown] Render state:', {
+    totalDisplayed: displayedNotifications.length,
+    messageNotifications: messageNotificationCount,
+    unreadCount,
+    showAll
+  });
 
   // Smooth height animation using ResizeObserver
   useEffect(() => {
@@ -199,14 +255,35 @@ export const NotificationsDropdown = forwardRef<
           ) : (
             <>
               <div className='divide-y divide-gray-100 dark:divide-gray-800'>
-                {displayedNotifications.map((notification) => (
-                  <NotificationItem
-                    key={notification.id}
-                    notification={notification}
-                    onRead={onReadNotification}
-                    onClick={handleNotificationClick}
-                  />
-                ))}
+                {displayedNotifications.map((notification) => {
+                  const isMessage = notification.type === JobEventType.OwnerMessage || 
+                                  notification.type === JobEventType.WorkerMessage;
+                  
+                  // Use the wrapper component for message notifications
+                  // This uses the working useNotificationWithEvent hook
+                  if (isMessage) {
+                    return (
+                      <MessageNotificationWrapper
+                        key={notification.id}
+                        notification={notification}
+                        onRead={onReadNotification}
+                        onClick={handleNotificationClick}
+                      />
+                    );
+                  }
+                  
+                  // For non-message notifications, use the regular component
+                  return (
+                    <NotificationItem
+                      key={notification.id}
+                      notification={notification}
+                      onRead={onReadNotification}
+                      onClick={handleNotificationClick}
+                      messageContent={undefined}
+                      isLoadingMessage={false}
+                    />
+                  );
+                })}
               </div>
               {hasMore && (
                 <div

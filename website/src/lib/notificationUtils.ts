@@ -1,5 +1,5 @@
 // src/lib/notificationUtils.ts
-import { JobEventType, JobMessageEvent } from '@effectiveacceleration/contracts';
+import { JobEventType } from '@effectiveacceleration/contracts';
 import { NotificationWithJob } from '@/hooks/subsquid/useUserNotifications';
 import { formatTokenNameAndAmount } from '@/tokens';
 import { 
@@ -60,6 +60,17 @@ export const getNotificationContent = (
 
   const userRole = getUserRole();
 
+  // DEBUG logging for message notifications
+  if (type === JobEventType.OwnerMessage || type === JobEventType.WorkerMessage) {
+    console.log('[notificationUtils] Processing message notification:', {
+      notificationId: notification.id,
+      type,
+      hasMessageContent: !!notification.messageContent,
+      messageContent: notification.messageContent,
+      messageContentLength: notification.messageContent?.length
+    });
+  }
+
   switch (type) {
     case JobEventType.Created:
       return {
@@ -67,7 +78,7 @@ export const getNotificationContent = (
         description: userRole === 'arbitrator' 
           ? 'You have been assigned as the arbitrator for this job'
           : 'A job has been created',
-        icon: React.createElement(FileText, { className: 'h-4 w-4' }),
+        icon: React.createElement(FileText, { className: 'h-3.5 w-3.5' }),
         priority: 'high'
       };
 
@@ -77,7 +88,7 @@ export const getNotificationContent = (
         description: userRole === 'creator'
           ? 'A worker has accepted your job'
           : 'This job has been taken by a worker',
-        icon: React.createElement(UserCheck, { className: 'h-4 w-4' }),
+        icon: React.createElement(UserCheck, { className: 'h-3.5 w-3.5' }),
         priority: 'high'
       };
 
@@ -87,7 +98,7 @@ export const getNotificationContent = (
         description: job?.amount 
           ? `Payment of ${formatTokenNameAndAmount(job.token, job.amount)} has been made`
           : 'Payment has been made for this job',
-        icon: React.createElement(DollarSign, { className: 'h-4 w-4' }),
+        icon: React.createElement(DollarSign, { className: 'h-3.5 w-3.5' }),
         priority: 'high'
       };
 
@@ -95,7 +106,7 @@ export const getNotificationContent = (
       return {
         title: 'Job Updated',
         description: 'Job details have been modified',
-        icon: React.createElement(Edit, { className: 'h-4 w-4' }),
+        icon: React.createElement(Edit, { className: 'h-3.5 w-3.5' }),
         priority: 'medium'
       };
 
@@ -105,7 +116,7 @@ export const getNotificationContent = (
         description: userRole === 'creator'
           ? 'The worker has signed the job agreement'
           : 'The job agreement has been signed',
-        icon: React.createElement(PenTool, { className: 'h-4 w-4' }),
+        icon: React.createElement(PenTool, { className: 'h-3.5 w-3.5' }),
         priority: 'medium'
       };
 
@@ -117,7 +128,7 @@ export const getNotificationContent = (
           : userRole === 'arbitrator'
           ? 'This job has been successfully completed'
           : 'The job has been completed and approved',
-        icon: React.createElement(CheckCircle, { className: 'h-4 w-4' }),
+        icon: React.createElement(CheckCircle, { className: 'h-3.5 w-3.5' }),
         priority: 'high'
       };
 
@@ -127,7 +138,7 @@ export const getNotificationContent = (
         description: userRole === 'creator'
           ? 'The worker has submitted their deliverables'
           : 'Deliverables have been submitted for review',
-        icon: React.createElement(Package, { className: 'h-4 w-4' }),
+        icon: React.createElement(Package, { className: 'h-3.5 w-3.5' }),
         priority: 'high'
       };
 
@@ -137,7 +148,7 @@ export const getNotificationContent = (
         description: userRole === 'worker'
           ? 'You have received a rating for your work'
           : 'A rating has been submitted',
-        icon: React.createElement(Star, { className: 'h-4 w-4' }),
+        icon: React.createElement(Star, { className: 'h-3.5 w-3.5' }),
         priority: 'medium'
       };
 
@@ -147,7 +158,7 @@ export const getNotificationContent = (
         description: userRole === 'creator'
           ? 'Your payment has been refunded'
           : 'The job payment has been refunded',
-        icon: React.createElement(RotateCcw, { className: 'h-4 w-4' }),
+        icon: React.createElement(RotateCcw, { className: 'h-3.5 w-3.5' }),
         priority: 'high'
       };
 
@@ -157,7 +168,7 @@ export const getNotificationContent = (
         description: userRole === 'arbitrator'
           ? 'Your arbitration is needed to resolve this dispute'
           : 'A dispute has been raised and sent to arbitration',
-        icon: React.createElement(AlertTriangle, { className: 'h-4 w-4' }),
+        icon: React.createElement(AlertTriangle, { className: 'h-3.5 w-3.5' }),
         priority: 'high'
       };
 
@@ -165,7 +176,7 @@ export const getNotificationContent = (
       return {
         title: 'Arbitration Complete',
         description: 'The dispute has been resolved by the arbitrator',
-        icon: React.createElement(Scale, { className: 'h-4 w-4' }),
+        icon: React.createElement(Scale, { className: 'h-3.5 w-3.5' }),
         priority: 'high'
       };
 
@@ -173,7 +184,7 @@ export const getNotificationContent = (
       return {
         title: 'Arbitration Refused',
         description: 'The arbitrator has refused to handle this dispute',
-        icon: React.createElement(XCircle, { className: 'h-4 w-4' }),
+        icon: React.createElement(XCircle, { className: 'h-3.5 w-3.5' }),
         priority: 'high'
       };
 
@@ -183,7 +194,7 @@ export const getNotificationContent = (
         description: userRole === 'worker' || address?.toLowerCase() === currentUserAddress?.toLowerCase()
           ? 'You have been added to the whitelist for this job'
           : 'A worker has been added to the whitelist',
-        icon: React.createElement(UserPlus, { className: 'h-4 w-4' }),
+        icon: React.createElement(UserPlus, { className: 'h-3.5 w-3.5' }),
         priority: 'medium'
       };
 
@@ -193,7 +204,7 @@ export const getNotificationContent = (
         description: userRole === 'worker' || address?.toLowerCase() === currentUserAddress?.toLowerCase()
           ? 'You have been removed from the whitelist'
           : 'A worker has been removed from the whitelist',
-        icon: React.createElement(UserMinus, { className: 'h-4 w-4' }),
+        icon: React.createElement(UserMinus, { className: 'h-3.5 w-3.5' }),
         priority: 'low'
       };
 
@@ -203,7 +214,7 @@ export const getNotificationContent = (
         description: job?.collateralOwed 
           ? `${formatTokenNameAndAmount(job.token, job.collateralOwed)} withdrawn`
           : 'Collateral has been withdrawn',
-        icon: React.createElement(Banknote, { className: 'h-4 w-4' }),
+        icon: React.createElement(Banknote, { className: 'h-3.5 w-3.5' }),
         priority: 'medium'
       };
 
@@ -211,7 +222,7 @@ export const getNotificationContent = (
       return {
         title: 'Job Closed',
         description: 'This job has been closed',
-        icon: React.createElement(Lock, { className: 'h-4 w-4' }),
+        icon: React.createElement(Lock, { className: 'h-3.5 w-3.5' }),
         priority: 'medium'
       };
 
@@ -219,20 +230,50 @@ export const getNotificationContent = (
       return {
         title: 'Job Reopened',
         description: 'This job has been reopened for applications',
-        icon: React.createElement(Unlock, { className: 'h-4 w-4' }),
+        icon: React.createElement(Unlock, { className: 'h-3.5 w-3.5' }),
         priority: 'high'
       };
 
     case JobEventType.OwnerMessage:
     case JobEventType.WorkerMessage:
-      // Use messageContent if available, show it as plain text
       const messageContent = notification.messageContent;
+      const isOwnerMessage = type === JobEventType.OwnerMessage;
       
-      // Don't show generic fallback text - return empty or the actual message
+      // Determine description based on content availability
+      let description = '';
+      
+      if (messageContent && messageContent.trim()) {
+        // We have actual content
+        if (messageContent === '[Unable to load message]' || 
+            messageContent === '[Error loading message]') {
+          // Error states from the fetch
+          description = messageContent;
+        } else {
+          // Valid message content
+          description = truncateMessage(messageContent);
+        }
+      } else if (messageContent === '') {
+        // Explicitly empty message (rare but possible)
+        description = '[Empty message]';
+      } else {
+        // No content available yet or undefined
+        // This provides a fallback that's better than empty string
+        description = isOwnerMessage 
+          ? `Message from ${userRole === 'worker' ? 'job owner' : 'owner'}`
+          : `Message from ${userRole === 'creator' ? 'worker' : 'worker'}`;
+      }
+      
+      console.log('[notificationUtils] Message notification result:', {
+        notificationId: notification.id,
+        hasContent: !!messageContent,
+        contentLength: messageContent?.length,
+        finalDescription: description
+      });
+      
       return {
         title: isRead ? 'Message' : 'New Message',
-        description: messageContent ? truncateMessage(messageContent) : '',
-        icon: React.createElement(MessageSquare, { className: 'h-4 w-4' }),
+        description,
+        icon: React.createElement(MessageSquare, { className: 'h-3.5 w-3.5' }),
         priority: 'medium'
       };
 
@@ -240,8 +281,8 @@ export const getNotificationContent = (
       return {
         title: 'Job Update',
         description: `Activity on job #${notification.jobId}`,
-        icon: React.createElement(FileCheck, { className: 'h-4 w-4' }),
+        icon: React.createElement(FileCheck, { className: 'h-3.5 w-3.5' }),
         priority: 'low'
       };
   }
-};
+}

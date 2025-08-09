@@ -265,11 +265,10 @@ export const GET_USER_NOTIFICATIONS_WITH_EVENTS = gql`
   }
 `;
 
-// Add a query to fetch job events for notification job IDs
 export const GET_JOB_EVENTS_FOR_NOTIFICATIONS = gql`
-  query GetJobEventsForNotifications($jobIds: [BigInt!]) {
+  query GetJobEventsForNotifications($jobIds: [String!]) {
     jobEvents(
-      orderBy: timestamp__DESC
+      orderBy: timestamp_DESC
       where: { jobId_in: $jobIds }
     ) {
       ${JobEventFields}

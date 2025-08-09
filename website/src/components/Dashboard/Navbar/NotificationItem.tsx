@@ -3,7 +3,6 @@ import Link from 'next/link';
 import moment from 'moment';
 import { Check, ChevronRight } from 'lucide-react';
 import { NotificationWithJob } from '@/hooks/subsquid/useUserNotifications';
-import useNotificationWithEvent from '@/hooks/subsquid/useNotificationWithEvent';
 import { getNotificationContent } from '@/lib/notificationUtils';
 import { useAccount } from 'wagmi';
 import { JobEventType } from '@effectiveacceleration/contracts';
@@ -12,12 +11,16 @@ interface NotificationItemProps {
   notification: NotificationWithJob;
   onRead: (notification: NotificationWithJob) => void;
   onClick: (notification: NotificationWithJob) => void;
+  messageContent?: string;
+  isLoadingMessage?: boolean;
 }
 
 export const NotificationItem = ({
   notification,
   onRead,
   onClick,
+  messageContent,
+  isLoadingMessage = false,
 }: NotificationItemProps) => {
   const { address } = useAccount();
   const formattedTime = moment(notification.timestamp * 1000).fromNow();
@@ -27,13 +30,19 @@ export const NotificationItem = ({
   const isMessage = notification.type === JobEventType.OwnerMessage || 
                    notification.type === JobEventType.WorkerMessage;
   
-  // Fetch message content if this is a message notification
-  const { messageContent, isLoading } = useNotificationWithEvent(notification, isMessage);
-  
   // Use the enhanced notification with message content
   const enhancedNotification = { ...notification, messageContent };
   const content = getNotificationContent(enhancedNotification, address);
-  const jobTitle = notification.job?.title || `Job #${notification.jobId}`;
+  
+  // Format job title with ID
+  const jobTitle = notification.job?.title 
+    ? `#${notification.jobId} ${notification.job.title}`
+    : `#${notification.jobId}`;
+  
+  // Truncate job title if too long
+  const truncatedJobTitle = jobTitle.length > 30 
+    ? `${jobTitle.substring(0, 30)}...` 
+    : jobTitle;
 
   const handleMarkAsRead = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -69,35 +78,30 @@ export const NotificationItem = ({
         className='flex items-start gap-3 px-4 py-3.5'
         onClick={() => onClick(notification)}
       >
-        {/* Icon Container */}
-        <div className={`mt-0.5 flex-shrink-0 p-2 rounded-lg ${
-          isUnread 
-            ? 'bg-blue-100 dark:bg-blue-900/30' 
-            : 'bg-gray-100 dark:bg-gray-800'
-        }`}>
-          <div className={`${
-            isUnread 
-              ? 'text-blue-600 dark:text-blue-400' 
-              : 'text-gray-500 dark:text-gray-400'
-          }`}>
-            {content.icon}
-          </div>
-        </div>
-
-        {/* Content */}
+        {/* Content - removed icon container */}
         <div className='min-w-0 flex-1 space-y-1'>
           <div className='flex items-start justify-between gap-2'>
-            <p className={`text-sm leading-tight ${
+            {/* Title with inline icon */}
+            <div className={`flex items-center gap-1.5 text-sm leading-tight ${
               isUnread 
                 ? 'font-semibold text-gray-900 dark:text-gray-100' 
                 : 'font-medium text-gray-700 dark:text-gray-300'
             }`}>
-              {content.title}
-            </p>
+              {content.icon && (
+                <span className={`flex-shrink-0 ${
+                  isUnread 
+                    ? 'text-blue-600 dark:text-blue-400' 
+                    : 'text-gray-500 dark:text-gray-400'
+                }`}>
+                  {content.icon}
+                </span>
+              )}
+              <span>{content.title}</span>
+            </div>
             
             {/* Job Title Pill */}
             <span className='flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 border border-gray-200 dark:border-gray-700'>
-              {jobTitle.length > 20 ? `${jobTitle.substring(0, 20)}...` : jobTitle}
+              {truncatedJobTitle}
             </span>
           </div>
           
@@ -107,8 +111,8 @@ export const NotificationItem = ({
               ? 'text-gray-600 dark:text-gray-300'
               : 'text-gray-500 dark:text-gray-400'
           }`}>
-            {isMessage && isLoading ? (
-              // Loading skeleton for message content
+            {isMessage && isLoadingMessage ? (
+              // Loading skeleton for message content - stays until content is ready
               <div className='space-y-1'>
                 <div className='h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-full' />
                 <div className='h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-3/4' />

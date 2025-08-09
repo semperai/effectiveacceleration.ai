@@ -15,7 +15,6 @@ import {
 import { jobMeceTags } from '@/utils/jobMeceTags';
 import { shortenText, formatTimeLeft } from '@/utils/utils';
 import {
-  getFromIpfs,
   Job,
   JobArbitratedEvent,
   JobEventType,

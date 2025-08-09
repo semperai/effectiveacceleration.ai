@@ -85,10 +85,59 @@ export const ReviewFields = `
 `;
 
 export const JobEventFields = `
-      id
-      jobId
-      address_
-      data_
-      type_
-      timestamp_
+  id
+  type_
+  address_
+  timestamp_
+  jobId
+  data_
+  details {
+    __typename
+    ... on JobCreatedEvent {
+      title
+      contentHash
+      multipleApplicants
+      tags
+      token
+      amount
+      maxTime
+      deliveryMethod
+      arbitrator
+      whitelistWorkers
+    }
+    ... on JobUpdatedEvent {
+      title
+      contentHash
+      tags
+      amount
+      maxTime
+      arbitrator
+      whitelistWorkers
+    }
+    ... on JobSignedEvent {
+      revision
+      signatire
+    }
+    ... on JobRatedEvent {
+      rating
+      review
+    }
+    ... on JobDisputedEvent {
+      encryptedSessionKey
+      encryptedContent
+    }
+    ... on JobArbitratedEvent {
+      creatorShare
+      creatorAmount
+      workerShare
+      workerAmount
+      reasonHash
+      workerAddress
+      arbitratorAmount
+    }
+    ... on JobMessageEvent {
+      contentHash
+      recipientAddress
+    }
+  }
 `;
