@@ -13,7 +13,7 @@ export default function ArbitratorPageClient({ address }: ArbitratorPageClientPr
   const { data: arbitrator, loading, error } = useArbitrator(address);
 
   // Loading state
-  if (isLoading) {
+  if (loading) {
     return (
       <Layout>
         <div className='animate-pulse'>
