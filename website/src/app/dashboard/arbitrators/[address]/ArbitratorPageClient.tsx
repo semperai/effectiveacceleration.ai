@@ -10,7 +10,7 @@ interface ArbitratorPageClientProps {
 }
 
 export default function ArbitratorPageClient({ address }: ArbitratorPageClientProps) {
-  const { data: arbitrator, isLoading, error } = useArbitrator(address);
+  const { data: arbitrator, loading, error } = useArbitrator(address);
 
   // Loading state
   if (isLoading) {
