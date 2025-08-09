@@ -250,7 +250,7 @@ export default function JobPageClient({ id }: JobPageClientProps) {
                   tokenIcon={tokenIcon}
                   setSelectedWorker={setSelectedWorker}
                   whitelistedWorkers={whitelistedWorkers}
-                  user={user}
+                  user={user ?? undefined}
                 />
                 <OpenJobMobileMenu
                   users={users ?? {}}

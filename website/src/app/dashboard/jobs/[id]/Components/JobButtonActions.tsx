@@ -91,68 +91,71 @@ const JobButtonActions = ({
   whitelistedWorkers: string[];
   timePassed?: boolean;
 }) => {
+  // Early return if no job
+  if (!job) return null;
+
   const showDisputeButton =
-    job?.state === JobState.Taken &&
+    job.state === JobState.Taken &&
     job.roles.arbitrator !== zeroAddress &&
     address !== job.roles.arbitrator &&
     addresses.length &&
     !job.disputed &&
-    (job?.roles.creator === address || job?.roles.worker === address) &&
+    (job.roles.creator === address || job.roles.worker === address) &&
     Object.keys(sessionKeys).length > 0;
 
   const showReviewButton =
-    job?.state === JobState.Closed &&
+    job.state === JobState.Closed &&
     job.rating === 0 &&
     job.resultHash !== zeroHash &&
     address === job.roles.creator;
 
   const showCloseButton =
-    job?.state === JobState.Open && address === job.roles.creator;
+    job.state === JobState.Open && address === job.roles.creator;
 
   const showReopenButton =
-    job?.state === JobState.Closed &&
+    job.state === JobState.Closed &&
     address === job.roles.creator &&
     job.resultHash === zeroHash;
 
   const showWithdrawCollateralButton =
-    job?.state === JobState.Closed &&
+    job.state === JobState.Closed &&
     address === job.roles.creator &&
     job.collateralOwed > 0n &&
     timePassed;
 
   const showWhitelistButton =
-    job?.state === JobState.Open &&
+    job.state === JobState.Open &&
     address === job.roles.creator &&
     job.whitelistWorkers;
 
   const showRemoveFromWhitelistButton =
-    job?.state === JobState.Open &&
+    job.state === JobState.Open &&
     address === job.roles.creator &&
     job.whitelistWorkers &&
     events.length > 0 &&
     events.at(-1)!.job.allowedWorkers!.length! > 0;
 
   const showUpdateButton =
-    job?.state === JobState.Open && address === job.roles.creator;
+    job.state === JobState.Open && address === job.roles.creator;
 
   const showRefundButton =
-    job?.state === JobState.Taken && address === job.roles.worker;
+    job.state === JobState.Taken && address === job.roles.worker;
 
   const showAcceptButton =
-    job?.state === JobState.Open &&
+    job.state === JobState.Open &&
     address === job.roles.worker &&
     events.length > 0;
 
   const showDeliverResultButton =
-    job?.state === JobState.Taken &&
+    job.state === JobState.Taken &&
     address === job.roles.worker &&
     Object.keys(sessionKeys).length > 0;
 
   const showArbitrateButton =
-    job?.state === JobState.Taken && address === job.roles.arbitrator;
+    job.state === JobState.Taken && address === job.roles.arbitrator;
 
   const showRefuseArbitrationButton =
-    job?.state !== JobState.Closed && address === job?.roles.arbitrator;
+    job.state !== JobState.Closed && address === job.roles.arbitrator;
 
   // Group actions by category
   const ownerActions = [];
@@ -206,8 +209,6 @@ const JobButtonActions = ({
   if (showDisputeButton) disputeActions.push(
     <DisputeButton key="dispute" address={address} sessionKeys={sessionKeys} job={job} />
   );
-
-  if (!job) return null;
 
   return (
     <div className='jobButtonActions space-y-3'>

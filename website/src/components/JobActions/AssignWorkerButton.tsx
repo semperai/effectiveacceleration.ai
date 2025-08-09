@@ -290,8 +290,10 @@ export function AssignWorkerButton({
                           </div>
                           {selectedWorkerData && (
                             <div className='flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400'>
+                              {/* TODO
                               <span>⭐ {selectedWorkerData.rating?.toFixed(1) || '0.0'}</span>
                               <span>{selectedWorkerData.reputationUp || 0} jobs</span>
+                              */}
                             </div>
                           )}
                         </div>

@@ -114,8 +114,8 @@ const SignUpButton = () => {
 
 const Navbar = ({ setSidebarOpen, sidebarOpen, hiddenSidebar }: NavbarProps) => {
   const { address, isConnected, isReconnecting, isConnecting } = useAccount();
-  const { data: user, isLoading: isLoadingUser } = useUser(address!);
-  const { data: arbitrator, isLoading: isLoadingArbitrator } = useArbitrator(address!);
+  const { data: user, loading: isLoadingUser } = useUser(address!);
+  const { data: arbitrator, loading: isLoadingArbitrator } = useArbitrator(address!);
   
   // Track if this is the initial mount to show skeleton while wagmi initializes
   const [hasMounted, setHasMounted] = useState(false);

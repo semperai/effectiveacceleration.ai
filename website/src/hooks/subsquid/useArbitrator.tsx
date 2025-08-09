@@ -20,8 +20,7 @@ export default function useArbitrator(arbitratorAddress: string) {
       if (!arbitratorAddress) {
         return {
           data: null,
-          isLoading: false,
-          isError: false,
+          loading: false,  // Changed from isLoading to loading
           error: undefined,
           ...rest
         };
@@ -30,8 +29,7 @@ export default function useArbitrator(arbitratorAddress: string) {
       // Return proper loading state
       return {
         data: data?.arbitrators?.[0] as ArbitratorWithTimestamp | null | undefined,
-        isLoading: loading,
-        isError: !!error,
+        loading,  // Changed from isLoading to loading
         error,
         ...rest
       };

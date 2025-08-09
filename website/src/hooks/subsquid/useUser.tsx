@@ -31,8 +31,7 @@ export default function useUser(userAddress: string) {
       if (!userAddress) {
         return {
           data: null,
-          isLoading: false,
-          isError: false,
+          loading: false,  // Changed from isLoading to loading
           error: undefined,
           ...rest
         };
@@ -41,8 +40,7 @@ export default function useUser(userAddress: string) {
       // Return proper loading state
       return {
         data: data?.users?.[0] as ExtendedUser | null | undefined,
-        isLoading: loading,
-        isError: !!error,
+        loading,  // Changed from isLoading to loading
         error,
         ...rest
       };

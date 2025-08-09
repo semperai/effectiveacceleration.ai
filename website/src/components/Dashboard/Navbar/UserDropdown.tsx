@@ -89,8 +89,8 @@ export const UserDropdown = forwardRef<HTMLDivElement, UserDropdownProps>(
           {address ? (
             <UserForm 
               isArbitrator={activeTab === 'arbitrator'}
-              user={activeTab === 'user' ? user : undefined}
-              arbitrator={activeTab === 'arbitrator' ? arbitrator : undefined}
+              user={activeTab === 'user' ? (user ?? undefined) : undefined}
+              arbitrator={activeTab === 'arbitrator' ? (arbitrator ?? undefined) : undefined}
               address={address}
             />
           ) : (
@@ -166,4 +166,3 @@ export const UserDropdown = forwardRef<HTMLDivElement, UserDropdownProps>(
 );
 
 UserDropdown.displayName = 'UserDropdown';
-

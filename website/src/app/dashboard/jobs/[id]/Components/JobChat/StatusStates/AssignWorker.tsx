@@ -38,7 +38,7 @@ const AssignWorker: React.FC<AssignWorkerProps> = ({
   // Get selected worker details if users data is available
   const workerData = users?.[selectedWorker];
   const workerName = workerData?.name || 'Selected Worker';
-  const workerRating = workerData?.rating || 0;
+  const workerRating = 0; // workerData?.rating || 0;
   const workerJobs = workerData?.reputationUp || 0;
 
   return (

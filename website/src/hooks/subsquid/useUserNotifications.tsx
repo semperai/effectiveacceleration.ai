@@ -1,4 +1,3 @@
-// src/hooks/subsquid/useUserNotifications.tsx
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@apollo/client';
 import { GET_USER_NOTIFICATIONS } from './queries';
@@ -40,13 +39,15 @@ export default function useUserNotifications(
     skip: !userAddress,
   });
 
-  // Extract unique job IDs from notifications
+  // Extract unique job IDs from notifications with proper typing
   const jobIds = useMemo(() => {
     if (!data?.notifications) return [];
+    
     const ids = data.notifications
-      .map((n: any) => n.jobId)
-      .filter((id: string) => id);
-    return [...new Set(ids)];
+      .map((n: any) => n.jobId as string)  // Explicitly cast to string
+      .filter((id: string): id is string => !!id);  // Type guard to ensure non-empty strings
+    
+    return [...new Set(ids)] as string[];  // Ensure the result is string[]
   }, [data]);
 
   // Fetch all jobs for the notifications
@@ -67,7 +68,9 @@ export default function useUserNotifications(
     // Create a map of jobs for quick lookup
     const jobMap = new Map<string, Job>();
     jobsData?.forEach(job => {
-      jobMap.set(job.id, job);
+      if (job?.id) {
+        jobMap.set(job.id, job);
+      }
     });
     
     return rawNotifications.map((notification: any) => ({

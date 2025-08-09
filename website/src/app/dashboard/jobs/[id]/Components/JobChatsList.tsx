@@ -123,9 +123,11 @@ const JobChatsList = ({
                         <span className='font-medium text-sm text-gray-900 dark:text-white truncate'>
                           {value.name}
                         </span>
+                        {/* TODO
                         {value.rating && value.rating > 4.5 && (
                           <PiSparkle className='w-3 h-3 text-yellow-500' />
                         )}
+                        */}
                       </div>
                       <p className='text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5'>
                         {value.bio || 'No bio available'}
@@ -133,9 +135,11 @@ const JobChatsList = ({
                       
                       {/* Stats */}
                       <div className='flex items-center gap-3 mt-2'>
+                        {/* TODO
                         <span className='text-xs text-gray-400 dark:text-gray-500'>
                           ⭐ {value.rating?.toFixed(1) || '0.0'}
                         </span>
+                        */}
                         <span className='text-xs text-gray-400 dark:text-gray-500'>
                           {value.reputationUp || 0} jobs
                         </span>

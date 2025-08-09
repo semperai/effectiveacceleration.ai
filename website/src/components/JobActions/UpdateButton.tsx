@@ -195,7 +195,7 @@ export function UpdateButton({
   const [amountError, setAmountError] = useState('');
   const [maxJobTimeError, setMaxJobTimeError] = useState('');
   const [tags, setTags] = useState<Tag[]>(
-    job.tags.slice(1).map(tag => ({ id: tag, name: tag }))
+    job.tags.slice(1).map((tag, idx) => ({ id: Date.now() + idx, name: tag }))
   );
   const [amount, setAmount] = useState<string>(
     formatUnits(job.amount, tokensMap[job.token]?.decimals)

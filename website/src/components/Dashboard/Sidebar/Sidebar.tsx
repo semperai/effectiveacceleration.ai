@@ -175,9 +175,8 @@ const Sidebar = ({
   const displayRole = arbitrator ? 'Arbitrator' : user ? 'Member' : 'Guest';
   const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'AN';
   
-  // Get job stats (you might want to fetch these from your actual data)
-  const jobCount = user?.jobsAsWorker?.length || 0;
-  const rating = user?.rating || 0;
+  const jobCount = 0; // TODO
+  const rating = 0;   // TODO
 
   const sidebarContent = (
     <>
