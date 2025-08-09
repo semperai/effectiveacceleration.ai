@@ -11,6 +11,8 @@ import {
 } from '@effectiveacceleration/contracts';
 import { formatMarkdownContent } from '@/utils/utils';
 import Markdown from 'react-markdown';
+import { ethers } from 'ethers';
+import { tokens } from '@/tokens';
 import {
   PiCheckCircle,
   PiConfetti,
@@ -61,6 +63,18 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
   // Check if current user is the job creator
   const isJobCreator = currentUserAddress && 
     job.roles.creator?.toLowerCase() === currentUserAddress.toLowerCase();
+
+  // Calculate the formatted amount for the URL parameter
+  const getFormattedAmount = () => {
+    // Find the token to get its decimals
+    const token = tokens.find(t => t.id.toLowerCase() === job.token.toLowerCase());
+    if (token && job.amount) {
+      // Convert from wei/smallest unit to human readable format
+      const formattedAmount = ethers.formatUnits(job.amount, token.decimals);
+      return formattedAmount;
+    }
+    return '';
+  };
 
   useEffect(() => {
     if (rawComment?.startsWith("#filename%3D")) {
@@ -222,6 +236,7 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
                       title: job.title,
                       content: job.content,
                       token: job.token,
+                      amount: getFormattedAmount(), // Add the formatted amount here
                       maxTime: job.maxTime,
                       deliveryMethod: job.deliveryMethod,
                       arbitrator: job.roles.arbitrator,

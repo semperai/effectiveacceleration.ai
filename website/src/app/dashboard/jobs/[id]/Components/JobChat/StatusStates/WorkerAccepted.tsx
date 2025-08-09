@@ -18,7 +18,9 @@ import {
   PiArrowRight,
   PiInfo,
   PiClock,
-  PiCoin
+  PiCoin,
+  PiLightning,
+  PiWarningCircle
 } from 'react-icons/pi';
 import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
 import { formatTimeLeft } from '@/utils/utils';
@@ -210,25 +212,43 @@ const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({ job, address }) => {
             </ul>
           </div>
 
-          {/* Action Buttons */}
+          {/* Worker Status Indicator - Replaces the fake button */}
           {isWorker && (
-            <div className='mt-6 flex flex-col sm:flex-row gap-3'>
-              <button className='
-                flex-1 px-4 py-3 rounded-xl
-                bg-gradient-to-r from-blue-500 to-purple-500
-                font-medium text-sm
-                transition-all duration-300
-                hover:from-blue-600 hover:to-purple-600
-                hover:shadow-lg hover:shadow-blue-500/25
-                hover:-translate-y-0.5
-                group
-              '>
-                <span className='flex items-center justify-center gap-2 text-white'>
-                  <PiRocket className='w-4 h-4 text-white' />
-                  <span className='text-white'>Start Working</span>
-                  <PiArrowRight className='w-4 h-4 text-white group-hover:translate-x-1 transition-transform' />
-                </span>
-              </button>
+            <div className='mt-6'>
+              {/* Status Card instead of button */}
+              <div className='rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border border-green-200 dark:border-green-800 p-4'>
+                <div className='flex items-center justify-between'>
+                  <div className='flex items-center gap-3'>
+                    <div className='p-2 rounded-lg bg-green-100 dark:bg-green-900/50'>
+                      <PiLightning className='w-5 h-5 text-green-600 dark:text-green-400' />
+                    </div>
+                    <div>
+                      <p className='text-sm font-semibold text-gray-900 dark:text-white'>
+                        Ready to Work
+                      </p>
+                      <p className='text-xs text-gray-600 dark:text-gray-400'>
+                        You have {timeRemaining} to complete this job
+                      </p>
+                    </div>
+                  </div>
+                  <div className='flex items-center gap-2'>
+                    <div className='w-2 h-2 rounded-full bg-green-500 animate-pulse' />
+                    <span className='text-xs font-medium text-green-600 dark:text-green-400'>
+                      Active
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Important Reminder */}
+              <div className='mt-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 p-3'>
+                <div className='flex items-start gap-2'>
+                  <PiWarningCircle className='w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0' />
+                  <p className='text-xs text-blue-700 dark:text-blue-300'>
+                    Remember to submit your work through the delivery system before the deadline expires.
+                  </p>
+                </div>
+              </div>
             </div>
           )}
 
