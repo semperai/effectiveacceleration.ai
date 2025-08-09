@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 import Markdown from 'react-markdown';
 import {
-  Job,
+  type Job,
   JobEventType,
-  JobEventWithDiffs,
+  type JobEventWithDiffs,
   JobState,
-  User,
+  type User,
 } from '@effectiveacceleration/contracts';
 import { ApproveButton } from '@/components/JobActions/ApproveButton';
 import { zeroHash } from 'viem';

@@ -15,11 +15,11 @@ import {
 import { jobMeceTags } from '@/utils/jobMeceTags';
 import { shortenText, formatTimeLeft } from '@/utils/utils';
 import {
-  Job,
+  type Job,
   JobArbitratedEvent,
   JobEventType,
-  JobEventWithDiffs,
-  JobMessageEvent,
+  type JobEventWithDiffs,
+  type JobMessageEvent,
   JobState,
   User,
 } from '@effectiveacceleration/contracts';

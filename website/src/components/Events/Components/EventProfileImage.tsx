@@ -1,8 +1,8 @@
-import { Arbitrator, User } from '@effectiveacceleration/contracts';
+import type { Arbitrator, User } from '@effectiveacceleration/contracts';
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { UserIcon } from '@heroicons/react/20/solid';
-import { StaticImport } from 'next/dist/shared/lib/get-img-props';
+import type { StaticImport } from 'next/dist/shared/lib/get-img-props';
 import { isImageValid } from '@/utils/ImageValidity';
 import useFetchAvatar from '@/hooks/useFetchAvatar';
 

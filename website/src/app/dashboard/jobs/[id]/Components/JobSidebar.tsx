@@ -5,10 +5,10 @@ import { TooltipButton } from '@/components/TooltipButton';
 import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
 import { shortenText, formatTimeLeft } from '@/utils/utils';
 import {
-  Job,
-  JobEventWithDiffs,
+  type Job,
+  type JobEventWithDiffs,
   JobState,
-  User,
+  type User,
 } from '@effectiveacceleration/contracts';
 import {
   CurrencyDollarIcon,

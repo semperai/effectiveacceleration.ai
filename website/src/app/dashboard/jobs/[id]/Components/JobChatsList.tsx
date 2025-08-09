@@ -1,7 +1,7 @@
 import EventProfileImage from '@/components/Events/Components/EventProfileImage';
-import { Job, User } from '@effectiveacceleration/contracts';
+import type { Job, User } from '@effectiveacceleration/contracts';
 import Image from 'next/image';
-import { Dispatch, SetStateAction } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 
 const JobChatsList = ({
   users,

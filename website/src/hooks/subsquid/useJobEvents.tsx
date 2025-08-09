@@ -1,4 +1,4 @@
-import { JobEvent } from '@effectiveacceleration/contracts';
+import type { JobEvent } from '@effectiveacceleration/contracts';
 import { useMemo } from 'react';
 import { useQuery } from '@apollo/client';
 import { GET_JOB_EVENTS } from './queries';

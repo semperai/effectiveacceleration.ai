@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, ButtonProps } from '@/components/Button';
+import { Button, type ButtonProps } from '@/components/Button';
 import {
   Tooltip,
   TooltipContent,

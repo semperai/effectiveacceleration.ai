@@ -13,9 +13,10 @@ import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/
 import * as Sentry from '@sentry/nextjs';
 import { AlertCircle, User, FileText, CheckCircle, ArrowRight, Home, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 import { useAccount } from 'wagmi';
-import { PostJobParams } from '../dashboard/post-job/PostJobPage';
+import type { PostJobParams } from '../dashboard/post-job/PostJobPage';
 
 const RegisteredUserView = () => {
   const router = useRouter();

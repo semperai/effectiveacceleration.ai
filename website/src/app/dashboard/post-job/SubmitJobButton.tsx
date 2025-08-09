@@ -8,7 +8,7 @@ import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/Marke
 import { ZeroHash } from 'ethers';
 import { Loader2 } from 'lucide-react';
 import { useCallback, useState, useRef } from 'react';
-import { type Address } from 'viem';
+import type { Address } from 'viem';
 import { useAccount, useReadContract } from 'wagmi';
 import { ApproveButton } from './ApproveButton';
 import { useRouter } from 'next/navigation';
@@ -20,8 +20,8 @@ interface SubmitJobButtonProps {
   multipleApplicants: boolean;
   tags: string[];
   token: Address;
-  amount: BigInt;
-  deadline: BigInt;
+  amount: bigint;
+  deadline: bigint;
   deliveryMethod: string;
   arbitrator: Address;
   //  whitelistedWorkers: Address[];

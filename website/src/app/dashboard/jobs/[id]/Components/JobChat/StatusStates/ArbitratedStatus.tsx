@@ -1,12 +1,12 @@
-import React from 'react';
+import type React from 'react';
 
 import {
-  Job,
-  JobArbitratedEvent,
+  type Job,
+  type JobArbitratedEvent,
   JobEventType,
-  JobEventWithDiffs,
+  type JobEventWithDiffs,
   JobState,
-  User,
+  type User,
 } from '@effectiveacceleration/contracts';
 import { ApproveButton } from '@/components/JobActions/ApproveButton';
 import { zeroHash } from 'viem';

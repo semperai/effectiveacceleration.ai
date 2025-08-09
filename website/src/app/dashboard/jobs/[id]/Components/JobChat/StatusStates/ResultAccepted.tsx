@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/Button';
 import {
-  Job,
+  type Job,
   JobEventType,
-  JobEventWithDiffs,
-  User,
+  type JobEventWithDiffs,
+  type User,
 } from '@effectiveacceleration/contracts';
 import { formatMarkdownContent } from '@/utils/utils';
 import Markdown from 'react-markdown';

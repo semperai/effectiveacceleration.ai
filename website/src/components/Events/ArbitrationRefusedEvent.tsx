@@ -2,7 +2,7 @@ import useArbitrator from '@/hooks/subsquid/useArbitrator';
 import moment from 'moment';
 import { getAddress } from 'viem';
 import EventProfileImage from './Components/EventProfileImage';
-import { type EventProps } from './index';
+import type { EventProps } from './index';
 
 export function ArbitrationRefusedEvent({
   event,

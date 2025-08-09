@@ -2,14 +2,14 @@ import useUser from '@/hooks/subsquid/useUser';
 import clsx from 'clsx';
 import moment from 'moment';
 import Link from 'next/link';
-import { type ComponentPropsWithoutRef } from 'react';
+import type { ComponentPropsWithoutRef } from 'react';
 import { PiChatCircleDotsFill } from 'react-icons/pi';
 import { getAddress } from 'viem';
 import { useAccount } from 'wagmi';
 
-import { JobMessageEvent } from '@effectiveacceleration/contracts';
+import type { JobMessageEvent } from '@effectiveacceleration/contracts';
 import EventProfileImage from './Components/EventProfileImage';
-import { type EventProps } from './index';
+import type { EventProps } from './index';
 
 type CommentEventProps = EventProps & ComponentPropsWithoutRef<'div'>;
 

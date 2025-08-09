@@ -3,7 +3,7 @@ import useArbitrators from '@/hooks/subsquid/useArbitrators';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
-import { ComboBoxOption, Tag } from '@/service/FormsTypes';
+import type { ComboBoxOption, Tag } from '@/service/FormsTypes';
 import { tokenIcon, tokensMap } from '@/tokens';
 import { jobMeceTags } from '@/utils/jobMeceTags';
 import {
@@ -11,7 +11,7 @@ import {
   getUnitAndValueFromSeconds,
   unitsDeliveryTime,
 } from '@/utils/utils';
-import { getFromIpfs, Job, publishToIpfs } from '@effectiveacceleration/contracts';
+import { getFromIpfs, type Job, publishToIpfs } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { Dialog, Transition } from '@headlessui/react';
 import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
@@ -28,7 +28,7 @@ import {
 import * as Sentry from '@sentry/nextjs';
 import { formatUnits, parseUnits, ZeroHash } from 'ethers';
 import {
-  ChangeEvent,
+  type ChangeEvent,
   Fragment,
   useCallback,
   useEffect,
@@ -298,7 +298,7 @@ export function UpdateButton({
     }
   }
   
-  let [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   function closeModal() {
     setIsOpen(false);

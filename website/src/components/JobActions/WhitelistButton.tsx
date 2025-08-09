@@ -3,7 +3,7 @@ import useUsers from '@/hooks/subsquid/useUsers';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
-import { Job } from '@effectiveacceleration/contracts';
+import type { Job } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { Dialog, Transition } from '@headlessui/react';
 import { CheckIcon } from '@heroicons/react/20/solid';
@@ -56,7 +56,7 @@ export function WhitelistButton({
 
   const buttonText = isWhiteListing ? 'Whitelisting...' : 'Whitelist';
 
-  let [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   function closeModal() {
     setIsOpen(false);

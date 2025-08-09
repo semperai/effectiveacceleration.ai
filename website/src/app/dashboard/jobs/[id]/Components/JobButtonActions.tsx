@@ -12,8 +12,8 @@ import { UpdateButton } from '@/components/JobActions/UpdateButton';
 import { WhitelistButton } from '@/components/JobActions/WhitelistButton';
 import { WithdrawCollateralButton } from '@/components/JobActions/WithdrawCollateralButton';
 import {
-  Job,
-  JobEventWithDiffs,
+  type Job,
+  type JobEventWithDiffs,
   JobState,
 } from '@effectiveacceleration/contracts';
 import { zeroAddress, zeroHash } from 'viem';

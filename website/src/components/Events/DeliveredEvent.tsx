@@ -3,7 +3,7 @@ import { ChatBubbleLeftEllipsisIcon } from '@heroicons/react/20/solid';
 import moment from 'moment';
 import { getAddress } from 'viem';
 import EventProfileImage from './Components/EventProfileImage';
-import { type EventProps } from './index';
+import type { EventProps } from './index';
 import Markdown from 'react-markdown';
 import { useEffect, useState } from 'react';
 import { formatMarkdownContent } from '@/utils/utils';

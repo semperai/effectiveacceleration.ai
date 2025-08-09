@@ -1,16 +1,17 @@
 import Image from 'next/image';
-import React, { useEffect, useRef, useState } from 'react';
+import type React from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/Button';
 
 import { renderEvent } from '@/components/Events';
 import logoDark from '@/images/logo-light.png';
 import noWorkInProgress from '@/images/noWorkInProgress.svg';
 import {
-  Job,
+  type Job,
   JobEventType,
-  JobEventWithDiffs,
+  type JobEventWithDiffs,
   JobState,
-  User,
+  type User,
 } from '@effectiveacceleration/contracts/dist/src/interfaces';
 import JobChatStatus from './JobChatStatus';
 import useUser from '@/hooks/subsquid/useUser';

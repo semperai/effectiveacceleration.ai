@@ -11,8 +11,8 @@ import {
   ApolloClient,
   InMemoryCache,
   ApolloProvider,
-  NormalizedCacheObject,
-  InMemoryCacheConfig,
+  type NormalizedCacheObject,
+  type InMemoryCacheConfig,
 } from '@apollo/client';
 import { LocalStorageWrapper, CachePersistor } from 'apollo3-cache-persist';
 import { useEffect, useState } from 'react';

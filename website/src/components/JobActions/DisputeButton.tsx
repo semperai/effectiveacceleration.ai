@@ -5,7 +5,7 @@ import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithN
 import {
   encryptBinaryData,
   encryptUtf8Data,
-  Job,
+  type Job,
 } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { Dialog, Transition } from '@headlessui/react';
@@ -67,7 +67,7 @@ export function DisputeButton({
 
   const buttonText = isDisputing ? 'Disputing...' : 'Dispute';
 
-  let [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   function closeModal() {
     setIsOpen(false);

@@ -1,7 +1,7 @@
 import {
-  Job,
+  type Job,
   JobEventType,
-  JobEventWithDiffs,
+  type JobEventWithDiffs,
   JobState,
 } from '@effectiveacceleration/contracts';
 import JobStatus from './JobStatus';

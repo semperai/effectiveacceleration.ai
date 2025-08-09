@@ -4,13 +4,13 @@ import { Button } from '@/components/Button';
 import { renderEvent } from '@/components/Events';
 import {
   CustomJobEvent,
-  Job,
+  type Job,
   JobArbitratedEvent,
   JobEvent,
   JobEventType,
-  JobEventWithDiffs,
+  type JobEventWithDiffs,
   JobState,
-  User,
+  type User,
 } from '@effectiveacceleration/contracts';
 import { PostMessageButton } from '@/components/JobActions/PostMessageButton';
 import Link from 'next/link';

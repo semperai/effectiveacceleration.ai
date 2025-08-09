@@ -1,6 +1,6 @@
 // src/lib/notificationUtils.ts
 import { JobEventType } from '@effectiveacceleration/contracts';
-import { NotificationWithJob } from '@/hooks/subsquid/useUserNotifications';
+import type { NotificationWithJob } from '@/hooks/subsquid/useUserNotifications';
 import { formatTokenNameAndAmount } from '@/tokens';
 import { 
   FileText, 
@@ -235,7 +235,7 @@ export const getNotificationContent = (
       };
 
     case JobEventType.OwnerMessage:
-    case JobEventType.WorkerMessage:
+    case JobEventType.WorkerMessage: {
       const messageContent = notification.messageContent;
       const isOwnerMessage = type === JobEventType.OwnerMessage;
       
@@ -276,6 +276,7 @@ export const getNotificationContent = (
         icon: React.createElement(MessageSquare, { className: 'h-3.5 w-3.5' }),
         priority: 'medium'
       };
+    }
 
     default:
       return {

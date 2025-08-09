@@ -4,7 +4,7 @@ import { useQuery } from '@apollo/client';
 import { GET_USER_NOTIFICATIONS } from './queries';
 import useJobsByIds from './useJobsByIds';
 import useJobEventsWithDiffs from './useJobEventsWithDiffs';
-import { Job, JobEventType, JobMessageEvent } from '@effectiveacceleration/contracts';
+import { type Job, JobEventType, JobMessageEvent } from '@effectiveacceleration/contracts';
 
 export interface NotificationWithJob {
   id: string;

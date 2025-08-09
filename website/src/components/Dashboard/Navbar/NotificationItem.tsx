@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import moment from 'moment';
 import { Check, ChevronRight } from 'lucide-react';
-import { NotificationWithJob } from '@/hooks/subsquid/useUserNotifications';
+import type { NotificationWithJob } from '@/hooks/subsquid/useUserNotifications';
 import { getNotificationContent } from '@/lib/notificationUtils';
 import { useAccount } from 'wagmi';
 import { JobEventType } from '@effectiveacceleration/contracts';

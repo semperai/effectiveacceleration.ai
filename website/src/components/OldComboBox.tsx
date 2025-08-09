@@ -1,6 +1,6 @@
 'use client';
 import useDimensions from '@/hooks/useDimensions';
-import { ComboBoxOption } from '@/service/FormsTypes';
+import type { ComboBoxOption } from '@/service/FormsTypes';
 import {
   ComboboxButton,
   ComboboxInput,
@@ -37,7 +37,7 @@ export function ComboBox<T>({
   // Tailwind JIT doesn't support injecting CSS variables dynamically,
   // styles={} didn't work on ComboboxOptions either, so we're using this workaround
   function changeWidthDropdown() {
-    setTimeout(function () {
+    setTimeout(() => {
       if (!dropdownRef.current) return;
       dropdownRef.current.style.width = `${width}px`;
       dropdownRef.current.style.setProperty('width', `${width}px`, 'important');

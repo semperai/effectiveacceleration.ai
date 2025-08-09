@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useAccount } from 'wagmi';
 import Image from 'next/image';
 import { PiUser } from 'react-icons/pi';
-import { StaticImport } from 'next/dist/shared/lib/get-img-props';
+import type { StaticImport } from 'next/dist/shared/lib/get-img-props';
 import * as Sentry from '@sentry/nextjs';
 import useUser from '@/hooks/subsquid/useUser';
 import useFetchAvatar from '@/hooks/useFetchAvatar';

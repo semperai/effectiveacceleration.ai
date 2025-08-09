@@ -3,7 +3,7 @@
 import { useJobUserRole } from '@/hooks/useJobUserRole';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import React, { ReactNode } from 'react';
+import React, { type ReactNode } from 'react';
 
 type TBreadCrumbProps = {
   separator: ReactNode;
@@ -34,9 +34,9 @@ const BreadCrumbs = ({
           } else if (userRole !== 'owner' && href === '/dashboard/jobs') {
             href = '/dashboard/worker-job-list';
           }
-          let itemClasses =
+          const itemClasses =
             paths === href ? `${listClasses} ${activeClasses}` : listClasses;
-          let itemLink = capitalizeLinks
+          const itemLink = capitalizeLinks
             ? link[0].toUpperCase() +
               link.slice(1, link.length).replace(/-/g, ' ')
             : link.replace(/-/g, ' ');

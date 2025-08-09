@@ -19,10 +19,10 @@ import { usePathname } from 'next/navigation';
 import { Transition, Dialog } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import JobChatsList from './JobChatsList';
-import { Job, JobEventWithDiffs, User } from '@effectiveacceleration/contracts';
+import { Job, type JobEventWithDiffs, User } from '@effectiveacceleration/contracts';
 // import { JobSidebar } from '../page';
 import JobSidebar from './JobSidebar';
-import { JobSidebarProps } from './JobChat/OpenJobMobileMenu';
+import type { JobSidebarProps } from './JobChat/OpenJobMobileMenu';
 
 const SideJobInfo = ({
   job,

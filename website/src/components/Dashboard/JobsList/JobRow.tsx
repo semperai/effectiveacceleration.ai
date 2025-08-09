@@ -6,7 +6,7 @@ import {
   TooltipTrigger,
 } from '@/components/Tooltip';
 import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
-import { Job } from '@effectiveacceleration/contracts';
+import type { Job } from '@effectiveacceleration/contracts';
 import {
   Check,
   Clock,

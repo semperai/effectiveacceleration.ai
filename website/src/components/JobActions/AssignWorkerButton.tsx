@@ -6,7 +6,7 @@ import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithN
 import { formatTokenNameAndAmount } from '@/tokens';
 import { jobMeceTags } from '@/utils/jobMeceTags';
 import { formatTimeLeft } from '@/utils/utils';
-import { Job } from '@effectiveacceleration/contracts';
+import type { Job } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { Dialog, Transition } from '@headlessui/react';
 import * as Sentry from '@sentry/nextjs';
@@ -55,7 +55,7 @@ export function AssignWorkerButton({
 
   const buttonText = isAssigning ? 'Assigning...' : 'Assign';
 
-  let [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   function closeModal() {
     setIsOpen(false);

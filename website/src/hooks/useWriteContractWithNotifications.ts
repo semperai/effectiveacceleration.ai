@@ -1,14 +1,14 @@
 import { useToast } from '@/hooks/useToast';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Address,
+  type Address,
   decodeEventLog,
-  DecodeEventLogReturnType,
-  Log,
-  TransactionReceipt,
+  type DecodeEventLogReturnType,
+  type Log,
+  type TransactionReceipt,
 } from 'viem';
 import { useWaitForTransactionReceipt, useWriteContract, useConfig } from 'wagmi';
-import { simulateContract, WriteContractErrorType } from "@wagmi/core";
+import { simulateContract, type WriteContractErrorType } from "@wagmi/core";
 import * as Sentry from '@sentry/nextjs';
 
 import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
@@ -53,7 +53,6 @@ function parseContractEvents(
       } catch (error) {
         // Skip if this log isn't from this contract's events
         console.log('Skipping log:', error);
-        continue;
       }
     }
   }

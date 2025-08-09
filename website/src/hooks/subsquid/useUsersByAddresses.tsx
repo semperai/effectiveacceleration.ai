@@ -1,4 +1,4 @@
-import { User as ContractUser } from '@effectiveacceleration/contracts';
+import type { User as ContractUser } from '@effectiveacceleration/contracts';
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@apollo/client';
 import { GET_USERS_BY_ADDRESSES } from './queries';

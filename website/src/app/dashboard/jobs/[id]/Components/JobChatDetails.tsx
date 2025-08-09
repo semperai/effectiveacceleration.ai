@@ -11,11 +11,11 @@ import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
 import moment from 'moment';
 import LinearProgress from '@mui/material/LinearProgress';
 import {
-  Job,
+  type Job,
   JobEventType,
-  JobEventWithDiffs,
+  type JobEventWithDiffs,
   JobState,
-  User,
+  type User,
 } from '@effectiveacceleration/contracts';
 import JobButtonActions from './JobButtonActions';
 import { zeroHash } from 'viem';

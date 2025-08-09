@@ -9,7 +9,7 @@ import { useEthersSigner } from '@/hooks/useEthersSigner';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import { getEncryptionSigningKey } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
-import { User, Arbitrator } from '@effectiveacceleration/contracts';
+import type { User, Arbitrator } from '@effectiveacceleration/contracts';
 import { UserReputation } from './UserReputation';
 import { validateUserForm } from './utils/userValidation';
 import { PiArrowSquareOut } from 'react-icons/pi';

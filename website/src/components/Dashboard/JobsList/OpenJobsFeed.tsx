@@ -5,8 +5,8 @@ import { EmptyJobsList } from './EmptyJobsList';
 import { JobsListSkeleton } from './JobsListSkeleton';
 import { JobFilter } from './JobFilter';
 import useJobSearch from '@/hooks/subsquid/useJobSearch';
-import { ComboBoxOption, Tag } from '@/service/FormsTypes';
-import { Token, tokens } from '@/tokens';
+import type { ComboBoxOption, Tag } from '@/service/FormsTypes';
+import { type Token, tokens } from '@/tokens';
 import {
   convertToSeconds,
   unitsDeliveryTime,

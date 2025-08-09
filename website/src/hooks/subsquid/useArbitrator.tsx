@@ -1,4 +1,4 @@
-import { Arbitrator } from '@effectiveacceleration/contracts';
+import type { Arbitrator } from '@effectiveacceleration/contracts';
 import { useMemo } from 'react';
 import { useQuery } from '@apollo/client';
 import { GET_ARBITRATOR_BY_ADDRESS } from './queries';

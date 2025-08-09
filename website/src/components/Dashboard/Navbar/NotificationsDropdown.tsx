@@ -1,6 +1,6 @@
 // src/components/Dashboard/Navbar/NotificationsDropdown.tsx
 import { forwardRef, useState, useEffect, useRef } from 'react';
-import { NotificationWithJob } from '@/hooks/subsquid/useUserNotifications';
+import type { NotificationWithJob } from '@/hooks/subsquid/useUserNotifications';
 import { NotificationItem } from './NotificationItem';
 import { CheckCheck, Eye, EyeOff, X, BellOff } from 'lucide-react';
 import { createPortal } from 'react-dom';

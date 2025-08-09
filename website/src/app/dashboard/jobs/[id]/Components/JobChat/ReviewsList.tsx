@@ -1,7 +1,7 @@
 import useReviews from '@/hooks/subsquid/useReviews';
 import useUser from '@/hooks/subsquid/useUser';
 import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
-import { User } from '@effectiveacceleration/contracts/dist/src/interfaces';
+import type { User } from '@effectiveacceleration/contracts/dist/src/interfaces';
 import moment from 'moment';
 import { IoChevronBack } from 'react-icons/io5';
 

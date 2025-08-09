@@ -1,4 +1,4 @@
-import { Review as ContractReview } from '@effectiveacceleration/contracts';
+import type { Review as ContractReview } from '@effectiveacceleration/contracts';
 import { useMemo } from 'react';
 import { useQuery } from '@apollo/client';
 import { GET_REVIEWS } from './queries';

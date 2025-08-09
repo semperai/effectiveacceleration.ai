@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { unstable_cache } from 'next/cache';
 import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
-import { Job } from '@effectiveacceleration/contracts';
+import type { Job } from '@effectiveacceleration/contracts';
 import JobPageClient from './JobPageClient';
 
 // Define the query directly in the server component

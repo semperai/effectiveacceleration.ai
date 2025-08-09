@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { PiBellSimple } from 'react-icons/pi';
 import { useAccount } from 'wagmi';
 import useUserNotifications from '@/hooks/subsquid/useUserNotifications';
-import { NotificationWithJob } from '@/hooks/subsquid/useUserNotifications';
+import type { NotificationWithJob } from '@/hooks/subsquid/useUserNotifications';
 import { NotificationsDropdown } from './NotificationsDropdown';
 
 export const NotificationsButton = () => {

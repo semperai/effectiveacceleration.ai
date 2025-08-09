@@ -1,4 +1,4 @@
-import { Job } from '@effectiveacceleration/contracts';
+import type { Job } from '@effectiveacceleration/contracts';
 import { JobRow } from './JobRow';
 
 type JobsListProps = {

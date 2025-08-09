@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@apollo/client';
 import { GET_USER_JOB_NOTIFICATIONS } from './queries';
-import { Notification } from '@/service/Interfaces';
+import type { Notification } from '@/service/Interfaces';
 
 export default function useUserJobNotifications(
   userAddress: string,

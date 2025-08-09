@@ -4,13 +4,14 @@ import { Input } from '@/components/Input';
 import { Separator } from '@/components/Separator';
 import TagsInput from '@/components/TagsInput';
 import { TokenSelector } from '@/components/TokenSelector';
-import { ComboBoxOption, Tag } from '@/service/FormsTypes';
-import { Token } from '@/tokens';
+import type { ComboBoxOption, Tag } from '@/service/FormsTypes';
+import type { Token } from '@/tokens';
 import { shortenText, unitsDeliveryTime } from '@/utils/utils';
 import { Field, Label } from '@headlessui/react';
 import { Radio, RadioGroup } from '@/components/Radio';
 import { ChevronDown, ChevronUp, Filter, Search, X } from 'lucide-react';
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 import { Combobox } from '@/components/ComboBox';
 import ListBox from '@/components/ListBox';
 
@@ -195,7 +196,7 @@ export const JobFilter = ({
                           step={1}
                           onChange={(e) => {
                             if (e.target.value) {
-                              let deadline = Math.abs(parseInt(e.target.value));
+                              const deadline = Math.abs(parseInt(e.target.value));
                               setMinDeadline(deadline);
                             } else {
                               setMinDeadline(undefined);

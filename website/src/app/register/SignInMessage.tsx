@@ -1,5 +1,5 @@
 'use client';
-import React, { Dispatch, useState } from 'react';
+import React, { type Dispatch, useState } from 'react';
 import { useSignMessage, useAccount, useWalletClient } from 'wagmi';
 import { getEncryptionSigningKey } from '@effectiveacceleration/contracts';
 import { ethers } from 'ethers';

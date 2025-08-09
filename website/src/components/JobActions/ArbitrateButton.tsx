@@ -2,7 +2,7 @@ import { Button } from '@/components/Button';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
-import { Job, publishToIpfs } from '@effectiveacceleration/contracts';
+import { type Job, publishToIpfs } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { Dialog, Transition } from '@headlessui/react';
 import * as Sentry from '@sentry/nextjs';
@@ -91,7 +91,7 @@ export function ArbitrateButton({
 
   const buttonText = isArbitrating ? 'Arbitrating...' : 'Arbitrate';
 
-  let [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   function closeModal() {
     setIsOpen(false);

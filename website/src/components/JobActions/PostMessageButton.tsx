@@ -3,7 +3,7 @@ import useUser from '@/hooks/subsquid/useUser';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
-import { Job, publishToIpfs } from '@effectiveacceleration/contracts';
+import { type Job, publishToIpfs } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import * as Sentry from '@sentry/nextjs';
 import { ZeroHash } from 'ethers';

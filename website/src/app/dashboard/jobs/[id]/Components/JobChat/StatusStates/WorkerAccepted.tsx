@@ -1,7 +1,7 @@
-import React from 'react';
+import type React from 'react';
 
 import {
-  Job,
+  type Job,
   JobEventType,
   JobEventWithDiffs,
   JobState,

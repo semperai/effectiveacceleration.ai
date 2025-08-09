@@ -1,8 +1,8 @@
-import { Job } from '@effectiveacceleration/contracts';
+import type { Job } from '@effectiveacceleration/contracts';
 import { useMemo } from 'react';
 import { useQuery } from '@apollo/client';
 import { GET_CREATOR_DISPUTED_JOBS } from './queries';
-import { OrderByType } from '@/service/Interfaces';
+import type { OrderByType } from '@/service/Interfaces';
 
 export default function useCreatorDisputedJobs(
   creatorAddress: string,

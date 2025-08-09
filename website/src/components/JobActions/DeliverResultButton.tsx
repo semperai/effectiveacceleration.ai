@@ -2,7 +2,7 @@ import { Button } from '@/components/Button';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
-import { Job, publishMediaToIpfs, publishToIpfs } from '@effectiveacceleration/contracts';
+import { type Job, publishMediaToIpfs, publishToIpfs } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { Dialog, Transition } from '@headlessui/react';
 import { CheckIcon, TrashIcon } from '@heroicons/react/20/solid';
@@ -131,7 +131,7 @@ export function DeliverResultButton({
 
   const buttonText = isDelivering ? 'Delivering...' : 'Deliver';
 
-  let [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   function closeModal() {
     setIsOpen(false);

@@ -4,7 +4,7 @@ import { useEthersSigner } from '@/hooks/useEthersSigner';
 import useUser from '@/hooks/subsquid/useUser';
 import { isImageValid } from '@/utils/ImageValidity';
 import { Dialog, Transition } from '@headlessui/react';
-import { getEncryptionSigningKey, User } from '@effectiveacceleration/contracts';
+import { getEncryptionSigningKey, type User } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
 import { Fragment, useEffect, useState } from 'react';
 import { useAccount } from 'wagmi';

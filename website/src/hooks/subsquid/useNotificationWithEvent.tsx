@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import useJobEventsWithDiffs from './useJobEventsWithDiffs';
-import { JobEventType, JobMessageEvent } from '@effectiveacceleration/contracts';
-import { NotificationWithJob } from './useUserNotifications';
+import { JobEventType, type JobMessageEvent } from '@effectiveacceleration/contracts';
+import type { NotificationWithJob } from './useUserNotifications';
 
 /**
  * Hook to fetch the actual message content for a notification
