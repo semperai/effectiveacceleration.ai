@@ -112,34 +112,22 @@ const JobChat = ({
         </div>
       </div>
 
-      {/* Enhanced message input area */}
+      {/* Simplified message input area - no unnecessary wrappers */}
       {job &&
         (isJobOpenForWorker ||
           isUserWorker ||
           isUserCreatorWithSelectedWorkerOrTaken ||
           (isUserCreator && isJobTaken)) &&
         shouldShowPostMessageButton && (
-          <div className='relative border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'>
-            <div className='p-4'>
-              <div className='flex items-center gap-3'>
-                <div className='flex-1'>
-                  <PostMessageButton
-                    address={address}
-                    recipient={selectedWorker}
-                    addresses={addresses as any}
-                    sessionKeys={sessionKeys}
-                    job={job}
-                  />
-                </div>
-              </div>
-
-              {/* Typing indicator or helper text */}
-              <div className='mt-2 flex items-center gap-2'>
-                <PiSparkle className='w-3 h-3 text-purple-500 animate-pulse' />
-                <span className='text-xs text-gray-500 dark:text-gray-400'>
-                  Messages are end-to-end encrypted
-                </span>
-              </div>
+          <div className='border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'>
+            <div className='p-1'>
+              <PostMessageButton
+                address={address}
+                recipient={selectedWorker}
+                addresses={addresses as any}
+                sessionKeys={sessionKeys}
+                job={job}
+              />
             </div>
           </div>
         )}

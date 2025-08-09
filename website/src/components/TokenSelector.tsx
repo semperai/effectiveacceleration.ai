@@ -132,7 +132,14 @@ function TokenButton({
   };
 
   if (selectedToken) {
-    const icon = 'logoURI' in selectedToken ? selectedToken.logoURI : selectedToken.icon;
+    // Type guard to safely access the icon/logoURI property
+    let icon: string | undefined;
+    if ('logoURI' in selectedToken) {
+      icon = selectedToken.logoURI;
+    } else {
+      icon = (selectedToken as Token).icon;
+    }
+    
     const symbol = selectedToken.symbol;
     
     return (
@@ -363,10 +370,12 @@ export function TokenSelector({
   // Find initial token for dialog
   const getInitialDialogToken = (): IArbitrumToken => {
     if (internalSelectedToken) {
-      if ('logoURI' in internalSelectedToken) {
-        return internalSelectedToken;
+      if ('logoURI' in internalSelectedToken || 'address' in internalSelectedToken) {
+        // It's already an IArbitrumToken
+        return internalSelectedToken as IArbitrumToken;
       } else {
-        return convertToArbitrumToken(internalSelectedToken);
+        // It's a Token, convert it
+        return convertToArbitrumToken(internalSelectedToken as Token);
       }
     }
     

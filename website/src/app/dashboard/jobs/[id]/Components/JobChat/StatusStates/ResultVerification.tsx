@@ -1,5 +1,6 @@
 import type React from 'react';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import Markdown from 'react-markdown';
 import {
   type Job,
@@ -23,7 +24,8 @@ import {
   PiCaretUp,
   PiDownload,
   PiChatCircle,
-  PiInfo
+  PiInfo,
+  PiArrowRight
 } from 'react-icons/pi';
 
 interface ResultAcceptedProps {
@@ -116,13 +118,21 @@ const ResultVerification: React.FC<ResultAcceptedProps> = ({
             </div>
           </div>
 
-          {/* Worker Info Badge */}
+          {/* Worker Info Badge with Link */}
           <div className='flex justify-center mb-6'>
             <div className='inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm'>
-              <PiUser className='w-4 h-4 text-blue-600 dark:text-blue-400' />
-              <span className='text-sm font-medium text-gray-900 dark:text-white'>
-                {workerName}
-              </span>
+              <Link 
+                href={`/dashboard/users/${workerAddress}`}
+                className='flex items-center gap-2 group'
+              >
+                <div className='w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center transition-transform group-hover:scale-110'>
+                  <PiUser className='w-4 h-4 text-white' />
+                </div>
+                <span className='text-sm font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors'>
+                  {workerName}
+                </span>
+                <PiArrowRight className='w-3 h-3 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-0.5' />
+              </Link>
               <span className='text-xs text-gray-500 dark:text-gray-400'>
                 has completed the job
               </span>
@@ -197,7 +207,16 @@ const ResultVerification: React.FC<ResultAcceptedProps> = ({
                   </li>
                   <li className='flex items-start gap-2'>
                     <PiChatCircle className='w-4 h-4 mt-0.5 flex-shrink-0' />
-                    <span>Send a message to {workerName} to request changes</span>
+                    <span>
+                      Send a message to{' '}
+                      <Link 
+                        href={`/dashboard/users/${workerAddress}`}
+                        className='text-amber-700 dark:text-amber-300 hover:underline font-medium'
+                      >
+                        {workerName}
+                      </Link>
+                      {' '}to request changes
+                    </span>
                   </li>
                 </ul>
               </div>

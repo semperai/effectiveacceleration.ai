@@ -1,4 +1,5 @@
 import type React from 'react';
+import Link from 'next/link';
 import {
   type Job,
   type JobArbitratedEvent,
@@ -23,7 +24,8 @@ import {
   PiBank,
   PiReceipt,
   PiSealCheck,
-  PiSparkle
+  PiSparkle,
+  PiArrowRight
 } from 'react-icons/pi';
 
 interface ArbitratedStatusProps {
@@ -48,6 +50,11 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
   const isCreator = address === job.roles.creator;
   const isWorker = address === job.roles.worker;
   const isArbitrator = address === job.roles.arbitrator;
+
+  // Get user data for links
+  const creatorData = users[job.roles.creator];
+  const workerData = users[job.roles.worker];
+  const arbitratorData = users[job.roles.arbitrator];
 
   // Calculate arbitrator fee (assuming it's the difference)
   const totalAmount = job.amount;
@@ -86,6 +93,17 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
             <p className='text-sm text-gray-600 dark:text-gray-400 text-center max-w-md'>
               The arbitrator has made a final decision on this dispute
             </p>
+
+            {/* Arbitrator Link */}
+            {arbitratorData && (
+              <Link 
+                href={`/dashboard/arbitrators/${job.roles.arbitrator}`}
+                className='mt-2 inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 group'
+              >
+                <span>Resolved by {arbitratorData.name || 'Arbitrator'}</span>
+                <PiArrowRight className='w-3 h-3 opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-0.5' />
+              </Link>
+            )}
           </div>
 
           {/* Status Badge */}
@@ -136,8 +154,24 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
                   <span className='text-xs font-semibold text-gray-700 dark:text-gray-300'>
                     Creator {isCreator && '(You)'}
                   </span>
+                  {creatorData && !isCreator && (
+                    <Link 
+                      href={`/dashboard/users/${job.roles.creator}`}
+                      className='ml-auto'
+                    >
+                      <PiArrowRight className='w-3 h-3 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors' />
+                    </Link>
+                  )}
                 </div>
-                <div className='flex items-center gap-2'>
+                {creatorData && !isCreator && (
+                  <Link 
+                    href={`/dashboard/users/${job.roles.creator}`}
+                    className='text-xs text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 hover:underline'
+                  >
+                    {creatorData.name}
+                  </Link>
+                )}
+                <div className='flex items-center gap-2 mt-2'>
                   <span className='text-lg font-bold text-gray-900 dark:text-white'>
                     {formatTokenNameAndAmount(job.token, creatorAmount)}
                   </span>
@@ -161,8 +195,24 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
                   <span className='text-xs font-semibold text-gray-700 dark:text-gray-300'>
                     Worker {isWorker && '(You)'}
                   </span>
+                  {workerData && !isWorker && (
+                    <Link 
+                      href={`/dashboard/users/${job.roles.worker}`}
+                      className='ml-auto'
+                    >
+                      <PiArrowRight className='w-3 h-3 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors' />
+                    </Link>
+                  )}
                 </div>
-                <div className='flex items-center gap-2'>
+                {workerData && !isWorker && (
+                  <Link 
+                    href={`/dashboard/users/${job.roles.worker}`}
+                    className='text-xs text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 hover:underline'
+                  >
+                    {workerData.name}
+                  </Link>
+                )}
+                <div className='flex items-center gap-2 mt-2'>
                   <span className='text-lg font-bold text-gray-900 dark:text-white'>
                     {formatTokenNameAndAmount(job.token, workerAmount)}
                   </span>
@@ -186,8 +236,24 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
                   <span className='text-xs font-semibold text-gray-700 dark:text-gray-300'>
                     Arbitrator Fee {isArbitrator && '(You)'}
                   </span>
+                  {arbitratorData && !isArbitrator && (
+                    <Link 
+                      href={`/dashboard/arbitrators/${job.roles.arbitrator}`}
+                      className='ml-auto'
+                    >
+                      <PiArrowRight className='w-3 h-3 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors' />
+                    </Link>
+                  )}
                 </div>
-                <div className='flex items-center gap-2'>
+                {arbitratorData && !isArbitrator && (
+                  <Link 
+                    href={`/dashboard/arbitrators/${job.roles.arbitrator}`}
+                    className='text-xs text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 hover:underline'
+                  >
+                    {arbitratorData.name}
+                  </Link>
+                )}
+                <div className='flex items-center gap-2 mt-2'>
                   <span className='text-lg font-bold text-gray-900 dark:text-white'>
                     {formatTokenNameAndAmount(job.token, arbitratorFee)}
                   </span>

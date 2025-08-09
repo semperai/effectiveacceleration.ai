@@ -1,4 +1,5 @@
 import type React from 'react';
+import Link from 'next/link';
 import {
   type Job,
   JobEventType,
@@ -20,7 +21,8 @@ import {
   PiClock,
   PiCoin,
   PiLightning,
-  PiWarningCircle
+  PiWarningCircle,
+  PiUser
 } from 'react-icons/pi';
 import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
 import { formatTimeLeft } from '@/utils/utils';
@@ -29,11 +31,18 @@ import moment from 'moment';
 interface WorkerAcceptedProps {
   job: Job;
   address: string | undefined;
+  users?: Record<string, User>;
 }
 
-const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({ job, address }) => {
+const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({ job, address, users = {} }) => {
   const isCreator = address === job.roles.creator;
   const isWorker = address === job.roles.worker;
+
+  // Get user data
+  const workerData = users[job.roles.worker];
+  const creatorData = users[job.roles.creator];
+  const workerName = workerData?.name || 'Worker';
+  const creatorName = creatorData?.name || 'Creator';
 
   // Calculate time remaining if job is in progress
   const timeRemaining = job.maxTime ? moment.duration(job.maxTime, 'seconds').humanize() : null;
@@ -94,6 +103,26 @@ const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({ job, address }) => {
                 'This job is currently being worked on'
               )}
             </p>
+
+            {/* Show worker/creator info */}
+            {isCreator && workerData && (
+              <Link 
+                href={`/dashboard/users/${job.roles.worker}`}
+                className='mt-2 inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 group'
+              >
+                <span>Assigned to {workerName}</span>
+                <PiArrowRight className='w-3 h-3 opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-0.5' />
+              </Link>
+            )}
+            {isWorker && creatorData && (
+              <Link 
+                href={`/dashboard/users/${job.roles.creator}`}
+                className='mt-2 inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 group'
+              >
+                <span>Working for {creatorName}</span>
+                <PiArrowRight className='w-3 h-3 opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-0.5' />
+              </Link>
+            )}
           </div>
 
           {/* Status Badge */}
@@ -150,14 +179,27 @@ const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({ job, address }) => {
                 </div>
               </div>
 
-              {/* Status */}
+              {/* Status with Worker Link */}
               <div className='flex items-start gap-3'>
                 <PiCheckCircle className='w-5 h-5 text-gray-400 mt-0.5' />
                 <div>
-                  <p className='text-xs text-gray-500 dark:text-gray-400'>Status</p>
-                  <p className='text-sm font-medium text-green-600 dark:text-green-400'>
-                    Active & In Progress
-                  </p>
+                  <p className='text-xs text-gray-500 dark:text-gray-400'>Worker</p>
+                  {workerData ? (
+                    <Link 
+                      href={`/dashboard/users/${job.roles.worker}`}
+                      className='inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 group'
+                    >
+                      <div className='w-4 h-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center'>
+                        <PiUser className='w-2.5 h-2.5 text-white' />
+                      </div>
+                      <span>{workerName}</span>
+                      <PiArrowRight className='w-3 h-3 opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-0.5' />
+                    </Link>
+                  ) : (
+                    <p className='text-sm font-medium text-green-600 dark:text-green-400'>
+                      Active & In Progress
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -175,7 +217,21 @@ const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({ job, address }) => {
                 <>
                   <li className='flex items-start gap-2'>
                     <span className='text-amber-600 dark:text-amber-500 mt-0.5'>1.</span>
-                    <span>The worker will complete the job within {timeRemaining}</span>
+                    <span>
+                      {workerData ? (
+                        <>
+                          <Link 
+                            href={`/dashboard/users/${job.roles.worker}`}
+                            className='text-amber-700 dark:text-amber-300 hover:underline font-medium'
+                          >
+                            {workerName}
+                          </Link>
+                          {' '}will complete the job within {timeRemaining}
+                        </>
+                      ) : (
+                        <>The worker will complete the job within {timeRemaining}</>
+                      )}
+                    </span>
                   </li>
                   <li className='flex items-start gap-2'>
                     <span className='text-amber-600 dark:text-amber-500 mt-0.5'>2.</span>
@@ -198,14 +254,36 @@ const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({ job, address }) => {
                   </li>
                   <li className='flex items-start gap-2'>
                     <span className='text-amber-600 dark:text-amber-500 mt-0.5'>3.</span>
-                    <span>Communicate with the client if you have questions</span>
+                    <span>
+                      Communicate with {creatorData ? (
+                        <Link 
+                          href={`/dashboard/users/${job.roles.creator}`}
+                          className='text-amber-700 dark:text-amber-300 hover:underline font-medium'
+                        >
+                          {creatorName}
+                        </Link>
+                      ) : (
+                        'the client'
+                      )} if you have questions
+                    </span>
                   </li>
                 </>
               ) : (
                 <>
                   <li className='flex items-start gap-2'>
                     <PiRocket className='w-4 h-4 text-amber-600 dark:text-amber-500 mt-0.5' />
-                    <span>Job is currently being worked on by the assigned worker</span>
+                    <span>
+                      Job is currently being worked on by {workerData ? (
+                        <Link 
+                          href={`/dashboard/users/${job.roles.worker}`}
+                          className='text-amber-700 dark:text-amber-300 hover:underline font-medium'
+                        >
+                          {workerName}
+                        </Link>
+                      ) : (
+                        'the assigned worker'
+                      )}
+                    </span>
                   </li>
                 </>
               )}

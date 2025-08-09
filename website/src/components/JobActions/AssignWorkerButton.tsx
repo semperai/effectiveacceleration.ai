@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Button } from '@/components/Button';
 import useUsers from '@/hooks/subsquid/useUsers';
 import { useConfig } from '@/hooks/useConfig';
@@ -282,7 +283,9 @@ export function AssignWorkerButton({
                         <div className='flex items-center justify-between'>
                           <div>
                             <p className='text-sm font-medium text-gray-900 dark:text-white'>
-                              {selectedWorkerData?.name || 'Unknown Worker'}
+                              <Link href={`/dashboard/users/${selectedWorker}`} className='hover:underline'>
+                                {selectedWorkerData?.name || 'Unknown Worker'}
+                              </Link>
                             </p>
                             <p className='text-xs text-gray-500 dark:text-gray-400 font-mono'>
                               {shortenText({ text: selectedWorker, maxLength: 20 })}
