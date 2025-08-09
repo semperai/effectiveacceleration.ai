@@ -8,9 +8,9 @@ import useUser, { ExtendedUser } from '@/hooks/subsquid/useUser';
 import useReviews, { ExtendedReview } from '@/hooks/subsquid/useReviews';
 import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
 import { Button } from '@/components/Button';
-import { LinkIcon } from '@heroicons/react/20/solid';
+import { LinkIcon, DocumentDuplicateIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/20/solid';
 import EventProfileImage from '@/components/Events/Components/EventProfileImage';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 interface UserPageClientProps {
   address: string;
@@ -56,6 +56,7 @@ export default function UserPageClient({ address }: UserPageClientProps) {
   const { data: users } = useUsersByAddresses(
     reviews?.map((review) => review.reviewer) ?? []
   );
+  const [copiedAddress, setCopiedAddress] = useState(false);
 
   const totalReviews = (user?.reputationUp ?? 0) + (user?.reputationDown ?? 0);
   const positiveReviewPercentage =
@@ -75,6 +76,19 @@ export default function UserPageClient({ address }: UserPageClientProps) {
     }
     return 0;
   }, [reviews, user]);
+
+  // Format address for display (0x1234...5678)
+  const formatAddress = (addr: string) => {
+    if (!addr) return '';
+    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+  };
+
+  // Copy address to clipboard
+  const copyAddress = () => {
+    navigator.clipboard.writeText(address);
+    setCopiedAddress(true);
+    setTimeout(() => setCopiedAddress(false), 2000);
+  };
 
   // Loading state
   if (userLoading || reviewsLoading) {
@@ -136,6 +150,34 @@ export default function UserPageClient({ address }: UserPageClientProps) {
               <span className='flex text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-xl sm:tracking-tight dark:text-gray-100'>
                 {user?.name || 'Unnamed User'}
               </span>
+
+              {/* Address and Arbiscan link */}
+              <div className='flex items-center gap-2 text-sm'>
+                <span className='text-gray-600 dark:text-gray-400 font-mono'>
+                  {formatAddress(address)}
+                </span>
+                <button
+                  onClick={copyAddress}
+                  className='text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors'
+                  title='Copy address'
+                >
+                  <DocumentDuplicateIcon className='h-4 w-4' />
+                </button>
+                {copiedAddress && (
+                  <span className='text-xs text-green-600 dark:text-green-400'>Copied!</span>
+                )}
+                <a
+                  href={`https://arbiscan.io/address/${address}`}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='inline-flex items-center gap-1 text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300'
+                  title='View on Arbiscan'
+                >
+                  <span className='text-sm'>View on Arbiscan</span>
+                  <ArrowTopRightOnSquareIcon className='h-3.5 w-3.5' />
+                </a>
+              </div>
+
               <span className='text-gray-600 dark:text-gray-400'>
                 {user?.bio || 'No bio available'}
               </span>
@@ -150,8 +192,8 @@ export default function UserPageClient({ address }: UserPageClientProps) {
             </div>
           </div>
           <div>
-            <Button 
-              color={'borderlessGray'} 
+            <Button
+              color={'borderlessGray'}
               className={'mt-2 w-full'}
               onClick={handleShare}
             >
@@ -163,7 +205,7 @@ export default function UserPageClient({ address }: UserPageClientProps) {
             </Button>
           </div>
         </div>
-        
+
         <div className='flex basis-4/5 flex-row bg-white border-t min-h-[80%]'>
           <div className='flex basis-3/4 border-r p-6 min-h-full'>
             <div className='w-full'>
@@ -224,17 +266,35 @@ export default function UserPageClient({ address }: UserPageClientProps) {
                   </div>
                 </div>
 
-                {/* Member since */}
-                {user?.timestamp && (
-                  <div>
-                    <h3 className='text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2'>
-                      Member Information
-                    </h3>
-                    <p className='text-gray-600 dark:text-gray-400'>
+                {/* Member since and Wallet Address */}
+                <div>
+                  <h3 className='text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2'>
+                    Member Information
+                  </h3>
+                  {user?.timestamp && (
+                    <p className='text-gray-600 dark:text-gray-400 mb-2'>
                       Member since {moment(user.timestamp * 1000).format('MMMM YYYY')}
                     </p>
+                  )}
+                  <div className='flex items-center gap-2'>
+                    <span className='text-gray-600 dark:text-gray-400'>
+                      Wallet:
+                    </span>
+                    <code className='text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded font-mono'>
+                      {address}
+                    </code>
+                    <button
+                      onClick={copyAddress}
+                      className='text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors'
+                      title='Copy full address'
+                    >
+                      <DocumentDuplicateIcon className='h-4 w-4' />
+                    </button>
+                    {copiedAddress && (
+                      <span className='text-xs text-green-600 dark:text-green-400'>Copied!</span>
+                    )}
                   </div>
-                )}
+                </div>
 
                 {/* If no bio, show a message */}
                 {!user?.bio && (
@@ -247,7 +307,7 @@ export default function UserPageClient({ address }: UserPageClientProps) {
               </div>
             </div>
           </div>
-          
+
           <div className='flex basis-1/4 p-6 overflow-y-auto'>
             <div className='w-full'>
               {reviews && reviews.length > 0 && (
@@ -286,11 +346,11 @@ export default function UserPageClient({ address }: UserPageClientProps) {
                   </div>
                 </div>
               )}
-              
+
               <h3 className='text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4'>
                 Reviews
               </h3>
-              
+
               {!reviews || reviews.length === 0 ? (
                 <div className='flex h-48 items-center justify-center'>
                   <span className='text-md text-center font-semibold text-gray-500 dark:text-gray-400'>
@@ -304,7 +364,7 @@ export default function UserPageClient({ address }: UserPageClientProps) {
                     <div key={review.id || index} className='pb-4 border-b border-gray-200 dark:border-gray-700 last:border-0'>
                       <p className='text-sm font-semibold text-gray-500 dark:text-gray-400'>
                         {users?.[review.reviewer]?.name || 'Anonymous'} reviewed{' '}
-                        <Link 
+                        <Link
                           href={`/dashboard/jobs/${review.jobId}`}
                           className='text-primary hover:underline'
                         >

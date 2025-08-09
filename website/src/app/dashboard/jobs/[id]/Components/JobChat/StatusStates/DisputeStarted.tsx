@@ -1,4 +1,5 @@
 import type React from 'react';
+import Link from 'next/link';
 import {
   type Job,
   JobEventType,
@@ -18,18 +19,25 @@ import {
   PiHandshake,
   PiFileText,
   PiSparkle,
-  PiGavel
+  PiGavel,
+  PiArrowRight,
+  PiUser
 } from 'react-icons/pi';
 
 interface DisputeStartedProps {
   job: Job;
   address: string | undefined;
+  users?: Record<string, User>;
 }
 
-const DisputeStarted: React.FC<DisputeStartedProps> = ({ job, address }) => {
+const DisputeStarted: React.FC<DisputeStartedProps> = ({ job, address, users = {} }) => {
   const isCreator = address === job.roles.creator;
   const isWorker = address === job.roles.worker;
   const isArbitrator = address === job.roles.arbitrator;
+
+  // Get arbitrator data
+  const arbitratorData = users[job.roles.arbitrator];
+  const arbitratorName = arbitratorData?.name || 'Arbitrator';
 
   return (
     <div className='w-full my-4'>
@@ -38,12 +46,12 @@ const DisputeStarted: React.FC<DisputeStartedProps> = ({ job, address }) => {
         {/* Decorative elements */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-amber-500/10 to-orange-500/10 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-br from-orange-500/10 to-red-500/10 rounded-full blur-3xl" />
-        
+
         {/* Animated warning pattern */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute inset-0 bg-stripes"></div>
         </div>
-        
+
         {/* Content */}
         <div className='relative p-6 lg:p-8'>
           {/* Status Header */}
@@ -54,12 +62,12 @@ const DisputeStarted: React.FC<DisputeStartedProps> = ({ job, address }) => {
                 <PiScales className='w-10 h-10 text-white' />
               </div>
             </div>
-            
+
             {/* Main Status Message */}
             <h3 className='text-xl lg:text-2xl font-bold text-gray-900 dark:text-white mb-2'>
               Dispute Resolution In Progress
             </h3>
-            
+
             <p className='text-sm text-gray-600 dark:text-gray-400 text-center max-w-md'>
               An arbitrator has been assigned to review and resolve this dispute
             </p>
@@ -73,7 +81,7 @@ const DisputeStarted: React.FC<DisputeStartedProps> = ({ job, address }) => {
                 Dispute Active
               </span>
             </div>
-            
+
             <div className='inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700'>
               <PiUserCirclePlus className='w-4 h-4 text-blue-600 dark:text-blue-400' />
               <span className='text-sm font-medium text-blue-800 dark:text-blue-300'>
@@ -85,19 +93,54 @@ const DisputeStarted: React.FC<DisputeStartedProps> = ({ job, address }) => {
           {/* Arbitrator Info Card */}
           <div className='mb-6 rounded-xl bg-white/70 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-200 dark:border-gray-700 p-5'>
             <div className='flex items-start gap-4'>
-              <div className='p-3 rounded-lg bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30'>
-                <PiGavel className='w-6 h-6 text-blue-600 dark:text-blue-400' />
-              </div>
+              <Link
+                href={`/dashboard/arbitrators/${job.roles.arbitrator}`}
+                className='group'
+              >
+                <div className='p-3 rounded-lg bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 transition-transform group-hover:scale-110'>
+                  <PiGavel className='w-6 h-6 text-blue-600 dark:text-blue-400' />
+                </div>
+              </Link>
               <div className='flex-1'>
-                <h4 className='text-sm font-semibold text-gray-900 dark:text-white mb-1'>
-                  Arbitrator Has Joined
-                </h4>
+                <div className='flex items-center gap-2 mb-1'>
+                  <h4 className='text-sm font-semibold text-gray-900 dark:text-white'>
+                    Arbitrator Has Joined
+                  </h4>
+                  <Link
+                    href={`/dashboard/arbitrators/${job.roles.arbitrator}`}
+                    className='inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 group'
+                  >
+                    <span>{arbitratorName}</span>
+                    <PiArrowRight className='w-3 h-3 opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-0.5' />
+                  </Link>
+                </div>
                 <p className='text-sm text-gray-600 dark:text-gray-400 mb-3'>
                   The arbitrator has received all case information and is now part of the conversation
                 </p>
-                
+
+                {/* Arbitrator Avatar and Name if available */}
+                {arbitratorData && (
+                  <Link
+                    href={`/dashboard/arbitrators/${job.roles.arbitrator}`}
+                    className='inline-flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors'
+                  >
+                    <div className='w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center'>
+                      <PiUser className='w-5 h-5 text-white' />
+                    </div>
+                    <div>
+                      <p className='text-sm font-medium text-gray-900 dark:text-white'>
+                        {arbitratorName}
+                      </p>
+                      <p className='text-xs text-gray-500 dark:text-gray-400'>
+                        View Arbitrator Profile
+                      </p>
+                    </div>
+                    <PiArrowRight className='w-4 h-4 text-gray-400 ml-auto' />
+                  </Link>
+                )}
+
                 {/* Communication Notice */}
-                <div className='flex items-center gap-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800'>
+                <div className='flex items-center gap-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 mt-3'>
                   <PiChatCircleDots className='w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0' />
                   <span className='text-xs text-blue-700 dark:text-blue-300'>
                     All parties can now communicate directly with the arbitrator in the chat

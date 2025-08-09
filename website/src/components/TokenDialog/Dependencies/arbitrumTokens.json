@@ -8,14 +8,6 @@
   },
   "tokens": [
     {
-      "logoURI": "https://assets.coingecko.com/coins/images/279/thumb/ethereum.png?1595348880",
-      "chainId": 1,
-      "name": "Ethereum",
-      "address": "0x0000000000000000000000000000000000000000",
-      "symbol": "ETH",
-      "decimals": 18
-    },
-    {
       "logoURI": "https://assets.coingecko.com/coins/images/4454/thumb/0xbtc.png?1561603765",
       "chainId": 42161,
       "address": "0x7cb16cb78ea464aD35c8a50ABF95dff3c9e09d5d",

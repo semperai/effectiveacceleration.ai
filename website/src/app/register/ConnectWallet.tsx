@@ -7,7 +7,7 @@ const ConnectWallet = () => {
     <div className='relative flex w-full max-w-md transform flex-col overflow-hidden rounded-3xl bg-white/95 backdrop-blur-md p-8 shadow-2xl transition-all dark:bg-gray-900/95'>
       {/* Decorative gradient background */}
       <div className='absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-blue-950/20 dark:via-gray-900 dark:to-purple-950/20' />
-      
+
       <div className='relative z-10 flex flex-col space-y-8'>
         {/* Icon */}
         <div className='mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg'>

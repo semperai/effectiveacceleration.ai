@@ -25,7 +25,7 @@ const RegisteredUserView = () => {
     <div className='relative flex w-full max-w-md transform flex-col overflow-hidden rounded-3xl bg-white/95 backdrop-blur-md p-8 shadow-2xl transition-all dark:bg-gray-900/95'>
       {/* Decorative gradient background */}
       <div className='absolute inset-0 bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-green-950/20 dark:via-gray-900 dark:to-blue-950/20' />
-      
+
       <div className='relative z-10 flex flex-col space-y-8'>
         {/* Success icon */}
         <div className='mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-lg'>
@@ -89,7 +89,7 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
   const { showError } = useToast();
 
   const unregisteredUserLabel = `${address}-unregistered-job-cache`;
-  
+
   useEffect(() => {
     if (error) {
       setFormState((prev) => ({
@@ -134,7 +134,7 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
     const hasUnfinishedJob = jobsAfterSignUp[0]?.title;
     router.push(hasUnfinishedJob ? '/dashboard/post-job' : '/dashboard');
   };
-  
+
   // Submit handler
   const handleSubmit = async () => {
     if (!formState.userName) {
@@ -159,7 +159,7 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
     }
 
     setFormState((prev) => ({ ...prev, isSubmitting: true, error: '' }));
-    
+
     try {
       await writeContractWithNotifications({
         abi: MARKETPLACE_DATA_V1_ABI,
@@ -189,7 +189,7 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
     <div className='relative flex w-full max-w-lg transform flex-col self-center overflow-hidden rounded-3xl bg-white/95 backdrop-blur-md p-8 shadow-2xl transition-all dark:bg-gray-900/95'>
       {/* Decorative gradient background */}
       <div className='absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-blue-950/20 dark:via-gray-900 dark:to-purple-950/20' />
-      
+
       <div className='relative z-10 flex flex-col space-y-6'>
         {/* Header with icon */}
         <div className='text-center'>

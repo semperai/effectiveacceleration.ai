@@ -42,26 +42,26 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
   events,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [formattedComment, setFormattedComment] = useState<string>(''); 
+  const [formattedComment, setFormattedComment] = useState<string>('');
   const [isFormatted, setIsFormatted] = useState(false);
-  
+
   // Get current user's address from wagmi
   const { address: currentUserAddress } = useAccount();
-  
+
   // Get the delivery event
   const deliveryEvent = events.filter(
     (event) => event.type_ === JobEventType.Delivered
   )[0];
-  
+
   const rawComment = deliveryEvent?.job?.result || '';
-  
+
   // Fix: Get the worker address from the job, not selectedWorker
   const workerAddress = job.roles.worker || deliveryEvent?.address_ || selectedWorker;
   const workerData = users[workerAddress];
   const workerName = workerData?.name || 'Worker';
 
   // Check if current user is the job creator
-  const isJobCreator = currentUserAddress && 
+  const isJobCreator = currentUserAddress &&
     job.roles.creator?.toLowerCase() === currentUserAddress.toLowerCase();
 
   // Calculate the formatted amount for the URL parameter
@@ -80,7 +80,7 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
     if (rawComment?.startsWith("#filename%3D")) {
       formatMarkdownContent(rawComment, (formatted) => {
         setFormattedComment(formatted);
-        setIsFormatted(true); 
+        setIsFormatted(true);
       });
     } else {
       setFormattedComment(rawComment);
@@ -92,8 +92,8 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
   };
 
   const shouldTruncate = formattedComment.length > 200 && !isFormatted;
-  const displayContent = shouldTruncate && !isExpanded 
-    ? `${formattedComment.slice(0, 200)}...` 
+  const displayContent = shouldTruncate && !isExpanded
+    ? `${formattedComment.slice(0, 200)}...`
     : formattedComment;
 
   return (
@@ -103,7 +103,7 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
         {/* Decorative elements */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 rounded-full blur-3xl animate-pulse" />
-        
+
         {/* Confetti animation overlay */}
         <div className="absolute inset-0 opacity-30">
           <div className="absolute top-10 left-10 animate-bounce delay-100">
@@ -119,7 +119,7 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
             <PiConfetti className="w-6 h-6 text-pink-500" />
           </div>
         </div>
-        
+
         {/* Content */}
         <div className='relative p-8'>
           {/* Success Header */}
@@ -138,7 +138,7 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
             </p>
           </div>
 
-          {/* Worker Info Badge */}
+          {/* Worker Info Badge with Link */}
           <div className='flex justify-center mb-6'>
             <div className='inline-flex items-center gap-3 px-5 py-3 rounded-full bg-white dark:bg-gray-800 border border-green-200 dark:border-green-700 shadow-sm'>
               <div className='flex items-center gap-2'>
@@ -147,14 +147,18 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
                   Completed by
                 </span>
               </div>
-              <div className='flex items-center gap-2'>
-                <div className='w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center'>
+              <Link
+                href={`/dashboard/users/${workerAddress}`}
+                className='flex items-center gap-2 group'
+              >
+                <div className='w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center transition-transform group-hover:scale-110'>
                   <PiUser className='w-4 h-4 text-white' />
                 </div>
-                <span className='text-sm font-semibold text-gray-900 dark:text-white'>
+                <span className='text-sm font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors'>
                   {workerName}
                 </span>
-              </div>
+                <PiArrowRight className='w-3 h-3 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-0.5' />
+              </Link>
             </div>
           </div>
 
@@ -168,7 +172,7 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
                     Delivery Details
                   </h4>
                 </div>
-                
+
                 {/* Message Content */}
                 <div className='prose prose-sm dark:prose-invert max-w-none'>
                   <Markdown className='text-gray-700 dark:text-gray-300'>
@@ -225,7 +229,7 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
               <PiArrowRight className='w-4 h-4' />
               What's Next?
             </h4>
-            
+
             <div className='grid gap-3'>
               {/* Create Similar Job - Only show to job creator */}
               {isJobCreator && (
@@ -236,7 +240,7 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
                       title: job.title,
                       content: job.content,
                       token: job.token,
-                      amount: getFormattedAmount(), // Add the formatted amount here
+                      amount: getFormattedAmount(),
                       maxTime: job.maxTime,
                       deliveryMethod: job.deliveryMethod,
                       arbitrator: job.roles.arbitrator,
@@ -264,7 +268,27 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
                 </Link>
               )}
 
-              {/* Browse Jobs - Show to everyone */}
+              {/* View Worker Profile */}
+              <Link href={`/dashboard/users/${workerAddress}`} className='w-full'>
+                <button className='
+                  w-full px-4 py-2.5 rounded-xl
+                  bg-white dark:bg-gray-800
+                  border border-gray-200 dark:border-gray-700
+                  text-sm font-medium text-gray-700 dark:text-gray-300
+                  transition-all duration-200
+                  hover:bg-gray-50 dark:hover:bg-gray-700
+                  hover:border-gray-300 dark:hover:border-gray-600
+                  group
+                '>
+                  <span className='flex items-center justify-center gap-2'>
+                    <PiUser className='w-4 h-4' />
+                    View {workerName}'s Profile
+                    <PiArrowRight className='w-4 h-4 group-hover:translate-x-1 transition-transform' />
+                  </span>
+                </button>
+              </Link>
+
+              {/* Browse Jobs */}
               <Link href='/dashboard/open-job-list' className='w-full'>
                 <button className='
                   w-full px-4 py-2.5 rounded-xl
@@ -295,7 +319,14 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
               <span>•</span>
               <span className='flex items-center gap-1'>
                 {isJobCreator ? 'Payment has been released to' : 'Payment received from job creator'}
-                {isJobCreator && ` ${workerName}`}
+                {isJobCreator && (
+                  <Link
+                    href={`/dashboard/users/${workerAddress}`}
+                    className='text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 hover:underline'
+                  >
+                    {workerName}
+                  </Link>
+                )}
                 <PiCheckCircle className='w-3 h-3 text-green-500' />
               </span>
             </div>

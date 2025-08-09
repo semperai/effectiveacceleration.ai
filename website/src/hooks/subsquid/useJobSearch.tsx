@@ -58,12 +58,12 @@ export default function useJobSearch({
   const search = userAddress
     ? `
       OR: [
-        { 
+        {
           whitelistWorkers_eq: true,
           allowedWorkers_containsAny: "${userAddress}",
           ${searchConditions},
         },
-        {          
+        {
           whitelistWorkers_eq: false,
           ${searchConditions}
         }

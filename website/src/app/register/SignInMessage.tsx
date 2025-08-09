@@ -51,7 +51,7 @@ const SignInMessage = ({
     } catch (error: any) {
       Sentry.captureException(error);
       console.error('Error signing message:', error);
-      
+
       if (error?.message?.includes('User rejected') || error?.message?.includes('User denied')) {
         setError('Signature request was cancelled');
       } else {
@@ -66,7 +66,7 @@ const SignInMessage = ({
     <div className='relative flex w-full max-w-md transform flex-col overflow-hidden rounded-3xl bg-white/95 backdrop-blur-md p-8 shadow-2xl transition-all dark:bg-gray-900/95'>
       {/* Decorative gradient background */}
       <div className='absolute inset-0 bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-purple-950/20 dark:via-gray-900 dark:to-blue-950/20' />
-      
+
       <div className='relative z-10 flex flex-col space-y-8'>
         {/* Icon */}
         <div className='mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 to-blue-600 shadow-lg'>

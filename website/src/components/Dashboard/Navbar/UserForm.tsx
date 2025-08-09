@@ -25,7 +25,7 @@ export const UserForm = ({ isArbitrator, user, arbitrator, address }: UserFormPr
   const Config = useConfig();
   const signer = useEthersSigner();
   const currentEntity = isArbitrator ? arbitrator : user;
-  
+
   const [name, setName] = useState<string>('');
   const [bio, setBio] = useState<string>('');
   const [avatar, setAvatar] = useState<string | undefined>(''); // Fix: Allow undefined
@@ -100,9 +100,9 @@ export const UserForm = ({ isArbitrator, user, arbitrator, address }: UserFormPr
       <Field>
         <Label>Address</Label>
         <div className='flex gap-2'>
-          <Input 
-            value={address} 
-            readOnly 
+          <Input
+            value={address}
+            readOnly
             className='text-xs sm:text-sm font-mono flex-1'
           />
           {currentEntity && (
@@ -117,7 +117,7 @@ export const UserForm = ({ isArbitrator, user, arbitrator, address }: UserFormPr
           )}
         </div>
       </Field>
-      
+
       <Field>
         <Label>Name</Label>
         <Input
@@ -131,7 +131,7 @@ export const UserForm = ({ isArbitrator, user, arbitrator, address }: UserFormPr
           </div>
         )}
       </Field>
-      
+
       <Field>
         <Label>Bio</Label>
         <Input
@@ -145,7 +145,7 @@ export const UserForm = ({ isArbitrator, user, arbitrator, address }: UserFormPr
           </div>
         )}
       </Field>
-      
+
       <Field>
         <Label>Avatar</Label>
         <UploadAvatar
@@ -177,7 +177,7 @@ export const UserForm = ({ isArbitrator, user, arbitrator, address }: UserFormPr
         <UserReputation
           isArbitrator={isArbitrator}
           positiveCount={
-            isArbitrator 
+            isArbitrator
               ? (arbitrator?.settledCount || 0)
               : (user?.reputationUp || 0)
           }
@@ -196,8 +196,8 @@ export const UserForm = ({ isArbitrator, user, arbitrator, address }: UserFormPr
           className={`
             relative w-full rounded-lg px-4 py-2.5 text-sm font-medium
             transition-all duration-200
-            ${isDisabled 
-              ? 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-500' 
+            ${isDisabled
+              ? 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-500'
               : 'bg-blue-600 hover:bg-blue-700 active:scale-[0.98] dark:bg-blue-600 dark:hover:bg-blue-700'
             }
           `}
@@ -224,8 +224,8 @@ export const UserForm = ({ isArbitrator, user, arbitrator, address }: UserFormPr
           className={`
             relative w-full rounded-lg px-4 py-2.5 text-sm font-medium
             transition-all duration-200
-            ${isDisabled 
-              ? 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-500' 
+            ${isDisabled
+              ? 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-500'
               : 'bg-blue-600 hover:bg-blue-700 active:scale-[0.98] dark:bg-blue-600 dark:hover:bg-blue-700'
             }
           `}

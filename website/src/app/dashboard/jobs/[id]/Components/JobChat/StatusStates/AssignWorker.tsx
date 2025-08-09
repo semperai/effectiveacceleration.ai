@@ -1,4 +1,5 @@
 import type React from 'react';
+import Link from 'next/link';
 import {
   type Job,
   JobEventType,
@@ -48,7 +49,7 @@ const AssignWorker: React.FC<AssignWorkerProps> = ({
         {/* Decorative elements */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-br from-purple-500/10 to-indigo-500/10 rounded-full blur-3xl animate-pulse" />
-        
+
         {/* Animated decorative icons */}
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-10 left-10 animate-bounce delay-100">
@@ -61,7 +62,7 @@ const AssignWorker: React.FC<AssignWorkerProps> = ({
             <PiRocket className="w-6 h-6 text-indigo-500" />
           </div>
         </div>
-        
+
         {/* Content */}
         <div className='relative px-6 py-8 lg:px-8 lg:py-10'>
           {/* Header Section */}
@@ -72,23 +73,27 @@ const AssignWorker: React.FC<AssignWorkerProps> = ({
                 <PiHandshake className='w-10 h-10 text-white' />
               </div>
             </div>
-            
+
             <h3 className='text-xl lg:text-2xl font-bold text-gray-900 dark:text-white mb-2'>
               Ready to Assign Worker
             </h3>
-            
+
             <p className='text-sm text-gray-600 dark:text-gray-400 text-center max-w-md'>
               You're about to assign this job to your selected candidate
             </p>
           </div>
 
-          {/* Selected Worker Card */}
+          {/* Selected Worker Card - WITH LINK ADDED */}
           {workerData && (
             <div className='mb-6 max-w-md mx-auto'>
               <div className='rounded-xl bg-white/70 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-200 dark:border-gray-700 p-5'>
                 <div className='flex items-center gap-4'>
-                  <div className='relative'>
-                    <div className='w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center'>
+                  {/* Avatar - Clickable link to profile */}
+                  <Link
+                    href={`/dashboard/users/${selectedWorker}`}
+                    className='relative group'
+                  >
+                    <div className='w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center transition-transform group-hover:scale-110'>
                       <PiUser className='w-7 h-7 text-white' />
                     </div>
                     {workerRating >= 4.5 && (
@@ -96,11 +101,18 @@ const AssignWorker: React.FC<AssignWorkerProps> = ({
                         <PiStar className='w-3 h-3 text-white' />
                       </div>
                     )}
-                  </div>
+                  </Link>
                   <div className='flex-1'>
-                    <h4 className='text-base font-semibold text-gray-900 dark:text-white'>
-                      {workerName}
-                    </h4>
+                    {/* Name - Clickable link to profile with hover effect */}
+                    <Link
+                      href={`/dashboard/users/${selectedWorker}`}
+                      className='group inline-flex items-center gap-1'
+                    >
+                      <h4 className='text-base font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors'>
+                        {workerName}
+                      </h4>
+                      <PiArrowRight className='w-3 h-3 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-0.5' />
+                    </Link>
                     <div className='flex items-center gap-3 mt-1'>
                       <span className='text-xs text-gray-500 dark:text-gray-400'>
                         ⭐ {workerRating.toFixed(1)}

@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Button } from '@/components/Button';
 import useUsers from '@/hooks/subsquid/useUsers';
 import { useConfig } from '@/hooks/useConfig';
@@ -10,10 +11,10 @@ import type { Job, User } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { Dialog, Transition } from '@headlessui/react';
 import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { 
-  PiSparkle, 
-  PiFileText, 
-  PiTag, 
+import {
+  PiSparkle,
+  PiFileText,
+  PiTag,
   PiCoin,
   PiClock,
   PiUser,
@@ -80,21 +81,21 @@ export function AssignWorkerButton({
   }
 
   // Enhanced info row component
-  const InfoRow = ({ 
-    icon: Icon, 
-    label, 
-    value, 
-    highlighted = false 
-  }: { 
-    icon?: any; 
-    label: string; 
-    value: React.ReactNode; 
+  const InfoRow = ({
+    icon: Icon,
+    label,
+    value,
+    highlighted = false
+  }: {
+    icon?: any;
+    label: string;
+    value: React.ReactNode;
     highlighted?: boolean;
   }) => (
     <div className={`
       flex flex-col space-y-1 p-3 rounded-lg transition-all duration-200
-      ${highlighted 
-        ? 'bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 border border-blue-200 dark:border-blue-800' 
+      ${highlighted
+        ? 'bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 border border-blue-200 dark:border-blue-800'
         : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'
       }
     `}>
@@ -133,7 +134,7 @@ export function AssignWorkerButton({
         {/* Subtle gradient overlay on hover */}
         <div className='absolute inset-0 rounded-xl bg-gradient-to-r from-white/0 via-white/10 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
       </button>
-      
+
       <Transition appear show={isOpen} as={Fragment}>
         <Dialog as='div' className='relative z-50' onClose={closeModal}>
           <Transition.Child
@@ -160,7 +161,7 @@ export function AssignWorkerButton({
                 leaveTo='opacity-0 scale-95 translate-y-4'
               >
                 <Dialog.Panel className='
-                  w-full max-w-2xl transform overflow-hidden rounded-2xl 
+                  w-full max-w-2xl transform overflow-hidden rounded-2xl
                   bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-900 dark:to-black
                   shadow-2xl transition-all
                   relative
@@ -168,14 +169,14 @@ export function AssignWorkerButton({
                   {/* Enhanced gradient orbs */}
                   <div className="absolute -top-40 -left-40 w-96 h-96 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl animate-pulse" />
                   <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-full blur-3xl animate-pulse" />
-                  
+
                   {/* Content */}
                   <div className="relative">
                     {/* Enhanced Header */}
                     <div className='relative overflow-hidden'>
                       {/* Header gradient background */}
                       <div className='absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-blue-500/5' />
-                      
+
                       <div className='relative flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800'>
                         <div className='flex items-center gap-4'>
                           <div className='relative'>
@@ -196,10 +197,10 @@ export function AssignWorkerButton({
                         <button
                           onClick={closeModal}
                           className='
-                            p-2.5 rounded-xl text-gray-500 dark:text-gray-400 
-                            hover:text-gray-700 dark:hover:text-white 
+                            p-2.5 rounded-xl text-gray-500 dark:text-gray-400
+                            hover:text-gray-700 dark:hover:text-white
                             bg-gray-100 dark:bg-gray-800/50
-                            hover:bg-gray-200 dark:hover:bg-gray-700/50 
+                            hover:bg-gray-200 dark:hover:bg-gray-700/50
                             transition-all duration-200
                           '
                         >
@@ -282,7 +283,9 @@ export function AssignWorkerButton({
                         <div className='flex items-center justify-between'>
                           <div>
                             <p className='text-sm font-medium text-gray-900 dark:text-white'>
-                              {selectedWorkerData?.name || 'Unknown Worker'}
+                              <Link href={`/dashboard/users/${selectedWorker}`} className='hover:underline'>
+                                {selectedWorkerData?.name || 'Unknown Worker'}
+                              </Link>
                             </p>
                             <p className='text-xs text-gray-500 dark:text-gray-400 font-mono'>
                               {shortenText({ text: selectedWorker, maxLength: 20 })}
@@ -339,7 +342,7 @@ export function AssignWorkerButton({
                     <div className='relative overflow-hidden'>
                       {/* Footer gradient background */}
                       <div className='absolute inset-0 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900/50 dark:to-gray-800/50' />
-                      
+
                       <div className='relative p-6 border-t border-gray-200 dark:border-gray-800'>
                         <div className='flex justify-between items-center'>
                           <p className='text-sm text-gray-500 dark:text-gray-400'>

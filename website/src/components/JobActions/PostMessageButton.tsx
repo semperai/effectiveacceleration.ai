@@ -7,7 +7,6 @@ import { type Job, publishToIpfs } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import * as Sentry from '@sentry/nextjs';
 import { ZeroHash } from 'ethers';
-import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { PiPaperPlaneRight } from 'react-icons/pi';
@@ -71,14 +70,6 @@ export function PostMessageButton({
 
   useEffect(() => {
     if (isPostingMessage && address !== initialAddressRef.current) {
-      console.log(
-        'BEFORE ACCOUNT CHANGE',
-        'Hash:', hash,
-        'Session Key:', sessionKeys,
-        'Message:', message,
-        'Sender-Recipient Pair:', `${job.roles.creator}-${recipient}`,
-        'Initial Address Reference:', initialAddressRef.current
-      );
       showError('Account changed during transaction. Process cancelled.');
       setIsPostingMessage(false);
       dismissLoadingToast();
@@ -94,8 +85,8 @@ export function PostMessageButton({
     initialAddressRef.current = address;
 
     const initialAddress = address;
-    const initialRecipient = recipient === initialAddress 
-      ? job.roles.creator 
+    const initialRecipient = recipient === initialAddress
+      ? job.roles.creator
       : recipient;
 
     const sessionKey = sessionKeys[`${initialAddress}-${initialRecipient}`];
@@ -112,16 +103,6 @@ export function PostMessageButton({
       try {
         const { hash } = await publishToIpfs(message, sessionKey);
         contentHash = hash;
-        console.log(
-          'AFTER PUBLISHING TO IPFS',
-          'IPFS Content Hash:', contentHash,
-          'Hash:', hash,
-          'Session Key:', sessionKey,
-          'Message:', message,
-          'Sender-Recipient Pair:', `${initialAddress}-${initialRecipient}`,
-          'Initial Address Reference:', initialAddressRef.current,
-          'Session Key:', sessionKeys,
-        );
       } catch (err) {
         Sentry.captureException(err);
         dismissLoadingToast();
@@ -140,86 +121,148 @@ export function PostMessageButton({
     }
 
     try {
-
-      console.log(
-        'BEFORE TRY WRITECONTRACTWITHNOTIFICATIONS',
-        'IPFS Content Hash:', contentHash,
-        'Hash:', hash,
-        'Session Key:', sessionKey,
-        'Message:', message,
-        'Sender-Recipient Pair:', `${initialAddress}-${initialRecipient}`,
-        'Initial Address Reference:', initialAddressRef.current,
-        'Session Key:', sessionKeys,
-      );
       await writeContractWithNotifications({
         abi: MARKETPLACE_V1_ABI,
         address: Config!.marketplaceAddress,
         functionName: 'postThreadMessage',
         args: [BigInt(job.id!), contentHash, initialRecipient],
       });
-    
+
     } catch (err: any) {
       Sentry.captureException(err);
       showError(`Error posting job message: ${err.message}`);
     } finally {
       setIsPostingMessage(false);
-      console.log(
-        'FINALLY',
-        'IPFS Content Hash:', contentHash,
-        'Hash:', hash,
-        'Session Key:', sessionKey,
-        'Message:', message,
-        'Sender-Recipient Pair:', `${initialAddress}-${initialRecipient}`,
-        'Initial Address Reference:', initialAddressRef.current,
-        'Session Key:', sessionKeys,
-      );
     }
   }
 
+  const isProcessing = isPostingMessage || isConfirming;
+  const canSend = message.trim().length > 0 && !isProcessing;
+
   return (
-    <>
-      <div className='w-full'>
-        <div className='flex items-center justify-center text-center'>
-          <div className='flex w-full flex-row gap-x-5 py-2 px-3'>
-            <Textarea
-              rows={1}
-              value={message}
-              disabled={isPostingMessage || isConfirming}
-              onChange={(e) => {
-                setMessage(e.target.value);
-            
-                // Dynamically adjust the height of the textarea
-                const textarea = e.target as HTMLTextAreaElement;
-                textarea.style.height = 'auto'; // Reset height to calculate the new height
-            
-                // Only adjust height if content exceeds one row
-                const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight!);
-                if (textarea.scrollHeight > lineHeight) {
-                  textarea.style.height = `${textarea.scrollHeight}px`; // Set height based on scrollHeight
-            
-                  // Enforce a maximum height of 6 lines
-                  if (textarea.scrollHeight > 6 * lineHeight) {
-                    textarea.style.height = `${6 * lineHeight}px`;
-                  }
+    <div className='w-full'>
+      {/* Unified container with better styling */}
+      <div className='flex items-end gap-2 p-2 bg-white dark:bg-gray-800/50 backdrop-blur-sm rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-200 focus-within:shadow-md'>
+
+        {/* Message Input with improved styling - no outline/border */}
+        <textarea
+          rows={1}
+          value={message}
+          disabled={isProcessing}
+          onChange={(e) => {
+            setMessage(e.target.value);
+
+            // Dynamically adjust the height of the textarea
+            const textarea = e.target as HTMLTextAreaElement;
+            textarea.style.height = 'auto'; // Reset height to calculate the new height
+
+            // Calculate line height and set constraints
+            const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight || '20');
+            const minHeight = lineHeight * 1.5; // Minimum height for better alignment
+            const maxHeight = lineHeight * 6; // Maximum 6 lines
+
+            // Set the height based on content
+            if (textarea.scrollHeight > minHeight) {
+              textarea.style.height = `${Math.min(textarea.scrollHeight, maxHeight)}px`;
+            } else {
+              textarea.style.height = `${minHeight}px`;
+            }
+          }}
+          onKeyDown={(e) => {
+            // Send message on Enter (without Shift)
+            if (e.key === 'Enter' && !e.shiftKey && canSend) {
+              e.preventDefault();
+              handlePostMessage();
+            }
+          }}
+          placeholder='Type a message...'
+          className={`
+            flex-1
+            min-h-[36px]
+            px-2 py-1
+            bg-transparent
+            border-0 outline-none
+            rounded-lg
+            resize-none
+            text-sm text-gray-900 dark:text-gray-100
+            placeholder:text-gray-400 dark:placeholder:text-gray-500
+            focus:outline-none focus:ring-0 focus:border-transparent
+            transition-all duration-200
+            ${isProcessing ? 'opacity-60 cursor-not-allowed' : ''}
+          `}
+          style={{
+            scrollbarWidth: 'thin',
+            scrollbarColor: 'rgba(156, 163, 175, 0.3) transparent',
+            boxShadow: 'none'
+          }}
+        />
+
+        {/* Send Button - vertically aligned to bottom */}
+        <button
+          disabled={!canSend}
+          onClick={handlePostMessage}
+          className={`
+            relative flex items-center justify-center
+            h-9 w-9 min-w-[36px]
+            mb-0 self-end
+            rounded-xl
+            transition-all duration-200 transform
+            ${canSend
+              ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg shadow-blue-500/20'
+              : 'bg-gray-100 dark:bg-gray-700/50 cursor-not-allowed'
+            }
+          `}
+          aria-label="Send message"
+        >
+          {/* Loading state with spinner */}
+          {isProcessing ? (
+            <div className='relative flex items-center justify-center'>
+              {/* Spinner ring */}
+              <svg
+                className='w-5 h-5 animate-spin text-white/30 absolute'
+                fill='none'
+                viewBox='0 0 24 24'
+              >
+                <circle
+                  className='opacity-25'
+                  cx='12'
+                  cy='12'
+                  r='10'
+                  stroke='currentColor'
+                  strokeWidth='3'
+                />
+                <path
+                  className='opacity-75'
+                  fill='currentColor'
+                  d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
+                />
+              </svg>
+              {/* Inner icon */}
+              <PiPaperPlaneRight className='w-4 h-4 text-white/60' />
+            </div>
+          ) : (
+            /* Normal state - send icon */
+            <PiPaperPlaneRight
+              className={`
+                w-4 h-4 transition-all duration-200
+                ${canSend
+                  ? 'text-white'
+                  : 'text-gray-400 dark:text-gray-500'
                 }
-              }}
-              placeholder='Type a new message'
-              className='w-full !rounded'
+              `}
             />
-            <Button
-              disabled={isPostingMessage || isConfirming || message.length === 0}
-              onClick={handlePostMessage}
-              color='lightBlue'
-              className={'max-h-9 self-end'}
-            >
-              {(isPostingMessage || isConfirming) && (
-                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-              )}
-              <PiPaperPlaneRight className='text-xl text-white' />
-            </Button>
-          </div>
-        </div>
+          )}
+
+          {/* Pulse effect when ready to send */}
+          {canSend && !isProcessing && (
+            <>
+              <span className='absolute inset-0 rounded-xl bg-white opacity-0 hover:opacity-20 transition-opacity duration-200' />
+              <span className='absolute inset-0 rounded-xl animate-ping bg-blue-400 opacity-30'
+                    style={{ animationDuration: '2s', animationIterationCount: '1' }} />
+            </>
+          )}
+        </button>
       </div>
-    </>
+    </div>
   );
 }

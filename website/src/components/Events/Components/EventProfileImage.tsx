@@ -22,7 +22,7 @@ const EventProfileImage = ({ user, className }: EventProfileImageProps) => {
   return (
     <>
       {isImgValid && avatarUrl ? (
-        <div  className={`${className} relative flex min-h-10 min-w-10 items-center bg-gray-400 overflow-hidden rounded-full p-2 align-middle ${className || ''}`}>
+        <div className={`${className} relative flex h-10 w-10 items-center bg-gray-400 overflow-hidden rounded-full p-2 align-middle ${className || ''}`}>
           <Image
             className='h-full w-full object-cover'
             fill

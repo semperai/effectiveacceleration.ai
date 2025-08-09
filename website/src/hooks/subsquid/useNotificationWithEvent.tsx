@@ -13,13 +13,13 @@ export default function useNotificationWithEvent(
 ) {
   const [messageContent, setMessageContent] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Only fetch events for message notifications when enabled
   const shouldFetchEvents = shouldFetch && notification && (
-    notification.type === JobEventType.OwnerMessage || 
+    notification.type === JobEventType.OwnerMessage ||
     notification.type === JobEventType.WorkerMessage
   );
-  
+
   const { data: events, loading } = useJobEventsWithDiffs(
     shouldFetchEvents ? notification.jobId : ''
   );
@@ -39,7 +39,7 @@ export default function useNotificationWithEvent(
     }
 
     // Find the matching event by timestamp and type
-    const matchingEvent = events.find(event => 
+    const matchingEvent = events.find(event =>
       event.timestamp_ === notification.timestamp &&
       event.type_ === notification.type
     );
@@ -55,7 +55,7 @@ export default function useNotificationWithEvent(
     } else {
       setMessageContent(undefined);
     }
-    
+
     setIsLoading(false);
   }, [notification, events, shouldFetchEvents, loading]);
 

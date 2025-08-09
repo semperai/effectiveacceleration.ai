@@ -6,10 +6,10 @@ interface UserReputationProps {
   negativeCount: number;
 }
 
-export const UserReputation = ({ 
-  isArbitrator, 
-  positiveCount, 
-  negativeCount 
+export const UserReputation = ({
+  isArbitrator,
+  positiveCount,
+  negativeCount
 }: UserReputationProps) => (
   <Field>
     <Label>{isArbitrator ? 'Arbitration Stats' : 'Reputation'}</Label>
@@ -50,11 +50,11 @@ interface ValidationErrors {
   fee: string;
 }
 
-export const validateUserForm = ({ 
-  name, 
-  bio, 
-  fee, 
-  isArbitrator 
+export const validateUserForm = ({
+  name,
+  bio,
+  fee,
+  isArbitrator
 }: ValidationInput): ValidationErrors => {
   const errors: ValidationErrors = {
     name: '',

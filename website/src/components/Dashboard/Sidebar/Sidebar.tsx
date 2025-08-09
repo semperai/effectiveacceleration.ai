@@ -76,7 +76,7 @@ const SharedMenu = ({ pathname }: { pathname: string }) => {
                 onMouseLeave={() => setHoveredIndex(null)}
                 className={`
                   relative group flex items-center gap-3 px-3 py-2.5 rounded-xl
-                  transition-all duration-200 ease-out
+                  transition-all duration-200 ease-out overflow-hidden
                   ${item.special
                     ? 'bg-gradient-to-r from-blue-500/10 to-purple-500/10 hover:from-blue-500/20 hover:to-purple-500/20 border border-blue-500/20'
                     : isActive
@@ -118,8 +118,8 @@ const SharedMenu = ({ pathname }: { pathname: string }) => {
                 {/* Hover effect overlay */}
                 <div className={`
                   absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100
-                  transition-opacity duration-300
-                  bg-gradient-to-r from-transparent via-white/[0.02] to-transparent
+                  transition-opacity duration-600
+                  bg-gradient-to-r from-transparent via-white/[0.02] to-transparent overflow-hidden
                   ${isHovered ? 'animate-shimmer' : ''}
                 `} />
               </Link>
@@ -166,11 +166,11 @@ const Sidebar = ({
   const displayName = userInfo?.name || 'Anonymous';
   const displayRole = arbitrator ? 'Arbitrator' : user ? 'Member' : 'Guest';
   const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'AN';
-  
+
   // TODO: Get actual values from user data
   const jobCount = user?.reputationUp || 0; // Using reputation as placeholder
-  const rating = userInfo && (user?.reputationUp || 0) > 0 
-    ? ((user?.reputationUp || 0) / ((user?.reputationUp || 0) + (user?.reputationDown || 0))) * 5 
+  const rating = userInfo && (user?.reputationUp || 0) > 0
+    ? ((user?.reputationUp || 0) / ((user?.reputationUp || 0) + (user?.reputationDown || 0))) * 5
     : 0;
 
   const sidebarContent = (
@@ -208,7 +208,7 @@ const Sidebar = ({
                   <span className="text-white font-bold text-sm">{initials}</span>
                 </div>
               )}
-              
+
               <div className="flex-1">
                 <p className="text-sm font-medium text-white truncate">{displayName}</p>
                 <p className="text-xs text-gray-400">{displayRole}</p>
@@ -232,17 +232,6 @@ const Sidebar = ({
 
   return (
     <>
-      {/* Add shimmer animation styles */}
-      <style jsx>{`
-        @keyframes shimmer {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-        .animate-shimmer {
-          animation: shimmer 2s infinite;
-        }
-      `}</style>
-
       {/* Mobile sidebar - slide from left */}
       {!isDesktop && sidebarOpen && (
         <div className='fixed inset-0 z-50 lg:hidden'>

@@ -11,11 +11,14 @@ import {
   CurrencyDollarIcon,
   ClockIcon,
   LinkIcon,
-  UserIcon
+  UserIcon,
+  DocumentDuplicateIcon,
+  ArrowTopRightOnSquareIcon
 } from '@heroicons/react/20/solid';
 import EventProfileImage from '@/components/Events/Components/EventProfileImage';
 import useArbitrator, { ArbitratorWithTimestamp } from '@/hooks/subsquid/useArbitrator';
 import moment from 'moment';
+import { useState } from 'react';
 
 interface ArbitratorPageClientProps {
   address: string;
@@ -59,6 +62,20 @@ const ArbitratorSkeleton = () => {
 
 export default function ArbitratorPageClient({ address }: ArbitratorPageClientProps) {
   const { data: arbitrator, loading, error } = useArbitrator(address);
+  const [copiedAddress, setCopiedAddress] = useState(false);
+
+  // Format address for display (0x1234...5678)
+  const formatAddress = (addr: string) => {
+    if (!addr) return '';
+    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+  };
+
+  // Copy address to clipboard
+  const copyAddress = () => {
+    navigator.clipboard.writeText(arbitrator?.address_ || address);
+    setCopiedAddress(true);
+    setTimeout(() => setCopiedAddress(false), 2000);
+  };
 
   // Loading state
   if (loading) {
@@ -108,12 +125,6 @@ export default function ArbitratorPageClient({ address }: ArbitratorPageClientPr
     } else {
       navigator.clipboard.writeText(window.location.href);
     }
-  };
-
-  // Function to copy address
-  const copyAddress = () => {
-    navigator.clipboard.writeText(arbitrator.address_);
-    // You might want to show a toast notification here
   };
 
   return (
@@ -167,16 +178,31 @@ export default function ArbitratorPageClient({ address }: ArbitratorPageClientPr
                   {arbitrator.name || 'Unnamed Arbitrator'}
                 </h1>
 
-                <div className='mt-2 flex items-center text-sm text-gray-600 dark:text-gray-400'>
+                {/* Address and Arbiscan link */}
+                <div className='mt-2 flex items-center gap-2 text-sm'>
+                  <span className='text-gray-600 dark:text-gray-400 font-mono'>
+                    {formatAddress(arbitrator.address_)}
+                  </span>
                   <button
                     onClick={copyAddress}
-                    className='flex items-center hover:text-gray-900 dark:hover:text-gray-200 transition-colors'
+                    className='text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors'
+                    title='Copy address'
                   >
-                    <span className='font-mono'>
-                      {arbitrator.address_.slice(0, 6)}...{arbitrator.address_.slice(-4)}
-                    </span>
-                    <LinkIcon className='ml-1 h-4 w-4' />
+                    <DocumentDuplicateIcon className='h-4 w-4' />
                   </button>
+                  {copiedAddress && (
+                    <span className='text-xs text-green-600 dark:text-green-400'>Copied!</span>
+                  )}
+                  <a
+                    href={`https://arbiscan.io/address/${arbitrator.address_}`}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='inline-flex items-center gap-1 text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300'
+                    title='View on Arbiscan'
+                  >
+                    <span className='text-sm'>View on Arbiscan</span>
+                    <ArrowTopRightOnSquareIcon className='h-3.5 w-3.5' />
+                  </a>
                 </div>
 
                 {arbitrator.bio && (
@@ -339,6 +365,14 @@ export default function ArbitratorPageClient({ address }: ArbitratorPageClientPr
                      totalCases < 5 ? 'Beginner' :
                      totalCases < 20 ? 'Intermediate' :
                      totalCases < 50 ? 'Experienced' : 'Expert'}
+                  </span>
+                </div>
+              </div>
+              <div>
+                <div className='flex justify-between text-sm mb-1'>
+                  <span className='text-gray-600 dark:text-gray-400'>Member Since</span>
+                  <span className='font-medium text-gray-900 dark:text-gray-100'>
+                    {arbitrator.timestamp ? moment(arbitrator.timestamp * 1000).format('MMM YYYY') : 'Unknown'}
                   </span>
                 </div>
               </div>

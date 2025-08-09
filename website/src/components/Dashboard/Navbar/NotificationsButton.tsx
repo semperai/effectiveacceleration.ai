@@ -11,7 +11,7 @@ export const NotificationsButton = () => {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { address } = useAccount();
-  
+
   const [limit, setLimit] = useState(20);
   const { data: notifications, refetch } = useUserNotifications(
     address ?? '',

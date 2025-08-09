@@ -82,9 +82,9 @@ const SideJobList: React.FC<SideJobListProps> = ({
               </Transition.Child>
 
               <div className='flex grow flex-col overflow-y-auto bg-white dark:bg-gray-900 shadow-2xl'>
-                <JobChatsList 
-                  users={users} 
-                  job={job} 
+                <JobChatsList
+                  users={users}
+                  job={job}
                   setSelectedWorker={setSelectedWorker}
                   setSidebarOpen={setSidebarOpen}
                   selectedWorker={selectedWorker}

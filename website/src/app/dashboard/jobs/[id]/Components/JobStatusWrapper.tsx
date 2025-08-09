@@ -5,10 +5,10 @@ import {
   JobState,
 } from '@effectiveacceleration/contracts';
 import JobStatus from './JobStatus';
-import { 
-  PiCheckCircle, 
-  PiXCircle, 
-  PiClock, 
+import {
+  PiCheckCircle,
+  PiXCircle,
+  PiClock,
   PiPackage,
   PiWarning,
   PiScales,

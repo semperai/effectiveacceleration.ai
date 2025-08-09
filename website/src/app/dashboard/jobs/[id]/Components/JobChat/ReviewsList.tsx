@@ -93,7 +93,7 @@ export function ReviewsList({
                 </span>
               </span>
             </div>
-            
+
           ))
         )}
       </div>

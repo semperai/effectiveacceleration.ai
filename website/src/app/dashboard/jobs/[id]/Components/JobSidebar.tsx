@@ -16,7 +16,7 @@ import {
   ClockIcon,
   TagIcon,
 } from '@heroicons/react/24/outline';
-import { 
+import {
   PiCoin,
   PiTimer,
   PiMapPin,
@@ -87,14 +87,14 @@ export default function JobSidebar({
         relative overflow-hidden
         ${variantStyles[variant]}
         border-b border-gray-100 dark:border-gray-800
-        p-6 
+        p-6
         transition-all duration-200
         hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20
         ${className}
       `}>
         {/* Decorative gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300" />
-        
+
         <div className="relative">
           {title && (
             <div className='flex items-center gap-2 mb-4'>
@@ -142,15 +142,15 @@ export default function JobSidebar({
   );
 
   // Enhanced tag component
-  const Tag = ({ children, variant = 'default' }: { 
+  const Tag = ({ children, variant = 'default' }: {
     children: React.ReactNode;
     variant?: 'default' | 'category';
   }) => (
     <span className={`
       inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium
       transition-all duration-200 hover:scale-105
-      ${variant === 'category' 
-        ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/25' 
+      ${variant === 'category'
+        ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/25'
         : 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600'
       }
     `}>
@@ -168,7 +168,7 @@ export default function JobSidebar({
         </div>
       )}
       <div className="relative h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-        <div 
+        <div
           className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500"
           style={{ width: `${value}%` }}
         >
@@ -213,7 +213,7 @@ export default function JobSidebar({
               </p>
             </>
           )}
-          
+
           {/* Action Buttons */}
           <div className='mt-6 space-y-3'>
             <JobButtonActions
@@ -225,11 +225,11 @@ export default function JobSidebar({
               address={address}
               timePassed={timePassed}
             />
-            
+
             <TooltipButton
               outline
-              className='flex w-full items-center justify-center gap-2 
-                bg-white dark:bg-gray-800 
+              className='flex w-full items-center justify-center gap-2
+                bg-white dark:bg-gray-800
                 hover:bg-gray-50 dark:hover:bg-gray-700
                 border-gray-200 dark:border-gray-600
                 transition-all duration-200'
@@ -266,8 +266,8 @@ export default function JobSidebar({
             value={
               <span className={`
                 px-2 py-0.5 rounded-full text-xs font-medium
-                ${job?.multipleApplicants 
-                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                ${job?.multipleApplicants
+                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                   : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
                 }
               `}>
@@ -275,16 +275,16 @@ export default function JobSidebar({
               </span>
             }
           />
-          <DetailRow 
-            label='Delivery Method' 
+          <DetailRow
+            label='Delivery Method'
             icon={PiPackage}
             value={
               <span className="px-2 py-0.5 rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-xs font-medium">
                 {job?.deliveryMethod}
               </span>
-            } 
+            }
           />
-          
+
           {/* Last Updated Info */}
           <div className='mt-4 pt-3 border-t border-gray-100 dark:border-gray-800'>
             <div className='flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400'>
@@ -312,7 +312,7 @@ export default function JobSidebar({
                       : '✅ Ready to withdraw';
                   })()}
                 </div>
-                <ProgressBar 
+                <ProgressBar
                   value={timePassed ? 100 : adjustedProgressValue}
                   label="Withdrawal Progress"
                 />
@@ -346,8 +346,8 @@ export default function JobSidebar({
                   value={
                     <span className={`
                       px-2 py-0.5 rounded-lg text-xs font-medium
-                      ${timeLeft > 0 
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                      ${timeLeft > 0
+                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                         : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
                       }
                     `}>
@@ -403,7 +403,7 @@ export default function JobSidebar({
                 <Tag variant="category">{jobMeceTag}</Tag>
               </div>
             )}
-            
+
             {job?.tags && job.tags.length > 1 && (
               <div>
                 <h4 className='mb-2 text-sm font-medium text-gray-700 dark:text-gray-300'>Tags</h4>
