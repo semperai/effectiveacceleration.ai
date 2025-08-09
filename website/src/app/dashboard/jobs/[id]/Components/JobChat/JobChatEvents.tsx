@@ -4,6 +4,7 @@ import { Button } from '@/components/Button';
 
 import { renderEvent } from '@/components/Events';
 import logoDark from '@/images/logo-light.png';
+import noWorkInProgress from '@/images/noWorkInProgress.svg';
 import {
   Job,
   JobEventType,
@@ -115,6 +116,21 @@ const JobChatEvents: React.FC<ResultAcceptedProps> = ({
             address={address}
           />
         </>
+      ) : (job.state === JobState.Closed) ? (
+        <div className='flex h-full max-h-customHeader flex-col items-center justify-center gap-4'>
+          <div>
+            <Image
+              className='max-h-[135px] max-w-[250px] text-center'
+              src={noWorkInProgress}
+              alt=''
+              width={250}
+              height={250}
+            />
+          </div>
+          <div className='text-center'>
+            This job has been closed
+          </div>
+        </div>
       ) : (
         <div className='flex h-full max-h-customHeader flex-col items-center justify-center gap-4'>
           <div>
