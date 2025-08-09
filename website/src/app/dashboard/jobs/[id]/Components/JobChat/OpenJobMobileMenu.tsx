@@ -53,7 +53,7 @@ const OpenJobMobileMenu: React.FC<JobSidebarProps> = ({
   const isCreator: boolean = address === job.roles.creator;
   const isArbitrator: boolean = address === job.roles.arbitrator;
   const isGuest = !users[address];
-
+  
   const [sideJobListOpen, setSideJobListOpen] = useState(false);
   const [sideJobInfoOpen, setSideJobInfoOpen] = useState(false);
 
@@ -62,7 +62,7 @@ const OpenJobMobileMenu: React.FC<JobSidebarProps> = ({
 
   // Show the applicant list button only for creators when job is open
   const showApplicantListButton = isCreator && job.state === JobState.Open;
-
+  
   // Always show the info button on mobile
   const showInfoButton = true;
 
@@ -71,7 +71,7 @@ const OpenJobMobileMenu: React.FC<JobSidebarProps> = ({
     return null;
   }
 
-  return (
+  return (  
     <>
       {/* Mobile Menu Header - Only visible on mobile */}
       <div className='block md:hidden bg-softBlue border-l border-r border-gray-100'>
@@ -98,8 +98,8 @@ const OpenJobMobileMenu: React.FC<JobSidebarProps> = ({
               // Beautiful clickable pill for selected user
               <Link href={`/dashboard/users/${selectedWorker}`}>
                 <div className='relative group cursor-pointer'>
-                  {/* Subtle gradient border effect */}
-                  <div className='absolute -inset-px bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 rounded-full opacity-60 group-hover:opacity-80 transition duration-200'></div>
+                  {/* Enhanced gradient border effect */}
+                  <div className='absolute -inset-[2px] bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 rounded-full opacity-70 group-hover:opacity-90 group-hover:bg-gradient-to-r group-hover:from-pink-400 group-hover:via-purple-400 group-hover:to-blue-400 transition-all duration-500'></div>
                   <div className='relative flex items-center gap-1.5 bg-white dark:bg-gray-900 px-2.5 py-1 rounded-full'>
                     {/* User avatar - text sized */}
                     <EventProfileImage
@@ -150,18 +150,18 @@ const OpenJobMobileMenu: React.FC<JobSidebarProps> = ({
       </div>
 
       {/* Side panels - Applicant List */}
-      <SideJobList
-        sidebarOpen={sideJobListOpen}
-        setSidebarOpen={setSideJobListOpen}
-        users={users}
-        address={address}
-        job={job}
-        setSelectedWorker={setSelectedWorker}
+      <SideJobList 
+        sidebarOpen={sideJobListOpen} 
+        setSidebarOpen={setSideJobListOpen} 
+        users={users} 
+        address={address} 
+        job={job} 
+        setSelectedWorker={setSelectedWorker} 
         selectedWorker={selectedWorker}
       />
-
+      
       {/* Side panels - Job Info */}
-      <SideJobInfo
+      <SideJobInfo 
         sidebarOpen={sideJobInfoOpen}
         setSidebarOpen={setSideJobInfoOpen}
         users={users}

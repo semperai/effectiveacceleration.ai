@@ -37,7 +37,6 @@ import { useEffect, useRef, useState } from 'react';
 import { zeroAddress, zeroHash } from 'viem';
 import { useAccount } from 'wagmi';
 import JobChatEvents from './Components/JobChat/JobChatEvents';
-import ProfileUserHeader from './Components/JobChat/ProfileUserHeader';
 import JobChatsList from './Components/JobChatsList';
 import JobSidebar from './Components/JobSidebar';
 import OpenJobMobileMenu from './Components/JobChat/OpenJobMobileMenu';
@@ -235,23 +234,6 @@ export default function JobPageClient({ id }: JobPageClientProps) {
           >
             {job && (
               <div className='grid max-h-customHeader min-h-customHeader grid-rows-[74px_auto_1fr]'>
-                <ProfileUserHeader
-                  users={users ?? {}}
-                  selectedWorker={selectedWorker}
-                  eventMessages={eventMessages}
-                  address={address as `0x${string}`}
-                  job={job}
-                  events={eventMessages}
-                  addresses={addresses}
-                  sessionKeys={sessionKeys}
-                  jobMeceTag={jobMeceTag ?? ''}
-                  timePassed={timePassed}
-                  adjustedProgressValue={adjustedProgressValue}
-                  tokenIcon={tokenIcon}
-                  setSelectedWorker={setSelectedWorker}
-                  whitelistedWorkers={whitelistedWorkers}
-                  user={user ?? undefined}
-                />
                 <OpenJobMobileMenu
                   users={users ?? {}}
                   selectedWorker={selectedWorker}
