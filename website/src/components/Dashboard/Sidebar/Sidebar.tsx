@@ -76,7 +76,7 @@ const SharedMenu = ({ pathname }: { pathname: string }) => {
                 onMouseLeave={() => setHoveredIndex(null)}
                 className={`
                   relative group flex items-center gap-3 px-3 py-2.5 rounded-xl
-                  transition-all duration-200 ease-out
+                  transition-all duration-200 ease-out overflow-hidden
                   ${item.special
                     ? 'bg-gradient-to-r from-blue-500/10 to-purple-500/10 hover:from-blue-500/20 hover:to-purple-500/20 border border-blue-500/20'
                     : isActive
