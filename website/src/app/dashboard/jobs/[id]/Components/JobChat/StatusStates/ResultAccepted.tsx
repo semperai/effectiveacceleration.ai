@@ -1,6 +1,7 @@
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useAccount } from 'wagmi';
 import { Button } from '@/components/Button';
 import {
   type Job,
@@ -42,6 +43,9 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
   const [formattedComment, setFormattedComment] = useState<string>(''); 
   const [isFormatted, setIsFormatted] = useState(false);
   
+  // Get current user's address from wagmi
+  const { address: currentUserAddress } = useAccount();
+  
   // Get the delivery event
   const deliveryEvent = events.filter(
     (event) => event.type_ === JobEventType.Delivered
@@ -53,6 +57,10 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
   const workerAddress = job.roles.worker || deliveryEvent?.address_ || selectedWorker;
   const workerData = users[workerAddress];
   const workerName = workerData?.name || 'Worker';
+
+  // Check if current user is the job creator
+  const isJobCreator = currentUserAddress && 
+    job.roles.creator?.toLowerCase() === currentUserAddress.toLowerCase();
 
   useEffect(() => {
     if (rawComment?.startsWith("#filename%3D")) {
@@ -205,41 +213,43 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
             </h4>
             
             <div className='grid gap-3'>
-              {/* Create Similar Job */}
-              <Link
-                href={{
-                  pathname: '/dashboard/post-job',
-                  query: {
-                    title: job.title,
-                    content: job.content,
-                    token: job.token,
-                    maxTime: job.maxTime,
-                    deliveryMethod: job.deliveryMethod,
-                    arbitrator: job.roles.arbitrator,
-                    tags: job.tags,
-                  },
-                }}
-                className='w-full'
-              >
-                <button className='
-                  w-full px-4 py-3 rounded-xl
-                  bg-gradient-to-r from-blue-500 to-purple-500
-                  font-medium text-sm
-                  transition-all duration-300
-                  hover:from-blue-600 hover:to-purple-600
-                  hover:shadow-lg hover:shadow-blue-500/25
-                  hover:-translate-y-0.5
-                  group
-                '>
-                  <span className='flex items-center justify-center gap-2 text-white'>
-                    <PiPlus className='w-4 h-4 text-white' />
-                    <span className='text-white'>Create Similar Job with {workerName}</span>
-                    <PiArrowRight className='w-4 h-4 text-white group-hover:translate-x-1 transition-transform' />
-                  </span>
-                </button>
-              </Link>
+              {/* Create Similar Job - Only show to job creator */}
+              {isJobCreator && (
+                <Link
+                  href={{
+                    pathname: '/dashboard/post-job',
+                    query: {
+                      title: job.title,
+                      content: job.content,
+                      token: job.token,
+                      maxTime: job.maxTime,
+                      deliveryMethod: job.deliveryMethod,
+                      arbitrator: job.roles.arbitrator,
+                      tags: job.tags,
+                    },
+                  }}
+                  className='w-full'
+                >
+                  <button className='
+                    w-full px-4 py-3 rounded-xl
+                    bg-gradient-to-r from-blue-500 to-purple-500
+                    font-medium text-sm
+                    transition-all duration-300
+                    hover:from-blue-600 hover:to-purple-600
+                    hover:shadow-lg hover:shadow-blue-500/25
+                    hover:-translate-y-0.5
+                    group
+                  '>
+                    <span className='flex items-center justify-center gap-2 text-white'>
+                      <PiPlus className='w-4 h-4 text-white' />
+                      <span className='text-white'>Create Similar Job with {workerName}</span>
+                      <PiArrowRight className='w-4 h-4 text-white group-hover:translate-x-1 transition-transform' />
+                    </span>
+                  </button>
+                </Link>
+              )}
 
-              {/* Browse Jobs */}
+              {/* Browse Jobs - Show to everyone */}
               <Link href='/dashboard/open-job-list' className='w-full'>
                 <button className='
                   w-full px-4 py-2.5 rounded-xl
@@ -269,7 +279,8 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
               </span>
               <span>•</span>
               <span className='flex items-center gap-1'>
-                Payment has been released to {workerName}
+                {isJobCreator ? 'Payment has been released to' : 'Payment received from job creator'}
+                {isJobCreator && ` ${workerName}`}
                 <PiCheckCircle className='w-3 h-3 text-green-500' />
               </span>
             </div>
