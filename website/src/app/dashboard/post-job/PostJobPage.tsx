@@ -4,7 +4,6 @@ import { AddToHomescreen } from '@/components/AddToHomescreen';
 import { Button } from '@/components/Button';
 import { ConnectButton } from '@/components/ConnectButton';
 import {
-  Description,
   Field,
   FieldGroup,
   Fieldset,
@@ -30,8 +29,8 @@ import {
 import { ethers } from 'ethers';
 import moment from 'moment';
 import Link from 'next/link';
-import type React from 'react';
-import { type ChangeEvent, useEffect, useRef, useState } from 'react'
+import React from 'react';
+import { type ChangeEvent, useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { zeroAddress } from 'viem';
 import { useAccount, useReadContract } from 'wagmi';
 import LoadingModal from './LoadingModal';
@@ -39,9 +38,21 @@ import RegisterModal from './RegisterModal';
 import { SubmitJobButton } from './SubmitJobButton';
 import { Combobox } from '@/components/ComboBox';
 import ListBox from '@/components/ListBox';
-import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/Tooltip';
-import { InfoIcon } from 'lucide-react';
-
+import { 
+  PiSparkle, 
+  PiBriefcase, 
+  PiCurrencyDollar,
+  PiClock,
+  PiScales,
+  PiTag,
+  PiPaperPlaneTilt,
+  PiCheckCircle,
+  PiWarningCircle,
+  PiFileText,
+  PiTruck
+} from 'react-icons/pi';
+import { CheckCircle2, AlertCircle } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 
 const deliveryMethods = [
   {
@@ -75,6 +86,30 @@ export interface PostJobParams {
   tags: string[];
 }
 
+// Move StyledField outside of component to prevent recreation
+const StyledField = React.memo(({ children, error }: { children: React.ReactNode; error?: string }) => (
+  <div className='relative group'>
+    <div className={`
+      rounded-xl transition-all duration-200
+      ${error 
+        ? 'bg-red-50 border border-red-200' 
+        : 'bg-gray-50 hover:bg-gray-100 border border-gray-200 hover:border-gray-300'
+      }
+      p-4
+    `}>
+      {children}
+    </div>
+    {error && (
+      <div className='mt-2 flex items-center gap-1 text-xs text-red-600'>
+        <AlertCircle className='h-3 w-3' />
+        {error}
+      </div>
+    )}
+  </div>
+));
+
+StyledField.displayName = 'StyledField';
+
 interface JobSummaryProps {
   title: string;
   description: string;
@@ -104,66 +139,114 @@ const JobSummary = ({
 }: JobSummaryProps) => {
   const Row = ({
     label,
+    icon,
     children,
   }: {
     label: string;
+    icon?: React.ReactNode;
     children?: React.ReactNode;
   }) => (
-    <div className='py-4 first:pt-0 last:pb-0'>
+    <div className='group relative py-4 first:pt-0 last:pb-0 transition-all duration-200 hover:bg-gray-50 -mx-4 px-4 rounded-lg'>
       <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-        <div className='text-sm font-medium text-gray-500'>{label}</div>
+        <div className='flex items-center gap-2'>
+          {icon && <span className='text-gray-500'>{icon}</span>}
+          <span className='text-sm font-medium text-gray-600'>{label}</span>
+        </div>
         <div className='text-sm text-gray-900 md:col-span-2'>{children}</div>
       </div>
     </div>
   );
+  
   const deliveryMethodName = deliveryMethods.find(method => method.id === deliveryMethod)?.name;
 
   return (
     <div className='mx-auto max-w-4xl'>
+      {/* Header with gradient */}
       <div className='mb-8'>
-        <h1 className='mb-2 text-3xl font-bold text-gray-900'>Summary</h1>
-        <p className='text-gray-600'>
-          Before you submit your job, please double check your answers.
+        <div className='flex items-center gap-3 mb-2'>
+          <div className='p-2 rounded-lg bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-100'>
+            <PiCheckCircle className='h-6 w-6 text-blue-600' />
+          </div>
+          <h1 className='text-3xl font-bold text-gray-900'>
+            Review Your Job Post
+          </h1>
+        </div>
+        <p className='text-gray-600 ml-11'>
+          Please review all details before submitting your job post.
         </p>
       </div>
 
-      <div className='mb-8 rounded-2xl bg-white p-8 shadow-lg'>
-        <div className='divide-y divide-gray-200'>
-          <Row label='Job Title'>{title}</Row>
-          <Row label='Description'>{description}</Row>
-          <Row label='Category'>{selectedCategory.name}</Row>
-          <Row label='Token'>
-            <div className='flex items-center gap-2'>
-              <span className='mr-1 inline'>{selectedToken?.id}</span>
-              <span className='mr-1 inline font-bold'>
-                {selectedToken?.symbol}
+      {/* Summary Card */}
+      <div className='relative mb-8'>
+        {/* Background gradient orbs */}
+        <div className='absolute top-0 right-0 w-40 h-40 bg-blue-100/50 rounded-full blur-3xl' />
+        <div className='absolute bottom-0 left-0 w-40 h-40 bg-purple-100/50 rounded-full blur-3xl' />
+        
+        {/* Card content */}
+        <div className='relative rounded-2xl bg-white/80 backdrop-blur-sm border border-gray-200 p-8 shadow-lg'>
+          <div className='divide-y divide-gray-200'>
+            <Row label='Job Title' icon={<PiBriefcase className='h-4 w-4' />}>
+              <span className='font-medium'>{title}</span>
+            </Row>
+            <Row label='Description' icon={<PiFileText className='h-4 w-4' />}>
+              <span className='text-gray-700 line-clamp-3'>{description}</span>
+            </Row>
+            <Row label='Category' icon={<PiTag className='h-4 w-4' />}>
+              <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200'>
+                {selectedCategory.name}
               </span>
-              <img
-                className='inline'
-                alt='Chain Icon'
-                height={30}
-                width={30}
-                src={selectedToken?.icon || ''}
-              />
-            </div>
-          </Row>
-          <Row label='Price'>
-            <span className='mr-1 inline'>{amount}</span>
-          </Row>
-          <Row label='Delivery Method'>{deliveryMethodName}</Row>
-          <Row label='Deadline'>
-            {moment.duration(deadline, 'seconds').humanize()}
-          </Row>
-          <Row label='Arbitrator Required'>
-            {selectedArbitratorAddress !== undefined ? 'Yes' : 'No'}
-          </Row>
-          <Row label='Arbitrator Address'>{selectedArbitratorAddress}</Row>
+            </Row>
+            <Row label='Payment' icon={<PiCurrencyDollar className='h-4 w-4' />}>
+              <div className='flex items-center gap-2'>
+                <span className='font-bold text-md'>{amount}</span>
+                <span className='text-gray-600'>{selectedToken?.symbol}</span>
+                {selectedToken?.icon && (
+                  <img
+                    className='inline h-6 w-6 rounded-full'
+                    alt={selectedToken.symbol}
+                    src={selectedToken.icon}
+                  />
+                )}
+              </div>
+            </Row>
+            <Row label='Delivery Method' icon={<PiTruck className='h-4 w-4' />}>
+              <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 border border-purple-200'>
+                {deliveryMethodName}
+              </span>
+            </Row>
+            <Row label='Deadline' icon={<PiClock className='h-4 w-4' />}>
+              <span className='font-medium'>
+                {moment.duration(deadline, 'seconds').humanize()}
+              </span>
+            </Row>
+            <Row label='Arbitrator' icon={<PiScales className='h-4 w-4' />}>
+              {selectedArbitratorAddress && selectedArbitratorAddress !== zeroAddress ? (
+                <span className='font-mono text-xs bg-gray-100 px-2 py-1 rounded'>
+                  {shortenText({ text: selectedArbitratorAddress, maxLength: 20 })}
+                </span>
+              ) : (
+                <span className='text-gray-500 italic'>No arbitrator</span>
+              )}
+            </Row>
+            {imFeelingLucky === 'Yes' && (
+              <Row label='Auto-Accept' icon={<PiSparkle className='h-4 w-4 text-yellow-500' />}>
+                <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200'>
+                  Enabled - Workers can start immediately
+                </span>
+              </Row>
+            )}
+          </div>
         </div>
       </div>
 
+      {/* Action buttons */}
       <div className='flex justify-end gap-4 pb-16'>
-        <Button outline onClick={handleSummary} className='px-6'>
-          Go back
+        <Button 
+          outline 
+          onClick={handleSummary} 
+          className='px-6'
+        >
+          Go Back
         </Button>
         <SubmitJobButton
           title={title}
@@ -186,45 +269,117 @@ const PostJob = () => {
   const { address, isConnected } = useAccount();
   const { data: user } = useUser(address!);
   const { data: arbitrators } = useArbitrators();
-  const arbitratorAddresses = [
+  const searchParams = useSearchParams();
+  
+  const arbitratorAddresses = useMemo(() => [
     zeroAddress,
     ...(arbitrators?.map((worker) => worker.address_) ?? []),
-  ];
-  const arbitratorNames = [
+  ], [arbitrators]);
+  
+  const arbitratorNames = useMemo(() => [
     'None',
     ...(arbitrators?.map((worker) => worker.name) ?? []),
-  ];
-  const arbitratorFees = [
+  ], [arbitrators]);
+  
+  const arbitratorFees = useMemo(() => [
     '0',
     ...(arbitrators?.map((worker) => worker.fee) ?? []),
-  ];
-  const [selectedToken, setSelectedToken] = useState<Token | undefined>(
-    process.env.NODE_ENV === 'development'
-      ? tokens.find((token) => token.symbol === 'FAKE')
-      : tokens.find((token) => token.symbol === 'USDC')
-  );
+  ], [arbitrators]);
+
+  // Parse URL parameters
+  const getInitialValues = useCallback(() => {
+    const title = searchParams.get('title') || '';
+    const content = searchParams.get('content') || '';
+    const tokenAddress = searchParams.get('token');
+    const maxTime = searchParams.get('maxTime');
+    const deliveryMethod = searchParams.get('deliveryMethod') || deliveryMethods[0].id;
+    const arbitrator = searchParams.get('arbitrator') || zeroAddress;
+    const tags = searchParams.getAll('tags');
+    const amount = searchParams.get('amount') || '';
+
+    // Find token from address
+    let initialToken = tokens.find((token) => token.symbol === 'USDC');
+    if (tokenAddress) {
+      const foundToken = tokens.find((token) => 
+        token.id.toLowerCase() === tokenAddress.toLowerCase()
+      );
+      if (foundToken) {
+        initialToken = foundToken;
+      }
+    }
+
+    // Parse maxTime to determine deadline and unit
+    let deadline = 1;
+    let unit = unitsDeliveryTime[2]; // Default to days
+    if (maxTime) {
+      const seconds = parseInt(maxTime);
+      if (!isNaN(seconds)) {
+        // Convert seconds to appropriate unit
+        if (seconds % 86400 === 0) {
+          deadline = seconds / 86400;
+          unit = unitsDeliveryTime.find(u => u.name === 'Days') || unitsDeliveryTime[2];
+        } else if (seconds % 3600 === 0) {
+          deadline = seconds / 3600;
+          unit = unitsDeliveryTime.find(u => u.name === 'Hours') || unitsDeliveryTime[1];
+        } else if (seconds % 60 === 0) {
+          deadline = seconds / 60;
+          unit = unitsDeliveryTime.find(u => u.name === 'Minutes') || unitsDeliveryTime[0];
+        } else {
+          deadline = seconds;
+          unit = unitsDeliveryTime.find(u => u.name === 'Seconds') || unitsDeliveryTime[0];
+        }
+      }
+    }
+
+    // Parse tags to find category
+    let category = undefined;
+    const remainingTags: Tag[] = [];
+    tags.forEach(tag => {
+      const foundCategory = jobMeceTags.find(cat => cat.id === tag);
+      if (foundCategory && !category) {
+        category = foundCategory;
+      } else {
+        remainingTags.push({ name: tag });
+      }
+    });
+
+    return {
+      title,
+      content,
+      token: initialToken,
+      deadline,
+      unit,
+      deliveryMethod,
+      arbitrator,
+      tags: remainingTags,
+      category,
+      amount,
+    };
+  }, [searchParams]);
+  
+  const initialValues = useMemo(() => getInitialValues(), [getInitialValues]);
+  
+  const [selectedToken, setSelectedToken] = useState<Token | undefined>(initialValues.token);
   const noYes = ['No', 'Yes'];
   const [showSummary, setShowSummary] = useState(false);
-  const [title, setTitle] = useState<string>('');
-  const [deliveryMethod, setDeliveryMethod] = useState(
-    deliveryMethods[0].id
-  );
-  const [description, setDescription] = useState<string>('');
-  const [amount, setAmount] = useState('');
-  const [deadline, setDeadline] = useState<number>(1);
+  const [title, setTitle] = useState<string>(initialValues.title);
+  const [deliveryMethod, setDeliveryMethod] = useState(initialValues.deliveryMethod);
+  const [description, setDescription] = useState<string>(initialValues.content);
+  const [amount, setAmount] = useState(initialValues.amount);
+  const [deadline, setDeadline] = useState<number>(initialValues.deadline);
   const [imFeelingLucky, setImFeelingLucky] = useState(noYes[0]);
-  const [arbitratorRequired, setArbitratorRequired] = useState(noYes[1]);
-  const [selectedUnitTime, setselectedUnitTime] = useState<ComboBoxOption>(
-    unitsDeliveryTime[2]
+  const [arbitratorRequired, setArbitratorRequired] = useState(
+    initialValues.arbitrator && initialValues.arbitrator !== zeroAddress ? noYes[1] : noYes[0]
   );
+  const [selectedUnitTime, setselectedUnitTime] = useState<ComboBoxOption>(initialValues.unit);
 
-  const [tags, setTags] = useState<Tag[]>([]);
+  const [tags, setTags] = useState<Tag[]>(initialValues.tags);
   const [selectedCategory, setSelectedCategory] = useState<{
     id: string;
     name: string;
-  }>();
+  } | undefined>(initialValues.category);
   const [selectedArbitratorAddress, setSelectedArbitratorAddress] =
-    useState<string>();
+    useState<string>(initialValues.arbitrator);
   const [titleError, setTitleError] = useState<string>('');
   const [descriptionError, setDescriptionError] = useState<string>('');
   const [categoryError, setCategoryError] = useState<string>('');
@@ -249,16 +404,16 @@ const PostJob = () => {
     args: [address],
   });
 
-  const handleSummary = () => {
+  const handleSummary = useCallback(() => {
     if (!user) {
       setIsRegisterModalOpen(true);
       return;
     }
 
     setShowSummary(!showSummary);
-  };
+  }, [user, showSummary]);
 
-  const validateTitle = (value: string) => {
+  const validateTitle = useCallback((value: string) => {
     setTitle(value);
 
     if (value === '') {
@@ -272,9 +427,9 @@ const PostJob = () => {
     }
 
     setTitleError('');
-  };
+  }, []);
 
-  const validatePaymentAmount = (paymentAmount: string) => {
+  const validatePaymentAmount = useCallback((paymentAmount: string) => {
     setAmount(paymentAmount);
 
     if (balanceData === null || balanceData === undefined) {
@@ -306,9 +461,9 @@ const PostJob = () => {
     }
 
     setPaymentTokenError('');
-  };
+  }, [balanceData, selectedToken]);
 
-  const validateArbitratorRequired = (required: string) => {
+  const validateArbitratorRequired = useCallback((required: string) => {
     setArbitratorRequired(required);
 
     if (required === 'No') {
@@ -324,9 +479,9 @@ const PostJob = () => {
     }
 
     setArbitratorError('');
-  };
+  }, [selectedArbitratorAddress]);
 
-  const validateArbitrator = (addr: string) => {
+  const validateArbitrator = useCallback((addr: string) => {
     setSelectedArbitratorAddress(addr);
 
     if (addr == address) {
@@ -335,11 +490,11 @@ const PostJob = () => {
     }
 
     setArbitratorError('');
-  };
+  }, [address]);
 
-  const validateDeadline = (deadlineStr: string) => {
+  const validateDeadline = useCallback((deadlineStr: string) => {
     if (deadlineStr === '') {
-      setDeadline(NaN); // Or setDeadline(0) if you want it to default to zero
+      setDeadline(NaN);
       setDeadlineError('');
       return;
     }
@@ -357,9 +512,9 @@ const PostJob = () => {
 
     setDeadline(deadline);
     setDeadlineError('');
-  };
+  }, []);
 
-  const validateAllFields = () => {
+  const validateAllFields = useCallback(() => {
     validateTitle(title);
     validatePaymentAmount(amount);
     validateArbitratorRequired(arbitratorRequired);
@@ -368,31 +523,52 @@ const PostJob = () => {
     if (!selectedCategory) {
       setCategoryError('Please select a category');
       return false;
+    } else {
+      setCategoryError('');
     }
 
-    if (titleError || paymentTokenError || arbitratorError || deadlineError) {
+    if (titleError || paymentTokenError || arbitratorError || deadlineError || categoryError) {
+      setContinueButtonDisabled(true);
+      return false;
+    }
+
+    if (!title || !amount || !selectedCategory || !deadline) {
       setContinueButtonDisabled(true);
       return false;
     }
 
     setContinueButtonDisabled(false);
     return true;
-  };
-
-  useEffect(() => {
-    validateAllFields();
   }, [
-    balanceData,
     title,
     amount,
     selectedCategory,
-    selectedToken,
     arbitratorRequired,
-    selectedArbitratorAddress,
     deadline,
+    titleError,
+    paymentTokenError,
+    arbitratorError,
+    deadlineError,
+    categoryError,
+    validateTitle,
+    validatePaymentAmount,
+    validateArbitratorRequired,
+    validateDeadline,
   ]);
 
-  const handleSubmit = () => {
+  // Validate fields on initial load if URL params are present
+  useEffect(() => {
+    if (initialValues.title) validateTitle(initialValues.title);
+    if (initialValues.amount) validatePaymentAmount(initialValues.amount);
+    if (initialValues.arbitrator) validateArbitrator(initialValues.arbitrator);
+    if (initialValues.deadline) validateDeadline(initialValues.deadline.toString());
+  }, []);
+
+  useEffect(() => {
+    validateAllFields();
+  }, [validateAllFields]);
+
+  const handleSubmit = useCallback(() => {
     if (!balanceData) {
       throw new Error('Balance data is not available');
     }
@@ -431,313 +607,332 @@ const PostJob = () => {
       jobArbitratorRef.current?.scrollIntoView({ behavior: 'smooth' });
       return;
     }
-  };
+  }, [
+    balanceData,
+    validateAllFields,
+    handleSummary,
+    titleError,
+    descriptionError,
+    categoryError,
+    paymentTokenError,
+    arbitratorError,
+  ]);
 
   return (
-    <div>
+    <div className='relative'>
+      {/* Background gradient effects */}
+      <div className='fixed top-20 right-20 w-96 h-96 bg-blue-100/30 rounded-full blur-3xl pointer-events-none' />
+      <div className='fixed bottom-20 left-20 w-96 h-96 bg-purple-100/30 rounded-full blur-3xl pointer-events-none' />
+
       {!showSummary && (
-        <Fieldset className='w-full'>
+        <Fieldset className='w-full relative'>
+          {/* Header */}
           <div className='mb-10'>
-            <h1 className='mb-2 text-3xl font-bold'>Create a Job Post</h1>
-            <span>
-              Complete the form below to post your job and connect with
-              potential candidates.
-            </span>
+            <div className='flex items-center gap-3 mb-4'>
+              <div className='p-3 rounded-xl bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-100'>
+                <PiPaperPlaneTilt className='h-7 w-7 text-blue-600' />
+              </div>
+              <div>
+                <h1 className='text-3xl font-bold text-gray-900'>
+                  Create a Job Post
+                </h1>
+                <span className='text-gray-600'>
+                  Complete the form below to post your job and connect with potential candidates.
+                </span>
+              </div>
+            </div>
+            {/* Progress indicator */}
+            <div className='flex gap-2 mt-6'>
+              <div className='h-1 flex-1 rounded-full bg-gradient-to-r from-blue-500 to-purple-500' />
+              <div className='h-1 flex-1 rounded-full bg-gray-200' />
+            </div>
           </div>
 
-          <div className='flex w-full flex-col gap-8 lg:flex-row lg:gap-24'>
-            <FieldGroup className='flex-1'>
-              <Field>
-                <Label>Job Title</Label>
-                <div className='scroll-mt-20' ref={jobTitleRef} />
-                <Input
-                  name='title'
-                  value={title}
-                  placeholder='A short descriptive title for the job post'
-                  required
-                  minLength={3}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                    validateTitle(e.target.value)
-                  }
-                />
-                {titleError && (
-                  <div className='text-xs' style={{ color: 'red' }}>
-                    {titleError}
-                  </div>
-                )}
-              </Field>
-              <Field>
-                <Label>Description</Label>
-                <div className='scroll-mt-20' ref={jobDescriptionRef} />
-                <Textarea
-                  rows={10}
-                  name='description'
-                  placeholder='Provide a thorough description of the job, omitting any private details which may be revealed in chat. Include the job requirements, deliverables, and any other relevant information. Too simple of a job description may make it difficult for agents to infer what you actually are asking for.'
-                  value={description}
-                  onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
-                    // TODO add max length validation
-                    setDescription(e.target.value);
-                  }}
-                />
-                {descriptionError && (
-                  <div className='text-xs' style={{ color: 'red' }}>
-                    {descriptionError}
-                  </div>
-                )}
-              </Field>
-              <Field>
-                <div className='flex flex-row items-center justify-between'>
-                  <Label className='items-center'>I&apos;m feeling lucky</Label>
-                  <RadioGroup
-                    className='!mt-0 flex'
-                    value={imFeelingLucky}
-                    onChange={setImFeelingLucky}
-                    aria-label='Server size'
-                  >
-                    {noYes.map((option) => (
-                      <Field
-                        className='!mt-0 ml-5 flex items-center'
-                        key={option}
-                      >
-                        <Radio className='mr-2' color='default' value={option}>
-                          <span>{option}</span>
-                        </Radio>
-                        <Label>{option}</Label>
-                      </Field>
-                    ))}
-                  </RadioGroup>
-                </div>
-                <Description>
-                  Enabling this allows worker to automatically start the job
-                  without you approving them first.
-                </Description>
-              </Field>
-              <Field>
-                <Label>Category</Label>
-                <div ref={jobCategoryRef} className='scroll-mt-20' />
-                <ListBox
-                  placeholder='Select Category'
-                  value={selectedCategory}
-                  onChange={(category) => {
-                    if (typeof category !== 'string') {
-                      setSelectedCategory(category);
-                      setCategoryError('');
-                    }
-                  }}
-                  options={jobMeceTags}
-                />
-                {categoryError && (
-                  <div className='text-xs' style={{ color: 'red' }}>
-                    {categoryError}
-                  </div>
-                )}
-              </Field>
-              <Field>
-                <Label>Tags</Label>
-                <TagsInput tags={tags} setTags={setTags} />
-                <Description>
-                  Tags help workers find your job post. Select tags that best
-                  describe the job and its requirements.
-                </Description>
-              </Field>
-            </FieldGroup>
-            <FieldGroup className='flex-1'>
-              <div className='flex flex-row justify-between gap-5'>
-                <Field className='flex-1'>
-                  <Label>Payment Amount</Label>
-                  <div className='scroll-mt-20' ref={jobAmountRef} />
-                  <Input
-                    name='amount'
-                    placeholder='1.00'
-                    type='number'
-                    value={amount}
-                    onChange={(e) => validatePaymentAmount(e.target.value)}
-                  />
-                  {paymentTokenError && (
-                    <div className='text-xs' style={{ color: 'red' }}>
-                      {paymentTokenError}
-                    </div>
-                  )}
-                  <Description>
-                    Your funds will be locked until the job is completed. Or, if
-                    you cancel the job posting, available for withdraw after a
-                    24 hour period.
-                  </Description>
-                </Field>
-                <Field className='flex-1'>
-                  <Label>Payment Token</Label>
-                  <div className='flex flex-col gap-y-2 mt-[7px]'>
-                    <div className='flex items-center gap-x-2'>
-                      <div>
-                        <div className='flex flex-col gap-4'>
-                          <TokenSelector
-                            selectedToken={selectedToken}
-                            onClick={(token: Token) => setSelectedToken(token)}
-                          />
-                        </div>
-                        {selectedToken &&
-                        balanceData !== null &&
-                        balanceData !== undefined ? (
-                          <Text className='text-xs'>
-                            Balance:{' '}
-                            {ethers.formatUnits(
-                              balanceData as ethers.BigNumberish,
-                              selectedToken.decimals
-                            )}{' '}
-                            {selectedToken.symbol}
-                          </Text>
-                        ) : (
-                          <Text className='!text-xs' style={{color: 'red' }}>
-                            Balance: 0.0 {selectedToken?.symbol}
-                          </Text>
-                        )}
-                      </div>
-                    </div>
-                    <div className='max-w-[200px] truncate text-xs text-gray-500'>
-                      <Link
-                        href={`https://arbiscan.io/address/${selectedToken?.id}`}
-                        target='_blank'
-                        rel='noopener noreferrer'
-                      >
-                        {selectedToken?.id}
-                      </Link>
-                    </div>
-                  </div>
-                </Field>
-              </div>
-              <Field>
-                <Label>Delivery Method</Label>
-                <ListBox
-                  placeholder='Delivery Method'
-                  value={deliveryMethod}
-                  onChange={(method) => {
-                    if (typeof method !== 'string') {
-                      setDeliveryMethod(method.id);
-                      setCategoryError('');
-                    }
-                  }}
-                  options={deliveryMethods}
-                />
-                <Description>
-                  What delivery method should the worker use? For digital items
-                  usually IPFS is the correct choice. For jobs that do not
-                  involve a digital deliverable (such as posting online),
-                  digital proof can be used. For physical items such as selling
-                  computer equipment use courier.
-                </Description>
-              </Field>
-              <Field>
-                <div className='flex flex-row items-center justify-between'>
-                  <Label className='mb-0 items-center pb-0 !font-bold'>
-                    Arbitrator Required
-                  </Label>
-                  <RadioGroup
-                    className='!mt-0 flex'
-                    value={arbitratorRequired}
-                    onChange={(value) => validateArbitratorRequired(value)}
-                    aria-label='Arbitrator Required'
-                  >
-                    {noYes.map((option) => (
-                      <Field
-                        className='!mt-0 ml-5 flex items-center'
-                        key={option}
-                      >
-                        <Radio color='default' className='mr-2' value={option}>
-                          <span>{option}</span>
-                        </Radio>
-                        <Label>{option}</Label>
-                      </Field>
-                    ))}
-                  </RadioGroup>
-                </div>
-                <Description>
-                  Without an arbitrator, disputes on job completion must be
-                  handled by the creator and worker directly. Arbitrators are
-                  third-party entities that can help resolve disputes.
-                </Description>
-              </Field>
-
-              {arbitratorRequired === 'Yes' && (
-                <>
-                  <Field>
-                    <div className='scroll-mt-20' ref={jobArbitratorRef} />
-                    <Combobox
-                      placeholder='Select Arbitrator'
-                      value={selectedArbitratorAddress || ''}
-                      options={arbitratorAddresses.map((address, index) => ({
-                        value: address,
-                        label: `${arbitratorNames[index]} ${shortenText({ text: address, maxLength: 11 })} ${+arbitratorFees[index] / 100}%`,
-                      }))}
-                      onChange={(addr) => validateArbitrator(addr)}
-                    />
-                    {arbitratorError && (
-                      <div className='text-xs' style={{ color: 'red' }}>
-                        {arbitratorError}
-                      </div>
-                    )}
-                    <Description>
-                      Make sure to choose an arbitrator that you trust to
-                      resolve disputes fairly. Arbitrators charge a small fee
-                      for their services, which is deducted from the job
-                      payment. ArbitrationDAO is a decentralized arbitration
-                      service that can be used.
-                    </Description>
-                  </Field>
-                </>
-              )}
-
-              <div className='flex flex-row justify-between gap-5'>
-                <Field className='flex-1'>
-                  <Label>
-                    Maximum delivery time in {selectedUnitTime.name}
-                  </Label>
-                  <div className='scroll-mt-20' ref={jobDeadlineRef} />
-                  <Input
-                    name='deadline'
-                    type='number'
-                    placeholder={`Maximum delivery time in ${selectedUnitTime.name}`}
-                    value={deadline}
-                    min={1}
-                    step={1}
-                    onChange={(e) => validateDeadline(e.target.value)}
-                  />
-                  {deadlineError && (
-                    <div className='text-xs' style={{ color: 'red' }}>
-                      {deadlineError}
-                    </div>
-                  )}
-                </Field>
-                <Field className='flex-1'>
-                  <Label>Units</Label>
-                  <ListBox
-                    placeholder='Select Time Units'
-                    value={selectedUnitTime}
-                    onChange={(unit) => {
-                      if (typeof unit !== 'string') {
-                        setselectedUnitTime(unit);
+          <div className='flex w-full flex-col gap-8 lg:flex-row lg:gap-12'>
+            {/* Left Column */}
+            <div className='flex-1 space-y-6'>
+              <div className='rounded-2xl bg-white border border-gray-200 p-6 shadow-sm'>
+                <h2 className='text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2'>
+                  <PiBriefcase className='h-5 w-5 text-blue-600' />
+                  Job Details
+                </h2>
+                
+                <FieldGroup className='space-y-4'>
+                  <StyledField error={titleError}>
+                    <Label className='text-gray-700 mb-2'>Job Title</Label>
+                    <div className='scroll-mt-20' ref={jobTitleRef} />
+                    <Input
+                      name='title'
+                      value={title}
+                      placeholder='A short descriptive title for the job post'
+                      required
+                      minLength={3}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                        validateTitle(e.target.value)
                       }
-                    }}
-                    options={unitsDeliveryTime.map(unit => ({ id: unit.id.toString(), name: unit.name }))}
-                  />
-                </Field>
+                      className='bg-transparent border-0 text-gray-900 placeholder-gray-400 focus:ring-0'
+                    />
+                  </StyledField>
+
+                  <StyledField error={descriptionError}>
+                    <Label className='text-gray-700 mb-2'>Description</Label>
+                    <div className='scroll-mt-20' ref={jobDescriptionRef} />
+                    <Textarea
+                      rows={10}
+                      name='description'
+                      placeholder='Provide a thorough description of the job...'
+                      value={description}
+                      onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
+                        setDescription(e.target.value);
+                      }}
+                      className='bg-transparent border-0 text-gray-900 placeholder-gray-400 focus:ring-0'
+                    />
+                  </StyledField>
+
+                  <StyledField>
+                    <div className='flex flex-row items-center justify-between'>
+                      <div>
+                        <Label className='text-gray-700'>I'm feeling lucky</Label>
+                        <p className='text-gray-500 text-xs mt-1'>
+                          Allow workers to start automatically without approval
+                        </p>
+                      </div>
+                      <RadioGroup
+                        className='!mt-0 flex gap-4'
+                        value={imFeelingLucky}
+                        onChange={setImFeelingLucky}
+                        aria-label='Auto-accept workers'
+                      >
+                        {noYes.map((option) => (
+                          <Field
+                            className='!mt-0 flex items-center'
+                            key={option}
+                          >
+                            <Radio 
+                              className='mr-2' 
+                              color='default' 
+                              value={option}
+                            >
+                              <span>{option}</span>
+                            </Radio>
+                            <Label className='text-gray-700'>{option}</Label>
+                          </Field>
+                        ))}
+                      </RadioGroup>
+                    </div>
+                  </StyledField>
+
+                  <StyledField error={categoryError}>
+                    <Label className='text-gray-700 mb-2'>Category</Label>
+                    <div ref={jobCategoryRef} className='scroll-mt-20' />
+                    <ListBox
+                      placeholder='Select Category'
+                      value={selectedCategory}
+                      onChange={(category) => {
+                        if (typeof category !== 'string') {
+                          setSelectedCategory(category);
+                          setCategoryError('');
+                        }
+                      }}
+                      options={jobMeceTags}
+                    />
+                  </StyledField>
+
+                  <StyledField>
+                    <Label className='text-gray-700 mb-2'>Tags</Label>
+                    <TagsInput tags={tags} setTags={setTags} />
+                    <p className='text-gray-500 text-xs mt-2'>
+                      Add relevant tags to help workers find your job
+                    </p>
+                  </StyledField>
+                </FieldGroup>
               </div>
-            </FieldGroup>
+            </div>
+
+            {/* Right Column */}
+            <div className='flex-1 space-y-6'>
+              <div className='rounded-2xl bg-white border border-gray-200 p-6 shadow-sm'>
+                <h2 className='text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2'>
+                  <PiCurrencyDollar className='h-5 w-5 text-green-600' />
+                  Payment & Delivery
+                </h2>
+
+                <FieldGroup className='space-y-4'>
+                  <div className='flex flex-row gap-4'>
+                    <StyledField error={paymentTokenError}>
+                      <Label className='text-gray-700 mb-2'>Payment Amount</Label>
+                      <div className='scroll-mt-20' ref={jobAmountRef} />
+                      <Input
+                        name='amount'
+                        placeholder='1.00'
+                        min='0'
+                        type='number'
+                        value={amount}
+                        onChange={(e) => validatePaymentAmount(e.target.value)}
+                        className='bg-transparent border-0 text-gray-900 placeholder-gray-400 focus:ring-0'
+                      />
+                      {selectedToken && balanceData !== null && balanceData !== undefined && (
+                        <Text className='text-xs text-gray-600 mt-2'>
+                          Balance: {ethers.formatUnits(
+                            balanceData as ethers.BigNumberish,
+                            selectedToken.decimals
+                          )} {selectedToken.symbol}
+                        </Text>
+                      )}
+                    </StyledField>
+
+                    <StyledField>
+                      <Label className='text-gray-700 mb-2'>Payment Token</Label>
+                      <TokenSelector
+                        selectedToken={selectedToken}
+                        onClick={(token: Token) => setSelectedToken(token)}
+                      />
+                      {selectedToken && (
+                        <div className='mt-2'>
+                          <Link
+                            href={`https://arbiscan.io/address/${selectedToken?.id}`}
+                            target='_blank'
+                            rel='noopener noreferrer'
+                            className='text-xs text-blue-600 hover:text-blue-700 transition-colors'
+                          >
+                            View on Arbiscan
+                          </Link>
+                        </div>
+                      )}
+                    </StyledField>
+                  </div>
+
+                  <StyledField>
+                    <Label className='text-gray-700 mb-2'>Delivery Method</Label>
+                    <ListBox
+                      placeholder='Delivery Method'
+                      value={deliveryMethod}
+                      onChange={(method) => {
+                        if (typeof method !== 'string') {
+                          setDeliveryMethod(method.id);
+                        }
+                      }}
+                      options={deliveryMethods}
+                    />
+                    <p className='text-gray-500 text-xs mt-2'>
+                      Choose how the work should be delivered
+                    </p>
+                  </StyledField>
+
+                  <StyledField>
+                    <div className='flex flex-row items-center justify-between'>
+                      <div>
+                        <Label className='text-gray-700'>Arbitrator Required</Label>
+                        <p className='text-gray-500 text-xs mt-1'>
+                          Third-party dispute resolution
+                        </p>
+                      </div>
+                      <RadioGroup
+                        className='!mt-0 flex gap-4'
+                        value={arbitratorRequired}
+                        onChange={(value) => validateArbitratorRequired(value)}
+                        aria-label='Arbitrator Required'
+                      >
+                        {noYes.map((option) => (
+                          <Field
+                            className='!mt-0 flex items-center'
+                            key={option}
+                          >
+                            <Radio 
+                              color='default' 
+                              className='mr-2' 
+                              value={option}
+                            >
+                              <span>{option}</span>
+                            </Radio>
+                            <Label className='text-gray-700'>{option}</Label>
+                          </Field>
+                        ))}
+                      </RadioGroup>
+                    </div>
+                  </StyledField>
+
+                  {arbitratorRequired === 'Yes' && (
+                    <StyledField error={arbitratorError}>
+                      <Label className='text-gray-700 mb-2'>Select Arbitrator</Label>
+                      <div className='scroll-mt-20' ref={jobArbitratorRef} />
+                      <Combobox
+                        placeholder='Select Arbitrator'
+                        value={selectedArbitratorAddress || ''}
+                        options={arbitratorAddresses.map((address, index) => ({
+                          value: address,
+                          label: `${arbitratorNames[index]} ${shortenText({ text: address, maxLength: 11 })} ${+arbitratorFees[index] / 100}%`,
+                        }))}
+                        onChange={(addr) => validateArbitrator(addr)}
+                      />
+                    </StyledField>
+                  )}
+
+                  <div className='flex flex-row gap-4'>
+                    <StyledField error={deadlineError}>
+                      <Label className='text-gray-700 mb-2'>
+                        Delivery time in {selectedUnitTime.name}
+                      </Label>
+                      <div className='scroll-mt-20' ref={jobDeadlineRef} />
+                      <Input
+                        name='deadline'
+                        type='number'
+                        placeholder={`Enter ${selectedUnitTime.name.toLowerCase()}`}
+                        value={deadline}
+                        min={1}
+                        step={1}
+                        onChange={(e) => validateDeadline(e.target.value)}
+                        className='bg-transparent border-0 text-gray-900 placeholder-gray-400 focus:ring-0'
+                      />
+                    </StyledField>
+
+                    <StyledField>
+                      <Label className='text-gray-700 mb-2'>Units</Label>
+                      <ListBox
+                        placeholder='Select Time Units'
+                        value={selectedUnitTime}
+                        onChange={(unit) => {
+                          if (typeof unit !== 'string') {
+                            setselectedUnitTime(unit);
+                          }
+                        }}
+                        options={unitsDeliveryTime.map(unit => ({ id: unit.id.toString(), name: unit.name }))}
+                      />
+                    </StyledField>
+                  </div>
+                </FieldGroup>
+              </div>
+            </div>
           </div>
+
+          {/* Submit button */}
           {!showSummary && (
-            <div className='mb-40 mt-5 flex justify-end'>
-              {isConnected && (
+            <div className='mt-8 flex justify-end gap-4 pb-20'>
+              {isConnected ? (
                 <Button
                   disabled={continueButtonDisabled}
                   onClick={handleSubmit}
+                  className={`
+                    px-8 py-3 rounded-xl font-medium transition-all duration-200
+                    ${continueButtonDisabled 
+                      ? 'bg-gray-100 text-gray-500 border border-gray-200 cursor-not-allowed' 
+                      : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
+                    }
+                  `}
                 >
-                  Continue
+                  <span className='flex items-center gap-2 text-white'>
+                    Continue to Review
+                    <CheckCircle2 className='h-4 w-4' />
+                  </span>
                 </Button>
+              ) : (
+                <ConnectButton />
               )}
-              {!isConnected && <ConnectButton />}
             </div>
           )}
         </Fieldset>
       )}
+      
       {showSummary && (
         <JobSummary
           handleSummary={handleSummary}
@@ -753,6 +948,7 @@ const PostJob = () => {
           selectedArbitratorAddress={selectedArbitratorAddress}
         />
       )}
+      
       <RegisterModal
         open={isRegisterModalOpen}
         close={() => {

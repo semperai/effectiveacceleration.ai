@@ -6,7 +6,7 @@ import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithN
 import { publishToIpfs } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { ZeroHash } from 'ethers';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Send, CheckCircle } from 'lucide-react';
 import { useCallback, useState, useRef } from 'react';
 import type { Address } from 'viem';
 import { useAccount, useReadContract } from 'wagmi';
@@ -24,12 +24,10 @@ interface SubmitJobButtonProps {
   deadline: bigint;
   deliveryMethod: string;
   arbitrator: Address;
-  //  whitelistedWorkers: Address[];
   onSuccess?: () => void;
   onError?: (error: Error) => void;
 }
 
-// TODO support adding whitelistedWorkers
 export const SubmitJobButton = ({
   title,
   description,
@@ -129,14 +127,13 @@ export const SubmitJobButton = ({
           marketplaceDataAddress: Config.marketplaceDataAddress,
         },
         onReceipt: (receipt, parsedEvents) => {
-          showSuccess('Job post submitted');
+          showSuccess('Job post submitted successfully!');
           for (const event of parsedEvents) {
             if (event.eventName === 'JobEvent') {
               router.push(`/dashboard/jobs/${event.args.jobId}`);
               return;
             }
           }
-          console.log('parsedEvents', parsedEvents);
         },
       });
     } catch (err) {
@@ -150,7 +147,7 @@ export const SubmitJobButton = ({
   // Show loading state while checking allowance
   if (allowanceIsLoading || Config === undefined) {
     return (
-      <Button disabled className='min-w-[120px]'>
+      <Button disabled className='min-w-[140px] px-6 py-3 rounded-xl bg-gray-200 text-gray-400'>
         <Loader2 className='mr-2 h-4 w-4 animate-spin' />
         Checking approval...
       </Button>
@@ -160,7 +157,7 @@ export const SubmitJobButton = ({
   // Show error state
   if (allowanceIsError) {
     return (
-      <Button color='red' className='min-w-[120px]'>
+      <Button className='min-w-[140px] px-6 py-3 rounded-xl bg-red-50 text-red-600 border border-red-200'>
         Error checking approval
       </Button>
     );
@@ -183,15 +180,24 @@ export const SubmitJobButton = ({
     <Button
       onClick={handleSubmitJob}
       disabled={isSubmitting || isConfirming}
-      className='min-w-[120px]'
+      className={`
+        min-w-[140px] px-6 py-3 rounded-xl font-medium transition-all duration-200
+        ${isSubmitting || isConfirming
+          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+          : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
+        }
+      `}
     >
       {isSubmitting || isConfirming ? (
-        <>
-          <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-          Submitting...
-        </>
+        <span className='flex items-center gap-2 text-white'>
+          <Loader2 className='h-4 w-4 animate-spin' />
+          Submitting Job...
+        </span>
       ) : (
-        'Submit Job'
+        <span className='flex items-center gap-2 text-white'>
+          <Send className='h-4 w-4 text-white' />
+          Submit Job Post
+        </span>
       )}
     </Button>
   );

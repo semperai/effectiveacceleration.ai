@@ -1,6 +1,6 @@
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-import { AiOutlineLoading } from 'react-icons/ai';
+import { Loader2 } from 'lucide-react';
 
 interface LoadingModalProps {
   open: boolean;
@@ -25,7 +25,7 @@ const LoadingModal = ({
           leaveFrom='opacity-100'
           leaveTo='opacity-0'
         >
-          <div className='fixed inset-0 bg-black/40 backdrop-blur-sm' />
+          <div className='fixed inset-0 bg-black/25 backdrop-blur-sm' />
         </Transition.Child>
 
         <div className='fixed inset-0 overflow-y-auto'>
@@ -39,26 +39,38 @@ const LoadingModal = ({
               leaveFrom='opacity-100 scale-100'
               leaveTo='opacity-0 scale-95'
             >
-              <Dialog.Panel className='w-full max-w-md transform rounded-2xl bg-white p-8 shadow-xl transition-all'>
-                <div className='flex flex-col items-center gap-6'>
-                  <Dialog.Title
-                    as='h3'
-                    className='text-center text-lg font-semibold text-gray-900'
-                  >
-                    {title}
-                  </Dialog.Title>
+              <Dialog.Panel className='relative w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-8 shadow-xl'>
+                {/* Background gradient effects */}
+                <div className='absolute top-0 right-0 w-32 h-32 bg-blue-100/50 rounded-full blur-2xl' />
+                <div className='absolute bottom-0 left-0 w-32 h-32 bg-purple-100/50 rounded-full blur-2xl' />
+                
+                {/* Content */}
+                <div className='relative'>
+                  <div className='flex flex-col items-center gap-6'>
+                    <Dialog.Title
+                      as='h3'
+                      className='text-center text-lg font-semibold text-gray-900'
+                    >
+                      {title}
+                    </Dialog.Title>
 
-                  <div className='relative'>
-                    <div className='h-12 w-12 animate-pulse rounded-full border-4 border-blue-100' />
-                    <AiOutlineLoading
-                      className='absolute left-0 top-0 h-12 w-12 animate-spin text-blue-600'
-                      aria-hidden='true'
-                    />
+                    {/* Animated loader */}
+                    <div className='relative'>
+                      <div className='h-16 w-16 rounded-full border-4 border-gray-200 animate-pulse' />
+                      <div className='absolute inset-0 flex items-center justify-center'>
+                        <Loader2 className='h-8 w-8 animate-spin text-blue-600' />
+                      </div>
+                    </div>
+
+                    <p className='text-sm text-gray-600 text-center'>
+                      This may take a few moments...
+                    </p>
+
+                    {/* Progress indicator */}
+                    <div className='w-full h-1 bg-gray-200 rounded-full overflow-hidden'>
+                      <div className='h-full bg-gradient-to-r from-blue-600 to-purple-600 rounded-full animate-shimmer' />
+                    </div>
                   </div>
-
-                  <p className='text-sm text-gray-500'>
-                    This may take a few moments...
-                  </p>
                 </div>
               </Dialog.Panel>
             </Transition.Child>
