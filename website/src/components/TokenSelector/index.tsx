@@ -3,12 +3,13 @@
 import { type Token, tokens } from '@/tokens';
 import { ChevronDown } from 'lucide-react';
 import { Fragment, useState, useEffect } from 'react';
-import TokenDialog from '@/components/TokenDialog';
-import arbitrumTokens from '@/components/TokenDialog/Dependencies/arbitrumTokens.json';
-import mainnetTokens from '@/components/TokenDialog/Dependencies/mainnetTokens.json';
-import { mockTokens } from '@/components/TokenDialog/Dependencies/mockTokens';
-import lscacheModule from '@/components/TokenDialog/Dependencies/lscache';
+import TokenDialog from './TokenDialog';
+import arbitrumTokens from './data/arbitrumTokens.json';
+import mainnetTokens from './data/mainnetTokens.json';
+import { mockTokens } from './utils/mockTokens';
+import lscacheModule from './utils/lscache';
 import { useChainId } from 'wagmi';
+import { DEFAULT_TOKEN_ICON } from './icons/DefaultTokenIcon';
 
 interface IArbitrumToken {
   logoURI?: string;
@@ -23,9 +24,6 @@ interface IArbitrumToken {
   l1GatewayAddress?: string;
   isCustom?: boolean;
 }
-
-// Import default token icon from TokenDialog
-const DEFAULT_TOKEN_ICON = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9InVybCgjcGFpbnQwX2xpbmVhcl80MF8xMjQpIi8+CjxjaXJjbGUgY3g9IjIwIiBjeT0iMjAiIHI9IjE5LjUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjEiLz4KPHBhdGggZD0iTTIwIDEwVjIwTDI2IDIzIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIyIiBmaWxsPSJ3aGl0ZSIvPgo8ZGVmcz4KPGxpbmVhckdyYWRpZW50IGlkPSJwYWludDBfbGluZWFyXzQwXzEyNCIgeDE9IjIwIiB5MT0iMCIgeDI9IjIwIiB5Mj0iNDAiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KPHN0b3Agc3RvcC1jb2xvcj0iIzNCODJGNiIvPgo8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM5MzMzRUEiLz4KPC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8L3N2Zz4=';
 
 function TokenButton({
   onClick,
@@ -74,23 +72,6 @@ function TokenButton({
     borderRadius: '50%',
     objectFit: 'cover' as const,
     background: 'rgba(0, 0, 0, 0.02)',
-    flexShrink: 0,
-    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-  };
-
-  const placeholderAvatarStyle = {
-    width: '24px',
-    height: '24px',
-    minWidth: '24px',
-    minHeight: '24px',
-    borderRadius: '50%',
-    background: 'linear-gradient(135deg, #f3f4f6, #e5e7eb)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '10px',
-    fontWeight: 600,
-    color: '#6b7280',
     flexShrink: 0,
     boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
   };

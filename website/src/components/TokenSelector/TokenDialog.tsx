@@ -3,20 +3,50 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { ethers } from 'ethers';
-import lscacheModule from './Dependencies/lscache';
-import { uniqueBy } from './Dependencies/uniqueBy';
-import { EthereumIcon } from './Dependencies/Icons/EthereumIcon';
-import { ExternalLinkIcon } from './Dependencies/Icons/ExternalLinkIcon';
-import { PinIcon } from './Dependencies/Icons/PinIcon';
-import { toast } from './Dependencies/toast';
-import { reduceAddress } from './Dependencies/addressFormatter';
-import { fetchTokenMetadata, isValidTokenContract, type IArbitrumToken } from './Dependencies/tokenHelpers';
-import { usePublicClient } from 'wagmi';
-import { X, Search, Plus, Loader2, ChevronRight, Sparkles, Star } from 'lucide-react';
+import lscacheModule from './utils/lscache';
+import { EthereumIcon } from './icons/EthereumIcon';
+import { ExternalLinkIcon } from './icons/ExternalLinkIcon';
+import { toast } from './utils/toast';
+import { fetchTokenMetadata, isValidTokenContract, type IArbitrumToken } from './utils/tokenHelpers';
+import { usePublicClient, useBalance, useAccount } from 'wagmi';
+import { X, Search, ExternalLink, Plus, Loader2, Star } from 'lucide-react';
 import { styles, mergeStyles, keyframes, mobileStyles } from './styles';
+import { DEFAULT_TOKEN_ICON } from './icons/DefaultTokenIcon';
 
-// Default token icon SVG as a data URI
-const DEFAULT_TOKEN_ICON = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdGb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9InVybCgjcGFpbnQwX2xpbmVhcl80MF8xMjQpIi8+CjxjaXJjbGUgY3g9IjIwIiBjeT0iMjAiIHI9IjE5LjUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjEiLz4KPHBhdGggZD0iTTIwIDEwVjIwTDI2IDIzIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIyIiBmaWxsPSJ3aGl0ZSIvPgo8ZGVmcz4KPGxpbmVhckdyYWRpZW50IGlkPSJwYWludDBfbGluZWFyXzQwXzEyNCIgeDE9IjIwIiB5MT0iMCIgeDI9IjIwIiB5Mj0iNDAiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KPHN0b3Agc3RvcC1jb2xvcj0iIzNCODJGNiIvPgo8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM5MzMzRUEiLz4KPC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8L3N2Zz4=';
+// Inline uniqueBy function
+function uniqueBy<T>(
+  key: keyof T,
+  array: T[],
+  sortKey?: keyof T
+): T[] {
+  const seen = new Map<any, T>();
+  
+  for (const item of array) {
+    const keyValue = item[key];
+    if (!seen.has(keyValue)) {
+      seen.set(keyValue, item);
+    }
+  }
+  
+  const result = Array.from(seen.values());
+  
+  if (sortKey) {
+    result.sort((a, b) => {
+      const aVal = a[sortKey];
+      const bVal = b[sortKey];
+      
+      if (typeof aVal === 'string' && typeof bVal === 'string') {
+        return aVal.localeCompare(bVal);
+      }
+      
+      if (aVal < bVal) return -1;
+      if (aVal > bVal) return 1;
+      return 0;
+    });
+  }
+  
+  return result;
+}
 
 // Inject keyframe animations and icon styles
 if (typeof document !== 'undefined' && !document.getElementById('token-dialog-animations')) {
@@ -30,6 +60,18 @@ if (typeof document !== 'undefined' && !document.getElementById('token-dialog-an
   `;
   document.head.appendChild(style);
 }
+
+// Hook to fetch token balance
+const useTokenBalance = (tokenAddress: string, enabled: boolean = true) => {
+  const { address } = useAccount();
+  const { data: balance } = useBalance({
+    address: address,
+    token: tokenAddress as `0x${string}`,
+    enabled: enabled && !!address && ethers.isAddress(tokenAddress),
+  });
+
+  return balance;
+};
 
 const TokenDialog = ({
   initiallySelectedToken,
@@ -62,6 +104,7 @@ const TokenDialog = ({
   const [showAddToken, setShowAddToken] = useState(false);
   const publicClient = usePublicClient();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const { address: userAddress } = useAccount();
 
   const noTokensFound = !filteredTokens || filteredTokens.length === 0;
 
@@ -378,7 +421,6 @@ const TokenDialog = ({
         {/* Header */}
         <div style={styles.header}>
           <h2 style={styles.headerTitle}>
-            <Sparkles style={styles.headerIcon} />
             Select a Token
           </h2>
           <button
@@ -397,47 +439,25 @@ const TokenDialog = ({
         {/* Favorite Tokens */}
         {favoriteTokens?.length > 0 && (
           <div style={styles.favoriteTokensContainer}>
-            {favoriteTokens.map((token) => (
-              <div
-                key={token.address}
-                style={mergeStyles(
-                  styles.favoriteTokenChip,
-                  token.address === selectedToken?.address ? styles.favoriteTokenChipSelected : undefined,
-                  hoveredStates[`fav-${token.address}`] ? styles.favoriteTokenChipHover : undefined
-                )}
-                onMouseEnter={() => setHovered(`fav-${token.address}`, true)}
-                onMouseLeave={() => setHovered(`fav-${token.address}`, false)}
-                onClick={() => {
-                  setSelectedToken(token);
-                  // Save last selected token to localStorage only if persistence is enabled
-                  if (persistSelection) {
-                    lscacheModule.set('last-token-selected', token, Infinity);
-                  }
-                  closeCallback(token);
-                }}
-              >
-                <div className="token-dialog-icon-wrapper" style={{ width: '20px', height: '20px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {token.name === 'ETH' || token.symbol === 'ETH'
-                    ? <EthereumIcon />
-                    : AvatarNonEth(token)}
-                </div>
-                <span>{token.symbol}</span>
-                <button
-                  style={mergeStyles(
-                    styles.removeFavorite,
-                    hoveredStates[`remove-${token.address}`] ? styles.removeFavoriteHover : undefined
-                  )}
-                  onMouseEnter={() => setHovered(`remove-${token.address}`, true)}
-                  onMouseLeave={() => setHovered(`remove-${token.address}`, false)}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteTokenFromFavorites(token);
+            {favoriteTokens.map((token) => {
+              const balance = useTokenBalance(token.address, !!userAddress);
+              return (
+                <FavoriteTokenChip
+                  key={token.address}
+                  token={token}
+                  balance={balance}
+                  isSelected={token.address === selectedToken?.address}
+                  onSelect={() => {
+                    setSelectedToken(token);
+                    if (persistSelection) {
+                      lscacheModule.set('last-token-selected', token, Infinity);
+                    }
+                    closeCallback(token);
                   }}
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </div>
-            ))}
+                  onRemove={() => deleteTokenFromFavorites(token)}
+                />
+              );
+            })}
           </div>
         )}
 
@@ -550,6 +570,84 @@ const TokenDialog = ({
   );
 };
 
+// Separate component for favorite token chips with balance
+const FavoriteTokenChip = ({ token, balance, isSelected, onSelect, onRemove }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  const formatBalance = (bal) => {
+    if (!bal) return '';
+    const value = parseFloat(bal.formatted);
+    if (value === 0) return '0';
+    if (value < 0.001) return '<0.001';
+    if (value < 1) return value.toFixed(3);
+    if (value < 100) return value.toFixed(2);
+    return value.toFixed(0);
+  };
+
+  return (
+    <div
+      style={mergeStyles(
+        styles.favoriteTokenChip,
+        isSelected ? styles.favoriteTokenChipSelected : undefined,
+        isHovered ? styles.favoriteTokenChipHover : undefined
+      )}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={onSelect}
+    >
+      <div className="token-dialog-icon-wrapper" style={{ width: '20px', height: '20px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {token.name === 'ETH' || token.symbol === 'ETH'
+          ? <EthereumIcon />
+          : token.logoURI ? (
+            <img
+              src={token.logoURI}
+              alt={token.symbol}
+              onError={(e: any) => {
+                e.target.onerror = null;
+                e.target.src = DEFAULT_TOKEN_ICON;
+              }}
+              style={{
+                width: '20px',
+                height: '20px',
+                borderRadius: '50%',
+                objectFit: 'cover' as const,
+              }}
+            />
+          ) : (
+            <img
+              src={DEFAULT_TOKEN_ICON}
+              alt={token.symbol}
+              style={{
+                width: '20px',
+                height: '20px',
+                borderRadius: '50%',
+              }}
+            />
+          )}
+      </div>
+      <span style={{ color: '#ffffff', fontWeight: 500 }}>{token.symbol}</span>
+      {balance && (
+        <span style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.75rem', marginLeft: '0.25rem' }}>
+          {formatBalance(balance)}
+        </span>
+      )}
+      <button
+        className="remove-favorite"
+        style={mergeStyles(
+          styles.removeFavorite,
+          isHovered ? styles.removeFavoriteHover : undefined
+        )}
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove();
+        }}
+      >
+        <X className="w-3 h-3" />
+      </button>
+    </div>
+  );
+};
+
 const TokenItem = ({
   token,
   selectedToken,
@@ -651,21 +749,18 @@ const TokenItem = ({
           rel="noreferrer nofollow"
           onClick={(e) => e.stopPropagation()}
           style={mergeStyles(
-            styles.actionButton,
+            styles.actionButtonSmall,
             buttonHovers.link ? styles.actionButtonHover : undefined
           )}
           onMouseEnter={() => setButtonHovers(prev => ({ ...prev, link: true }))}
           onMouseLeave={() => setButtonHovers(prev => ({ ...prev, link: false }))}
           title="View on Arbiscan"
         >
-          <ExternalLinkIcon />
+          <ExternalLink className="w-3 h-3" />
         </Link>
       </div>
     </div>
   );
 };
-
-// Add DEFAULT_TOKEN_ICON export for use in other components
-export { DEFAULT_TOKEN_ICON };
 
 export default TokenDialog;

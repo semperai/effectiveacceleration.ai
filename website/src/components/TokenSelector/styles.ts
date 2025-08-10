@@ -1,4 +1,4 @@
-// src/components/TokenDialog/styles.ts
+// components/TokenSelector/styles.ts
 import { CSSProperties } from 'react';
 
 // Style constants
@@ -12,7 +12,9 @@ const colors = {
     400: 'rgba(255, 255, 255, 0.4)',
     500: 'rgba(255, 255, 255, 0.5)',
     600: 'rgba(255, 255, 255, 0.6)',
+    700: 'rgba(255, 255, 255, 0.7)',
     800: 'rgba(255, 255, 255, 0.8)',
+    900: 'rgba(255, 255, 255, 0.9)',
   },
   blue: {
     400: '#60a5fa',
@@ -116,9 +118,7 @@ export const styles = {
     gap: '0.5rem',
     fontSize: '1.125rem',
     fontWeight: 600,
-    background: 'linear-gradient(to right, #ffffff, #e5e7eb)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
+    color: colors.white,
     margin: 0,
   } as CSSProperties,
 
@@ -162,7 +162,7 @@ export const styles = {
     gap: '0.5rem',
     padding: '0.375rem 0.75rem',
     background: colors.gray[50],
-    border: `1px solid ${colors.gray[100]}`,
+    border: `1px solid transparent`,
     borderRadius: '9999px',
     color: colors.white,
     fontSize: '0.875rem',
@@ -174,14 +174,14 @@ export const styles = {
 
   favoriteTokenChipHover: {
     background: colors.gray[100],
-    borderColor: colors.gray[200],
     transform: 'translateY(-2px)',
     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
   } as CSSProperties,
 
   favoriteTokenChipSelected: {
-    background: `linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(147, 51, 234, 0.2))`,
-    borderColor: 'rgba(59, 130, 246, 0.3)',
+    background: `rgba(59, 130, 246, 0.2)`,
+    border: `1px solid rgba(59, 130, 246, 0.5)`,
+    boxShadow: '0 0 0 2px rgba(59, 130, 246, 0.1)',
   } as CSSProperties,
 
   favoriteTokenAvatar: {
@@ -320,6 +320,7 @@ export const styles = {
   // No Tokens Found
   noTokensFound: {
     display: 'flex',
+    flexDirection: 'column' as const,
     alignItems: 'center',
     justifyContent: 'center',
     padding: '3rem',
@@ -467,10 +468,25 @@ export const styles = {
     justifyContent: 'center',
   } as CSSProperties,
 
+  actionButtonSmall: {
+    padding: '0.25rem',
+    background: 'transparent',
+    border: 'none',
+    color: colors.gray[300],
+    cursor: 'pointer',
+    borderRadius: '0.25rem',
+    transition: transitions.default,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    opacity: 0.6,
+  } as CSSProperties,
+
   actionButtonHover: {
     background: colors.gray[100],
     color: colors.white,
     transform: 'scale(1.1)',
+    opacity: 1,
   } as CSSProperties,
 
   // Add Token Container
