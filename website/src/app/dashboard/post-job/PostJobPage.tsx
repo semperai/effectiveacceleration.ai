@@ -34,6 +34,7 @@ import { useAccount } from 'wagmi';
 import LoadingModal from './LoadingModal';
 import RegisterModal from './RegisterModal';
 import JobSummary from './JobSummary';
+import MinimalField from './MinimalField';
 import {
   PiSparkle,
   PiBriefcase,
@@ -68,71 +69,6 @@ const deliveryMethods = [
   { name: 'Digital Proof', id: 'digital_proof' },
   { name: 'Other', id: 'other' },
 ];
-
-// Simplified field component with better error handling
-const MinimalField = React.memo(({
-  children,
-  error,
-  icon,
-  label,
-  helperText,
-  required
-}: {
-  children: React.ReactNode;
-  error?: string;
-  icon?: React.ReactNode;
-  label?: string;
-  helperText?: string;
-  required?: boolean;
-}) => (
-  <div className='relative group'>
-    {label && (
-      <div className='flex items-center gap-2 mb-2'>
-        {icon && <span className={`transition-colors duration-200 ${error ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'}`}>{icon}</span>}
-        <Label className='text-sm font-medium text-gray-700 dark:text-gray-300'>
-          {label}
-          {required && <span className='ml-1 text-red-500 font-bold text-base'>*</span>}
-        </Label>
-      </div>
-    )}
-    <div className='relative'>
-      <div className={`
-        relative rounded-xl transition-all duration-300
-        ${error ? 'ring-2 ring-red-500 ring-offset-2 ring-offset-white dark:ring-offset-gray-900 shadow-[0_0_20px_rgba(239,68,68,0.3)]' : ''}
-      `}>
-        {error && (
-          <div className='absolute -top-3 -right-3 z-20'>
-            <div className='relative'>
-              <span className='absolute inset-0 bg-red-500 rounded-full animate-ping opacity-75' />
-              <span className='relative flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white shadow-lg'>
-                <PiWarningCircle className='h-4 w-4' />
-              </span>
-            </div>
-          </div>
-        )}
-
-        <div className={`rounded-xl transition-all duration-200 ${error ? 'bg-red-50/50 dark:bg-red-950/20' : ''}`}>
-          {children}
-        </div>
-      </div>
-    </div>
-
-    {error && (
-      <div className='mt-2.5 flex items-center gap-2'>
-        <div className='flex items-center gap-1.5 text-sm font-semibold text-red-600 dark:text-red-400'>
-          <AlertCircle className='h-4 w-4 flex-shrink-0 animate-pulse' />
-          <span>{error}</span>
-        </div>
-      </div>
-    )}
-
-    {helperText && !error && (
-      <p className='mt-1.5 text-xs text-gray-500 dark:text-gray-400'>{helperText}</p>
-    )}
-  </div>
-));
-
-MinimalField.displayName = 'MinimalField';
 
 const PostJob = () => {
   const Config = useConfig();
@@ -476,7 +412,7 @@ const PostJob = () => {
   }, [title, amount, tokenBalance, selectedCategory, deadline, selectedArbitratorAddress, address, handleSummary]);
 
   return (
-    <div className='relative min-h-screen'>
+    <div className='relative min-h-screen overflow-x-hidden'>
       <style jsx>{`
         @keyframes slideDown {
           from {
@@ -505,23 +441,25 @@ const PostJob = () => {
         }
       `}</style>
 
-      <div className='fixed top-40 right-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none' />
-      <div className='fixed bottom-40 left-20 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none' />
+      {/* Fixed blur elements with proper mobile constraints */}
+      <div className='fixed top-40 right-4 sm:right-20 w-64 sm:w-96 h-64 sm:h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none' />
+      <div className='fixed bottom-40 left-4 sm:left-20 w-64 sm:w-96 h-64 sm:h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none' />
 
       {!showSummary && (
-        <Fieldset className='w-full relative'>
+        <Fieldset className='w-full relative px-2 sm:px-0'>
           <div className='mb-10'>
             <div className='flex items-center gap-3 mb-4'>
-              <div className='p-3 rounded-xl bg-gradient-to-br from-blue-500/10 to-purple-500/10 backdrop-blur-sm border border-blue-500/20'>
+              <div className='p-3 rounded-xl bg-gradient-to-br from-blue-500/10 to-purple-500/10 backdrop-blur-sm border border-blue-500/20 flex-shrink-0'>
                 <PiPaperPlaneTilt className='h-7 w-7 text-blue-500' />
               </div>
-              <div>
-                <h1 className='text-3xl font-bold text-gray-900 dark:text-gray-100'>Create a Job Post</h1>
-                <span className='text-gray-600 dark:text-gray-400'>
+              <div className='min-w-0 flex-1'>
+                <h1 className='text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100'>Create a Job Post</h1>
+                <span className='text-sm sm:text-base text-gray-600 dark:text-gray-400 block'>
                   Complete the form below to post your job and connect with potential candidates.
                 </span>
               </div>
             </div>
+            {/* Progress bar with proper container constraints */}
             <div className='flex gap-2 mt-6'>
               <div className='h-1 flex-1 rounded-full bg-gradient-to-r from-blue-500 to-purple-500' />
               <div className='h-1 flex-1 rounded-full bg-gray-200 dark:bg-gray-700' />
@@ -529,15 +467,15 @@ const PostJob = () => {
           </div>
 
           <div className='flex w-full flex-col gap-8 lg:flex-row lg:gap-12'>
-            <div className='flex-1'>
-              <div className='rounded-2xl bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 p-6 shadow-xl'>
+            <div className='flex-1 min-w-0'>
+              <div className='rounded-2xl bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 p-3 sm:p-6 shadow-xl'>
                 <h2 className='text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6 flex items-center gap-2'>
-                  <PiBriefcase className='h-5 w-5 text-blue-500' />
-                  Job Details
+                  <PiBriefcase className='h-5 w-5 text-blue-500 flex-shrink-0' />
+                  <span className='min-w-0'>Job Details</span>
                 </h2>
 
                 <FieldGroup className='space-y-6'>
-                  <MinimalField error={titleError} label='Job Title' helperText='A short descriptive title for the job post'required>
+                  <MinimalField error={titleError} label='Job Title' helperText='A short descriptive title for the job post' required>
                     <div className='scroll-mt-20' ref={jobTitleRef} />
                     <Input
                       name='title'
@@ -565,11 +503,11 @@ const PostJob = () => {
                   </MinimalField>
 
                   <div className='p-4 rounded-xl bg-gradient-to-r from-blue-500/5 to-purple-500/5 border border-blue-500/10'>
-                    <div className='flex flex-row items-center justify-between'>
-                      <div>
+                    <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
+                      <div className='min-w-0 flex-1'>
                         <Label className='text-gray-700 dark:text-gray-300 flex items-center gap-2'>
-                          <PiSparkle className='h-4 w-4 text-yellow-500' />
-                          I'm feeling lucky
+                          <PiSparkle className='h-4 w-4 text-yellow-500 flex-shrink-0' />
+                          <span>I'm feeling lucky</span>
                         </Label>
                         <p className='text-gray-500 dark:text-gray-400 text-xs mt-1'>
                           Allow workers to start automatically without approval
@@ -615,18 +553,18 @@ const PostJob = () => {
               </div>
             </div>
 
-            <div className='flex-1'>
-              <div className='rounded-2xl bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 p-6 shadow-xl'>
+            <div className='flex-1 min-w-0'>
+              <div className='rounded-2xl bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 p-3 sm:p-6 shadow-xl'>
                 <h2 className='text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6 flex items-center gap-2'>
-                  <PiCurrencyDollar className='h-5 w-5 text-green-500' />
-                  Payment & Delivery
+                  <PiCurrencyDollar className='h-5 w-5 text-green-500 flex-shrink-0' />
+                  <span className='min-w-0'>Payment & Delivery</span>
                 </h2>
 
                 <FieldGroup className='space-y-6'>
                   {/* Payment Input with Balance Update */}
                   <div className='relative'>
                     <div className='flex items-center gap-2 mb-2'>
-                      <PiCurrencyDollar className={`h-4 w-4 transition-colors duration-200 ${paymentTokenError ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'}`} />
+                      <PiCurrencyDollar className={`h-4 w-4 transition-colors duration-200 flex-shrink-0 ${paymentTokenError ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'}`} />
                       <Label className='text-sm font-medium text-gray-700 dark:text-gray-300'>
                         Payment Amount
                         <span className='ml-1 text-red-500 font-bold text-base'>*</span>
@@ -672,7 +610,7 @@ const PostJob = () => {
                         <div className='mt-2.5 flex items-center gap-2'>
                           <div className='flex items-center gap-1.5 text-sm font-semibold text-red-600 dark:text-red-400'>
                             <AlertCircle className='h-4 w-4 flex-shrink-0 animate-pulse' />
-                            <span>{paymentTokenError}</span>
+                            <span className='break-words'>{paymentTokenError}</span>
                           </div>
                         </div>
                       )}
@@ -694,8 +632,8 @@ const PostJob = () => {
 
                   <div className='relative'>
                     <Label className='text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2'>
-                      <PiClock className={`h-4 w-4 transition-colors duration-200 ${deadlineError ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'}`} />
-                      Delivery Timeline
+                      <PiClock className={`h-4 w-4 transition-colors duration-200 flex-shrink-0 ${deadlineError ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'}`} />
+                      <span>Delivery Timeline</span>
                       <span className='ml-1 text-red-500 font-bold text-base'>*</span>
                     </Label>
                     <div className='scroll-mt-20' ref={jobDeadlineRef} />
@@ -769,15 +707,15 @@ const PostJob = () => {
           </div>
 
           {!showSummary && (
-            <div className='mt-8 flex justify-end gap-4 pb-20'>
+            <div className='mt-8 flex justify-end gap-4 pb-20 px-2 sm:px-0'>
               {isConnected ? (
                 <button
                   onClick={handleSubmit}
-                  className='group relative px-8 py-3 rounded-xl font-medium transition-all duration-200 shadow-lg border border-white/10 bg-slate-800'
+                  className='group relative px-6 sm:px-8 py-3 rounded-xl font-medium transition-all duration-200 shadow-lg border border-white/10 bg-slate-800'
                 >
-                  <span className='relative flex items-center gap-2 text-white dark:text-gray-900'>
-                    Continue to Review
-                    <ArrowRight className='h-4 w-4 group-hover:translate-x-0.5 transition-transform' />
+                  <span className='relative flex items-center gap-2 text-white'>
+                    <span className='text-white'>Continue to Review</span>
+                    <ArrowRight className='h-4 w-4 group-hover:translate-x-0.5 transition-transform text-white' />
                   </span>
                 </button>
               ) : (
