@@ -3,16 +3,16 @@ import React from 'react';
 import { Layout } from '@/components/Dashboard/Layout';
 
 // Import all components
-import { Hero } from './components/Hero';
-import { PartnersSection } from './components/PartnersSection';
-import { WhitepaperSection } from './components/WhitepaperSection';
-import { SecurityFeatures } from './components/SecurityFeatures';
-import { TokenSection } from './components/TokenSection';
-import { FeatureCards } from './components/FeatureCards';
-import { AIArbitrationDAO } from './components/AIArbitrationDAO';
-import { CommunitySection } from './components/CommunitySection';
-import { DeveloperCTA } from './components/DeveloperCTA';
-// import { PlatformStats } from './components/PlatformStats'; // Ready for future use
+import { Hero } from './Hero';
+import { PartnersSection } from './PartnersSection';
+import { WhitepaperSection } from './WhitepaperSection';
+import { SecurityFeatures } from './SecurityFeatures';
+import { TokenSection } from './TokenSection';
+import { FeatureCards } from './FeatureCards';
+import { AIArbitrationDAO } from './AIArbitrationDAO';
+import { CommunitySection } from './CommunitySection';
+import { DeveloperCTA } from './DeveloperCTA';
+// import { PlatformStats } from './PlatformStats'; // Ready for future use
 
 export default function WelcomePage() {
   return (
