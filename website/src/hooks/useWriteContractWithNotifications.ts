@@ -52,7 +52,6 @@ function parseContractEvents(
         }
       } catch (error) {
         // Skip if this log isn't from this contract's events
-        console.log('Skipping log:', error);
       }
     }
   }
@@ -92,7 +91,7 @@ export function useWriteContractWithNotifications() {
   const config = useConfig()
   const client = useApolloClient();
   const { showError, showSuccess, showLoading, toast } = useToast();
-  const [simulateError, setSimlateError] = useState<WriteContractErrorType | undefined>(undefined);
+  const [simulateError, setSimulateError] = useState<WriteContractErrorType | undefined>(undefined);
   const { data: hash, error, writeContract, isError } = useWriteContract();
   const onSuccessCallbackRef = useRef<
     ((receipt: TransactionReceipt, events: ParsedEvent[]) => void) | undefined
@@ -214,7 +213,7 @@ export function useWriteContractWithNotifications() {
             value,
           });
         } catch (e: any) {
-          setSimlateError(e);
+          setSimulateError(e);
           return
         }
 
@@ -231,7 +230,7 @@ export function useWriteContractWithNotifications() {
         showError(`An error occurred: ${e?.message}`);
       }
     },
-    [writeContract, showError, showLoading, toast, getRevertReason, setSimlateError]
+    [writeContract, showError, showLoading, toast, getRevertReason, setSimulateError]
   );
 
   // Handle receipt
@@ -251,23 +250,11 @@ export function useWriteContractWithNotifications() {
       onSuccessCallbackRef.current?.(receipt, parsedEvents);
 
       setTimeout(() => {
-        console.log('Resetting gql cache');
         client.resetStore();
         setTimeout(() => {
-          console.log('Resetting gql cache');
           client.resetStore();
         }, 3000);
       }, 3000);
-
-      // Log parsed events to console
-      console.group('Transaction Events');
-      parsedEvents.forEach((event) => {
-        console.group(`${event.contractName} - ${event.eventName}`);
-        console.log('Contract Address:', event.address);
-        console.log('Event Arguments:', event.args);
-        console.groupEnd();
-      });
-      console.groupEnd();
     }
   }, [isConfirmed, receipt, parseEvents]);
 
