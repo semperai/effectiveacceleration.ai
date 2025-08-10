@@ -1,6 +1,3 @@
-// src/app/dashboard/welcome/components/SecurityFeatures.tsx
-'use client';
-
 import { Shield, Lock, Server, CheckCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/Card';
 

@@ -1,6 +1,3 @@
-// src/app/dashboard/welcome/components/DeveloperCTA.tsx
-'use client';
-
 import Link from 'next/link';
 import { ArrowRight, Code2, Rocket, BookOpen, Github } from 'lucide-react';
 

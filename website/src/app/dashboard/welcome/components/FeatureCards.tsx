@@ -1,6 +1,3 @@
-// src/app/dashboard/welcome/components/FeatureCards.tsx
-'use client';
-
 import Link from 'next/link';
 import { Bot, Shield, Code, Globe, Lock, Zap } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/Card';

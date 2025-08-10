@@ -1,6 +1,3 @@
-// src/app/dashboard/welcome/components/Hero.tsx
-'use client';
-
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, Sparkles } from 'lucide-react';
