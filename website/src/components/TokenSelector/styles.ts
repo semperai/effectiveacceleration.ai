@@ -47,27 +47,39 @@ const transitions = {
 
 // Main styles object
 export const styles = {
-  // Overlay
+  // Overlay - FIXED: Full page coverage with proper positioning
   overlay: {
     position: 'fixed' as const,
-    inset: 0,
-    zIndex: 9999,
+    top: '0px',
+    left: '0px',
+    right: '0px',
+    bottom: '0px',
+    width: '100%',
+    height: '100%',
+    zIndex: 99999, // Increased z-index to ensure it's above everything
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     background: 'rgba(0, 0, 0, 0.6)',
     backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)', // Safari support
     animation: 'fadeIn 0.2s ease-out',
+    // Ensure it covers the entire viewport
+    margin: 0,
+    padding: 0,
+    // Prevent scrolling of background
+    overscrollBehavior: 'contain' as const,
   } as CSSProperties,
 
-  // Container
+  // Container - FIXED: Proper centering and sizing
   container: {
     position: 'relative' as const,
     width: '480px',
-    maxWidth: 'calc(100vw - 2rem)',
-    maxHeight: 'calc(100vh - 4rem)',
+    maxWidth: '90vw', // Changed from calc(100vw - 2rem) for better mobile handling
+    maxHeight: '85vh', // Changed from calc(100vh - 4rem) for better centering
     background: `linear-gradient(to bottom, ${colors.dark[900]}, ${colors.dark.black})`,
     backdropFilter: 'blur(24px)',
+    WebkitBackdropFilter: 'blur(24px)', // Safari support
     borderRadius: '1rem',
     borderWidth: '1px',
     borderStyle: 'solid',
@@ -76,6 +88,10 @@ export const styles = {
     animation: 'slideUp 0.3s ease-out',
     display: 'flex',
     flexDirection: 'column' as const,
+    // Add shadow for better visibility
+    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+    // Center the modal properly
+    margin: 'auto',
   } as CSSProperties,
 
   // Gradient Orbs
@@ -402,7 +418,7 @@ export const styles = {
     background: colors.gray[100],
     borderWidth: '1px',
     borderStyle: 'solid',
-    borderColor: 'rgba(255, 255, 255, 0.1)',  // Changed to subtle white/transparent border
+    borderColor: 'rgba(255, 255, 255, 0.1)',
     objectFit: 'cover' as const,
   } as CSSProperties,
 
@@ -413,7 +429,7 @@ export const styles = {
     background: `linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(147, 51, 234, 0.2))`,
     borderWidth: '1px',
     borderStyle: 'solid',
-    borderColor: 'rgba(255, 255, 255, 0.1)',  // Changed to subtle white/transparent border
+    borderColor: 'rgba(255, 255, 255, 0.1)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -471,7 +487,7 @@ export const styles = {
 
   tokenBalance: {
     fontSize: '0.75rem',
-    color: colors.gray[600],  // Changed from gray[400] to gray[600] for better visibility
+    color: colors.gray[600],
   } as CSSProperties,
 
   // Token Actions
@@ -667,13 +683,23 @@ export const mergeStyles = (...styles: (CSSProperties | undefined)[]) => {
   return Object.assign({}, ...styles.filter(Boolean));
 };
 
-// Mobile styles
+// Mobile styles - FIXED: Full screen modal on mobile
 export const mobileStyles = {
+  overlay: {
+    padding: 0,
+    margin: 0,
+  } as CSSProperties,
+  
   container: {
     width: '100%',
     maxWidth: '100%',
-    maxHeight: '100vh',
+    height: '100%',
+    maxHeight: '100%',
     borderRadius: 0,
+    margin: 0,
+    border: 'none',
+    // Remove any positioning that might cause issues
+    position: 'relative' as const,
   } as CSSProperties,
 
   tokenListContainer: {
