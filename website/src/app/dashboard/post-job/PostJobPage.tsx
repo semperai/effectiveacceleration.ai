@@ -545,9 +545,6 @@ const PostJob = () => {
   const [amount, setAmount] = useState(initialValues.amount);
   const [deadline, setDeadline] = useState<number>(initialValues.deadline || 1);
   const [imFeelingLucky, setImFeelingLucky] = useState(noYes[0]);
-  const [arbitratorRequired, setArbitratorRequired] = useState(
-    initialValues.arbitrator && initialValues.arbitrator !== zeroAddress ? noYes[1] : noYes[0]
-  );
   const [selectedUnitTime, setselectedUnitTime] = useState<ComboBoxOption>(
     convertUnitForDisplay(initialValues.unit || unitsDeliveryTime[2]) // Convert to display format
   );
@@ -644,20 +641,6 @@ const PostJob = () => {
     setPaymentTokenError('');
   }, [tokenBalance]);
 
-  const validateArbitratorRequired = useCallback((required: string) => {
-    setArbitratorRequired(required);
-    if (required === 'No') {
-      setSelectedArbitratorAddress(zeroAddress);
-      setArbitratorError('');
-      return;
-    }
-    if (required === 'Yes' && (!selectedArbitratorAddress || selectedArbitratorAddress === zeroAddress)) {
-      setArbitratorError('Please select an arbitrator');
-      return;
-    }
-    setArbitratorError('');
-  }, [selectedArbitratorAddress]);
-
   const validateArbitrator = useCallback((addr: string) => {
     setSelectedArbitratorAddress(addr);
     if (addr == address) {
@@ -702,11 +685,12 @@ const PostJob = () => {
         }
       }
       if (deadline && !isNaN(deadline) && deadline > 0) setDeadlineError('');
-      if (arbitratorRequired === 'No' || (selectedArbitratorAddress && selectedArbitratorAddress !== zeroAddress)) {
+      // Simplified: no need to check arbitratorRequired anymore
+      if (selectedArbitratorAddress && selectedArbitratorAddress !== address) {
         setArbitratorError('');
       }
     }
-  }, [title, selectedCategory, amount, tokenBalance, deadline, arbitratorRequired, selectedArbitratorAddress, validationAttempted]);
+  }, [title, selectedCategory, amount, tokenBalance, deadline, selectedArbitratorAddress, address, validationAttempted]);
 
   useEffect(() => {
     if (initialValues.title) validateTitle(initialValues.title);
@@ -715,7 +699,7 @@ const PostJob = () => {
     if (initialValues.deadline) validateDeadline(initialValues.deadline.toString());
   }, [initialValues.title, initialValues.amount, initialValues.arbitrator, initialValues.deadline, validateTitle, validatePaymentAmount, validateArbitrator, validateDeadline]);
 
-  // Updated handleSubmit with balance validation
+  // Updated handleSubmit - removed arbitratorRequired validation
   const handleSubmit = useCallback(() => {
     setValidationAttempted(true);
     setTitleError('');
@@ -757,8 +741,9 @@ const PostJob = () => {
       hasErrors = true;
     }
 
-    if (arbitratorRequired === 'Yes' && (!selectedArbitratorAddress || selectedArbitratorAddress === zeroAddress)) {
-      errorFields.push({ ref: jobArbitratorRef, setter: setArbitratorError, message: 'Please select an arbitrator' });
+    // Simplified: Only check if user selected themselves as arbitrator
+    if (selectedArbitratorAddress && selectedArbitratorAddress === address) {
+      errorFields.push({ ref: jobArbitratorRef, setter: setArbitratorError, message: 'You cannot be your own arbitrator' });
       hasErrors = true;
     }
 
@@ -771,7 +756,7 @@ const PostJob = () => {
     }
 
     handleSummary();
-  }, [title, amount, tokenBalance, selectedCategory, deadline, arbitratorRequired, selectedArbitratorAddress, handleSummary]);
+  }, [title, amount, tokenBalance, selectedCategory, deadline, selectedArbitratorAddress, address, handleSummary]);
 
   return (
     <div className='relative min-h-screen'>
@@ -835,7 +820,7 @@ const PostJob = () => {
                 </h2>
 
                 <FieldGroup className='space-y-6'>
-                  <MinimalField error={titleError} label='Job Title' helperText='A short descriptive title for the job post' required>
+                  <MinimalField error={titleError} label='Job Title' helperText='A short descriptive title for the job post'required>
                     <div className='scroll-mt-20' ref={jobTitleRef} />
                     <Input
                       name='title'
@@ -1033,67 +1018,32 @@ const PostJob = () => {
                     )}
                   </div>
 
-                  <div className={`relative rounded-xl border transition-all duration-300 overflow-hidden ${arbitratorRequired === 'Yes' ? 'border-purple-500/30 bg-gradient-to-br from-purple-500/5 via-transparent to-blue-500/5' : 'border-gray-200/50 dark:border-gray-700/50 bg-white/30 dark:bg-gray-800/30'}`}>
-                    <div className='p-4'>
-                      <div className='flex flex-row items-center justify-between'>
-                        <div className='flex items-center gap-2'>
-                          <PiScales className={`h-4 w-4 transition-colors duration-300 ${arbitratorRequired === 'Yes' ? 'text-purple-500' : 'text-gray-400 dark:text-gray-500'}`} />
-                          <div>
-                            <Label className='text-gray-700 dark:text-gray-300'>Arbitrator Required</Label>
-                            <p className='text-gray-500 dark:text-gray-400 text-xs mt-1'>Enable third-party dispute resolution</p>
-                          </div>
-                        </div>
-                        <RadioGroup
-                          className='!mt-0 flex gap-3'
-                          value={arbitratorRequired}
-                          onChange={(value) => validateArbitratorRequired(value)}
-                          aria-label='Arbitrator Required'
-                        >
-                          {noYes.map((option) => (
-                            <Field className='!mt-0 flex items-center' key={option}>
-                              <Radio color='default' className='mr-1.5' value={option}>
-                                <span>{option}</span>
-                              </Radio>
-                              <Label className='text-gray-700 dark:text-gray-300 cursor-pointer'>{option}</Label>
-                            </Field>
-                          ))}
-                        </RadioGroup>
+                  {/* Simplified Arbitrator Section */}
+                  <MinimalField 
+                    error={arbitratorError} 
+                    label='Dispute Resolution' 
+                    icon={<PiScales className='h-4 w-4' />} 
+                    helperText={selectedArbitratorAddress && selectedArbitratorAddress !== zeroAddress 
+                      ? 'An arbitrator can help resolve disputes if they arise' 
+                      : 'Select an arbitrator for third-party dispute resolution (optional)'
+                    }
+                  >
+                    <div className='scroll-mt-20' ref={jobArbitratorRef} />
+                    <ArbitratorSelector
+                      arbitrators={arbitrators || []}
+                      selectedAddress={selectedArbitratorAddress}
+                      onChange={validateArbitrator}
+                      disabled={false}
+                    />
+                    
+                    {selectedArbitratorAddress && selectedArbitratorAddress !== zeroAddress && !arbitratorError && (
+                      <div className='mt-3 px-3 py-2 bg-purple-500/10 border border-purple-500/20 rounded-lg'>
+                        <p className='text-xs text-purple-600 dark:text-purple-400'>
+                          The arbitrator will receive their fee upon successful dispute resolution
+                        </p>
                       </div>
-
-                      <div className={`grid transition-all duration-300 ease-in-out ${arbitratorRequired === 'Yes' ? 'grid-rows-[1fr] opacity-100 mt-4' : 'grid-rows-[0fr] opacity-0 mt-0'}`}>
-                        <div className='overflow-hidden'>
-                          <div className={`transition-transform duration-300 ${arbitratorRequired === 'Yes' ? 'translate-y-0' : '-translate-y-4'}`}>
-                            <div className='border-t border-purple-500/20 pt-4'>
-                              <div className='scroll-mt-20' ref={jobArbitratorRef} />
-                              <div className='space-y-3'>
-                                <ArbitratorSelector
-                                  arbitrators={arbitrators || []}
-                                  selectedAddress={selectedArbitratorAddress}
-                                  onChange={validateArbitrator}
-                                  disabled={false}
-                                />
-
-                                {arbitratorError && (
-                                  <div className='flex items-center gap-1 text-xs text-red-500 dark:text-red-400'>
-                                    <AlertCircle className='h-3 w-3' />
-                                    {arbitratorError}
-                                  </div>
-                                )}
-
-                                {selectedArbitratorAddress && selectedArbitratorAddress !== zeroAddress && !arbitratorError && (
-                                  <div className='px-3 py-2 bg-purple-500/10 border border-purple-500/20 rounded-lg'>
-                                    <p className='text-xs text-purple-600 dark:text-purple-400'>
-                                      The arbitrator will receive their fee upon successful dispute resolution
-                                    </p>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                    )}
+                  </MinimalField>
                 </FieldGroup>
               </div>
             </div>
