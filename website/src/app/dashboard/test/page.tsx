@@ -1,10 +1,6 @@
 'use client';
 import React, { useCallback } from 'react';
 import { useState } from 'react';
-import TokenSelectModal from '@/components/TokenSelectModal';
-import TokenDialog from '@/components/TokenDialog';
-import { mockTokens } from '@/components/TokenDialog/Dependencies/mockTokens';
-import arbitrumTokens from '@/components/TokenDialog/Dependencies/arbitrumTokens.json';
 import { Layout } from '@/components/Dashboard/Layout';
 import Unicrow from '@unicrowio/sdk';
 import { Input } from '@/components/Input';
@@ -161,17 +157,6 @@ const Test = () => {
           </div>
         </div>
       </div>
-      {/* <TokenDialog
-          initiallySelectedToken={selectedToken}
-          preferredTokenList={mockTokens(preferredTokens)}
-          tokensList={selectableTokens?.tokens}
-          closeCallback={(dialogSelectedToken: IArbitrumToken) => {
-            if (dialogSelectedToken) {
-              setSelectedToken(dialogSelectedToken);
-            }
-            setTokenSelectionDialogOpen(false);
-          }}
-        /> */}
     </Layout>
   );
 };

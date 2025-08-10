@@ -13,6 +13,20 @@ import { X, Search, ExternalLink, Plus, Loader2, Star } from 'lucide-react';
 import { styles, mergeStyles, keyframes, mobileStyles } from './styles';
 import { DEFAULT_TOKEN_ICON } from './icons/DefaultTokenIcon';
 
+// Type definitions for FavoriteTokenChip props
+interface FavoriteTokenChipProps {
+  token: IArbitrumToken;
+  balance: {
+    decimals: number;
+    formatted: string;
+    symbol: string;
+    value: bigint;
+  } | undefined;
+  isSelected: boolean;
+  onSelect: () => void;
+  onRemove: () => void;
+}
+
 // Inline uniqueBy function
 function uniqueBy<T>(
   key: keyof T,
@@ -67,24 +81,28 @@ const useTokenBalance = (tokenAddress: string, enabled: boolean = true) => {
   const { data: balance } = useBalance({
     address: address,
     token: tokenAddress as `0x${string}`,
-    enabled: enabled && !!address && ethers.isAddress(tokenAddress),
+    query: {
+      enabled: enabled && !!address && ethers.isAddress(tokenAddress),
+    },
   });
 
   return balance;
 };
 
-const TokenDialog = ({
+interface TokenDialogProps {
+  initiallySelectedToken: IArbitrumToken;
+  tokensList: IArbitrumToken[];
+  preferredTokenList: IArbitrumToken[];
+  closeCallback: (token: IArbitrumToken) => void;
+  persistSelection?: boolean;
+}
+
+const TokenDialog: React.FC<TokenDialogProps> = ({
   initiallySelectedToken,
   tokensList,
   preferredTokenList,
   closeCallback,
   persistSelection = true,
-}: {
-  initiallySelectedToken: IArbitrumToken;
-  tokensList: IArbitrumToken[];
-  preferredTokenList: IArbitrumToken[];
-  closeCallback: (arg0: IArbitrumToken) => void;
-  persistSelection?: boolean;
 }) => {
   const [selectedToken, setSelectedToken] = useState<IArbitrumToken>(
     initiallySelectedToken
@@ -96,7 +114,7 @@ const TokenDialog = ({
   );
   const [searchValue, setSearchValue] = useState<string>('');
   const [provider, setProvider] = useState<ethers.Provider | null>(null);
-  const [sortedTokensList, setSortedTokensList] = useState([]);
+  const [sortedTokensList, setSortedTokensList] = useState<IArbitrumToken[]>([]);
   const [isLoadingToken, setIsLoadingToken] = useState(false);
   const [tokenLoadError, setTokenLoadError] = useState<string>('');
   const [hoveredStates, setHoveredStates] = useState<{ [key: string]: boolean }>({});
@@ -119,7 +137,7 @@ const TokenDialog = ({
     setHoveredStates(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleSelectToken = (token: IArbitrumToken, event: any) => {
+  const handleSelectToken = (token: IArbitrumToken, event: React.MouseEvent) => {
     event.stopPropagation();
 
     const target = event.target as HTMLElement;
@@ -187,8 +205,8 @@ const TokenDialog = ({
     try {
       // Try to use window.ethereum first, fallback to public RPC
       let provider: ethers.Provider;
-      if (window.ethereum) {
-        provider = new ethers.BrowserProvider(window.ethereum as any);
+      if ((window as any).ethereum) {
+        provider = new ethers.BrowserProvider((window as any).ethereum);
       } else {
         // Fallback to public RPC
         provider = new ethers.JsonRpcProvider('https://eth.llamarpc.com');
@@ -274,8 +292,8 @@ const TokenDialog = ({
     lscacheModule.set('preferred-tokens', newList, Infinity);
   };
 
-  const handleTokenListScroll = (e: any) => {
-    const t = e.target;
+  const handleTokenListScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const t = e.target as HTMLDivElement;
     const atTop = t.scrollTop === 0;
     const atBottom = t.scrollHeight - t.scrollTop === t.clientHeight;
 
@@ -294,8 +312,8 @@ const TokenDialog = ({
   useEffect(() => {
     const getProvider = async () => {
       try {
-        if (window.ethereum) {
-          const browserProvider = new ethers.BrowserProvider(window.ethereum as any);
+        if ((window as any).ethereum) {
+          const browserProvider = new ethers.BrowserProvider((window as any).ethereum);
           setProvider(browserProvider);
         }
       } catch (error) {
@@ -326,7 +344,7 @@ const TokenDialog = ({
     if (filteredTokens?.length === 0) {
       setFilteredTokens([...tokensList, ...customTokens]);
     }
-  }, [tokensList, preferredTokenList, customTokens]);
+  }, [tokensList, preferredTokenList, customTokens, favoriteTokens?.length, filteredTokens?.length]);
 
   useEffect(() => {
     const checkIfAddressAndShow = async () => {
@@ -357,7 +375,7 @@ const TokenDialog = ({
     const _value = `${searchValue}`.toLowerCase();
 
     if (_value !== '') {
-      const newList = [];
+      const newList: IArbitrumToken[] = [];
       for (const token of list) {
         const _searchText =
           `${token.name} ${token.address} ${token.symbol}`.toLowerCase();
@@ -372,15 +390,16 @@ const TokenDialog = ({
     }
   }, [searchValue, tokensList, sortedTokensList, customTokens]);
 
-  const AvatarNonEth = (token: any) => {
+  const AvatarNonEth = (token: IArbitrumToken) => {
     if (token.logoURI) {
       return (
         <img
           src={token.logoURI}
           alt={token.symbol}
-          onError={(e: any) => {
-            e.target.onerror = null;
-            e.target.src = DEFAULT_TOKEN_ICON;
+          onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+            const target = e.target as HTMLImageElement;
+            target.onerror = null;
+            target.src = DEFAULT_TOKEN_ICON;
           }}
           style={{
             width: '20px',
@@ -571,11 +590,17 @@ const TokenDialog = ({
 };
 
 // Separate component for favorite token chips with balance
-const FavoriteTokenChip = ({ token, balance, isSelected, onSelect, onRemove }) => {
+const FavoriteTokenChip: React.FC<FavoriteTokenChipProps> = ({ 
+  token, 
+  balance, 
+  isSelected, 
+  onSelect, 
+  onRemove 
+}) => {
   const [isHovered, setIsHovered] = useState(false);
 
-  const formatBalance = (bal) => {
-    if (!bal) return '';
+  const formatBalance = (bal: FavoriteTokenChipProps['balance']) => {
+    if (!bal || !bal.formatted) return '';
     const value = parseFloat(bal.formatted);
     if (value === 0) return '0';
     if (value < 0.001) return '<0.001';
@@ -602,9 +627,10 @@ const FavoriteTokenChip = ({ token, balance, isSelected, onSelect, onRemove }) =
             <img
               src={token.logoURI}
               alt={token.symbol}
-              onError={(e: any) => {
-                e.target.onerror = null;
-                e.target.src = DEFAULT_TOKEN_ICON;
+              onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                const target = e.target as HTMLImageElement;
+                target.onerror = null;
+                target.src = DEFAULT_TOKEN_ICON;
               }}
               style={{
                 width: '20px',
@@ -648,16 +674,18 @@ const FavoriteTokenChip = ({ token, balance, isSelected, onSelect, onRemove }) =
   );
 };
 
-const TokenItem = ({
-  token,
-  selectedToken,
-  handleSelectToken,
-  addFavoriteTokens,
-}: {
+interface TokenItemProps {
   token: IArbitrumToken;
   selectedToken: IArbitrumToken | null;
   handleSelectToken: (token: IArbitrumToken, event: React.MouseEvent) => void;
   addFavoriteTokens: (token: IArbitrumToken) => void;
+}
+
+const TokenItem: React.FC<TokenItemProps> = ({
+  token,
+  selectedToken,
+  handleSelectToken,
+  addFavoriteTokens,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [buttonHovers, setButtonHovers] = useState({ pin: false, link: false });
@@ -676,9 +704,10 @@ const TokenItem = ({
         <img
           src={token.logoURI}
           alt={token.symbol}
-          onError={(e: any) => {
-            e.target.onerror = null;
-            e.target.src = DEFAULT_TOKEN_ICON;
+          onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+            const target = e.target as HTMLImageElement;
+            target.onerror = null;
+            target.src = DEFAULT_TOKEN_ICON;
           }}
           style={styles.tokenAvatar}
         />
