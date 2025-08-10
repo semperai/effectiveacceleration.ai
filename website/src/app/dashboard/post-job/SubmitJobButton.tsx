@@ -54,23 +54,7 @@ export const SubmitJobButton = ({
     );
   };
 
-  // Debug logging - this will help us see what's being passed
-  useEffect(() => {
-    console.log('=== SubmitJobButton Debug Info ===');
-    console.log('Tags array received:', tags);
-    console.log('Number of tags:', tags.length);
-    console.log('Tags as JSON:', stringifyWithBigInt(tags));
-    console.log('First tag (should be MECE):', tags[0]);
-    console.log('Title:', title);
-    console.log('Description length:', description.length);
-    console.log('Multiple applicants:', multipleApplicants);
-    console.log('Token:', token);
-    console.log('Amount:', amount.toString());
-    console.log('Deadline:', deadline.toString());
-    console.log('Delivery method:', deliveryMethod);
-    console.log('Arbitrator:', arbitrator);
-    console.log('=================================');
-  }, [tags, title, description, multipleApplicants, token, amount, deadline, deliveryMethod, arbitrator]);
+
 
   // Cleanup function for dismissing loading toasts
   const dismissLoadingToast = useCallback(() => {
@@ -112,9 +96,7 @@ export const SubmitJobButton = ({
         return;
       }
 
-      console.log('=== Pre-submission validation ===');
-      console.log('Tags to be submitted:', tags);
-      console.log('Tags stringified:', stringifyWithBigInt(tags));
+
 
       setIsSubmitting(true);
       let contentHash = ZeroHash;
@@ -152,61 +134,59 @@ export const SubmitJobButton = ({
         [], // allowedWorkers - empty array
       ];
 
-      console.log('=== Contract call arguments ===');
-      console.log('Full args array:', args);
-      console.log('Args[3] (tags):', args[3]);
-      console.log('Args stringified:', stringifyWithBigInt(args));
 
-      await writeContractWithNotifications({
-        address: Config.marketplaceAddress,
-        abi: MARKETPLACE_V1_ABI,
-        functionName: 'publishJobPost',
-        args,
-        contracts: {
-          marketplaceAddress: Config.marketplaceAddress,
-          marketplaceDataAddress: Config.marketplaceDataAddress,
-        },
-        onReceipt: (receipt, parsedEvents) => {
-          showSuccess('Job post submitted successfully!');
-          onSuccess?.();
-          for (const event of parsedEvents) {
-            if (event.eventName === 'JobEvent') {
-              router.push(`/dashboard/jobs/${event.args.jobId}`);
-              return;
+
+      try {
+        await writeContractWithNotifications({
+          address: Config.marketplaceAddress,
+          abi: MARKETPLACE_V1_ABI,
+          functionName: 'publishJobPost',
+          args,
+          contracts: {
+            marketplaceAddress: Config.marketplaceAddress,
+            marketplaceDataAddress: Config.marketplaceDataAddress,
+          },
+          onReceipt: (receipt, parsedEvents) => {
+            showSuccess('Job post submitted successfully!');
+            onSuccess?.();
+            for (const event of parsedEvents) {
+              if (event.eventName === 'JobEvent') {
+                router.push(`/dashboard/jobs/${event.args.jobId}`);
+                return;
+              }
             }
-          }
-        },
-        onError: (error) => {
-          console.error('Contract call error:', error);
-          // Parse the error message to provide more helpful feedback
-          const errorMessage = error.message || error.toString();
-          if (errorMessage.includes('exactly one MECE tag is required')) {
-            showError('Error: Exactly one MECE category tag is required. Please ensure you have selected a category.');
-            console.error('MECE tag validation failed. Current tags:', tags);
-          } else if (errorMessage.includes('title too short or long')) {
-            showError('Error: Title must be between 1 and 254 characters.');
-          } else if (errorMessage.includes('amount must be greater than 0')) {
-            showError('Error: Amount must be greater than 0.');
-          } else if (errorMessage.includes('At least one tag is required')) {
-            showError('Error: At least one tag is required.');
-          } else {
-            showError(`Transaction failed: ${errorMessage}`);
-          }
-          onError?.(error);
-        },
-      });
+          },
+        });
+      } catch (error: any) {
+        // Parse the error message to provide more helpful feedback
+        const errorMessage = error.message || error.toString();
+        if (errorMessage.includes('exactly one MECE tag is required')) {
+          showError('Error: Exactly one MECE category tag is required. Please ensure you have selected a category.');
+        } else if (errorMessage.includes('title too short or long')) {
+          showError('Error: Title must be between 1 and 254 characters.');
+        } else if (errorMessage.includes('amount must be greater than 0')) {
+          showError('Error: Amount must be greater than 0.');
+        } else if (errorMessage.includes('At least one tag is required')) {
+          showError('Error: At least one tag is required.');
+        } else {
+          showError(`Transaction failed: ${errorMessage}`);
+        }
+        onError?.(error);
+        throw error; // Re-throw to be caught by outer try-catch
+      }
     } catch (err) {
-      console.error('Submit job error:', err);
       Sentry.captureException(err);
-      onError?.(err as Error);
       
       // Enhanced error handling
       const errorMessage = (err as Error).message || err;
       if (errorMessage.toString().includes('exactly one MECE tag is required')) {
         showError('Please select exactly one category for your job post.');
-      } else {
+      } else if (!errorMessage.toString().includes('Transaction failed')) {
+        // Only show this if we haven't already shown a more specific error
         showError(`Failed to submit job: ${errorMessage}`);
       }
+      
+      onError?.(err as Error);
     } finally {
       setIsSubmitting(false);
     }
