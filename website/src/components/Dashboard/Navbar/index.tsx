@@ -19,6 +19,8 @@ interface NavbarProps {
   setSidebarOpen: (value: boolean) => void;
   sidebarOpen?: boolean;
   hiddenSidebar?: boolean;
+  pageTitle?: string;
+  is404?: boolean;
 }
 
 const EACC_TOKEN_ADDRESS = '0x9Eeab030a17528eFb2aC0F81D76fab8754e461BD';
@@ -111,7 +113,20 @@ const SignUpButton = () => {
   );
 };
 
-const Navbar = ({ setSidebarOpen, sidebarOpen, hiddenSidebar }: NavbarProps) => {
+// Custom 404 breadcrumb component
+const NotFoundBreadcrumb = () => (
+  <div className="flex items-center">
+    <a href="/dashboard" className="hover:underline font-medium text-sm text-gray-600 dark:text-gray-300 transition-colors">
+      Dashboard
+    </a>
+    <MdOutlineArrowForwardIos className='h-4 w-4 text-gray-300 dark:text-gray-600 mx-2' />
+    <span className="font-medium text-sm text-primary">
+      Page Not Found
+    </span>
+  </div>
+);
+
+const Navbar = ({ setSidebarOpen, sidebarOpen, hiddenSidebar, pageTitle, is404 }: NavbarProps) => {
   const { address, isConnected, isReconnecting, isConnecting } = useAccount();
   const { data: user, loading: isLoadingUser } = useUser(address!);
   const { data: arbitrator, loading: isLoadingArbitrator } = useArbitrator(address!);
@@ -208,17 +223,27 @@ const Navbar = ({ setSidebarOpen, sidebarOpen, hiddenSidebar }: NavbarProps) => 
 
           {/* Main navbar content */}
           <div className='flex flex-1 items-center justify-end gap-x-4 md:justify-between lg:gap-x-6'>
-            {/* Breadcrumbs */}
+            {/* Breadcrumbs or Page Title */}
             <div className='hidden flex-1 md:block'>
-              <BreadCrumbs
-                separator={
-                  <MdOutlineArrowForwardIos className='h-4 w-4 text-gray-300 dark:text-gray-600' />
-                }
-                activeClasses='text-primary'
-                containerClasses='flex items-center'
-                listClasses='hover:underline mx-2 font-medium text-sm text-gray-600 dark:text-gray-300 transition-colors'
-                capitalizeLinks
-              />
+              {is404 ? (
+                <NotFoundBreadcrumb />
+              ) : pageTitle ? (
+                <div className="flex items-center">
+                  <span className="font-medium text-sm text-gray-600 dark:text-gray-300">
+                    {pageTitle}
+                  </span>
+                </div>
+              ) : (
+                <BreadCrumbs
+                  separator={
+                    <MdOutlineArrowForwardIos className='h-4 w-4 text-gray-300 dark:text-gray-600' />
+                  }
+                  activeClasses='text-primary'
+                  containerClasses='flex items-center'
+                  listClasses='hover:underline mx-2 font-medium text-sm text-gray-600 dark:text-gray-300 transition-colors'
+                  capitalizeLinks
+                />
+              )}
             </div>
 
             {/* Right side actions with proper loading state */}
