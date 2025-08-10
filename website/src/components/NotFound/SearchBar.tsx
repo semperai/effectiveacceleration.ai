@@ -21,7 +21,7 @@ export function SearchBar() {
         type="text"
         value={searchValue}
         onChange={(e) => setSearchValue(e.target.value)}
-        placeholder="Search for jobs, users, or documentation..."
+        placeholder="Why not search for open jobs..."
         className="w-full rounded-xl border border-white/10 bg-white/5 py-3 pl-12 pr-4 text-white placeholder-gray-400 backdrop-blur-sm transition-all duration-200 focus:border-blue-500/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
