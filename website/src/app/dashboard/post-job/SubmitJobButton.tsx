@@ -178,10 +178,10 @@ export const SubmitJobButton = ({
       Sentry.captureException(err);
       
       // Enhanced error handling
-      const errorMessage = (err as Error).message || err;
-      if (errorMessage.toString().includes('exactly one MECE tag is required')) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      if (errorMessage.includes('exactly one MECE tag is required')) {
         showError('Please select exactly one category for your job post.');
-      } else if (!errorMessage.toString().includes('Transaction failed')) {
+      } else if (!errorMessage.includes('Transaction failed')) {
         // Only show this if we haven't already shown a more specific error
         showError(`Failed to submit job: ${errorMessage}`);
       }
