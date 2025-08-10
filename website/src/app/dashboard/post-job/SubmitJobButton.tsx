@@ -6,8 +6,8 @@ import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithN
 import { publishToIpfs } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { ZeroHash } from 'ethers';
-import { Loader2, Send, Unlock } from 'lucide-react';
-import { useCallback, useState, useRef } from 'react';
+import { Loader2, Send, Unlock, AlertCircle } from 'lucide-react';
+import { useCallback, useState, useRef, useEffect } from 'react';
 import type { Address } from 'viem';
 import { useAccount, useReadContract } from 'wagmi';
 import { useRouter } from 'next/navigation';
@@ -47,6 +47,31 @@ export const SubmitJobButton = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const loadingToastIdRef = useRef<string | number | null>(null);
 
+  // Helper function to safely stringify BigInt values
+  const stringifyWithBigInt = (obj: any): string => {
+    return JSON.stringify(obj, (key, value) =>
+      typeof value === 'bigint' ? value.toString() : value
+    );
+  };
+
+  // Debug logging - this will help us see what's being passed
+  useEffect(() => {
+    console.log('=== SubmitJobButton Debug Info ===');
+    console.log('Tags array received:', tags);
+    console.log('Number of tags:', tags.length);
+    console.log('Tags as JSON:', stringifyWithBigInt(tags));
+    console.log('First tag (should be MECE):', tags[0]);
+    console.log('Title:', title);
+    console.log('Description length:', description.length);
+    console.log('Multiple applicants:', multipleApplicants);
+    console.log('Token:', token);
+    console.log('Amount:', amount.toString());
+    console.log('Deadline:', deadline.toString());
+    console.log('Delivery method:', deliveryMethod);
+    console.log('Arbitrator:', arbitrator);
+    console.log('=================================');
+  }, [tags, title, description, multipleApplicants, token, amount, deadline, deliveryMethod, arbitrator]);
+
   // Cleanup function for dismissing loading toasts
   const dismissLoadingToast = useCallback(() => {
     if (loadingToastIdRef.current !== null) {
@@ -81,6 +106,16 @@ export const SubmitJobButton = ({
         throw new Error('Config not found');
       }
 
+      // Additional validation before submission
+      if (tags.length === 0) {
+        showError('No tags provided. At least one MECE tag is required.');
+        return;
+      }
+
+      console.log('=== Pre-submission validation ===');
+      console.log('Tags to be submitted:', tags);
+      console.log('Tags stringified:', stringifyWithBigInt(tags));
+
       setIsSubmitting(true);
       let contentHash = ZeroHash;
 
@@ -97,6 +132,7 @@ export const SubmitJobButton = ({
           dismissLoadingToast();
           showError('Failed to publish job post to IPFS');
           setIsSubmitting(false);
+          onError?.(err as Error);
           return;
         }
         dismissLoadingToast();
@@ -113,8 +149,13 @@ export const SubmitJobButton = ({
         deadline,
         deliveryMethod,
         arbitrator,
-        [],
+        [], // allowedWorkers - empty array
       ];
+
+      console.log('=== Contract call arguments ===');
+      console.log('Full args array:', args);
+      console.log('Args[3] (tags):', args[3]);
+      console.log('Args stringified:', stringifyWithBigInt(args));
 
       await writeContractWithNotifications({
         address: Config.marketplaceAddress,
@@ -127,6 +168,7 @@ export const SubmitJobButton = ({
         },
         onReceipt: (receipt, parsedEvents) => {
           showSuccess('Job post submitted successfully!');
+          onSuccess?.();
           for (const event of parsedEvents) {
             if (event.eventName === 'JobEvent') {
               router.push(`/dashboard/jobs/${event.args.jobId}`);
@@ -134,10 +176,37 @@ export const SubmitJobButton = ({
             }
           }
         },
+        onError: (error) => {
+          console.error('Contract call error:', error);
+          // Parse the error message to provide more helpful feedback
+          const errorMessage = error.message || error.toString();
+          if (errorMessage.includes('exactly one MECE tag is required')) {
+            showError('Error: Exactly one MECE category tag is required. Please ensure you have selected a category.');
+            console.error('MECE tag validation failed. Current tags:', tags);
+          } else if (errorMessage.includes('title too short or long')) {
+            showError('Error: Title must be between 1 and 254 characters.');
+          } else if (errorMessage.includes('amount must be greater than 0')) {
+            showError('Error: Amount must be greater than 0.');
+          } else if (errorMessage.includes('At least one tag is required')) {
+            showError('Error: At least one tag is required.');
+          } else {
+            showError(`Transaction failed: ${errorMessage}`);
+          }
+          onError?.(error);
+        },
       });
     } catch (err) {
+      console.error('Submit job error:', err);
       Sentry.captureException(err);
       onError?.(err as Error);
+      
+      // Enhanced error handling
+      const errorMessage = (err as Error).message || err;
+      if (errorMessage.toString().includes('exactly one MECE tag is required')) {
+        showError('Please select exactly one category for your job post.');
+      } else {
+        showError(`Failed to submit job: ${errorMessage}`);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -181,25 +250,44 @@ export const SubmitJobButton = ({
     );
   }
 
-  // Show submit button if approved - glassmorphic design
+  // Show submit button if approved - with debug info
   return (
-    <button
-      onClick={handleSubmitJob}
-      disabled={isSubmitting || isConfirming}
-      className={`group relative px-8 py-3 rounded-xl font-medium transition-all duration-200 shadow-lg border border-white/10 bg-slate-800`}
-    >
-      {isSubmitting || isConfirming ? (
-        <span className='relative flex items-center justify-center gap-2 text-white'>
-          <Loader2 className='h-4 w-4 animate-spin' />
-          <span>Submitting Job...</span>
-        </span>
-      ) : (
-        <span className='relative flex items-center justify-center gap-2 text-white'>
-          <Send className='h-4 w-4' />
-          <span className='text-white'>Submit Job Post</span>
-        </span>
+    <div className="flex flex-col items-end gap-2">
+      {/* Debug info in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 p-2 rounded">
+          <div className="flex items-center gap-1 mb-1">
+            <AlertCircle className="h-3 w-3" />
+            <span className="font-semibold">Debug Info:</span>
+          </div>
+          <div>Tags count: {tags.length}</div>
+          <div>First tag: {tags[0] || 'none'}</div>
+          <div>All tags: {tags.join(', ')}</div>
+        </div>
       )}
-    </button>
+      
+      <button
+        onClick={handleSubmitJob}
+        disabled={isSubmitting || isConfirming}
+        className={`group relative px-8 py-3 rounded-xl font-medium transition-all duration-200 shadow-lg border border-white/10 ${
+          isSubmitting || isConfirming
+            ? 'bg-gray-600 cursor-not-allowed'
+            : 'bg-slate-800 hover:bg-slate-700'
+        }`}
+      >
+        {isSubmitting || isConfirming ? (
+          <span className='relative flex items-center justify-center gap-2 text-white'>
+            <Loader2 className='h-4 w-4 animate-spin' />
+            <span>Submitting Job...</span>
+          </span>
+        ) : (
+          <span className='relative flex items-center justify-center gap-2 text-white'>
+            <Send className='h-4 w-4' />
+            <span className='text-white'>Submit Job Post</span>
+          </span>
+        )}
+      </button>
+    </div>
   );
 };
 

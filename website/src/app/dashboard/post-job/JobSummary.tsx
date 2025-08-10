@@ -22,7 +22,8 @@ import {
   CheckCircle,
   AlertCircle,
   Sparkles,
-  Scale
+  Scale,
+  Hash
 } from 'lucide-react';
 import EventProfileImage from '@/components/Events/Components/EventProfileImage';
 
@@ -136,8 +137,28 @@ const JobSummary: React.FC<JobSummaryProps> = ({
     onTransactionComplete?.(); // Close loading modal on error
   }, [onTransactionComplete]);
 
-  // Combine selected category and other tags
-  const allTags = [selectedCategory.name, ...tags.map(tag => tag.name)];
+  // IMPORTANT: Map the category name to its MECE tag ID for the contract
+  // The contract expects the short form (e.g., "DT") not the display name
+  const getMeceTagId = (categoryName: string): string => {
+    const meceMapping: { [key: string]: string } = {
+      'Digital Audio': 'DA',
+      'Digital Video': 'DV',
+      'Digital Text': 'DT',
+      'Digital Software': 'DS',
+      'Digital Others': 'DO',
+      'Non-Digital Goods': 'NDG',
+      'Non-Digital Services': 'NDS',
+      'Non-Digital Others': 'NDO',
+    };
+    return meceMapping[categoryName] || categoryName;
+  };
+
+  // Use the MECE tag ID for the contract, not the display name
+  const meceTagId = getMeceTagId(selectedCategory.name);
+  const allTagsForContract = [meceTagId, ...tags.map(tag => tag.name)];
+  
+  // For display purposes, we'll show them separately
+  const additionalTags = tags.map(tag => tag.name);
 
   if (!selectedToken || !Config) {
     return (
@@ -186,12 +207,18 @@ const JobSummary: React.FC<JobSummaryProps> = ({
                 <Briefcase className="h-6 w-6" />
               </div>
               <div className="flex-1">
-                <h2 className="text-2xl font-bold mb-2">{title}</h2>
+                <h2 className="text-2xl font-bold mb-2 text-white">{title}</h2>
                 <div className="flex flex-wrap gap-2">
-                  {allTags.map((tag, index) => (
+                  {/* Show category with special badge */}
+                  <span className="px-3 py-1 bg-white/30 backdrop-blur-sm rounded-full text-sm text-white font-semibold flex items-center gap-1">
+                    <Hash className="h-3 w-3" />
+                    {selectedCategory.name}
+                  </span>
+                  {/* Show additional tags */}
+                  {additionalTags.map((tag, index) => (
                     <span
                       key={index}
-                      className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-sm"
+                      className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-sm text-white"
                     >
                       {tag}
                     </span>
@@ -219,6 +246,39 @@ const JobSummary: React.FC<JobSummaryProps> = ({
                 </div>
               </div>
             )}
+
+            {/* Category and Tags Section */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <TagIcon className="h-5 w-5 text-indigo-500" />
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                  Category & Tags
+                </h3>
+              </div>
+              <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Category (MECE):</span>
+                  <span className="font-semibold text-gray-900 dark:text-gray-100 bg-indigo-100 dark:bg-indigo-900/30 px-3 py-1 rounded-full text-sm">
+                    {selectedCategory.name}
+                  </span>
+                </div>
+                {additionalTags.length > 0 && (
+                  <div className="flex items-start justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Additional Tags:</span>
+                    <div className="flex flex-wrap gap-1 justify-end max-w-xs">
+                      {additionalTags.map((tag, index) => (
+                        <span 
+                          key={index}
+                          className="text-sm text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
 
             {/* Payment and Timeline Grid */}
             <div className="grid md:grid-cols-2 gap-6">
@@ -353,11 +413,14 @@ const JobSummary: React.FC<JobSummaryProps> = ({
               </div>
             </div>
 
-            {/* Submit Button */}
+            {/* Submit Button - IMPORTANT: Pass the correct tags array */}
             <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-600 dark:text-gray-400">
-                  <p>By submitting, you agree to the platform terms and conditions.</p>
+                  <p className="flex items-center gap-1">
+                    <AlertCircle className="h-4 w-4" />
+                    Contract requires: 1 MECE tag ({selectedCategory.name}) + {additionalTags.length} additional tag{additionalTags.length !== 1 ? 's' : ''}
+                  </p>
                   <p className="mt-1">The payment will be held in escrow until the job is completed.</p>
                 </div>
                 
@@ -365,7 +428,7 @@ const JobSummary: React.FC<JobSummaryProps> = ({
                   title={title}
                   description={description}
                   multipleApplicants={imFeelingLucky === 'Yes'}
-                  tags={allTags}
+                  tags={allTagsForContract} // Pass the combined array with MECE tag included
                   token={selectedToken.id as Address}
                   amount={getAmountInWei()}
                   deadline={BigInt(deadline)}
