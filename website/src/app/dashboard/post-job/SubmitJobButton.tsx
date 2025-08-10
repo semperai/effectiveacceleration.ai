@@ -230,22 +230,9 @@ export const SubmitJobButton = ({
     );
   }
 
-  // Show submit button if approved - with debug info
+  // Show submit button if approved
   return (
     <div className="flex flex-col items-end gap-2">
-      {/* Debug info in development */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 p-2 rounded">
-          <div className="flex items-center gap-1 mb-1">
-            <AlertCircle className="h-3 w-3" />
-            <span className="font-semibold">Debug Info:</span>
-          </div>
-          <div>Tags count: {tags.length}</div>
-          <div>First tag: {tags[0] || 'none'}</div>
-          <div>All tags: {tags.join(', ')}</div>
-        </div>
-      )}
-      
       <button
         onClick={handleSubmitJob}
         disabled={isSubmitting || isConfirming}

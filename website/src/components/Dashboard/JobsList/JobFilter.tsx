@@ -1,9 +1,12 @@
+// src/components/Dashboard/JobsList/JobFilter.tsx
 import { Input } from '@/components/Input';
 import TagsInput from '@/components/TagsInput';
 import { TokenSelector } from '@/components/TokenSelector';
+import { ArbitratorSelector } from '@/components/ArbitratorSelector';
 import type { ComboBoxOption, Tag } from '@/service/FormsTypes';
 import type { Token } from '@/tokens';
-import { shortenText, unitsDeliveryTime } from '@/utils/utils';
+import type { Arbitrator } from '@effectiveacceleration/contracts';
+import { unitsDeliveryTime } from '@/utils/utils';
 import {
   ChevronDown,
   Filter,
@@ -19,8 +22,6 @@ import {
 } from 'lucide-react';
 import type React from 'react';
 import { useState, useEffect } from 'react';
-import { Combobox } from '@/components/ComboBox';
-import ListBox from '@/components/ListBox';
 
 type JobFilterProps = {
   search: string;
@@ -36,19 +37,13 @@ type JobFilterProps = {
   minTokens: number | undefined;
   setMinTokens: React.Dispatch<React.SetStateAction<number | undefined>>;
   selectedArbitratorAddress: string | undefined;
-  setSelectedArbitratorAddress: React.Dispatch<
-    React.SetStateAction<string | undefined>
-  >;
-  arbitratorAddresses: string[];
-  arbitratorNames: string[];
-  arbitratorFees: (string | number)[];
+  setSelectedArbitratorAddress: React.Dispatch<React.SetStateAction<string | undefined>>;
+  arbitrators?: Arbitrator[]; // Use the proper Arbitrator type
   multipleApplicants: boolean | undefined;
   setMultipleApplicants: React.Dispatch<React.SetStateAction<boolean | undefined>>;
   setCreatorAddress: React.Dispatch<React.SetStateAction<string | undefined>>;
   creatorAddress: string | undefined;
 };
-
-const noYes = ['No', 'Yes'];
 
 export const JobFilter = ({
   search,
@@ -65,9 +60,7 @@ export const JobFilter = ({
   setMinTokens,
   selectedArbitratorAddress,
   setSelectedArbitratorAddress,
-  arbitratorAddresses,
-  arbitratorNames,
-  arbitratorFees,
+  arbitrators = [],
   multipleApplicants,
   setMultipleApplicants,
   setCreatorAddress,
@@ -77,11 +70,18 @@ export const JobFilter = ({
   const [internalToken, setInternalToken] = useState<Token | undefined>(selectedToken);
   const [isFocused, setIsFocused] = useState(false);
   const [searchSuggestion, setSearchSuggestion] = useState('');
+  const [localSearch, setLocalSearch] = useState(search);
+  const [showUnitDropdown, setShowUnitDropdown] = useState(false);
 
   // Sync internal token state with prop
   useEffect(() => {
     setInternalToken(selectedToken);
   }, [selectedToken]);
+
+  // Sync local search with prop
+  useEffect(() => {
+    setLocalSearch(search);
+  }, [search]);
 
   // Add keyboard shortcut for search focus
   useEffect(() => {
@@ -97,6 +97,15 @@ export const JobFilter = ({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  // Auto-expand filters if any are active from URL
+  useEffect(() => {
+    const hasActiveFilters = selectedToken || minTokens || minDeadline || tags.length > 0 || 
+                           selectedArbitratorAddress || creatorAddress || typeof multipleApplicants !== 'undefined';
+    if (hasActiveFilters) {
+      setShowAdvanced(true);
+    }
+  }, []); // Only run on mount
 
   const handleClearMultipleApplicants = () => {
     setMultipleApplicants(undefined);
@@ -129,6 +138,10 @@ export const JobFilter = ({
     setInternalToken(token);
   };
 
+  const handleSearchSubmit = () => {
+    setSearch(localSearch);
+  };
+
   // Count active filters
   const activeFilterCount = [
     selectedToken,
@@ -142,7 +155,7 @@ export const JobFilter = ({
 
   return (
     <div className='mb-6 w-full'>
-      <div className='relative rounded-xl backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 overflow-hidden'>
+      <div className='relative rounded-xl backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50'>
         {/* Decorative gradient line at top */}
         <div className='absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-400/50 to-transparent' />
 
@@ -163,15 +176,27 @@ export const JobFilter = ({
                 {/* Main search input */}
                 <Input
                   placeholder={isFocused ? 'Type to search...' : 'Search jobs by title, description, skills...'}
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  value={localSearch}
+                  onChange={(e) => setLocalSearch(e.target.value)}
                   onFocus={() => setIsFocused(true)}
-                  onBlur={() => setIsFocused(false)}
+                  onBlur={() => {
+                    setIsFocused(false);
+                    // Submit search on blur if value changed
+                    if (localSearch !== search) {
+                      handleSearchSubmit();
+                    }
+                  }}
                   onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleSearchSubmit();
+                      // Blur the input to close suggestions
+                      (e.target as HTMLInputElement).blur();
+                    }
                     // Accept suggestion with Tab or Right Arrow
                     if ((e.key === 'Tab' || e.key === 'ArrowRight') && searchSuggestion) {
                       e.preventDefault();
-                      setSearch(searchSuggestion);
+                      setLocalSearch(searchSuggestion);
                       setSearchSuggestion('');
                     }
                   }}
@@ -180,18 +205,19 @@ export const JobFilter = ({
 
                 {/* Suggestion overlay */}
                 {searchSuggestion && isFocused && (
-                  <div className='absolute inset-0 pl-10 pr-24 flex items-center pointer-events-none'>
+                  <div className='absolute inset-0 pl-10 pr-24 flex items-center pointer-events-none z-[100]'>
                     <span className='text-gray-400'>
-                      {search}
-                      <span className='text-gray-300'>{searchSuggestion.slice(search.length)}</span>
+                      {localSearch}
+                      <span className='text-gray-300'>{searchSuggestion.slice(localSearch.length)}</span>
                     </span>
                   </div>
                 )}
 
                 {/* Clear button */}
-                {search && (
+                {localSearch && (
                   <button
                     onClick={() => {
+                      setLocalSearch('');
                       setSearch('');
                       setSearchSuggestion('');
                     }}
@@ -203,9 +229,14 @@ export const JobFilter = ({
 
                 {/* Search shortcuts hint */}
                 <div className='absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1'>
-                  {!search && !isFocused && (
+                  {!localSearch && !isFocused && (
                     <kbd className='hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium text-gray-400 bg-gray-100/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 rounded'>
                       ⌘K
+                    </kbd>
+                  )}
+                  {isFocused && (
+                    <kbd className='inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium text-gray-400 bg-gray-100/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 rounded'>
+                      ENTER
                     </kbd>
                   )}
                   {searchSuggestion && isFocused && (
@@ -217,8 +248,8 @@ export const JobFilter = ({
               </div>
 
               {/* Quick search suggestions - show when focused and empty */}
-              {isFocused && !search && (
-                <div className='absolute top-full mt-2 left-0 right-0 p-3 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-lg border border-gray-200/50 dark:border-gray-700/50 shadow-lg z-10'>
+              {isFocused && !localSearch && (
+                <div className='absolute top-full mt-2 left-0 right-0 p-3 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-lg border border-gray-200/50 dark:border-gray-700/50 shadow-lg z-[9999]'>
                   <p className='text-xs font-medium text-gray-500 dark:text-gray-400 mb-2'>Quick searches:</p>
                   <div className='flex flex-wrap gap-2'>
                     {['Video', 'Programming', 'Blockchain', 'AI', 'Design'].map((tag) => (
@@ -226,6 +257,7 @@ export const JobFilter = ({
                         key={tag}
                         onMouseDown={(e) => {
                           e.preventDefault(); // Prevent blur
+                          setLocalSearch(tag.toLowerCase());
                           setSearch(tag.toLowerCase());
                         }}
                         className='px-2.5 py-1 text-xs font-medium rounded-full bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 text-gray-600 dark:text-gray-300 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 dark:hover:bg-blue-950/30 dark:hover:border-blue-800 dark:hover:text-blue-400 transition-all duration-200'
@@ -236,7 +268,7 @@ export const JobFilter = ({
                   </div>
                   <div className='mt-2 pt-2 border-t border-gray-200/50 dark:border-gray-700/50'>
                     <p className='text-xs text-gray-400 dark:text-gray-500'>
-                      <span className='font-medium'>Pro tip:</span> Use quotes for exact matches, e.g., "smart contract"
+                      <span className='font-medium'>Pro tip:</span> Press Enter to search, use quotes for exact matches
                     </p>
                   </div>
                 </div>
@@ -334,7 +366,7 @@ export const JobFilter = ({
                   <div className='flex items-center gap-2'>
                     <Clock className='h-4 w-4 text-gray-400' />
                     <h3 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
-                      Delivery Time
+                      Minimum Delivery Time
                     </h3>
                   </div>
                   <button
@@ -350,39 +382,80 @@ export const JobFilter = ({
                     <X className='h-3.5 w-3.5' />
                   </button>
                 </div>
-                <div className='flex gap-3'>
-                  <div className='flex-1'>
-                    <Input
-                      type='number'
-                      placeholder={`Min time in ${selectedUnitTime.name}`}
-                      value={minDeadline || ''}
-                      min={1}
-                      step={1}
-                      onChange={(e) => {
-                        if (e.target.value) {
-                          const deadline = Math.abs(parseInt(e.target.value));
-                          setMinDeadline(deadline);
-                        } else {
-                          setMinDeadline(undefined);
-                        }
-                      }}
-                      className='bg-white/60 dark:bg-gray-900/60 border-gray-200/50 dark:border-gray-700/50'
-                    />
+                
+                {/* Integrated Delivery Time Input */}
+                <div className='relative flex items-center rounded-lg border bg-white/60 dark:bg-gray-900/60 border-gray-200/50 dark:border-gray-700/50 hover:border-gray-300/50 dark:hover:border-gray-600/50 transition-all duration-200'>
+                  {/* Time Icon */}
+                  <div className='pl-3 pr-2'>
+                    <Clock className='h-4 w-4 text-gray-400' />
                   </div>
-                  <div className='w-32'>
-                    <ListBox
-                      placeholder='Unit'
-                      value={selectedUnitTime}
-                      onChange={(unit) => {
-                        if (typeof unit !== 'string') {
-                          setSelectedUnitTime(unit);
-                        }
-                      }}
-                      options={unitsDeliveryTime.map(unit => ({
-                        id: unit.id.toString(),
-                        name: unit.name
-                      }))}
-                    />
+
+                  {/* Number Input */}
+                  <input
+                    type='text'
+                    inputMode='numeric'
+                    value={minDeadline || ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '' || /^\d+$/.test(val)) {
+                        setMinDeadline(val ? parseInt(val) : undefined);
+                      }
+                    }}
+                    placeholder='0'
+                    className='flex-1 pr-2 h-10 bg-transparent text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 border-0 outline-none focus:outline-none focus:ring-0'
+                    style={{ 
+                      boxShadow: 'none',
+                      WebkitAppearance: 'none',
+                      MozAppearance: 'none',
+                      appearance: 'none'
+                    }}
+                  />
+
+                  {/* Divider */}
+                  <div className='h-5 w-px bg-gray-200/50 dark:bg-gray-700/50 mr-1' />
+
+                  {/* Unit Selector Dropdown */}
+                  <div className='relative h-10'>
+                    <button
+                      type='button'
+                      onClick={() => setShowUnitDropdown(!showUnitDropdown)}
+                      className='h-full px-3 flex items-center gap-2 rounded-r-lg hover:bg-gray-50/50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors duration-150'
+                      style={{ minWidth: '100px' }}
+                    >
+                      <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                        {selectedUnitTime.name}
+                      </span>
+                      <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${showUnitDropdown ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {showUnitDropdown && (
+                      <>
+                        <div className='fixed inset-0 z-10' onClick={() => setShowUnitDropdown(false)} />
+                        <div className='absolute right-0 top-full mt-1 z-20 w-32 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1'>
+                          {unitsDeliveryTime.map((unit) => {
+                            const isSelected = selectedUnitTime.id === unit.id;
+                            return (
+                              <button
+                                key={unit.id}
+                                type='button'
+                                onClick={() => {
+                                  setSelectedUnitTime(unit);
+                                  setShowUnitDropdown(false);
+                                }}
+                                className={`w-full px-3 py-2 text-left text-sm transition-colors duration-150 ${
+                                  isSelected
+                                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium' 
+                                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                                }`}
+                              >
+                                {unit.name}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -409,16 +482,14 @@ export const JobFilter = ({
                     <X className='h-3.5 w-3.5' />
                   </button>
                 </div>
-                <Combobox
-                  placeholder='Select arbitrator'
-                  value={selectedArbitratorAddress || ''}
-                  options={arbitratorAddresses.map(
-                    (arbitratorAddress, index) => ({
-                      value: arbitratorAddress,
-                      label: `${arbitratorNames[index]} ${shortenText({ text: arbitratorAddress, maxLength: 11 })} ${+arbitratorFees[index] / 100}%`,
-                    })
-                  )}
+                <ArbitratorSelector
+                  arbitrators={arbitrators}
+                  selectedAddress={selectedArbitratorAddress || ''}
                   onChange={(addr) => setSelectedArbitratorAddress(addr)}
+                  placeholder='Filter by arbitrator'
+                  className='bg-white/60 dark:bg-gray-900/60 border-gray-200/50 dark:border-gray-700/50'
+                  showExternalLink={false}
+                  showNoArbitrator={false}
                 />
               </div>
             </div>

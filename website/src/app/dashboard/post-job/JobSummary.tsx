@@ -419,9 +419,8 @@ const JobSummary: React.FC<JobSummaryProps> = ({
                 <div className="text-sm text-gray-600 dark:text-gray-400">
                   <p className="flex items-center gap-1">
                     <AlertCircle className="h-4 w-4" />
-                    Contract requires: 1 MECE tag ({selectedCategory.name}) + {additionalTags.length} additional tag{additionalTags.length !== 1 ? 's' : ''}
+                    The payment will be held in escrow until the job is completed.
                   </p>
-                  <p className="mt-1">The payment will be held in escrow until the job is completed.</p>
                 </div>
                 
                 <SubmitJobButton
