@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-
-
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
@@ -125,6 +123,6 @@ html, body, #__next {
   animation: shimmer 2s infinite;
 }
 
-#sentry-feedback {
-  transform: translateY(-100px);
+#sentry-feedback > button {
+  transform: translateY(-140px);
 }

@@ -212,7 +212,7 @@ function SmallPrint() {
           <TwitterIcon className="h-5 w-5 fill-zinc-700 transition group-hover:fill-zinc-900 dark:group-hover:fill-zinc-500" />
         </Link>
 
-        <Link href="https://t.me/+5h3d8x_NgnYyYjhh" className="group" target="_blank">
+        <Link href="https://t.me/eaccmarket" className="group" target="_blank">
           <span className="sr-only">
             Follow us on Telegram
           </span>

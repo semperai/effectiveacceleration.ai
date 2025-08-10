@@ -1,13 +1,6 @@
 import type React from 'react';
 import Link from 'next/link';
-import {
-  type Job,
-  JobEventType,
-  JobEventWithDiffs,
-  JobState,
-  User,
-} from '@effectiveacceleration/contracts';
-import { AssignWorkerButton } from '@/components/JobActions/AssignWorkerButton';
+import { type Job, User } from '@effectiveacceleration/contracts';
 import {
   PiScales,
   PiWarning,
@@ -16,9 +9,7 @@ import {
   PiInfo,
   PiClock,
   PiShieldCheck,
-  PiHandshake,
   PiFileText,
-  PiSparkle,
   PiGavel,
   PiArrowRight,
   PiUser
@@ -31,10 +22,6 @@ interface DisputeStartedProps {
 }
 
 const DisputeStarted: React.FC<DisputeStartedProps> = ({ job, address, users = {} }) => {
-  const isCreator = address === job.roles.creator;
-  const isWorker = address === job.roles.worker;
-  const isArbitrator = address === job.roles.arbitrator;
-
   // Get arbitrator data
   const arbitratorData = users[job.roles.arbitrator];
   const arbitratorName = arbitratorData?.name || 'Arbitrator';

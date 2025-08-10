@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { TooltipButton } from '@/components/TooltipButton';
 import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
 import { shortenText, formatTimeLeft } from '@/utils/utils';
@@ -10,26 +11,19 @@ import {
   type User,
 } from '@effectiveacceleration/contracts';
 import {
-  CurrencyDollarIcon,
   LinkIcon,
   UserIcon,
-  ClockIcon,
-  TagIcon,
 } from '@heroicons/react/24/outline';
 import {
   PiCoin,
   PiTimer,
   PiMapPin,
   PiUsers,
-  PiTag,
   PiInfo,
-  PiSparkle,
   PiClock,
   PiPackage
 } from 'react-icons/pi';
-import LinearProgress from '@mui/material/LinearProgress';
 import moment from 'moment';
-import Link from 'next/link';
 import { zeroAddress, zeroHash } from 'viem';
 import JobButtonActions from './JobButtonActions';
 import JobStatusWrapper from './JobStatusWrapper';

@@ -5,11 +5,8 @@ import {
   type JobArbitratedEvent,
   JobEventType,
   type JobEventWithDiffs,
-  JobState,
   type User,
 } from '@effectiveacceleration/contracts';
-import { ApproveButton } from '@/components/JobActions/ApproveButton';
-import { zeroHash } from 'viem';
 import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
 import {
   PiScales,
@@ -24,7 +21,6 @@ import {
   PiBank,
   PiReceipt,
   PiSealCheck,
-  PiSparkle,
   PiArrowRight
 } from 'react-icons/pi';
 
@@ -39,7 +35,6 @@ interface ArbitratedStatusProps {
 const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
   job,
   users,
-  selectedWorker,
   events,
   address,
 }) => {

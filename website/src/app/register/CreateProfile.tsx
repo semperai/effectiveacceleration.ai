@@ -16,7 +16,7 @@ import { useRouter } from 'next/navigation';
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import { useAccount } from 'wagmi';
-import type { PostJobParams } from '../dashboard/post-job/PostJobPage';
+import { PostJobParams } from '@/app/dashboard/post-job/PostJobPage';
 
 const RegisteredUserView = () => {
   const router = useRouter();

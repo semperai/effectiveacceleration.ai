@@ -4,11 +4,8 @@ import { TokenSelector } from '@/components/TokenSelector';
 import type { ComboBoxOption, Tag } from '@/service/FormsTypes';
 import type { Token } from '@/tokens';
 import { shortenText, unitsDeliveryTime } from '@/utils/utils';
-import { Field, Label } from '@headlessui/react';
-import { Radio, RadioGroup } from '@/components/Radio';
 import {
   ChevronDown,
-  ChevronUp,
   Filter,
   Search,
   X,

@@ -12,7 +12,6 @@ import {
   MagnifyingGlassIcon,
   FunnelIcon,
   ArrowUpIcon,
-  ArrowDownIcon,
   StarIcon,
   ClockIcon
 } from '@heroicons/react/20/solid';

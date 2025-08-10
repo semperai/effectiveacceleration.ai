@@ -2,10 +2,9 @@
 
 import { Layout } from '@/components/Dashboard/Layout';
 import { Link } from '@/components/Link';
-import { ChevronRightIcon } from '@heroicons/react/20/solid';
 import moment from 'moment';
-import useUser, { ExtendedUser } from '@/hooks/subsquid/useUser';
-import useReviews, { ExtendedReview } from '@/hooks/subsquid/useReviews';
+import useUser from '@/hooks/subsquid/useUser';
+import useReviews from '@/hooks/subsquid/useReviews';
 import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
 import { Button } from '@/components/Button';
 import { LinkIcon, DocumentDuplicateIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/20/solid';

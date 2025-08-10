@@ -3,17 +3,12 @@ import Image from 'next/image';
 
 import {
   type Job,
-  JobArbitratedEvent,
-  JobEventType,
   type JobEventWithDiffs,
-  JobState,
   type User,
 } from '@effectiveacceleration/contracts';
-import { formatTokenNameAndAmount } from '@/tokens';
 import JobChatStatus from './JobChatStatus';
 import { renderEvent } from '@/components/Events';
 import logoDark from '@/images/logo-light.png';
-import { zeroAddress } from 'viem';
 
 interface ResultAcceptedProps {
   job: Job;

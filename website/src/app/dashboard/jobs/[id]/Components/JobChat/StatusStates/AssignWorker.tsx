@@ -2,14 +2,11 @@ import type React from 'react';
 import Link from 'next/link';
 import {
   type Job,
-  JobEventType,
   type JobEventWithDiffs,
-  JobState,
   type User,
 } from '@effectiveacceleration/contracts';
 import { AssignWorkerButton } from '@/components/JobActions/AssignWorkerButton';
 import {
-  PiUserCheck,
   PiSparkle,
   PiHandshake,
   PiInfo,

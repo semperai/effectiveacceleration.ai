@@ -1,9 +1,8 @@
 'use client';
-import React, { useEffect, useMemo, useState, useRef } from 'react';
+import React from 'react';
 import { JobsList } from './JobsList';
 import { EmptyJobsList } from './EmptyJobsList';
 import { JobsListSkeleton } from './JobsListSkeleton';
-import { Job, JobEventType, JobState } from '@effectiveacceleration/contracts';
 import { useAccount } from 'wagmi';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/Tabs';
 import useWorkerApplications from '@/hooks/subsquid/useWorkerApplications';

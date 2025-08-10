@@ -1,6 +1,5 @@
 import {
   type Job,
-  JobEvent,
   type JobEventWithDiffs,
   type User,
 } from '@effectiveacceleration/contracts';

@@ -13,7 +13,6 @@ import {
   PiWarning,
   PiScales,
   PiRocket,
-  PiTimer
 } from 'react-icons/pi';
 
 interface JobStatusWrapperProps {
