@@ -3,8 +3,8 @@
 import { clsx } from 'clsx';
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import Navbar from './Navbar/NavBar';
-import Sidebar from './Sidebar/Sidebar';
+import Navbar from './Navbar';
+import Sidebar from './Sidebar';
 
 export function Layout({
   children,
