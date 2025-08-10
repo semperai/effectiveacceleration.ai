@@ -15,6 +15,8 @@ import TagsInput from '@/components/TagsInput';
 import { Text } from '@/components/Text';
 import { Textarea } from '@/components/Textarea';
 import { TokenSelector } from '@/components/TokenSelector';
+import { DeliveryTimelineInput } from '@/components/DeliveryTimelineInput';
+import { PaymentInput } from '@/components/PaymentInput';
 import useArbitrators from '@/hooks/subsquid/useArbitrators';
 import useUser from '@/hooks/subsquid/useUser';
 import { useConfig } from '@/hooks/useConfig';
@@ -620,6 +622,35 @@ const PostJob = () => {
 
   return (
     <div className='relative'>
+      {/* Add custom styles for animations */}
+      <style jsx>{`
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            max-height: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            max-height: 300px;
+            transform: translateY(0);
+          }
+        }
+
+        .slide-down-enter {
+          animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .arbitrator-section {
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .arbitrator-section-expanded {
+          background: linear-gradient(to bottom, rgba(249, 250, 251, 0), rgba(249, 250, 251, 0.5));
+          padding-bottom: 0.5rem;
+        }
+      `}</style>
+
       {/* Background gradient effects */}
       <div className='fixed top-20 right-20 w-96 h-96 bg-blue-100/30 rounded-full blur-3xl pointer-events-none' />
       <div className='fixed bottom-20 left-20 w-96 h-96 bg-purple-100/30 rounded-full blur-3xl pointer-events-none' />
@@ -756,56 +787,36 @@ const PostJob = () => {
                   <PiCurrencyDollar className='h-5 w-5 text-green-600' />
                   Payment & Delivery
                 </h2>
-
-                <FieldGroup className='space-y-4'>
-                  <div className='flex flex-row gap-4'>
-                    <StyledField error={paymentTokenError}>
-                      <Label className='text-gray-700 mb-2'>Payment Amount</Label>
-                      <div className='scroll-mt-20' ref={jobAmountRef} />
-                      <Input
-                        name='amount'
-                        placeholder='1.00'
-                        min='0'
-                        type='number'
-                        value={amount}
-                        onChange={(e) => validatePaymentAmount(e.target.value)}
-                        className='bg-transparent border-0 text-gray-900 placeholder-gray-400 focus:ring-0'
-                      />
-                      {selectedToken && balanceData !== null && balanceData !== undefined && (
-                        <Text className='text-xs text-gray-600 mt-2'>
-                          Balance: {ethers.formatUnits(
-                            balanceData as ethers.BigNumberish,
-                            selectedToken.decimals
-                          )} {selectedToken.symbol}
-                        </Text>
-                      )}
-                    </StyledField>
-
-                    <StyledField>
-                      <Label className='text-gray-700 mb-2'>Payment Token</Label>
-                      <TokenSelector
-                        selectedToken={selectedToken}
-                        onClick={(token: Token) => setSelectedToken(token)}
-                      />
-                      {selectedToken && (
-                        <div className='mt-2'>
-                          <Link
-                            href={`https://arbiscan.io/address/${selectedToken?.id}`}
-                            target='_blank'
-                            rel='noopener noreferrer'
-                            className='text-xs text-blue-600 hover:text-blue-700 transition-colors'
-                          >
-                            View on Arbiscan
-                          </Link>
-                        </div>
-                      )}
-                    </StyledField>
+            
+                <FieldGroup className='space-y-6'>
+                  {/* Payment Input - Combined Amount and Token Selector */}
+                  <div>
+                    <PaymentInput
+                      amount={amount}
+                      onAmountChange={validatePaymentAmount}
+                      selectedToken={selectedToken}
+                      onTokenSelect={setSelectedToken}
+                      balance={
+                        balanceData !== null && balanceData !== undefined
+                          ? ethers.formatUnits(
+                              balanceData as ethers.BigNumberish,
+                              selectedToken?.decimals || '0'
+                            )
+                          : undefined
+                      }
+                      error={paymentTokenError}
+                      label='Payment Amount'
+                      placeholder='Enter amount'
+                      helperText={!paymentTokenError ? 'Set the payment amount for this job' : undefined}
+                      required
+                    />
                   </div>
-
+            
+                  {/* Delivery Method */}
                   <StyledField>
                     <Label className='text-gray-700 mb-2'>Delivery Method</Label>
                     <ListBox
-                      placeholder='Delivery Method'
+                      placeholder='Select Delivery Method'
                       value={deliveryMethod}
                       onChange={(method) => {
                         if (typeof method !== 'string') {
@@ -818,87 +829,114 @@ const PostJob = () => {
                       Choose how the work should be delivered
                     </p>
                   </StyledField>
+            
+                  {/* Deadline Section */}
+                  <div>
+                    <Label className='text-gray-700 mb-2'>Delivery Timeline</Label>
+                    <div className='scroll-mt-20' ref={jobDeadlineRef} />
+                    <DeliveryTimelineInput
+                      value={deadline}
+                      onValueChange={validateDeadline}
+                      selectedUnit={selectedUnitTime}
+                      onUnitChange={setselectedUnitTime}
+                      error={deadlineError}
+                      placeholder='Enter time'
+                      helperText={!deadlineError ? 'Set the expected delivery time for this job' : undefined}
+                    />
+                  </div>
 
-                  <StyledField>
-                    <div className='flex flex-row items-center justify-between'>
-                      <div>
-                        <Label className='text-gray-700'>Arbitrator Required</Label>
-                        <p className='text-gray-500 text-xs mt-1'>
-                          Third-party dispute resolution
-                        </p>
-                      </div>
-                      <RadioGroup
-                        className='!mt-0 flex gap-4'
-                        value={arbitratorRequired}
-                        onChange={(value) => validateArbitratorRequired(value)}
-                        aria-label='Arbitrator Required'
-                      >
-                        {noYes.map((option) => (
-                          <Field
-                            className='!mt-0 flex items-center'
-                            key={option}
-                          >
-                            <Radio
-                              color='default'
-                              className='mr-2'
-                              value={option}
+            
+                  {/* Enhanced Arbitrator Section with Animation */}
+                  <div className={`
+                    arbitrator-section rounded-xl border transition-all duration-300
+                    ${arbitratorRequired === 'Yes' 
+                      ? 'border-purple-300 bg-gradient-to-b from-purple-50/50 to-white shadow-sm' 
+                      : 'border-gray-200 bg-gray-50'
+                    }
+                  `}>
+                    <div className='p-4'>
+                      <div className='flex flex-row items-center justify-between'>
+                        <div className='flex items-center gap-2'>
+                          <PiScales className={`h-4 w-4 transition-colors duration-300 ${
+                            arbitratorRequired === 'Yes' ? 'text-purple-600' : 'text-gray-500'
+                          }`} />
+                          <div>
+                            <Label className='text-gray-700'>Arbitrator Required</Label>
+                            <p className='text-gray-500 text-xs mt-1'>
+                              Enable third-party dispute resolution
+                            </p>
+                          </div>
+                        </div>
+                        <RadioGroup
+                          className='!mt-0 flex gap-3'
+                          value={arbitratorRequired}
+                          onChange={(value) => validateArbitratorRequired(value)}
+                          aria-label='Arbitrator Required'
+                        >
+                          {noYes.map((option) => (
+                            <Field
+                              className='!mt-0 flex items-center'
+                              key={option}
                             >
-                              <span>{option}</span>
-                            </Radio>
-                            <Label className='text-gray-700'>{option}</Label>
-                          </Field>
-                        ))}
-                      </RadioGroup>
-                    </div>
-                  </StyledField>
-
-                  {arbitratorRequired === 'Yes' && (
-                    <StyledField error={arbitratorError}>
-                      <Label className='text-gray-700 mb-2'>Select Arbitrator</Label>
-                      <div className='scroll-mt-20' ref={jobArbitratorRef} />
-                      <Combobox
-                        placeholder='Select Arbitrator'
-                        value={selectedArbitratorAddress || ''}
-                        options={arbitratorAddresses.map((address, index) => ({
-                          value: address,
-                          label: `${arbitratorNames[index]} ${shortenText({ text: address, maxLength: 11 })} ${+arbitratorFees[index] / 100}%`,
-                        }))}
-                        onChange={(addr) => validateArbitrator(addr)}
-                      />
-                    </StyledField>
-                  )}
-
-                  <div className='flex flex-row gap-4'>
-                    <StyledField error={deadlineError}>
-                      <Label className='text-gray-700 mb-2'>
-                        Delivery time in {selectedUnitTime.name}
-                      </Label>
-                      <div className='scroll-mt-20' ref={jobDeadlineRef} />
-                      <Input
-                        name='deadline'
-                        type='number'
-                        placeholder={`Enter ${selectedUnitTime.name.toLowerCase()}`}
-                        value={deadline}
-                        min={1}
-                        step={1}
-                        onChange={(e) => validateDeadline(e.target.value)}
-                        className='bg-transparent border-0 text-gray-900 placeholder-gray-400 focus:ring-0'
-                      />
-                    </StyledField>
-
-                    <StyledField>
-                      <Label className='text-gray-700 mb-2'>Units</Label>
-                      <ListBox
-                        placeholder='Select Time Units'
-                        value={selectedUnitTime}
-                        onChange={(unit) => {
-                          if (typeof unit !== 'string') {
-                            setselectedUnitTime(unit);
+                              <Radio
+                                color='default'
+                                className='mr-1.5'
+                                value={option}
+                              >
+                                <span>{option}</span>
+                              </Radio>
+                              <Label className='text-gray-700 cursor-pointer'>
+                                {option}
+                              </Label>
+                            </Field>
+                          ))}
+                        </RadioGroup>
+                      </div>
+                    
+                      {/* Animated Arbitrator Selection */}
+                      <div 
+                        className={`
+                          overflow-hidden transition-all duration-300 ease-in-out
+                          ${arbitratorRequired === 'Yes' 
+                            ? 'max-h-96 opacity-100 mt-4' 
+                            : 'max-h-0 opacity-0'
                           }
-                        }}
-                        options={unitsDeliveryTime.map(unit => ({ id: unit.id.toString(), name: unit.name }))}
-                      />
-                    </StyledField>
+                        `}
+                      >
+                        <div className={`
+                          transition-transform duration-300
+                          ${arbitratorRequired === 'Yes' ? 'translate-y-0' : '-translate-y-4'}
+                        `}>
+                          <div className='border-t border-purple-200/50 pt-4'>
+                            <div className='scroll-mt-20' ref={jobArbitratorRef} />
+                            <Combobox
+                              placeholder='Choose an arbitrator'
+                              value={selectedArbitratorAddress || ''}
+                              options={arbitratorAddresses.map((address, index) => ({
+                                value: address,
+                                label: address === zeroAddress 
+                                  ? 'No Arbitrator' 
+                                  : `${arbitratorNames[index]} • ${shortenText({ text: address, maxLength: 11 })} • ${+arbitratorFees[index] / 100}% fee`,
+                              }))}
+                              onChange={(addr) => validateArbitrator(addr)}
+                            />
+                            {arbitratorError && (
+                              <div className='mt-2 flex items-center gap-1 text-xs text-red-600'>
+                                <AlertCircle className='h-3 w-3' />
+                                {arbitratorError}
+                              </div>
+                            )}
+                            {selectedArbitratorAddress && selectedArbitratorAddress !== zeroAddress && !arbitratorError && (
+                              <div className='mt-3 px-3 py-2 bg-purple-50 border border-purple-200 rounded-lg'>
+                                <p className='text-xs text-purple-700'>
+                                  The arbitrator will receive their fee upon successful dispute resolution
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </FieldGroup>
               </div>

@@ -3,194 +3,25 @@
 import { type Token, tokens } from '@/tokens';
 import { ChevronDown } from 'lucide-react';
 import { Fragment, useState, useEffect } from 'react';
+import TokenButton from './TokenButton';
 import TokenDialog from './TokenDialog';
+import storage from './storage';
+import { IArbitrumToken } from './helpers';
 import arbitrumTokens from './data/arbitrumTokens.json';
 import mainnetTokens from './data/mainnetTokens.json';
-import storage from './storage';
 import { useChainId } from 'wagmi';
-import { DEFAULT_TOKEN_ICON } from './icons/DefaultTokenIcon';
 
-interface IArbitrumToken {
-  logoURI?: string;
-  chainId: number;
-  address: string;
-  name: string;
-  symbol: string;
-  decimals: number;
-  extensions?: any;
-  l1Address?: string;
-  l2GatewayAddress?: string;
-  l1GatewayAddress?: string;
-  isCustom?: boolean;
-}
-
-function TokenButton({
-  onClick,
-  selectedToken,
-}: {
-  onClick: () => void;
-  selectedToken: Token | IArbitrumToken | undefined;
-}) {
-  const [isHovered, setIsHovered] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
-
-  const buttonStyle = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    width: '100%',
-    height: '56px',
-    padding: '0 16px',
-    background: isHovered ? 'rgba(59, 130, 246, 0.04)' : 'transparent',
-    borderWidth: isFocused ? '2px' : '0',
-    borderStyle: 'solid',
-    borderColor: isFocused ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
-    borderRadius: '0.75rem',
-    fontSize: '0.875rem',
-    fontWeight: 500,
-    cursor: 'pointer',
-    transition: 'all 0.15s ease',
-    outline: 'none',
-    position: 'relative' as const,
-    overflow: 'hidden',
-    transform: isHovered ? 'scale(1.01)' : 'scale(1)',
-    color: selectedToken ? '#111827' : '#6b7280',
-  };
-
-  const contentStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    width: '100%',
-  };
-
-  const avatarStyle = {
-    width: '24px',
-    height: '24px',
-    minWidth: '24px',
-    minHeight: '24px',
-    maxWidth: '24px',
-    maxHeight: '24px',
-    borderRadius: '50%',
-    objectFit: 'cover' as const,
-    background: 'rgba(0, 0, 0, 0.02)',
-    flexShrink: 0,
-    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-  };
-
-  const symbolStyle = {
-    fontSize: '0.875rem',
-    fontWeight: 600,
-    flex: 1,
-    textAlign: 'left' as const,
-    letterSpacing: '-0.01em',
-  };
-
-  const textStyle = {
-    fontSize: '0.875rem',
-    fontWeight: 500,
-    flex: 1,
-    textAlign: 'left' as const,
-    color: '#6b7280',
-  };
-
-  const chevronStyle = {
-    width: '16px',
-    height: '16px',
-    minWidth: '16px',
-    color: isHovered ? '#6b7280' : '#9ca3af',
-    transition: 'all 0.15s ease',
-    marginLeft: 'auto',
-    transform: isHovered ? 'translateY(1px)' : 'translateY(0)',
-  };
-
-  const placeholderIconStyle = {
-    width: '24px',
-    height: '24px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: '#9ca3af',
-    flexShrink: 0,
-  };
-
-  if (selectedToken) {
-    // Type guard to safely access the icon/logoURI property
-    let icon: string | undefined;
-    if ('logoURI' in selectedToken) {
-      icon = selectedToken.logoURI;
-    } else {
-      icon = (selectedToken as Token).icon;
-    }
-
-    const symbol = selectedToken.symbol;
-
-    return (
-      <button
-        type="button"
-        onClick={onClick}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-        style={buttonStyle}
-      >
-        <div style={contentStyle}>
-          {icon ? (
-            <img
-              src={icon}
-              alt={symbol}
-              style={avatarStyle}
-              onError={(e: any) => {
-                e.target.onerror = null;
-                e.target.src = DEFAULT_TOKEN_ICON;
-              }}
-            />
-          ) : (
-            <img
-              src={DEFAULT_TOKEN_ICON}
-              alt={symbol}
-              style={avatarStyle}
-            />
-          )}
-          <span style={symbolStyle}>{symbol}</span>
-          <ChevronDown style={chevronStyle} />
-        </div>
-      </button>
-    );
-  } else {
-    return (
-      <button
-        type="button"
-        onClick={onClick}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-        style={buttonStyle}
-      >
-        <div style={contentStyle}>
-          <div style={placeholderIconStyle}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M12 6v6l4 2"/>
-            </svg>
-          </div>
-          <span style={textStyle}>Select Token</span>
-          <ChevronDown style={chevronStyle} />
-        </div>
-      </button>
-    );
-  }
-}
 
 export function TokenSelector({
   selectedToken,
   onClick,
   persistSelection = true,
+  compact = false,
 }: {
   selectedToken: Token | undefined;
   onClick: (token: Token) => void;
   persistSelection?: boolean;
+  compact?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const chainId = useChainId();
@@ -386,6 +217,7 @@ export function TokenSelector({
       <TokenButton
         selectedToken={internalSelectedToken}
         onClick={openModal}
+        compact={compact}
       />
 
       {isOpen && selectableTokens && (
