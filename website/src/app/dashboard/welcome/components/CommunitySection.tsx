@@ -93,7 +93,7 @@ export const CommunitySection = () => {
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link
-              href="https://t.me/+5h3d8x_NgnYyYjhh"
+              href="https://t.me/eaccmarket"
               className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white transition-all duration-300 hover:bg-indigo-700"
             >
               Join Telegram
