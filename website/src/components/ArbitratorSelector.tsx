@@ -6,14 +6,21 @@ import * as ReactDOM from 'react-dom';
 import { ExternalLink } from 'lucide-react';
 import { zeroAddress } from 'viem';
 import EventProfileImage from '@/components/Events/Components/EventProfileImage';
+import type { Arbitrator } from '@effectiveacceleration/contracts';
 
-interface Arbitrator {
+// Type assertion helper to ensure Arbitrator has all required fields for EventProfileImage
+// This is needed because the auto-generated type from ReadContractReturnType might not
+// properly reflect all fields from the Solidity struct
+type ArbitratorWithProfile = Arbitrator & {
   address_: string;
+  publicKey: string;
   name: string;
+  bio: string;
+  avatar: string;
   fee: number;
-  settledCount?: number;
-  [key: string]: any;
-}
+  settledCount: number;
+  refusedCount: number;
+};
 
 interface ArbitratorSelectorProps {
   arbitrators: Arbitrator[];
@@ -216,7 +223,7 @@ export const ArbitratorSelector: React.FC<ArbitratorSelectorProps> = ({
                 minWidth: 0
               }}>
                 <EventProfileImage
-                  user={arbitrator}
+                  user={arbitrator as ArbitratorWithProfile}
                   className="h-8 w-8 rounded-full flex-shrink-0"
                 />
                 <div style={{ minWidth: 0, flex: 1 }}>
@@ -288,7 +295,10 @@ export const ArbitratorSelector: React.FC<ArbitratorSelectorProps> = ({
             </div>
           ) : selectedArbitrator ? (
             <>
-              <EventProfileImage user={selectedArbitrator} className="h-8 w-8 rounded-full" />
+              <EventProfileImage 
+                user={selectedArbitrator as ArbitratorWithProfile} 
+                className="h-8 w-8 rounded-full" 
+              />
               <div className="text-left">
                 <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                   {selectedArbitrator.name}
