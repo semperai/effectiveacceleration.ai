@@ -28,10 +28,12 @@ import {
   convertToSeconds,
   shortenText,
   unitsDeliveryTime,
+  getUnitAndValueFromSeconds,
 } from '@/utils/utils';
 import { ethers } from 'ethers';
 import React from 'react';
 import { type ChangeEvent, useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import * as ReactDOM from 'react-dom';
 import { zeroAddress } from 'viem';
 import { useAccount } from 'wagmi';
 import LoadingModal from './LoadingModal';
@@ -49,7 +51,7 @@ import {
   PiTruck,
   PiArrowSquareOut
 } from 'react-icons/pi';
-import { AlertCircle, ArrowRight } from 'lucide-react';
+import { AlertCircle, ArrowRight, ExternalLink } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import EventProfileImage from '@/components/Events/Components/EventProfileImage';
 
@@ -125,11 +127,302 @@ const MinimalField = React.memo(({
 
 MinimalField.displayName = 'MinimalField';
 
+// Custom Arbitrator Selector Component with Portal
+const ArbitratorSelector = ({ 
+  arbitrators, 
+  selectedAddress, 
+  onChange,
+  disabled = false 
+}: { 
+  arbitrators: any[];
+  selectedAddress: string;
+  onChange: (address: string) => void;
+  disabled?: boolean;
+}) => {
+  const [open, setOpen] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const selectedArbitrator = arbitrators?.find(a => a.address_ === selectedAddress);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        buttonRef.current &&
+        !buttonRef.current.contains(event.target as Node) &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [open]);
+
+  // Close on escape key
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setOpen(false);
+      }
+    };
+
+    if (open) {
+      document.addEventListener('keydown', handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [open]);
+
+  // Update position on scroll or resize
+  useEffect(() => {
+    if (!open || !buttonRef.current || !dropdownRef.current) return;
+
+    const updatePosition = () => {
+      if (!buttonRef.current || !dropdownRef.current) return;
+      
+      const rect = buttonRef.current.getBoundingClientRect();
+      const dropdown = dropdownRef.current;
+      
+      // Calculate available space
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      const dropdownHeight = Math.min(300, dropdown.scrollHeight);
+      
+      // Position dropdown
+      if (spaceBelow >= dropdownHeight || spaceBelow > spaceAbove) {
+        // Show below
+        dropdown.style.top = `${rect.bottom + 8}px`;
+        dropdown.style.bottom = 'auto';
+        dropdown.style.maxHeight = `${Math.min(300, spaceBelow - 20)}px`;
+      } else {
+        // Show above
+        dropdown.style.bottom = `${window.innerHeight - rect.top + 8}px`;
+        dropdown.style.top = 'auto';
+        dropdown.style.maxHeight = `${Math.min(300, spaceAbove - 20)}px`;
+      }
+      
+      dropdown.style.left = `${rect.left}px`;
+      dropdown.style.width = `${rect.width}px`;
+    };
+
+    // Initial position
+    updatePosition();
+
+    // Update on scroll/resize
+    window.addEventListener('scroll', updatePosition, true);
+    window.addEventListener('resize', updatePosition);
+
+    return () => {
+      window.removeEventListener('scroll', updatePosition, true);
+      window.removeEventListener('resize', updatePosition);
+    };
+  }, [open]);
+
+  return (
+    <>
+      <button
+        ref={buttonRef}
+        type="button"
+        onClick={() => !disabled && setOpen(!open)}
+        disabled={disabled}
+        className={`
+          w-full flex items-center justify-between
+          px-3 py-2 rounded-lg border
+          bg-white dark:bg-gray-800
+          border-gray-200 dark:border-gray-700
+          hover:border-gray-300 dark:hover:border-gray-600
+          transition-colors duration-200
+          ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}
+        `}
+      >
+        <div className="flex items-center gap-3 flex-1">
+          {selectedAddress === zeroAddress ? (
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700" />
+              <span className="text-sm text-gray-700 dark:text-gray-300">No Arbitrator</span>
+            </div>
+          ) : selectedArbitrator ? (
+            <>
+              <EventProfileImage user={selectedArbitrator} className="h-8 w-8 rounded-full" />
+              <div className="text-left">
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {selectedArbitrator.name}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {selectedArbitrator.fee / 100}% fee
+                </p>
+              </div>
+            </>
+          ) : (
+            <span className="text-sm text-gray-500">Select an arbitrator</span>
+          )}
+        </div>
+        
+        {selectedArbitrator && selectedAddress !== zeroAddress && (
+          <a
+            href={`/dashboard/arbitrators/${selectedAddress}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ExternalLink className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+          </a>
+        )}
+      </button>
+
+      {/* Portal for dropdown */}
+      {open && !disabled && typeof document !== 'undefined' && ReactDOM.createPortal(
+        <div style={{ position: 'fixed', inset: 0, zIndex: 50 }}>
+          {/* Backdrop */}
+          <div 
+            style={{ position: 'fixed', inset: 0 }}
+            onClick={() => setOpen(false)} 
+          />
+          
+          {/* Dropdown - positioned absolutely with inline styles to avoid any CSS conflicts */}
+          <div
+            ref={dropdownRef}
+            style={{
+              position: 'fixed',
+              zIndex: 51,
+              overflow: 'hidden',
+              borderRadius: '0.5rem',
+              backgroundColor: 'white',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+              border: '1px solid #e5e7eb'
+            }}
+            className="dark:bg-gray-800 dark:border-gray-700"
+          >
+            <div style={{ overflowY: 'auto', maxHeight: 'inherit', padding: '0.25rem 0' }}>
+              {/* No Arbitrator option */}
+              <div
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '0.75rem', 
+                  padding: '0.5rem 0.75rem',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.15s'
+                }}
+                className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                onClick={() => {
+                  onChange(zeroAddress);
+                  setOpen(false);
+                }}
+              >
+                <div style={{ 
+                  width: '2rem', 
+                  height: '2rem', 
+                  borderRadius: '50%',
+                  flexShrink: 0
+                }} 
+                className="bg-gray-200 dark:bg-gray-700" />
+                <span style={{ fontSize: '0.875rem' }} className="text-gray-700 dark:text-gray-300">
+                  No Arbitrator
+                </span>
+              </div>
+              
+              {/* Divider */}
+              {arbitrators && arbitrators.length > 0 && (
+                <div style={{ 
+                  height: '1px', 
+                  margin: '0.25rem 0' 
+                }} 
+                className="bg-gray-200 dark:bg-gray-700" />
+              )}
+              
+              {/* Arbitrator list */}
+              {arbitrators?.map((arbitrator) => (
+                <div
+                  key={arbitrator.address_}
+                  style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between',
+                    padding: '0.5rem 0.75rem',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.15s'
+                  }}
+                  className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                  onClick={() => {
+                    onChange(arbitrator.address_);
+                    setOpen(false);
+                  }}
+                >
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '0.75rem',
+                    flex: 1,
+                    minWidth: 0
+                  }}>
+                    <EventProfileImage 
+                      user={arbitrator} 
+                      className="h-8 w-8 rounded-full" 
+                      style={{ flexShrink: 0 }}
+                    />
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <p style={{ 
+                        fontSize: '0.875rem',
+                        fontWeight: 500,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}
+                      className="text-gray-900 dark:text-gray-100">
+                        {arbitrator.name}
+                      </p>
+                      <p style={{ fontSize: '0.75rem' }}
+                      className="text-gray-500 dark:text-gray-400">
+                        {arbitrator.fee / 100}% fee • {arbitrator.settledCount} cases
+                      </p>
+                    </div>
+                  </div>
+                  <a
+                    href={`/dashboard/arbitrators/${arbitrator.address_}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      marginLeft: '0.5rem',
+                      padding: '0.375rem',
+                      borderRadius: '0.25rem',
+                      flexShrink: 0,
+                      transition: 'background-color 0.15s'
+                    }}
+                    className="hover:bg-gray-200 dark:hover:bg-gray-600"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <ExternalLink className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
+  );
+};
+
 const PostJob = () => {
   const Config = useConfig();
   const { address, isConnected } = useAccount();
   const { data: user } = useUser(address!);
   const { data: arbitrators } = useArbitrators();
+  const [tokenBalance, setTokenBalance] = useState<string | undefined>(undefined);
   const searchParams = useSearchParams();
 
   const arbitratorAddresses = useMemo(() => [
@@ -147,6 +440,54 @@ const PostJob = () => {
     ...(arbitrators?.map((worker) => worker.fee) ?? []),
   ], [arbitrators]);
 
+  // Convert between utils format and DeliveryTimelineInput format
+  // DeliveryTimelineInput uses different IDs: '1'=Minute, '2'=Hour, '3'=Day, '4'=Week
+  const convertUnitForDisplay = (unit: ComboBoxOption): ComboBoxOption => {
+    const nameMap: { [key: string]: { name: string; id: string } } = {
+      'minutes': { name: 'Minute', id: '1' },
+      'hours': { name: 'Hour', id: '2' },
+      'days': { name: 'Day', id: '3' },
+      'weeks': { name: 'Week', id: '4' },
+      'months': { name: 'Day', id: '3' }, // Fallback months to days since component doesn't support months
+      'years': { name: 'Day', id: '3' }  // Fallback years to days since component doesn't support years
+    };
+    
+    const mapped = nameMap[unit.name];
+    return mapped ? { ...unit, name: mapped.name, id: mapped.id } : unit;
+  };
+
+  const convertUnitFromDisplay = (unit: ComboBoxOption): ComboBoxOption => {
+    // Map back based on the ID from DeliveryTimelineInput
+    const idMap: { [key: string]: { name: string; id: string } } = {
+      '1': { name: 'minutes', id: '0' },
+      '2': { name: 'hours', id: '1' },
+      '3': { name: 'days', id: '2' },
+      '4': { name: 'weeks', id: '3' }
+    };
+    
+    const mapped = idMap[unit.id];
+    if (mapped) {
+      return { ...unit, name: mapped.name, id: mapped.id };
+    }
+    
+    // Also handle by name for safety
+    const nameMap: { [key: string]: string } = {
+      'Minute': 'minutes',
+      'Minutes': 'minutes',
+      'Hour': 'hours',
+      'Hours': 'hours',
+      'Day': 'days',
+      'Days': 'days',
+      'Week': 'weeks',
+      'Weeks': 'weeks'
+    };
+    
+    return {
+      ...unit,
+      name: nameMap[unit.name] || unit.name
+    };
+  };
+
   const getInitialValues = useCallback(() => {
     const title = searchParams.get('title') || '';
     const content = searchParams.get('content') || '';
@@ -163,24 +504,19 @@ const PostJob = () => {
       if (foundToken) initialToken = foundToken;
     }
 
+    // Fixed: Default to 1 day, matching the lowercase format from unitsDeliveryTime
     let deadline = 1;
-    let unit = unitsDeliveryTime[2];
+    // unitsDeliveryTime uses lowercase 'days' at index 2
+    let unit = unitsDeliveryTime[2]; // This is { id: '2', name: 'days' }
+    
     if (maxTime) {
       const seconds = parseInt(maxTime);
       if (!isNaN(seconds)) {
-        if (seconds % 86400 === 0) {
-          deadline = seconds / 86400;
-          unit = unitsDeliveryTime.find(u => u.name === 'Days') || unitsDeliveryTime[2];
-        } else if (seconds % 3600 === 0) {
-          deadline = seconds / 3600;
-          unit = unitsDeliveryTime.find(u => u.name === 'Hours') || unitsDeliveryTime[1];
-        } else if (seconds % 60 === 0) {
-          deadline = seconds / 60;
-          unit = unitsDeliveryTime.find(u => u.name === 'Minutes') || unitsDeliveryTime[0];
-        } else {
-          deadline = seconds;
-          unit = unitsDeliveryTime.find(u => u.name === 'Seconds') || unitsDeliveryTime[0];
-        }
+        // Use the getUnitAndValueFromSeconds utility function from utils
+        const result = getUnitAndValueFromSeconds(seconds);
+        deadline = result.value;
+        // Find the matching unit in unitsDeliveryTime
+        unit = unitsDeliveryTime.find(u => u.name === result.unit) || unitsDeliveryTime[2];
       }
     }
 
@@ -212,7 +548,9 @@ const PostJob = () => {
   const [arbitratorRequired, setArbitratorRequired] = useState(
     initialValues.arbitrator && initialValues.arbitrator !== zeroAddress ? noYes[1] : noYes[0]
   );
-  const [selectedUnitTime, setselectedUnitTime] = useState<ComboBoxOption>(initialValues.unit || unitsDeliveryTime[2]);
+  const [selectedUnitTime, setselectedUnitTime] = useState<ComboBoxOption>(
+    convertUnitForDisplay(initialValues.unit || unitsDeliveryTime[2]) // Convert to display format
+  );
   const [tags, setTags] = useState<Tag[]>(initialValues.tags);
   const [selectedCategory, setSelectedCategory] = useState<{ id: string; name: string } | undefined>(initialValues.category);
   const [selectedArbitratorAddress, setSelectedArbitratorAddress] = useState<string>(initialValues.arbitrator);
@@ -235,12 +573,40 @@ const PostJob = () => {
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [isLoadingModalOpen, setIsLoadingModalOpen] = useState(false);
 
+  // Function to handle transaction submission from JobSummary
+  const handleTransactionSubmit = useCallback(() => {
+    setIsLoadingModalOpen(true);
+  }, []);
+
+  // Function to handle transaction completion
+  const handleTransactionComplete = useCallback(() => {
+    setIsLoadingModalOpen(false);
+  }, []);
+
+  // Handle balance updates from PaymentInput
+  const handleBalanceUpdate = useCallback((balance: string | undefined) => {
+    setTokenBalance(balance);
+    // Re-validate amount when balance updates
+    if (amount && balance) {
+      const amountValue = parseFloat(amount);
+      const balanceValue = parseFloat(balance);
+      if (!isNaN(amountValue) && !isNaN(balanceValue)) {
+        if (amountValue > balanceValue) {
+          setPaymentTokenError('Amount exceeds available balance');
+        } else if (paymentTokenError === 'Amount exceeds available balance' || paymentTokenError === 'Insufficient balance') {
+          setPaymentTokenError('');
+        }
+      }
+    }
+  }, [amount, paymentTokenError]);
+
   const handleSummary = useCallback(() => {
     if (!user) {
       setIsRegisterModalOpen(true);
       return;
     }
     setShowSummary(!showSummary);
+    // Don't show loading modal here - only show it when actually submitting the transaction
   }, [user, showSummary]);
 
   const validateTitle = useCallback((value: string) => {
@@ -256,17 +622,27 @@ const PostJob = () => {
     setTitleError('');
   }, []);
 
+  // Updated validatePaymentAmount to consider balance
   const validatePaymentAmount = useCallback((paymentAmount: string) => {
     setAmount(paymentAmount);
     const value = parseFloat(paymentAmount);
 
-    if (isNaN(value) || value === 0) {
+    if (paymentAmount === '' || isNaN(value) || value === 0) {
       setPaymentTokenError('Please enter a valid amount');
       return;
     }
     
+    // Check against balance if available
+    if (tokenBalance) {
+      const balanceValue = parseFloat(tokenBalance);
+      if (!isNaN(balanceValue) && value > balanceValue) {
+        setPaymentTokenError('Amount exceeds available balance');
+        return;
+      }
+    }
+    
     setPaymentTokenError('');
-  }, []);
+  }, [tokenBalance]);
 
   const validateArbitratorRequired = useCallback((required: string) => {
     setArbitratorRequired(required);
@@ -275,7 +651,7 @@ const PostJob = () => {
       setArbitratorError('');
       return;
     }
-    if (required === 'Yes' && !selectedArbitratorAddress) {
+    if (required === 'Yes' && (!selectedArbitratorAddress || selectedArbitratorAddress === zeroAddress)) {
       setArbitratorError('Please select an arbitrator');
       return;
     }
@@ -311,13 +687,26 @@ const PostJob = () => {
     if (validationAttempted) {
       if (title && title.length >= 3) setTitleError('');
       if (selectedCategory) setCategoryError('');
-      if (amount && parseFloat(amount) > 0) setPaymentTokenError('');
+      if (amount && parseFloat(amount) > 0) {
+        // Re-validate amount when balance changes
+        const value = parseFloat(amount);
+        if (tokenBalance) {
+          const balanceValue = parseFloat(tokenBalance);
+          if (!isNaN(value) && !isNaN(balanceValue) && value > balanceValue) {
+            setPaymentTokenError('Amount exceeds available balance');
+          } else {
+            setPaymentTokenError('');
+          }
+        } else {
+          setPaymentTokenError('');
+        }
+      }
       if (deadline && !isNaN(deadline) && deadline > 0) setDeadlineError('');
       if (arbitratorRequired === 'No' || (selectedArbitratorAddress && selectedArbitratorAddress !== zeroAddress)) {
         setArbitratorError('');
       }
     }
-  }, [title, selectedCategory, amount, deadline, arbitratorRequired, selectedArbitratorAddress, validationAttempted]);
+  }, [title, selectedCategory, amount, tokenBalance, deadline, arbitratorRequired, selectedArbitratorAddress, validationAttempted]);
 
   useEffect(() => {
     if (initialValues.title) validateTitle(initialValues.title);
@@ -326,6 +715,7 @@ const PostJob = () => {
     if (initialValues.deadline) validateDeadline(initialValues.deadline.toString());
   }, [initialValues.title, initialValues.amount, initialValues.arbitrator, initialValues.deadline, validateTitle, validatePaymentAmount, validateArbitrator, validateDeadline]);
 
+  // Updated handleSubmit with balance validation
   const handleSubmit = useCallback(() => {
     setValidationAttempted(true);
     setTitleError('');
@@ -352,6 +742,14 @@ const PostJob = () => {
     if (!amount || parseFloat(amount) <= 0) {
       errorFields.push({ ref: jobAmountRef, setter: setPaymentTokenError, message: 'Please enter a valid payment amount' });
       hasErrors = true;
+    } else if (tokenBalance) {
+      // Additional balance check at submit time
+      const amountValue = parseFloat(amount);
+      const balanceValue = parseFloat(tokenBalance);
+      if (!isNaN(amountValue) && !isNaN(balanceValue) && amountValue > balanceValue) {
+        errorFields.push({ ref: jobAmountRef, setter: setPaymentTokenError, message: 'Amount exceeds available balance' });
+        hasErrors = true;
+      }
     }
 
     if (!deadline || isNaN(deadline) || deadline <= 0) {
@@ -373,7 +771,7 @@ const PostJob = () => {
     }
 
     handleSummary();
-  }, [title, amount, selectedCategory, deadline, arbitratorRequired, selectedArbitratorAddress, handleSummary]);
+  }, [title, amount, tokenBalance, selectedCategory, deadline, arbitratorRequired, selectedArbitratorAddress, handleSummary]);
 
   return (
     <div className='relative min-h-screen'>
@@ -395,6 +793,13 @@ const PostJob = () => {
         }
         .arbitrator-section {
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+        .animate-shimmer {
+          animation: shimmer 2s infinite;
         }
       `}</style>
 
@@ -516,7 +921,7 @@ const PostJob = () => {
                 </h2>
 
                 <FieldGroup className='space-y-6'>
-                  {/* Payment Input */}
+                  {/* Payment Input with Balance Update */}
                   <div className='relative'>
                     <div className='flex items-center gap-2 mb-2'>
                       <PiCurrencyDollar className={`h-4 w-4 transition-colors duration-200 ${paymentTokenError ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'}`} />
@@ -553,14 +958,22 @@ const PostJob = () => {
                             onAmountChange={validatePaymentAmount}
                             selectedToken={selectedToken}
                             onTokenSelect={setSelectedToken}
-                            error={paymentTokenError}
+                            onBalanceUpdate={handleBalanceUpdate}
                             placeholder='Enter amount'
                             helperText={!paymentTokenError ? 'Set the payment amount for this job' : undefined}
                             required
-                            validateAmount={false}
+                            validateAmount={true}
                           />
                         </div>
                       </div>
+                      {paymentTokenError && (
+                        <div className='mt-2.5 flex items-center gap-2'>
+                          <div className='flex items-center gap-1.5 text-sm font-semibold text-red-600 dark:text-red-400'>
+                            <AlertCircle className='h-4 w-4 flex-shrink-0 animate-pulse' />
+                            <span>{paymentTokenError}</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -601,8 +1014,9 @@ const PostJob = () => {
                             value={deadline}
                             onValueChange={validateDeadline}
                             selectedUnit={selectedUnitTime}
-                            onUnitChange={setselectedUnitTime}
-                            error={deadlineError}
+                            onUnitChange={(unit) => {
+                              setselectedUnitTime(unit);
+                            }}
                             placeholder='Enter time'
                             helperText={!deadlineError ? 'Set the expected delivery time for this job' : undefined}
                           />
@@ -652,47 +1066,12 @@ const PostJob = () => {
                             <div className='border-t border-purple-500/20 pt-4'>
                               <div className='scroll-mt-20' ref={jobArbitratorRef} />
                               <div className='space-y-3'>
-                                <div className='relative'>
-                                  <Combobox
-                                    placeholder='Choose an arbitrator'
-                                    value={selectedArbitratorAddress || ''}
-                                    options={arbitratorAddresses.map((address, index) => ({
-                                      value: address,
-                                      label: address === zeroAddress ? 'No Arbitrator' : `${arbitratorNames[index]} • ${shortenText({ text: address, maxLength: 11 })} • ${+arbitratorFees[index] / 100}% fee`,
-                                    }))}
-                                    onChange={(addr) => validateArbitrator(addr)}
-                                  />
-                                </div>
-
-                                {selectedArbitratorAddress && selectedArbitratorAddress !== zeroAddress && arbitrators && (
-                                  <div className='flex items-center justify-between p-3 bg-purple-500/5 border border-purple-500/20 rounded-lg'>
-                                    <div className='flex items-center gap-3'>
-                                      {(() => {
-                                        const selectedArb = arbitrators.find(a => a.address_ === selectedArbitratorAddress);
-                                        return selectedArb ? (
-                                          <>
-                                            <EventProfileImage user={selectedArb} className='h-10 w-10 rounded-full' />
-                                            <div>
-                                              <p className='text-sm font-medium text-gray-900 dark:text-gray-100'>{selectedArb.name}</p>
-                                              <p className='text-xs text-gray-500 dark:text-gray-400'>
-                                                {selectedArb.fee / 100}% fee • {selectedArb.settledCount} cases settled
-                                              </p>
-                                            </div>
-                                          </>
-                                        ) : null;
-                                      })()}
-                                    </div>
-                                    <a
-                                      href={`/dashboard/arbitrators/${selectedArbitratorAddress}`}
-                                      target='_blank'
-                                      rel='noopener noreferrer'
-                                      className='p-2 rounded-lg hover:bg-purple-500/10 transition-colors'
-                                      title='View arbitrator profile'
-                                    >
-                                      <PiArrowSquareOut className='h-4 w-4 text-purple-600 dark:text-purple-400' />
-                                    </a>
-                                  </div>
-                                )}
+                                <ArbitratorSelector
+                                  arbitrators={arbitrators || []}
+                                  selectedAddress={selectedArbitratorAddress}
+                                  onChange={validateArbitrator}
+                                  disabled={false}
+                                />
 
                                 {arbitratorError && (
                                   <div className='flex items-center gap-1 text-xs text-red-500 dark:text-red-400'>
@@ -751,8 +1130,10 @@ const PostJob = () => {
           selectedToken={selectedToken}
           amount={amount}
           selectedCategory={selectedCategory as { id: string; name: string }}
-          deadline={convertToSeconds(deadline, selectedUnitTime.name)}
+          deadline={convertToSeconds(deadline, convertUnitFromDisplay(selectedUnitTime).name)}
           selectedArbitratorAddress={selectedArbitratorAddress}
+          onTransactionStart={handleTransactionSubmit}
+          onTransactionComplete={handleTransactionComplete}
         />
       )}
 

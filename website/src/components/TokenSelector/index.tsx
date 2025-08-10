@@ -11,15 +11,26 @@ import arbitrumTokens from './data/arbitrumTokens.json';
 import mainnetTokens from './data/mainnetTokens.json';
 import { useChainId } from 'wagmi';
 
+// Extended IArbitrumToken to include balance
+export interface IArbitrumTokenWithBalance extends IArbitrumToken {
+  balance?: {
+    decimals: number;
+    formatted: string;
+    symbol: string;
+    value: bigint;
+  };
+}
 
 export function TokenSelector({
   selectedToken,
   onClick,
+  onBalanceChange, // New callback to expose balance
   persistSelection = true,
   compact = false,
 }: {
   selectedToken: Token | undefined;
   onClick: (token: Token) => void;
+  onBalanceChange?: (balance: string | undefined) => void; // New prop
   persistSelection?: boolean;
   compact?: boolean;
 }) {
@@ -27,7 +38,7 @@ export function TokenSelector({
   const chainId = useChainId();
   const [selectableTokens, setSelectableTokens] = useState<any>();
   const [preferredTokens, setPreferredTokens] = useState<IArbitrumToken[]>([]);
-  const [internalSelectedToken, setInternalSelectedToken] = useState<IArbitrumToken | Token | undefined>();
+  const [internalSelectedToken, setInternalSelectedToken] = useState<IArbitrumTokenWithBalance | Token | undefined>();
   const [hasLoadedFromStorage, setHasLoadedFromStorage] = useState(false);
 
   // Convert between Token and IArbitrumToken formats
@@ -161,19 +172,38 @@ export function TokenSelector({
     }
   }, [selectedToken, hasLoadedFromStorage, chainId, persistSelection]);
 
+  // Expose balance when selected token changes
+  useEffect(() => {
+    if (onBalanceChange && internalSelectedToken) {
+      // Check if the token has balance info (from TokenDialog)
+      if ('balance' in internalSelectedToken && internalSelectedToken.balance) {
+        onBalanceChange(internalSelectedToken.balance.formatted);
+      } else {
+        // No balance info yet
+        onBalanceChange(undefined);
+      }
+    }
+  }, [internalSelectedToken, onBalanceChange]);
+
   function openModal() {
     setIsOpen(true);
   }
 
-  function handleTokenSelect(dialogSelectedToken: IArbitrumToken) {
+  function handleTokenSelect(dialogSelectedToken: IArbitrumTokenWithBalance) {
     if (dialogSelectedToken) {
+      // Store the token with its balance
       setInternalSelectedToken(dialogSelectedToken);
       const token = convertToToken(dialogSelectedToken);
-      // Save to localStorage only if persistence is enabled
+      // Save to localStorage only if persistence is enabled (without balance info)
       if (persistSelection) {
-        storage.set('LAST_TOKEN_SELECTED', dialogSelectedToken);
+        const { balance, ...tokenWithoutBalance } = dialogSelectedToken;
+        storage.set('LAST_TOKEN_SELECTED', tokenWithoutBalance);
       }
       onClick(token);
+      // Immediately expose the balance
+      if (onBalanceChange && dialogSelectedToken.balance) {
+        onBalanceChange(dialogSelectedToken.balance.formatted);
+      }
     }
     setIsOpen(false);
   }
@@ -182,8 +212,9 @@ export function TokenSelector({
   const getInitialDialogToken = (): IArbitrumToken => {
     if (internalSelectedToken) {
       if ('logoURI' in internalSelectedToken || 'address' in internalSelectedToken) {
-        // It's already an IArbitrumToken
-        return internalSelectedToken as IArbitrumToken;
+        // It's already an IArbitrumToken, remove balance for initial dialog
+        const { balance, ...tokenWithoutBalance } = internalSelectedToken as IArbitrumTokenWithBalance;
+        return tokenWithoutBalance;
       } else {
         // It's a Token, convert it
         return convertToArbitrumToken(internalSelectedToken as Token);
@@ -227,6 +258,7 @@ export function TokenSelector({
           tokensList={selectableTokens?.tokens || []}
           closeCallback={handleTokenSelect}
           persistSelection={persistSelection}
+          onBalanceReceived={onBalanceChange} // Pass balance callback to dialog
         />
       )}
     </>

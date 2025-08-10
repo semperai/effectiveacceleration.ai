@@ -19,6 +19,17 @@ import { styles, mergeStyles, keyframes, mobileStyles } from './styles';
 import { DEFAULT_TOKEN_ICON } from './icons/DefaultTokenIcon';
 import { tokens as appTokens, type Token } from '@/tokens';
 
+// Extended IArbitrumToken to include balance
+interface IArbitrumTokenWithBalance extends IArbitrumToken {
+  balance?: {
+    decimals: number;
+    formatted: string;
+    symbol: string;
+    value: bigint;
+    timestamp?: number;
+  };
+}
+
 // ERC20 ABI for balanceOf function
 const ERC20_ABI = [
   {
@@ -214,8 +225,9 @@ interface TokenDialogProps {
   initiallySelectedToken: IArbitrumToken;
   tokensList: IArbitrumToken[];
   preferredTokenList: IArbitrumToken[];
-  closeCallback: (token: IArbitrumToken) => void;
+  closeCallback: (token: IArbitrumTokenWithBalance) => void;
   persistSelection?: boolean;
+  onBalanceReceived?: (balance: string | undefined) => void;
 }
 
 const TokenDialog: React.FC<TokenDialogProps> = ({
@@ -224,6 +236,7 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
   preferredTokenList,
   closeCallback,
   persistSelection = true,
+  onBalanceReceived,
 }) => {
   const [selectedToken, setSelectedToken] = useState<IArbitrumToken>(
     initiallySelectedToken
@@ -314,12 +327,37 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
     const isLink = target.closest('a');
 
     if (!isPin && !isLink) {
+      // Get the balance for this token from the appropriate balance map
+      let tokenBalance;
+      const tokenAddr = token.address?.toLowerCase();
+      
+      // Check if it's a favorite token first (already have balance)
+      const favoriteBalance = tokenAddr ? favoriteTokenBalances[tokenAddr] : undefined;
+      if (favoriteBalance) {
+        tokenBalance = favoriteBalance;
+      } else {
+        // Otherwise check search results balance
+        tokenBalance = tokenAddr ? searchTokenBalances[tokenAddr] : undefined;
+      }
+
+      // Create token with balance
+      const tokenWithBalance: IArbitrumTokenWithBalance = {
+        ...token,
+        balance: tokenBalance
+      };
+
       setSelectedToken(token);
       // Save last selected token to localStorage only if persistence is enabled
       if (persistSelection) {
         storage.set('LAST_TOKEN_SELECTED', token);
       }
-      closeCallback(token);
+      
+      // Pass balance to parent if callback provided
+      if (onBalanceReceived) {
+        onBalanceReceived(tokenBalance?.formatted);
+      }
+      
+      closeCallback(tokenWithBalance);
     }
   };
 
@@ -336,6 +374,16 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
     );
 
     if (existingToken) {
+      // Get balance for existing token
+      const tokenAddr = existingToken.address.toLowerCase();
+      const tokenBalance = favoriteTokenBalances[tokenAddr] || searchTokenBalances[tokenAddr];
+      
+      // Create token with balance
+      const tokenWithBalance: IArbitrumTokenWithBalance = {
+        ...existingToken,
+        balance: tokenBalance
+      };
+
       // Select the token to highlight it
       setSelectedToken(existingToken);
       // Save last selected token to localStorage only if persistence is enabled
@@ -353,14 +401,14 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
       // Clear search to show all tokens with the selected one highlighted
       setSearchValue('');
 
-      // Scroll to top if token is in favorites
-      if (scrollContainerRef.current && favoriteTokens.find(t => t.address.toLowerCase() === existingToken.address.toLowerCase())) {
-        scrollContainerRef.current.scrollTop = 0;
+      // Pass balance to parent if callback provided
+      if (onBalanceReceived) {
+        onBalanceReceived(tokenBalance?.formatted);
       }
 
       // Don't close immediately - let user see the selection
       setTimeout(() => {
-        closeCallback(existingToken);
+        closeCallback(tokenWithBalance);
       }, 500);
       return;
     }
@@ -409,7 +457,12 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
       setFavoriteTokens(newFavorites);
       storage.set('PREFERRED_TOKENS', newFavorites);
 
-      // Select the token to highlight it
+      // Select the token to highlight it (without balance initially)
+      const tokenWithBalance: IArbitrumTokenWithBalance = {
+        ...tokenMetadata,
+        balance: undefined // New token won't have balance yet
+      };
+      
       setSelectedToken(tokenMetadata);
       // Save last selected token to localStorage only if persistence is enabled
       if (persistSelection) {
@@ -421,6 +474,11 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
       // Scroll to top to show the newly added favorite token
       if (scrollContainerRef.current) {
         scrollContainerRef.current.scrollTop = 0;
+      }
+
+      // Pass undefined balance for new token
+      if (onBalanceReceived) {
+        onBalanceReceived(undefined);
       }
 
     } catch (error) {
@@ -716,7 +774,16 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
   };
 
   return (
-    <div style={styles.overlay} onClick={() => closeCallback(selectedToken)}>
+    <div style={styles.overlay} onClick={() => {
+      // When closing by clicking overlay, pass the currently selected token with its balance
+      const tokenAddr = selectedToken.address?.toLowerCase();
+      const tokenBalance = tokenAddr ? (favoriteTokenBalances[tokenAddr] || searchTokenBalances[tokenAddr]) : undefined;
+      const tokenWithBalance: IArbitrumTokenWithBalance = {
+        ...selectedToken,
+        balance: tokenBalance
+      };
+      closeCallback(tokenWithBalance);
+    }}>
       <div
         style={mergeStyles(
           styles.container,
@@ -773,7 +840,16 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
               )}
               onMouseEnter={() => setHovered('closeButton', true)}
               onMouseLeave={() => setHovered('closeButton', false)}
-              onClick={() => closeCallback(selectedToken)}
+              onClick={() => {
+                // When closing with X button, pass the currently selected token with its balance
+                const tokenAddr = selectedToken.address?.toLowerCase();
+                const tokenBalance = tokenAddr ? (favoriteTokenBalances[tokenAddr] || searchTokenBalances[tokenAddr]) : undefined;
+                const tokenWithBalance: IArbitrumTokenWithBalance = {
+                  ...selectedToken,
+                  balance: tokenBalance
+                };
+                closeCallback(tokenWithBalance);
+              }}
             >
               <X className="w-5 h-5" />
             </button>
@@ -794,11 +870,20 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
                   balance={balance}
                   isSelected={token.address === selectedToken?.address}
                   onSelect={() => {
+                    // Create token with balance for selection
+                    const tokenWithBalance: IArbitrumTokenWithBalance = {
+                      ...token,
+                      balance: balance
+                    };
                     setSelectedToken(token);
                     if (persistSelection) {
                       storage.set('LAST_TOKEN_SELECTED', token);
                     }
-                    closeCallback(token);
+                    // Pass balance to parent if callback provided
+                    if (onBalanceReceived) {
+                      onBalanceReceived(balance?.formatted);
+                    }
+                    closeCallback(tokenWithBalance);
                   }}
                   onRemove={() => deleteTokenFromFavorites(token)}
                 />
@@ -935,7 +1020,7 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
   );
 };
 
-// Separate component for favorite token chips with balance
+// Components remain the same...
 const FavoriteTokenChip: React.FC<FavoriteTokenChipProps> = ({ 
   token, 
   balance, 

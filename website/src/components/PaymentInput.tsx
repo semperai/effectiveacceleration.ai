@@ -1,17 +1,18 @@
 // src/components/PaymentInput/index.tsx
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { TokenSelector } from '@/components/TokenSelector';
 import { type Token } from '@/tokens';
+import { useAccount, useBalance } from 'wagmi';
 
 interface PaymentInputProps {
   amount: string;
   onAmountChange: (value: string) => void;
   selectedToken?: Token;
   onTokenSelect: (token: Token) => void;
-  balance?: string;
+  onBalanceUpdate?: (balance: string | undefined) => void;
   error?: string;
   placeholder?: string;
   label?: string;
@@ -19,7 +20,7 @@ interface PaymentInputProps {
   disabled?: boolean;
   required?: boolean;
   className?: string;
-  validateAmount?: boolean; // New prop to control validation
+  validateAmount?: boolean;
 }
 
 // Intelligent balance formatting
@@ -63,7 +64,7 @@ export const PaymentInput: React.FC<PaymentInputProps> = ({
   onAmountChange,
   selectedToken,
   onTokenSelect,
-  balance,
+  onBalanceUpdate,
   error,
   placeholder = "0.00",
   label,
@@ -75,7 +76,36 @@ export const PaymentInput: React.FC<PaymentInputProps> = ({
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
+  const [tokenBalance, setTokenBalance] = useState<string | undefined>(undefined);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { address } = useAccount();
+
+  // Fetch balance for selected token using wagmi's useBalance hook
+  const { data: balanceData } = useBalance({
+    address: address,
+    token: selectedToken?.id as `0x${string}` | undefined,
+    query: {
+      enabled: !!address && !!selectedToken,
+    }
+  });
+
+  // Update token balance when balance data changes
+  useEffect(() => {
+    if (balanceData) {
+      const formattedBalance = balanceData.formatted;
+      setTokenBalance(formattedBalance);
+      
+      // Also notify parent component if callback provided
+      if (onBalanceUpdate) {
+        onBalanceUpdate(formattedBalance);
+      }
+    } else {
+      setTokenBalance(undefined);
+      if (onBalanceUpdate) {
+        onBalanceUpdate(undefined);
+      }
+    }
+  }, [balanceData, onBalanceUpdate]);
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -89,8 +119,8 @@ export const PaymentInput: React.FC<PaymentInputProps> = ({
   };
 
   const handleMaxClick = () => {
-    if (balance && !disabled) {
-      onAmountChange(balance);
+    if (tokenBalance && !disabled) {
+      onAmountChange(tokenBalance);
       inputRef.current?.focus();
       if (!hasInteracted) {
         setHasInteracted(true);
@@ -98,15 +128,33 @@ export const PaymentInput: React.FC<PaymentInputProps> = ({
     }
   };
 
-  const formattedBalance = balance ? formatBalance(balance, selectedToken?.symbol) : null;
+  const handleTokenSelect = (token: Token) => {
+    onTokenSelect(token);
+    // Reset interaction state when token changes
+    setHasInteracted(false);
+  };
+
+  // Also accept balance updates from TokenSelector if it provides them
+  const handleBalanceChange = (balance: string | undefined) => {
+    // Only update if we don't already have balance data from useBalance
+    if (!balanceData && balance) {
+      setTokenBalance(balance);
+      // Also notify parent component if callback provided
+      if (onBalanceUpdate) {
+        onBalanceUpdate(balance);
+      }
+    }
+  };
+
+  const formattedBalance = tokenBalance ? formatBalance(tokenBalance, selectedToken?.symbol) : null;
 
   // Validate amount against balance
   const isAmountValid = () => {
     if (!validateAmount || !amount || amount === '0' || amount === '') return true;
-    if (!balance) return true;
+    if (!tokenBalance) return true;
     
     const amountNum = parseFloat(amount);
-    const balanceNum = parseFloat(balance);
+    const balanceNum = parseFloat(tokenBalance);
     
     if (isNaN(amountNum) || isNaN(balanceNum)) return true;
     
@@ -145,62 +193,65 @@ export const PaymentInput: React.FC<PaymentInputProps> = ({
           `}
           style={{ height: '40px' }} // Fixed height matching normal inputs
         >
-          {/* Amount Input - Remove all borders and outlines */}
-          <input
-            ref={inputRef}
-            type="text"
-            inputMode="decimal"
-            value={amount}
-            onChange={handleAmountChange}
-            placeholder={placeholder}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            disabled={disabled}
-            className="
-              flex-1 px-3 h-full
-              bg-transparent rounded-l-lg
-              text-sm text-gray-900 placeholder-gray-400
-              border-0 outline-none focus:outline-none focus:ring-0
-              disabled:cursor-not-allowed
-            "
-            style={{ 
-              paddingRight: balance ? '3.5rem' : '0.75rem',
-              boxShadow: 'none',
-              WebkitAppearance: 'none',
-              MozAppearance: 'none',
-              appearance: 'none'
-            }}
-          />
+          {/* Amount Input Container with MAX button */}
+          <div className="flex-1 relative flex items-center">
+            <input
+              ref={inputRef}
+              type="text"
+              inputMode="decimal"
+              value={amount}
+              onChange={handleAmountChange}
+              placeholder={placeholder}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              disabled={disabled}
+              className={`
+                flex-1 px-3 h-full
+                bg-transparent rounded-l-lg
+                text-sm text-gray-900 placeholder-gray-400
+                border-0 outline-none focus:outline-none focus:ring-0
+                disabled:cursor-not-allowed
+                ${tokenBalance ? 'pr-12' : 'pr-3'}
+              `}
+              style={{ 
+                boxShadow: 'none',
+                WebkitAppearance: 'none',
+                MozAppearance: 'none',
+                appearance: 'none'
+              }}
+            />
 
-          {/* MAX button - Inside input, on the right */}
-          {balance && !disabled && (
-            <button
-              type="button"
-              onClick={handleMaxClick}
-              className="
-                absolute right-[140px]
-                px-2 py-0.5
-                text-[10px] font-semibold text-gray-500
-                hover:text-gray-700 hover:bg-gray-50
-                rounded transition-colors duration-150
-                uppercase tracking-wide
-              "
-            >
-              MAX
-            </button>
-          )}
+            {/* MAX button - Positioned relative to input container */}
+            {tokenBalance && !disabled && (
+              <button
+                type="button"
+                onClick={handleMaxClick}
+                className="
+                  absolute right-2
+                  px-2 py-0.5
+                  text-[10px] font-semibold text-gray-500
+                  hover:text-gray-700 hover:bg-gray-50
+                  rounded transition-colors duration-150
+                  uppercase tracking-wide
+                "
+              >
+                MAX
+              </button>
+            )}
+          </div>
 
           {/* Divider - Softer gray */}
           <div className="h-5 w-px bg-gray-200 mr-1" />
 
-          {/* Token Selector - Compact version */}
+          {/* Token Selector - Compact version with balance callback */}
           <div className={`
             h-full flex items-center pr-1
             ${disabled ? 'pointer-events-none opacity-60' : ''}
           `}>
             <TokenSelector
               selectedToken={selectedToken}
-              onClick={onTokenSelect}
+              onClick={handleTokenSelect}
+              onBalanceChange={handleBalanceChange}
               persistSelection={true}
               compact={true}
             />
@@ -208,7 +259,7 @@ export const PaymentInput: React.FC<PaymentInputProps> = ({
         </div>
 
         {/* Balance Display - Always show if available */}
-        {balance && selectedToken && (
+        {tokenBalance && selectedToken && (
           <div className="text-xs text-gray-500 px-1">
             Balance: <span className={`font-medium ${isInsufficientBalance && hasInteracted ? 'text-red-600' : 'text-gray-700'}`}>
               {formattedBalance} {selectedToken.symbol}
