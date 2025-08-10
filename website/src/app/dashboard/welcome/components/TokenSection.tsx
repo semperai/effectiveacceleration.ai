@@ -6,19 +6,65 @@ import Link from 'next/link';
 import { useAccount } from 'wagmi';
 import { ArrowRight, Coins, Users, TrendingUp, Copy, CheckCircle, DollarSign } from 'lucide-react';
 import { Card, CardContent } from '@/components/Card';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const TOKEN_ADDRESS = '0x9Eeab030a17528eFb2aC0F81D76fab8754e461BD';
-
-const tokenStats = [
-  { icon: Coins, label: 'Total Supply', value: '6.97B', color: 'blue' },
-  { icon: Users, label: 'Distributed', value: '68%', color: 'green' },
-  { icon: TrendingUp, label: 'Market Cap', value: '$2.5M', color: 'purple' },
-];
 
 export const TokenSection = () => {
   const { isConnected } = useAccount();
   const [copied, setCopied] = useState(false);
+  const [marketCap, setMarketCap] = useState<string | null>(null);
+  const [marketCapLoading, setMarketCapLoading] = useState(true);
+  const [circulatingSupply, setCirculatingSupply] = useState<string | null>(null);
+  const [circulatingLoading, setCirculatingLoading] = useState(true);
+
+  // Fetch market cap and circulating supply on mount
+  useEffect(() => {
+    const fetchData = async () => {
+      // Fetch market cap
+      try {
+        const response = await fetch('/api/market_cap');
+        if (response.ok) {
+          const value = await response.text();
+          // Format the number with commas and convert to millions
+          const numValue = parseFloat(value);
+          if (!isNaN(numValue)) {
+            const formatted = numValue >= 1_000_000 
+              ? `${(numValue / 1_000_000).toFixed(2)}M`
+              : numValue >= 1_000
+              ? `${(numValue / 1_000).toFixed(2)}K`
+              : `${numValue.toFixed(2)}`;
+            setMarketCap(formatted);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching market cap:', error);
+      } finally {
+        setMarketCapLoading(false);
+      }
+
+      // Fetch circulating supply
+      try {
+        const response = await fetch('/api/circulating_supply');
+        if (response.ok) {
+          const value = await response.text();
+          // Calculate percentage of total supply (6,969,696,969)
+          const numValue = parseFloat(value);
+          if (!isNaN(numValue)) {
+            const percentage = (numValue / 6_969_696_969) * 100;
+            const formatted = `${percentage.toFixed(1)}%`;
+            setCirculatingSupply(formatted);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching circulating supply:', error);
+      } finally {
+        setCirculatingLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(TOKEN_ADDRESS);
@@ -48,6 +94,24 @@ export const TokenSection = () => {
       console.error('Error adding token to MetaMask:', error);
     }
   };
+
+  const tokenStats = [
+    { icon: Coins, label: 'Total Supply', value: '6.97B', color: 'blue' },
+    { 
+      icon: Users, 
+      label: 'Distributed', 
+      value: circulatingSupply || '---',
+      loading: circulatingLoading,
+      color: 'green' 
+    },
+    { 
+      icon: TrendingUp, 
+      label: 'Market Cap', 
+      value: marketCap || '---',
+      loading: marketCapLoading,
+      color: 'purple' 
+    },
+  ];
 
   return (
     <section className="py-16 bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
@@ -124,7 +188,7 @@ export const TokenSection = () => {
             {/* Action Buttons */}
             <div className="flex flex-wrap gap-3">
               <Link
-                href="https://app.uniswap.org/swap?chain=arbitrum&outputCurrency=0x9Eeab030a17528eFb2aC0F81D76fab8754e461BD"
+                href={`https://app.uniswap.org/swap?chain=arbitrum&outputCurrency=${TOKEN_ADDRESS}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 px-6 py-3 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl"
@@ -168,7 +232,11 @@ export const TokenSection = () => {
                   >
                     <Icon className={`mx-auto mb-2 h-6 w-6 ${colorClasses[stat.color as keyof typeof colorClasses]}`} />
                     <div className="text-xl font-bold text-gray-900 dark:text-white">
-                      {stat.value}
+                      {stat.loading ? (
+                        <div className="inline-block h-6 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+                      ) : (
+                        stat.value
+                      )}
                     </div>
                     <div className="text-xs text-gray-600 dark:text-gray-400">
                       {stat.label}
