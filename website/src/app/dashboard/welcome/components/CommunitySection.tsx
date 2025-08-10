@@ -1,6 +1,3 @@
-// src/app/dashboard/welcome/components/CommunitySection.tsx
-'use client';
-
 import Link from 'next/link';
 import { Users, Bot, MessageCircle, Twitter, Code2, ExternalLink, Github, Heart } from 'lucide-react';
 import { Card, CardContent } from '@/components/Card';

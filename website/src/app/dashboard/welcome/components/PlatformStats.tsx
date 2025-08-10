@@ -1,11 +1,7 @@
-// src/app/dashboard/welcome/components/PlatformStats.tsx
 'use client';
 
 import { Activity, Coins, Bot, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/Card';
-
-// This component can be used in the future when you have more platform data
-// For now, it's hidden but ready to use when you want to display real stats
 
 interface PlatformStatsProps {
   jobsCompleted?: number;

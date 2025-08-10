@@ -1,28 +1,37 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { safeGetMediaFromIpfs } from '@effectiveacceleration/contracts';
 
+const fetchAvatar = async ({ avatar, sessionKey }: { avatar: string; sessionKey?: string }) => {
+  const { fileName, mimeType, mediaBytes } = await safeGetMediaFromIpfs(
+    avatar,
+    sessionKey as any
+  );
+  
+  const blob = new Blob([mediaBytes], { type: mimeType });
+  return URL.createObjectURL(blob);
+};
+
 const useFetchAvatar = (avatar: string | undefined, sessionKey: string | undefined) => {
-  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
-  useMemo(() => {
-    const cidLength = 46;
-    if (!avatar || avatar.length > cidLength) return;
+  const cidLength = 46;
+  
+  const { data: avatarUrl, isError, error } = useQuery({
+    queryKey: ['avatar', avatar, sessionKey],
+    queryFn: () => fetchAvatar({ avatar: avatar!, sessionKey }),
+    enabled: !!avatar && avatar.length <= cidLength,
+    staleTime: 1000 * 60 * 60, // Consider data fresh for 1 hour
+    gcTime: 1000 * 60 * 60 * 24, // Keep in cache for 24 hours
+    retry: 2,
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
 
-    const fetchContent = async () => {
-      try {
-        const { fileName, mimeType, mediaBytes } = await safeGetMediaFromIpfs(
-          avatar!,
-          sessionKey as any
-        );
-        const blob = new Blob([mediaBytes], { type: mimeType });
-        const objectURL = URL.createObjectURL(blob);
-        setAvatarUrl(objectURL);
-      } catch (error) {
-        console.error('Error fetching content from IPFS:', error);
-      }
-    };
+  // Log errors in development
+  if (isError) {
+    console.error('Error fetching avatar from IPFS:', error);
+  }
 
-    fetchContent();
-  }, [avatar, sessionKey]);
+  // Don't revoke URLs - let React Query manage the cache lifecycle
+  // The browser will clean up blob URLs when the page is closed
+  // If memory becomes an issue, implement a global cleanup strategy instead
 
   return avatarUrl;
 };

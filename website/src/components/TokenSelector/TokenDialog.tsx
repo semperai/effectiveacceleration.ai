@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import ReactDOM from 'react-dom';
 import Link from 'next/link';
 import { ethers } from 'ethers';
 import storage from './storage';
@@ -772,17 +773,45 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
     );
   };
 
-  return (
-    <div style={styles.overlay} onClick={() => {
-      // When closing by clicking overlay, pass the currently selected token with its balance
-      const tokenAddr = selectedToken.address?.toLowerCase();
-      const tokenBalance = tokenAddr ? (favoriteTokenBalances[tokenAddr] || searchTokenBalances[tokenAddr]) : undefined;
-      const tokenWithBalance: IArbitrumTokenWithBalance = {
-        ...selectedToken,
-        balance: tokenBalance
-      };
-      closeCallback(tokenWithBalance);
-    }}>
+  // Create portal container
+  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    // Create or get portal root
+    let portalRoot = document.getElementById('token-dialog-portal');
+    if (!portalRoot) {
+      portalRoot = document.createElement('div');
+      portalRoot.id = 'token-dialog-portal';
+      document.body.appendChild(portalRoot);
+    }
+    setPortalContainer(portalRoot);
+
+    return () => {
+      // Cleanup: only remove if empty
+      if (portalRoot && portalRoot.childNodes.length === 0) {
+        portalRoot.remove();
+      }
+    };
+  }, []);
+
+  // The modal content
+  const modalContent = (
+    <div 
+      style={mergeStyles(
+        styles.overlay,
+        isMobile ? mobileStyles.overlay : undefined
+      )} 
+      onClick={() => {
+        // When closing by clicking overlay, pass the currently selected token with its balance
+        const tokenAddr = selectedToken.address?.toLowerCase();
+        const tokenBalance = tokenAddr ? (favoriteTokenBalances[tokenAddr] || searchTokenBalances[tokenAddr]) : undefined;
+        const tokenWithBalance: IArbitrumTokenWithBalance = {
+          ...selectedToken,
+          balance: tokenBalance
+        };
+        closeCallback(tokenWithBalance);
+      }}
+    >
       <div
         style={mergeStyles(
           styles.container,
@@ -1017,6 +1046,12 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
       </div>
     </div>
   );
+
+  // Use React Portal to render outside of component tree
+  // This ensures position:fixed works correctly regardless of parent transforms/filters
+  if (!portalContainer) return null;
+  
+  return ReactDOM.createPortal(modalContent, portalContainer);
 };
 
 // Components remain the same...

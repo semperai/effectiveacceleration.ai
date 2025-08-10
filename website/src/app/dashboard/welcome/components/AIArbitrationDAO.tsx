@@ -1,6 +1,3 @@
-// src/app/dashboard/welcome/components/AIArbitrationDAO.tsx
-'use client';
-
 import Link from 'next/link';
 import { Scale, Gavel, Vote, RefreshCw, ArrowRight, Brain, Users, Zap } from 'lucide-react';
 import { Card, CardContent } from '@/components/Card';

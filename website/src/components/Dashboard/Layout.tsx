@@ -3,19 +3,23 @@
 import { clsx } from 'clsx';
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import Navbar from './Navbar/NavBar';
-import Sidebar from './Sidebar/Sidebar';
+import Navbar from './Navbar';
+import Sidebar from './Sidebar';
 
 export function Layout({
   children,
   borderless,
   hiddenSidebar,
-  classNames
+  classNames,
+  pageTitle,
+  is404
 }: {
   children: React.ReactNode;
   borderless?: boolean;
   hiddenSidebar?: boolean; // Controls if sidebar starts hidden (welcome page)
   classNames?: string;
+  pageTitle?: string; // Optional page title override
+  is404?: boolean; // Indicates this is a 404 page
 }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -69,6 +73,8 @@ export function Layout({
           setSidebarOpen={handleSetSidebarOpen}
           sidebarOpen={sidebarOpen}
           hiddenSidebar={hiddenSidebar}
+          pageTitle={pageTitle}
+          is404={is404}
         />
         <main
           className={clsx(

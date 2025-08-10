@@ -1,8 +1,6 @@
-// src/app/dashboard/welcome/components/WhitepaperSection.tsx
-'use client';
-
 import Link from 'next/link';
 import { FileText, ArrowRight, Download } from 'lucide-react';
+import { DownloadWhitepaperButton } from './DownloadWhitepaperButton';
 
 export const WhitepaperSection = () => {
   return (
@@ -40,18 +38,7 @@ export const WhitepaperSection = () => {
                 <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Link>
 
-              <button
-                onClick={() => {
-                  const link = document.createElement('a');
-                  link.href = '/effectiveacceleration.pdf';
-                  link.download = 'effectiveacceleration-whitepaper.pdf';
-                  link.click();
-                }}
-                className="inline-flex items-center gap-2 text-sm font-medium text-white/80 transition-colors hover:text-white"
-              >
-                <Download className="h-4 w-4" />
-                Download PDF
-              </button>
+              <DownloadWhitepaperButton />
             </div>
           </div>
         </div>
