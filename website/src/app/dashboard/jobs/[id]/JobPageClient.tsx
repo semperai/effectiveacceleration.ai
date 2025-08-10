@@ -7,32 +7,22 @@ import useJob from '@/hooks/subsquid/useJob';
 import useJobEventsWithDiffs from '@/hooks/subsquid/useJobEventsWithDiffs';
 import useUser from '@/hooks/subsquid/useUser';
 import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
-import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
+import { tokenIcon } from '@/tokens';
 import {
   LOCAL_JOBS_OWNER_CACHE,
   LOCAL_JOBS_WORKER_CACHE,
 } from '@/utils/constants';
 import { jobMeceTags } from '@/utils/jobMeceTags';
-import { shortenText, formatTimeLeft } from '@/utils/utils';
 import {
   type Job,
-  JobArbitratedEvent,
   JobEventType,
   type JobEventWithDiffs,
   type JobMessageEvent,
   JobState,
-  User,
 } from '@effectiveacceleration/contracts';
-import {
-  CurrencyDollarIcon,
-  LinkIcon,
-  UserIcon,
-} from '@heroicons/react/20/solid';
-import LinearProgress from '@mui/material/LinearProgress';
 import { Loader2 } from 'lucide-react';
 import { clsx } from 'clsx';
 import moment from 'moment';
-import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { zeroAddress, zeroHash } from 'viem';
 import { useAccount } from 'wagmi';

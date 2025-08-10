@@ -45,10 +45,10 @@ async function getTokenPrice(): Promise<number> {
     }
 
     const data = await response.json();
-    
+
     // Extract price from response
     const price = data[COINGECKO_COIN_ID]?.usd;
-    
+
     if (typeof price !== 'number' || price <= 0) {
       throw new Error('Invalid price data from CoinGecko');
     }
@@ -64,13 +64,13 @@ async function getTokenPrice(): Promise<number> {
 
   } catch (error) {
     console.error('Error fetching token price from CoinGecko:', error);
-    
+
     // If we have ANY cached price (even if expired), use it as fallback
     if (priceCache) {
       console.log('Using old cached price due to CoinGecko API error');
       return priceCache.price;
     }
-    
+
     throw error;
   }
 }
@@ -95,7 +95,7 @@ async function calculateMarketCap(): Promise<string> {
 export async function GET() {
   try {
     const marketCap = await calculateMarketCap();
-    
+
     // Return plain text response with the market cap value
     const response = new NextResponse(marketCap, {
       status: 200,
@@ -104,14 +104,14 @@ export async function GET() {
         'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200' // 1 hour cache, 2 hours stale
       }
     });
-    
+
     return response;
-    
+
   } catch (error) {
     console.error('Error in market cap endpoint:', error);
-    
+
     // Return 503 Service Unavailable
-    return new NextResponse('Service temporarily unavailable', { 
+    return new NextResponse('Service temporarily unavailable', {
       status: 503,
       headers: {
         'Content-Type': 'text/plain',

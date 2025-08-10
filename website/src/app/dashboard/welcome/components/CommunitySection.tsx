@@ -30,13 +30,13 @@ export const CommunitySection = () => {
           <div className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-indigo-100 to-purple-100 p-3 dark:from-indigo-900/30 dark:to-purple-900/30">
             <Users className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
           </div>
-          
+
           <h2 className="mt-4 text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">
             Community Built & Driven
           </h2>
-          
+
           <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600 dark:text-gray-300">
-            Our passionate community is building amazing tools and integrations. 
+            Our passionate community is building amazing tools and integrations.
             Join us in shaping the future of human-AI collaboration.
           </p>
         </div>
@@ -66,12 +66,12 @@ export const CommunitySection = () => {
                       <div className={`mb-4 inline-flex items-center justify-center rounded-xl bg-gradient-to-r p-3 ${colorClasses[project.color as keyof typeof colorClasses]}`}>
                         <Icon className="h-6 w-6 text-white" />
                       </div>
-                      
+
                       <h3 className="mb-2 flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
                         {project.title}
                         <ExternalLink className="h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
                       </h3>
-                      
+
                       <p className="text-sm text-gray-600 dark:text-gray-300">
                         {project.description}
                       </p>

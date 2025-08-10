@@ -6,7 +6,7 @@ import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithN
 import { publishToIpfs } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { ZeroHash } from 'ethers';
-import { Loader2, Send, CheckCircle, Lock, Unlock } from 'lucide-react';
+import { Loader2, Send, Unlock } from 'lucide-react';
 import { useCallback, useState, useRef } from 'react';
 import type { Address } from 'viem';
 import { useAccount, useReadContract } from 'wagmi';
@@ -146,8 +146,8 @@ export const SubmitJobButton = ({
   // Show loading state while checking allowance
   if (allowanceIsLoading || Config === undefined) {
     return (
-      <button 
-        disabled 
+      <button
+        disabled
         className='group relative min-w-[180px] px-6 py-3 rounded-xl font-medium bg-gray-100/50 dark:bg-gray-800/50 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 text-gray-400 dark:text-gray-500 cursor-not-allowed transition-all duration-200'
       >
         <span className='flex items-center justify-center gap-2'>
@@ -161,7 +161,7 @@ export const SubmitJobButton = ({
   // Show error state
   if (allowanceIsError) {
     return (
-      <button 
+      <button
         className='group relative min-w-[180px] px-6 py-3 rounded-xl font-medium bg-red-500/10 backdrop-blur-sm border border-red-500/20 text-red-600 dark:text-red-400 transition-all duration-200'
       >
         Error checking approval
@@ -204,10 +204,10 @@ export const SubmitJobButton = ({
 };
 
 // Updated ApproveButton component with glassmorphic design
-export const ApproveButton = ({ 
-  token, 
-  spender, 
-  onApproveSuccess, 
+export const ApproveButton = ({
+  token,
+  spender,
+  onApproveSuccess,
   onApproveError,
 }: {
   token: Address;

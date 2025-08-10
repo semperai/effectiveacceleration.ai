@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/Button';
 import { Field, Label } from '@/components/Fieldset';
 import { Input } from '@/components/Input';
 import UploadAvatar from '@/components/UploadAvatar';

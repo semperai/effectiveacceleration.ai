@@ -1,13 +1,3 @@
-import {
-  PiCheckCircle,
-  PiXCircle,
-  PiClock,
-  PiPackage,
-  PiWarning,
-  PiScales,
-  PiSparkle
-} from 'react-icons/pi';
-
 interface JobStatusProps {
   text: string;
   variant: 'success' | 'warning' | 'danger' | 'info' | 'pending';

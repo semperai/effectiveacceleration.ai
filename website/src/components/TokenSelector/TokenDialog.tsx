@@ -5,14 +5,13 @@ import Link from 'next/link';
 import { ethers } from 'ethers';
 import storage from './storage';
 import { EthereumIcon } from './icons/EthereumIcon';
-import { ExternalLinkIcon } from './icons/ExternalLinkIcon';
 import {
   fetchTokenMetadata,
   isValidTokenContract,
   uniqueBy,
   type IArbitrumToken,
 } from './helpers';
-import { usePublicClient, useBalance, useAccount, useReadContracts } from 'wagmi';
+import { usePublicClient, useAccount, useReadContracts } from 'wagmi';
 import { formatUnits } from 'viem';
 import { X, Search, ExternalLink, Plus, Loader2, Star } from 'lucide-react';
 import { styles, mergeStyles, keyframes, mobileStyles } from './styles';
@@ -20,7 +19,7 @@ import { DEFAULT_TOKEN_ICON } from './icons/DefaultTokenIcon';
 import { tokens as appTokens, type Token } from '@/tokens';
 
 // Extended IArbitrumToken to include balance
-interface IArbitrumTokenWithBalance extends IArbitrumToken {
+interface IArbitrumTokenWithBalance extends Omit<IArbitrumToken, 'balance'> {
   balance?: {
     decimals: number;
     formatted: string;

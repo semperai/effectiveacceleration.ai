@@ -1,13 +1,6 @@
 import type React from 'react';
 import Link from 'next/link';
-import {
-  type Job,
-  JobEventType,
-  JobEventWithDiffs,
-  JobState,
-  User,
-} from '@effectiveacceleration/contracts';
-import { AssignWorkerButton } from '@/components/JobActions/AssignWorkerButton';
+import { type Job, User } from '@effectiveacceleration/contracts';
 import {
   PiRocket,
   PiUserCheck,
@@ -25,7 +18,6 @@ import {
   PiUser
 } from 'react-icons/pi';
 import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
-import { formatTimeLeft } from '@/utils/utils';
 import moment from 'moment';
 
 interface WorkerAcceptedProps {

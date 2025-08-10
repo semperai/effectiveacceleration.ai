@@ -5,7 +5,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useAccount } from 'wagmi';
 import { ArrowRight, Coins, Users, TrendingUp, Copy, CheckCircle, DollarSign } from 'lucide-react';
-import { Card, CardContent } from '@/components/Card';
 import { useState, useEffect } from 'react';
 
 const TOKEN_ADDRESS = '0x9Eeab030a17528eFb2aC0F81D76fab8754e461BD';

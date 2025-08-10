@@ -1,8 +1,7 @@
 'use client';
 
 import { type Token, tokens } from '@/tokens';
-import { ChevronDown } from 'lucide-react';
-import { Fragment, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import TokenButton from './TokenButton';
 import TokenDialog from './TokenDialog';
 import storage from './storage';
@@ -11,8 +10,9 @@ import arbitrumTokens from './data/arbitrumTokens.json';
 import mainnetTokens from './data/mainnetTokens.json';
 import { useChainId } from 'wagmi';
 
-// Extended IArbitrumToken to include balance
-export interface IArbitrumTokenWithBalance extends IArbitrumToken {
+// FIX 1: Corrected IArbitrumTokenWithBalance interface
+// Use Omit to exclude the original balance property before adding the new one
+export interface IArbitrumTokenWithBalance extends Omit<IArbitrumToken, 'balance'> {
   balance?: {
     decimals: number;
     formatted: string;
@@ -24,13 +24,13 @@ export interface IArbitrumTokenWithBalance extends IArbitrumToken {
 export function TokenSelector({
   selectedToken,
   onClick,
-  onBalanceChange, // New callback to expose balance
+  onBalanceChange,
   persistSelection = true,
   compact = false,
 }: {
   selectedToken: Token | undefined;
   onClick: (token: Token) => void;
-  onBalanceChange?: (balance: string | undefined) => void; // New prop
+  onBalanceChange?: (balance: string | undefined) => void;
   persistSelection?: boolean;
   compact?: boolean;
 }) {
@@ -42,7 +42,7 @@ export function TokenSelector({
   const [hasLoadedFromStorage, setHasLoadedFromStorage] = useState(false);
 
   // Convert between Token and IArbitrumToken formats
-  const convertToToken = (arbitrumToken: IArbitrumToken): Token => {
+  const convertToToken = (arbitrumToken: IArbitrumToken | IArbitrumTokenWithBalance): Token => {
     return {
       id: arbitrumToken.address,
       name: arbitrumToken.name,
@@ -61,6 +61,34 @@ export function TokenSelector({
       logoURI: token.icon,
       chainId: chainId || 1,
     };
+  };
+
+  // FIX 2: Helper function to safely convert tokens with proper type handling
+  const convertToCompatibleToken = (token: IArbitrumToken): IArbitrumTokenWithBalance => {
+    // Remove any existing balance property and return with our expected structure
+    const { balance, ...tokenWithoutBalance } = token as any;
+    return {
+      ...tokenWithoutBalance,
+      balance: undefined, // Start with undefined, will be populated by TokenDialog
+    } as IArbitrumTokenWithBalance;
+  };
+
+  // NEW: Convert IArbitrumTokenWithBalance back to IArbitrumToken for TokenButton
+  const getTokenForButton = (): Token | IArbitrumToken | undefined => {
+    if (!internalSelectedToken) return undefined;
+    
+    // If it's a Token, return as is
+    if ('id' in internalSelectedToken && !('address' in internalSelectedToken)) {
+      return internalSelectedToken as Token;
+    }
+    
+    // If it's an IArbitrumTokenWithBalance, convert to IArbitrumToken
+    if ('address' in internalSelectedToken) {
+      const { balance, ...tokenWithoutBalance } = internalSelectedToken as IArbitrumTokenWithBalance;
+      return tokenWithoutBalance as IArbitrumToken;
+    }
+    
+    return undefined;
   };
 
   // Merge tokens from tokens.ts with network-specific tokens
@@ -132,17 +160,19 @@ export function TokenSelector({
         const lastSelected = storage.get('LAST_TOKEN_SELECTED');
 
         if (lastSelected) {
-          // We have a saved token
-          setInternalSelectedToken(lastSelected);
+          // We have a saved token - FIX: Convert it to compatible format
+          const compatibleToken = convertToCompatibleToken(lastSelected);
+          setInternalSelectedToken(compatibleToken);
           setHasLoadedFromStorage(true);
 
           // Notify parent component of the restored selection
-          const token = convertToToken(lastSelected);
+          const token = convertToToken(compatibleToken);
           onClick(token);
         } else if (selectedToken) {
-          // No saved token, but we have a prop
+          // No saved token, but we have a prop - FIX: Convert properly
           const arbitrumToken = convertToArbitrumToken(selectedToken);
-          setInternalSelectedToken(arbitrumToken);
+          const compatibleToken = convertToCompatibleToken(arbitrumToken);
+          setInternalSelectedToken(compatibleToken);
           storage.set('LAST_TOKEN_SELECTED', arbitrumToken);
           setHasLoadedFromStorage(true);
         } else {
@@ -153,7 +183,8 @@ export function TokenSelector({
         // Persistence is disabled, just use the prop
         if (selectedToken) {
           const arbitrumToken = convertToArbitrumToken(selectedToken);
-          setInternalSelectedToken(arbitrumToken);
+          const compatibleToken = convertToCompatibleToken(arbitrumToken);
+          setInternalSelectedToken(compatibleToken);
         }
         setHasLoadedFromStorage(true);
       }
@@ -164,7 +195,8 @@ export function TokenSelector({
   useEffect(() => {
     if (hasLoadedFromStorage && selectedToken) {
       const arbitrumToken = convertToArbitrumToken(selectedToken);
-      setInternalSelectedToken(arbitrumToken);
+      const compatibleToken = convertToCompatibleToken(arbitrumToken);
+      setInternalSelectedToken(compatibleToken);
       // Only save to localStorage if persistence is enabled
       if (persistSelection) {
         storage.set('LAST_TOKEN_SELECTED', arbitrumToken);
@@ -214,7 +246,7 @@ export function TokenSelector({
       if ('logoURI' in internalSelectedToken || 'address' in internalSelectedToken) {
         // It's already an IArbitrumToken, remove balance for initial dialog
         const { balance, ...tokenWithoutBalance } = internalSelectedToken as IArbitrumTokenWithBalance;
-        return tokenWithoutBalance;
+        return tokenWithoutBalance as IArbitrumToken;
       } else {
         // It's a Token, convert it
         return convertToArbitrumToken(internalSelectedToken as Token);
@@ -246,7 +278,7 @@ export function TokenSelector({
   return (
     <>
       <TokenButton
-        selectedToken={internalSelectedToken}
+        selectedToken={getTokenForButton()} // FIX: Use the helper function to convert the token
         onClick={openModal}
         compact={compact}
       />

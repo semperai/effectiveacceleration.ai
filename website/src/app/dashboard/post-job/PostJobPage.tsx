@@ -1,7 +1,5 @@
 'use client';
-import { clsx } from 'clsx';
 import { AddToHomescreen } from '@/components/AddToHomescreen';
-import { Button } from '@/components/Button';
 import { ConnectButton } from '@/components/ConnectButton';
 import {
   Field,
@@ -13,10 +11,8 @@ import { Input } from '@/components/Input';
 import { Radio, RadioGroup } from '@/components/Radio';
 import TagsInput from '@/components/TagsInput';
 import { Textarea } from '@/components/Textarea';
-import { TokenSelector } from '@/components/TokenSelector';
 import { DeliveryTimelineInput } from '@/components/DeliveryTimelineInput';
 import { PaymentInput } from '@/components/PaymentInput';
-import { Combobox } from '@/components/ComboBox';
 import ListBox from '@/components/ListBox';
 import useArbitrators from '@/hooks/subsquid/useArbitrators';
 import useUser from '@/hooks/subsquid/useUser';
@@ -26,11 +22,9 @@ import { type Token, tokens } from '@/tokens';
 import { jobMeceTags } from '@/utils/jobMeceTags';
 import {
   convertToSeconds,
-  shortenText,
   unitsDeliveryTime,
   getUnitAndValueFromSeconds,
 } from '@/utils/utils';
-import { ethers } from 'ethers';
 import React from 'react';
 import { type ChangeEvent, useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import * as ReactDOM from 'react-dom';
@@ -49,11 +43,23 @@ import {
   PiPaperPlaneTilt,
   PiWarningCircle,
   PiTruck,
-  PiArrowSquareOut
 } from 'react-icons/pi';
 import { AlertCircle, ArrowRight, ExternalLink } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import EventProfileImage from '@/components/Events/Components/EventProfileImage';
+
+export interface PostJobParams {
+  title?: string;
+  amount?: string;
+  content?: string;
+  token?: string;
+  maxTime?: string;
+  deliveryMethod?: string;
+  roles?: {
+    arbitrator?: string;
+  };
+  tags: string[];
+}
 
 const deliveryMethods = [
   { name: 'IPFS', id: 'ipfs' },
@@ -63,15 +69,15 @@ const deliveryMethods = [
 ];
 
 // Simplified field component with better error handling
-const MinimalField = React.memo(({ 
-  children, 
+const MinimalField = React.memo(({
+  children,
   error,
   icon,
   label,
   helperText,
   required
-}: { 
-  children: React.ReactNode; 
+}: {
+  children: React.ReactNode;
   error?: string;
   icon?: React.ReactNode;
   label?: string;
@@ -103,13 +109,13 @@ const MinimalField = React.memo(({
             </div>
           </div>
         )}
-        
+
         <div className={`rounded-xl transition-all duration-200 ${error ? 'bg-red-50/50 dark:bg-red-950/20' : ''}`}>
           {children}
         </div>
       </div>
     </div>
-    
+
     {error && (
       <div className='mt-2.5 flex items-center gap-2'>
         <div className='flex items-center gap-1.5 text-sm font-semibold text-red-600 dark:text-red-400'>
@@ -118,7 +124,7 @@ const MinimalField = React.memo(({
         </div>
       </div>
     )}
-    
+
     {helperText && !error && (
       <p className='mt-1.5 text-xs text-gray-500 dark:text-gray-400'>{helperText}</p>
     )}
@@ -128,12 +134,12 @@ const MinimalField = React.memo(({
 MinimalField.displayName = 'MinimalField';
 
 // Custom Arbitrator Selector Component with Portal
-const ArbitratorSelector = ({ 
-  arbitrators, 
-  selectedAddress, 
+const ArbitratorSelector = ({
+  arbitrators,
+  selectedAddress,
   onChange,
-  disabled = false 
-}: { 
+  disabled = false
+}: {
   arbitrators: any[];
   selectedAddress: string;
   onChange: (address: string) => void;
@@ -190,15 +196,15 @@ const ArbitratorSelector = ({
 
     const updatePosition = () => {
       if (!buttonRef.current || !dropdownRef.current) return;
-      
+
       const rect = buttonRef.current.getBoundingClientRect();
       const dropdown = dropdownRef.current;
-      
+
       // Calculate available space
       const spaceBelow = window.innerHeight - rect.bottom;
       const spaceAbove = rect.top;
       const dropdownHeight = Math.min(300, dropdown.scrollHeight);
-      
+
       // Position dropdown
       if (spaceBelow >= dropdownHeight || spaceBelow > spaceAbove) {
         // Show below
@@ -211,7 +217,7 @@ const ArbitratorSelector = ({
         dropdown.style.top = 'auto';
         dropdown.style.maxHeight = `${Math.min(300, spaceAbove - 20)}px`;
       }
-      
+
       dropdown.style.left = `${rect.left}px`;
       dropdown.style.width = `${rect.width}px`;
     };
@@ -268,7 +274,7 @@ const ArbitratorSelector = ({
             <span className="text-sm text-gray-500">Select an arbitrator</span>
           )}
         </div>
-        
+
         {selectedArbitrator && selectedAddress !== zeroAddress && (
           <a
             href={`/dashboard/arbitrators/${selectedAddress}`}
@@ -286,11 +292,11 @@ const ArbitratorSelector = ({
       {open && !disabled && typeof document !== 'undefined' && ReactDOM.createPortal(
         <div style={{ position: 'fixed', inset: 0, zIndex: 50 }}>
           {/* Backdrop */}
-          <div 
+          <div
             style={{ position: 'fixed', inset: 0 }}
-            onClick={() => setOpen(false)} 
+            onClick={() => setOpen(false)}
           />
-          
+
           {/* Dropdown - positioned absolutely with inline styles to avoid any CSS conflicts */}
           <div
             ref={dropdownRef}
@@ -308,10 +314,10 @@ const ArbitratorSelector = ({
             <div style={{ overflowY: 'auto', maxHeight: 'inherit', padding: '0.25rem 0' }}>
               {/* No Arbitrator option */}
               <div
-                style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '0.75rem', 
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
                   padding: '0.5rem 0.75rem',
                   cursor: 'pointer',
                   transition: 'background-color 0.15s'
@@ -322,34 +328,34 @@ const ArbitratorSelector = ({
                   setOpen(false);
                 }}
               >
-                <div style={{ 
-                  width: '2rem', 
-                  height: '2rem', 
+                <div style={{
+                  width: '2rem',
+                  height: '2rem',
                   borderRadius: '50%',
                   flexShrink: 0
-                }} 
+                }}
                 className="bg-gray-200 dark:bg-gray-700" />
                 <span style={{ fontSize: '0.875rem' }} className="text-gray-700 dark:text-gray-300">
                   No Arbitrator
                 </span>
               </div>
-              
+
               {/* Divider */}
               {arbitrators && arbitrators.length > 0 && (
-                <div style={{ 
-                  height: '1px', 
-                  margin: '0.25rem 0' 
-                }} 
+                <div style={{
+                  height: '1px',
+                  margin: '0.25rem 0'
+                }}
                 className="bg-gray-200 dark:bg-gray-700" />
               )}
-              
+
               {/* Arbitrator list */}
               {arbitrators?.map((arbitrator) => (
                 <div
                   key={arbitrator.address_}
-                  style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: '0.5rem 0.75rem',
                     cursor: 'pointer',
@@ -361,20 +367,19 @@ const ArbitratorSelector = ({
                     setOpen(false);
                   }}
                 >
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
                     gap: '0.75rem',
                     flex: 1,
                     minWidth: 0
                   }}>
-                    <EventProfileImage 
-                      user={arbitrator} 
-                      className="h-8 w-8 rounded-full" 
-                      style={{ flexShrink: 0 }}
+                    <EventProfileImage
+                      user={arbitrator}
+                      className="h-8 w-8 rounded-full"
                     />
                     <div style={{ minWidth: 0, flex: 1 }}>
-                      <p style={{ 
+                      <p style={{
                         fontSize: '0.875rem',
                         fontWeight: 500,
                         overflow: 'hidden',
@@ -451,7 +456,7 @@ const PostJob = () => {
       'months': { name: 'Day', id: '3' }, // Fallback months to days since component doesn't support months
       'years': { name: 'Day', id: '3' }  // Fallback years to days since component doesn't support years
     };
-    
+
     const mapped = nameMap[unit.name];
     return mapped ? { ...unit, name: mapped.name, id: mapped.id } : unit;
   };
@@ -464,12 +469,12 @@ const PostJob = () => {
       '3': { name: 'days', id: '2' },
       '4': { name: 'weeks', id: '3' }
     };
-    
+
     const mapped = idMap[unit.id];
     if (mapped) {
       return { ...unit, name: mapped.name, id: mapped.id };
     }
-    
+
     // Also handle by name for safety
     const nameMap: { [key: string]: string } = {
       'Minute': 'minutes',
@@ -481,7 +486,7 @@ const PostJob = () => {
       'Week': 'weeks',
       'Weeks': 'weeks'
     };
-    
+
     return {
       ...unit,
       name: nameMap[unit.name] || unit.name
@@ -508,7 +513,7 @@ const PostJob = () => {
     let deadline = 1;
     // unitsDeliveryTime uses lowercase 'days' at index 2
     let unit = unitsDeliveryTime[2]; // This is { id: '2', name: 'days' }
-    
+
     if (maxTime) {
       const seconds = parseInt(maxTime);
       if (!isNaN(seconds)) {
@@ -551,7 +556,7 @@ const PostJob = () => {
   const [tags, setTags] = useState<Tag[]>(initialValues.tags);
   const [selectedCategory, setSelectedCategory] = useState<{ id: string; name: string } | undefined>(initialValues.category);
   const [selectedArbitratorAddress, setSelectedArbitratorAddress] = useState<string>(initialValues.arbitrator);
-  
+
   const [titleError, setTitleError] = useState<string>('');
   const [descriptionError, setDescriptionError] = useState<string>('');
   const [categoryError, setCategoryError] = useState<string>('');
@@ -559,14 +564,14 @@ const PostJob = () => {
   const [arbitratorError, setArbitratorError] = useState<string>('');
   const [deadlineError, setDeadlineError] = useState<string>('');
   const [validationAttempted, setValidationAttempted] = useState(false);
-  
+
   const jobTitleRef = useRef<HTMLDivElement>(null);
   const jobDescriptionRef = useRef<HTMLDivElement>(null);
   const jobCategoryRef = useRef<HTMLDivElement>(null);
   const jobAmountRef = useRef<HTMLDivElement>(null);
   const jobDeadlineRef = useRef<HTMLDivElement>(null);
   const jobArbitratorRef = useRef<HTMLDivElement>(null);
-  
+
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [isLoadingModalOpen, setIsLoadingModalOpen] = useState(false);
 
@@ -628,7 +633,7 @@ const PostJob = () => {
       setPaymentTokenError('Please enter a valid amount');
       return;
     }
-    
+
     // Check against balance if available
     if (tokenBalance) {
       const balanceValue = parseFloat(tokenBalance);
@@ -637,7 +642,7 @@ const PostJob = () => {
         return;
       }
     }
-    
+
     setPaymentTokenError('');
   }, [tokenBalance]);
 
@@ -919,8 +924,8 @@ const PostJob = () => {
                     <div className='relative'>
                       <div className={`
                         relative rounded-xl transition-all duration-300
-                        ${paymentTokenError 
-                          ? 'ring-2 ring-red-500 ring-offset-2 ring-offset-white dark:ring-offset-gray-900 shadow-[0_0_20px_rgba(239,68,68,0.3)]' 
+                        ${paymentTokenError
+                          ? 'ring-2 ring-red-500 ring-offset-2 ring-offset-white dark:ring-offset-gray-900 shadow-[0_0_20px_rgba(239,68,68,0.3)]'
                           : ''
                         }
                       `}>
@@ -1019,12 +1024,12 @@ const PostJob = () => {
                   </div>
 
                   {/* Simplified Arbitrator Section */}
-                  <MinimalField 
-                    error={arbitratorError} 
-                    label='Dispute Resolution' 
-                    icon={<PiScales className='h-4 w-4' />} 
-                    helperText={selectedArbitratorAddress && selectedArbitratorAddress !== zeroAddress 
-                      ? 'An arbitrator can help resolve disputes if they arise' 
+                  <MinimalField
+                    error={arbitratorError}
+                    label='Dispute Resolution'
+                    icon={<PiScales className='h-4 w-4' />}
+                    helperText={selectedArbitratorAddress && selectedArbitratorAddress !== zeroAddress
+                      ? 'An arbitrator can help resolve disputes if they arise'
                       : 'Select an arbitrator for third-party dispute resolution (optional)'
                     }
                   >
@@ -1035,7 +1040,7 @@ const PostJob = () => {
                       onChange={validateArbitrator}
                       disabled={false}
                     />
-                    
+
                     {selectedArbitratorAddress && selectedArbitratorAddress !== zeroAddress && !arbitratorError && (
                       <div className='mt-3 px-3 py-2 bg-purple-500/10 border border-purple-500/20 rounded-lg'>
                         <p className='text-xs text-purple-600 dark:text-purple-400'>

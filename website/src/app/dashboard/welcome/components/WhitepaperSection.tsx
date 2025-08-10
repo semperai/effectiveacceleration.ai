@@ -19,13 +19,13 @@ export const WhitepaperSection = () => {
               <div className="mb-4 inline-flex items-center justify-center rounded-2xl bg-white/10 p-3 backdrop-blur-sm">
                 <FileText className="h-8 w-8 text-white" />
               </div>
-              
+
               <h2 className="mb-3 text-3xl font-bold text-white">
                 Deep Dive into Our Vision
               </h2>
-              
+
               <p className="max-w-xl text-blue-100">
-                Explore our comprehensive whitepaper detailing the revolutionary approach to 
+                Explore our comprehensive whitepaper detailing the revolutionary approach to
                 human-AI collaboration, tokenomics, and technical architecture.
               </p>
             </div>
@@ -39,7 +39,7 @@ export const WhitepaperSection = () => {
                 <span>Read Whitepaper</span>
                 <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Link>
-              
+
               <button
                 onClick={() => {
                   const link = document.createElement('a');

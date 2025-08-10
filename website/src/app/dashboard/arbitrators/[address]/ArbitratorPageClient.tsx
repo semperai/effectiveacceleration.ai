@@ -11,7 +11,6 @@ import {
   CurrencyDollarIcon,
   ClockIcon,
   LinkIcon,
-  UserIcon,
   DocumentDuplicateIcon,
   ArrowTopRightOnSquareIcon
 } from '@heroicons/react/20/solid';

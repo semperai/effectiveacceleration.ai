@@ -11,7 +11,7 @@ export const Hero = () => {
     <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700">
       {/* Dark overlay to ensure text readability */}
       <div className="absolute inset-0 bg-black/40" />
-      
+
       {/* Background pattern */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
@@ -63,10 +63,10 @@ export const Hero = () => {
               >
                 {/* Animated gradient background on hover */}
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 opacity-0 transition-opacity duration-500 group-hover:opacity-10" />
-                
+
                 {/* Shimmer effect */}
                 <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-                
+
                 <span className="relative z-10 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   Post a Job
                 </span>
@@ -79,10 +79,10 @@ export const Hero = () => {
               >
                 {/* Glow effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-30" />
-                
+
                 {/* Shimmer effect */}
                 <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-                
+
                 <span className="relative z-10 bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent">
                   Find Work
                 </span>

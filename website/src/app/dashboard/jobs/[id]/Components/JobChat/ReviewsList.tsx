@@ -1,5 +1,4 @@
 import useReviews from '@/hooks/subsquid/useReviews';
-import useUser from '@/hooks/subsquid/useUser';
 import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
 import type { User } from '@effectiveacceleration/contracts/dist/src/interfaces';
 import moment from 'moment';

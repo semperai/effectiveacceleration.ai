@@ -2,7 +2,6 @@ import type React from 'react';
 import { type Dispatch, type SetStateAction, useEffect, useState } from 'react'
 import Link from 'next/link';
 import {
-  Job,
   type JobEventWithDiffs,
   JobState,
   type User,

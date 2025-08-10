@@ -1,9 +1,7 @@
 import type { Arbitrator, User } from '@effectiveacceleration/contracts';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
-import { UserIcon } from '@heroicons/react/20/solid';
 import type { StaticImport } from 'next/dist/shared/lib/get-img-props';
-import { isImageValid } from '@/utils/ImageValidity';
 import useFetchAvatar from '@/hooks/useFetchAvatar';
 
 interface EventProfileImageProps {

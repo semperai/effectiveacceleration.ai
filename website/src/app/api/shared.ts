@@ -41,7 +41,7 @@ export function getProvider(): ethers.JsonRpcProvider {
 // Calculate total burnt tokens
 export async function getTotalBurnt(tokenContract: ethers.Contract): Promise<bigint> {
   let totalBurnt = ethers.parseEther('0');
-  
+
   for (const burnAddress of BURN_ADDRESSES) {
     try {
       const balance = await tokenContract.balanceOf(burnAddress);
@@ -50,7 +50,7 @@ export async function getTotalBurnt(tokenContract: ethers.Contract): Promise<big
       console.error(`Error fetching balance for burn address ${burnAddress}:`, error);
     }
   }
-  
+
   return totalBurnt;
 }
 
@@ -58,32 +58,32 @@ export async function getTotalBurnt(tokenContract: ethers.Contract): Promise<big
 export async function calculateTotalSupply(): Promise<string> {
   const cacheKey = 'total_supply';
   const provider = getProvider();
-  
+
   // Set a timeout for the RPC calls
-  const timeoutPromise = new Promise((_, reject) => 
+  const timeoutPromise = new Promise((_, reject) =>
     setTimeout(() => reject(new Error('RPC timeout')), 30000)
   );
-  
+
   const fetchData = async () => {
     const tokenContract = new ethers.Contract(TOKEN_ADDRESS, ERC20_ABI, provider);
     const totalBurnt = await getTotalBurnt(tokenContract);
     const actualTotalSupply = FIXED_TOTAL_SUPPLY - totalBurnt;
     return ethers.formatEther(actualTotalSupply);
   };
-  
+
   try {
     // Race between timeout and actual fetch
     const result = await Promise.race([
       fetchData(),
       timeoutPromise
     ]) as string;
-    
+
     // Update cache
     cacheStore.set(cacheKey, {
       value: result,
       timestamp: Date.now()
     });
-    
+
     return result;
   } catch (error) {
     // Check for cached value
@@ -100,21 +100,21 @@ export async function calculateTotalSupply(): Promise<string> {
 export async function calculateCirculatingSupply(): Promise<string> {
   const cacheKey = 'circulating_supply';
   const provider = getProvider();
-  
+
   // Set a timeout for the RPC calls
-  const timeoutPromise = new Promise((_, reject) => 
+  const timeoutPromise = new Promise((_, reject) =>
     setTimeout(() => reject(new Error('RPC timeout')), 30000)
   );
-  
+
   const fetchData = async () => {
     const tokenContract = new ethers.Contract(TOKEN_ADDRESS, ERC20_ABI, provider);
-    
+
     // Get burnt tokens
     const totalBurnt = await getTotalBurnt(tokenContract);
-    
+
     // Calculate actual total supply
     const actualTotalSupply = FIXED_TOTAL_SUPPLY - totalBurnt;
-    
+
     // Get balances of excluded addresses
     let excludedBalance = ethers.parseEther('0');
     for (const address of EXCLUDED_ADDRESSES) {
@@ -125,25 +125,25 @@ export async function calculateCirculatingSupply(): Promise<string> {
         console.error(`Error fetching balance for ${address}:`, error);
       }
     }
-    
+
     // Calculate circulating supply
     const circulatingSupply = actualTotalSupply - excludedBalance;
     return ethers.formatEther(circulatingSupply);
   };
-  
+
   try {
     // Race between timeout and actual fetch
     const result = await Promise.race([
       fetchData(),
       timeoutPromise
     ]) as string;
-    
+
     // Update cache
     cacheStore.set(cacheKey, {
       value: result,
       timestamp: Date.now()
     });
-    
+
     return result;
   } catch (error) {
     // Check for cached value

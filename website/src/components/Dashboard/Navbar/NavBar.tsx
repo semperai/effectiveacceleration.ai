@@ -1,4 +1,3 @@
-import { usePathname } from 'next/navigation';
 import { Bars3Icon } from '@heroicons/react/24/outline';
 import { MdOutlineArrowForwardIos } from 'react-icons/md';
 import BreadCrumbs from '@/components/BreadCrumbs';

@@ -6,11 +6,10 @@ import { JobsListSkeleton } from './JobsListSkeleton';
 import { JobFilter } from './JobFilter';
 import useJobSearch from '@/hooks/subsquid/useJobSearch';
 import type { ComboBoxOption, Tag } from '@/service/FormsTypes';
-import { type Token, tokens } from '@/tokens';
+import { type Token } from '@/tokens';
 import {
   convertToSeconds,
   unitsDeliveryTime,
-  getUnitAndValueFromSeconds,
 } from '@/utils/utils';
 import { JobState } from '@effectiveacceleration/contracts';
 
@@ -18,8 +17,6 @@ import NoJobsOpenImage from '@/images/noOpenJobs.svg';
 import useArbitrators from '@/hooks/subsquid/useArbitrators';
 import { zeroAddress } from 'viem';
 import { useAccount } from 'wagmi';
-import { Button } from '@/components/Button';
-
 
 
 export const OpenJobsFeed = () => {

@@ -7,7 +7,7 @@ export const revalidate = 3600;
 export async function GET() {
   try {
     const circulatingSupply = await calculateCirculatingSupply();
-    
+
     // Return plain text response
     const response = new NextResponse(circulatingSupply, {
       status: 200,
@@ -16,12 +16,12 @@ export async function GET() {
         'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200'
       }
     });
-    
+
     return response;
-    
+
   } catch (error) {
     console.error('Error calculating circulating supply:', error);
-    
+
     // Try to get cached value
     const cachedValue = getCachedValue('circulating_supply');
     if (cachedValue) {
@@ -34,9 +34,9 @@ export async function GET() {
         }
       });
     }
-    
+
     // No cached value available, return 500
-    return new NextResponse('Service temporarily unavailable', { 
+    return new NextResponse('Service temporarily unavailable', {
       status: 500,
       headers: {
         'Content-Type': 'text/plain'

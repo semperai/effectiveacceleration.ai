@@ -2,7 +2,6 @@ import type React from 'react';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAccount } from 'wagmi';
-import { Button } from '@/components/Button';
 import {
   type Job,
   JobEventType,
