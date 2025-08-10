@@ -115,3 +115,47 @@ export async function isValidTokenContract(
     return false;
   }
 }
+
+/**
+ * Returns a unique array of objects based on a specified key.
+ * If a sortKey is provided, the result will be sorted by that key.
+ *
+ * @param key - The key to determine uniqueness
+ * @param array - The array of objects to filter
+ * @param sortKey - Optional key to sort the results
+ * @returns A new array with unique objects based on the specified key
+ */
+export function uniqueBy<T>(
+  key: keyof T,
+  array: T[],
+  sortKey?: keyof T
+): T[] {
+  const seen = new Map<any, T>();
+  
+  for (const item of array) {
+    const keyValue = item[key];
+    if (!seen.has(keyValue)) {
+      seen.set(keyValue, item);
+    }
+  }
+  
+  const result = Array.from(seen.values());
+  
+  if (sortKey) {
+    result.sort((a, b) => {
+      const aVal = a[sortKey];
+      const bVal = b[sortKey];
+      
+      if (typeof aVal === 'string' && typeof bVal === 'string') {
+        return aVal.localeCompare(bVal);
+      }
+      
+      if (aVal < bVal) return -1;
+      if (aVal > bVal) return 1;
+      return 0;
+    });
+  }
+  
+  return result;
+}
+

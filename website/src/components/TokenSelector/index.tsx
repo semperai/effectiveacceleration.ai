@@ -6,8 +6,7 @@ import { Fragment, useState, useEffect } from 'react';
 import TokenDialog from './TokenDialog';
 import arbitrumTokens from './data/arbitrumTokens.json';
 import mainnetTokens from './data/mainnetTokens.json';
-import { mockTokens } from './utils/mockTokens';
-import lscacheModule from './utils/lscache';
+import storage from './storage';
 import { useChainId } from 'wagmi';
 import { DEFAULT_TOKEN_ICON } from './icons/DefaultTokenIcon';
 
@@ -42,7 +41,9 @@ function TokenButton({
     height: '56px',
     padding: '0 16px',
     background: isHovered ? 'rgba(59, 130, 246, 0.04)' : 'transparent',
-    border: isFocused ? '2px solid rgba(59, 130, 246, 0.2)' : 'none',
+    borderWidth: isFocused ? '2px' : '0',
+    borderStyle: 'solid',
+    borderColor: isFocused ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
     borderRadius: '0.75rem',
     fontSize: '0.875rem',
     fontWeight: 500,
@@ -227,12 +228,14 @@ export function TokenSelector({
     const tokenMap = new Map<string, IArbitrumToken>();
 
     // Also include custom tokens from localStorage
-    const customTokens = lscacheModule.get('custom-tokens') || [];
+    const customTokens = storage.get('CUSTOM_TOKENS') || [];
 
+    // Add tokens from src/tokens.ts first (highest priority)
     appTokens.forEach(token => {
       tokenMap.set(token.address.toLowerCase(), token);
     });
 
+    // Add network-specific tokens (don't override app tokens)
     networkTokensList.forEach((token: IArbitrumToken) => {
       const key = token.address.toLowerCase();
       if (!tokenMap.has(key)) {
@@ -240,10 +243,11 @@ export function TokenSelector({
       }
     });
 
+    // Add custom tokens (don't override existing tokens)
     customTokens.forEach((token: IArbitrumToken) => {
       const key = token.address.toLowerCase();
       if (!tokenMap.has(key)) {
-        tokenMap.set(key, token);
+        tokenMap.set(key, { ...token, isCustom: true });
       }
     });
 
@@ -272,23 +276,18 @@ export function TokenSelector({
     setSelectableTokens(mergedTokens);
   }, [chainId]);
 
-  // Load preferred tokens from cache
+  // Set preferred tokens from src/tokens.ts
   useEffect(() => {
-    const cached = lscacheModule.get('preferred-tokens');
-    if (cached && Array.isArray(cached)) {
-      setPreferredTokens(cached);
-    } else {
-      const defaultPreferred = tokens.map(convertToArbitrumToken);
-      setPreferredTokens(defaultPreferred);
-      lscacheModule.set('preferred-tokens', defaultPreferred, Infinity);
-    }
+    // The preferred tokens are always the ones from src/tokens.ts
+    const appPreferredTokens = tokens.map(convertToArbitrumToken);
+    setPreferredTokens(appPreferredTokens);
   }, [chainId]);
 
   // Load last selected token from localStorage on mount (only if persistSelection is enabled)
   useEffect(() => {
     if (!hasLoadedFromStorage) {
       if (persistSelection) {
-        const lastSelected = lscacheModule.get('last-token-selected');
+        const lastSelected = storage.get('LAST_TOKEN_SELECTED');
 
         if (lastSelected) {
           // We have a saved token
@@ -302,7 +301,7 @@ export function TokenSelector({
           // No saved token, but we have a prop
           const arbitrumToken = convertToArbitrumToken(selectedToken);
           setInternalSelectedToken(arbitrumToken);
-          lscacheModule.set('last-token-selected', arbitrumToken, Infinity);
+          storage.set('LAST_TOKEN_SELECTED', arbitrumToken);
           setHasLoadedFromStorage(true);
         } else {
           // No saved token and no prop - nothing to do
@@ -326,7 +325,7 @@ export function TokenSelector({
       setInternalSelectedToken(arbitrumToken);
       // Only save to localStorage if persistence is enabled
       if (persistSelection) {
-        lscacheModule.set('last-token-selected', arbitrumToken, Infinity);
+        storage.set('LAST_TOKEN_SELECTED', arbitrumToken);
       }
     }
   }, [selectedToken, hasLoadedFromStorage, chainId, persistSelection]);
@@ -341,7 +340,7 @@ export function TokenSelector({
       const token = convertToToken(dialogSelectedToken);
       // Save to localStorage only if persistence is enabled
       if (persistSelection) {
-        lscacheModule.set('last-token-selected', dialogSelectedToken, Infinity);
+        storage.set('LAST_TOKEN_SELECTED', dialogSelectedToken);
       }
       onClick(token);
     }
@@ -361,16 +360,18 @@ export function TokenSelector({
     }
 
     // Try to load last selected from localStorage
-    const lastSelected = lscacheModule.get('last-token-selected');
+    const lastSelected = storage.get('LAST_TOKEN_SELECTED');
     if (lastSelected) {
       return lastSelected;
     }
 
+    // Default to USDC from our app tokens
     const usdcToken = tokens.find(t => t.symbol === 'USDC');
     if (usdcToken) {
       return convertToArbitrumToken(usdcToken);
     }
 
+    // Fallback to first token from our list
     return selectableTokens?.tokens?.[0] || {
       address: '0x0000000000000000000000000000000000000000',
       name: 'Ethereum',
@@ -390,7 +391,7 @@ export function TokenSelector({
       {isOpen && selectableTokens && (
         <TokenDialog
           initiallySelectedToken={getInitialDialogToken()}
-          preferredTokenList={mockTokens(preferredTokens)}
+          preferredTokenList={preferredTokens}
           tokensList={selectableTokens?.tokens || []}
           closeCallback={handleTokenSelect}
           persistSelection={persistSelection}

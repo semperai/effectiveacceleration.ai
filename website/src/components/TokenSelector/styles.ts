@@ -69,7 +69,9 @@ export const styles = {
     background: `linear-gradient(to bottom, ${colors.dark[900]}, ${colors.dark.black})`,
     backdropFilter: 'blur(24px)',
     borderRadius: '1rem',
-    border: `1px solid ${colors.gray[100]}`,
+    borderWidth: '1px',
+    borderStyle: 'solid',
+    borderColor: colors.gray[100],
     overflow: 'hidden',
     animation: 'slideUp 0.3s ease-out',
     display: 'flex',
@@ -109,7 +111,9 @@ export const styles = {
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: '1.25rem 1.5rem',
-    borderBottom: `1px solid ${colors.gray[100]}`,
+    borderBottomWidth: '1px',
+    borderBottomStyle: 'solid',
+    borderBottomColor: colors.gray[100],
   } as CSSProperties,
 
   headerTitle: {
@@ -132,7 +136,9 @@ export const styles = {
   closeButton: {
     padding: '0.5rem',
     background: 'transparent',
-    border: 'none',
+    borderWidth: '0',
+    borderStyle: 'none',
+    borderColor: 'transparent',
     color: colors.gray[600],
     cursor: 'pointer',
     borderRadius: '0.5rem',
@@ -153,7 +159,9 @@ export const styles = {
     flexWrap: 'wrap' as const,
     gap: '0.5rem',
     padding: '1rem 1.5rem',
-    borderBottom: `1px solid ${colors.gray[100]}`,
+    borderBottomWidth: '1px',
+    borderBottomStyle: 'solid',
+    borderBottomColor: colors.gray[100],
   } as CSSProperties,
 
   favoriteTokenChip: {
@@ -162,7 +170,9 @@ export const styles = {
     gap: '0.5rem',
     padding: '0.375rem 0.75rem',
     background: colors.gray[50],
-    border: `1px solid transparent`,
+    borderWidth: '1px',
+    borderStyle: 'solid',
+    borderColor: 'transparent',
     borderRadius: '9999px',
     color: colors.white,
     fontSize: '0.875rem',
@@ -180,7 +190,7 @@ export const styles = {
 
   favoriteTokenChipSelected: {
     background: `rgba(59, 130, 246, 0.2)`,
-    border: `1px solid rgba(59, 130, 246, 0.5)`,
+    borderColor: `rgba(59, 130, 246, 0.5)`,
     boxShadow: '0 0 0 2px rgba(59, 130, 246, 0.1)',
   } as CSSProperties,
 
@@ -194,7 +204,9 @@ export const styles = {
     marginLeft: '0.25rem',
     padding: '0.125rem',
     background: 'transparent',
-    border: 'none',
+    borderWidth: '0',
+    borderStyle: 'none',
+    borderColor: 'transparent',
     color: colors.gray[500],
     cursor: 'pointer',
     borderRadius: '50%',
@@ -229,7 +241,9 @@ export const styles = {
     flex: 1,
     padding: '0.625rem 1rem 0.625rem 2.5rem',
     background: colors.gray[50],
-    border: `1px solid ${colors.gray[100]}`,
+    borderWidth: '1px',
+    borderStyle: 'solid',
+    borderColor: colors.gray[100],
     borderRadius: '0.75rem',
     color: colors.white,
     fontSize: '0.875rem',
@@ -253,7 +267,9 @@ export const styles = {
     right: '2rem',
     padding: '0.375rem',
     background: 'transparent',
-    border: 'none',
+    borderWidth: '0',
+    borderStyle: 'none',
+    borderColor: 'transparent',
     color: colors.gray[500],
     cursor: 'pointer',
     borderRadius: '0.375rem',
@@ -340,7 +356,9 @@ export const styles = {
     alignItems: 'center',
     gap: '0.875rem',
     padding: '0.875rem 1.5rem',
-    borderBottom: `1px solid ${colors.gray[50]}`,
+    borderBottomWidth: '1px',
+    borderBottomStyle: 'solid',
+    borderBottomColor: colors.gray[50],
     cursor: 'pointer',
     transition: transitions.default,
     position: 'relative' as const,
@@ -353,7 +371,9 @@ export const styles = {
 
   tokenItemSelected: {
     background: `linear-gradient(to right, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1))`,
-    borderLeft: `3px solid ${colors.blue[500]}`,
+    borderLeftWidth: '3px',
+    borderLeftStyle: 'solid',
+    borderLeftColor: colors.blue[500],
   } as CSSProperties,
 
   tokenItemShimmer: {
@@ -380,7 +400,9 @@ export const styles = {
     height: '100%',
     borderRadius: '50%',
     background: colors.gray[100],
-    border: `1px solid ${colors.gray[200]}`,
+    borderWidth: '1px',
+    borderStyle: 'solid',
+    borderColor: 'rgba(255, 255, 255, 0.1)',  // Changed to subtle white/transparent border
     objectFit: 'cover' as const,
   } as CSSProperties,
 
@@ -389,7 +411,9 @@ export const styles = {
     height: '100%',
     borderRadius: '50%',
     background: `linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(147, 51, 234, 0.2))`,
-    border: `1px solid ${colors.gray[200]}`,
+    borderWidth: '1px',
+    borderStyle: 'solid',
+    borderColor: 'rgba(255, 255, 255, 0.1)',  // Changed to subtle white/transparent border
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -425,7 +449,9 @@ export const styles = {
   customBadge: {
     padding: '0.125rem 0.375rem',
     background: `linear-gradient(135deg, rgba(147, 51, 234, 0.2), rgba(168, 85, 247, 0.2))`,
-    border: `1px solid rgba(147, 51, 234, 0.3)`,
+    borderWidth: '1px',
+    borderStyle: 'solid',
+    borderColor: 'rgba(147, 51, 234, 0.3)',
     borderRadius: '0.25rem',
     fontSize: '0.625rem',
     color: colors.purple[400],
@@ -445,7 +471,7 @@ export const styles = {
 
   tokenBalance: {
     fontSize: '0.75rem',
-    color: colors.gray[400],
+    color: colors.gray[600],  // Changed from gray[400] to gray[600] for better visibility
   } as CSSProperties,
 
   // Token Actions
@@ -458,7 +484,9 @@ export const styles = {
   actionButton: {
     padding: '0.375rem',
     background: 'transparent',
-    border: 'none',
+    borderWidth: '0',
+    borderStyle: 'none',
+    borderColor: 'transparent',
     color: colors.gray[400],
     cursor: 'pointer',
     borderRadius: '0.375rem',
@@ -471,7 +499,9 @@ export const styles = {
   actionButtonSmall: {
     padding: '0.25rem',
     background: 'transparent',
-    border: 'none',
+    borderWidth: '0',
+    borderStyle: 'none',
+    borderColor: 'transparent',
     color: colors.gray[300],
     cursor: 'pointer',
     borderRadius: '0.25rem',
@@ -495,7 +525,9 @@ export const styles = {
     zIndex: 1,
     padding: '1rem 1.5rem',
     background: 'rgba(0, 0, 0, 0.3)',
-    borderTop: `1px solid ${colors.gray[100]}`,
+    borderTopWidth: '1px',
+    borderTopStyle: 'solid',
+    borderTopColor: colors.gray[100],
   } as CSSProperties,
 
   addTokenButton: {
@@ -506,7 +538,9 @@ export const styles = {
     gap: '0.5rem',
     padding: '0.625rem 1rem',
     background: 'rgba(59, 130, 246, 0.1)',
-    border: `1px solid rgba(59, 130, 246, 0.3)`,
+    borderWidth: '1px',
+    borderStyle: 'solid',
+    borderColor: 'rgba(59, 130, 246, 0.3)',
     borderRadius: '0.75rem',
     color: colors.blue[400],
     fontSize: '0.875rem',
@@ -530,7 +564,9 @@ export const styles = {
   tokenAddressInput: {
     padding: '0.625rem 1rem',
     background: colors.gray[50],
-    border: `1px solid ${colors.gray[100]}`,
+    borderWidth: '1px',
+    borderStyle: 'solid',
+    borderColor: colors.gray[100],
     borderRadius: '0.75rem',
     color: colors.white,
     fontSize: '0.875rem',
@@ -561,7 +597,9 @@ export const styles = {
     gap: '0.5rem',
     padding: '0.625rem 1rem',
     background: `linear-gradient(135deg, ${colors.blue[500]}, ${colors.purple[500]})`,
-    border: 'none',
+    borderWidth: '0',
+    borderStyle: 'none',
+    borderColor: 'transparent',
     borderRadius: '0.75rem',
     color: colors.white,
     fontSize: '0.875rem',
