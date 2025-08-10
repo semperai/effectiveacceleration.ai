@@ -133,7 +133,7 @@ export const TokenSection = () => {
               $EACC Token
             </h2>
             <p className="text-gray-600 dark:text-gray-300">
-              Governance and utility token
+              Dividend bearing governance token
             </p>
           </div>
         </div>
