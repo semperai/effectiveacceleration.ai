@@ -19,6 +19,7 @@ interface PaymentInputProps {
   disabled?: boolean;
   required?: boolean;
   className?: string;
+  validateAmount?: boolean; // New prop to control validation
 }
 
 // Intelligent balance formatting
@@ -70,8 +71,10 @@ export const PaymentInput: React.FC<PaymentInputProps> = ({
   disabled = false,
   required = false,
   className = '',
+  validateAmount = true,
 }) => {
   const [isFocused, setIsFocused] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,6 +82,9 @@ export const PaymentInput: React.FC<PaymentInputProps> = ({
     // Allow only numbers and decimal point
     if (value === '' || /^\d*\.?\d*$/.test(value)) {
       onAmountChange(value);
+      if (!hasInteracted) {
+        setHasInteracted(true);
+      }
     }
   };
 
@@ -86,10 +92,32 @@ export const PaymentInput: React.FC<PaymentInputProps> = ({
     if (balance && !disabled) {
       onAmountChange(balance);
       inputRef.current?.focus();
+      if (!hasInteracted) {
+        setHasInteracted(true);
+      }
     }
   };
 
   const formattedBalance = balance ? formatBalance(balance, selectedToken?.symbol) : null;
+
+  // Validate amount against balance
+  const isAmountValid = () => {
+    if (!validateAmount || !amount || amount === '0' || amount === '') return true;
+    if (!balance) return true;
+    
+    const amountNum = parseFloat(amount);
+    const balanceNum = parseFloat(balance);
+    
+    if (isNaN(amountNum) || isNaN(balanceNum)) return true;
+    
+    return amountNum <= balanceNum;
+  };
+
+  const isInsufficientBalance = !isAmountValid();
+  
+  // Show validation error only after user has interacted
+  const showValidationError = hasInteracted && isInsufficientBalance && amount !== '';
+  const displayError = error || (showValidationError ? 'Insufficient balance' : '');
 
   return (
     <div className={`w-full ${className}`}>
@@ -108,7 +136,7 @@ export const PaymentInput: React.FC<PaymentInputProps> = ({
             relative flex items-center rounded-lg border bg-white
             transition-all duration-200
             ${disabled ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}
-            ${error 
+            ${displayError 
               ? 'border-red-300 focus-within:border-red-400' 
               : isFocused 
                 ? 'border-gray-300' 
@@ -117,7 +145,7 @@ export const PaymentInput: React.FC<PaymentInputProps> = ({
           `}
           style={{ height: '40px' }} // Fixed height matching normal inputs
         >
-          {/* Amount Input */}
+          {/* Amount Input - Remove all borders and outlines */}
           <input
             ref={inputRef}
             type="text"
@@ -132,10 +160,16 @@ export const PaymentInput: React.FC<PaymentInputProps> = ({
               flex-1 px-3 h-full
               bg-transparent rounded-l-lg
               text-sm text-gray-900 placeholder-gray-400
-              focus:outline-none
+              border-0 outline-none focus:outline-none focus:ring-0
               disabled:cursor-not-allowed
             "
-            style={{ paddingRight: balance ? '3.5rem' : '0.75rem' }} // Space for MAX button
+            style={{ 
+              paddingRight: balance ? '3.5rem' : '0.75rem',
+              boxShadow: 'none',
+              WebkitAppearance: 'none',
+              MozAppearance: 'none',
+              appearance: 'none'
+            }}
           />
 
           {/* MAX button - Inside input, on the right */}
@@ -144,7 +178,7 @@ export const PaymentInput: React.FC<PaymentInputProps> = ({
               type="button"
               onClick={handleMaxClick}
               className="
-                absolute right-[140px] // Position before token selector
+                absolute right-[140px]
                 px-2 py-0.5
                 text-[10px] font-semibold text-gray-500
                 hover:text-gray-700 hover:bg-gray-50
@@ -156,7 +190,7 @@ export const PaymentInput: React.FC<PaymentInputProps> = ({
             </button>
           )}
 
-          {/* Divider */}
+          {/* Divider - Softer gray */}
           <div className="h-5 w-px bg-gray-200 mr-1" />
 
           {/* Token Selector - Compact version */}
@@ -173,25 +207,25 @@ export const PaymentInput: React.FC<PaymentInputProps> = ({
           </div>
         </div>
 
-        {/* Balance Display */}
-        {balance && selectedToken && !error && (
+        {/* Balance Display - Always show if available */}
+        {balance && selectedToken && (
           <div className="text-xs text-gray-500 px-1">
-            Balance: <span className="font-medium text-gray-700">
+            Balance: <span className={`font-medium ${isInsufficientBalance && hasInteracted ? 'text-red-600' : 'text-gray-700'}`}>
               {formattedBalance} {selectedToken.symbol}
             </span>
           </div>
         )}
 
-        {/* Error */}
-        {error && (
+        {/* Error - Only show external errors or validation errors after interaction */}
+        {displayError && (
           <div className="flex items-center gap-1 text-xs text-red-600 px-1">
             <AlertCircle className="h-3 w-3" />
-            <span>{error}</span>
+            <span>{displayError}</span>
           </div>
         )}
 
         {/* Helper text */}
-        {!error && helperText && (
+        {!displayError && helperText && (
           <p className="text-xs text-gray-500 px-1">{helperText}</p>
         )}
       </div>

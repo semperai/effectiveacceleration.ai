@@ -1,16 +1,15 @@
+// src/app/dashboard/post-job/SubmitJobButton.tsx
 import ERC20Abi from '@/abis/ERC20.json';
-import { Button } from '@/components/Button';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import { publishToIpfs } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { ZeroHash } from 'ethers';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Send, CheckCircle, Lock, Unlock } from 'lucide-react';
 import { useCallback, useState, useRef } from 'react';
 import type { Address } from 'viem';
 import { useAccount, useReadContract } from 'wagmi';
-import { ApproveButton } from './ApproveButton';
 import { useRouter } from 'next/navigation';
 import * as Sentry from '@sentry/nextjs';
 
@@ -24,12 +23,10 @@ interface SubmitJobButtonProps {
   deadline: bigint;
   deliveryMethod: string;
   arbitrator: Address;
-  //  whitelistedWorkers: Address[];
   onSuccess?: () => void;
   onError?: (error: Error) => void;
 }
 
-// TODO support adding whitelistedWorkers
 export const SubmitJobButton = ({
   title,
   description,
@@ -129,14 +126,13 @@ export const SubmitJobButton = ({
           marketplaceDataAddress: Config.marketplaceDataAddress,
         },
         onReceipt: (receipt, parsedEvents) => {
-          showSuccess('Job post submitted');
+          showSuccess('Job post submitted successfully!');
           for (const event of parsedEvents) {
             if (event.eventName === 'JobEvent') {
               router.push(`/dashboard/jobs/${event.args.jobId}`);
               return;
             }
           }
-          console.log('parsedEvents', parsedEvents);
         },
       });
     } catch (err) {
@@ -150,19 +146,26 @@ export const SubmitJobButton = ({
   // Show loading state while checking allowance
   if (allowanceIsLoading || Config === undefined) {
     return (
-      <Button disabled className='min-w-[120px]'>
-        <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-        Checking approval...
-      </Button>
+      <button 
+        disabled 
+        className='group relative min-w-[180px] px-6 py-3 rounded-xl font-medium bg-gray-100/50 dark:bg-gray-800/50 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 text-gray-400 dark:text-gray-500 cursor-not-allowed transition-all duration-200'
+      >
+        <span className='flex items-center justify-center gap-2'>
+          <Loader2 className='h-4 w-4 animate-spin' />
+          Checking approval...
+        </span>
+      </button>
     );
   }
 
   // Show error state
   if (allowanceIsError) {
     return (
-      <Button color='red' className='min-w-[120px]'>
+      <button 
+        className='group relative min-w-[180px] px-6 py-3 rounded-xl font-medium bg-red-500/10 backdrop-blur-sm border border-red-500/20 text-red-600 dark:text-red-400 transition-all duration-200'
+      >
         Error checking approval
-      </Button>
+      </button>
     );
   }
 
@@ -178,21 +181,105 @@ export const SubmitJobButton = ({
     );
   }
 
-  // Show submit button if approved
+  // Show submit button if approved - matching Continue to Review style
   return (
-    <Button
+    <button
       onClick={handleSubmitJob}
       disabled={isSubmitting || isConfirming}
-      className='min-w-[120px]'
+      className={`
+        group relative min-w-[180px] px-6 py-3 rounded-xl font-medium transition-all duration-200
+        ${isSubmitting || isConfirming
+          ? 'bg-gray-100/50 dark:bg-gray-800/50 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+          : 'bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 dark:from-white dark:via-purple-100/20 dark:to-white hover:shadow-xl shadow-lg border border-white/10 dark:border-gray-900/10'
+        }
+      `}
     >
-      {isSubmitting || isConfirming ? (
-        <>
-          <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-          Submitting...
-        </>
-      ) : (
-        'Submit Job'
+      {/* Subtle shimmer effect on hover */}
+      {!isSubmitting && !isConfirming && (
+        <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 dark:via-purple-500/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
+        </div>
       )}
-    </Button>
+
+      {isSubmitting || isConfirming ? (
+        <span className='relative flex items-center justify-center gap-2'>
+          <Loader2 className='h-4 w-4 animate-spin' />
+          <span>Submitting Job...</span>
+        </span>
+      ) : (
+        <span className='relative flex items-center justify-center gap-2 text-white dark:text-gray-900'>
+          <Send className='h-4 w-4' />
+          <span className='text-white dark:text-gray-900'>Submit Job Post</span>
+        </span>
+      )}
+    </button>
+  );
+};
+
+// Updated ApproveButton component with glassmorphic design
+export const ApproveButton = ({ 
+  token, 
+  spender, 
+  onApproveSuccess, 
+  onApproveError,
+}: {
+  token: Address;
+  spender: Address;
+  onApproveSuccess: () => void;
+  onApproveError?: (error: Error) => void;
+}) => {
+  const { writeContractWithNotifications, isConfirming } = useWriteContractWithNotifications();
+  const [isApproving, setIsApproving] = useState(false);
+
+  const handleApprove = async () => {
+    try {
+      setIsApproving(true);
+      await writeContractWithNotifications({
+        address: token,
+        abi: ERC20Abi,
+        functionName: 'approve',
+        args: [spender, BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')], // Max approval
+        onReceipt: () => {
+          onApproveSuccess();
+        },
+      });
+    } catch (err) {
+      onApproveError?.(err as Error);
+    } finally {
+      setIsApproving(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleApprove}
+      disabled={isApproving || isConfirming}
+      className={`
+        group relative min-w-[180px] px-6 py-3 rounded-xl font-medium transition-all duration-200
+        ${isApproving || isConfirming
+          ? 'bg-gray-100/50 dark:bg-gray-800/50 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+          : 'bg-white/5 dark:bg-gray-800/30 backdrop-blur-xl border border-purple-500/30 dark:border-purple-400/30 text-purple-600 dark:text-purple-400 hover:bg-white/10 dark:hover:bg-gray-800/50 hover:border-purple-500/50 dark:hover:border-purple-400/50 shadow-lg hover:shadow-xl'
+        }
+      `}
+    >
+      {/* Subtle shimmer effect on hover */}
+      {!isApproving && !isConfirming && (
+        <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out" />
+        </div>
+      )}
+
+      {isApproving || isConfirming ? (
+        <span className='relative flex items-center justify-center gap-2'>
+          <Loader2 className='h-4 w-4 animate-spin' />
+          <span>Approving Token...</span>
+        </span>
+      ) : (
+        <span className='relative flex items-center justify-center gap-2'>
+          <Unlock className='h-4 w-4' />
+          <span>Approve Token</span>
+        </span>
+      )}
+    </button>
   );
 };

@@ -124,7 +124,3 @@ html, body, #__next {
 .animate-shimmer {
   animation: shimmer 2s infinite;
 }
-
-#sentry-feedback {
-  transform: translateY(-140px);
-}

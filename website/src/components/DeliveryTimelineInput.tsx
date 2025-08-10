@@ -13,14 +13,14 @@ interface TimeUnit {
 }
 
 const timeUnits: TimeUnit[] = [
-  { id: '1', name: 'Minutes', plural: 'Minutes', seconds: 60 },
-  { id: '2', name: 'Hours', plural: 'Hours', seconds: 3600 },
-  { id: '3', name: 'Days', plural: 'Days', seconds: 86400 },
-  { id: '4', name: 'Weeks', plural: 'Weeks', seconds: 604800 },
+  { id: '1', name: 'Minute', plural: 'Minutes', seconds: 60 },
+  { id: '2', name: 'Hour', plural: 'Hours', seconds: 3600 },
+  { id: '3', name: 'Day', plural: 'Days', seconds: 86400 },
+  { id: '4', name: 'Week', plural: 'Weeks', seconds: 604800 },
 ];
 
 interface DeliveryTimelineInputProps {
-  value: number;
+  value: number | string;
   onValueChange: (value: string) => void;
   selectedUnit: { id: string; name: string };
   onUnitChange: (unit: { id: string; name: string }) => void;
@@ -31,6 +31,8 @@ interface DeliveryTimelineInputProps {
   disabled?: boolean;
   required?: boolean;
   className?: string;
+  min?: number;
+  max?: number;
 }
 
 export const DeliveryTimelineInput: React.FC<DeliveryTimelineInputProps> = ({
@@ -39,15 +41,18 @@ export const DeliveryTimelineInput: React.FC<DeliveryTimelineInputProps> = ({
   selectedUnit,
   onUnitChange,
   error,
-  placeholder = "Enter time",
+  placeholder = "0",
   label,
   helperText,
   disabled = false,
   required = false,
   className = '',
+  min = 0,
+  max,
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -56,35 +61,72 @@ export const DeliveryTimelineInput: React.FC<DeliveryTimelineInputProps> = ({
     // Allow only positive numbers
     if (val === '' || /^\d+$/.test(val)) {
       onValueChange(val);
+      if (!hasInteracted) {
+        setHasInteracted(true);
+      }
     }
   };
 
   const handleUnitSelect = (unit: TimeUnit) => {
     onUnitChange({ id: unit.id, name: unit.name });
     setIsDropdownOpen(false);
+    if (!hasInteracted) {
+      setHasInteracted(true);
+    }
   };
+
+  // Parse value to number for calculations
+  const numValue = typeof value === 'string' ? parseInt(value, 10) : value;
+  const isValidValue = !isNaN(numValue) && numValue > 0;
 
   // Calculate human-readable duration
   const getHumanReadableDuration = () => {
-    if (!value || isNaN(value) || value === 0) return null;
+    if (!isValidValue) return null;
     
     // Find the actual unit to get the seconds multiplier
-    const unit = timeUnits.find(u => u.name === selectedUnit.name);
+    const unit = timeUnits.find(u => 
+      u.name === selectedUnit.name || 
+      u.plural === selectedUnit.name ||
+      u.id === selectedUnit.id
+    );
     if (!unit) return null;
     
     // Calculate total seconds
-    const totalSeconds = value * unit.seconds;
+    const totalSeconds = numValue * unit.seconds;
     return moment.duration(totalSeconds, 'seconds').humanize();
   };
 
   const humanReadable = getHumanReadableDuration();
 
-  // Get plural or singular form
+  // Get plural or singular form based on current value
   const getUnitLabel = () => {
-    const unit = timeUnits.find(u => u.id === selectedUnit.id);
+    const unit = timeUnits.find(u => 
+      u.id === selectedUnit.id || 
+      u.name === selectedUnit.name ||
+      u.plural === selectedUnit.name
+    );
     if (!unit) return selectedUnit.name;
-    return value === 1 ? unit.name : unit.plural;
+    return numValue === 1 ? unit.name : unit.plural;
   };
+
+  // Validate value against min/max
+  const isValueValid = () => {
+    if (!hasInteracted || !isValidValue) return true;
+    if (min !== undefined && numValue < min) return false;
+    if (max !== undefined && numValue > max) return false;
+    return true;
+  };
+
+  const showValidationError = hasInteracted && !isValueValid();
+  const validationErrorMsg = !isValidValue 
+    ? 'Please enter a valid time'
+    : min !== undefined && numValue < min 
+      ? `Minimum is ${min}`
+      : max !== undefined && numValue > max 
+        ? `Maximum is ${max}`
+        : '';
+  
+  const displayError = error || (showValidationError ? validationErrorMsg : '');
 
   return (
     <div className={`w-full ${className}`}>
@@ -103,9 +145,11 @@ export const DeliveryTimelineInput: React.FC<DeliveryTimelineInputProps> = ({
             relative flex items-center rounded-lg border bg-white
             transition-all duration-200
             ${disabled ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}
-            ${error 
+            ${displayError 
               ? 'border-red-300 focus-within:border-red-400' 
-              : 'border-gray-200 hover:border-gray-300'
+              : isFocused
+                ? 'border-gray-300'
+                : 'border-gray-200 hover:border-gray-300'
             }
           `}
           style={{ height: '40px' }}
@@ -115,7 +159,7 @@ export const DeliveryTimelineInput: React.FC<DeliveryTimelineInputProps> = ({
             <Clock className="h-4 w-4 text-gray-400" />
           </div>
 
-          {/* Number Input */}
+          {/* Number Input - Remove all borders and outlines */}
           <input
             ref={inputRef}
             type="text"
@@ -130,12 +174,18 @@ export const DeliveryTimelineInput: React.FC<DeliveryTimelineInputProps> = ({
               flex-1 pr-2 h-full
               bg-transparent
               text-sm text-gray-900 placeholder-gray-400
-              focus:outline-none border-0
+              border-0 outline-none focus:outline-none focus:ring-0
               disabled:cursor-not-allowed
             "
+            style={{ 
+              boxShadow: 'none',
+              WebkitAppearance: 'none',
+              MozAppearance: 'none',
+              appearance: 'none'
+            }}
           />
 
-          {/* Divider */}
+          {/* Divider - Soft gray */}
           <div className="h-5 w-px bg-gray-200 mr-1" />
 
           {/* Unit Selector */}
@@ -178,46 +228,51 @@ export const DeliveryTimelineInput: React.FC<DeliveryTimelineInputProps> = ({
                     border border-gray-200 py-1
                   "
                 >
-                  {timeUnits.map((unit) => (
-                    <button
-                      key={unit.id}
-                      type="button"
-                      onClick={() => handleUnitSelect(unit)}
-                      className={`
-                        w-full px-3 py-2 text-left text-sm
-                        transition-colors duration-150
-                        ${selectedUnit.id === unit.id 
-                          ? 'bg-blue-50 text-blue-700 font-medium' 
-                          : 'text-gray-700 hover:bg-gray-50'
-                        }
-                      `}
-                    >
-                      {value === 1 ? unit.name : unit.plural}
-                    </button>
-                  ))}
+                  {timeUnits.map((unit) => {
+                    const isSelected = selectedUnit.id === unit.id || 
+                                     selectedUnit.name === unit.name || 
+                                     selectedUnit.name === unit.plural;
+                    return (
+                      <button
+                        key={unit.id}
+                        type="button"
+                        onClick={() => handleUnitSelect(unit)}
+                        className={`
+                          w-full px-3 py-2 text-left text-sm
+                          transition-colors duration-150
+                          ${isSelected
+                            ? 'bg-blue-50 text-blue-700 font-medium' 
+                            : 'text-gray-700 hover:bg-gray-50'
+                          }
+                        `}
+                      >
+                        {numValue === 1 ? unit.name : unit.plural}
+                      </button>
+                    );
+                  })}
                 </div>
               </>
             )}
           </div>
         </div>
 
-        {/* Human readable duration */}
-        {humanReadable && !error && (
+        {/* Human readable duration - Always show if valid */}
+        {humanReadable && !displayError && (
           <div className="text-xs text-gray-500 px-1">
             Duration: <span className="font-medium text-gray-700">{humanReadable}</span>
           </div>
         )}
 
-        {/* Error */}
-        {error && (
+        {/* Error - Only show after interaction */}
+        {displayError && (
           <div className="flex items-center gap-1 text-xs text-red-600 px-1">
             <AlertCircle className="h-3 w-3" />
-            <span>{error}</span>
+            <span>{displayError}</span>
           </div>
         )}
 
         {/* Helper text */}
-        {!error && helperText && (
+        {!displayError && helperText && (
           <p className="text-xs text-gray-500 px-1">{helperText}</p>
         )}
       </div>
