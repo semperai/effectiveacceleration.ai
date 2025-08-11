@@ -1,3 +1,4 @@
+// src/components/Dashboard/JobsList/OpenJobsFeed.tsx
 'use client';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { JobsList } from './JobsList';
@@ -19,10 +20,10 @@ import useArbitrators from '@/hooks/subsquid/useArbitrators';
 import { zeroAddress } from 'viem';
 import { useAccount } from 'wagmi';
 import { useSearchParams, useRouter } from 'next/navigation';
-import {
-  isTestMode,
-  useTestableJobSearch,
-  useTestableArbitrators,
+import { 
+  isTestMode, 
+  useTestableJobSearch, 
+  useTestableArbitrators 
 } from './testUtils';
 
 export const OpenJobsFeed = () => {
@@ -276,13 +277,13 @@ export const OpenJobsFeed = () => {
     <div>
       {/* Show test mode indicator */}
       {isTestMode() && (
-        <div className='mb-4 rounded-lg border border-yellow-400 bg-yellow-100 p-3 text-center'>
+        <div className='mb-4 rounded-lg bg-yellow-100 border border-yellow-400 p-3 text-center'>
           <span className='font-semibold text-yellow-800'>
             🧪 Test Mode Active - Using Mock Data
           </span>
         </div>
       )}
-
+      
       <JobFilter
         search={search}
         setSearch={setSearch}
@@ -305,13 +306,43 @@ export const OpenJobsFeed = () => {
         setCreatorAddress={setCreatorAddress}
       />
       {newJobs?.length ? (
-        <div className='flex justify-center'>
-          <div
+        <div className='mb-4 flex justify-center'>
+          <button
             onClick={() => setNow(Math.floor(new Date().getTime() / 1000))}
-            className='cursor-pointer rounded-md border-2 border-solid border-green-500 bg-green-300 px-3 py-1 transition-colors hover:bg-green-400'
+            className='group relative overflow-hidden rounded-xl border border-blue-500/20 bg-gradient-to-r from-blue-500/10 to-purple-500/10 px-4 py-2.5 backdrop-blur-sm transition-all duration-300 hover:border-blue-500/30 hover:from-blue-500/20 hover:to-purple-500/20 hover:shadow-lg hover:shadow-blue-500/10'
           >
-            Found {newJobs.length} new jobs, click to refresh
-          </div>
+            {/* Shimmer effect on hover */}
+            <div className='absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/[0.05] to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full' />
+            
+            {/* Content */}
+            <div className='relative flex items-center gap-3'>
+              {/* Animated pulse dot */}
+              <div className='relative flex h-2 w-2'>
+                <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75'></span>
+                <span className='relative inline-flex h-2 w-2 rounded-full bg-blue-500'></span>
+              </div>
+              
+              {/* Text with gradient */}
+              <span className='bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-sm font-semibold text-transparent'>
+                {newJobs.length} new {newJobs.length === 1 ? 'job' : 'jobs'} found
+              </span>
+              
+              {/* Refresh icon */}
+              <svg 
+                className='h-4 w-4 text-blue-400 transition-transform duration-300 group-hover:rotate-180'
+                fill='none'
+                stroke='currentColor'
+                viewBox='0 0 24 24'
+              >
+                <path 
+                  strokeLinecap='round' 
+                  strokeLinejoin='round' 
+                  strokeWidth={2} 
+                  d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'
+                />
+              </svg>
+            </div>
+          </button>
         </div>
       ) : null}
       {jobs ? (
