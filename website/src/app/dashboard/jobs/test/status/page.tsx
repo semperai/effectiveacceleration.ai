@@ -138,38 +138,26 @@ const statusStates = [
   {
     id: 'assign',
     label: 'Assign Worker',
-    color: 'blue',
-    description: 'Ready to assign a worker to the job',
   },
   {
     id: 'accepted',
     label: 'Worker Accepted',
-    color: 'purple',
-    description: 'Worker assigned and work begins',
   },
   {
     id: 'verification',
     label: 'Result Verification',
-    color: 'amber',
-    description: 'Work submitted for review',
   },
   {
     id: 'completed',
     label: 'Result Accepted',
-    color: 'green',
-    description: 'Job successfully completed',
   },
   {
     id: 'disputed',
     label: 'Dispute Started',
-    color: 'red',
-    description: 'Dispute raised, arbitrator assigned',
   },
   {
     id: 'arbitrated',
     label: 'Arbitration Complete',
-    color: 'slate',
-    description: 'Arbitrator has made final decision',
   },
 ];
 
@@ -298,7 +286,7 @@ export default function StatusStatesTestPage() {
                   <button
                     key={status.id}
                     onClick={() => setSelectedStatus(status)}
-                    title={status.description}
+
                     className={clsx(
                       'rounded-md px-3 py-1 text-xs font-medium transition-all',
                       getColorClasses(
@@ -338,75 +326,13 @@ export default function StatusStatesTestPage() {
             </div>
           </div>
 
-          {/* Status Description */}
-          <div className='rounded-md bg-gray-50 px-3 py-1 dark:bg-gray-900'>
-            <span className='text-xs text-gray-600 dark:text-gray-400'>
-              {selectedStatus.description}
-            </span>
-          </div>
+
         </div>
 
         {/* Main Content Area */}
         <div className='rounded-xl border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-700 dark:bg-gray-800'>
           {/* Component Preview */}
           <div className='mx-auto max-w-4xl'>{renderStatusComponent()}</div>
-        </div>
-
-        {/* Quick Reference Grid */}
-        <div className='rounded-xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-900'>
-          <h3 className='mb-4 text-sm font-semibold text-gray-900 dark:text-white'>
-            Quick Reference - All Status States
-          </h3>
-          <div className='grid grid-cols-2 gap-3 md:grid-cols-3'>
-            {statusStates.map((status) => (
-              <button
-                key={status.id}
-                onClick={() => setSelectedStatus(status)}
-                className={clsx(
-                  'rounded-lg border p-3 text-left transition-all',
-                  selectedStatus.id === status.id
-                    ? 'border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-950/30'
-                    : 'border-gray-200 bg-white hover:border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600'
-                )}
-              >
-                <div className='mb-1 text-xs font-semibold text-gray-900 dark:text-white'>
-                  {status.label}
-                </div>
-                <div className='text-xs text-gray-500 dark:text-gray-400'>
-                  {status.description}
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Status Flow */}
-        <div className='rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800'>
-          <div className='flex flex-wrap items-center justify-center gap-2 text-xs'>
-            <span className='rounded bg-blue-100 px-2 py-1 font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'>
-              Open
-            </span>
-            <span className='text-gray-400'>→</span>
-            <span className='rounded bg-purple-100 px-2 py-1 font-medium text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'>
-              Assigned
-            </span>
-            <span className='text-gray-400'>→</span>
-            <span className='rounded bg-amber-100 px-2 py-1 font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'>
-              Delivered
-            </span>
-            <span className='text-gray-400'>→</span>
-            <span className='rounded bg-green-100 px-2 py-1 font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400'>
-              Completed
-            </span>
-            <span className='mx-2 text-gray-400'>or</span>
-            <span className='rounded bg-red-100 px-2 py-1 font-medium text-red-700 dark:bg-red-900/30 dark:text-red-400'>
-              Disputed
-            </span>
-            <span className='text-gray-400'>→</span>
-            <span className='rounded bg-slate-100 px-2 py-1 font-medium text-slate-700 dark:bg-slate-900/30 dark:text-slate-400'>
-              Arbitrated
-            </span>
-          </div>
         </div>
       </div>
     </Layout>

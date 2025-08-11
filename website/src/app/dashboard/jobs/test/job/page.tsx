@@ -6,7 +6,6 @@ import JobChatEvents from '@/app/dashboard/jobs/[id]/JobChat/JobChatEvents';
 import JobChatsList from '@/app/dashboard/jobs/[id]/JobChatsList';
 import JobSidebar from '@/app/dashboard/jobs/[id]/JobSidebar';
 import OpenJobMobileMenu from '@/app/dashboard/jobs/[id]/JobChat/OpenJobMobileMenu';
-import { PostMessageButton } from '../../[id]/JobActions';
 
 import {
   Job,
@@ -18,11 +17,14 @@ import {
   type JobArbitratedEvent,
   type JobRatedEvent,
   type JobDisputedEvent,
-  type JobUpdatedEvent,
 } from '@effectiveacceleration/contracts';
 import { zeroAddress, zeroHash, toHex } from 'viem';
 import { tokenIcon } from '@/lib/tokens';
 import clsx from 'clsx';
+
+// Note: If customHeader is not defined in your Tailwind config, add this to your global CSS:
+// .min-h-customHeader { min-height: calc(100vh - 4rem); }
+// .max-h-customHeader { max-height: calc(100vh - 4rem); }
 
 // Mock addresses
 const mockAddress = '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0';
@@ -54,7 +56,7 @@ const createMockJob = (state: JobState, disputed: boolean = false): Job => ({
   state: state,
   title: 'Build a DeFi Dashboard with Real-time Analytics',
   content:
-    'We need an experienced developer to create a comprehensive DeFi dashboard that tracks multiple protocols, displays real-time analytics, and provides portfolio management features. The dashboard should support multiple chains and have a responsive design.',
+    'We need an experienced developer to create a comprehensive DeFi dashboard that tracks multiple protocols, displays real-time analytics, and provides portfolio management features.',
   contentHash:
     '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
   tags: ['defi', 'react', 'web3', 'typescript', 'analytics'],
@@ -185,16 +187,146 @@ const createScenarioEvents = (scenario: string): JobEventWithDiffs[] => {
   ];
 
   switch (scenario) {
+    case 'all':
+      // Comprehensive scenario with ALL event types
+      return [
+        // 1. Job Creation
+        createMockEvent(JobEventType.Created, mockAddress, {}, [
+          { field: 'state', oldValue: null, newValue: 'Open' },
+          { field: 'title', oldValue: null, newValue: 'Build a DeFi Dashboard' },
+        ]),
+        
+        // 2. Job Update
+        createMockEvent(JobEventType.Updated, mockAddress, {}, [
+          { field: 'amount', oldValue: '1000000000000000000', newValue: '1500000000000000000' },
+          { field: 'maxTime', oldValue: '604800', newValue: '1209600' },
+        ]),
+        
+        // 3. Whitelist Worker Added
+        createMockEvent(JobEventType.WhitelistedWorkerAdded, mockWorkerAddress2, {}, [
+          { field: 'allowedWorkers', oldValue: '[]', newValue: '[0x6aed...]' },
+        ]),
+        
+        // 4. Whitelist Worker Removed
+        createMockEvent(JobEventType.WhitelistedWorkerRemoved, mockWorkerAddress2, {}, [
+          { field: 'allowedWorkers', oldValue: '[0x6aed...]', newValue: '[]' },
+        ]),
+        
+        // 5. Worker Messages before taking
+        createMockEvent(JobEventType.WorkerMessage, mockWorkerAddress, {
+          content: "Hi! I have 5 years of experience with DeFi dashboards. Check my portfolio: https://mywork.dev",
+          recipientAddress: mockAddress,
+        } as JobMessageEvent),
+        
+        // 6. Owner Message
+        createMockEvent(JobEventType.OwnerMessage, mockAddress, {
+          content: 'Great portfolio! When can you start?',
+          recipientAddress: mockWorkerAddress,
+        } as JobMessageEvent),
+        
+        // 7. Job Taken
+        createMockEvent(JobEventType.Taken, mockWorkerAddress, {}, [
+          { field: 'state', oldValue: 'Open', newValue: 'Taken' },
+          { field: 'roles.worker', oldValue: null, newValue: mockWorkerAddress },
+        ]),
+        
+        // 8. Signed Event
+        createMockEvent(JobEventType.Signed, mockWorkerAddress, {}, [
+          { field: 'signed', oldValue: false, newValue: true },
+        ]),
+        
+        // 9. Paid Event
+        createMockEvent(JobEventType.Paid, mockWorkerAddress, {}, [
+          { field: 'escrowBalance', oldValue: '0', newValue: '1500000000000000000' },
+        ]),
+        
+        // 10. Progress Updates
+        createMockEvent(JobEventType.WorkerMessage, mockWorkerAddress, {
+          content: "Started working on the dashboard. Setting up the development environment.",
+          recipientAddress: mockAddress,
+        } as JobMessageEvent),
+        
+        // 11. Delivery
+        createMockEvent(JobEventType.Delivered, mockWorkerAddress, {
+          result: 'Dashboard complete! Live at: https://defi-dashboard.vercel.app\n\nFeatures implemented:\n- Multi-chain support\n- Real-time analytics\n- Portfolio tracking\n- Responsive design\n\nGitHub: https://github.com/example/defi-dashboard',
+        }),
+        
+        // 12. Dispute Flow
+        createMockEvent(JobEventType.Disputed, mockAddress, {
+          content: 'The dashboard is missing the portfolio tracking feature that was specified in the requirements.',
+        } as JobDisputedEvent, [
+          { field: 'disputed', oldValue: false, newValue: true },
+        ]),
+        
+        // 13. Arbitration Refused (arbitrator declines)
+        createMockEvent(JobEventType.ArbitrationRefused, mockArbitratorAddress, {}, [
+          { field: 'roles.arbitrator', oldValue: mockArbitratorAddress, newValue: zeroAddress },
+        ]),
+        
+        // Re-assign new arbitrator and continue
+        createMockEvent(JobEventType.Updated, mockAddress, {}, [
+          { field: 'roles.arbitrator', oldValue: zeroAddress, newValue: mockArbitratorAddress },
+        ]),
+        
+        // 14. Arbitrated
+        createMockEvent(JobEventType.Arbitrated, mockArbitratorAddress, {
+          creatorShare: 2000, // 20%
+          workerShare: 8000,  // 80%
+          creatorAmount: BigInt('300000000000000000'),
+          workerAmount: BigInt('1200000000000000000'),
+          reason: 'After reviewing the deliverables, the portfolio tracking feature is present but not clearly visible. Worker to receive 80% payment, creator refunded 20%.',
+        } as JobArbitratedEvent, [
+          { field: 'disputed', oldValue: true, newValue: false },
+          { field: 'state', oldValue: 'Taken', newValue: 'Closed' },
+        ]),
+        
+        // 15. Completed
+        createMockEvent(JobEventType.Completed, mockAddress, {}, [
+          { field: 'state', oldValue: 'Taken', newValue: 'Closed' },
+        ]),
+        
+        // 16. Rated
+        createMockEvent(JobEventType.Rated, mockAddress, {
+          rating: 4,
+          review: 'Good work overall, but communication about features could have been clearer.',
+        } as JobRatedEvent),
+        
+        // 17. Collateral Withdrawn
+        createMockEvent(JobEventType.CollateralWithdrawn, mockAddress, {}, [
+          { field: 'collateralOwed', oldValue: BigInt('100000000000000000'), newValue: BigInt('0') },
+        ]),
+        
+        // 18. Reopened (after being closed)
+        createMockEvent(JobEventType.Reopened, mockAddress, {}, [
+          { field: 'state', oldValue: 'Closed', newValue: 'Open' },
+        ]),
+        
+        // 19. New worker takes it
+        createMockEvent(JobEventType.Taken, mockWorkerAddress2, {}, [
+          { field: 'state', oldValue: 'Open', newValue: 'Taken' },
+          { field: 'roles.worker', oldValue: null, newValue: mockWorkerAddress2 },
+        ]),
+        
+        // 20. Refunded (worker rejects)
+        createMockEvent(JobEventType.Refunded, mockWorkerAddress2, {}, [
+          { field: 'state', oldValue: 'Taken', newValue: 'Open' },
+          { field: 'roles.worker', oldValue: mockWorkerAddress2, newValue: null },
+        ]),
+        
+        // 21. Closed (final)
+        createMockEvent(JobEventType.Closed, mockAddress, {}, [
+          { field: 'state', oldValue: 'Open', newValue: 'Closed' },
+        ]),
+      ];
+
     case 'open':
       return [
         ...baseEvents,
         createMockEvent(JobEventType.WorkerMessage, mockWorkerAddress, {
-          contentHash: '0x' + '0'.repeat(64), // Mock hash
           content: "Hi! I'm interested in this job. I have 5 years of experience.",
           recipientAddress: mockAddress,
         } as JobMessageEvent),
         createMockEvent(JobEventType.OwnerMessage, mockAddress, {
-          contentHash: '0x' + '0'.repeat(64), // Mock hash
           content: 'Great! Can you share your portfolio?',
           recipientAddress: mockWorkerAddress,
         } as JobMessageEvent),
@@ -205,14 +337,9 @@ const createScenarioEvents = (scenario: string): JobEventWithDiffs[] => {
         ...baseEvents,
         createMockEvent(JobEventType.Taken, mockWorkerAddress, {}, [
           { field: 'state', oldValue: 'Open', newValue: 'Taken' },
-          {
-            field: 'roles.worker',
-            oldValue: null,
-            newValue: mockWorkerAddress,
-          },
+          { field: 'roles.worker', oldValue: null, newValue: mockWorkerAddress },
         ]),
         createMockEvent(JobEventType.WorkerMessage, mockWorkerAddress, {
-          contentHash: '0x' + '0'.repeat(64), // Mock hash
           content: "I've started working on the dashboard. Will update you soon!",
           recipientAddress: mockAddress,
         } as JobMessageEvent),
@@ -223,15 +350,10 @@ const createScenarioEvents = (scenario: string): JobEventWithDiffs[] => {
         ...baseEvents,
         createMockEvent(JobEventType.Taken, mockWorkerAddress, {}, [
           { field: 'state', oldValue: 'Open', newValue: 'Taken' },
-          {
-            field: 'roles.worker',
-            oldValue: null,
-            newValue: mockWorkerAddress,
-          },
+          { field: 'roles.worker', oldValue: null, newValue: mockWorkerAddress },
         ]),
         createMockEvent(JobEventType.Delivered, mockWorkerAddress, {
-          result:
-            'Dashboard complete! Live URL: https://defi-dashboard.vercel.app',
+          result: 'Dashboard complete! Live URL: https://defi-dashboard.vercel.app',
         }),
       ];
 
@@ -240,11 +362,7 @@ const createScenarioEvents = (scenario: string): JobEventWithDiffs[] => {
         ...baseEvents,
         createMockEvent(JobEventType.Taken, mockWorkerAddress, {}, [
           { field: 'state', oldValue: 'Open', newValue: 'Taken' },
-          {
-            field: 'roles.worker',
-            oldValue: null,
-            newValue: mockWorkerAddress,
-          },
+          { field: 'roles.worker', oldValue: null, newValue: mockWorkerAddress },
         ]),
         createMockEvent(JobEventType.Delivered, mockWorkerAddress, {
           result: 'Work completed successfully!',
@@ -263,22 +381,13 @@ const createScenarioEvents = (scenario: string): JobEventWithDiffs[] => {
         ...baseEvents,
         createMockEvent(JobEventType.Taken, mockWorkerAddress, {}, [
           { field: 'state', oldValue: 'Open', newValue: 'Taken' },
-          {
-            field: 'roles.worker',
-            oldValue: null,
-            newValue: mockWorkerAddress,
-          },
+          { field: 'roles.worker', oldValue: null, newValue: mockWorkerAddress },
         ]),
-        createMockEvent(
-          JobEventType.Disputed,
-          mockAddress,
-          {
-            encryptedSessionKey: '0x' + '1'.repeat(64), // Mock encrypted session key
-            encryptedContent: '0x' + '2'.repeat(64), // Mock encrypted content
-            content: 'The delivered work is incomplete.', // Optional decrypted content
-          } as JobDisputedEvent,
-          [{ field: 'disputed', oldValue: false, newValue: true }]
-        ),
+        createMockEvent(JobEventType.Disputed, mockAddress, {
+          content: 'The delivered work is incomplete.',
+        } as JobDisputedEvent, [
+          { field: 'disputed', oldValue: false, newValue: true }
+        ]),
       ];
 
     default:
@@ -286,45 +395,27 @@ const createScenarioEvents = (scenario: string): JobEventWithDiffs[] => {
   }
 };
 
-// Create comprehensive mock users with all needed data
+// Create comprehensive mock users
 const mockUsers: Record<string, User> = {
   [mockAddress]: createMockUser(mockAddress, 'Alice Thompson', 'creator'),
-  [mockWorkerAddress]: createMockUser(
-    mockWorkerAddress,
-    'Bob Johnson',
-    'developer'
-  ),
-  [mockWorkerAddress2]: createMockUser(
-    mockWorkerAddress2,
-    'Carol Smith',
-    'developer'
-  ),
-  [mockArbitratorAddress]: createMockUser(
-    mockArbitratorAddress,
-    'Charlie Wilson',
-    'arbitrator'
-  ),
+  [mockWorkerAddress]: createMockUser(mockWorkerAddress, 'Bob Johnson', 'developer'),
+  [mockWorkerAddress2]: createMockUser(mockWorkerAddress2, 'Carol Smith', 'developer'),
+  [mockArbitratorAddress]: createMockUser(mockArbitratorAddress, 'Charlie Wilson', 'arbitrator'),
 };
 
 const scenarios = [
-  { id: 'open', label: 'Open', state: JobState.Open },
-  { id: 'taken', label: 'In Progress', state: JobState.Taken },
-  {
-    id: 'delivered',
-    label: 'Delivered',
-    state: JobState.Taken,
-    hasResult: true,
-  },
-  { id: 'completed', label: 'Completed', state: JobState.Closed },
-  { id: 'disputed', label: 'Disputed', state: JobState.Taken, disputed: true },
+  { id: 'all', label: 'All', state: JobState.Closed, fullLabel: 'All Events' },
+  { id: 'open', label: 'Open', state: JobState.Open, fullLabel: 'Open' },
+  { id: 'taken', label: 'Taken', state: JobState.Taken, fullLabel: 'In Progress' },
+  { id: 'delivered', label: 'Delivered', state: JobState.Taken, hasResult: true, fullLabel: 'Delivered' },
+  { id: 'completed', label: 'Complete', state: JobState.Closed, fullLabel: 'Completed' },
+  { id: 'disputed', label: 'Disputed', state: JobState.Taken, disputed: true, fullLabel: 'Disputed' },
 ];
 
 export default function JobInterfaceTestPage() {
   const [selectedScenario, setSelectedScenario] = useState(scenarios[0]);
   const [selectedWorker, setSelectedWorker] = useState(mockWorkerAddress);
-  const [userRole, setUserRole] = useState<'creator' | 'worker' | 'arbitrator'>(
-    'creator'
-  );
+  const [userRole, setUserRole] = useState<'creator' | 'worker' | 'arbitrator'>('creator');
 
   const getCurrentAddress = () => {
     switch (userRole) {
@@ -340,19 +431,15 @@ export default function JobInterfaceTestPage() {
   };
 
   const currentAddress = getCurrentAddress();
-  const currentJob = createMockJob(
-    selectedScenario.state,
-    selectedScenario.disputed
-  );
+  const currentJob = createMockJob(selectedScenario.state, selectedScenario.disputed);
 
   if (selectedScenario.hasResult) {
-    currentJob.resultHash =
-      '0x123456789abcdef123456789abcdef123456789abcdef123456789abcdef12';
-    currentJob.result =
-      'Dashboard complete! Live URL: https://defi-dashboard.vercel.app';
+    currentJob.resultHash = '0x123456789abcdef123456789abcdef123456789abcdef123456789abcdef12';
+    currentJob.result = 'Dashboard complete! Live URL: https://defi-dashboard.vercel.app';
   }
 
   const currentEvents = createScenarioEvents(selectedScenario.id);
+  const currentUser = mockUsers[currentAddress];
 
   const mockSessionKeys = {
     [`${mockAddress}-${mockWorkerAddress}`]: 'mock-session-key-1',
@@ -363,56 +450,49 @@ export default function JobInterfaceTestPage() {
     [`${mockArbitratorAddress}-${mockWorkerAddress}`]: 'mock-session-key-6',
   };
 
-  const showChatList =
-    userRole === 'creator' && currentJob.state === JobState.Open;
-
-  // Mock the current user for components that need it
-  const currentUser = mockUsers[currentAddress];
+  const showChatList = userRole === 'creator' && currentJob.state === JobState.Open;
 
   return (
     <Layout borderless>
-      {/* Enhanced Control Bar */}
-      <div className='mb-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800'>
-        <div className='flex flex-col gap-3'>
-          {/* Scenario Selector */}
-          <div className='flex items-center gap-3'>
-            <span className='text-sm font-medium text-gray-600 dark:text-gray-400'>
-              Scenario:
-            </span>
-            <div className='flex flex-wrap gap-2'>
-              {scenarios.map((scenario) => (
-                <button
-                  key={scenario.id}
-                  onClick={() => setSelectedScenario(scenario)}
-                  className={clsx(
-                    'rounded-md px-4 py-1.5 text-sm font-medium transition-all',
-                    selectedScenario.id === scenario.id
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:hover:bg-gray-600'
-                  )}
-                >
-                  {scenario.label}
-                </button>
-              ))}
+      {/* Minimal Control Bar */}
+      <div className='sticky top-0 z-50 mb-2 border-b border-gray-200 bg-white/95 backdrop-blur-sm dark:border-gray-700 dark:bg-gray-900/95'>
+        <div className='px-4 py-2'>
+          <div className='flex items-center justify-between gap-4'>
+            {/* Left: Scenarios */}
+            <div className='flex items-center gap-2'>
+              <span className='text-xs text-gray-500 dark:text-gray-400'>Scenario:</span>
+              <div className='flex gap-1'>
+                {scenarios.map((scenario) => (
+                  <button
+                    key={scenario.id}
+                    onClick={() => setSelectedScenario(scenario)}
+                    title={scenario.fullLabel}
+                    className={clsx(
+                      'rounded px-2 py-0.5 text-xs font-medium transition-all',
+                      selectedScenario.id === scenario.id
+                        ? 'bg-blue-600 text-white shadow-sm'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
+                    )}
+                  >
+                    {scenario.label}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
 
-          {/* Role Selector and State Info */}
-          <div className='flex items-center justify-between'>
-            <div className='flex items-center gap-3'>
-              <span className='text-sm font-medium text-gray-600 dark:text-gray-400'>
-                View as:
-              </span>
-              <div className='flex gap-2'>
+            {/* Center: View Role */}
+            <div className='flex items-center gap-2'>
+              <span className='text-xs text-gray-500 dark:text-gray-400'>View:</span>
+              <div className='flex gap-1'>
                 {(['creator', 'worker', 'arbitrator'] as const).map((role) => (
                   <button
                     key={role}
                     onClick={() => setUserRole(role)}
                     className={clsx(
-                      'rounded-md px-4 py-1.5 text-sm font-medium capitalize transition-all',
+                      'rounded px-2 py-0.5 text-xs font-medium capitalize transition-all',
                       userRole === role
-                        ? 'bg-purple-600 text-white shadow-md'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:hover:bg-gray-600'
+                        ? 'bg-purple-600 text-white shadow-sm'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
                     )}
                   >
                     {role}
@@ -421,49 +501,27 @@ export default function JobInterfaceTestPage() {
               </div>
             </div>
 
-            {/* Current State Badge */}
-            <div className='flex items-center gap-3'>
-              <span className='text-sm text-gray-500'>State:</span>
-              <span className='rounded-md bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'>
+            {/* Right: Status */}
+            <div className='flex items-center gap-2'>
+              <span className='rounded px-2 py-0.5 text-xs font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'>
                 {JobState[currentJob.state]}
               </span>
               {currentJob.disputed && (
-                <span className='rounded-md bg-red-100 px-3 py-1 text-sm font-semibold text-red-600 dark:bg-red-900/30 dark:text-red-400'>
+                <span className='rounded px-2 py-0.5 text-xs font-semibold bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'>
                   Disputed
                 </span>
               )}
-              <span className='rounded-md bg-gray-100 px-3 py-1 text-sm text-gray-600 dark:bg-gray-700 dark:text-gray-300'>
-                {currentEvents.length} events
-              </span>
-            </div>
-          </div>
-
-          {/* Current User Info */}
-          <div className='flex items-center gap-3 rounded-md bg-gray-50 p-2 dark:bg-gray-900'>
-            <span className='text-xs text-gray-500'>Current User:</span>
-            <div className='flex items-center gap-2'>
-              <img
-                src={currentUser.avatar}
-                alt={currentUser.name}
-                className='h-6 w-6 rounded-full'
-              />
-              <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>
-                {currentUser.name}
-              </span>
-              <span className='text-xs text-gray-500'>
-                ({currentAddress.slice(0, 6)}...{currentAddress.slice(-4)})
-              </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Job Interface */}
-      <div className='h-[calc(100vh-16rem)]'>
-        <div className='grid h-full grid-cols-2 md:grid-cols-4'>
+      {/* Main Job Interface - matching real structure */}
+      <div className='grid min-h-customHeader grid-cols-1'>
+        <div className='grid min-h-customHeader grid-cols-2 md:grid-cols-4'>
           {/* Chat List */}
           {showChatList && (
-            <div className='col-span-1 hidden h-full overflow-y-auto border border-gray-100 bg-white p-3 md:block'>
+            <div className='col-span-1 hidden max-h-customHeader overflow-y-auto border border-gray-100 bg-white p-3 md:block'>
               <JobChatsList
                 users={mockUsers}
                 job={currentJob}
@@ -472,7 +530,7 @@ export default function JobInterfaceTestPage() {
             </div>
           )}
 
-          {/* Main Chat Area */}
+          {/* Main Chat Area - matching real structure */}
           <div
             className={clsx(
               (currentJob.state === JobState.Open && !showChatList) ||
@@ -480,12 +538,12 @@ export default function JobInterfaceTestPage() {
                 currentJob.state === JobState.Closed
                 ? 'col-span-3'
                 : 'col-span-2',
-              'h-full bg-white'
+              'max-h-customHeader bg-white'
             )}
           >
-            <div className='flex h-full flex-col'>
-              {/* Mobile Menu */}
-              <div className='h-[74px] shrink-0'>
+            {currentJob && (
+              <div className='grid max-h-customHeader min-h-customHeader grid-rows-[74px_auto_1fr]'>
+                {/* OpenJobMobileMenu - row 1, exactly 74px */}
                 <OpenJobMobileMenu
                   users={mockUsers}
                   selectedWorker={selectedWorker}
@@ -503,10 +561,8 @@ export default function JobInterfaceTestPage() {
                   whitelistedWorkers={[]}
                   user={currentUser}
                 />
-              </div>
-
-              {/* Chat Events - Pass users and currentUser directly */}
-              <div className='flex-1 overflow-y-auto'>
+                
+                {/* JobChatEvents - row 2, auto height */}
                 <JobChatEvents
                   job={currentJob}
                   events={currentEvents}
@@ -515,50 +571,51 @@ export default function JobInterfaceTestPage() {
                   address={currentAddress}
                   currentUser={currentUser}
                 />
-              </div>
-
-              {/* Post Message Button - Mock implementation for testing */}
-              {currentJob &&
-                (currentJob.state === JobState.Open ||
-                  currentJob.state === JobState.Taken) && (
-                  <div className='h-[80px] shrink-0 border border-gray-100'>
-                    <div className='flex h-full items-center justify-center p-4'>
-                      <div className='w-full'>
-                        <div className='flex items-end gap-2 rounded-lg border border-gray-200 bg-white p-2 shadow-sm'>
-                          <textarea
-                            rows={1}
-                            placeholder='Type a message...'
-                            className='min-h-[36px] flex-1 resize-none rounded-lg border-0 bg-transparent px-2 py-1 text-sm text-gray-900 outline-none'
-                            disabled
-                          />
-                          <button
-                            disabled
-                            className='flex h-9 w-9 cursor-not-allowed items-center justify-center rounded-xl bg-gray-100'
-                          >
-                            <svg
-                              className='h-4 w-4 text-gray-400'
-                              fill='none'
-                              stroke='currentColor'
-                              viewBox='0 0 24 24'
+                
+                {/* PostMessageButton - row 3, matching real conditions */}
+                {currentJob &&
+                  (currentJob.state === JobState.Open ||
+                    currentJob.state === JobState.Taken) && (
+                    <div className='row-span-1 flex flex-1 content-center items-center border border-gray-100 md:block'>
+                      {/* Mock PostMessageButton for testing */}
+                      <div className='flex h-full items-center justify-center p-4'>
+                        <div className='w-full'>
+                          <div className='flex items-end gap-2 rounded-lg border border-gray-200 bg-white p-2 shadow-sm'>
+                            <textarea
+                              rows={1}
+                              placeholder='Type a message...'
+                              className='min-h-[36px] flex-1 resize-none rounded-lg border-0 bg-transparent px-2 py-1 text-sm text-gray-900 outline-none'
+                              disabled
+                            />
+                            <button
+                              disabled
+                              className='flex h-9 w-9 cursor-not-allowed items-center justify-center rounded-xl bg-gray-100'
                             >
-                              <path
-                                strokeLinecap='round'
-                                strokeLinejoin='round'
-                                strokeWidth={2}
-                                d='M12 19l9 2-9-18-9 18 9-2zm0 0v-8'
-                              />
-                            </svg>
-                          </button>
+                              <svg
+                                className='h-4 w-4 text-gray-400'
+                                fill='none'
+                                stroke='currentColor'
+                                viewBox='0 0 24 24'
+                              >
+                                <path
+                                  strokeLinecap='round'
+                                  strokeLinejoin='round'
+                                  strokeWidth={2}
+                                  d='M12 19l9 2-9-18-9 18 9-2zm0 0v-8'
+                                />
+                              </svg>
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
-            </div>
+                  )}
+              </div>
+            )}
           </div>
 
-          {/* Sidebar */}
-          <div className='hidden h-full overflow-y-auto md:block'>
+          {/* Sidebar - matching real structure */}
+          <div className='hidden md:block'>
             <JobSidebar
               job={currentJob}
               address={currentAddress as `0x${string}`}
