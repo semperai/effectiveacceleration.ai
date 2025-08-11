@@ -1,13 +1,5 @@
-// src/components/TokenDialog/Dependencies/tokenHelpers.ts
 import { ethers } from 'ethers';
-
-// Minimal ERC20 ABI for fetching token metadata
-const ERC20_ABI = [
-  'function name() view returns (string)',
-  'function symbol() view returns (string)',
-  'function decimals() view returns (uint8)',
-  'function balanceOf(address) view returns (uint256)',
-];
+import ERC20_ABI from '@/abis/ERC20.json';
 
 export interface IArbitrumToken {
   logoURI?: string;
@@ -55,7 +47,7 @@ export async function fetchTokenMetadata(
       };
     }
 
-    // Create contract instance
+    // Create contract instance with the full ABI
     const contract = new ethers.Contract(address, ERC20_ABI, provider);
 
     // Fetch token metadata in parallel for efficiency

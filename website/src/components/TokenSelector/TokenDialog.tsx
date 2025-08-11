@@ -22,6 +22,7 @@ import { X, Search, ExternalLink, Plus, Loader2, Star } from 'lucide-react';
 import { styles, mergeStyles, keyframes, mobileStyles } from './styles';
 import { DEFAULT_TOKEN_ICON } from './icons/DefaultTokenIcon';
 import { tokens as appTokens, type Token } from '@/lib/tokens';
+import ERC20_ABI from '@/abis/ERC20.json';
 
 // Extended IArbitrumToken to include balance
 interface IArbitrumTokenWithBalance extends Omit<IArbitrumToken, 'balance'> {
@@ -33,24 +34,6 @@ interface IArbitrumTokenWithBalance extends Omit<IArbitrumToken, 'balance'> {
     timestamp?: number;
   };
 }
-
-// ERC20 ABI for balanceOf function
-const ERC20_ABI = [
-  {
-    inputs: [{ name: 'account', type: 'address' }],
-    name: 'balanceOf',
-    outputs: [{ name: '', type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'decimals',
-    outputs: [{ name: '', type: 'uint8' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-] as const;
 
 // Type definitions for FavoriteTokenChip props
 interface FavoriteTokenChipProps {
