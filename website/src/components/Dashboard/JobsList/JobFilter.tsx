@@ -1,7 +1,7 @@
 // src/components/Dashboard/JobsList/JobFilter.tsx
 import { Input } from '@/components/Input';
 import TagsInput from '@/components/TagsInput';
-import { TokenSelector } from '@/components/TokenSelector';
+import TokenFilter from '@/components/TokenFilter';
 import { ArbitratorSelector } from '@/components/ArbitratorSelector';
 import type { ComboBoxOption, Tag } from '@/service/FormsTypes';
 import type { Token } from '@/tokens';
@@ -67,16 +67,10 @@ export const JobFilter = ({
   creatorAddress,
 }: JobFilterProps) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [internalToken, setInternalToken] = useState<Token | undefined>(selectedToken);
   const [isFocused, setIsFocused] = useState(false);
   const [searchSuggestion, setSearchSuggestion] = useState('');
   const [localSearch, setLocalSearch] = useState(search);
   const [showUnitDropdown, setShowUnitDropdown] = useState(false);
-
-  // Sync internal token state with prop
-  useEffect(() => {
-    setInternalToken(selectedToken);
-  }, [selectedToken]);
 
   // Sync local search with prop
   useEffect(() => {
@@ -114,7 +108,6 @@ export const JobFilter = ({
   const handleClearToken = () => {
     setSelectedToken(undefined);
     setMinTokens(undefined);
-    setInternalToken(undefined); // Clear internal state to trigger UI update
   };
 
   const handleClearArbitrator = () => {
@@ -131,11 +124,6 @@ export const JobFilter = ({
 
   const handleClearCreatorAddress = () => {
     setCreatorAddress(undefined);
-  };
-
-  const handleTokenSelect = (token: Token | undefined) => {
-    setSelectedToken(token);
-    setInternalToken(token);
   };
 
   const handleSearchSubmit = () => {
@@ -317,7 +305,7 @@ export const JobFilter = ({
           `}>
             {/* Left Column */}
             <div className='space-y-5'>
-              {/* Token Settings */}
+              {/* Token Settings - Using new TokenFilter component */}
               <div className='relative group'>
                 <div className='flex items-center justify-between mb-3'>
                   <div className='flex items-center gap-2'>
@@ -339,25 +327,12 @@ export const JobFilter = ({
                     <X className='h-3.5 w-3.5' />
                   </button>
                 </div>
-                <div className='flex flex-col sm:flex-row gap-3'>
-                  <div className='flex-1'>
-                    <TokenSelector
-                      key={internalToken?.symbol || 'empty'} // Force re-render when token changes
-                      selectedToken={internalToken}
-                      onClick={handleTokenSelect}
-                      persistSelection={false}
-                    />
-                  </div>
-                  <div className='sm:w-32'>
-                    <Input
-                      type='number'
-                      value={minTokens || ''}
-                      onChange={(e) => setMinTokens(e.target.value ? Number(e.target.value) : undefined)}
-                      placeholder='Min amount'
-                      className='bg-white/60 dark:bg-gray-900/60 border-gray-200/50 dark:border-gray-700/50'
-                    />
-                  </div>
-                </div>
+                <TokenFilter
+                  selectedToken={selectedToken}
+                  onTokenSelect={setSelectedToken}
+                  minAmount={minTokens}
+                  onMinAmountChange={setMinTokens}
+                />
               </div>
 
               {/* Delivery Time */}
