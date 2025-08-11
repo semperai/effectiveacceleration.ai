@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
-import Image from 'next/image';
+import Image, { StaticImageData } from 'next/image';
 import {
   PiSparkle,
   PiTrendUp,
@@ -27,19 +27,26 @@ import { WeeklyDistribution } from './WeeklyDistribution';
 import { StatsCard } from './StatsCard';
 import { WEEKLY_DATA } from './data';
 
+import socialHero1 from '@/images/social-hero-1.webp';
+import socialHero2 from '@/images/social-hero-2.webp';
+import socialHero3 from '@/images/social-hero-3.webp';
+import socialHero4 from '@/images/social-hero-4.webp';
+import socialHero5 from '@/images/social-hero-5.webp';
+
+
 export default function SocialProgramPage() {
   const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(
     new Set([WEEKLY_DATA[0]?.weekNumber])
   );
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  // Array of hero images
-  const heroImages = [
-    '/social-hero-1.webp',
-    '/social-hero-2.webp',
-    '/social-hero-3.webp',
-    '/social-hero-4.webp',
-    '/social-hero-5.webp',
+  // Array of hero images with imported images
+  const heroImages: StaticImageData[] = [
+    socialHero1,
+    socialHero2,
+    socialHero3,
+    socialHero4,
+    socialHero5,
   ];
 
   // Auto-transition images every 5 seconds
@@ -194,6 +201,7 @@ export default function SocialProgramPage() {
                         priority={index === 0}
                         sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px'
                         quality={90}
+                        placeholder='blur' // This will now work with imported images
                       />
                     </div>
                   ))}
