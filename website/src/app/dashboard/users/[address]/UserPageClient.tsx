@@ -284,7 +284,7 @@ export default function UserPageClient({ address }: UserPageClientProps) {
                   </div>
                 </div>
 
-                {/* Member since and Wallet Address */}
+                {/* Member since */}
                 <div>
                   <h3 className='mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100'>
                     Member Information
@@ -295,26 +295,6 @@ export default function UserPageClient({ address }: UserPageClientProps) {
                       {moment(user.timestamp * 1000).format('MMMM YYYY')}
                     </p>
                   )}
-                  <div className='flex items-center gap-2'>
-                    <span className='text-gray-600 dark:text-gray-400'>
-                      Wallet:
-                    </span>
-                    <code className='rounded bg-gray-100 px-2 py-1 font-mono text-sm dark:bg-gray-800'>
-                      {address}
-                    </code>
-                    <button
-                      onClick={copyAddress}
-                      className='text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
-                      title='Copy full address'
-                    >
-                      <DocumentDuplicateIcon className='h-4 w-4' />
-                    </button>
-                    {copiedAddress && (
-                      <span className='text-xs text-green-600 dark:text-green-400'>
-                        Copied!
-                      </span>
-                    )}
-                  </div>
                 </div>
 
                 {/* If no bio, show a message */}
