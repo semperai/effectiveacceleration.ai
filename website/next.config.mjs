@@ -77,6 +77,18 @@ const nextConfig = {
         protocol: 'https',
         hostname: 's2.coinmarketcap.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'etherscan.io',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cryptologos.cc',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.prismic.io',
+      },
     ],
   },
 };
