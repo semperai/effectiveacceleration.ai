@@ -1,7 +1,7 @@
-// src/app/dashboard/social-program/SocialProgramPage.tsx
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import Image from 'next/image';
 import { 
   PiSparkle, 
   PiTrendUp, 
@@ -29,6 +29,25 @@ import { mockWeeklyData } from './mockData';
 
 export default function SocialProgramPage() {
   const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set([mockWeeklyData[0]?.weekNumber]));
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Array of hero images
+  const heroImages = [
+    '/social-hero-1.webp',
+    '/social-hero-2.webp',
+    '/social-hero-3.webp',
+    '/social-hero-4.webp',
+    '/social-hero-5.webp',
+  ];
+
+  // Auto-transition images every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % heroImages.length);
+    }, 5000); // Change image every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [heroImages.length]);
 
   // Calculate totals
   const totals = useMemo(() => {
@@ -140,45 +159,75 @@ export default function SocialProgramPage() {
               </div>
             </div>
 
-            {/* Right side - Visual */}
+            {/* Right side - Visual with Image Carousel */}
             <div className="relative">
               <div className="relative rounded-2xl overflow-hidden shadow-2xl">
-                {/* Placeholder for image - you can replace this with an actual image */}
-                <div className="aspect-[4/3] lg:aspect-square bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 p-1">
-                  <div className="h-full w-full rounded-xl bg-gray-900 p-6 sm:p-8 flex items-center justify-center">
-                    <div className="text-center">
-                      {/* Animated graphic placeholder */}
-                      <div className="relative mx-auto h-32 w-32 sm:h-48 sm:w-48">
-                        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 opacity-20 animate-pulse" />
-                        <div className="absolute inset-4 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 opacity-30 animate-pulse animation-delay-200" />
-                        <div className="absolute inset-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 opacity-40 animate-pulse animation-delay-400" />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <PiRocket className="h-16 w-16 sm:h-20 sm:w-20 text-white" />
-                        </div>
-                      </div>
-                      <p className="mt-4 sm:mt-6 text-lg sm:text-xl font-bold text-white">Build. Create. Earn.</p>
-                      <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-400">Contribute to the ecosystem</p>
+                <div className="aspect-[4/3] lg:aspect-square relative">
+                  {/* Image Carousel */}
+                  {heroImages.map((image, index) => (
+                    <div
+                      key={index}
+                      className={`absolute inset-0 transition-opacity duration-1000 ${
+                        index === currentImageIndex ? 'opacity-100' : 'opacity-0'
+                      }`}
+                    >
+                      <Image 
+                        src={image}
+                        alt={`Social Growth Program - ${index + 1}`}
+                        fill
+                        className="object-cover"
+                        priority={index === 0}
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
+                        quality={90}
+                      />
                     </div>
+                  ))}
+                  
+                  {/* Gradient Overlays - Multiple layers for depth */}
+                  {/* Base gradient for overall tint */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/40 via-purple-600/30 to-pink-600/40" />
+                  
+                  {/* Directional gradients for edge darkening */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-black/30" />
+                  
+                  {/* Animated shimmer effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-shimmer" />
+                  
+                  {/* Optional: Mesh gradient for more organic look */}
+                  <div className="absolute inset-0 opacity-30">
+                    <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-blue-500/30 blur-3xl" />
+                    <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-purple-500/30 blur-3xl" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/3 h-1/3 bg-pink-500/30 blur-2xl" />
+                  </div>
+
+                  {/* Image Indicators */}
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                    {heroImages.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setCurrentImageIndex(index)}
+                        className={`h-2 rounded-full transition-all duration-300 ${
+                          index === currentImageIndex 
+                            ? 'w-8 bg-white' 
+                            : 'w-2 bg-white/50 hover:bg-white/70'
+                        }`}
+                        aria-label={`Go to image ${index + 1}`}
+                      />
+                    ))}
                   </div>
                 </div>
-                {/* To use an actual image, replace the above div with:
-                <img 
-                  src="/path-to-your-image.jpg" 
-                  alt="Social Growth Program" 
-                  className="w-full h-full object-cover"
-                />
-                */}
               </div>
               
               {/* Floating badges */}
-              <div className="absolute -left-2 sm:-left-4 top-4 sm:top-8 rounded-lg bg-white p-2 sm:p-3 shadow-lg dark:bg-gray-800">
+              <div className="absolute -left-2 sm:-left-4 top-4 sm:top-8 rounded-lg bg-white/95 backdrop-blur-sm p-2 sm:p-3 shadow-lg dark:bg-gray-800/95 border border-white/20">
                 <div className="flex items-center gap-2">
                   <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500" />
                   <span className="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100">Top Contributor</span>
                 </div>
               </div>
               
-              <div className="absolute -right-2 sm:-right-4 bottom-4 sm:bottom-8 rounded-lg bg-white p-2 sm:p-3 shadow-lg dark:bg-gray-800">
+              <div className="absolute -right-2 sm:-right-4 bottom-4 sm:bottom-8 rounded-lg bg-white/95 backdrop-blur-sm p-2 sm:p-3 shadow-lg dark:bg-gray-800/95 border border-white/20">
                 <div className="flex items-center gap-2">
                   <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-purple-500" />
                   <span className="text-xs sm:text-sm font-medium text-gray-900 dark:text-gray-100">Weekly Rewards</span>
