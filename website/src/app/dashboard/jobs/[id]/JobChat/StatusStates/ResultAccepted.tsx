@@ -10,6 +10,7 @@ import {
 } from '@effectiveacceleration/contracts';
 import { formatMarkdownContent } from '@/lib/utils';
 import { tokens } from '@/lib/tokens';
+import ProfileImage from '@/components/ProfileImage';
 import Markdown from 'react-markdown';
 import { ethers } from 'ethers';
 import {
@@ -60,10 +61,22 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
   const workerData = users[workerAddress];
   const workerName = workerData?.name || 'Worker';
 
-  // Check if current user is the job creator
+  // Get initials for fallback avatar
+  const workerInitials = workerName
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2) || 'W';
+
+  // Check if current user is the job creator or worker
   const isJobCreator =
     currentUserAddress &&
     job.roles.creator?.toLowerCase() === currentUserAddress.toLowerCase();
+  
+  const isWorker =
+    currentUserAddress &&
+    workerAddress?.toLowerCase() === currentUserAddress.toLowerCase();
 
   // Calculate the formatted amount for the URL parameter
   const getFormattedAmount = () => {
@@ -155,9 +168,19 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
                 href={`/dashboard/users/${workerAddress}`}
                 className='group flex items-center gap-2'
               >
-                <div className='flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 transition-transform group-hover:scale-110'>
-                  <PiUser className='h-4 w-4 text-white' />
-                </div>
+                {/* Use ProfileImage component or fallback to initials */}
+                {workerData?.avatar ? (
+                  <ProfileImage
+                    user={workerData}
+                    className='h-8 w-8 transition-transform group-hover:scale-110'
+                  />
+                ) : (
+                  <div className='flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 transition-transform group-hover:scale-110'>
+                    <span className='text-xs font-bold text-white'>
+                      {workerInitials}
+                    </span>
+                  </div>
+                )}
                 <span className='text-sm font-semibold text-gray-900 transition-colors group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400'>
                   {workerName}
                 </span>
@@ -265,19 +288,21 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
                 </Link>
               )}
 
-              {/* View Worker Profile */}
-              <Link
-                href={`/dashboard/users/${workerAddress}`}
-                className='w-full'
-              >
-                <button className='group w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:bg-gray-700'>
-                  <span className='flex items-center justify-center gap-2'>
-                    <PiUser className='h-4 w-4' />
-                    View {workerName}&apos;s Profile
-                    <PiArrowRight className='h-4 w-4 transition-transform group-hover:translate-x-1' />
-                  </span>
-                </button>
-              </Link>
+              {/* View Worker Profile - Only show if viewer is not the worker */}
+              {!isWorker && (
+                <Link
+                  href={`/dashboard/users/${workerAddress}`}
+                  className='w-full'
+                >
+                  <button className='group w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:bg-gray-700'>
+                    <span className='flex items-center justify-center gap-2'>
+                      <PiUser className='h-4 w-4' />
+                      View {workerName}&apos;s Profile
+                      <PiArrowRight className='h-4 w-4 transition-transform group-hover:translate-x-1' />
+                    </span>
+                  </button>
+                </Link>
+              )}
 
               {/* Browse Jobs */}
               <Link href='/dashboard/open-job-list' className='w-full'>
