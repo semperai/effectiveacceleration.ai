@@ -18,3 +18,15 @@ export const unitsDeliveryTime = [
   { id: '5', name: 'years' },
 ];
 
+export const deliveryMethods: { id: string; name: string }[] = [
+  { id: 'ipfs', name: 'IPFS' },
+  { id: 'courier', name: 'Courier' },
+  { id: 'digital_proof', name: 'Digital Proof' },
+  { id: 'other', name: 'Other' },
+];
+
+export const noYesOptions: { id: string; name: string }[] = [
+  { id: 'no', name: 'No' },
+  { id: 'yes', name: 'Yes' },
+];
+

@@ -15,7 +15,7 @@ import useUser from '@/hooks/subsquid/useUser';
 import { useConfig } from '@/hooks/useConfig';
 import type { ComboBoxOption, Tag } from '@/service/FormsTypes';
 import { type Token, tokens } from '@/lib/tokens';
-import { jobMeceTags } from '@/lib/constants';
+import { jobMeceTags, deliveryMethods, noYesOptions } from '@/lib/constants';
 import {
   convertToSeconds,
   unitsDeliveryTime,
@@ -61,13 +61,6 @@ export interface PostJobParams {
   };
   tags: string[];
 }
-
-const deliveryMethods = [
-  { name: 'IPFS', id: 'ipfs' },
-  { name: 'Courier', id: 'courier' },
-  { name: 'Digital Proof', id: 'digital_proof' },
-  { name: 'Other', id: 'other' },
-];
 
 const PostJob = () => {
   const Config = useConfig();
@@ -205,7 +198,6 @@ const PostJob = () => {
   const [selectedToken, setSelectedToken] = useState<Token | undefined>(
     initialValues.token
   );
-  const noYes = ['No', 'Yes'];
   const [showSummary, setShowSummary] = useState(false);
   const [title, setTitle] = useState<string>(initialValues.title);
   const [deliveryMethod, setDeliveryMethod] = useState(
@@ -214,7 +206,7 @@ const PostJob = () => {
   const [description, setDescription] = useState<string>(initialValues.content);
   const [amount, setAmount] = useState(initialValues.amount);
   const [deadline, setDeadline] = useState<number>(initialValues.deadline || 1);
-  const [imFeelingLucky, setImFeelingLucky] = useState(noYes[0]);
+  const [imFeelingLucky, setImFeelingLucky] = useState(noYesOptions[0].name);
   const [selectedUnitTime, setselectedUnitTime] = useState<ComboBoxOption>(
     convertUnitForDisplay(initialValues.unit || unitsDeliveryTime[2])
   );
@@ -255,22 +247,15 @@ const PostJob = () => {
   const handleBalanceUpdate = useCallback(
     (balance: string | undefined) => {
       setTokenBalance(balance);
-      if (amount && balance) {
-        const amountValue = parseFloat(amount);
-        const balanceValue = parseFloat(balance);
-        if (!isNaN(amountValue) && !isNaN(balanceValue)) {
-          if (amountValue > balanceValue) {
-            setPaymentTokenError('Amount exceeds available balance');
-          } else if (
-            paymentTokenError === 'Amount exceeds available balance' ||
-            paymentTokenError === 'Insufficient balance'
-          ) {
-            setPaymentTokenError('');
-          }
-        }
+      // Don't set balance-related errors here anymore
+      // Let PaymentInput handle it internally
+      // Only clear the error if it was a balance-related error
+      if (paymentTokenError === 'Insufficient balance' || 
+          paymentTokenError === 'Amount exceeds available balance') {
+        setPaymentTokenError('');
       }
     },
-    [amount, paymentTokenError]
+    [paymentTokenError]
   );
 
   const handleSummary = useCallback(() => {
@@ -304,17 +289,11 @@ const PostJob = () => {
         return;
       }
 
-      if (tokenBalance) {
-        const balanceValue = parseFloat(tokenBalance);
-        if (!isNaN(balanceValue) && value > balanceValue) {
-          setPaymentTokenError('Amount exceeds available balance');
-          return;
-        }
-      }
-
+      // Don't validate balance here - let PaymentInput handle it
+      // This prevents duplicate error messages
       setPaymentTokenError('');
     },
-    [tokenBalance]
+    []
   );
 
   const validateArbitrator = useCallback(
@@ -349,18 +328,9 @@ const PostJob = () => {
     if (validationAttempted) {
       if (title && title.length >= 3) setTitleError('');
       if (selectedCategory) setCategoryError('');
+      // Only check for valid amount, not balance
       if (amount && parseFloat(amount) > 0) {
-        const value = parseFloat(amount);
-        if (tokenBalance) {
-          const balanceValue = parseFloat(tokenBalance);
-          if (!isNaN(value) && !isNaN(balanceValue) && value > balanceValue) {
-            setPaymentTokenError('Amount exceeds available balance');
-          } else {
-            setPaymentTokenError('');
-          }
-        } else {
-          setPaymentTokenError('');
-        }
+        setPaymentTokenError('');
       }
       if (deadline && !isNaN(deadline) && deadline > 0) setDeadlineError('');
       if (selectedArbitratorAddress && selectedArbitratorAddress !== address) {
@@ -371,7 +341,6 @@ const PostJob = () => {
     title,
     selectedCategory,
     amount,
-    tokenBalance,
     deadline,
     selectedArbitratorAddress,
     address,
@@ -440,6 +409,7 @@ const PostJob = () => {
       });
       hasErrors = true;
     } else if (tokenBalance) {
+      // Check for insufficient balance
       const amountValue = parseFloat(amount);
       const balanceValue = parseFloat(tokenBalance);
       if (
@@ -447,10 +417,12 @@ const PostJob = () => {
         !isNaN(balanceValue) &&
         amountValue > balanceValue
       ) {
+        // Don't set an error here - PaymentInput will handle the display
+        // But we still prevent submission
         errorFields.push({
           ref: jobAmountRef,
-          setter: setPaymentTokenError,
-          message: 'Amount exceeds available balance',
+          setter: () => {}, // No-op setter since PaymentInput handles the error
+          message: '', // Empty message
         });
         hasErrors = true;
       }
@@ -475,7 +447,9 @@ const PostJob = () => {
     }
 
     if (hasErrors) {
-      errorFields.forEach(({ setter, message }) => setter(message));
+      errorFields.forEach(({ setter, message }) => {
+        if (message) setter(message);
+      });
       if (errorFields.length > 0 && errorFields[0].ref.current) {
         errorFields[0].ref.current.scrollIntoView({
           behavior: 'smooth',
@@ -594,20 +568,20 @@ const PostJob = () => {
                         onChange={setImFeelingLucky}
                         aria-label='Auto-accept workers'
                       >
-                        {noYes.map((option) => (
+                        {noYesOptions.map((option) => (
                           <Field
                             className='!mt-0 flex items-center'
-                            key={option}
+                            key={option.id}
                           >
                             <Radio
                               className='mr-2'
                               color='default'
-                              value={option}
+                              value={option.name}
                             >
-                              <span>{option}</span>
+                              <span>{option.name}</span>
                             </Radio>
                             <Label className='text-gray-700 dark:text-gray-300'>
-                              {option}
+                              {option.name}
                             </Label>
                           </Field>
                         ))}
