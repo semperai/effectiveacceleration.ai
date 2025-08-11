@@ -11,10 +11,6 @@ Sentry.init({
   // Add optional integrations for additional features
   integrations: [
     Sentry.replayIntegration(),
-    Sentry.feedbackIntegration({
-      colorScheme: 'light',
-      showBranding: false,
-    }),
   ],
 
   // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
