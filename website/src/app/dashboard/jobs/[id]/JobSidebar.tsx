@@ -19,6 +19,7 @@ import {
   PiInfo,
   PiClock,
   PiPackage,
+  PiWarning,
 } from 'react-icons/pi';
 import moment from 'moment';
 import { zeroAddress, zeroHash } from 'viem';
@@ -380,9 +381,9 @@ export default function JobSidebar({
           </InfoSection>
         )}
 
-        {/* Arbitrator Section */}
-        {job?.roles.arbitrator !== zeroAddress && (
-          <InfoSection title='Arbitration' icon={PiMapPin}>
+        {/* Arbitrator Section - Always show, with appropriate messaging */}
+        <InfoSection title='Arbitration' icon={PiMapPin}>
+          {job?.roles.arbitrator !== zeroAddress ? (
             <DetailRow
               label='Arbitrator'
               value={
@@ -397,8 +398,52 @@ export default function JobSidebar({
                 </Link>
               }
             />
-          </InfoSection>
-        )}
+          ) : (
+            <div className='space-y-3'>
+              <DetailRow
+                label='Arbitrator'
+                value={
+                  <span className='text-sm text-gray-500 dark:text-gray-400'>
+                    None selected
+                  </span>
+                }
+              />
+
+              {/* Show warning for in-progress jobs without arbitrator */}
+              {job?.state === JobState.Taken && (
+                <div className='rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-950/20'>
+                  <div className='flex items-start gap-2'>
+                    <PiWarning className='mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600 dark:text-amber-400' />
+                    <div className='space-y-1'>
+                      <p className='text-xs font-medium text-amber-800 dark:text-amber-300'>
+                        No Arbitrator Available
+                      </p>
+                      <p className='text-xs text-amber-700 dark:text-amber-400'>
+                        Since no arbitrator was selected when creating this job,
+                        disputes cannot be opened. Consider direct communication
+                        with the worker to resolve any issues.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Info for open jobs */}
+              {job?.state === JobState.Open &&
+                address === job.roles.creator && (
+                  <div className='rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-950/20'>
+                    <div className='flex items-start gap-2'>
+                      <PiInfo className='mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600 dark:text-blue-400' />
+                      <p className='text-xs text-blue-700 dark:text-blue-300'>
+                        No arbitrator selected. You can update the job to add an
+                        arbitrator before a worker accepts it.
+                      </p>
+                    </div>
+                  </div>
+                )}
+            </div>
+          )}
+        </InfoSection>
 
         {/* Tags Section */}
         <InfoSection>
