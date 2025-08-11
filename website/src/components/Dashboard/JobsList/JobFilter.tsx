@@ -154,7 +154,7 @@ export const JobFilter = ({
   ].filter(Boolean).length;
 
   return (
-    <div className='mb-6 w-full'>
+    <div className='mb-6 w-full relative !z-[10]'>
       <div className='relative rounded-xl backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50'>
         {/* Decorative gradient line at top */}
         <div className='absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-400/50 to-transparent' />
