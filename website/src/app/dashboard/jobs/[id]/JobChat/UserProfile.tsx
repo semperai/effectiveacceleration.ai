@@ -2,7 +2,7 @@ import { Button } from '@/components/Button';
 import useArbitrator from '@/hooks/subsquid/useArbitrator';
 import { useEthersSigner } from '@/hooks/useEthersSigner';
 import useUser from '@/hooks/subsquid/useUser';
-import { isImageValid } from '@/utils/ImageValidity';
+import { isImageValid } from '@/lib/utils';
 import { Dialog, Transition } from '@headlessui/react';
 import {
   getEncryptionSigningKey,

@@ -1,3 +1,4 @@
+import Sentry from '@sentry/nextjs';
 import { JobEventType } from '@effectiveacceleration/contracts';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -86,3 +87,15 @@ export const EventTextMap = (
   }
   return body;
 };
+
+export async function isImageValid(url: string): Promise<boolean> {
+  try {
+    const response = await fetch(url, { method: 'HEAD' });
+    return response.ok; // Return true if the response is ok (status in the range 200-299)
+  } catch (error) {
+    Sentry.captureException(error);
+    console.error('Error checking image URL:', error);
+    // TODO show toast here
+    return false;
+  }
+}
