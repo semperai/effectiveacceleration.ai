@@ -2,12 +2,12 @@ import useUser from '@/hooks/subsquid/useUser';
 import ProfileImage from '@/components/ProfileImage';
 import moment from 'moment';
 import { getAddress } from 'viem';
-import type { EventProps } from './index';
+import type { EventComponentProps } from './index';
 
 export function WhitelistRemoveEvent({
   event,
   ...rest
-}: EventProps & React.ComponentPropsWithoutRef<'div'>) {
+}: EventComponentProps & React.ComponentPropsWithoutRef<'div'>) {
   const ownerAddress = getAddress(event.job.roles.creator);
   const ownerHref = `/dashboard/users/${ownerAddress}`;
   const { data: owner } = useUser(ownerAddress);

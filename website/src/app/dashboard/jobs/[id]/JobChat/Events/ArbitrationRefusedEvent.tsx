@@ -2,12 +2,12 @@ import useArbitrator from '@/hooks/subsquid/useArbitrator';
 import ProfileImage from '@/components/ProfileImage';
 import moment from 'moment';
 import { getAddress } from 'viem';
-import type { EventProps } from './index';
+import type { EventComponentProps } from './index';
 
 export function ArbitrationRefusedEvent({
   event,
   ...rest
-}: EventProps & React.ComponentPropsWithoutRef<'div'>) {
+}: EventComponentProps & React.ComponentPropsWithoutRef<'div'>) {
   const prevWorker = event.diffs.find((val) => val.field === 'roles.arbitrator')
     ?.oldValue as string;
   const address = getAddress(prevWorker);

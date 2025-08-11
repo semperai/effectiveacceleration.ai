@@ -2,12 +2,12 @@ import useUser from '@/hooks/subsquid/useUser';
 import ProfileImage from '@/components/ProfileImage';
 import moment from 'moment';
 import { getAddress } from 'viem';
-import type { EventProps } from './index';
+import type { EventComponentProps } from './index';
 
 export function RefundEvent({
   event,
   ...rest
-}: EventProps & React.ComponentPropsWithoutRef<'div'>) {
+}: EventComponentProps & React.ComponentPropsWithoutRef<'div'>) {
   const address = getAddress(
     event.diffs.find((val) => val.field === 'roles.worker')?.oldValue as string
   );

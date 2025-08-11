@@ -4,12 +4,12 @@ import useUser from '@/hooks/subsquid/useUser';
 import moment from 'moment';
 import { Fragment } from 'react';
 import { getAddress } from 'viem';
-import type { EventProps } from './index';
+import type { EventComponentProps } from './index';
 
 export function UpdateEvent({
   event,
   ...rest
-}: EventProps & React.ComponentPropsWithoutRef<'div'>) {
+}: EventComponentProps & React.ComponentPropsWithoutRef<'div'>) {
   const address = getAddress(event.job.roles.creator);
   const href = `/dashboard/users/${address}`;
   const { data: user } = useUser(address);

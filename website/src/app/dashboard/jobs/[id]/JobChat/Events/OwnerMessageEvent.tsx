@@ -50,7 +50,7 @@ const OwnerMessageEvent: React.FC<OwnerMessageEventProps> = ({
   const recipient = recipientAddress ? users[recipientAddress] : null;
   const recipientName = recipient?.name || 'User';
 
-  const rawMessage = messageDetails?.message || '';
+  const rawMessage = messageDetails?.content || '';
 
   useEffect(() => {
     if (rawMessage?.startsWith('#filename%3D')) {

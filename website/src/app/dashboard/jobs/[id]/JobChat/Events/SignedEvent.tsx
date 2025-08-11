@@ -3,12 +3,12 @@ import ProfileImage from '@/components/ProfileImage';
 import type { JobSignedEvent } from '@effectiveacceleration/contracts';
 import moment from 'moment';
 import { getAddress } from 'viem';
-import type { EventProps } from './index';
+import type { EventComponentProps } from './index';
 
 export function SignedEvent({
   event,
   ...rest
-}: EventProps & React.ComponentPropsWithoutRef<'div'>) {
+}: EventComponentProps & React.ComponentPropsWithoutRef<'div'>) {
   const address = getAddress(event.address_);
   const href = `/dashboard/users/${address}`;
   const { data: user } = useUser(address);

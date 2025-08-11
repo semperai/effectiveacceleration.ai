@@ -89,7 +89,7 @@ const DisputedEvent: React.FC<DisputedEventProps> = ({
             </div>
 
             {/* Dispute Reason */}
-            {disputeDetails?.reason && (
+            {disputeDetails?.content && (
               <div className='rounded-lg bg-white p-3 dark:bg-gray-800/50'>
                 <div className='mb-2 flex items-center gap-2'>
                   <PiFileText className='h-4 w-4 text-gray-500 dark:text-gray-400' />
@@ -98,7 +98,7 @@ const DisputedEvent: React.FC<DisputedEventProps> = ({
                   </span>
                 </div>
                 <p className='text-sm text-gray-700 dark:text-gray-300'>
-                  {disputeDetails.reason}
+                  {disputeDetails.content}
                 </p>
               </div>
             )}

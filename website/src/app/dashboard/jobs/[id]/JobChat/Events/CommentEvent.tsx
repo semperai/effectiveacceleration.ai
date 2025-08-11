@@ -9,11 +9,12 @@ import { getAddress } from 'viem';
 import { useAccount } from 'wagmi';
 
 import type { JobMessageEvent } from '@effectiveacceleration/contracts';
-import type { EventProps } from './index';
+import type { EventComponentProps } from './index';
 
-type CommentEventProps = EventProps & ComponentPropsWithoutRef<'div'>;
+type CommentEventComponentProps = EventComponentProps &
+  ComponentPropsWithoutRef<'div'>;
 
-export function CommentEvent({ event, ...rest }: CommentEventProps) {
+export function CommentEvent({ event, ...rest }: CommentEventComponentProps) {
   const { address: currentUserAddress } = useAccount();
 
   const address = getAddress(event.address_);
