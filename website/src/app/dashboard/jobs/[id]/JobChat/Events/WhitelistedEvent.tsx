@@ -8,7 +8,7 @@ import {
   type Job,
   JobEventType,
 } from '@effectiveacceleration/contracts';
-import { 
+import {
   PiUserCheck,
   PiUserMinus,
   PiArrowRight,
@@ -31,15 +31,15 @@ const WhitelistedEvent: React.FC<WhitelistedEventProps> = ({
 }) => {
   // Determine if this is an add or remove event based on the event type
   const isAddition = event.type_ === JobEventType.WhitelistedWorkerAdded;
-  
+
   const creatorAddress = job?.roles.creator;
   const creator = creatorAddress ? users[creatorAddress] : null;
   const creatorName = creator?.name || 'Job Creator';
-  
+
   const targetAddress = event.address_;
   const targetUser = users[targetAddress];
   const targetName = targetUser?.name || 'User';
-  
+
   // Check if current user is involved
   const isCurrentUserCreator = currentUser?.address_ === creatorAddress;
   const isCurrentUserTarget = currentUser?.address_ === targetAddress;
@@ -56,7 +56,7 @@ const WhitelistedEvent: React.FC<WhitelistedEventProps> = ({
           <PiShieldCheck className='h-3 w-3 text-white' />
         </div>
       </div>
-      
+
       <div className='min-w-0 flex-1'>
         <div>
           <div className='text-sm text-gray-900 dark:text-gray-100'>
@@ -90,21 +90,26 @@ const WhitelistedEvent: React.FC<WhitelistedEventProps> = ({
                 >
                   {targetName}
                 </Link>
-              )}
-              {' '}{isAddition ? 'to' : 'from'} the whitelist
+              )}{' '}
+              {isAddition ? 'to' : 'from'} the whitelist
             </span>
           </div>
 
           {/* Whitelist Card */}
-          <div className={`mt-3 rounded-xl border p-4 ${
-            isAddition 
-              ? 'border-teal-200 bg-gradient-to-br from-teal-50 to-cyan-50 dark:border-teal-800 dark:from-teal-950/20 dark:to-cyan-950/20'
-              : 'border-gray-200 bg-gradient-to-br from-gray-50 to-gray-100 dark:border-gray-700 dark:from-gray-800/20 dark:to-gray-900/20'
-          }`}>
+          <div
+            className={`mt-3 rounded-xl border p-4 ${
+              isAddition
+                ? 'border-teal-200 bg-gradient-to-br from-teal-50 to-cyan-50 dark:border-teal-800 dark:from-teal-950/20 dark:to-cyan-950/20'
+                : 'border-gray-200 bg-gradient-to-br from-gray-50 to-gray-100 dark:border-gray-700 dark:from-gray-800/20 dark:to-gray-900/20'
+            }`}
+          >
             <div className='flex items-center justify-between'>
               <div className='flex items-center gap-3'>
                 {targetUser?.avatar ? (
-                  <ProfileImage user={targetUser} className='h-8 w-8 rounded-full' />
+                  <ProfileImage
+                    user={targetUser}
+                    className='h-8 w-8 rounded-full'
+                  />
                 ) : (
                   <div className='flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500'>
                     <PiUser className='h-4 w-4 text-white' />
@@ -115,25 +120,26 @@ const WhitelistedEvent: React.FC<WhitelistedEventProps> = ({
                     {targetName}
                   </p>
                   <p className='text-xs text-gray-600 dark:text-gray-400'>
-                    {isAddition 
+                    {isAddition
                       ? 'Can now apply for this job'
-                      : 'No longer whitelisted for this job'
-                    }
+                      : 'No longer whitelisted for this job'}
                   </p>
                 </div>
               </div>
-              
-              <span className={`rounded-full px-2 py-1 text-xs font-medium ${
-                isAddition
-                  ? 'bg-teal-100 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400'
-                  : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
-              }`}>
+
+              <span
+                className={`rounded-full px-2 py-1 text-xs font-medium ${
+                  isAddition
+                    ? 'bg-teal-100 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400'
+                    : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
+                }`}
+              >
                 {isAddition ? '+ Added' : '- Removed'}
               </span>
             </div>
           </div>
         </div>
-        
+
         <div className='mt-2 text-xs text-gray-500 dark:text-gray-400'>
           {moment(event.timestamp_ * 1000).fromNow()}
         </div>

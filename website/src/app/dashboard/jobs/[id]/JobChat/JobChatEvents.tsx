@@ -123,11 +123,11 @@ const JobChatEvents: React.FC<JobChatEventsProps> = ({
                           : ''
                       )}
                     >
-                      {renderEvent({ 
+                      {renderEvent({
                         event,
                         users,
                         currentUser,
-                        job 
+                        job,
                       })}
                     </div>
                   </div>

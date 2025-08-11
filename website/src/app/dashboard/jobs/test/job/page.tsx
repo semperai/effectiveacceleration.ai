@@ -136,7 +136,8 @@ const createMockEvent = (
       eventJob.roles.worker = mockWorkerAddress;
       if (details?.result) {
         eventJob.result = details.result;
-        eventJob.resultHash = '0x123456789abcdef123456789abcdef123456789abcdef123456789abcdef12';
+        eventJob.resultHash =
+          '0x123456789abcdef123456789abcdef123456789abcdef123456789abcdef12';
       }
       break;
     case JobEventType.Completed:
@@ -176,7 +177,11 @@ const createScenarioEvents = (scenario: string): JobEventWithDiffs[] => {
   const baseEvents = [
     createMockEvent(JobEventType.Created, mockAddress, {}, [
       { field: 'state', oldValue: null, newValue: 'Open' },
-      { field: 'title', oldValue: null, newValue: 'Build a DeFi Dashboard with Real-time Analytics' },
+      {
+        field: 'title',
+        oldValue: null,
+        newValue: 'Build a DeFi Dashboard with Real-time Analytics',
+      },
     ]),
   ];
 
@@ -185,7 +190,8 @@ const createScenarioEvents = (scenario: string): JobEventWithDiffs[] => {
       return [
         ...baseEvents,
         createMockEvent(JobEventType.WorkerMessage, mockWorkerAddress, {
-          message: "Hi! I'm interested in this job. I have 5 years of experience.",
+          message:
+            "Hi! I'm interested in this job. I have 5 years of experience.",
           sender: mockWorkerAddress,
           recipientAddress: mockAddress,
         } as JobMessageEvent),
@@ -201,10 +207,15 @@ const createScenarioEvents = (scenario: string): JobEventWithDiffs[] => {
         ...baseEvents,
         createMockEvent(JobEventType.Taken, mockWorkerAddress, {}, [
           { field: 'state', oldValue: 'Open', newValue: 'Taken' },
-          { field: 'roles.worker', oldValue: null, newValue: mockWorkerAddress },
+          {
+            field: 'roles.worker',
+            oldValue: null,
+            newValue: mockWorkerAddress,
+          },
         ]),
         createMockEvent(JobEventType.WorkerMessage, mockWorkerAddress, {
-          message: "I've started working on the dashboard. Will update you soon!",
+          message:
+            "I've started working on the dashboard. Will update you soon!",
           sender: mockWorkerAddress,
           recipientAddress: mockAddress,
         } as JobMessageEvent),
@@ -215,10 +226,15 @@ const createScenarioEvents = (scenario: string): JobEventWithDiffs[] => {
         ...baseEvents,
         createMockEvent(JobEventType.Taken, mockWorkerAddress, {}, [
           { field: 'state', oldValue: 'Open', newValue: 'Taken' },
-          { field: 'roles.worker', oldValue: null, newValue: mockWorkerAddress },
+          {
+            field: 'roles.worker',
+            oldValue: null,
+            newValue: mockWorkerAddress,
+          },
         ]),
         createMockEvent(JobEventType.Delivered, mockWorkerAddress, {
-          result: 'Dashboard complete! Live URL: https://defi-dashboard.vercel.app',
+          result:
+            'Dashboard complete! Live URL: https://defi-dashboard.vercel.app',
         }),
       ];
 
@@ -227,7 +243,11 @@ const createScenarioEvents = (scenario: string): JobEventWithDiffs[] => {
         ...baseEvents,
         createMockEvent(JobEventType.Taken, mockWorkerAddress, {}, [
           { field: 'state', oldValue: 'Open', newValue: 'Taken' },
-          { field: 'roles.worker', oldValue: null, newValue: mockWorkerAddress },
+          {
+            field: 'roles.worker',
+            oldValue: null,
+            newValue: mockWorkerAddress,
+          },
         ]),
         createMockEvent(JobEventType.Delivered, mockWorkerAddress, {
           result: 'Work completed successfully!',
@@ -246,13 +266,20 @@ const createScenarioEvents = (scenario: string): JobEventWithDiffs[] => {
         ...baseEvents,
         createMockEvent(JobEventType.Taken, mockWorkerAddress, {}, [
           { field: 'state', oldValue: 'Open', newValue: 'Taken' },
-          { field: 'roles.worker', oldValue: null, newValue: mockWorkerAddress },
+          {
+            field: 'roles.worker',
+            oldValue: null,
+            newValue: mockWorkerAddress,
+          },
         ]),
-        createMockEvent(JobEventType.Disputed, mockAddress, {
-          reason: 'The delivered work is incomplete.',
-        } as JobDisputedEvent, [
-          { field: 'disputed', oldValue: false, newValue: true },
-        ]),
+        createMockEvent(
+          JobEventType.Disputed,
+          mockAddress,
+          {
+            reason: 'The delivered work is incomplete.',
+          } as JobDisputedEvent,
+          [{ field: 'disputed', oldValue: false, newValue: true }]
+        ),
       ];
 
     default:
@@ -322,7 +349,8 @@ export default function JobInterfaceTestPage() {
   if (selectedScenario.hasResult) {
     currentJob.resultHash =
       '0x123456789abcdef123456789abcdef123456789abcdef123456789abcdef12';
-    currentJob.result = 'Dashboard complete! Live URL: https://defi-dashboard.vercel.app';
+    currentJob.result =
+      'Dashboard complete! Live URL: https://defi-dashboard.vercel.app';
   }
 
   const currentEvents = createScenarioEvents(selectedScenario.id);
@@ -415,8 +443,8 @@ export default function JobInterfaceTestPage() {
           <div className='flex items-center gap-3 rounded-md bg-gray-50 p-2 dark:bg-gray-900'>
             <span className='text-xs text-gray-500'>Current User:</span>
             <div className='flex items-center gap-2'>
-              <img 
-                src={currentUser.avatar} 
+              <img
+                src={currentUser.avatar}
                 alt={currentUser.name}
                 className='h-6 w-6 rounded-full'
               />
