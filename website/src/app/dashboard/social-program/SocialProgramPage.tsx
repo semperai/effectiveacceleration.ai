@@ -33,7 +33,6 @@ import socialHero3 from '@/images/social-hero-3.webp';
 import socialHero4 from '@/images/social-hero-4.webp';
 import socialHero5 from '@/images/social-hero-5.webp';
 
-
 export default function SocialProgramPage() {
   const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(
     new Set([WEEKLY_DATA[0]?.weekNumber])
