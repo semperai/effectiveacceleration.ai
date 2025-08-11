@@ -44,7 +44,8 @@ const createMockJob = (state: JobState, disputed: boolean = false): Job => ({
   title: 'Build a DeFi Dashboard with Real-time Analytics',
   content:
     'We need an experienced developer to create a comprehensive DeFi dashboard that tracks multiple protocols, displays real-time analytics, and provides portfolio management features.',
-  contentHash: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+  contentHash:
+    '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
   tags: ['defi', 'react', 'web3', 'typescript'],
   token: '0x0000000000000000000000000000000000000000',
   amount: BigInt('1000000000000000000'),
@@ -52,9 +53,10 @@ const createMockJob = (state: JobState, disputed: boolean = false): Job => ({
   deliveryMethod: 'IPFS',
   collateralOwed: BigInt('0'),
   escrowId: BigInt('1'),
-  resultHash: state === JobState.Taken && !disputed
-    ? '0x123456789abcdef123456789abcdef123456789abcdef123456789abcdef12'
-    : zeroHash,
+  resultHash:
+    state === JobState.Taken && !disputed
+      ? '0x123456789abcdef123456789abcdef123456789abcdef123456789abcdef12'
+      : zeroHash,
   rating: 0,
   disputed: disputed,
   timestamp: Math.floor(Date.now() / 1000) - 86400,
@@ -66,8 +68,10 @@ const createMockJob = (state: JobState, disputed: boolean = false): Job => ({
   jobTimes: {
     createdAt: Math.floor(Date.now() / 1000) - 172800,
     openedAt: Math.floor(Date.now() / 1000) - 172800,
-    assignedAt: state !== JobState.Open ? Math.floor(Date.now() / 1000) - 86400 : 0,
-    closedAt: state === JobState.Closed ? Math.floor(Date.now() / 1000) - 3600 : 0,
+    assignedAt:
+      state !== JobState.Open ? Math.floor(Date.now() / 1000) - 86400 : 0,
+    closedAt:
+      state === JobState.Closed ? Math.floor(Date.now() / 1000) - 3600 : 0,
     disputedAt: disputed ? Math.floor(Date.now() / 1000) - 7200 : 0,
     arbitratedAt: 0,
     updatedAt: Math.floor(Date.now() / 1000) - 3600,
@@ -82,11 +86,17 @@ const createMockJob = (state: JobState, disputed: boolean = false): Job => ({
 const mockUsers: Record<string, User> = {
   [mockAddress]: createMockUser(mockAddress, 'Alice (Creator)'),
   [mockWorkerAddress]: createMockUser(mockWorkerAddress, 'Bob (Worker)'),
-  [mockArbitratorAddress]: createMockUser(mockArbitratorAddress, 'Charlie (Arbitrator)'),
+  [mockArbitratorAddress]: createMockUser(
+    mockArbitratorAddress,
+    'Charlie (Arbitrator)'
+  ),
 };
 
 // Create mock events
-const createMockEvent = (type: JobEventType, details?: any): JobEventWithDiffs => ({
+const createMockEvent = (
+  type: JobEventType,
+  details?: any
+): JobEventWithDiffs => ({
   id: Math.random().toString(),
   jobId: BigInt('1'),
   type_: type,
@@ -118,47 +128,48 @@ const mockArbitrationEvents = [
   createMockEvent(JobEventType.Arbitrated, {
     creatorAmount: BigInt('200000000000000000'),
     workerAmount: BigInt('800000000000000000'),
-    reason: 'After review, the worker delivered most requirements. Awarding 80% to worker.',
+    reason:
+      'After review, the worker delivered most requirements. Awarding 80% to worker.',
   } as JobArbitratedEvent),
 ];
 
 // Status states configuration
 const statusStates = [
-  { 
-    id: 'assign', 
+  {
+    id: 'assign',
     label: 'Assign Worker',
     color: 'blue',
-    description: 'Ready to assign a worker to the job'
+    description: 'Ready to assign a worker to the job',
   },
-  { 
-    id: 'accepted', 
+  {
+    id: 'accepted',
     label: 'Worker Accepted',
     color: 'purple',
-    description: 'Worker assigned and work begins'
+    description: 'Worker assigned and work begins',
   },
-  { 
-    id: 'verification', 
+  {
+    id: 'verification',
     label: 'Result Verification',
     color: 'amber',
-    description: 'Work submitted for review'
+    description: 'Work submitted for review',
   },
-  { 
-    id: 'completed', 
+  {
+    id: 'completed',
     label: 'Result Accepted',
     color: 'green',
-    description: 'Job successfully completed'
+    description: 'Job successfully completed',
   },
-  { 
-    id: 'disputed', 
+  {
+    id: 'disputed',
     label: 'Dispute Started',
     color: 'red',
-    description: 'Dispute raised, arbitrator assigned'
+    description: 'Dispute raised, arbitrator assigned',
   },
-  { 
-    id: 'arbitrated', 
+  {
+    id: 'arbitrated',
     label: 'Arbitration Complete',
     color: 'slate',
-    description: 'Arbitrator has made final decision'
+    description: 'Arbitrator has made final decision',
   },
 ];
 
@@ -171,7 +182,7 @@ const roles = [
 export default function StatusStatesTestPage() {
   const [selectedStatus, setSelectedStatus] = useState(statusStates[0]);
   const [selectedRole, setSelectedRole] = useState(roles[0]);
-  
+
   const getCurrentAddress = () => {
     switch (selectedRole.id) {
       case 'creator':
@@ -212,7 +223,8 @@ export default function StatusStatesTestPage() {
           <ResultVerification
             job={{
               ...createMockJob(JobState.Taken),
-              resultHash: '0x123456789abcdef123456789abcdef123456789abcdef123456789abcdef12',
+              resultHash:
+                '0x123456789abcdef123456789abcdef123456789abcdef123456789abcdef12',
             }}
             users={mockUsers}
             selectedWorker={mockWorkerAddress}
@@ -289,7 +301,10 @@ export default function StatusStatesTestPage() {
                     title={status.description}
                     className={clsx(
                       'rounded-md px-3 py-1 text-xs font-medium transition-all',
-                      getColorClasses(status.color, selectedStatus.id === status.id),
+                      getColorClasses(
+                        status.color,
+                        selectedStatus.id === status.id
+                      ),
                       selectedStatus.id === status.id && 'shadow-sm'
                     )}
                   >
@@ -334,9 +349,7 @@ export default function StatusStatesTestPage() {
         {/* Main Content Area */}
         <div className='rounded-xl border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-700 dark:bg-gray-800'>
           {/* Component Preview */}
-          <div className='mx-auto max-w-4xl'>
-            {renderStatusComponent()}
-          </div>
+          <div className='mx-auto max-w-4xl'>{renderStatusComponent()}</div>
         </div>
 
         {/* Quick Reference Grid */}

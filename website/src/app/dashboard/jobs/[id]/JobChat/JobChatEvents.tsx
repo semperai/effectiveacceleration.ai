@@ -3,7 +3,7 @@ import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/Button';
 
-import { renderEvent } from '@/components/Events';
+import { renderEvent } from './Events';
 import logoDark from '@/images/logo-light.png';
 import noWorkInProgress from '@/images/noWorkInProgress.svg';
 import {
@@ -14,32 +14,34 @@ import {
   type User,
 } from '@effectiveacceleration/contracts/dist/src/interfaces';
 import JobChatStatus from './JobChatStatus';
-import useUser from '@/hooks/subsquid/useUser';
 import { useSearchParams } from 'next/navigation';
 import clsx from 'clsx';
 import { ChevronDown, Mail } from 'lucide-react';
 
-interface ResultAcceptedProps {
+interface JobChatEventsProps {
   job: Job;
   events: JobEventWithDiffs[];
   users: Record<string, User>;
   selectedWorker: string;
   address: string | undefined;
+  currentUser?: User | null; // Add current user as optional prop
 }
-const JobChatEvents: React.FC<ResultAcceptedProps> = ({
+
+const JobChatEvents: React.FC<JobChatEventsProps> = ({
   job,
   users,
   selectedWorker,
   events,
   address,
+  currentUser, // Accept current user directly
 }) => {
-  const { data: user } = useUser(address!);
   const searchParams = useSearchParams();
   const highlightedEventId = searchParams.get('eventId');
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [showNotification, setShowNotification] = useState(false);
   const [newMessage, setNewMessage] = useState(false);
   const lastEvent = events[events.length - 1];
+
   const handleScroll = () => {
     if (!chatContainerRef.current) return;
     if (chatContainerRef.current) {
@@ -79,18 +81,21 @@ const JobChatEvents: React.FC<ResultAcceptedProps> = ({
   }, []);
 
   useEffect(() => {
-    if (chatContainerRef.current && lastEvent?.address_ === user?.address_) {
+    if (
+      chatContainerRef.current &&
+      lastEvent?.address_ === currentUser?.address_
+    ) {
       scrollToEnd();
     }
     if (
       (lastEvent?.type_ === JobEventType.OwnerMessage ||
         lastEvent?.type_ === JobEventType.WorkerMessage) &&
-      lastEvent?.address_ !== user?.address_ &&
+      lastEvent?.address_ !== currentUser?.address_ &&
       showNotification === true
     ) {
       setNewMessage(true);
     }
-  }, [events]);
+  }, [events, currentUser]);
 
   return (
     <div
@@ -118,7 +123,12 @@ const JobChatEvents: React.FC<ResultAcceptedProps> = ({
                           : ''
                       )}
                     >
-                      {renderEvent({ event })}
+                      {renderEvent({ 
+                        event,
+                        users,
+                        currentUser,
+                        job 
+                      })}
                     </div>
                   </div>
                 </li>
@@ -131,6 +141,7 @@ const JobChatEvents: React.FC<ResultAcceptedProps> = ({
             selectedWorker={selectedWorker}
             job={job}
             address={address}
+            currentUser={currentUser}
           />
         </>
       ) : job.state === JobState.Closed ? (
@@ -170,7 +181,7 @@ const JobChatEvents: React.FC<ResultAcceptedProps> = ({
                 Apply to this job by chatting with the creator
               </div>
             )}
-          {!user && address !== job.roles.arbitrator && (
+          {!currentUser && address !== job.roles.arbitrator && (
             <div className='text-center'>
               <Button href='/register'>Sign in to chat with the creator</Button>
             </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { Layout } from '@/components/Dashboard/Layout';
-import { PostMessageButton } from '@/components/JobActions/PostMessageButton';
+import { PostMessageButton } from './JobActions';
 import { Text } from '@/components/Text';
 import useJob from '@/hooks/subsquid/useJob';
 import useJobEventsWithDiffs from '@/hooks/subsquid/useJobEventsWithDiffs';

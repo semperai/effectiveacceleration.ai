@@ -20,6 +20,7 @@ interface JobStatusProps {
   selectedWorker: string;
   job: Job;
   address: string | undefined;
+  currentUser?: User | null; // Add current user as optional prop
 }
 
 const JobChatStatus: React.FC<JobStatusProps> = ({
@@ -28,6 +29,7 @@ const JobChatStatus: React.FC<JobStatusProps> = ({
   selectedWorker,
   job,
   address,
+  currentUser, // Accept current user directly
 }) => {
   const lastEventType = events[events.length - 1]?.type_;
 
@@ -40,6 +42,7 @@ const JobChatStatus: React.FC<JobStatusProps> = ({
           events={events}
           users={users}
           selectedWorker={''}
+          currentUser={currentUser}
         />
       )}
       {job.state === JobState.Taken &&
@@ -53,6 +56,7 @@ const JobChatStatus: React.FC<JobStatusProps> = ({
             users={users}
             selectedWorker={''}
             address={address}
+            currentUser={currentUser}
           />
         )}
       {job.state === JobState.Open &&
@@ -64,6 +68,7 @@ const JobChatStatus: React.FC<JobStatusProps> = ({
             users={users}
             address={address}
             selectedWorker={selectedWorker}
+            currentUser={currentUser}
           />
         )}
       {job.state === JobState.Taken &&
@@ -76,6 +81,7 @@ const JobChatStatus: React.FC<JobStatusProps> = ({
             address={address}
             users={users}
             selectedWorker={selectedWorker}
+            currentUser={currentUser}
           />
         )}
       {job.state === JobState.Taken && job.disputed === true && (
@@ -84,6 +90,7 @@ const JobChatStatus: React.FC<JobStatusProps> = ({
           address={address}
           users={users}
           selectedWorker={selectedWorker}
+          currentUser={currentUser}
         />
       )}
       {lastEventType === JobEventType.Arbitrated &&
@@ -94,6 +101,7 @@ const JobChatStatus: React.FC<JobStatusProps> = ({
             users={users}
             selectedWorker={''}
             address={address}
+            currentUser={currentUser}
           />
         )}
     </>

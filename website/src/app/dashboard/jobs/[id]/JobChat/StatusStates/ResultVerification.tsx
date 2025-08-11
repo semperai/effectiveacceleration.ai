@@ -9,8 +9,7 @@ import {
   JobState,
   type User,
 } from '@effectiveacceleration/contracts';
-import { ApproveButton } from '@/components/JobActions/ApproveButton';
-import { DisputeButton } from '@/components/JobActions/DisputeButton';
+import { ApproveButton, DisputeButton } from '../../JobActions';
 import { zeroAddress, zeroHash } from 'viem';
 import { formatMarkdownContent } from '@/lib/utils';
 import {
@@ -28,7 +27,7 @@ import {
   PiArrowRight,
 } from 'react-icons/pi';
 
-interface ResultAcceptedProps {
+interface ResultVerificationProps {
   job: Job;
   users: Record<string, User>;
   selectedWorker: string;
@@ -36,9 +35,10 @@ interface ResultAcceptedProps {
   address: string;
   sessionKeys?: Record<string, string>;
   addresses?: string[];
+  currentUser?: User | null;
 }
 
-const ResultVerification: React.FC<ResultAcceptedProps> = ({
+const ResultVerification: React.FC<ResultVerificationProps> = ({
   job,
   users,
   selectedWorker,
@@ -46,6 +46,7 @@ const ResultVerification: React.FC<ResultAcceptedProps> = ({
   address,
   sessionKeys = {},
   addresses = [],
+  currentUser,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [formattedComment, setFormattedComment] = useState<string>('');
@@ -58,7 +59,7 @@ const ResultVerification: React.FC<ResultAcceptedProps> = ({
 
   const rawComment: string = deliveryEvent?.job?.result || '';
 
-  // Fix: Get the worker address from the job or delivery event, not selectedWorker
+  // Get the worker address from the job or delivery event
   const workerAddress =
     job.roles.worker || deliveryEvent?.address_ || selectedWorker;
   const workerData = users[workerAddress];

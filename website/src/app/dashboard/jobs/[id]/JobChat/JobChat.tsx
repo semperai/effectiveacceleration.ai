@@ -7,7 +7,7 @@ import {
   type User,
 } from '@effectiveacceleration/contracts';
 import JobChatStatus from './JobChatStatus';
-import { renderEvent } from '@/components/Events';
+import { renderEvent } from './Events';
 import logoDark from '@/images/logo-light.png';
 
 interface ResultAcceptedProps {

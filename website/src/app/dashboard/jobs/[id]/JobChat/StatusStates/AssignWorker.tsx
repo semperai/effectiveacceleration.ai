@@ -5,7 +5,7 @@ import {
   type JobEventWithDiffs,
   type User,
 } from '@effectiveacceleration/contracts';
-import { AssignWorkerButton } from '@/components/JobActions/AssignWorkerButton';
+import { AssignWorkerButton } from '../../JobActions';
 import ProfileImage from '@/components/ProfileImage';
 import {
   PiSparkle,
@@ -25,6 +25,7 @@ interface AssignWorkerProps {
   users?: Record<string, User>;
   selectedWorker: string;
   address: string | undefined;
+  currentUser?: User | null;
 }
 
 const AssignWorker: React.FC<AssignWorkerProps> = ({
@@ -32,6 +33,7 @@ const AssignWorker: React.FC<AssignWorkerProps> = ({
   address,
   selectedWorker,
   users,
+  currentUser,
 }) => {
   // Get selected worker details if users data is available
   const workerData = users?.[selectedWorker];

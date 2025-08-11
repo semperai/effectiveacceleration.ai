@@ -31,6 +31,7 @@ interface ArbitratedStatusProps {
   users: Record<string, User>;
   selectedWorker: string;
   address: string | undefined;
+  currentUser?: User | null;
 }
 
 const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
@@ -38,6 +39,7 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
   users,
   events,
   address,
+  currentUser,
 }) => {
   const arbitratedEvent = events.filter(
     (event) => event.type_ === JobEventType.Arbitrated

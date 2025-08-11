@@ -6,6 +6,7 @@ import {
   PiNetwork,
   PiListHeart,
   PiBooks,
+  PiTrendUp,
 } from 'react-icons/pi';
 import { NavigationMenu } from './NavigationMenu';
 import { UserInfo } from './UserInfo';
@@ -38,6 +39,12 @@ const navigationItems = [
     name: 'Worker Jobs',
     href: '/dashboard/worker-job-list',
     icon: <PiBriefcase className='h-5 w-5' />,
+    target: '_self',
+  },
+  {
+    name: 'Social Program',
+    href: '/dashboard/social-program',
+    icon: <PiTrendUp className='h-5 w-5' />,
     target: '_self',
   },
   {

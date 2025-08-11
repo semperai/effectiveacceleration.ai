@@ -1,7 +1,6 @@
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useAccount } from 'wagmi';
 import {
   type Job,
   JobEventType,
@@ -33,6 +32,7 @@ interface ResultAcceptedProps {
   events: JobEventWithDiffs[];
   users: Record<string, User>;
   selectedWorker: string;
+  currentUser?: User | null; // Add current user as optional prop
 }
 
 const ResultAccepted: React.FC<ResultAcceptedProps> = ({
@@ -40,13 +40,14 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
   users,
   selectedWorker,
   events,
+  currentUser, // Accept current user directly
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [formattedComment, setFormattedComment] = useState<string>('');
   const [isFormatted, setIsFormatted] = useState(false);
 
-  // Get current user's address from wagmi
-  const { address: currentUserAddress } = useAccount();
+  // Get current user's address from props or currentUser
+  const currentUserAddress = currentUser?.address_;
 
   // Get the delivery event
   const deliveryEvent = events.filter(
@@ -277,7 +278,7 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
                   }}
                   className='w-full'
                 >
-                  <button className='group w-full rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 px-4 py-3 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 hover:from-blue-600 hover:to-purple-600 hover:shadow-lg hover:shadow-blue-500/25'>
+                  <button className='group w-full rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 px-4 py-3 text-sm font-medium shadow-lg shadow-blue-500/25 transition-all duration-300 hover:-translate-y-0.5 hover:from-blue-600 hover:to-purple-600 hover:shadow-xl hover:shadow-blue-500/30 active:scale-[0.98]'>
                     <span className='flex items-center justify-center gap-2 text-white'>
                       <PiPlus className='h-4 w-4 text-white' />
                       <span className='text-white'>

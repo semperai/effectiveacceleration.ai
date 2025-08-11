@@ -1,17 +1,19 @@
 import React from 'react';
-import { AcceptButton } from '@/components/JobActions/AcceptButton';
-import { ArbitrateButton } from '@/components/JobActions/ArbitrateButton';
-import { CloseButton } from '@/components/JobActions/CloseButton';
-import { DeliverResultButton } from '@/components/JobActions/DeliverResultButton';
-import { DisputeButton } from '@/components/JobActions/DisputeButton';
-import { RefundButton } from '@/components/JobActions/RefundButton';
-import { RefuseArbitrationButton } from '@/components/JobActions/RefuseArbitrationButton';
-import { RemoveFromWhitelistButton } from '@/components/JobActions/RemoveFromWhitelistButton';
-import { ReopenButton } from '@/components/JobActions/ReopenButton';
-import { ReviewButton } from '@/components/JobActions/ReviewButton';
-import { UpdateButton } from '@/components/JobActions/UpdateButton';
-import { WhitelistButton } from '@/components/JobActions/WhitelistButton';
-import { WithdrawCollateralButton } from '@/components/JobActions/WithdrawCollateralButton';
+import {
+  AcceptButton,
+  ArbitrateButton,
+  CloseButton,
+  DeliverResultButton,
+  DisputeButton,
+  RefundButton,
+  RefuseArbitrationButton,
+  RemoveFromWhitelistButton,
+  ReopenButton,
+  ReviewButton,
+  UpdateButton,
+  WhitelistButton,
+  WithdrawCollateralButton,
+} from './JobActions';
 import {
   type Job,
   type JobEventWithDiffs,
