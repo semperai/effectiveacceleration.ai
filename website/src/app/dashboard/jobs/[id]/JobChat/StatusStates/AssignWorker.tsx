@@ -6,6 +6,7 @@ import {
   type User,
 } from '@effectiveacceleration/contracts';
 import { AssignWorkerButton } from '@/components/JobActions/AssignWorkerButton';
+import ProfileImage from '@/components/ProfileImage';
 import {
   PiSparkle,
   PiHandshake,
@@ -16,7 +17,6 @@ import {
   PiClock,
   PiRocket,
   PiStar,
-  PiUser,
 } from 'react-icons/pi';
 
 interface AssignWorkerProps {
@@ -38,6 +38,14 @@ const AssignWorker: React.FC<AssignWorkerProps> = ({
   const workerName = workerData?.name || 'Selected Worker';
   const workerRating = 0; // workerData?.rating || 0;
   const workerJobs = workerData?.reputationUp || 0;
+  
+  // Get initials for fallback avatar
+  const workerInitials = workerName
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2) || 'SW';
 
   return (
     <div className='w-full'>
@@ -80,19 +88,28 @@ const AssignWorker: React.FC<AssignWorkerProps> = ({
             </p>
           </div>
 
-          {/* Selected Worker Card - WITH LINK ADDED */}
+          {/* Selected Worker Card - WITH PROFILE IMAGE */}
           {workerData && (
             <div className='mx-auto mb-6 max-w-md'>
               <div className='rounded-xl border border-gray-200 bg-white/70 p-5 backdrop-blur-sm dark:border-gray-700 dark:bg-gray-900/50'>
                 <div className='flex items-center gap-4'>
-                  {/* Avatar - Clickable link to profile */}
+                  {/* Avatar - Using ProfileImage component */}
                   <Link
                     href={`/dashboard/users/${selectedWorker}`}
                     className='group relative'
                   >
-                    <div className='flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 transition-transform group-hover:scale-110'>
-                      <PiUser className='h-7 w-7 text-white' />
-                    </div>
+                    {workerData?.avatar ? (
+                      <ProfileImage
+                        user={workerData}
+                        className='h-14 w-14 transition-transform group-hover:scale-110'
+                      />
+                    ) : (
+                      <div className='flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 transition-transform group-hover:scale-110'>
+                        <span className='text-lg font-bold text-white'>
+                          {workerInitials}
+                        </span>
+                      </div>
+                    )}
                     {workerRating >= 4.5 && (
                       <div className='absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-yellow-400'>
                         <PiStar className='h-3 w-3 text-white' />

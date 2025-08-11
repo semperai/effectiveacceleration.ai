@@ -1,6 +1,7 @@
 import type React from 'react';
 import Link from 'next/link';
 import { type Job, User } from '@effectiveacceleration/contracts';
+import ProfileImage from '@/components/ProfileImage';
 import {
   PiScales,
   PiWarning,
@@ -12,7 +13,6 @@ import {
   PiFileText,
   PiGavel,
   PiArrowRight,
-  PiUser,
 } from 'react-icons/pi';
 
 interface DisputeStartedProps {
@@ -29,6 +29,14 @@ const DisputeStarted: React.FC<DisputeStartedProps> = ({
   // Get arbitrator data
   const arbitratorData = users[job.roles.arbitrator];
   const arbitratorName = arbitratorData?.name || 'Arbitrator';
+  
+  // Get initials for fallback avatar
+  const arbitratorInitials = arbitratorName
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2) || 'AR';
 
   return (
     <div className='my-4 w-full'>
@@ -110,15 +118,24 @@ const DisputeStarted: React.FC<DisputeStartedProps> = ({
                   part of the conversation
                 </p>
 
-                {/* Arbitrator Avatar and Name if available */}
+                {/* Arbitrator Avatar and Name with ProfileImage */}
                 {arbitratorData && (
                   <Link
                     href={`/dashboard/arbitrators/${job.roles.arbitrator}`}
                     className='inline-flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800'
                   >
-                    <div className='flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500'>
-                      <PiUser className='h-5 w-5 text-white' />
-                    </div>
+                    {arbitratorData?.avatar ? (
+                      <ProfileImage
+                        user={arbitratorData}
+                        className='h-10 w-10'
+                      />
+                    ) : (
+                      <div className='flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500'>
+                        <span className='text-sm font-bold text-white'>
+                          {arbitratorInitials}
+                        </span>
+                      </div>
+                    )}
                     <div>
                       <p className='text-sm font-medium text-gray-900 dark:text-white'>
                         {arbitratorName}
