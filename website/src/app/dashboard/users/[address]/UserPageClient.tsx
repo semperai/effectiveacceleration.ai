@@ -321,7 +321,7 @@ export default function UserPageClient({ address }: UserPageClientProps) {
                 {!user?.bio && (
                   <div className='rounded-lg bg-gray-50 p-6 text-center dark:bg-gray-800'>
                     <p className='text-gray-600 dark:text-gray-400'>
-                      This user hasn't added a bio yet. Check out their reviews
+                      This user hasn&apos;t added a bio yet. Check out their reviews
                       and completed jobs to learn more about their work.
                     </p>
                   </div>
@@ -377,7 +377,7 @@ export default function UserPageClient({ address }: UserPageClientProps) {
                 <div className='flex h-48 items-center justify-center'>
                   <span className='text-md text-center font-semibold text-gray-500 dark:text-gray-400'>
                     <b className='text-primary'>{user?.name || 'This user'}</b>{' '}
-                    doesn't have any reviews yet
+                    doesn&apos;t have any reviews yet
                   </span>
                 </div>
               ) : (

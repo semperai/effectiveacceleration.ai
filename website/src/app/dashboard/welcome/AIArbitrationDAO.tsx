@@ -76,7 +76,7 @@ export const AIArbitrationDAO = () => {
           </h2>
 
           <p className='mx-auto mt-4 max-w-2xl text-lg text-gray-600 dark:text-gray-300'>
-            The world's first decentralized arbitration system powered by AI and
+            The world&apos;s first decentralized arbitration system powered by AI and
             governed by the community
           </p>
         </div>

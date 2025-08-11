@@ -77,10 +77,14 @@ export default function ArbitratorPageClient({
   };
 
   // Copy address to clipboard
-  const copyAddress = () => {
-    navigator.clipboard.writeText(arbitrator?.address_ || address);
-    setCopiedAddress(true);
-    setTimeout(() => setCopiedAddress(false), 2000);
+  const copyAddress = async () => {
+    try {
+      await navigator.clipboard.writeText(arbitrator?.address_ || address);
+      setCopiedAddress(true);
+      setTimeout(() => setCopiedAddress(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy address:', err);
+    }
   };
 
   // Loading state
@@ -98,7 +102,7 @@ export default function ArbitratorPageClient({
             Arbitrator not found
           </h2>
           <p className='mt-2 text-gray-600 dark:text-gray-400'>
-            The arbitrator with address {address} could not be found.
+            The arbitrator with address {formatAddress(address)} could not be found.
           </p>
           <Link
             href='/dashboard/arbitrators'
@@ -111,31 +115,51 @@ export default function ArbitratorPageClient({
     );
   }
 
-  // Calculate statistics
-  const totalCases =
-    (arbitrator.settledCount || 0) + (arbitrator.refusedCount || 0);
+  // Calculate statistics with null safety
+  const settledCount = arbitrator.settledCount || 0;
+  const refusedCount = arbitrator.refusedCount || 0;
+  const totalCases = settledCount + refusedCount;
   const settlementRate =
     totalCases > 0
-      ? Math.round((arbitrator.settledCount / totalCases) * 100)
-      : 0;
-  const acceptanceRate =
-    totalCases > 0
-      ? Math.round((arbitrator.settledCount / totalCases) * 100)
+      ? Math.round((settledCount / totalCases) * 100)
       : 0;
 
   // Function to share profile
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator
-        .share({
-          title: `${arbitrator.name || 'Arbitrator'} Profile`,
-          text: `Check out ${arbitrator.name || 'this arbitrator'}'s profile on Effective Acceleration`,
-          url: window.location.href,
-        })
-        .catch(console.error);
-    } else {
-      navigator.clipboard.writeText(window.location.href);
+  const handleShare = async () => {
+    const shareData = {
+      title: `${arbitrator.name || 'Arbitrator'} Profile`,
+      text: `Check out ${arbitrator.name || 'this arbitrator'}'s profile on Effective Acceleration`,
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+      } else {
+        // Fallback to copying URL
+        await navigator.clipboard.writeText(window.location.href);
+        // You might want to show a toast notification here
+      }
+    } catch (err) {
+      if ((err as Error).name !== 'AbortError') {
+        console.error('Error sharing:', err);
+        // Fallback to copying URL
+        try {
+          await navigator.clipboard.writeText(window.location.href);
+        } catch (clipboardErr) {
+          console.error('Failed to copy URL:', clipboardErr);
+        }
+      }
     }
+  };
+
+  // Determine experience level
+  const getExperienceLevel = (cases: number): string => {
+    if (cases === 0) return 'New Arbitrator';
+    if (cases < 5) return 'Beginner';
+    if (cases < 20) return 'Intermediate';
+    if (cases < 50) return 'Experienced';
+    return 'Expert';
   };
 
   return (
@@ -157,11 +181,11 @@ export default function ArbitratorPageClient({
             <li>
               <div className='flex items-center'>
                 <ChevronRightIcon
-                  className='h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-400'
+                  className='h-5 w-5 flex-shrink-0 text-gray-400'
                   aria-hidden='true'
                 />
                 <span className='ml-4 text-sm font-medium text-gray-500 dark:text-gray-400'>
-                  {arbitrator?.name || 'Profile'}
+                  {arbitrator.name || 'Profile'}
                 </span>
               </div>
             </li>
@@ -198,6 +222,7 @@ export default function ArbitratorPageClient({
                     onClick={copyAddress}
                     className='text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
                     title='Copy address'
+                    type='button'
                   >
                     <DocumentDuplicateIcon className='h-4 w-4' />
                   </button>
@@ -260,10 +285,10 @@ export default function ArbitratorPageClient({
                   Arbitration Fee
                 </dt>
                 <dd className='mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100'>
-                  {(arbitrator.fee / 100).toFixed(2)}%
+                  {((arbitrator.fee || 0) / 100).toFixed(2)}%
                 </dd>
                 <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
-                  {arbitrator.fee} bips
+                  {arbitrator.fee || 0} bips
                 </p>
               </div>
               <div className='rounded-lg bg-blue-100 p-3 dark:bg-blue-900'>
@@ -280,7 +305,7 @@ export default function ArbitratorPageClient({
                   Cases Settled
                 </dt>
                 <dd className='mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100'>
-                  {arbitrator.settledCount || 0}
+                  {settledCount}
                 </dd>
               </div>
               <div className='rounded-lg bg-green-100 p-3 dark:bg-green-900'>
@@ -297,7 +322,7 @@ export default function ArbitratorPageClient({
                   Cases Refused
                 </dt>
                 <dd className='mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100'>
-                  {arbitrator.refusedCount || 0}
+                  {refusedCount}
                 </dd>
               </div>
               <div className='rounded-lg bg-red-100 p-3 dark:bg-red-900'>
@@ -349,7 +374,7 @@ export default function ArbitratorPageClient({
               <p className='italic text-gray-500 dark:text-gray-400'>
                 No additional information available. This arbitrator will
                 provide dispute resolution services for a fee of{' '}
-                {(arbitrator.fee / 100).toFixed(2)}% ({arbitrator.fee} basis
+                {((arbitrator.fee || 0) / 100).toFixed(2)}% ({arbitrator.fee || 0} basis
                 points) of the dispute amount.
               </p>
             )}
@@ -377,7 +402,7 @@ export default function ArbitratorPageClient({
                     Acceptance Rate
                   </span>
                   <span className='font-medium text-gray-900 dark:text-gray-100'>
-                    {totalCases > 0 ? `${acceptanceRate}%` : 'N/A'}
+                    {totalCases > 0 ? `${settlementRate}%` : 'N/A'}
                   </span>
                 </div>
               </div>
@@ -387,15 +412,7 @@ export default function ArbitratorPageClient({
                     Experience Level
                   </span>
                   <span className='font-medium text-gray-900 dark:text-gray-100'>
-                    {totalCases === 0
-                      ? 'New Arbitrator'
-                      : totalCases < 5
-                        ? 'Beginner'
-                        : totalCases < 20
-                          ? 'Intermediate'
-                          : totalCases < 50
-                            ? 'Experienced'
-                            : 'Expert'}
+                    {getExperienceLevel(totalCases)}
                   </span>
                 </div>
               </div>
@@ -431,9 +448,9 @@ export default function ArbitratorPageClient({
                 </h3>
                 <div className='mt-2 text-sm text-blue-700 dark:text-blue-400'>
                   <p>
-                    This arbitrator hasn't handled any cases yet. They are ready
+                    This arbitrator hasn&apos;t handled any cases yet. They are ready
                     to provide dispute resolution services for a fee of{' '}
-                    {(arbitrator.fee / 100).toFixed(2)}% ({arbitrator.fee} basis
+                    {((arbitrator.fee || 0) / 100).toFixed(2)}% ({arbitrator.fee || 0} basis
                     points) of the dispute amount.
                   </p>
                 </div>

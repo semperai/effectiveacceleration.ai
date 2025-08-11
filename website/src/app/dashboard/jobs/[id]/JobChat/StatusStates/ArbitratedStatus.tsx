@@ -120,10 +120,10 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
                 </div>
                 <div className='flex-1'>
                   <h4 className='mb-2 text-sm font-semibold text-gray-900 dark:text-white'>
-                    Arbitrator's Decision
+                    Arbitrator&apos;s Decision
                   </h4>
                   <blockquote className='border-l-4 border-blue-500 pl-4 text-sm italic text-gray-700 dark:text-gray-300'>
-                    "{arbitratedEvent?.reason || 'No reason provided'}"
+                    &quot;{arbitratedEvent?.reason || 'No reason provided'}&quot;
                   </blockquote>
                 </div>
               </div>

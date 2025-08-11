@@ -217,7 +217,7 @@ const DisputeStarted: React.FC<DisputeStartedProps> = ({
                       •
                     </span>
                     <span>
-                      The arbitrator's decision will be final and binding
+                      The arbitrator&apos;s decision will be final and binding
                     </span>
                   </li>
                   <li className='flex items-start gap-2'>

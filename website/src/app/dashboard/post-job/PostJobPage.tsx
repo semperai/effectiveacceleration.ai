@@ -582,7 +582,7 @@ const PostJob = () => {
                       <div className='min-w-0 flex-1'>
                         <Label className='flex items-center gap-2 text-gray-700 dark:text-gray-300'>
                           <PiSparkle className='h-4 w-4 flex-shrink-0 text-yellow-500' />
-                          <span>I'm feeling lucky</span>
+                          <span>I&apos;m feeling lucky</span>
                         </Label>
                         <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
                           Allow workers to start automatically without approval

@@ -209,7 +209,7 @@ const ResultVerification: React.FC<ResultAcceptedProps> = ({
                   <li className='flex items-start gap-2'>
                     <PiWarning className='mt-0.5 h-4 w-4 flex-shrink-0' />
                     <span>
-                      Request a refund if the work doesn't meet expectations
+                      Request a refund if the work doesn&apos;t meet expectations
                     </span>
                   </li>
                   <li className='flex items-start gap-2'>

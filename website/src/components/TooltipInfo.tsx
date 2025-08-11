@@ -43,7 +43,6 @@ export const TooltipInfo = React.forwardRef<HTMLSpanElement, TooltipInfoProps>(
     ref
   ) => {
     const isMobile = useIsMobile();
-
     const [popoverOpen, setPopoverOpen] = React.useState(false);
     const [tooltipOpen, setTooltipOpen] = React.useState(false);
 
@@ -110,3 +109,6 @@ export const TooltipInfo = React.forwardRef<HTMLSpanElement, TooltipInfoProps>(
     );
   }
 );
+
+// Add display name for debugging
+TooltipInfo.displayName = 'TooltipInfo';

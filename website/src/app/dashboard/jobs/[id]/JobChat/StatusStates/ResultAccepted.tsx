@@ -231,7 +231,7 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
           <div className='rounded-xl border border-gray-200 bg-gradient-to-br from-white/50 to-gray-50/50 p-6 backdrop-blur-sm dark:border-gray-700 dark:from-gray-800/30 dark:to-gray-900/30'>
             <h4 className='mb-4 flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white'>
               <PiArrowRight className='h-4 w-4' />
-              What's Next?
+              What&apos;s Next?
             </h4>
 
             <div className='grid gap-3'>
@@ -273,7 +273,7 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
                 <button className='group w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:bg-gray-700'>
                   <span className='flex items-center justify-center gap-2'>
                     <PiUser className='h-4 w-4' />
-                    View {workerName}'s Profile
+                    View {workerName}&apos;s Profile
                     <PiArrowRight className='h-4 w-4 transition-transform group-hover:translate-x-1' />
                   </span>
                 </button>

@@ -1,5 +1,6 @@
 import type React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { type Job, User } from '@effectiveacceleration/contracts';
 import {
   PiRocket,
@@ -86,7 +87,7 @@ const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({
               {isCreator ? (
                 <>Job Started Successfully! 🚀</>
               ) : isWorker ? (
-                <>You're Assigned to This Job! 💼</>
+                <>You&apos;re Assigned to This Job! 💼</>
               ) : (
                 <>Job In Progress 🔄</>
               )}
@@ -163,9 +164,11 @@ const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({
                     <p className='text-sm font-medium text-gray-900 dark:text-white'>
                       {formatTokenNameAndAmount(job.token, job.amount)}
                     </p>
-                    <img
+                    <Image
                       src={tokenIcon(job.token)}
-                      alt=''
+                      alt='Token icon'
+                      width={16}
+                      height={16}
                       className='h-4 w-4'
                     />
                   </div>
@@ -255,7 +258,7 @@ const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({
                       2.
                     </span>
                     <span>
-                      You'll receive a notification when work is submitted
+                      You&apos;ll receive a notification when work is submitted
                     </span>
                   </li>
                   <li className='flex items-start gap-2'>

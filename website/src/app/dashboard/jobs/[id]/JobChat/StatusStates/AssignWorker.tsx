@@ -76,7 +76,7 @@ const AssignWorker: React.FC<AssignWorkerProps> = ({
             </h3>
 
             <p className='max-w-md text-center text-sm text-gray-600 dark:text-gray-400'>
-              You're about to assign this job to your selected candidate
+              You&apos;re about to assign this job to your selected candidate
             </p>
           </div>
 

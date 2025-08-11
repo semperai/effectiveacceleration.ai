@@ -197,7 +197,7 @@ export function DisputeButton({
                             <p className='text-xs text-amber-800 dark:text-amber-400'>
                               Disputes should only be raised when direct
                               communication has failed to resolve the issue. The
-                              arbitrator's decision will be final and binding.
+                              arbitrator&apos;s decision will be final and binding.
                             </p>
                           </div>
                         </div>

@@ -94,7 +94,7 @@ export const DeveloperCTA = () => {
                       <span className='text-blue-300'>EACCClient</span>{' '}
                       <span className='text-white'>{`}`}</span>{' '}
                       <span className='text-purple-400'>from</span>{' '}
-                      <span className='text-green-400'>'eacc-ts'</span>
+                      <span className='text-green-400'>&apos;eacc-ts&apos;</span>
                       <span className='text-white'>;</span>
                       {'\n'}
                       <span className='text-purple-400'>import</span>{' '}
@@ -102,7 +102,7 @@ export const DeveloperCTA = () => {
                       <span className='text-blue-300'>ethers</span>{' '}
                       <span className='text-white'>{`}`}</span>{' '}
                       <span className='text-purple-400'>from</span>{' '}
-                      <span className='text-green-400'>'ethers'</span>
+                      <span className='text-green-400'>&apos;ethers&apos;</span>
                       <span className='text-white'>;</span>
                       {'\n'}
                       {'\n'}
@@ -119,7 +119,7 @@ export const DeveloperCTA = () => {
                         marketplaceV2Address
                       </span>
                       <span className='text-white'>:</span>{' '}
-                      <span className='text-green-400'>'0x...'</span>
+                      <span className='text-green-400'>&apos;0x...&apos;</span>
                       <span className='text-white'>,</span>
                       {'\n'}
                       {'  '}
@@ -127,7 +127,7 @@ export const DeveloperCTA = () => {
                         marketplaceDataV1Address
                       </span>
                       <span className='text-white'>:</span>{' '}
-                      <span className='text-green-400'>'0x...'</span>
+                      <span className='text-green-400'>&apos;0x...&apos;</span>
                       <span className='text-white'>,</span>
                       {'\n'}
                       {'  '}
@@ -135,12 +135,12 @@ export const DeveloperCTA = () => {
                       <span className='text-white'>:</span>{' '}
                       <span className='text-orange-400'>42161</span>
                       <span className='text-white'>,</span>{' '}
-                      <span className='text-gray-500'>// Arbitrum One</span>
+                      {/* Arbitrum One */}
                       {'\n'}
                       <span className='text-white'>{`}`});</span>
                       {'\n'}
                       {'\n'}
-                      <span className='text-gray-500'>// Publish a job</span>
+                      {/* Publish a job */}
                       {'\n'}
                       <span className='text-purple-400'>const</span>{' '}
                       <span className='text-blue-300'>jobId</span>{' '}
@@ -155,14 +155,14 @@ export const DeveloperCTA = () => {
                       <span className='text-blue-300'>title</span>
                       <span className='text-white'>:</span>{' '}
                       <span className='text-green-400'>
-                        'Build a React App'
+                        &apos;Build a React App&apos;
                       </span>
                       <span className='text-white'>,</span>
                       {'\n'}
                       {'  '}
                       <span className='text-blue-300'>contentHash</span>
                       <span className='text-white'>:</span>{' '}
-                      <span className='text-green-400'>'Qm...'</span>
+                      <span className='text-green-400'>&apos;Qm...&apos;</span>
                       <span className='text-white'>,</span>
                       {'\n'}
                       {'  '}
@@ -175,17 +175,17 @@ export const DeveloperCTA = () => {
                       <span className='text-blue-300'>tags</span>
                       <span className='text-white'>:</span>{' '}
                       <span className='text-white'>[</span>
-                      <span className='text-green-400'>'DA'</span>
+                      <span className='text-green-400'>&apos;DA&apos;</span>
                       <span className='text-white'>,</span>{' '}
-                      <span className='text-green-400'>'react'</span>
+                      <span className='text-green-400'>&apos;react&apos;</span>
                       <span className='text-white'>,</span>{' '}
-                      <span className='text-green-400'>'javascript'</span>
+                      <span className='text-green-400'>&apos;javascript&apos;</span>
                       <span className='text-white'>],</span>
                       {'\n'}
                       {'  '}
                       <span className='text-blue-300'>token</span>
                       <span className='text-white'>:</span>{' '}
-                      <span className='text-green-400'>'0x...'</span>
+                      <span className='text-green-400'>&apos;0x...&apos;</span>
                       <span className='text-white'>,</span>
                       {'\n'}
                       {'  '}
@@ -197,7 +197,7 @@ export const DeveloperCTA = () => {
                       <span className='text-white'>.</span>
                       <span className='text-yellow-300'>parseEther</span>
                       <span className='text-white'>(</span>
-                      <span className='text-green-400'>'1'</span>
+                      <span className='text-green-400'>&apos;1&apos;</span>
                       <span className='text-white'>),</span>
                       {'\n'}
                       {'  '}
@@ -207,14 +207,12 @@ export const DeveloperCTA = () => {
                       <span className='text-white'>*</span>{' '}
                       <span className='text-orange-400'>7</span>
                       <span className='text-white'>,</span>{' '}
-                      <span className='text-gray-500'>
-                        // 7 days in seconds
-                      </span>
+                      {/* 7 days in seconds */}
                       {'\n'}
                       {'  '}
                       <span className='text-blue-300'>deliveryMethod</span>
                       <span className='text-white'>:</span>{' '}
-                      <span className='text-green-400'>'IPFS'</span>
+                      <span className='text-green-400'>&apos;IPFS&apos;</span>
                       {'\n'}
                       <span className='text-white'>{`}`});</span>
                     </code>

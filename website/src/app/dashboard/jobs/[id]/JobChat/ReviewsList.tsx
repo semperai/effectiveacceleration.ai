@@ -37,7 +37,7 @@ export function ReviewsList({
           <IoChevronBack className='relative right-2 text-2xl text-gray-700' />
         </button>
         <span className='text-md sm:text-md font-bold leading-7 sm:truncate sm:tracking-tight dark:text-gray-100'>
-          {selectedUser?.name}'s reviews
+          {selectedUser?.name}&apos;s reviews
         </span>
       </div>
       <div
@@ -84,7 +84,7 @@ export function ReviewsList({
         {!reviews || reviews.length === 0 ? (
           <div className='flex h-48 items-center justify-center'>
             <span className='text-md text-center font-semibold'>
-              <b className='text-primary'>{selectedUser?.name}</b> doesn't have
+              <b className='text-primary'>{selectedUser?.name}</b> doesn&apos;t have
               previous reviews
             </span>
           </div>
