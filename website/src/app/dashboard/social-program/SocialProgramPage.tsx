@@ -25,11 +25,11 @@ import {
 import { WeeklyDistributionData } from './types';
 import { WeeklyDistribution } from './WeeklyDistribution';
 import { StatsCard } from './StatsCard';
-import { mockWeeklyData } from './mockData';
+import { WEEKLY_DATA } from './data';
 
 export default function SocialProgramPage() {
   const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(
-    new Set([mockWeeklyData[0]?.weekNumber])
+    new Set([WEEKLY_DATA[0]?.weekNumber])
   );
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
@@ -53,14 +53,14 @@ export default function SocialProgramPage() {
 
   // Calculate totals
   const totals = useMemo(() => {
-    const totalDistributed = mockWeeklyData.reduce(
+    const totalDistributed = WEEKLY_DATA.reduce(
       (sum, week) => sum + week.totalDistributed,
       0
     );
     const totalContributors = new Set(
-      mockWeeklyData.flatMap((week) => week.contributors.map((c) => c.address))
+      WEEKLY_DATA.flatMap((week) => week.contributors.map((c) => c.address))
     ).size;
-    const weeksCompleted = mockWeeklyData.length;
+    const weeksCompleted = WEEKLY_DATA.length;
     const weeksRemaining = 52 - weeksCompleted;
 
     return {
@@ -433,20 +433,20 @@ export default function SocialProgramPage() {
 
         {/* Weekly Distributions */}
         <div className='space-y-4'>
-          {mockWeeklyData
-            .sort((a, b) => b.weekNumber - a.weekNumber)
-            .map((week) => (
+          {WEEKLY_DATA.sort((a, b) => b.weekNumber - a.weekNumber).map(
+            (week) => (
               <WeeklyDistribution
                 key={week.weekNumber}
                 weekData={week}
                 isExpanded={expandedWeeks.has(week.weekNumber)}
                 onToggle={() => toggleWeek(week.weekNumber)}
               />
-            ))}
+            )
+          )}
         </div>
 
         {/* Empty state */}
-        {mockWeeklyData.length === 0 && (
+        {WEEKLY_DATA.length === 0 && (
           <div className='py-12 text-center'>
             <p className='text-gray-500 dark:text-gray-400'>
               No distributions yet. Check back soon!

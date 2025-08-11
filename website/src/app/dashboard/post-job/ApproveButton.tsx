@@ -34,10 +34,7 @@ export const ApproveButton = ({
     address: token,
     abi: ERC20_ABI,
     functionName: 'allowance',
-    args: [
-      address as `0x${string}`,
-      spender as `0x${string}`,
-    ],
+    args: [address as `0x${string}`, spender as `0x${string}`],
     query: {
       enabled: !!address && !!token && !!spender,
     },
