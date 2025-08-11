@@ -1,4 +1,3 @@
-// src/components/Dashboard/JobsList/OpenJobsFeed.tsx
 'use client';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { JobsList } from './JobsList';
@@ -20,6 +19,11 @@ import useArbitrators from '@/hooks/subsquid/useArbitrators';
 import { zeroAddress } from 'viem';
 import { useAccount } from 'wagmi';
 import { useSearchParams, useRouter } from 'next/navigation';
+import {
+  isTestMode,
+  useTestableJobSearch,
+  useTestableArbitrators,
+} from './testUtils';
 
 export const OpenJobsFeed = () => {
   const router = useRouter();
@@ -130,14 +134,19 @@ export const OpenJobsFeed = () => {
     string | undefined
   >(initialValues.arbitratorAddress);
 
-  // Get arbitrators data - this returns the full Arbitrator objects with all properties
-  const { data: arbitrators } = useArbitrators();
+  // Get arbitrators data - use testable version
+  const { data: arbitrators } = useTestableArbitrators(useArbitrators);
 
   const [now, setNow] = useState(Math.floor(new Date().getTime() / 1000));
 
-  // Update URL when filters change
+  // Update URL when filters change (skip test parameter)
   useEffect(() => {
     const params = new URLSearchParams();
+
+    // Preserve test mode if active
+    if (searchParams.get('test') === '1') {
+      params.set('test', '1');
+    }
 
     if (search) params.set('search', search);
     if (selectedToken) params.set('token', selectedToken.id);
@@ -174,9 +183,11 @@ export const OpenJobsFeed = () => {
     multipleApplicants,
     tags,
     router,
+    searchParams,
   ]);
 
-  const { data: jobs } = useJobSearch({
+  // Use testable version of job search hooks
+  const { data: jobs } = useTestableJobSearch(useJobSearch, {
     jobSearch: {
       ...(search && { title: search }),
       ...(tags.length > 0 && { tags: tags.map((tag) => tag.name) }),
@@ -205,7 +216,7 @@ export const OpenJobsFeed = () => {
     maxTimestamp: now,
   });
 
-  const { data: newJobs } = useJobSearch({
+  const { data: newJobs } = useTestableJobSearch(useJobSearch, {
     jobSearch: {
       ...(search && { title: search }),
       ...(tags.length > 0 && { tags: tags.map((tag) => tag.name) }),
@@ -263,6 +274,15 @@ export const OpenJobsFeed = () => {
 
   return (
     <div>
+      {/* Show test mode indicator */}
+      {isTestMode() && (
+        <div className='mb-4 rounded-lg border border-yellow-400 bg-yellow-100 p-3 text-center'>
+          <span className='font-semibold text-yellow-800'>
+            🧪 Test Mode Active - Using Mock Data
+          </span>
+        </div>
+      )}
+
       <JobFilter
         search={search}
         setSearch={setSearch}
