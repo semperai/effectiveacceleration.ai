@@ -19,12 +19,14 @@ interface DisputeStartedProps {
   job: Job;
   address: string | undefined;
   users?: Record<string, User>;
+  selectedWorker?: string;
 }
 
 const DisputeStarted: React.FC<DisputeStartedProps> = ({
   job,
   address,
   users = {},
+  selectedWorker,
 }) => {
   // Get arbitrator data
   const arbitratorData = users[job.roles.arbitrator];

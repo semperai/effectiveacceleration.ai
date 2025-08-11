@@ -1,5 +1,4 @@
 import type React from 'react';
-
 import {
   type Job,
   JobEventType,
@@ -31,6 +30,7 @@ const JobChatStatus: React.FC<JobStatusProps> = ({
   address,
 }) => {
   const lastEventType = events[events.length - 1]?.type_;
+
   return (
     <>
       {(lastEventType === JobEventType.Completed ||
@@ -42,7 +42,6 @@ const JobChatStatus: React.FC<JobStatusProps> = ({
           selectedWorker={''}
         />
       )}
-
       {job.state === JobState.Taken &&
         job.resultHash !== zeroHash &&
         address === job.roles.creator &&
@@ -56,7 +55,6 @@ const JobChatStatus: React.FC<JobStatusProps> = ({
             address={address}
           />
         )}
-
       {job.state === JobState.Open &&
         address === job.roles.creator &&
         events.length > 0 && (
@@ -68,17 +66,26 @@ const JobChatStatus: React.FC<JobStatusProps> = ({
             selectedWorker={selectedWorker}
           />
         )}
-
       {job.state === JobState.Taken &&
         job.disputed === false &&
         job.resultHash === zeroHash &&
         (address === job.roles.creator || address === job.roles.worker) &&
-        events.length > 0 && <WorkerAccepted job={job} address={address} />}
-
+        events.length > 0 && (
+          <WorkerAccepted
+            job={job}
+            address={address}
+            users={users}
+            selectedWorker={selectedWorker}
+          />
+        )}
       {job.state === JobState.Taken && job.disputed === true && (
-        <DisputeStarted job={job} address={address} />
+        <DisputeStarted
+          job={job}
+          address={address}
+          users={users}
+          selectedWorker={selectedWorker}
+        />
       )}
-
       {lastEventType === JobEventType.Arbitrated &&
         job.state === JobState.Closed && (
           <ArbitratedStatus

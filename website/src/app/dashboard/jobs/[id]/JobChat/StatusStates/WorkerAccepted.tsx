@@ -25,25 +25,30 @@ interface WorkerAcceptedProps {
   job: Job;
   address: string | undefined;
   users?: Record<string, User>;
+  selectedWorker?: string;
 }
 
 const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({
   job,
   address,
   users = {},
+  selectedWorker,
 }) => {
   const isCreator = address === job.roles.creator;
   const isWorker = address === job.roles.worker;
 
+  // Get the actual worker address - prioritize job.roles.worker, fallback to selectedWorker
+  const workerAddress = job.roles.worker || selectedWorker;
+
   // Get user data
-  const workerData = users[job.roles.worker];
+  const workerData = workerAddress ? users[workerAddress] : null;
   const creatorData = users[job.roles.creator];
   const workerName = workerData?.name || 'Worker';
   const creatorName = creatorData?.name || 'Creator';
 
   // Get initials for fallback avatars
   const workerInitials =
-    workerName
+    (workerData?.name || 'Worker')
       .split(' ')
       .map((n) => n[0])
       .join('')
@@ -197,20 +202,23 @@ const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({
                 </div>
               </div>
 
-              {/* Status with Worker Link - WITH PROFILE IMAGE */}
+              {/* Worker with Profile Image and Link */}
               <div className='flex items-start gap-3'>
                 <PiCheckCircle className='mt-0.5 h-5 w-5 text-gray-400' />
                 <div>
                   <p className='text-xs text-gray-500 dark:text-gray-400'>
                     Worker
                   </p>
-                  {workerData ? (
+                  {workerAddress && workerData ? (
                     <Link
-                      href={`/dashboard/users/${job.roles.worker}`}
+                      href={`/dashboard/users/${workerAddress}`}
                       className='group inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300'
                     >
-                      {workerData?.avatar ? (
-                        <ProfileImage user={workerData} className='h-4 w-4' />
+                      {workerData.avatar ? (
+                        <ProfileImage
+                          user={workerData}
+                          className='h-4 w-4 rounded-full'
+                        />
                       ) : (
                         <div className='flex h-4 w-4 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500'>
                           <span className='text-[8px] font-bold text-white'>
@@ -221,9 +229,22 @@ const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({
                       <span>{workerName}</span>
                       <PiArrowRight className='h-3 w-3 transform opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100' />
                     </Link>
+                  ) : workerAddress ? (
+                    <Link
+                      href={`/dashboard/users/${workerAddress}`}
+                      className='group inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300'
+                    >
+                      <div className='flex h-4 w-4 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500'>
+                        <span className='text-[8px] font-bold text-white'>
+                          {workerInitials}
+                        </span>
+                      </div>
+                      <span>{`${workerAddress.slice(0, 6)}...${workerAddress.slice(-4)}`}</span>
+                      <PiArrowRight className='h-3 w-3 transform opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100' />
+                    </Link>
                   ) : (
-                    <p className='text-sm font-medium text-green-600 dark:text-green-400'>
-                      Active & In Progress
+                    <p className='text-sm font-medium text-gray-600 dark:text-gray-400'>
+                      Not assigned yet
                     </p>
                   )}
                 </div>
