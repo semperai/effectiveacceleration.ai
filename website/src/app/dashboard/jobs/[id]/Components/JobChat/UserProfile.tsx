@@ -14,7 +14,7 @@ import { useConfig } from '@/hooks/useConfig';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import * as Sentry from '@sentry/nextjs';
 import useFetchAvatar from '@/hooks/useFetchAvatar';
-import EventProfileImage from '@/components/Events/Components/EventProfileImage';
+import ProfileImage from '@/components/ProfileImage';
 import { ReviewsList } from './ReviewsList';
 
 interface NavButtonProps {
@@ -235,7 +235,7 @@ export function UserProfile({ selectedUser, children, ...rest }: UserProfileProp
                         {!showReviews ? ( // 3. Conditionally render
                           <>
                             <div className='w-[110px] h-[110px] justify-center flex items-center'>
-                                {selectedUser?.name && <EventProfileImage className={'h-full w-full'} user={selectedUser}></EventProfileImage>}
+                                {selectedUser?.name && <ProfileImage className={'h-full w-full'} user={selectedUser}></ProfileImage>}
                             </div>
                             <Dialog.Title
                                 as='h3'

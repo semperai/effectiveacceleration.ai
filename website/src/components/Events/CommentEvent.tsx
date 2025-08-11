@@ -1,4 +1,5 @@
 import useUser from '@/hooks/subsquid/useUser';
+import ProfileImage from '@/components/ProfileImage';
 import clsx from 'clsx';
 import moment from 'moment';
 import Link from 'next/link';
@@ -8,7 +9,6 @@ import { getAddress } from 'viem';
 import { useAccount } from 'wagmi';
 
 import type { JobMessageEvent } from '@effectiveacceleration/contracts';
-import EventProfileImage from './Components/EventProfileImage';
 import type { EventProps } from './index';
 
 type CommentEventProps = EventProps & ComponentPropsWithoutRef<'div'>;
@@ -34,7 +34,7 @@ export function CommentEvent({ event, ...rest }: CommentEventProps) {
       <div className='relative flex-shrink-0'>
         {user && (
           <Link href={`/dashboard/users/${address}`}>
-            <EventProfileImage user={user} />
+            <ProfileImage user={user} />
           </Link>
         )}
         <span className='absolute -bottom-0.5 -right-1 rounded-full bg-white p-0.5 shadow-sm'>

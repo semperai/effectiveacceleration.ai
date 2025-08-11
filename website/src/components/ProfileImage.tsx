@@ -4,12 +4,12 @@ import Image from 'next/image';
 import type { StaticImport } from 'next/dist/shared/lib/get-img-props';
 import useFetchAvatar from '@/hooks/useFetchAvatar';
 
-interface EventProfileImageProps {
+interface ProfileImageProps {
   user: User | Arbitrator;
   className?: string;
 }
 
-const EventProfileImage = ({ user, className }: EventProfileImageProps) => {
+const ProfileImage = ({ user, className }: ProfileImageProps) => {
   const [isImgValid, setIsImgValid] = useState(true);
   const [sessionKey, setSessionKey] = useState<string>();
   
@@ -52,4 +52,4 @@ const EventProfileImage = ({ user, className }: EventProfileImageProps) => {
   );
 };
 
-export default EventProfileImage;
+export default ProfileImage;

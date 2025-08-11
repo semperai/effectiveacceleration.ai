@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useAccount } from 'wagmi';
 import useUser from '@/hooks/subsquid/useUser';
 import useArbitrator from '@/hooks/subsquid/useArbitrator';
-import EventProfileImage from '@/components/Events/Components/EventProfileImage';
+import ProfileImage from '@/components/ProfileImage';
 
 export const UserInfo = () => {
   const { address } = useAccount();
@@ -44,7 +44,7 @@ export const UserInfo = () => {
             <div className="flex items-center gap-3 mb-3">
               {/* User Avatar */}
               {userInfo.avatar ? (
-                <EventProfileImage
+                <ProfileImage
                   user={userInfo}
                   className="w-10 h-10 transition-transform duration-300 group-hover:scale-105"
                 />

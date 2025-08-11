@@ -1,7 +1,7 @@
 import useArbitrator from '@/hooks/subsquid/useArbitrator';
+import ProfileImage from '@/components/ProfileImage';
 import moment from 'moment';
 import { getAddress } from 'viem';
-import EventProfileImage from './Components/EventProfileImage';
 import type { EventProps } from './index';
 
 export function ArbitrationRefusedEvent({
@@ -18,7 +18,7 @@ export function ArbitrationRefusedEvent({
   return (
     <>
       <div className='relative'>
-        {arbitrator && <EventProfileImage user={arbitrator} />}
+        {arbitrator && <ProfileImage user={arbitrator} />}
       </div>
       <div className='min-w-0 flex-1'>
         <div>

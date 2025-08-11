@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { UserDropdown } from './UserDropdown';
-import EventProfileImage from '@/components/Events/Components/EventProfileImage';
+import ProfileImage from '@/components/ProfileImage';
 import type { User, Arbitrator } from '@effectiveacceleration/contracts';
 import { PiUser } from 'react-icons/pi';
 
@@ -47,7 +47,7 @@ export const UserButton = ({ user, arbitrator }: UserButtonProps) => {
         aria-label='User menu'
       >
         {currentProfile?.avatar ? (
-          <EventProfileImage
+          <ProfileImage
             user={currentProfile}
             className='h-10 w-10'
           />

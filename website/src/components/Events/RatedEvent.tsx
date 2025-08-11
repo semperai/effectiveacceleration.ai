@@ -1,9 +1,9 @@
 import useUser from '@/hooks/subsquid/useUser';
+import ProfileImage from '@/components/ProfileImage';
 import { ChatBubbleLeftEllipsisIcon } from '@heroicons/react/20/solid';
 import type { JobRatedEvent } from '@effectiveacceleration/contracts';
 import moment from 'moment';
 import { getAddress } from 'viem';
-import EventProfileImage from './Components/EventProfileImage';
 import type { EventProps } from './index';
 
 export function RatedEvent({
@@ -19,7 +19,7 @@ export function RatedEvent({
   return (
     <>
       <div className='relative'>
-        {user && <EventProfileImage user={user} />}
+        {user && <ProfileImage user={user} />}
         <span className='absolute -bottom-0.5 -right-1 rounded-tl bg-white px-0.5 py-px'>
           <ChatBubbleLeftEllipsisIcon
             className='h-5 w-5 text-gray-400 dark:text-gray-600'

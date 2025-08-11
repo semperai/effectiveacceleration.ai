@@ -7,7 +7,7 @@ import {
   type User,
 } from '@effectiveacceleration/contracts';
 import { PiChatCircleDots, PiInfo } from 'react-icons/pi';
-import EventProfileImage from '@/components/Events/Components/EventProfileImage';
+import ProfileImage from '@/components/ProfileImage';
 import SideJobList from '../SideJobList';
 import SideJobInfo from '../SideJobInfo';
 
@@ -127,7 +127,7 @@ const OpenJobMobileMenu: React.FC<JobSidebarProps> = ({
                       <div className='absolute -inset-[2px] bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 rounded-full opacity-70 group-hover:opacity-90 group-hover:bg-gradient-to-r group-hover:from-pink-400 group-hover:via-purple-400 group-hover:to-blue-400 transition-all duration-500'></div>
                       <div className='relative flex items-center gap-1.5 bg-white dark:bg-gray-900 px-2.5 py-1 rounded-full'>
                         {/* User avatar - text sized */}
-                        <EventProfileImage
+                        <ProfileImage
                           user={userToShow}
                           className='h-3.5 w-3.5'
                         />

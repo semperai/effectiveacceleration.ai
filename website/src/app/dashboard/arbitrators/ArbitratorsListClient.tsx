@@ -15,7 +15,7 @@ import {
   StarIcon,
   ClockIcon
 } from '@heroicons/react/20/solid';
-import EventProfileImage from '@/components/Events/Components/EventProfileImage';
+import ProfileImage from '@/components/ProfileImage';
 import moment from 'moment';
 
 interface Arbitrator {
@@ -253,8 +253,8 @@ export default function ArbitratorsListClient({ initialArbitrators }: Arbitrator
                   <div className='p-6'>
                     <div className='flex items-start justify-between'>
                       <div className='flex items-center space-x-3'>
-                        {/* Avatar - Using EventProfileImage component */}
-                        <EventProfileImage
+                        {/* Avatar - Using ProfileImage component */}
+                        <ProfileImage
                           className='h-12 w-12'
                           user={arbitrator}
                         />

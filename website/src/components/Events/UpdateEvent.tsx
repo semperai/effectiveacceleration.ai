@@ -1,9 +1,9 @@
 import { Badge } from '@/components/Badge';
+import ProfileImage from '@/components/ProfileImage';
 import useUser from '@/hooks/subsquid/useUser';
 import moment from 'moment';
 import { Fragment } from 'react';
 import { getAddress } from 'viem';
-import EventProfileImage from './Components/EventProfileImage';
 import type { EventProps } from './index';
 
 export function UpdateEvent({
@@ -18,7 +18,7 @@ export function UpdateEvent({
   return (
     <>
       <div className='relative'>
-        {user && <EventProfileImage user={user} />}
+        {user && <ProfileImage user={user} />}
       </div>
       <div className='min-w-0 flex-1 py-1.5'>
         <div className='text-sm text-gray-500 dark:text-gray-400'>

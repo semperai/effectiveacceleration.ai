@@ -14,7 +14,7 @@ import {
   DocumentDuplicateIcon,
   ArrowTopRightOnSquareIcon
 } from '@heroicons/react/20/solid';
-import EventProfileImage from '@/components/Events/Components/EventProfileImage';
+import ProfileImage from '@/components/ProfileImage';
 import useArbitrator, { ArbitratorWithTimestamp } from '@/hooks/subsquid/useArbitrator';
 import moment from 'moment';
 import { useState } from 'react';
@@ -160,9 +160,9 @@ export default function ArbitratorPageClient({ address }: ArbitratorPageClientPr
         <div className='bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 mb-8'>
           <div className='flex flex-col md:flex-row md:items-start md:justify-between'>
             <div className='flex items-start space-x-6'>
-              {/* Avatar - Using EventProfileImage component */}
+              {/* Avatar - Using ProfileImage component */}
               <div className='relative'>
-                <EventProfileImage
+                <ProfileImage
                   className='h-24 w-24 ring-4 ring-white dark:ring-gray-800'
                   user={arbitrator}
                 />

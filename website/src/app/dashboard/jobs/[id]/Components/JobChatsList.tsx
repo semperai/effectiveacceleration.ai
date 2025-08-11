@@ -1,4 +1,4 @@
-import EventProfileImage from '@/components/Events/Components/EventProfileImage';
+import ProfileImage from '@/components/ProfileImage';
 import type { Job, User } from '@effectiveacceleration/contracts';
 import type { Dispatch, SetStateAction } from 'react';
 import {
@@ -113,7 +113,7 @@ const JobChatsList = ({
                   <div className='flex items-center gap-3 p-4'>
                     {/* Profile image with online indicator */}
                     <div className='relative flex-shrink-0'>
-                      <EventProfileImage user={value} />
+                      <ProfileImage user={value} />
                       <div className='absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full' />
                     </div>
 

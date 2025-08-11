@@ -4,7 +4,7 @@ import { PiX } from 'react-icons/pi';
 import { useAccount } from 'wagmi';
 import { ConnectButton } from '@/components/ConnectButton';
 import { UserForm } from './UserForm';
-import EventProfileImage from '@/components/Events/Components/EventProfileImage';
+import ProfileImage from '@/components/ProfileImage';
 import type { User, Arbitrator } from '@effectiveacceleration/contracts';
 
 interface UserDropdownProps {
@@ -53,7 +53,7 @@ export const UserDropdown = forwardRef<HTMLDivElement, UserDropdownProps>(
             <div className='flex items-center gap-3'>
               {/* Avatar */}
               {currentProfile?.avatar ? (
-                <EventProfileImage
+                <ProfileImage
                   user={currentProfile}
                   className='h-10 w-10'
                 />

@@ -1,14 +1,13 @@
-// src/components/ArbitratorSelector/index.tsx
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
 import * as ReactDOM from 'react-dom';
 import { ExternalLink, ChevronDown } from 'lucide-react';
 import { zeroAddress } from 'viem';
-import EventProfileImage from '@/components/Events/Components/EventProfileImage';
+import ProfileImage from '@/components/ProfileImage';
 import type { Arbitrator } from '@effectiveacceleration/contracts';
 
-// Type assertion helper to ensure Arbitrator has all required fields for EventProfileImage
+// Type assertion helper to ensure Arbitrator has all required fields for ProfileImage
 type ArbitratorWithProfile = Arbitrator & {
   address_: string;
   publicKey: string;
@@ -220,7 +219,7 @@ export const ArbitratorSelector: React.FC<ArbitratorSelectorProps> = ({
                 flex: 1,
                 minWidth: 0
               }}>
-                <EventProfileImage
+                <ProfileImage
                   user={arbitrator as ArbitratorWithProfile}
                   className="h-8 w-8 rounded-full flex-shrink-0"
                 />
@@ -292,7 +291,7 @@ export const ArbitratorSelector: React.FC<ArbitratorSelectorProps> = ({
             </div>
           ) : selectedArbitrator ? (
             <>
-              <EventProfileImage 
+              <ProfileImage 
                 user={selectedArbitrator as ArbitratorWithProfile} 
                 className="h-8 w-8 rounded-full" 
               />

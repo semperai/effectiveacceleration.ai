@@ -3,7 +3,7 @@ import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
 import type { JobArbitratedEvent } from '@effectiveacceleration/contracts';
 import moment from 'moment';
 import { getAddress } from 'viem';
-import EventProfileImage from './Components/EventProfileImage';
+import ProfileImage from '@/components/ProfileImage';
 import type { EventProps } from './index';
 
 export function ArbitratedEvent({
@@ -20,7 +20,7 @@ export function ArbitratedEvent({
   return (
     <>
       <div className='relative'>
-        {arbitrator && <EventProfileImage user={arbitrator} />}
+        {arbitrator && <ProfileImage user={arbitrator} />}
       </div>
       <div className='min-w-0 flex-1 py-1.5'>
         <div className='text-sm text-gray-500 dark:text-gray-400'>

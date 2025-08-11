@@ -2,7 +2,7 @@ import type { EventProps } from './index';
 import moment from 'moment';
 import useUser from '@/hooks/subsquid/useUser';
 import { getAddress } from 'viem';
-import EventProfileImage from './Components/EventProfileImage';
+import ProfileImage from '@/components/ProfileImage';
 
 export function AssignedEvent({
   event,
@@ -21,7 +21,7 @@ export function AssignedEvent({
   return (
     <>
       <div className='relative'>
-        {owner && <EventProfileImage user={owner} />}
+        {owner && <ProfileImage user={owner} />}
       </div>
       <div className='min-w-0 flex-1 py-1.5'>
         <div className='text-sm text-gray-500 dark:text-gray-400'>

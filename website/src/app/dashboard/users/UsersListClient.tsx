@@ -1,4 +1,3 @@
-// app/dashboard/users/UsersListClient.tsx
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -17,7 +16,7 @@ import {
   HandThumbDownIcon,
   UserGroupIcon
 } from '@heroicons/react/20/solid';
-import EventProfileImage from '@/components/Events/Components/EventProfileImage';
+import ProfileImage from '@/components/ProfileImage';
 import moment from 'moment';
 
 interface Review {
@@ -321,7 +320,7 @@ export default function UsersListClient({ initialUsers }: UsersListClientProps) 
                     <div className='flex items-start justify-between'>
                       <div className='flex items-center space-x-3'>
                         {/* Avatar */}
-                        <EventProfileImage
+                        <ProfileImage
                           className='h-12 w-12'
                           user={user}
                         />

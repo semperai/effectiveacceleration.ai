@@ -25,7 +25,7 @@ import {
   Scale,
   Hash
 } from 'lucide-react';
-import EventProfileImage from '@/components/Events/Components/EventProfileImage';
+import ProfileImage from '@/components/ProfileImage';
 
 // Fixed JobSummaryProps interface with new callback props
 export interface JobSummaryProps {
@@ -388,7 +388,7 @@ const JobSummary: React.FC<JobSummaryProps> = ({
                   ) : selectedArbitrator ? (
                     <div>
                       <div className="flex items-center gap-3">
-                        <EventProfileImage 
+                        <ProfileImage 
                           user={selectedArbitrator} 
                           className="h-8 w-8 rounded-full"
                         />
