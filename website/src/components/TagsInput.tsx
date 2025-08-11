@@ -1,9 +1,7 @@
 import type { Tag } from '@/service/FormsTypes';
-import clsx from 'clsx';
 import type React from 'react';
 import { type KeyboardEvent, useState, useRef } from 'react';
-import { IoIosClose } from 'react-icons/io';
-import { MdAdd } from 'react-icons/md';
+import { X, Plus } from 'lucide-react';
 
 const TagsInput: React.FC<{ tags: Tag[]; setTags: (tags: Tag[]) => void }> = ({
   tags,
@@ -46,15 +44,6 @@ const TagsInput: React.FC<{ tags: Tag[]; setTags: (tags: Tag[]) => void }> = ({
     }
   };
 
-  // Handle space bar as tag separator (optional - you can remove this if not desired)
-  const handleSpaceAsSeparator = (e: KeyboardEvent<HTMLInputElement>) => {
-    // Uncomment the following lines if you want space to create tags
-    // if (e.key === ' ' && inputValue.trim() && inputValue.trim().length > 2) {
-    //   e.preventDefault();
-    //   addTag();
-    // }
-  };
-
   const handleInputBlur = () => {
     // Optional: Auto-add tag on blur if there's content
     // This helps on mobile when users tap outside
@@ -75,7 +64,7 @@ const TagsInput: React.FC<{ tags: Tag[]; setTags: (tags: Tag[]) => void }> = ({
   };
 
   return (
-    <div className='mt-1.1 rounded-xl border border-zinc-950/20 bg-white shadow-sm data-[hover]:border-zinc-950/20'>
+    <div className='rounded-xl bg-white/50 dark:bg-gray-800/50 border border-gray-300 dark:border-white/10 backdrop-blur-sm transition-all duration-200 hover:border-zinc-950/20 dark:hover:border-white/20'>
       <div className='relative'>
         <div className='relative flex items-center'>
           <input
@@ -86,40 +75,25 @@ const TagsInput: React.FC<{ tags: Tag[]; setTags: (tags: Tag[]) => void }> = ({
             onKeyDown={handleInputKeyDown}
             onBlur={handleInputBlur}
             placeholder='Add a tag...'
-            className={clsx([
-              // Basic layout
-              `${tags.length > 0 ? '!rounded-b-none' : '!rounded-xl'}`,
-              'relative !mt-0 block flex-1',
-              showAddButton ? '!pr-12' : '!pr-4',
-              'w-full border-0 border-b border-gray-200 text-sm',
-              // Background color + shadow applied to inset pseudo element, so shadow blends with border in light mode
-              'before: rounded-xl',
-              // Basic layout
-              'relative block w-full appearance-none px-[calc(theme(spacing[3.5])-1px)] py-[calc(theme(spacing[2])-1px)] sm:px-[calc(theme(spacing[3])-1px)] sm:py-[calc(theme(spacing[2])-1px)]',
-              // Typography
-              'text-base/6 text-darkBlueFont placeholder:text-zinc-500 sm:text-sm/6 dark:text-white',
-              // Border
-              'border border-zinc-950/10 focus:border-white data-[hover]:border-zinc-950/20 dark:border-white/10 dark:data-[hover]:border-white/20',
-              // Background color
-              'bg-transparent dark:bg-white/5',
-              // Hide default focus styles
-              'focus:outline-none focus:ring-1 focus:ring-primary',
-              // Invalid state
-              'data-[invalid]:border-red-500 data-[invalid]:data-[hover]:border-red-500 data-[invalid]:dark:border-red-500 data-[invalid]:data-[hover]:dark:border-red-500',
-              // Disabled state
-              'data-[disabled]:border-zinc-950/20 dark:data-[hover]:data-[disabled]:border-white/15 data-[disabled]:dark:border-white/15 data-[disabled]:dark:bg-white/[2.5%]',
-            ])}
+            className={`
+              flex-1 w-full px-4 py-2.5 bg-transparent
+              text-sm text-gray-900 dark:text-gray-100
+              placeholder:text-gray-500 dark:placeholder:text-gray-400
+              border-0 border-b !border-gray-200 dark:!border-white/10
+              outline-none focus:outline-none focus:ring-0 focus:border-gray-200 dark:focus:border-white/10
+              ${showAddButton ? 'pr-12' : 'pr-4'}
+            `}
           />
 
-          {/* Add button for mobile */}
+          {/* Add button */}
           {showAddButton && (
             <button
               type='button'
               onClick={addTag}
-              className='absolute right-2 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white transition-all hover:bg-primary/90 active:scale-95'
+              className='absolute right-2 group flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-r from-blue-500/10 to-purple-500/10 hover:from-blue-500/20 hover:to-purple-500/20 border border-blue-500/20 transition-all duration-200 hover:scale-105 active:scale-95'
               aria-label='Add tag'
             >
-              <MdAdd className='text-xl' />
+              <Plus className='h-4 w-4 text-blue-600 dark:text-blue-400 group-hover:text-blue-500 dark:group-hover:text-blue-300' />
             </button>
           )}
         </div>
@@ -127,62 +101,41 @@ const TagsInput: React.FC<{ tags: Tag[]; setTags: (tags: Tag[]) => void }> = ({
 
       {/* Tags display */}
       {tags.length > 0 && (
-        <ul className='px-2 py-1 pt-2'>
-          {tags.map((tag) => (
-            <li
-              key={tag.id}
-              className={clsx(
-                'm-1 inline-flex cursor-pointer items-center rounded-full border-0 border-zinc-950/10 bg-softbluelight px-3 py-1 text-white transition-all hover:border-zinc-950/20 hover:bg-opacity-90 active:scale-95 active:border-zinc-950/20 dark:border-white/10 dark:group-data-[active]:border-white/20 dark:group-data-[hover]:border-white/20'
-              )}
-              onClick={() => removeTag(tag.id)}
-              role='button'
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  removeTag(tag.id);
-                }
-              }}
-              aria-label={`Remove tag ${tag.name}`}
-            >
-              <span className='text-sm font-medium text-darkBlueFont'>
-                {tag.name}
-              </span>
-              <IoIosClose
-                className={clsx(
-                  'ml-1 text-xl font-light text-darkBlueFont'
-                )}
-              />
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {/* Optional: Suggested tags for quick addition */}
-      {/* Uncomment and customize if you want to show suggested tags
-      {suggestedTags && suggestedTags.length > 0 && (
-        <div className='border-t border-gray-200 px-2 py-2'>
-          <span className='text-xs text-gray-500'>Suggestions:</span>
-          <div className='mt-1'>
-            {suggestedTags.map((suggestion) => (
+        <div className='px-3 py-3'>
+          <div className='flex flex-wrap gap-2'>
+            {tags.map((tag) => (
               <button
-                key={suggestion}
-                type='button'
-                onClick={() => {
-                  const newTag: Tag = {
-                    id: Date.now(),
-                    name: suggestion,
-                  };
-                  setTags([...tags, newTag]);
+                key={tag.id}
+                onClick={() => removeTag(tag.id)}
+                className='group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-gray-100/80 to-gray-50/80 dark:from-gray-700/50 dark:to-gray-800/50 border border-gray-200/50 dark:border-gray-600/50 hover:from-red-50 hover:to-red-50/50 dark:hover:from-red-950/20 dark:hover:to-red-950/10 hover:border-red-200 dark:hover:border-red-800/50 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]'
+                role='button'
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    removeTag(tag.id);
+                  }
                 }}
-                className='m-1 inline-block rounded-full border border-gray-300 px-2 py-1 text-xs text-gray-600 hover:border-primary hover:text-primary'
+                aria-label={`Remove tag ${tag.name}`}
               >
-                + {suggestion}
+                <span className='text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors duration-200'>
+                  {tag.name}
+                </span>
+                <X className='h-3.5 w-3.5 text-gray-400 dark:text-gray-500 group-hover:text-red-500 dark:group-hover:text-red-400 transition-colors duration-200' />
               </button>
             ))}
           </div>
         </div>
-      )} */}
+      )}
+
+      {/* Helper text */}
+      {tags.length === 0 && (
+        <div className='px-4 pb-3 pt-1'>
+          <p className='text-xs text-gray-500 dark:text-gray-400'>
+            Press Enter or comma to add tags
+          </p>
+        </div>
+      )}
     </div>
   );
 };
