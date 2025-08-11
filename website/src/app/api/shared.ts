@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import ERC20_ABI from '@/abis/ERC20.json';
+import { ERC20_ABI } from '@/lib/constants';
 
 // Token contract address
 export const TOKEN_ADDRESS = '0x9Eeab030a17528eFb2aC0F81D76fab8754e461BD';

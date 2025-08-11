@@ -1,5 +1,4 @@
-// src/app/dashboard/post-job/SubmitJobButton.tsx
-import ERC20Abi from '@/abis/ERC20.json';
+import { ERC20_ABI } from '@/lib/constants';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
@@ -70,9 +69,12 @@ export const SubmitJobButton = ({
     refetch: refetchAllowance,
   } = useReadContract({
     address: token,
-    abi: ERC20Abi,
+    abi: ERC20_ABI,
     functionName: 'allowance',
-    args: [address, Config?.marketplaceAddress],
+    args: [
+      address as `0x${string}`,
+      Config?.marketplaceAddress as `0x${string}`,
+    ],
     query: {
       enabled: !!address && !!token && !!Config?.marketplaceAddress,
     },
@@ -273,7 +275,7 @@ export const ApproveButton = ({
       setIsApproving(true);
       await writeContractWithNotifications({
         address: token,
-        abi: ERC20Abi,
+        abi: ERC20_ABI,
         functionName: 'approve',
         args: [
           spender,

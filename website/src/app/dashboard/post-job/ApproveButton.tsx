@@ -1,10 +1,10 @@
+import { ERC20_ABI } from '@/lib/constants';
 import React, { useState, useEffect } from 'react';
 import { useAccount, useReadContract } from 'wagmi';
 import type { Address } from 'viem';
 import { MaxUint256 } from 'ethers';
 import { Button } from '@/components/Button';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
-import ERC20Abi from '@/abis/ERC20.json';
 import { Alert, AlertDescription } from '@/components/Alert';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import * as Sentry from '@sentry/nextjs';
@@ -32,9 +32,12 @@ export const ApproveButton = ({
     refetch: refetchAllowance,
   } = useReadContract({
     address: token,
-    abi: ERC20Abi,
+    abi: ERC20_ABI,
     functionName: 'allowance',
-    args: [address, spender],
+    args: [
+      address as `0x${string}`,
+      spender as `0x${string}`,
+    ],
     query: {
       enabled: !!address && !!token && !!spender,
     },
@@ -70,7 +73,7 @@ export const ApproveButton = ({
     try {
       setIsApproving(true);
       await writeContractWithNotifications({
-        abi: ERC20Abi,
+        abi: ERC20_ABI,
         address: token,
         functionName: 'approve',
         args: [spender, MaxUint256],

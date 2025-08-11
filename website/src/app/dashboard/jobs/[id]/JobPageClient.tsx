@@ -164,20 +164,54 @@ export default function JobPageClient({ id }: JobPageClientProps) {
     (tag) => tag.id === currentJob?.tags[0]
   )?.name;
 
+  // Check if user is associated with the job
+  const isOwner =
+    currentAddress && currentJob?.roles.creator === currentAddress;
+  const isWorker =
+    currentAddress && currentJob?.roles.worker === currentAddress;
+  const isArbitrator =
+    currentAddress && currentJob?.roles.arbitrator === currentAddress;
+
+  // Check if user was a participant (for closed jobs)
+  const wasParticipant = useMemo(() => {
+    if (!currentAddress || !currentEvents) return false;
+
+    // Check if user sent any messages or took any actions in this job
+    return currentEvents.some(
+      (event: JobEventWithDiffs) =>
+        event.address_ === currentAddress ||
+        (event.details as JobMessageEvent)?.recipientAddress === currentAddress
+    );
+  }, [currentAddress, currentEvents]);
+
+  // Fixed conditions for showing chat interface
   const isJobOpenForWorker =
     currentJob?.roles.worker === zeroAddress &&
     currentJob?.state === JobState.Open &&
     currentAddress !== currentJob?.roles.creator &&
     currentAddress !== currentJob?.roles.arbitrator;
 
+  // Show chat for closed jobs if user was involved
+  const isClosedJobParticipant =
+    currentJob?.state === JobState.Closed &&
+    (isOwner || isWorker || wasParticipant);
+
   const isUserCreatorWithSelectedWorkerOrTaken =
     (currentAddress === currentJob?.roles.creator && selectedWorker) ||
     (currentAddress === currentJob?.roles.creator &&
       currentJob?.state === JobState.Taken);
+
+  // Fixed: Show message button for open jobs when worker wants to apply
+  // OR for participants in any state except fully closed without involvement
   const shouldShowPostMessageButton =
-    currentJob?.state !== JobState.Closed &&
+    (currentJob?.state !== JobState.Closed || isClosedJobParticipant) &&
     currentAddresses?.length &&
-    Object.keys(currentSessionKeys || {}).length > 0;
+    Object.keys(currentSessionKeys || {}).length > 0 &&
+    (isJobOpenForWorker || // Worker applying to open job
+      isWorker || // Current worker on the job
+      isOwner || // Job creator
+      isUserCreatorWithSelectedWorkerOrTaken || // Creator with selected worker
+      wasParticipant); // Was involved in the job
 
   useEffect(() => {
     if (
@@ -258,18 +292,6 @@ export default function JobPageClient({ id }: JobPageClientProps) {
       </Layout>
     );
   }
-
-  const isOwner =
-    currentAddress && currentJob?.roles.creator.includes(currentAddress);
-  const isWorker =
-    !isOwner &&
-    currentAddress &&
-    currentJob?.roles.worker.includes(currentAddress);
-  const isArbitrator =
-    !isOwner &&
-    !isWorker &&
-    currentAddress &&
-    currentJob?.roles.arbitrator.includes(currentAddress);
 
   // Render status state component if selected in test mode
   const renderStatusComponent = () => {
@@ -424,55 +446,56 @@ export default function JobPageClient({ id }: JobPageClientProps) {
                     address={currentAddress}
                     currentUser={currentUser ?? undefined}
                   />
-                  {currentJob &&
-                    (isJobOpenForWorker ||
-                      isWorker ||
-                      isUserCreatorWithSelectedWorkerOrTaken) &&
-                    shouldShowPostMessageButton && (
-                      <div className='row-span-1 flex flex-1 content-center items-center border border-gray-100 md:block'>
-                        {isTestMode ? (
-                          // Mock PostMessageButton for test mode
-                          <div className='flex h-full items-center justify-center p-4'>
-                            <div className='w-full'>
-                              <div className='flex items-end gap-2 rounded-lg border border-gray-200 bg-white p-2 shadow-sm'>
-                                <textarea
-                                  rows={1}
-                                  placeholder='Type a message... (disabled in test mode)'
-                                  className='min-h-[36px] flex-1 resize-none rounded-lg border-0 bg-transparent px-2 py-1 text-sm text-gray-900 outline-none'
-                                  disabled
-                                />
-                                <button
-                                  disabled
-                                  className='flex h-9 w-9 cursor-not-allowed items-center justify-center rounded-xl bg-gray-100'
+                  {currentJob && shouldShowPostMessageButton && (
+                    <div className='row-span-1 flex flex-1 content-center items-center border border-gray-100 md:block'>
+                      {isTestMode ? (
+                        // Mock PostMessageButton for test mode
+                        <div className='flex h-full items-center justify-center p-4'>
+                          <div className='w-full'>
+                            <div className='flex items-end gap-2 rounded-lg border border-gray-200 bg-white p-2 shadow-sm'>
+                              <textarea
+                                rows={1}
+                                placeholder='Type a message... (disabled in test mode)'
+                                className='min-h-[36px] flex-1 resize-none rounded-lg border-0 bg-transparent px-2 py-1 text-sm text-gray-900 outline-none'
+                                disabled
+                              />
+                              <button
+                                disabled
+                                className='flex h-9 w-9 cursor-not-allowed items-center justify-center rounded-xl bg-gray-100'
+                              >
+                                <svg
+                                  className='h-4 w-4 text-gray-400'
+                                  fill='none'
+                                  stroke='currentColor'
+                                  viewBox='0 0 24 24'
                                 >
-                                  <svg
-                                    className='h-4 w-4 text-gray-400'
-                                    fill='none'
-                                    stroke='currentColor'
-                                    viewBox='0 0 24 24'
-                                  >
-                                    <path
-                                      strokeLinecap='round'
-                                      strokeLinejoin='round'
-                                      strokeWidth={2}
-                                      d='M12 19l9 2-9-18-9 18 9-2zm0 0v-8'
-                                    />
-                                  </svg>
-                                </button>
-                              </div>
+                                  <path
+                                    strokeLinecap='round'
+                                    strokeLinejoin='round'
+                                    strokeWidth={2}
+                                    d='M12 19l9 2-9-18-9 18 9-2zm0 0v-8'
+                                  />
+                                </svg>
+                              </button>
                             </div>
                           </div>
-                        ) : (
-                          <PostMessageButton
-                            address={currentAddress}
-                            recipient={selectedWorker as string}
-                            addresses={currentAddresses ?? []}
-                            sessionKeys={currentSessionKeys ?? {}}
-                            job={currentJob}
-                          />
-                        )}
-                      </div>
-                    )}
+                        </div>
+                      ) : (
+                        <PostMessageButton
+                          address={currentAddress}
+                          recipient={
+                            selectedWorker ||
+                            (isJobOpenForWorker
+                              ? currentJob.roles.creator
+                              : selectedWorker)
+                          }
+                          addresses={currentAddresses ?? []}
+                          sessionKeys={currentSessionKeys ?? {}}
+                          job={currentJob}
+                        />
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
