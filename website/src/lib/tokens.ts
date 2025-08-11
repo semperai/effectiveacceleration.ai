@@ -67,12 +67,44 @@ export const formatTokenNameAndAmount = (
   tokenId: string,
   amount: bigint | undefined
 ) => {
-  console.log;
-  const amountBigint =
-    ((amount ?? 0n) * 10000n) /
-    10n ** BigInt(tokensMap[tokenId]?.decimals ?? 0);
-  const amountNumber = Number(amountBigint) / 10000;
-  return `${amountNumber} ${tokensMap[tokenId]?.symbol ?? ''}`;
+  // Ensure we have a valid BigInt value
+  let amountBigInt: bigint;
+
+  if (amount === undefined || amount === null) {
+    amountBigInt = 0n;
+  } else if (typeof amount === 'bigint') {
+    amountBigInt = amount;
+  } else {
+    // If amount is somehow not a bigint (e.g., number or string), convert it
+    try {
+      amountBigInt = BigInt(amount);
+    } catch {
+      console.error(
+        'Invalid amount provided to formatTokenNameAndAmount:',
+        amount
+      );
+      amountBigInt = 0n;
+    }
+  }
+
+  // Get token decimals, default to 18 if token not found
+  const decimals = tokensMap[tokenId]?.decimals ?? 18;
+
+  // Calculate the amount with proper precision
+  // Using 10000n for 4 decimal places of precision in the final display
+  const precisionFactor = 10000n;
+  const divisor = 10n ** BigInt(decimals);
+
+  // Perform calculation entirely in BigInt to avoid mixing types
+  const scaledAmount = (amountBigInt * precisionFactor) / divisor;
+
+  // Convert to number only at the very end for display
+  const amountNumber = Number(scaledAmount) / 10000;
+
+  // Get token symbol
+  const symbol = tokensMap[tokenId]?.symbol ?? 'UNKNOWN';
+
+  return `${amountNumber} ${symbol}`;
 };
 
 export const tokenIcon = (tokenId: string) => {
