@@ -1,9 +1,7 @@
-// src/components/DeliveryTimelineInput/index.tsx
 'use client';
 
 import React, { useState, useRef } from 'react';
 import { AlertCircle, ChevronDown, Clock } from 'lucide-react';
-import moment from 'moment';
 
 interface TimeUnit {
   id: string;
@@ -78,25 +76,6 @@ export const DeliveryTimelineInput: React.FC<DeliveryTimelineInputProps> = ({
   // Parse value to number for calculations
   const numValue = typeof value === 'string' ? parseInt(value, 10) : value;
   const isValidValue = !isNaN(numValue) && numValue > 0;
-
-  // Calculate human-readable duration
-  const getHumanReadableDuration = () => {
-    if (!isValidValue) return null;
-    
-    // Find the actual unit to get the seconds multiplier
-    const unit = timeUnits.find(u => 
-      u.name === selectedUnit.name || 
-      u.plural === selectedUnit.name ||
-      u.id === selectedUnit.id
-    );
-    if (!unit) return null;
-    
-    // Calculate total seconds
-    const totalSeconds = numValue * unit.seconds;
-    return moment.duration(totalSeconds, 'seconds').humanize();
-  };
-
-  const humanReadable = getHumanReadableDuration();
 
   // Get plural or singular form based on current value
   const getUnitLabel = () => {
@@ -255,13 +234,6 @@ export const DeliveryTimelineInput: React.FC<DeliveryTimelineInputProps> = ({
             )}
           </div>
         </div>
-
-        {/* Human readable duration - Always show if valid */}
-        {humanReadable && !displayError && (
-          <div className="text-xs text-gray-500 px-1">
-            Duration: <span className="font-medium text-gray-700">{humanReadable}</span>
-          </div>
-        )}
 
         {/* Error - Only show after interaction */}
         {displayError && (
