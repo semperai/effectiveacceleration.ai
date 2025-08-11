@@ -159,7 +159,7 @@ const ArbitratedEvent: React.FC<ArbitratedEventProps> = ({
             <div className='mt-3 rounded-lg border border-purple-200 bg-purple-50 p-2 dark:border-purple-700 dark:bg-purple-900/20'>
               <p className='text-xs text-purple-700 dark:text-purple-300'>
                 ✓ Dispute has been resolved and funds have been distributed
-                according to the arbitrator's decision
+                according to the arbitrator&apos;s decision
               </p>
             </div>
           </div>

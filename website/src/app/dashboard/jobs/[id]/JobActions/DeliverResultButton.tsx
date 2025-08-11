@@ -25,8 +25,8 @@ import {
 import * as Sentry from '@sentry/nextjs';
 import { ZeroHash } from 'ethers';
 import { Fragment, useCallback, useRef, useState } from 'react';
-import { Textarea } from '../Textarea';
-import { Input } from '../Input';
+import { Textarea } from '@/components/Textarea';
+import { Input } from '@/components/Input';
 
 export type DeliverResultButtonProps = {
   address: string | undefined;

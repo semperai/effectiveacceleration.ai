@@ -5,7 +5,6 @@ import {
   FieldGroup,
   Fieldset,
 } from '@/components/Fieldset';
-import { Textarea } from '@/components/Textarea';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
@@ -15,7 +14,8 @@ import { Dialog, Transition } from '@headlessui/react';
 import { CheckIcon } from '@heroicons/react/20/solid';
 import * as Sentry from '@sentry/nextjs';
 import { Fragment, useState } from 'react';
-import ListBox from '../ListBox';
+import ListBox from '@/components/ListBox';
+import { Textarea } from '@/components/Textarea';
 
 export type ReviewButtonProps = {
   address: string | undefined;

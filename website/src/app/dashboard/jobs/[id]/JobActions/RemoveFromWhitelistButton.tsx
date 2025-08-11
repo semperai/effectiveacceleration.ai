@@ -9,7 +9,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { CheckIcon } from '@heroicons/react/20/solid';
 import * as Sentry from '@sentry/nextjs';
 import { Fragment, useState } from 'react';
-import ListBox from '../ListBox';
+import ListBox from '@/components/ListBox';
 
 export type RemoveFromWhitelistButtonProps = {
   address: string | undefined;

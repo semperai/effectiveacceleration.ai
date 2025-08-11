@@ -25,7 +25,7 @@ import {
 import * as Sentry from '@sentry/nextjs';
 import { getBytes, hexlify } from 'ethers';
 import { Fragment, useState } from 'react';
-import { Textarea } from '../Textarea';
+import { Textarea } from '@/components/Textarea';
 
 export type DisputeButtonProps = {
   address: string | undefined;

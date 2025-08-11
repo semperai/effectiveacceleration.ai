@@ -47,12 +47,12 @@ import {
 } from 'react';
 import { zeroAddress } from 'viem';
 import Image from 'next/image';
-import { Field, Label, Description, FieldGroup } from '../Fieldset';
-import { Input } from '../Input';
-import { Textarea } from '../Textarea';
-import ListBox from '../ListBox';
-import TagsInput from '../TagsInput';
-import { Combobox } from '../ComboBox';
+import { Field, Label, Description, FieldGroup } from '@/components/Fieldset';
+import { Input } from '@/components/Input';
+import { Textarea } from '@/components/Textarea';
+import ListBox from '@/components/ListBox';
+import TagsInput from '@/components/TagsInput';
+import { Combobox } from '@/components/ComboBox';
 
 export type UpdateButtonProps = {
   address: string | undefined;

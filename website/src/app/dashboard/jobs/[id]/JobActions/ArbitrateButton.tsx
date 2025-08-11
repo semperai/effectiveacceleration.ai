@@ -8,9 +8,9 @@ import { Dialog, Transition } from '@headlessui/react';
 import * as Sentry from '@sentry/nextjs';
 import { ZeroHash } from 'ethers';
 import { Fragment, useCallback, useRef, useState } from 'react';
-import { Field, Label } from '../Fieldset';
-import { Input } from '../Input';
-import { Textarea } from '../Textarea';
+import { Field, Label } from '@/components/Fieldset';
+import { Input } from '@/components/Input';
+import { Textarea } from '@/components/Textarea';
 
 export type ArbitrateButtonProps = {
   address: string | undefined;

@@ -20,7 +20,7 @@ import {
 } from 'react-icons/pi';
 import * as Sentry from '@sentry/nextjs';
 import { Fragment, useState } from 'react';
-import { Textarea } from '../Textarea';
+import { Textarea } from '@/components/Textarea';
 
 export type ApproveButtonProps = {
   address: string | undefined;
