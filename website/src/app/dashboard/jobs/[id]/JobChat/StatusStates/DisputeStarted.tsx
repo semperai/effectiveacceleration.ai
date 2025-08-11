@@ -29,14 +29,15 @@ const DisputeStarted: React.FC<DisputeStartedProps> = ({
   // Get arbitrator data
   const arbitratorData = users[job.roles.arbitrator];
   const arbitratorName = arbitratorData?.name || 'Arbitrator';
-  
+
   // Get initials for fallback avatar
-  const arbitratorInitials = arbitratorName
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2) || 'AR';
+  const arbitratorInitials =
+    arbitratorName
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2) || 'AR';
 
   return (
     <div className='my-4 w-full'>

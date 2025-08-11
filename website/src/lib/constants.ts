@@ -29,4 +29,3 @@ export const noYesOptions: { id: string; name: string }[] = [
   { id: 'no', name: 'No' },
   { id: 'yes', name: 'Yes' },
 ];
-

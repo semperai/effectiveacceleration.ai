@@ -129,7 +129,9 @@ export default function TokenButton({
     }
 
     const symbol = selectedToken.symbol;
-    const displayIcon = imageError ? DEFAULT_TOKEN_ICON : (icon || DEFAULT_TOKEN_ICON);
+    const displayIcon = imageError
+      ? DEFAULT_TOKEN_ICON
+      : icon || DEFAULT_TOKEN_ICON;
 
     return (
       <button
@@ -154,7 +156,10 @@ export default function TokenButton({
               onError={() => {
                 setImageError(true);
               }}
-              unoptimized={displayIcon.startsWith('data:') || displayIcon.startsWith('blob:')}
+              unoptimized={
+                displayIcon.startsWith('data:') ||
+                displayIcon.startsWith('blob:')
+              }
             />
           </div>
           <span style={symbolStyle}>{symbol}</span>

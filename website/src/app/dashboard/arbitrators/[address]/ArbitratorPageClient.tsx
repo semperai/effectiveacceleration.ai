@@ -102,7 +102,8 @@ export default function ArbitratorPageClient({
             Arbitrator not found
           </h2>
           <p className='mt-2 text-gray-600 dark:text-gray-400'>
-            The arbitrator with address {formatAddress(address)} could not be found.
+            The arbitrator with address {formatAddress(address)} could not be
+            found.
           </p>
           <Link
             href='/dashboard/arbitrators'
@@ -120,9 +121,7 @@ export default function ArbitratorPageClient({
   const refusedCount = arbitrator.refusedCount || 0;
   const totalCases = settledCount + refusedCount;
   const settlementRate =
-    totalCases > 0
-      ? Math.round((settledCount / totalCases) * 100)
-      : 0;
+    totalCases > 0 ? Math.round((settledCount / totalCases) * 100) : 0;
 
   // Function to share profile
   const handleShare = async () => {
@@ -133,7 +132,11 @@ export default function ArbitratorPageClient({
     };
 
     try {
-      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      if (
+        navigator.share &&
+        navigator.canShare &&
+        navigator.canShare(shareData)
+      ) {
         await navigator.share(shareData);
       } else {
         // Fallback to copying URL
@@ -374,8 +377,8 @@ export default function ArbitratorPageClient({
               <p className='italic text-gray-500 dark:text-gray-400'>
                 No additional information available. This arbitrator will
                 provide dispute resolution services for a fee of{' '}
-                {((arbitrator.fee || 0) / 100).toFixed(2)}% ({arbitrator.fee || 0} basis
-                points) of the dispute amount.
+                {((arbitrator.fee || 0) / 100).toFixed(2)}% (
+                {arbitrator.fee || 0} basis points) of the dispute amount.
               </p>
             )}
           </div>
@@ -448,10 +451,10 @@ export default function ArbitratorPageClient({
                 </h3>
                 <div className='mt-2 text-sm text-blue-700 dark:text-blue-400'>
                   <p>
-                    This arbitrator hasn&apos;t handled any cases yet. They are ready
-                    to provide dispute resolution services for a fee of{' '}
-                    {((arbitrator.fee || 0) / 100).toFixed(2)}% ({arbitrator.fee || 0} basis
-                    points) of the dispute amount.
+                    This arbitrator hasn&apos;t handled any cases yet. They are
+                    ready to provide dispute resolution services for a fee of{' '}
+                    {((arbitrator.fee || 0) / 100).toFixed(2)}% (
+                    {arbitrator.fee || 0} basis points) of the dispute amount.
                   </p>
                 </div>
               </div>

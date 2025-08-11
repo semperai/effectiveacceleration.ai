@@ -38,14 +38,15 @@ const AssignWorker: React.FC<AssignWorkerProps> = ({
   const workerName = workerData?.name || 'Selected Worker';
   const workerRating = 0; // workerData?.rating || 0;
   const workerJobs = workerData?.reputationUp || 0;
-  
+
   // Get initials for fallback avatar
-  const workerInitials = workerName
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2) || 'SW';
+  const workerInitials =
+    workerName
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2) || 'SW';
 
   return (
     <div className='w-full'>

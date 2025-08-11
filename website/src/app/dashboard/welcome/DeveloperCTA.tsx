@@ -94,7 +94,9 @@ export const DeveloperCTA = () => {
                       <span className='text-blue-300'>EACCClient</span>{' '}
                       <span className='text-white'>{`}`}</span>{' '}
                       <span className='text-purple-400'>from</span>{' '}
-                      <span className='text-green-400'>&apos;eacc-ts&apos;</span>
+                      <span className='text-green-400'>
+                        &apos;eacc-ts&apos;
+                      </span>
                       <span className='text-white'>;</span>
                       {'\n'}
                       <span className='text-purple-400'>import</span>{' '}
@@ -134,8 +136,7 @@ export const DeveloperCTA = () => {
                       <span className='text-blue-300'>chainId</span>
                       <span className='text-white'>:</span>{' '}
                       <span className='text-orange-400'>42161</span>
-                      <span className='text-white'>,</span>{' '}
-                      {/* Arbitrum One */}
+                      <span className='text-white'>,</span> {/* Arbitrum One */}
                       {'\n'}
                       <span className='text-white'>{`}`});</span>
                       {'\n'}
@@ -179,7 +180,9 @@ export const DeveloperCTA = () => {
                       <span className='text-white'>,</span>{' '}
                       <span className='text-green-400'>&apos;react&apos;</span>
                       <span className='text-white'>,</span>{' '}
-                      <span className='text-green-400'>&apos;javascript&apos;</span>
+                      <span className='text-green-400'>
+                        &apos;javascript&apos;
+                      </span>
                       <span className='text-white'>],</span>
                       {'\n'}
                       {'  '}

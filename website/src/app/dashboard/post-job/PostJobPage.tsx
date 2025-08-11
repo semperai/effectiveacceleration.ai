@@ -250,8 +250,10 @@ const PostJob = () => {
       // Don't set balance-related errors here anymore
       // Let PaymentInput handle it internally
       // Only clear the error if it was a balance-related error
-      if (paymentTokenError === 'Insufficient balance' || 
-          paymentTokenError === 'Amount exceeds available balance') {
+      if (
+        paymentTokenError === 'Insufficient balance' ||
+        paymentTokenError === 'Amount exceeds available balance'
+      ) {
         setPaymentTokenError('');
       }
     },
@@ -279,22 +281,19 @@ const PostJob = () => {
     setTitleError('');
   }, []);
 
-  const validatePaymentAmount = useCallback(
-    (paymentAmount: string) => {
-      setAmount(paymentAmount);
-      const value = parseFloat(paymentAmount);
+  const validatePaymentAmount = useCallback((paymentAmount: string) => {
+    setAmount(paymentAmount);
+    const value = parseFloat(paymentAmount);
 
-      if (paymentAmount === '' || isNaN(value) || value === 0) {
-        setPaymentTokenError('Please enter a valid amount');
-        return;
-      }
+    if (paymentAmount === '' || isNaN(value) || value === 0) {
+      setPaymentTokenError('Please enter a valid amount');
+      return;
+    }
 
-      // Don't validate balance here - let PaymentInput handle it
-      // This prevents duplicate error messages
-      setPaymentTokenError('');
-    },
-    []
-  );
+    // Don't validate balance here - let PaymentInput handle it
+    // This prevents duplicate error messages
+    setPaymentTokenError('');
+  }, []);
 
   const validateArbitrator = useCallback(
     (addr: string) => {

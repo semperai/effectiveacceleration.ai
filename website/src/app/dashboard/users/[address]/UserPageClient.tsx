@@ -321,8 +321,8 @@ export default function UserPageClient({ address }: UserPageClientProps) {
                 {!user?.bio && (
                   <div className='rounded-lg bg-gray-50 p-6 text-center dark:bg-gray-800'>
                     <p className='text-gray-600 dark:text-gray-400'>
-                      This user hasn&apos;t added a bio yet. Check out their reviews
-                      and completed jobs to learn more about their work.
+                      This user hasn&apos;t added a bio yet. Check out their
+                      reviews and completed jobs to learn more about their work.
                     </p>
                   </div>
                 )}

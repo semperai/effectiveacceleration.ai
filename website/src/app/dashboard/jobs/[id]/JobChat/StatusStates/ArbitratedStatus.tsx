@@ -124,7 +124,8 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
                     Arbitrator&apos;s Decision
                   </h4>
                   <blockquote className='border-l-4 border-blue-500 pl-4 text-sm italic text-gray-700 dark:text-gray-300'>
-                    &quot;{arbitratedEvent?.reason || 'No reason provided'}&quot;
+                    &quot;{arbitratedEvent?.reason || 'No reason provided'}
+                    &quot;
                   </blockquote>
                 </div>
               </div>
@@ -173,12 +174,12 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
                   <span className='text-lg font-bold text-gray-900 dark:text-white'>
                     {formatTokenNameAndAmount(job.token, creatorAmount)}
                   </span>
-                  <Image 
-                    src={tokenIcon(job.token)} 
-                    alt={`${job.token} icon`} 
-                    width={20} 
+                  <Image
+                    src={tokenIcon(job.token)}
+                    alt={`${job.token} icon`}
+                    width={20}
                     height={20}
-                    className='h-5 w-5' 
+                    className='h-5 w-5'
                   />
                 </div>
                 {creatorAmount > BigInt(0) && (
@@ -222,12 +223,12 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
                   <span className='text-lg font-bold text-gray-900 dark:text-white'>
                     {formatTokenNameAndAmount(job.token, workerAmount)}
                   </span>
-                  <Image 
-                    src={tokenIcon(job.token)} 
-                    alt={`${job.token} icon`} 
-                    width={20} 
+                  <Image
+                    src={tokenIcon(job.token)}
+                    alt={`${job.token} icon`}
+                    width={20}
                     height={20}
-                    className='h-5 w-5' 
+                    className='h-5 w-5'
                   />
                 </div>
                 {workerAmount > BigInt(0) && (
@@ -271,12 +272,12 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
                   <span className='text-lg font-bold text-gray-900 dark:text-white'>
                     {formatTokenNameAndAmount(job.token, arbitratorFee)}
                   </span>
-                  <Image 
-                    src={tokenIcon(job.token)} 
-                    alt={`${job.token} icon`} 
-                    width={20} 
+                  <Image
+                    src={tokenIcon(job.token)}
+                    alt={`${job.token} icon`}
+                    width={20}
                     height={20}
-                    className='h-5 w-5' 
+                    className='h-5 w-5'
                   />
                 </div>
                 <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>

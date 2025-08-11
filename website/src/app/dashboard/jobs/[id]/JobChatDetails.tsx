@@ -237,12 +237,12 @@ const JobChatDetails = ({
                 <span className='font-semibold'>
                   {formatTokenNameAndAmount(job.token, job.amount)}
                 </span>
-                <Image 
-                  src={tokenIcon(job.token)} 
-                  alt={`${job.token} icon`} 
-                  width={20} 
+                <Image
+                  src={tokenIcon(job.token)}
+                  alt={`${job.token} icon`}
+                  width={20}
                   height={20}
-                  className='h-5 w-5' 
+                  className='h-5 w-5'
                 />
               </div>
             )

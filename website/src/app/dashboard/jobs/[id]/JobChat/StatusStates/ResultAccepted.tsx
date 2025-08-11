@@ -62,18 +62,19 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
   const workerName = workerData?.name || 'Worker';
 
   // Get initials for fallback avatar
-  const workerInitials = workerName
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2) || 'W';
+  const workerInitials =
+    workerName
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2) || 'W';
 
   // Check if current user is the job creator or worker
   const isJobCreator =
     currentUserAddress &&
     job.roles.creator?.toLowerCase() === currentUserAddress.toLowerCase();
-  
+
   const isWorker =
     currentUserAddress &&
     workerAddress?.toLowerCase() === currentUserAddress.toLowerCase();

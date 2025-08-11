@@ -33,15 +33,12 @@ export default function useJobs(props: UseJobsProps = {}) {
   });
 
   // Always call useMemo
-  const result = useMemo(
-    () => {
-      if (fake) {
-        return { data: FAKE_JOBS_DATA };
-      }
-      return { data: data ? (data?.jobs as Job[]) : undefined, ...rest };
-    },
-    [fake, offset, limit, maxTimestamp, minTimestamp, data, rest]
-  );
+  const result = useMemo(() => {
+    if (fake) {
+      return { data: FAKE_JOBS_DATA };
+    }
+    return { data: data ? (data?.jobs as Job[]) : undefined, ...rest };
+  }, [fake, offset, limit, maxTimestamp, minTimestamp, data, rest]);
 
   return result;
 }

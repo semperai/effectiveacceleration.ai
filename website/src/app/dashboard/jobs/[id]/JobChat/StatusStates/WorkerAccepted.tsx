@@ -40,14 +40,15 @@ const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({
   const creatorData = users[job.roles.creator];
   const workerName = workerData?.name || 'Worker';
   const creatorName = creatorData?.name || 'Creator';
-  
+
   // Get initials for fallback avatars
-  const workerInitials = workerName
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2) || 'W';
+  const workerInitials =
+    workerName
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2) || 'W';
 
   // Calculate time remaining if job is in progress
   const timeRemaining = job.maxTime
@@ -209,10 +210,7 @@ const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({
                       className='group inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300'
                     >
                       {workerData?.avatar ? (
-                        <ProfileImage
-                          user={workerData}
-                          className='h-4 w-4'
-                        />
+                        <ProfileImage user={workerData} className='h-4 w-4' />
                       ) : (
                         <div className='flex h-4 w-4 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500'>
                           <span className='text-[8px] font-bold text-white'>

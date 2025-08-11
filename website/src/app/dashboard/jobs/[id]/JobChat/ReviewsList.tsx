@@ -84,8 +84,8 @@ export function ReviewsList({
         {!reviews || reviews.length === 0 ? (
           <div className='flex h-48 items-center justify-center'>
             <span className='text-md text-center font-semibold'>
-              <b className='text-primary'>{selectedUser?.name}</b> doesn&apos;t have
-              previous reviews
+              <b className='text-primary'>{selectedUser?.name}</b> doesn&apos;t
+              have previous reviews
             </span>
           </div>
         ) : (
