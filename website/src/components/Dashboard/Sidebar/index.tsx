@@ -41,12 +41,14 @@ const navigationItems = [
     icon: <PiBriefcase className='h-5 w-5' />,
     target: '_self',
   },
+  /*
   {
     name: 'Social Program',
     href: '/dashboard/social-program',
     icon: <PiTrendUp className='h-5 w-5' />,
     target: '_self',
   },
+  */
   {
     name: 'Docs',
     href: 'https://docs.effectiveacceleration.ai',
