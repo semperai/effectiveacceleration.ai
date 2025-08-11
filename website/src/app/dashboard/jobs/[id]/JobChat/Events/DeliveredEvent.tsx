@@ -11,7 +11,6 @@ import {
 } from '@effectiveacceleration/contracts';
 import {
   PiPackage,
-  PiArrowRight,
   PiCheckCircle,
   PiFile,
   PiCaretDown,
@@ -70,14 +69,14 @@ const DeliveredEvent: React.FC<DeliveredEventProps> = ({
 
   return (
     <>
-      <div className='relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 shadow-lg'>
-        <PiPackage className='h-5 w-5 text-white' />
-        <div className='absolute -bottom-1 -right-1 rounded-full bg-green-500 p-1'>
-          <PiCheckCircle className='h-3 w-3 text-white' />
+      <div className='relative flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 shadow-lg sm:h-10 sm:w-10'>
+        <PiPackage className='h-4 w-4 text-white sm:h-5 sm:w-5' />
+        <div className='absolute -bottom-1 -right-1 rounded-full bg-green-500 p-0.5 sm:p-1'>
+          <PiCheckCircle className='h-2.5 w-2.5 text-white sm:h-3 sm:w-3' />
         </div>
       </div>
 
-      <div className='min-w-0 flex-1'>
+      <div className='ml-3 min-w-0 flex-1 sm:ml-4'>
         <div>
           <div className='text-sm text-gray-900 dark:text-gray-100'>
             {isCurrentUser ? (
@@ -87,10 +86,9 @@ const DeliveredEvent: React.FC<DeliveredEventProps> = ({
             ) : (
               <Link
                 href={`/dashboard/users/${workerAddress}`}
-                className='group inline-flex items-center gap-1 font-semibold text-gray-900 transition-colors hover:text-blue-600 dark:text-gray-100 dark:hover:text-blue-400'
+                className='font-semibold text-gray-900 transition-colors hover:text-blue-600 dark:text-gray-100 dark:hover:text-blue-400'
               >
                 {workerName}
-                <PiArrowRight className='h-3 w-3 transform opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100' />
               </Link>
             )}
             <span className='ml-1 text-gray-600 dark:text-gray-400'>
@@ -99,11 +97,11 @@ const DeliveredEvent: React.FC<DeliveredEventProps> = ({
           </div>
 
           {/* Delivery Card */}
-          <div className='mt-3 rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-purple-50 p-4 dark:border-blue-800 dark:from-blue-950/20 dark:to-purple-950/20'>
+          <div className='mt-3 rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-purple-50 p-3 sm:p-4 dark:border-blue-800 dark:from-blue-950/20 dark:to-purple-950/20'>
             <div className='mb-3 flex items-center justify-between'>
               <div className='flex items-center gap-2'>
-                <PiSparkle className='h-5 w-5 text-blue-600 dark:text-blue-400' />
-                <h4 className='text-sm font-semibold text-gray-900 dark:text-white'>
+                <PiSparkle className='h-4 w-4 text-blue-600 sm:h-5 sm:w-5 dark:text-blue-400' />
+                <h4 className='text-xs font-semibold text-gray-900 sm:text-sm dark:text-white'>
                   Work Submitted
                 </h4>
               </div>
@@ -114,17 +112,17 @@ const DeliveredEvent: React.FC<DeliveredEventProps> = ({
 
             {/* Delivery Message/Result */}
             {formattedResult && (
-              <div className='rounded-lg bg-white p-3 dark:bg-gray-800/50'>
+              <div className='rounded-lg bg-white p-2 sm:p-3 dark:bg-gray-800/50'>
                 <div className='prose prose-sm dark:prose-invert max-w-none'>
-                  <Markdown className='text-gray-700 dark:text-gray-300'>
+                  <Markdown className='text-xs text-gray-700 sm:text-sm dark:text-gray-300'>
                     {displayContent || 'Work has been delivered'}
                   </Markdown>
                 </div>
 
                 {/* File Indicator */}
                 {isFormatted && (
-                  <div className='mt-3 inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 dark:border-blue-700 dark:bg-blue-900/20'>
-                    <PiFile className='h-4 w-4 text-blue-600 dark:text-blue-400' />
+                  <div className='mt-3 inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-2 py-1 sm:px-3 sm:py-1.5 dark:border-blue-700 dark:bg-blue-900/20'>
+                    <PiFile className='h-3.5 w-3.5 text-blue-600 sm:h-4 sm:w-4 dark:text-blue-400' />
                     <span className='text-xs text-blue-700 dark:text-blue-300'>
                       Deliverable file attached
                     </span>
@@ -162,11 +160,11 @@ const DeliveredEvent: React.FC<DeliveredEventProps> = ({
                 {worker?.avatar ? (
                   <ProfileImage
                     user={worker}
-                    className='h-5 w-5 rounded-full'
+                    className='h-4 w-4 rounded-full sm:h-5 sm:w-5'
                   />
                 ) : (
-                  <div className='flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500'>
-                    <PiUser className='h-3 w-3 text-white' />
+                  <div className='flex h-4 w-4 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 sm:h-5 sm:w-5'>
+                    <PiUser className='h-2.5 w-2.5 text-white sm:h-3 sm:w-3' />
                   </div>
                 )}
                 <Link
@@ -187,7 +185,7 @@ const DeliveredEvent: React.FC<DeliveredEventProps> = ({
           {event.job?.resultHash &&
             event.job.resultHash !==
               '0x0000000000000000000000000000000000000000000000000000000000000000' && (
-              <div className='mt-2 flex items-center gap-2 text-xs'>
+              <div className='mt-2 flex flex-wrap items-center gap-2 text-xs'>
                 <span className='text-gray-500 dark:text-gray-400'>
                   Result Hash:
                 </span>

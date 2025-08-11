@@ -7,12 +7,7 @@ import {
   type User,
   type Job,
 } from '@effectiveacceleration/contracts';
-import {
-  PiProhibit,
-  PiArrowRight,
-  PiShieldWarning,
-  PiUser,
-} from 'react-icons/pi';
+import { PiProhibit, PiShieldWarning, PiUser } from 'react-icons/pi';
 
 interface RefusedArbitrationEventProps {
   event: JobEventWithDiffs;
@@ -40,14 +35,14 @@ const RefusedArbitrationEvent: React.FC<RefusedArbitrationEventProps> = ({
 
   return (
     <>
-      <div className='relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-red-500 shadow-lg'>
-        <PiProhibit className='h-5 w-5 text-white' />
-        <div className='absolute -bottom-1 -right-1 rounded-full bg-orange-600 p-1'>
-          <PiShieldWarning className='h-3 w-3 text-white' />
+      <div className='relative flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-red-500 shadow-lg sm:h-10 sm:w-10'>
+        <PiProhibit className='h-4 w-4 text-white sm:h-5 sm:w-5' />
+        <div className='absolute -bottom-1 -right-1 rounded-full bg-orange-600 p-0.5 sm:p-1'>
+          <PiShieldWarning className='h-2.5 w-2.5 text-white sm:h-3 sm:w-3' />
         </div>
       </div>
 
-      <div className='min-w-0 flex-1'>
+      <div className='ml-3 min-w-0 flex-1 sm:ml-4'>
         <div>
           <div className='text-sm text-gray-900 dark:text-gray-100'>
             {isCurrentUser ? (
@@ -57,13 +52,12 @@ const RefusedArbitrationEvent: React.FC<RefusedArbitrationEventProps> = ({
             ) : arbitrator ? (
               <Link
                 href={`/dashboard/arbitrators/${arbitratorAddress}`}
-                className='group inline-flex items-center gap-1 font-semibold text-gray-900 transition-colors hover:text-orange-600 dark:text-gray-100 dark:hover:text-orange-400'
+                className='font-semibold text-gray-900 transition-colors hover:text-orange-600 dark:text-gray-100 dark:hover:text-orange-400'
               >
                 {arbitratorName}
                 <span className='ml-1 rounded bg-orange-100 px-1.5 py-0.5 text-xs text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'>
                   Arbitrator
                 </span>
-                <PiArrowRight className='h-3 w-3 transform opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100' />
               </Link>
             ) : (
               <span className='font-semibold text-gray-900 dark:text-gray-100'>
@@ -76,7 +70,7 @@ const RefusedArbitrationEvent: React.FC<RefusedArbitrationEventProps> = ({
           </div>
 
           {/* Refusal Notice */}
-          <div className='mt-2 rounded-lg border border-orange-200 bg-orange-50 p-3 dark:border-orange-700 dark:bg-orange-900/20'>
+          <div className='mt-2 rounded-lg border border-orange-200 bg-orange-50 p-2 sm:p-3 dark:border-orange-700 dark:bg-orange-900/20'>
             <p className='text-xs text-orange-700 dark:text-orange-300'>
               The arbitrator has declined to handle this dispute. A new
               arbitrator may need to be assigned.

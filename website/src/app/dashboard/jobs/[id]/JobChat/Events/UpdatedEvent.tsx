@@ -8,13 +8,7 @@ import {
   type User,
   type Job,
 } from '@effectiveacceleration/contracts';
-import {
-  PiPencil,
-  PiArrowRight,
-  PiUser,
-  PiCaretDown,
-  PiCaretUp,
-} from 'react-icons/pi';
+import { PiPencil, PiUser, PiCaretDown, PiCaretUp } from 'react-icons/pi';
 
 interface UpdatedEventProps {
   event: JobEventWithDiffs;
@@ -36,7 +30,7 @@ const UpdatedEvent: React.FC<UpdatedEventProps> = ({
   const creatorName = creator?.name || 'Job Creator';
 
   // Check if current user is the creator
-  const isCurrentUser = currentUser?.address_ === creatorAddress;
+  const isCurrentUser = currentUser?.address === creatorAddress;
 
   // Show only first 3 diffs when collapsed
   const displayedDiffs = isExpanded ? event.diffs : event.diffs.slice(0, 3);
@@ -44,11 +38,11 @@ const UpdatedEvent: React.FC<UpdatedEventProps> = ({
 
   return (
     <>
-      <div className='relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 shadow-lg'>
-        <PiPencil className='h-5 w-5 text-white' />
+      <div className='relative flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 shadow-lg sm:h-10 sm:w-10'>
+        <PiPencil className='h-4 w-4 text-white sm:h-5 sm:w-5' />
       </div>
 
-      <div className='min-w-0 flex-1'>
+      <div className='ml-3 min-w-0 flex-1 sm:ml-4'>
         <div>
           <div className='text-sm text-gray-900 dark:text-gray-100'>
             {isCurrentUser ? (
@@ -58,10 +52,9 @@ const UpdatedEvent: React.FC<UpdatedEventProps> = ({
             ) : (
               <Link
                 href={`/dashboard/users/${creatorAddress}`}
-                className='group inline-flex items-center gap-1 font-semibold text-gray-900 transition-colors hover:text-blue-600 dark:text-gray-100 dark:hover:text-blue-400'
+                className='font-semibold text-gray-900 transition-colors hover:text-blue-600 dark:text-gray-100 dark:hover:text-blue-400'
               >
                 {creatorName}
-                <PiArrowRight className='h-3 w-3 transform opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100' />
               </Link>
             )}
             <span className='ml-1 text-gray-600 dark:text-gray-400'>
@@ -71,7 +64,7 @@ const UpdatedEvent: React.FC<UpdatedEventProps> = ({
 
           {/* Changes Card */}
           {event.diffs.length > 0 && (
-            <div className='mt-3 rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-4 dark:border-blue-800 dark:from-blue-950/20 dark:to-indigo-950/20'>
+            <div className='mt-3 rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-3 sm:p-4 dark:border-blue-800 dark:from-blue-950/20 dark:to-indigo-950/20'>
               <div className='mb-2 text-xs font-medium text-gray-700 dark:text-gray-300'>
                 Changes made:
               </div>
@@ -82,7 +75,7 @@ const UpdatedEvent: React.FC<UpdatedEventProps> = ({
                     <span className='text-xs font-medium text-gray-600 dark:text-gray-400'>
                       {diff.field}:
                     </span>
-                    <div className='flex items-center gap-2'>
+                    <div className='flex flex-wrap items-center gap-2'>
                       {diff.oldValue && (
                         <>
                           <Badge color='red' className='text-xs'>

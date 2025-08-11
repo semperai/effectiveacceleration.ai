@@ -8,13 +8,7 @@ import {
   type User,
   type Job,
 } from '@effectiveacceleration/contracts';
-import {
-  PiStar,
-  PiStarFill,
-  PiArrowRight,
-  PiUser,
-  PiChatCircle,
-} from 'react-icons/pi';
+import { PiStar, PiStarFill, PiUser, PiChatCircle } from 'react-icons/pi';
 
 interface RatedEventProps {
   event: JobEventWithDiffs;
@@ -49,11 +43,14 @@ const RatedEvent: React.FC<RatedEventProps> = ({
       <div className='flex items-center gap-0.5'>
         {[...Array(5)].map((_, i) =>
           i < rating ? (
-            <PiStarFill key={i} className='h-4 w-4 text-yellow-500' />
+            <PiStarFill
+              key={i}
+              className='h-3.5 w-3.5 text-yellow-500 sm:h-4 sm:w-4'
+            />
           ) : (
             <PiStar
               key={i}
-              className='h-4 w-4 text-gray-300 dark:text-gray-600'
+              className='h-3.5 w-3.5 text-gray-300 sm:h-4 sm:w-4 dark:text-gray-600'
             />
           )
         )}
@@ -63,11 +60,11 @@ const RatedEvent: React.FC<RatedEventProps> = ({
 
   return (
     <>
-      <div className='relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-yellow-500 to-amber-500 shadow-lg'>
-        <PiStarFill className='h-5 w-5 text-white' />
+      <div className='relative flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-yellow-500 to-amber-500 shadow-lg sm:h-10 sm:w-10'>
+        <PiStarFill className='h-4 w-4 text-white sm:h-5 sm:w-5' />
       </div>
 
-      <div className='min-w-0 flex-1'>
+      <div className='ml-3 min-w-0 flex-1 sm:ml-4'>
         <div>
           <div className='text-sm text-gray-900 dark:text-gray-100'>
             {isCurrentUser ? (
@@ -77,10 +74,9 @@ const RatedEvent: React.FC<RatedEventProps> = ({
             ) : (
               <Link
                 href={`/dashboard/users/${creatorAddress}`}
-                className='group inline-flex items-center gap-1 font-semibold text-gray-900 transition-colors hover:text-yellow-600 dark:text-gray-100 dark:hover:text-yellow-400'
+                className='font-semibold text-gray-900 transition-colors hover:text-yellow-600 dark:text-gray-100 dark:hover:text-yellow-400'
               >
                 {creatorName}
-                <PiArrowRight className='h-3 w-3 transform opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100' />
               </Link>
             )}
             <span className='ml-1 text-gray-600 dark:text-gray-400'>
@@ -97,26 +93,24 @@ const RatedEvent: React.FC<RatedEventProps> = ({
           </div>
 
           {/* Rating Card */}
-          <div className='mt-3 rounded-xl border border-yellow-200 bg-gradient-to-br from-yellow-50 to-amber-50 p-4 dark:border-yellow-800 dark:from-yellow-950/20 dark:to-amber-950/20'>
-            <div className='flex items-center justify-between'>
-              <div className='flex items-center gap-3'>
-                {renderStars(details.rating)}
-                <span className='text-sm font-semibold text-gray-900 dark:text-white'>
-                  {details.rating}.0 / 5.0
-                </span>
-              </div>
+          <div className='mt-3 rounded-xl border border-yellow-200 bg-gradient-to-br from-yellow-50 to-amber-50 p-3 sm:p-4 dark:border-yellow-800 dark:from-yellow-950/20 dark:to-amber-950/20'>
+            <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3'>
+              {renderStars(details.rating)}
+              <span className='text-xs font-semibold text-gray-900 sm:text-sm dark:text-white'>
+                {details.rating}.0 / 5.0
+              </span>
             </div>
 
             {/* Review Text */}
             {details.review && (
-              <div className='mt-3 rounded-lg bg-white p-3 dark:bg-gray-800/50'>
+              <div className='mt-3 rounded-lg bg-white p-2 sm:p-3 dark:bg-gray-800/50'>
                 <div className='mb-2 flex items-center gap-2'>
-                  <PiChatCircle className='h-4 w-4 text-gray-500 dark:text-gray-400' />
+                  <PiChatCircle className='h-3.5 w-3.5 text-gray-500 sm:h-4 sm:w-4 dark:text-gray-400' />
                   <span className='text-xs font-medium text-gray-700 dark:text-gray-300'>
                     Review
                   </span>
                 </div>
-                <p className='text-sm text-gray-700 dark:text-gray-300'>
+                <p className='text-xs text-gray-700 sm:text-sm dark:text-gray-300'>
                   {details.review}
                 </p>
               </div>
@@ -132,11 +126,11 @@ const RatedEvent: React.FC<RatedEventProps> = ({
                   {worker.avatar ? (
                     <ProfileImage
                       user={worker}
-                      className='h-5 w-5 rounded-full'
+                      className='h-4 w-4 rounded-full sm:h-5 sm:w-5'
                     />
                   ) : (
-                    <div className='flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500'>
-                      <PiUser className='h-3 w-3 text-white' />
+                    <div className='flex h-4 w-4 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 sm:h-5 sm:w-5'>
+                      <PiUser className='h-2.5 w-2.5 text-white sm:h-3 sm:w-3' />
                     </div>
                   )}
                   <Link

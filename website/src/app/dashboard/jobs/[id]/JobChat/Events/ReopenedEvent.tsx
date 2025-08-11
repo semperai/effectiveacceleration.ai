@@ -7,7 +7,7 @@ import {
   type User,
   type Job,
 } from '@effectiveacceleration/contracts';
-import { PiArrowCounterClockwise, PiArrowRight, PiUser } from 'react-icons/pi';
+import { PiArrowCounterClockwise, PiUser } from 'react-icons/pi';
 
 interface ReopenedEventProps {
   event: JobEventWithDiffs;
@@ -31,11 +31,11 @@ const ReopenedEvent: React.FC<ReopenedEventProps> = ({
 
   return (
     <>
-      <div className='relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 shadow-lg'>
-        <PiArrowCounterClockwise className='h-5 w-5 text-white' />
+      <div className='relative flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 shadow-lg sm:h-10 sm:w-10'>
+        <PiArrowCounterClockwise className='h-4 w-4 text-white sm:h-5 sm:w-5' />
       </div>
 
-      <div className='min-w-0 flex-1'>
+      <div className='ml-3 min-w-0 flex-1 sm:ml-4'>
         <div>
           <div className='text-sm text-gray-900 dark:text-gray-100'>
             {isCurrentUser ? (
@@ -45,10 +45,9 @@ const ReopenedEvent: React.FC<ReopenedEventProps> = ({
             ) : (
               <Link
                 href={`/dashboard/users/${creatorAddress}`}
-                className='group inline-flex items-center gap-1 font-semibold text-gray-900 transition-colors hover:text-blue-600 dark:text-gray-100 dark:hover:text-blue-400'
+                className='font-semibold text-gray-900 transition-colors hover:text-blue-600 dark:text-gray-100 dark:hover:text-blue-400'
               >
                 {creatorName}
-                <PiArrowRight className='h-3 w-3 transform opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100' />
               </Link>
             )}
             <span className='ml-1 text-gray-600 dark:text-gray-400'>
@@ -57,7 +56,7 @@ const ReopenedEvent: React.FC<ReopenedEventProps> = ({
           </div>
 
           {/* Reopened Notice */}
-          <div className='mt-2 rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-700 dark:bg-blue-900/20'>
+          <div className='mt-2 rounded-lg border border-blue-200 bg-blue-50 p-2 sm:p-3 dark:border-blue-700 dark:bg-blue-900/20'>
             <p className='text-xs text-blue-700 dark:text-blue-300'>
               This job is now open again and accepting new applications.
             </p>

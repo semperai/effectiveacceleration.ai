@@ -32,7 +32,7 @@ interface ResultVerificationProps {
   users: Record<string, User>;
   selectedWorker: string;
   events: JobEventWithDiffs[];
-  address: string;
+  address: string | undefined;
   sessionKeys?: Record<string, string>;
   addresses?: string[];
   currentUser?: User | null;

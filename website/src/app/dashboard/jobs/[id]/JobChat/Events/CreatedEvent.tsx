@@ -7,7 +7,7 @@ import {
   type User,
   type Job,
 } from '@effectiveacceleration/contracts';
-import { PiSparkle, PiArrowRight } from 'react-icons/pi';
+import { PiSparkle } from 'react-icons/pi';
 
 interface CreatedEventProps {
   event: JobEventWithDiffs;
@@ -32,18 +32,18 @@ const CreatedEvent: React.FC<CreatedEventProps> = ({
 
   return (
     <>
-      <div className='relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 shadow-lg'>
+      <div className='relative flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 shadow-lg sm:h-10 sm:w-10'>
         {creator?.avatar ? (
           <ProfileImage
             user={creator}
-            className='h-10 w-10 rounded-full border-2 border-white'
+            className='h-8 w-8 rounded-full border-2 border-white sm:h-10 sm:w-10'
           />
         ) : (
-          <PiSparkle className='h-5 w-5 text-white' />
+          <PiSparkle className='h-4 w-4 text-white sm:h-5 sm:w-5' />
         )}
       </div>
 
-      <div className='min-w-0 flex-1'>
+      <div className='ml-3 min-w-0 flex-1 sm:ml-4'>
         <div>
           <div className='text-sm text-gray-900 dark:text-gray-100'>
             {isCurrentUser ? (
@@ -53,10 +53,9 @@ const CreatedEvent: React.FC<CreatedEventProps> = ({
             ) : (
               <Link
                 href={`/dashboard/users/${creatorAddress}`}
-                className='group inline-flex items-center gap-1 font-semibold text-gray-900 transition-colors hover:text-blue-600 dark:text-gray-100 dark:hover:text-blue-400'
+                className='font-semibold text-gray-900 transition-colors hover:text-blue-600 dark:text-gray-100 dark:hover:text-blue-400'
               >
                 {creatorName}
-                <PiArrowRight className='h-3 w-3 transform opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100' />
               </Link>
             )}
             <span className='ml-1 text-gray-600 dark:text-gray-400'>
@@ -66,8 +65,8 @@ const CreatedEvent: React.FC<CreatedEventProps> = ({
 
           {/* Job Title */}
           {job && (
-            <div className='mt-2 rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 p-3 dark:from-blue-950/20 dark:to-purple-950/20'>
-              <h4 className='text-sm font-semibold text-gray-900 dark:text-white'>
+            <div className='mt-2 rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 p-2 sm:p-3 dark:from-blue-950/20 dark:to-purple-950/20'>
+              <h4 className='text-xs font-semibold text-gray-900 sm:text-sm dark:text-white'>
                 {job.title}
               </h4>
               {job.content && (
@@ -82,7 +81,10 @@ const CreatedEvent: React.FC<CreatedEventProps> = ({
           {event.diffs && event.diffs.length > 0 && (
             <div className='mt-2 space-y-1'>
               {event.diffs.map((diff, index) => (
-                <div key={index} className='flex items-center gap-2 text-xs'>
+                <div
+                  key={index}
+                  className='flex flex-wrap items-center gap-2 text-xs'
+                >
                   <span className='text-gray-500 dark:text-gray-400'>
                     {diff.field}:
                   </span>
@@ -99,7 +101,7 @@ const CreatedEvent: React.FC<CreatedEventProps> = ({
           )}
         </div>
 
-        <div className='mt-2 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400'>
+        <div className='mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-500 sm:gap-3 dark:text-gray-400'>
           <span>{moment(event.timestamp_ * 1000).fromNow()}</span>
           {job && job.tags && job.tags.length > 0 && (
             <>

@@ -9,7 +9,7 @@ import {
   type Job,
   JobEventType,
 } from '@effectiveacceleration/contracts';
-import { PiInfo, PiArrowRight, PiUser } from 'react-icons/pi';
+import { PiInfo, PiUser } from 'react-icons/pi';
 
 interface DefaultEventProps {
   event: JobEventWithDiffs;
@@ -36,11 +36,11 @@ const DefaultEvent: React.FC<DefaultEventProps> = ({
 
   return (
     <>
-      <div className='relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-gray-500 to-gray-600 shadow-lg'>
-        <PiInfo className='h-5 w-5 text-white' />
+      <div className='relative flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-gray-500 to-gray-600 shadow-lg sm:h-10 sm:w-10'>
+        <PiInfo className='h-4 w-4 text-white sm:h-5 sm:w-5' />
       </div>
 
-      <div className='min-w-0 flex-1'>
+      <div className='ml-3 min-w-0 flex-1 sm:ml-4'>
         <div>
           <div className='text-sm text-gray-900 dark:text-gray-100'>
             {isCurrentUser ? (
@@ -50,10 +50,9 @@ const DefaultEvent: React.FC<DefaultEventProps> = ({
             ) : user ? (
               <Link
                 href={`/dashboard/users/${userAddress}`}
-                className='group inline-flex items-center gap-1 font-semibold text-gray-900 transition-colors hover:text-gray-600 dark:text-gray-100 dark:hover:text-gray-400'
+                className='font-semibold text-gray-900 transition-colors hover:text-gray-600 dark:text-gray-100 dark:hover:text-gray-400'
               >
                 {userName}
-                <PiArrowRight className='h-3 w-3 transform opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100' />
               </Link>
             ) : (
               <span className='font-semibold text-gray-900 dark:text-gray-100'>
@@ -69,7 +68,10 @@ const DefaultEvent: React.FC<DefaultEventProps> = ({
           {event.diffs && event.diffs.length > 0 && (
             <div className='mt-2 space-y-1'>
               {event.diffs.map((diff, index) => (
-                <div key={index} className='flex items-center gap-2 text-xs'>
+                <div
+                  key={index}
+                  className='flex flex-wrap items-center gap-2 text-xs'
+                >
                   <span className='text-gray-500 dark:text-gray-400'>
                     {diff.field}:
                   </span>
@@ -92,7 +94,7 @@ const DefaultEvent: React.FC<DefaultEventProps> = ({
           {/* Show event details if available */}
           {event.details && (
             <div className='mt-2 rounded-lg bg-gray-50 p-2 dark:bg-gray-800'>
-              <pre className='text-xs text-gray-600 dark:text-gray-400'>
+              <pre className='overflow-x-auto text-xs text-gray-600 dark:text-gray-400'>
                 {JSON.stringify(event.details, null, 2)}
               </pre>
             </div>
