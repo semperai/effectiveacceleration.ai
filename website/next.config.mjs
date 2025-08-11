@@ -1,3 +1,4 @@
+// next.config.mjs
 import { withSentryConfig } from '@sentry/nextjs';
 import withSerwistInit from '@serwist/next';
 
@@ -10,6 +11,12 @@ const withSerwist = withSerwistInit({
 const nextConfig = {
   reactStrictMode: true,
   pageExtensions: ['js', 'jsx', 'ts', 'tsx'],
+  
+  // Add experimental instrumentation hook for new Sentry setup
+  experimental: {
+    instrumentationHook: true,
+  },
+  
   webpack: (config) => {
     config.externals.push('pino-pretty', 'lokijs', 'encoding');
     return config;
@@ -25,11 +32,38 @@ const nextConfig = {
     ];
   },
   images: {
-    domains: [
-      'images.unsplash.com',
-      'localhost',
-      'eacc-staging.pat.mn',
-      'ipfs.effectiveacceleration.ai',
+    // Updated from domains to remotePatterns for better security
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'localhost',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'eacc-staging.pat.mn',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'ipfs.effectiveacceleration.ai',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };
