@@ -8,10 +8,6 @@ import useJobEventsWithDiffs from '@/hooks/subsquid/useJobEventsWithDiffs';
 import useUser from '@/hooks/subsquid/useUser';
 import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
 import { tokenIcon } from '@/tokens';
-import {
-  LOCAL_JOBS_OWNER_CACHE,
-  LOCAL_JOBS_WORKER_CACHE,
-} from '@/utils/constants';
 import { jobMeceTags } from '@/utils/jobMeceTags';
 import {
   type Job,
@@ -86,8 +82,6 @@ export default function JobPageClient({ id }: JobPageClientProps) {
   const [selectedWorker, setSelectedWorker] = useState<string>('');
   const [eventMessages, setEventMessages] = useState(events);
   const { data: user } = useUser(address!);
-  const workerJobCache = `${address}${LOCAL_JOBS_WORKER_CACHE}`;
-  const ownerJobCache = `${address}${LOCAL_JOBS_OWNER_CACHE}`;
   const prevJobRef = useRef<Job | undefined>(undefined);
 
   useSwResetMessage(jobId);
