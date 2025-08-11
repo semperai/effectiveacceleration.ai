@@ -26,10 +26,10 @@ import moment from 'moment';
 import { useEffect, useRef, useState } from 'react';
 import { zeroAddress, zeroHash } from 'viem';
 import { useAccount } from 'wagmi';
-import JobChatEvents from './Components/JobChat/JobChatEvents';
-import JobChatsList from './Components/JobChatsList';
-import JobSidebar from './Components/JobSidebar';
-import OpenJobMobileMenu from './Components/JobChat/OpenJobMobileMenu';
+import JobChatEvents from './JobChat/JobChatEvents';
+import JobChatsList from './JobChatsList';
+import JobSidebar from './JobSidebar';
+import OpenJobMobileMenu from './JobChat/OpenJobMobileMenu';
 import { useSwResetMessage } from '@/hooks/useSwResetMessage';
 
 const JobPostSkeleton = () => {
