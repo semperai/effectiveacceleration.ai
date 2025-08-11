@@ -6,7 +6,6 @@ import '@fontsource/plus-jakarta-sans/500.css';
 import '@fontsource/plus-jakarta-sans/600.css';
 import '@fontsource/plus-jakarta-sans/700.css';
 import { Providers } from '@/app/providers';
-import '@/styles/tailwind.css';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import type { Metadata, Viewport } from 'next';
 import { ToastProvider } from '@/providers/ToastProvider';

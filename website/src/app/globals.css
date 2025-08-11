@@ -1,128 +1,428 @@
+/* Tailwind Directives */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-  --sidebar-width-desktop: 17vw;
-  --layout-width-nosidebar-desktop: 83vw;
+/* Base Layer - Global CSS Variables and Resets */
+@layer base {
+  :root {
+    /* Layout Variables */
+    --sidebar-width-desktop: 17vw;
+    --layout-width-nosidebar-desktop: 83vw;
+    
+    /* Border Radius */
+    --radius: 0.5rem;
+    
+    /* Legacy Variables (consider removing if unused) */
+    --foreground-rgb: 0, 0, 0;
+    --background-start-rgb: 214, 219, 220;
+    --background-end-rgb: 255, 255, 255;
+  }
+
+  /* Global Typography Defaults */
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+
+  html, body, #__next {
+    height: 100%;
+  }
+
+  /* Heading Styles */
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-blueGrayTitles;
+  }
+
+  /* Default span color */
+  span {
+    @apply text-darkBlueFont;
+  }
 }
 
-body {
-  font-family: 'Plus Jakarta Sans';
+/* Components Layer - Reusable Component Styles */
+@layer components {
+  /* Typography Component */
+  .typography {
+    /* Light Mode Variables */
+    --typography-body: theme(colors.gray.600);
+    --typography-headings: theme(colors.gray.900);
+    --typography-quotes: theme(colors.gray.500);
+    --typography-quotes-border: theme(colors.gray.200);
+    --typography-links: theme(colors.sky.500);
+    --typography-link-hover: theme(colors.sky.600);
+    --typography-link-underline: theme(colors.sky.400 / 0.4);
+    --typography-link-hover-underline: theme(colors.sky.600 / 0.4);
+    --typography-pre: theme(colors.gray.300);
+    --typography-pre-shadow: theme(boxShadow.md);
+    --typography-bold: theme(colors.gray.900);
+    --typography-kbd: theme(colors.gray.600);
+    --typography-kbd-border: theme(colors.gray.200);
+    --typography-kbd-bg: theme(colors.gray.50);
+    --typography-code: theme(colors.gray.900);
+    --typography-hr: theme(colors.gray.900 / 0.05);
+    --typography-th-borders: theme(colors.gray.900 / 0.2);
+    --typography-td-borders: theme(colors.gray.900 / 0.05);
+
+    /* Syntax Highlighting Variables */
+    --shiki-color-text: theme(colors.white);
+    --shiki-token-constant: theme(colors.emerald.300);
+    --shiki-token-string: theme(colors.emerald.300);
+    --shiki-token-comment: theme(colors.gray.500);
+    --shiki-token-keyword: theme(colors.sky.300);
+    --shiki-token-parameter: theme(colors.pink.300);
+    --shiki-token-function: theme(colors.violet.300);
+    --shiki-token-string-expression: theme(colors.emerald.300);
+    --shiki-token-punctuation: theme(colors.gray.200);
+
+    color: var(--typography-body);
+    font-size: theme(fontSize.sm);
+    line-height: theme(lineHeight.6);
+  }
+
+  /* Dark Mode Typography Variables */
+  .dark .typography {
+    --typography-body: theme(colors.gray.300);
+    --typography-headings: theme(colors.white);
+    --typography-quotes: theme(colors.gray.400);
+    --typography-quotes-border: theme(colors.gray.800);
+    --typography-links: theme(colors.sky.400);
+    --typography-link-hover: theme(colors.white);
+    --typography-link-underline: theme(colors.sky.400 / 0.4);
+    --typography-link-hover-underline: theme(colors.white / 0.4);
+    --typography-pre: theme(colors.gray.400);
+    --typography-pre-shadow: inset 0 0 0 1px theme(colors.white / 0.1);
+    --typography-bold: theme(colors.white);
+    --typography-kbd: theme(colors.white);
+    --typography-kbd-border: theme(colors.gray.800);
+    --typography-kbd-bg: theme(colors.gray.900);
+    --typography-code: theme(colors.white);
+    --typography-hr: theme(colors.white / 0.1);
+    --typography-th-borders: theme(colors.white / 0.1);
+    --typography-td-borders: theme(colors.white / 0.05);
+  }
+
+  /* Typography Heading Styles */
+  .typography h2 {
+    font-family: theme(fontFamily.display);
+    color: var(--typography-headings);
+    font-weight: theme(fontWeight.semibold);
+    font-size: theme(fontSize.xl);
+    line-height: theme(lineHeight.8);
+  }
+
+  .typography h3 {
+    color: var(--typography-headings);
+    font-family: theme(fontFamily.display);
+    font-weight: theme(fontWeight.semibold);
+    font-size: theme(fontSize.base);
+    line-height: theme(lineHeight.6);
+    display: flex;
+    align-items: center;
+    column-gap: theme(gap.3);
+  }
+
+  .typography h3 > svg {
+    flex: none;
+    width: theme(width.4);
+    height: theme(height.4);
+  }
+
+  .typography h4 {
+    color: var(--typography-headings);
+    font-family: theme(fontFamily.display);
+    font-weight: theme(fontWeight.semibold);
+    font-size: theme(fontSize.sm);
+    line-height: theme(lineHeight.6);
+  }
+
+  /* Typography Block Elements */
+  .typography blockquote {
+    border-left: 3px solid var(--typography-quotes-border);
+    padding-left: theme(padding.6);
+    color: var(--typography-quotes);
+  }
+
+  /* Typography Links */
+  .typography a:not(h2 a) {
+    font-weight: theme(fontWeight.semibold);
+    color: var(--typography-links);
+    text-decoration: underline;
+    text-decoration-color: var(--typography-link-underline);
+    text-underline-offset: theme(textUnderlineOffset.2);
+    transition-property: color, text-decoration-color;
+    transition-duration: theme(transitionDuration.DEFAULT);
+    transition-timing-function: theme(transitionTimingFunction.DEFAULT);
+  }
+
+  .typography a:not(h2 a):hover {
+    color: var(--typography-link-hover);
+    text-decoration-color: var(--typography-link-hover-underline);
+  }
+
+  /* Typography Inline Elements */
+  .typography strong {
+    font-weight: theme(fontWeight.semibold);
+  }
+
+  .typography strong:not(a strong) {
+    color: var(--typography-bold);
+  }
+
+  .typography kbd {
+    display: inline-block;
+    border-radius: theme(borderRadius.DEFAULT);
+    background-color: var(--typography-kbd-bg);
+    padding: 0 theme(padding[1.5]);
+    font-family: theme(fontFamily.mono);
+    font-size: theme(fontSize.xs);
+    font-weight: 400;
+    line-height: theme(lineHeight.5);
+    color: var(--typography-kbd);
+    box-shadow: inset 0 0 0 1px var(--typography-kbd-border);
+  }
+
+  .typography code {
+    font-family: theme(fontFamily.mono);
+  }
+
+  .typography code:not(a code, pre code) {
+    color: var(--typography-code);
+  }
+
+  .typography code:not(pre code) {
+    font-size: calc(12 / 14 * 1em);
+    line-height: theme(lineHeight.none);
+    font-weight: theme(fontWeight.bold);
+  }
+
+  .typography code:not(pre code)::before {
+    content: '`';
+  }
+
+  .typography code:not(pre code)::after {
+    content: '`';
+  }
+
+  /* Typography Code Blocks */
+  .typography pre {
+    display: flex;
+    background-color: theme(colors.gray.900);
+    border-radius: theme(borderRadius.lg);
+    overflow-x: auto;
+    box-shadow: var(--typography-pre-shadow);
+  }
+
+  .typography pre code {
+    flex: none;
+    padding: theme(padding.6);
+    font-size: 0.8125rem;
+    line-height: theme(lineHeight.6);
+    color: var(--typography-pre);
+  }
+
+  /* Typography Horizontal Rule */
+  .typography hr {
+    border-color: var(--typography-hr);
+  }
+
+  /* Typography Lists */
+  .typography ul,
+  .typography ol {
+    padding-left: 1.375rem;
+  }
+
+  .typography ul {
+    list-style-type: disc;
+  }
+
+  .typography ol {
+    list-style-type: decimal;
+  }
+
+  .typography li {
+    padding-left: 0.625rem;
+  }
+
+  .typography li::marker {
+    color: theme(colors.gray.400);
+  }
+
+  .typography ol > li::marker {
+    font-size: theme(fontSize.xs);
+    font-weight: theme(fontWeight.semibold);
+  }
+
+  /* Typography Tables */
+  .typography table {
+    width: theme(width.full);
+    text-align: left;
+  }
+
+  .typography thead {
+    border-bottom: 1px solid var(--typography-th-borders);
+  }
+
+  .typography thead th {
+    font-weight: theme(fontWeight.semibold);
+    padding-top: 0;
+    padding-bottom: calc(theme(padding.2) - 1px);
+    color: var(--typography-headings);
+  }
+
+  .typography tbody tr {
+    border-bottom: 1px solid var(--typography-td-borders);
+  }
+
+  .typography tbody td {
+    padding-top: calc(theme(padding.2) - 1px);
+    padding-bottom: theme(padding.2);
+  }
+
+  .typography :is(th, td):first-child {
+    padding-left: 0;
+    padding-right: theme(padding.2);
+  }
+
+  .typography :is(th, td):last-child {
+    padding-left: theme(padding.2);
+    padding-right: 0;
+  }
+
+  .typography :is(th, td):not(:first-child, :last-child) {
+    padding-left: theme(padding.2);
+    padding-right: theme(padding.2);
+  }
+
+  /* Typography Spacing */
+  .typography > * {
+    margin-top: theme(margin.6);
+  }
+
+  .typography :is(h2, h3, h4, blockquote, pre, table) {
+    margin-top: theme(margin.8);
+  }
+
+  .typography hr {
+    margin-top: calc(theme(margin.16) - 1px);
+  }
+
+  .typography li {
+    margin-top: theme(margin.4);
+  }
+
+  .typography li > :is(p, ol, ul) {
+    margin-top: theme(margin.4);
+  }
+
+  .typography :is(h2, h3, h4) + * {
+    margin-top: theme(margin.4);
+  }
+
+  .typography :is(blockquote, pre, table) + * {
+    margin-top: theme(margin.8);
+  }
+
+  .typography hr + * {
+    margin-top: theme(margin.16);
+  }
+
+  .typography > :first-child,
+  .typography li > :first-child {
+    margin-top: 0;
+  }
+
+  /* Form Label Styles */
+  [data-slot='label'] {
+    @apply font-bold;
+  }
+
+  /* Download Markdown Styles */
+  .download-markdown strong {
+    @apply text-primary;
+  }
+
+  .download-markdown strong:hover {
+    @apply text-darkBlueFont;
+  }
 }
 
+/* Utilities Layer - Custom Utilities */
 @layer utilities {
+  /* Text Balance (Note: Built into Tailwind 3.4+, can be removed) */
   .text-balance {
     text-wrap: balance;
   }
-}
 
-[data-slot='label'] {
-  @apply font-bold;
-}
+  /* Layout Utilities */
+  .sidebarWidth {
+    @media screen and (min-width: 1024px) {
+      width: var(--sidebar-width-desktop) !important;
+    }
+  }
 
+  .layoutWidthDesktop {
+    @media screen and (min-width: 1024px) {
+      width: 100%;
+      padding-left: var(--sidebar-width-desktop);
+    }
+  }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  @apply text-blueGrayTitles;
-}
+  .formStepsWidth {
+    @media screen and (min-width: 1024px) {
+      max-width: calc(100vw - (var(--sidebar-width-desktop) + 1vw));
+      scrollbar-gutter: stable both-edges;
+    }
+  }
 
-span {
-  @apply text-darkBlueFont;
-}
+  /* Custom Scrollbar Styles */
+  .notifications-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
 
-@layer base {
-  :root {
-    --radius: 0.5rem;
+  .notifications-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .notifications-scroll::-webkit-scrollbar-thumb {
+    background-color: rgb(203 213 225);
+    border-radius: 3px;
+  }
+
+  .notifications-scroll::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(148 163 184);
+  }
+
+  /* Dark Mode Scrollbar */
+  .dark .notifications-scroll::-webkit-scrollbar-thumb {
+    background-color: rgb(71 85 105);
+  }
+
+  .dark .notifications-scroll::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(100 116 139);
+  }
+
+  /* Firefox Scrollbar */
+  .notifications-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(203 213 225) transparent;
+  }
+
+  .dark .notifications-scroll {
+    scrollbar-color: rgb(71 85 105) transparent;
+  }
+
+  /* Shimmer Animation */
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s infinite;
   }
 }
 
-/* Styles for download  */
-.download-markdown strong {
-  @apply text-primary;
-}
-
-.download-markdown strong:hover {
-  @apply text-darkBlueFont;
-}
-
-html, body, #__next {
-  height: 100%;
-}
-
-.sidebarWidth {
-  @media screen and (min-width: 1024px) {
-    width: var(--sidebar-width-desktop) !important;
-  }
-}
-
-.layoutWidthDesktop {
-  @media screen and (min-width: 1024px) {
-    width: 100%;
-    padding-left: var(--sidebar-width-desktop);
-  }
-}
-
-.formStepsWidth {
-  @media screen and (min-width: 1024px) {
-    /* new post-job slider width */
-    max-width: calc(100vw - (var(--sidebar-width-desktop) + 1vw));
-    scrollbar-gutter: stable both-edges;
-  }
-}
-
-/* Custom scrollbar for notifications */
-.notifications-scroll::-webkit-scrollbar {
-  width: 6px;
-}
-
-.notifications-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.notifications-scroll::-webkit-scrollbar-thumb {
-  background-color: rgb(203 213 225);
-  border-radius: 3px;
-}
-
-.notifications-scroll::-webkit-scrollbar-thumb:hover {
-  background-color: rgb(148 163 184);
-}
-
-/* Dark mode */
-.dark .notifications-scroll::-webkit-scrollbar-thumb {
-  background-color: rgb(71 85 105);
-}
-
-.dark .notifications-scroll::-webkit-scrollbar-thumb:hover {
-  background-color: rgb(100 116 139);
-}
-
-/* Firefox */
-.notifications-scroll {
-  scrollbar-width: thin;
-  scrollbar-color: rgb(203 213 225) transparent;
-}
-
-.dark .notifications-scroll {
-  scrollbar-color: rgb(71 85 105) transparent;
-}
-
-@keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-.animate-shimmer {
-  animation: shimmer 2s infinite;
-}
-
+/* Vendor-Specific Styles (Consider moving to component) */
 #sentry-feedback > button {
   transform: translateY(-140px);
 }

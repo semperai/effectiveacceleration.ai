@@ -31,7 +31,6 @@ export default {
   			softbluelight: '#E7EDF4',
   			blueGrayTitles: '#28303F',
   			darkBlueFont: '#475569',
-  			red: '#FF0000',
   			graybg: '#FAFAFA',
 			lightPrimary: '#e0e2f7',
   		},
