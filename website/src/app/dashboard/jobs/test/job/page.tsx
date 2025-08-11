@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { Layout } from '@/components/Dashboard/Layout';
-// Updated imports for the refactored components
 import JobChatEvents from '@/app/dashboard/jobs/[id]/JobChat/JobChatEvents';
 import JobChatsList from '@/app/dashboard/jobs/[id]/JobChatsList';
 import JobSidebar from '@/app/dashboard/jobs/[id]/JobSidebar';
@@ -190,14 +189,13 @@ const createScenarioEvents = (scenario: string): JobEventWithDiffs[] => {
       return [
         ...baseEvents,
         createMockEvent(JobEventType.WorkerMessage, mockWorkerAddress, {
-          message:
-            "Hi! I'm interested in this job. I have 5 years of experience.",
-          sender: mockWorkerAddress,
+          contentHash: '0x' + '0'.repeat(64), // Mock hash
+          content: "Hi! I'm interested in this job. I have 5 years of experience.",
           recipientAddress: mockAddress,
         } as JobMessageEvent),
         createMockEvent(JobEventType.OwnerMessage, mockAddress, {
-          message: 'Great! Can you share your portfolio?',
-          sender: mockAddress,
+          contentHash: '0x' + '0'.repeat(64), // Mock hash
+          content: 'Great! Can you share your portfolio?',
           recipientAddress: mockWorkerAddress,
         } as JobMessageEvent),
       ];
@@ -214,9 +212,8 @@ const createScenarioEvents = (scenario: string): JobEventWithDiffs[] => {
           },
         ]),
         createMockEvent(JobEventType.WorkerMessage, mockWorkerAddress, {
-          message:
-            "I've started working on the dashboard. Will update you soon!",
-          sender: mockWorkerAddress,
+          contentHash: '0x' + '0'.repeat(64), // Mock hash
+          content: "I've started working on the dashboard. Will update you soon!",
           recipientAddress: mockAddress,
         } as JobMessageEvent),
       ];
@@ -276,7 +273,9 @@ const createScenarioEvents = (scenario: string): JobEventWithDiffs[] => {
           JobEventType.Disputed,
           mockAddress,
           {
-            reason: 'The delivered work is incomplete.',
+            encryptedSessionKey: '0x' + '1'.repeat(64), // Mock encrypted session key
+            encryptedContent: '0x' + '2'.repeat(64), // Mock encrypted content
+            content: 'The delivered work is incomplete.', // Optional decrypted content
           } as JobDisputedEvent,
           [{ field: 'disputed', oldValue: false, newValue: true }]
         ),
