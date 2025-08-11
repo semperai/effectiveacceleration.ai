@@ -114,15 +114,18 @@ export function RemoveFromWhitelistButton({
                   </Dialog.Title>
                   <div className='mb-3 mt-5 flex flex-col gap-5'>
                     <ListBox
-                        placeholder='Select Time Units'
-                        value={selectedUserAddress}
-                        onChange={(address) => {
-                          if (typeof address !== 'string') {
-                            setSelectedUserAddress(address.id);
-                          }
-                        }}
-                        options={userList.map(unit => ({ id: unit.address_, name: unit.name }))}
-                      />
+                      placeholder='Select Time Units'
+                      value={selectedUserAddress}
+                      onChange={(address) => {
+                        if (typeof address !== 'string') {
+                          setSelectedUserAddress(address.id);
+                        }
+                      }}
+                      options={userList.map((unit) => ({
+                        id: unit.address_,
+                        name: unit.name,
+                      }))}
+                    />
                     <Button disabled={isRemoving} onClick={handleRemove}>
                       <CheckIcon
                         className='-ml-0.5 mr-1.5 h-5 w-5'

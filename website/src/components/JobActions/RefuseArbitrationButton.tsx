@@ -10,7 +10,6 @@ import { Loader2 } from 'lucide-react';
 import { useState, Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 
-
 export type RefuseArbitrationButtonProps = {
   job: Job;
 };
@@ -68,7 +67,7 @@ export function RefuseArbitrationButton({
         )}
         {buttonText}
       </Button>
-    <Transition appear show={isOpen} as={Fragment}>
+      <Transition appear show={isOpen} as={Fragment}>
         <Dialog as='div' className='relative z-50' onClose={closeModal}>
           <Transition.Child
             as={Fragment}
@@ -101,14 +100,15 @@ export function RefuseArbitrationButton({
                     Refuse Arbitration
                   </Dialog.Title>
                   <div>
-                  <span>
-                    If you refuse this arbitration, the job will be unassigned and the funds will be returned to the client. <br/>
-                  </span>
-                  <Button
+                    <span>
+                      If you refuse this arbitration, the job will be unassigned
+                      and the funds will be returned to the client. <br />
+                    </span>
+                    <Button
                       disabled={isRefusing}
                       onClick={handleRefuse}
                       color={'borderlessGray'}
-                      className={'w-full mt-4'}
+                      className={'mt-4 w-full'}
                     >
                       {(isRefusing || isConfirming) && (
                         <Loader2 className='mr-2 h-4 w-4 animate-spin' />

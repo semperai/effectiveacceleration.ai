@@ -25,7 +25,7 @@ export type ReviewButtonProps = {
 const ratingOptions = [
   { id: '5', name: '5 stars - No issues' },
   { id: '4', name: '4 stars - Minor issues' },
-  { id: '3', name: '3 stars - Lot\'s of issues' },
+  { id: '3', name: "3 stars - Lot's of issues" },
   { id: '2', name: '2 stars - Severe problems' },
   { id: '1', name: '1 stars - Malicious or criminal' },
   { id: '0', name: 'Abstain from rating' },

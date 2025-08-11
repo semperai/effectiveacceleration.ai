@@ -1,6 +1,12 @@
 /* eslint-disable @next/next/no-img-element */
 
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from 'react';
 import ReactDOM from 'react-dom';
 import Link from 'next/link';
 import { ethers } from 'ethers';
@@ -51,12 +57,14 @@ const ERC20_ABI = [
 // Type definitions for FavoriteTokenChip props
 interface FavoriteTokenChipProps {
   token: IArbitrumToken;
-  balance: {
-    decimals: number;
-    formatted: string;
-    symbol: string;
-    value: bigint;
-  } | undefined;
+  balance:
+    | {
+        decimals: number;
+        formatted: string;
+        symbol: string;
+        value: bigint;
+      }
+    | undefined;
   isSelected: boolean;
   onSelect: () => void;
   onRemove: () => void;
@@ -64,13 +72,15 @@ interface FavoriteTokenChipProps {
 
 // Type for token balances map
 interface TokenBalances {
-  [address: string]: {
-    decimals: number;
-    formatted: string;
-    symbol: string;
-    value: bigint;
-    timestamp?: number;
-  } | undefined;
+  [address: string]:
+    | {
+        decimals: number;
+        formatted: string;
+        symbol: string;
+        value: bigint;
+        timestamp?: number;
+      }
+    | undefined;
 }
 
 // Debounce hook
@@ -91,10 +101,15 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 
 // Inject keyframe animations and icon styles
-if (typeof document !== 'undefined' && !document.getElementById('token-dialog-animations')) {
+if (
+  typeof document !== 'undefined' &&
+  !document.getElementById('token-dialog-animations')
+) {
   const style = document.createElement('style');
   style.id = 'token-dialog-animations';
-  style.innerHTML = keyframes + `
+  style.innerHTML =
+    keyframes +
+    `
     .token-dialog-icon-wrapper svg {
       width: 100% !important;
       height: 100% !important;
@@ -104,35 +119,42 @@ if (typeof document !== 'undefined' && !document.getElementById('token-dialog-an
 }
 
 // Hook to fetch multiple token balances using multicall with caching
-const useMultipleTokenBalances = (tokens: IArbitrumToken[], enabled: boolean = true) => {
+const useMultipleTokenBalances = (
+  tokens: IArbitrumToken[],
+  enabled: boolean = true
+) => {
   const { address: userAddress } = useAccount();
   const [cachedBalances, setCachedBalances] = useState<TokenBalances>({});
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Create a stable key for caching based on token addresses
-  const cacheKey = useMemo(() => 
-    tokens.map(t => t.address.toLowerCase()).sort().join(','),
+  const cacheKey = useMemo(
+    () =>
+      tokens
+        .map((t) => t.address.toLowerCase())
+        .sort()
+        .join(','),
     [tokens]
   );
-  
+
   // Prepare contract calls for all tokens
   const contracts = useMemo(() => {
     if (!userAddress || tokens.length === 0) return [];
-    
-    return tokens.flatMap(token => {
+
+    return tokens.flatMap((token) => {
       // Validate token address
       if (!token.address || !ethers.isAddress(token.address)) {
         return [];
       }
-      
+
       const tokenAddr = token.address.toLowerCase();
-      
+
       // Check if we have a recent cached balance (within 30 seconds)
       const cached = cachedBalances[tokenAddr];
       if (cached && cached.timestamp && Date.now() - cached.timestamp < 30000) {
         return [];
       }
-      
+
       return [
         {
           address: token.address as `0x${string}`,
@@ -144,12 +166,16 @@ const useMultipleTokenBalances = (tokens: IArbitrumToken[], enabled: boolean = t
           address: token.address as `0x${string}`,
           abi: ERC20_ABI,
           functionName: 'decimals' as const,
-        }
+        },
       ];
     });
   }, [tokens, userAddress, cacheKey]);
 
-  const { data, isLoading: contractsLoading, error } = useReadContracts({
+  const {
+    data,
+    isLoading: contractsLoading,
+    error,
+  } = useReadContracts({
     contracts,
     query: {
       enabled: enabled && !!userAddress && contracts.length > 0,
@@ -163,31 +189,38 @@ const useMultipleTokenBalances = (tokens: IArbitrumToken[], enabled: boolean = t
     if (data && userAddress && contracts.length > 0) {
       const newBalances: TokenBalances = { ...cachedBalances };
       let contractIndex = 0;
-      
+
       tokens.forEach((token) => {
         if (!token.address || !ethers.isAddress(token.address)) {
           return;
         }
-        
+
         const tokenAddr = token.address.toLowerCase();
-        
+
         // Skip if we have cached data
         const cached = cachedBalances[tokenAddr];
-        if (cached && cached.timestamp && Date.now() - cached.timestamp < 30000) {
+        if (
+          cached &&
+          cached.timestamp &&
+          Date.now() - cached.timestamp < 30000
+        ) {
           return;
         }
-        
+
         const balanceIndex = contractIndex * 2;
         const decimalsIndex = contractIndex * 2 + 1;
-        
+
         if (balanceIndex < data.length && decimalsIndex < data.length) {
           const balanceResult = data[balanceIndex];
           const decimalsResult = data[decimalsIndex];
-          
-          if (balanceResult?.status === 'success' && decimalsResult?.status === 'success') {
+
+          if (
+            balanceResult?.status === 'success' &&
+            decimalsResult?.status === 'success'
+          ) {
             const value = balanceResult.result as bigint;
             const decimals = decimalsResult.result as number;
-            
+
             newBalances[tokenAddr] = {
               value,
               decimals,
@@ -199,7 +232,7 @@ const useMultipleTokenBalances = (tokens: IArbitrumToken[], enabled: boolean = t
         }
         contractIndex++;
       });
-      
+
       setCachedBalances(newBalances);
     }
   }, [data, userAddress, tokens, contracts.length]);
@@ -207,14 +240,14 @@ const useMultipleTokenBalances = (tokens: IArbitrumToken[], enabled: boolean = t
   // Merge cached and fresh balances
   const balances: TokenBalances = useMemo(() => {
     const result: TokenBalances = {};
-    
-    tokens.forEach(token => {
+
+    tokens.forEach((token) => {
       if (token.address && ethers.isAddress(token.address)) {
         const tokenAddr = token.address.toLowerCase();
         result[tokenAddr] = cachedBalances[tokenAddr];
       }
     });
-    
+
     return result;
   }, [tokens, cachedBalances]);
 
@@ -241,14 +274,14 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
   const [selectedToken, setSelectedToken] = useState<IArbitrumToken>(
     initiallySelectedToken
   );
-  
+
   // Initialize favorite tokens with validation
   const [favoriteTokens, setFavoriteTokens] = useState<IArbitrumToken[]>(() => {
     const cached = storage.get('PREFERRED_TOKENS');
     if (cached && Array.isArray(cached)) {
       // Validate cached tokens have proper addresses
-      const validCached = cached.filter(token => 
-        token && token.address && ethers.isAddress(token.address)
+      const validCached = cached.filter(
+        (token) => token && token.address && ethers.isAddress(token.address)
       );
       if (validCached.length > 0) {
         return validCached;
@@ -257,7 +290,7 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
     // Return empty array - will be initialized from tokensList
     return [];
   });
-  
+
   const [filteredTokens, setFilteredTokens] = useState<IArbitrumToken[]>();
   const [customTokens, setCustomTokens] = useState<IArbitrumToken[]>(
     storage.get('CUSTOM_TOKENS') || []
@@ -267,7 +300,9 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
   const [provider, setProvider] = useState<ethers.Provider | null>(null);
   const [isLoadingToken, setIsLoadingToken] = useState(false);
   const [tokenLoadError, setTokenLoadError] = useState<string>('');
-  const [hoveredStates, setHoveredStates] = useState<{ [key: string]: boolean }>({});
+  const [hoveredStates, setHoveredStates] = useState<{
+    [key: string]: boolean;
+  }>({});
   const [isMobile, setIsMobile] = useState(false);
   const [showAddToken, setShowAddToken] = useState(false);
   const publicClient = usePublicClient();
@@ -316,10 +351,13 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
   }, []);
 
   const setHovered = (key: string, value: boolean) => {
-    setHoveredStates(prev => ({ ...prev, [key]: value }));
+    setHoveredStates((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleSelectToken = (token: IArbitrumToken, event: React.MouseEvent) => {
+  const handleSelectToken = (
+    token: IArbitrumToken,
+    event: React.MouseEvent
+  ) => {
     event.stopPropagation();
 
     const target = event.target as HTMLElement;
@@ -330,9 +368,11 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
       // Get the balance for this token from the appropriate balance map
       let tokenBalance;
       const tokenAddr = token.address?.toLowerCase();
-      
+
       // Check if it's a favorite token first (already have balance)
-      const favoriteBalance = tokenAddr ? favoriteTokenBalances[tokenAddr] : undefined;
+      const favoriteBalance = tokenAddr
+        ? favoriteTokenBalances[tokenAddr]
+        : undefined;
       if (favoriteBalance) {
         tokenBalance = favoriteBalance;
       } else {
@@ -343,7 +383,7 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
       // Create token with balance
       const tokenWithBalance: IArbitrumTokenWithBalance = {
         ...token,
-        balance: tokenBalance
+        balance: tokenBalance,
       };
 
       setSelectedToken(token);
@@ -351,12 +391,12 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
       if (persistSelection) {
         storage.set('LAST_TOKEN_SELECTED', token);
       }
-      
+
       // Pass balance to parent if callback provided
       if (onBalanceReceived) {
         onBalanceReceived(tokenBalance?.formatted);
       }
-      
+
       closeCallback(tokenWithBalance);
     }
   };
@@ -370,18 +410,19 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
     }
 
     const existingToken = [...tokensList, ...customTokens].find(
-      t => t.address.toLowerCase() === searchValue.toLowerCase()
+      (t) => t.address.toLowerCase() === searchValue.toLowerCase()
     );
 
     if (existingToken) {
       // Get balance for existing token
       const tokenAddr = existingToken.address.toLowerCase();
-      const tokenBalance = favoriteTokenBalances[tokenAddr] || searchTokenBalances[tokenAddr];
-      
+      const tokenBalance =
+        favoriteTokenBalances[tokenAddr] || searchTokenBalances[tokenAddr];
+
       // Create token with balance
       const tokenWithBalance: IArbitrumTokenWithBalance = {
         ...existingToken,
-        balance: tokenBalance
+        balance: tokenBalance,
       };
 
       // Select the token to highlight it
@@ -392,8 +433,16 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
       }
 
       // Auto-add to favorites if not already there
-      if (!favoriteTokens.find(t => t.address.toLowerCase() === existingToken.address.toLowerCase())) {
-        const newFavorites = uniqueBy('address', [...favoriteTokens, existingToken], 'symbol');
+      if (
+        !favoriteTokens.find(
+          (t) => t.address.toLowerCase() === existingToken.address.toLowerCase()
+        )
+      ) {
+        const newFavorites = uniqueBy(
+          'address',
+          [...favoriteTokens, existingToken],
+          'symbol'
+        );
         setFavoriteTokens(newFavorites);
         storage.set('PREFERRED_TOKENS', newFavorites);
       }
@@ -453,16 +502,20 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
       }
 
       // Auto-add to favorites and save to localStorage
-      const newFavorites = uniqueBy('address', [...favoriteTokens, tokenMetadata], 'symbol');
+      const newFavorites = uniqueBy(
+        'address',
+        [...favoriteTokens, tokenMetadata],
+        'symbol'
+      );
       setFavoriteTokens(newFavorites);
       storage.set('PREFERRED_TOKENS', newFavorites);
 
       // Select the token to highlight it (without balance initially)
       const tokenWithBalance: IArbitrumTokenWithBalance = {
         ...tokenMetadata,
-        balance: undefined // New token won't have balance yet
+        balance: undefined, // New token won't have balance yet
       };
-      
+
       setSelectedToken(tokenMetadata);
       // Save last selected token to localStorage only if persistence is enabled
       if (persistSelection) {
@@ -480,7 +533,6 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
       if (onBalanceReceived) {
         onBalanceReceived(undefined);
       }
-
     } catch (error) {
       console.error('Error adding custom token:', error);
       setTokenLoadError('Failed to add token. Please check the address.');
@@ -492,13 +544,13 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
   const addFavoriteTokens = (token: IArbitrumToken) => {
     // Check if token already exists in favorites (case-insensitive)
     const exists = favoriteTokens.some(
-      t => t.address.toLowerCase() === token.address.toLowerCase()
+      (t) => t.address.toLowerCase() === token.address.toLowerCase()
     );
-    
+
     if (exists) {
       return;
     }
-    
+
     const newList = uniqueBy('address', [...favoriteTokens, token], 'symbol');
     updateFavoriteTokens(newList);
   };
@@ -516,25 +568,25 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
   const removeCustomToken = (token: IArbitrumToken) => {
     // Remove from custom tokens
     const newCustomTokens = customTokens.filter(
-      t => t.address.toLowerCase() !== token.address.toLowerCase()
+      (t) => t.address.toLowerCase() !== token.address.toLowerCase()
     );
     setCustomTokens(newCustomTokens);
     storage.set('CUSTOM_TOKENS', newCustomTokens);
-    
+
     // Also remove from favorites if present
     const newFavorites = favoriteTokens.filter(
-      t => t.address.toLowerCase() !== token.address.toLowerCase()
+      (t) => t.address.toLowerCase() !== token.address.toLowerCase()
     );
     if (newFavorites.length !== favoriteTokens.length) {
       setFavoriteTokens(newFavorites);
       storage.set('PREFERRED_TOKENS', newFavorites);
     }
-    
+
     // Update filtered tokens - FIXED: recreate the list without the removed token
     if (filteredTokens) {
       // Rebuild the filtered tokens list from tokensList and the updated customTokens
       const allTokens = [...tokensList, ...newCustomTokens];
-      
+
       // Apply the same filtering logic if there's a search value
       const _value = searchValue.toLowerCase();
       if (_value !== '') {
@@ -580,22 +632,25 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
     const itemHeight = 60;
     const containerHeight = t.clientHeight;
     const scrollTop = t.scrollTop;
-    
+
     // Calculate which items are actually visible in the viewport
     const start = Math.floor(scrollTop / itemHeight);
     const visibleCount = Math.ceil(containerHeight / itemHeight) + 1; // Add 1 for partial visibility
     const end = start + visibleCount;
-    
+
     // Add buffer for smooth scrolling (load a few items before and after)
     const bufferSize = 5;
     const bufferedStart = Math.max(0, start - bufferSize);
     const bufferedEnd = Math.min(filteredTokens?.length || 0, end + bufferSize);
-    
+
     setVisibleRange({ start: bufferedStart, end: bufferedEnd });
   };
 
   // Helper function to convert Token to IArbitrumToken
-  const convertTokenToArbitrumToken = (token: Token, chainId: number): IArbitrumToken => {
+  const convertTokenToArbitrumToken = (
+    token: Token,
+    chainId: number
+  ): IArbitrumToken => {
     return {
       address: token.id,
       name: token.name,
@@ -610,20 +665,20 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
   // Get default favorite tokens from @/tokens
   const getDefaultFavoriteTokens = (): IArbitrumToken[] => {
     // Convert app tokens to IArbitrumToken format
-    const defaultTokens = appTokens.map(token => 
-      convertTokenToArbitrumToken(token, 42161) // Using Arbitrum chainId
+    const defaultTokens = appTokens.map(
+      (token) => convertTokenToArbitrumToken(token, 42161) // Using Arbitrum chainId
     );
-    
+
     // Find these tokens in the tokensList to ensure they exist
-    const matchedTokens = defaultTokens.map(defaultToken => {
+    const matchedTokens = defaultTokens.map((defaultToken) => {
       const found = tokensList.find(
-        t => t.address.toLowerCase() === defaultToken.address.toLowerCase()
+        (t) => t.address.toLowerCase() === defaultToken.address.toLowerCase()
       );
       return found || defaultToken;
     });
-    
-    return matchedTokens.filter(token => 
-      token.address && ethers.isAddress(token.address)
+
+    return matchedTokens.filter(
+      (token) => token.address && ethers.isAddress(token.address)
     );
   };
 
@@ -632,20 +687,20 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
     // Clear localStorage
     storage.remove('PREFERRED_TOKENS');
     storage.remove('CUSTOM_TOKENS');
-    
+
     // Reset custom tokens state
     setCustomTokens([]);
-    
+
     // Reset to default favorite tokens from @/tokens
     const defaultTokens = getDefaultFavoriteTokens();
     setFavoriteTokens(defaultTokens);
     // Save the reset state
     storage.set('PREFERRED_TOKENS', defaultTokens);
-    
+
     // Update filtered tokens to remove custom tokens
     const allTokens = [...tokensList]; // Only tokensList, no custom tokens
     setFilteredTokens(allTokens);
-    
+
     // Clear search
     setSearchValue('');
   };
@@ -654,7 +709,9 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
     const getProvider = async () => {
       try {
         if ((window as any).ethereum) {
-          const browserProvider = new ethers.BrowserProvider((window as any).ethereum);
+          const browserProvider = new ethers.BrowserProvider(
+            (window as any).ethereum
+          );
           setProvider(browserProvider);
         }
       } catch (error) {
@@ -672,7 +729,7 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
     const cached = storage.get('PREFERRED_TOKENS');
     if (!favoriteTokens?.length && !cached && tokensList?.length > 0) {
       const defaultTokens = getDefaultFavoriteTokens();
-      
+
       if (defaultTokens.length > 0) {
         setFavoriteTokens(defaultTokens);
         storage.set('PREFERRED_TOKENS', defaultTokens);
@@ -690,7 +747,7 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
     const checkIfAddressAndShow = async () => {
       if (ethers.isAddress(debouncedSearchValue)) {
         const existingToken = [...tokensList, ...customTokens].find(
-          t => t.address.toLowerCase() === debouncedSearchValue.toLowerCase()
+          (t) => t.address.toLowerCase() === debouncedSearchValue.toLowerCase()
         );
 
         setShowAddToken(!existingToken);
@@ -711,7 +768,7 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
     const _value = `${debouncedSearchValue}`.toLowerCase();
 
     let resultList: IArbitrumToken[] = [];
-    
+
     if (_value !== '') {
       for (const token of list) {
         const _searchText =
@@ -724,7 +781,7 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
     } else {
       resultList = list;
     }
-    
+
     // Sort tokens alphabetically by name
     resultList.sort((a, b) => {
       // Handle edge cases where name might be undefined
@@ -732,9 +789,9 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
       const nameB = (b.name || b.symbol || '').toLowerCase();
       return nameA.localeCompare(nameB);
     });
-    
+
     setFilteredTokens(resultList);
-    
+
     // Reset visible range when search changes - start with more items visible
     setVisibleRange({ start: 0, end: 20 });
   }, [debouncedSearchValue, tokensList, customTokens]);
@@ -774,7 +831,9 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
   };
 
   // Create portal container
-  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
+  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(
+    null
+  );
 
   useEffect(() => {
     // Create or get portal root
@@ -796,18 +855,20 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
 
   // The modal content
   const modalContent = (
-    <div 
+    <div
       style={mergeStyles(
         styles.overlay,
         isMobile ? mobileStyles.overlay : undefined
-      )} 
+      )}
       onClick={() => {
         // When closing by clicking overlay, pass the currently selected token with its balance
         const tokenAddr = selectedToken.address?.toLowerCase();
-        const tokenBalance = tokenAddr ? (favoriteTokenBalances[tokenAddr] || searchTokenBalances[tokenAddr]) : undefined;
+        const tokenBalance = tokenAddr
+          ? favoriteTokenBalances[tokenAddr] || searchTokenBalances[tokenAddr]
+          : undefined;
         const tokenWithBalance: IArbitrumTokenWithBalance = {
           ...selectedToken,
-          balance: tokenBalance
+          balance: tokenBalance,
         };
         closeCallback(tokenWithBalance);
       }}
@@ -825,38 +886,47 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
 
         {/* Header */}
         <div style={styles.header}>
-          <h2 style={styles.headerTitle}>
-            Select a Token
-          </h2>
+          <h2 style={styles.headerTitle}>Select a Token</h2>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             {favoriteTokens?.length > 0 && (
               <button
-                style={mergeStyles(
-                  {
-                    ...styles.closeButton,
-                    fontSize: '12px',
-                    padding: '6px 10px',
-                    borderRadius: '6px',
-                    background: hoveredStates.resetButton ? 'rgba(239, 68, 68, 0.1)' : 'transparent',
-                    color: hoveredStates.resetButton ? '#ef4444' : 'rgba(255, 255, 255, 0.6)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    transition: 'all 0.2s ease',
-                    fontWeight: 500,
-                  }
-                )}
+                style={mergeStyles({
+                  ...styles.closeButton,
+                  fontSize: '12px',
+                  padding: '6px 10px',
+                  borderRadius: '6px',
+                  background: hoveredStates.resetButton
+                    ? 'rgba(239, 68, 68, 0.1)'
+                    : 'transparent',
+                  color: hoveredStates.resetButton
+                    ? '#ef4444'
+                    : 'rgba(255, 255, 255, 0.6)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  transition: 'all 0.2s ease',
+                  fontWeight: 500,
+                })}
                 onMouseEnter={() => setHovered('resetButton', true)}
                 onMouseLeave={() => setHovered('resetButton', false)}
                 onClick={handleReset}
-                title="Reset favorites and custom tokens"
+                title='Reset favorites and custom tokens'
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
-                  <path d="M21 3v5h-5"/>
-                  <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
-                  <path d="M8 16H3v5"/>
+                <svg
+                  width='14'
+                  height='14'
+                  viewBox='0 0 24 24'
+                  fill='none'
+                  stroke='currentColor'
+                  strokeWidth='2'
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                >
+                  <path d='M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8' />
+                  <path d='M21 3v5h-5' />
+                  <path d='M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16' />
+                  <path d='M8 16H3v5' />
                 </svg>
                 Reset
               </button>
@@ -871,15 +941,18 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
               onClick={() => {
                 // When closing with X button, pass the currently selected token with its balance
                 const tokenAddr = selectedToken.address?.toLowerCase();
-                const tokenBalance = tokenAddr ? (favoriteTokenBalances[tokenAddr] || searchTokenBalances[tokenAddr]) : undefined;
+                const tokenBalance = tokenAddr
+                  ? favoriteTokenBalances[tokenAddr] ||
+                    searchTokenBalances[tokenAddr]
+                  : undefined;
                 const tokenWithBalance: IArbitrumTokenWithBalance = {
                   ...selectedToken,
-                  balance: tokenBalance
+                  balance: tokenBalance,
                 };
                 closeCallback(tokenWithBalance);
               }}
             >
-              <X className="w-5 h-5" />
+              <X className='h-5 w-5' />
             </button>
           </div>
         </div>
@@ -889,8 +962,10 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
           <div style={styles.favoriteTokensContainer}>
             {favoriteTokens.map((token) => {
               const tokenAddr = token.address?.toLowerCase();
-              const balance = tokenAddr ? favoriteTokenBalances[tokenAddr] : undefined;
-              
+              const balance = tokenAddr
+                ? favoriteTokenBalances[tokenAddr]
+                : undefined;
+
               return (
                 <FavoriteTokenChip
                   key={token.address}
@@ -901,7 +976,7 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
                     // Create token with balance for selection
                     const tokenWithBalance: IArbitrumTokenWithBalance = {
                       ...token,
-                      balance: balance
+                      balance: balance,
                     };
                     setSelectedToken(token);
                     if (persistSelection) {
@@ -924,8 +999,8 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
         <div style={styles.searchContainer}>
           <Search style={styles.searchIcon} />
           <input
-            type="text"
-            placeholder="Search name, symbol, or paste address"
+            type='text'
+            placeholder='Search name, symbol, or paste address'
             value={searchValue}
             onChange={(e) => {
               setTokenLoadError('');
@@ -955,7 +1030,7 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
                 setTokenLoadError('');
               }}
             >
-              <X className="w-4 h-4" />
+              <X className='h-4 w-4' />
             </button>
           )}
         </div>
@@ -966,7 +1041,9 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
             <button
               style={mergeStyles(
                 styles.addTokenButton,
-                hoveredStates.addTokenButton ? styles.addTokenButtonHover : undefined,
+                hoveredStates.addTokenButton
+                  ? styles.addTokenButtonHover
+                  : undefined,
                 isLoadingToken ? styles.confirmAddButtonDisabled : undefined
               )}
               onMouseEnter={() => setHovered('addTokenButton', true)}
@@ -976,12 +1053,12 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
             >
               {isLoadingToken ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className='h-4 w-4 animate-spin' />
                   Loading token...
                 </>
               ) : (
                 <>
-                  <Plus className="w-4 h-4" />
+                  <Plus className='h-4 w-4' />
                   Add {searchValue.slice(0, 6)}...{searchValue.slice(-4)}
                 </>
               )}
@@ -1005,7 +1082,13 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
             <div style={styles.noTokensFound}>
               <p>No tokens found</p>
               {ethers.isAddress(searchValue) && (
-                <p style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '0.5rem' }}>
+                <p
+                  style={{
+                    fontSize: '0.75rem',
+                    opacity: 0.7,
+                    marginTop: '0.5rem',
+                  }}
+                >
                   Enter a valid token contract address to add it
                 </p>
               )}
@@ -1015,19 +1098,16 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
               {filteredTokens?.map((token, index) => {
                 // Only render tokens that are in the visible range (virtualization)
                 // But still map all tokens to maintain correct scroll height
-                const isVisible = index >= visibleRange.start && index <= visibleRange.end;
-                
+                const isVisible =
+                  index >= visibleRange.start && index <= visibleRange.end;
+
                 if (!isVisible) {
                   // Render a spacer div to maintain scroll position
-                  return (
-                    <div 
-                      key={token.address} 
-                      style={{ height: '60px' }} 
-                    />
-                  );
+                  return <div key={token.address} style={{ height: '60px' }} />;
                 }
-                
-                const balance = searchTokenBalances[token.address.toLowerCase()];
+
+                const balance =
+                  searchTokenBalances[token.address.toLowerCase()];
                 return (
                   <TokenItem
                     key={token.address}
@@ -1050,17 +1130,17 @@ const TokenDialog: React.FC<TokenDialogProps> = ({
   // Use React Portal to render outside of component tree
   // This ensures position:fixed works correctly regardless of parent transforms/filters
   if (!portalContainer) return null;
-  
+
   return ReactDOM.createPortal(modalContent, portalContainer);
 };
 
 // Components remain the same...
-const FavoriteTokenChip: React.FC<FavoriteTokenChipProps> = ({ 
-  token, 
-  balance, 
-  isSelected, 
-  onSelect, 
-  onRemove 
+const FavoriteTokenChip: React.FC<FavoriteTokenChipProps> = ({
+  token,
+  balance,
+  isSelected,
+  onSelect,
+  onRemove,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -1088,22 +1168,28 @@ const FavoriteTokenChip: React.FC<FavoriteTokenChipProps> = ({
     transition: 'all 0.2s ease',
     position: 'relative' as const,
     // Base background
-    background: isHovered 
-      ? 'rgba(255, 255, 255, 0.1)' 
-      : (isSelected ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255, 255, 255, 0.05)'),
+    background: isHovered
+      ? 'rgba(255, 255, 255, 0.1)'
+      : isSelected
+        ? 'rgba(59, 130, 246, 0.2)'
+        : 'rgba(255, 255, 255, 0.05)',
     // Border
-    border: isSelected 
-      ? '1px solid rgba(59, 130, 246, 0.5)' 
+    border: isSelected
+      ? '1px solid rgba(59, 130, 246, 0.5)'
       : '1px solid transparent',
     // Box shadow and transform for hover
-    ...(isHovered ? {
-      transform: 'translateY(-2px)',
-      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
-    } : {}),
+    ...(isHovered
+      ? {
+          transform: 'translateY(-2px)',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+        }
+      : {}),
     // Selected state shadow
-    ...(isSelected ? {
-      boxShadow: '0 0 0 2px rgba(59, 130, 246, 0.1)',
-    } : {}),
+    ...(isSelected
+      ? {
+          boxShadow: '0 0 0 2px rgba(59, 130, 246, 0.1)',
+        }
+      : {}),
   };
 
   return (
@@ -1113,47 +1199,63 @@ const FavoriteTokenChip: React.FC<FavoriteTokenChipProps> = ({
       onMouseLeave={() => setIsHovered(false)}
       onClick={onSelect}
     >
-      <div className="token-dialog-icon-wrapper" style={{ width: '20px', height: '20px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {token.name === 'ETH' || token.symbol === 'ETH'
-          ? <EthereumIcon />
-          : token.logoURI ? (
-            <img
-              src={token.logoURI}
-              alt={token.symbol}
-              onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-                const target = e.target as HTMLImageElement;
-                target.onerror = null;
-                target.src = DEFAULT_TOKEN_ICON;
-              }}
-              style={{
-                width: '20px',
-                height: '20px',
-                borderRadius: '50%',
-                objectFit: 'cover' as const,
-                backgroundColor: '#ffffff',
-              }}
-            />
-          ) : (
-            <img
-              src={DEFAULT_TOKEN_ICON}
-              alt={token.symbol}
-              style={{
-                width: '20px',
-                height: '20px',
-                borderRadius: '50%',
-                backgroundColor: '#ffffff',
-              }}
-            />
-          )}
+      <div
+        className='token-dialog-icon-wrapper'
+        style={{
+          width: '20px',
+          height: '20px',
+          flexShrink: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {token.name === 'ETH' || token.symbol === 'ETH' ? (
+          <EthereumIcon />
+        ) : token.logoURI ? (
+          <img
+            src={token.logoURI}
+            alt={token.symbol}
+            onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+              const target = e.target as HTMLImageElement;
+              target.onerror = null;
+              target.src = DEFAULT_TOKEN_ICON;
+            }}
+            style={{
+              width: '20px',
+              height: '20px',
+              borderRadius: '50%',
+              objectFit: 'cover' as const,
+              backgroundColor: '#ffffff',
+            }}
+          />
+        ) : (
+          <img
+            src={DEFAULT_TOKEN_ICON}
+            alt={token.symbol}
+            style={{
+              width: '20px',
+              height: '20px',
+              borderRadius: '50%',
+              backgroundColor: '#ffffff',
+            }}
+          />
+        )}
       </div>
       <span style={{ color: '#ffffff', fontWeight: 500 }}>{token.symbol}</span>
       {balance && (
-        <span style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.75rem', marginLeft: '0.25rem' }}>
+        <span
+          style={{
+            color: 'rgba(255, 255, 255, 0.7)',
+            fontSize: '0.75rem',
+            marginLeft: '0.25rem',
+          }}
+        >
           {formatBalance(balance)}
         </span>
       )}
       <button
-        className="remove-favorite"
+        className='remove-favorite'
         style={mergeStyles(
           styles.removeFavorite,
           isHovered ? styles.removeFavoriteHover : undefined
@@ -1163,7 +1265,7 @@ const FavoriteTokenChip: React.FC<FavoriteTokenChipProps> = ({
           onRemove();
         }}
       >
-        <X className="w-3 h-3" />
+        <X className='h-3 w-3' />
       </button>
     </div>
   );
@@ -1193,7 +1295,11 @@ const TokenItem: React.FC<TokenItemProps> = ({
   removeCustomToken,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [buttonHovers, setButtonHovers] = useState({ pin: false, link: false, remove: false });
+  const [buttonHovers, setButtonHovers] = useState({
+    pin: false,
+    link: false,
+    remove: false,
+  });
 
   const formatBalance = (bal: typeof balance) => {
     if (!bal || !bal.formatted) return '';
@@ -1208,7 +1314,10 @@ const TokenItem: React.FC<TokenItemProps> = ({
   const getTokenAvatar = () => {
     if (token.name === 'ETH' || token.symbol === 'ETH') {
       return (
-        <div className="token-dialog-icon-wrapper" style={{ width: '32px', height: '32px' }}>
+        <div
+          className='token-dialog-icon-wrapper'
+          style={{ width: '32px', height: '32px' }}
+        >
           <EthereumIcon />
         </div>
       );
@@ -1255,19 +1364,22 @@ const TokenItem: React.FC<TokenItemProps> = ({
     position: 'relative' as const,
     overflow: 'hidden',
     // Consolidated background logic
-    background: selectedToken?.address === token.address 
-      ? `linear-gradient(to right, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1))`
-      : isHovered 
-        ? 'rgba(255, 255, 255, 0.05)' 
-        : 'transparent',
+    background:
+      selectedToken?.address === token.address
+        ? `linear-gradient(to right, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1))`
+        : isHovered
+          ? 'rgba(255, 255, 255, 0.05)'
+          : 'transparent',
     // Border styles
-    ...(selectedToken?.address === token.address ? {
-      borderLeft: '3px solid #3b82f6',
-      borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-      paddingLeft: 'calc(1.5rem - 3px)', // Adjust padding to account for border
-    } : {
-      borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-    }),
+    ...(selectedToken?.address === token.address
+      ? {
+          borderLeft: '3px solid #3b82f6',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+          paddingLeft: 'calc(1.5rem - 3px)', // Adjust padding to account for border
+        }
+      : {
+          borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+        }),
   };
 
   return (
@@ -1279,23 +1391,17 @@ const TokenItem: React.FC<TokenItemProps> = ({
     >
       {isHovered && <div style={styles.tokenItemShimmer} />}
 
-      <div style={styles.tokenAvatarContainer}>
-        {getTokenAvatar()}
-      </div>
+      <div style={styles.tokenAvatarContainer}>{getTokenAvatar()}</div>
 
       <div style={styles.tokenInfo}>
         <div style={styles.tokenNameRow}>
           <span style={styles.tokenName}>{token.name}</span>
-          {token.isCustom && (
-            <span style={styles.customBadge}>Custom</span>
-          )}
+          {token.isCustom && <span style={styles.customBadge}>Custom</span>}
         </div>
         <div style={styles.tokenMeta}>
           <span style={styles.tokenSymbol}>{token.symbol}</span>
           {balance && (
-            <span style={styles.tokenBalance}>
-              {formatBalance(balance)}
-            </span>
+            <span style={styles.tokenBalance}>{formatBalance(balance)}</span>
           )}
         </div>
       </div>
@@ -1303,54 +1409,71 @@ const TokenItem: React.FC<TokenItemProps> = ({
       <div style={styles.tokenActions}>
         {token.isCustom && (
           <button
-            className="remove-custom"
+            className='remove-custom'
             style={{
               ...styles.actionButton,
-              color: buttonHovers.remove ? '#ef4444' : 'rgba(255, 255, 255, 0.6)',
+              color: buttonHovers.remove
+                ? '#ef4444'
+                : 'rgba(255, 255, 255, 0.6)',
               transition: 'color 0.2s ease',
             }}
-            onMouseEnter={() => setButtonHovers(prev => ({ ...prev, remove: true }))}
-            onMouseLeave={() => setButtonHovers(prev => ({ ...prev, remove: false }))}
+            onMouseEnter={() =>
+              setButtonHovers((prev) => ({ ...prev, remove: true }))
+            }
+            onMouseLeave={() =>
+              setButtonHovers((prev) => ({ ...prev, remove: false }))
+            }
             onClick={(e) => {
               e.stopPropagation();
               removeCustomToken(token);
             }}
-            title="Remove custom token"
+            title='Remove custom token'
           >
-            <X className="w-4 h-4" />
+            <X className='h-4 w-4' />
           </button>
         )}
         <button
-          className="pin-button"
+          className='pin-button'
           style={{
             ...styles.actionButton,
             color: buttonHovers.pin ? '#FFD700' : 'rgba(255, 255, 255, 0.6)',
             transition: 'color 0.2s ease',
           }}
-          onMouseEnter={() => setButtonHovers(prev => ({ ...prev, pin: true }))}
-          onMouseLeave={() => setButtonHovers(prev => ({ ...prev, pin: false }))}
+          onMouseEnter={() =>
+            setButtonHovers((prev) => ({ ...prev, pin: true }))
+          }
+          onMouseLeave={() =>
+            setButtonHovers((prev) => ({ ...prev, pin: false }))
+          }
           onClick={(e) => {
             e.stopPropagation();
             addFavoriteTokens(token);
           }}
-          title="Add to favorites"
+          title='Add to favorites'
         >
-          <Star className="w-4 h-4" fill={buttonHovers.pin ? '#FFD700' : 'none'} />
+          <Star
+            className='h-4 w-4'
+            fill={buttonHovers.pin ? '#FFD700' : 'none'}
+          />
         </button>
         <Link
           href={`https://arbiscan.io/token/${token.address}`}
-          target="_blank"
-          rel="noreferrer nofollow"
+          target='_blank'
+          rel='noreferrer nofollow'
           onClick={(e) => e.stopPropagation()}
           style={mergeStyles(
             styles.actionButton,
             buttonHovers.link ? styles.actionButtonHover : undefined
           )}
-          onMouseEnter={() => setButtonHovers(prev => ({ ...prev, link: true }))}
-          onMouseLeave={() => setButtonHovers(prev => ({ ...prev, link: false }))}
-          title="View on Arbiscan"
+          onMouseEnter={() =>
+            setButtonHovers((prev) => ({ ...prev, link: true }))
+          }
+          onMouseLeave={() =>
+            setButtonHovers((prev) => ({ ...prev, link: false }))
+          }
+          title='View on Arbiscan'
         >
-          <ExternalLink className="w-4 h-4" />
+          <ExternalLink className='h-4 w-4' />
         </Link>
       </div>
     </div>

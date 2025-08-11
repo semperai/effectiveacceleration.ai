@@ -6,15 +6,19 @@ import { GET_REVIEWS } from './queries';
 // Extend the base Review type with id field from GraphQL
 export interface ExtendedReview extends ContractReview {
   id?: string;
-  user: string;  // Add this if it's missing from the base type
+  user: string; // Add this if it's missing from the base type
 }
 
-export default function useReviews(targetAddress: string, offset: number = 0, limit: number = 100) {
+export default function useReviews(
+  targetAddress: string,
+  offset: number = 0,
+  limit: number = 100
+) {
   const { data, ...rest } = useQuery(GET_REVIEWS, {
     variables: {
       targetAddress: targetAddress ?? '',
       offset,
-      limit
+      limit,
     },
     skip: !targetAddress,
   });
@@ -22,7 +26,7 @@ export default function useReviews(targetAddress: string, offset: number = 0, li
   return useMemo(
     () => ({
       data: data ? (data?.reviews as ExtendedReview[]) : undefined,
-      ...rest
+      ...rest,
     }),
     [targetAddress, offset, limit, data, rest]
   );

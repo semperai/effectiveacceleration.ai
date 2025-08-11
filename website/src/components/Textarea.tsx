@@ -43,7 +43,7 @@ export const Textarea = forwardRef<
           'data-[invalid]:border-red-500 data-[invalid]:focus:border-red-500',
           'data-[invalid]:dark:border-red-500 data-[invalid]:dark:focus:border-red-500',
           // Disabled state - updated
-          'disabled:opacity-60 disabled:cursor-not-allowed',
+          'disabled:cursor-not-allowed disabled:opacity-60',
           'disabled:bg-gray-50 disabled:dark:bg-gray-900',
           'disabled:border-gray-200 disabled:dark:border-gray-700',
           // Resizable
@@ -53,7 +53,7 @@ export const Textarea = forwardRef<
           boxShadow: 'none',
           WebkitAppearance: 'none',
           MozAppearance: 'none',
-          appearance: 'none'
+          appearance: 'none',
         }}
         {...props}
       />

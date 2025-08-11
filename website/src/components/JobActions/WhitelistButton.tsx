@@ -111,15 +111,18 @@ export function WhitelistButton({
                     Select User
                   </Dialog.Title>
                   <div className='mb-3 mt-5 flex flex-col gap-5'>
-                  <ListBox
-                        placeholder='Select Time Units'
-                        value={selectedUserAddress}
-                        onChange={(address) => {
-                          if (typeof address !== 'string') {
-                            setSelectedUserAddress(address.id);
-                          }
-                        }}
-                        options={(userList ?? []).map(unit => ({ id: unit.address_, name: unit.name }))}
+                    <ListBox
+                      placeholder='Select Time Units'
+                      value={selectedUserAddress}
+                      onChange={(address) => {
+                        if (typeof address !== 'string') {
+                          setSelectedUserAddress(address.id);
+                        }
+                      }}
+                      options={(userList ?? []).map((unit) => ({
+                        id: unit.address_,
+                        name: unit.name,
+                      }))}
                     />
                     <Button disabled={isWhiteListing} onClick={handleWhiteList}>
                       <CheckIcon

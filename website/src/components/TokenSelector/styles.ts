@@ -108,7 +108,8 @@ export const styles = {
     right: '-50px',
     width: '200px',
     height: '200px',
-    background: 'radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, transparent 70%)',
+    background:
+      'radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, transparent 70%)',
   } as CSSProperties,
 
   gradientOrb2: {
@@ -116,7 +117,8 @@ export const styles = {
     left: '-50px',
     width: '200px',
     height: '200px',
-    background: 'radial-gradient(circle, rgba(147, 51, 234, 0.3) 0%, transparent 70%)',
+    background:
+      'radial-gradient(circle, rgba(147, 51, 234, 0.3) 0%, transparent 70%)',
   } as CSSProperties,
 
   // Header
@@ -399,7 +401,8 @@ export const styles = {
     left: '-100%',
     width: '100%',
     height: '100%',
-    background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), transparent)',
+    background:
+      'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), transparent)',
     transition: 'left 0.5s ease',
   } as CSSProperties,
 
@@ -689,7 +692,7 @@ export const mobileStyles = {
     padding: 0,
     margin: 0,
   } as CSSProperties,
-  
+
   container: {
     width: '100%',
     maxWidth: '100%',

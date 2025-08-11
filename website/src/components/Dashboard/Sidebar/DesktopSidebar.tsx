@@ -9,7 +9,12 @@ interface DesktopSidebarProps {
   children: React.ReactNode;
 }
 
-export const DesktopSidebar = ({ sidebarOpen, setSidebarOpen, hiddenSidebar, children }: DesktopSidebarProps) => {
+export const DesktopSidebar = ({
+  sidebarOpen,
+  setSidebarOpen,
+  hiddenSidebar,
+  children,
+}: DesktopSidebarProps) => {
   const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
@@ -26,27 +31,20 @@ export const DesktopSidebar = ({ sidebarOpen, setSidebarOpen, hiddenSidebar, chi
 
   return (
     <div
-      className={`
-        hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col
-        transition-transform duration-300 ease-in-out
-        ${showDesktopSidebar ? 'translate-x-0' : '-translate-x-full'}
-      `}
+      className={`hidden transition-transform duration-300 ease-in-out lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col ${showDesktopSidebar ? 'translate-x-0' : '-translate-x-full'} `}
     >
       {/* Glass morphism effect background */}
       <div className='absolute inset-0 bg-gradient-to-b from-gray-900/95 via-gray-900/95 to-black/95 backdrop-blur-xl' />
 
       {/* Decorative gradient orbs */}
-      <div className='absolute top-20 -right-20 w-40 h-40 bg-blue-500/20 rounded-full blur-3xl' />
-      <div className='absolute bottom-20 -left-20 w-40 h-40 bg-purple-500/20 rounded-full blur-3xl' />
+      <div className='absolute -right-20 top-20 h-40 w-40 rounded-full bg-blue-500/20 blur-3xl' />
+      <div className='absolute -left-20 bottom-20 h-40 w-40 rounded-full bg-purple-500/20 blur-3xl' />
 
       {/* Border gradient */}
       <div className='absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-white/20 to-transparent' />
 
       {/* Content */}
-      <div className='relative flex h-full flex-col'>
-        {children}
-      </div>
+      <div className='relative flex h-full flex-col'>{children}</div>
     </div>
   );
 };
-

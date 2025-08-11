@@ -9,7 +9,10 @@ interface ConnectButtonProps {
   className?: string;
 }
 
-export function ConnectButton({ variant = 'navbar', className }: ConnectButtonProps) {
+export function ConnectButton({
+  variant = 'navbar',
+  className,
+}: ConnectButtonProps) {
   const { address } = useAccount();
 
   return (
@@ -71,19 +74,17 @@ export function ConnectButton({ variant = 'navbar', className }: ConnectButtonPr
                     'flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium',
                     'transition-all duration-200',
                     error
-                      ? 'bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400'
-                      : 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300',
+                      ? 'bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700',
                     className
                   )}
                   title={error ? 'Wrong network' : 'Wallet connected'}
                 >
                   <Wallet className='h-4 w-4' />
                   <span>
-                    {error ? (
-                      'Wrong network'
-                    ) : (
-                      `${address?.substr(0, 6)}...${address?.substr(-4)}`
-                    )}
+                    {error
+                      ? 'Wrong network'
+                      : `${address?.substr(0, 6)}...${address?.substr(-4)}`}
                   </span>
                 </button>
               )}
@@ -106,7 +107,7 @@ export function ConnectButton({ variant = 'navbar', className }: ConnectButtonPr
             <button
               type='button'
               className={clsx(
-                'group relative inline-flex items-center gap-2 bg-gradient-to-r px-6 py-2 w-full justify-center',
+                'group relative inline-flex w-full items-center justify-center gap-2 bg-gradient-to-r px-6 py-2',
                 error
                   ? 'from-purple-600 to-pink-500 shadow-pink-500/25 hover:from-purple-500 hover:to-pink-400 hover:shadow-pink-500/30 active:from-purple-700 active:to-pink-600'
                   : 'from-purple-600 to-blue-500 shadow-purple-500/25 hover:from-purple-500 hover:to-blue-400 hover:shadow-purple-500/30 active:from-purple-700 active:to-blue-600',

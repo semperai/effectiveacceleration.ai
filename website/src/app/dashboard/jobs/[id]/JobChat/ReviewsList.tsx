@@ -27,7 +27,7 @@ export function ReviewsList({
 
   return (
     <div>
-      <div className="flex items-center">
+      <div className='flex items-center'>
         <button
           className='mr-2 text-gray-500 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100'
           onClick={() => setShowReviews(false)}
@@ -36,7 +36,7 @@ export function ReviewsList({
           {/* Simple left arrow icon */}
           <IoChevronBack className='relative right-2 text-2xl text-gray-700' />
         </button>
-        <span className='text-md font-bold leading-7 sm:truncate sm:text-md sm:tracking-tight dark:text-gray-100'>
+        <span className='text-md sm:text-md font-bold leading-7 sm:truncate sm:tracking-tight dark:text-gray-100'>
           {selectedUser?.name}'s reviews
         </span>
       </div>
@@ -47,22 +47,36 @@ export function ReviewsList({
       >
         {reviews && reviews.length > 0 && (
           <>
-            <div className='flex flex-row gap-4 my-8 mr-3'>
-              <div className='flex flex-col items-center flex-1'>
-                <span className='text-2xl text-primary font-semibold'>{totalReviews}</span>
-                <span className='text-xs text-center leading-3'>Reviews</span>
+            <div className='my-8 mr-3 flex flex-row gap-4'>
+              <div className='flex flex-1 flex-col items-center'>
+                <span className='text-2xl font-semibold text-primary'>
+                  {totalReviews}
+                </span>
+                <span className='text-center text-xs leading-3'>Reviews</span>
               </div>
-              <div className='flex flex-col items-center flex-1'>
-                <span className='text-2xl text-primary font-semibold' >{(selectedUser?.reputationUp ?? 0)}</span>
-                <span className='text-xs text-center leading-3'>Positive reviews</span>
+              <div className='flex flex-1 flex-col items-center'>
+                <span className='text-2xl font-semibold text-primary'>
+                  {selectedUser?.reputationUp ?? 0}
+                </span>
+                <span className='text-center text-xs leading-3'>
+                  Positive reviews
+                </span>
               </div>
-              <div className='flex flex-col items-center flex-1'>
-                <span className='text-2xl text-primary font-semibold'>{(selectedUser?.reputationDown ?? 0)}</span>
-                <span className='text-xs text-center leading-3'>Negative reviews</span>
+              <div className='flex flex-1 flex-col items-center'>
+                <span className='text-2xl font-semibold text-primary'>
+                  {selectedUser?.reputationDown ?? 0}
+                </span>
+                <span className='text-center text-xs leading-3'>
+                  Negative reviews
+                </span>
               </div>
-              <div className='flex flex-col items-center flex-1'>
-                <span className='text-2xl text-primary font-semibold'>{positiveReviewPercentage}%</span>
-                <span className='text-xs text-center leading-3'>Positive percentage</span>
+              <div className='flex flex-1 flex-col items-center'>
+                <span className='text-2xl font-semibold text-primary'>
+                  {positiveReviewPercentage}%
+                </span>
+                <span className='text-center text-xs leading-3'>
+                  Positive percentage
+                </span>
               </div>
             </div>
           </>
@@ -92,7 +106,6 @@ export function ReviewsList({
                 </span>
               </span>
             </div>
-
           ))
         )}
       </div>

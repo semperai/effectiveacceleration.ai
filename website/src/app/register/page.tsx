@@ -40,7 +40,9 @@ export default function RegisterPage() {
               {encryptionPublicKey !== `0x` ? (
                 <CreateProfile encryptionPublicKey={encryptionPublicKey} />
               ) : (
-                <SignInMessage setEncryptionPublicKey={setEncryptionPublicKey} />
+                <SignInMessage
+                  setEncryptionPublicKey={setEncryptionPublicKey}
+                />
               )}
             </>
           ) : (

@@ -16,7 +16,7 @@ import {
   PiSkipForward,
   PiPaperPlaneTilt,
   PiHeart,
-  PiSmiley
+  PiSmiley,
 } from 'react-icons/pi';
 import * as Sentry from '@sentry/nextjs';
 import { Fragment, useState } from 'react';
@@ -46,7 +46,9 @@ export function ApproveButton({
     setIsApproving(true);
 
     if (!skipReview && rating === 0 && review.length) {
-      showWarning('If you decide to leave a review, you must also leave a rating.');
+      showWarning(
+        'If you decide to leave a review, you must also leave a rating.'
+      );
       setIsApproving(false);
       return;
     } else if ((!skipReview && rating < 0) || rating > 5) {
@@ -114,24 +116,14 @@ export function ApproveButton({
       <button
         disabled={isApproving || isConfirming}
         onClick={() => openModal()}
-        className='
-          relative w-full group
-          px-4 py-3 rounded-xl
-          bg-gradient-to-r from-green-500 to-emerald-500
-          font-medium text-sm
-          transition-all duration-300
-          hover:from-green-600 hover:to-emerald-600
-          hover:shadow-lg hover:shadow-green-500/25
-          hover:-translate-y-0.5
-          disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none
-        '
+        className='group relative w-full rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 px-4 py-3 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 hover:from-green-600 hover:to-emerald-600 hover:shadow-lg hover:shadow-green-500/25 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none'
       >
         <div className='flex items-center justify-center gap-2 text-white'>
-          <PiCheckCircle className='w-4 h-4 text-white' />
+          <PiCheckCircle className='h-4 w-4 text-white' />
           <span className='text-white'>Accept Result</span>
         </div>
         {/* Subtle gradient overlay on hover */}
-        <div className='absolute inset-0 rounded-xl bg-gradient-to-r from-white/0 via-white/10 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none' />
+        <div className='pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-r from-white/0 via-white/10 to-white/0 opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
       </button>
 
       <Transition appear show={isOpen} as={Fragment}>
@@ -159,61 +151,50 @@ export function ApproveButton({
                 leaveFrom='opacity-100 scale-100 translate-y-0'
                 leaveTo='opacity-0 scale-95 translate-y-4'
               >
-                <Dialog.Panel className='
-                  w-full max-w-lg transform overflow-hidden rounded-2xl
-                  bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-900 dark:to-black
-                  shadow-2xl transition-all
-                  relative
-                '>
+                <Dialog.Panel className='relative w-full max-w-lg transform overflow-hidden rounded-2xl bg-white shadow-2xl transition-all dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-900 dark:to-black'>
                   {/* Enhanced gradient orbs */}
-                  <div className="absolute -top-40 -left-40 w-96 h-96 bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-full blur-3xl animate-pulse" />
-                  <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 rounded-full blur-3xl animate-pulse" />
+                  <div className='absolute -left-40 -top-40 h-96 w-96 animate-pulse rounded-full bg-gradient-to-br from-green-500/10 to-emerald-500/10 blur-3xl' />
+                  <div className='absolute -bottom-40 -right-40 h-96 w-96 animate-pulse rounded-full bg-gradient-to-br from-emerald-500/10 to-teal-500/10 blur-3xl' />
 
                   {/* Content */}
-                  <div className="relative">
+                  <div className='relative'>
                     {/* Enhanced Header */}
                     <div className='relative overflow-hidden'>
                       {/* Header gradient background */}
                       <div className='absolute inset-0 bg-gradient-to-r from-green-500/5 via-emerald-500/5 to-green-500/5' />
 
-                      <div className='relative flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800'>
+                      <div className='relative flex items-center justify-between border-b border-gray-200 p-6 dark:border-gray-800'>
                         <div className='flex items-center gap-4'>
                           <div className='relative'>
-                            <div className='absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl blur-xl opacity-50' />
-                            <div className='relative p-3 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500'>
-                              <PiStar className='w-6 h-6 text-white' />
+                            <div className='absolute inset-0 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 opacity-50 blur-xl' />
+                            <div className='relative rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 p-3'>
+                              <PiStar className='h-6 w-6 text-white' />
                             </div>
                           </div>
                           <div className='text-left'>
                             <Dialog.Title className='text-xl font-bold text-gray-900 dark:text-white'>
                               Rate Your Experience
                             </Dialog.Title>
-                            <p className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
+                            <p className='mt-1 text-sm text-gray-500 dark:text-gray-400'>
                               Help improve future services with your feedback
                             </p>
                           </div>
                         </div>
                         <button
                           onClick={closeModal}
-                          className='
-                            p-2.5 rounded-xl text-gray-500 dark:text-gray-400
-                            hover:text-gray-700 dark:hover:text-white
-                            bg-gray-100 dark:bg-gray-800/50
-                            hover:bg-gray-200 dark:hover:bg-gray-700/50
-                            transition-all duration-200
-                          '
+                          className='rounded-xl bg-gray-100 p-2.5 text-gray-500 transition-all duration-200 hover:bg-gray-200 hover:text-gray-700 dark:bg-gray-800/50 dark:text-gray-400 dark:hover:bg-gray-700/50 dark:hover:text-white'
                         >
-                          <XMarkIcon className='w-5 h-5' />
+                          <XMarkIcon className='h-5 w-5' />
                         </button>
                       </div>
                     </div>
 
                     {/* Form Content */}
-                    <div className='p-6 space-y-6'>
+                    <div className='space-y-6 p-6'>
                       {/* Rating Section */}
-                      <div className='text-center space-y-4'>
+                      <div className='space-y-4 text-center'>
                         <div className='flex items-center justify-center gap-2'>
-                          <PiHeart className='w-5 h-5 text-pink-500' />
+                          <PiHeart className='h-5 w-5 text-pink-500' />
                           <p className='text-sm font-medium text-gray-700 dark:text-gray-300'>
                             How would you rate this service?
                           </p>
@@ -221,7 +202,7 @@ export function ApproveButton({
 
                         {/* Rating Component with custom styling */}
                         <div className='flex flex-col items-center gap-3'>
-                          <div className='p-4 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-900/50 border border-gray-200 dark:border-gray-700'>
+                          <div className='rounded-xl border border-gray-200 bg-gradient-to-br from-gray-50 to-gray-100 p-4 dark:border-gray-700 dark:from-gray-800/50 dark:to-gray-900/50'>
                             <Rating
                               name='service-rating'
                               value={rating}
@@ -244,10 +225,12 @@ export function ApproveButton({
                           </div>
 
                           {/* Rating feedback */}
-                          <div className='flex items-center gap-2 min-h-[28px]'>
+                          <div className='flex min-h-[28px] items-center gap-2'>
                             {rating > 0 && (
                               <>
-                                <span className='text-2xl'>{getRatingEmoji(rating)}</span>
+                                <span className='text-2xl'>
+                                  {getRatingEmoji(rating)}
+                                </span>
                                 <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>
                                   {getRatingText(rating)}
                                 </span>
@@ -260,7 +243,7 @@ export function ApproveButton({
                       {/* Review Text Section */}
                       <div className='space-y-2'>
                         <label className='flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300'>
-                          <PiChatCircle className='w-4 h-4 text-gray-500 dark:text-gray-400' />
+                          <PiChatCircle className='h-4 w-4 text-gray-500 dark:text-gray-400' />
                           Share your thoughts (optional)
                         </label>
                         <Textarea
@@ -268,15 +251,7 @@ export function ApproveButton({
                           value={review}
                           onChange={(e) => setReview(e.target.value)}
                           placeholder='Tell us about your experience with this service. What went well? What could be improved?'
-                          className='
-                            w-full rounded-xl border border-gray-200 dark:border-gray-700
-                            bg-white dark:bg-gray-800/50
-                            px-4 py-3 text-sm text-gray-900 dark:text-white
-                            placeholder:text-gray-400 dark:placeholder:text-gray-500
-                            focus:border-green-500 dark:focus:border-green-400
-                            focus:ring-2 focus:ring-green-500/20 dark:focus:ring-green-400/20
-                            transition-all duration-200
-                          '
+                          className='w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 transition-all duration-200 placeholder:text-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 dark:border-gray-700 dark:bg-gray-800/50 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-green-400 dark:focus:ring-green-400/20'
                         />
                         <p className='text-xs text-gray-500 dark:text-gray-400'>
                           Your feedback helps workers improve their services
@@ -284,14 +259,14 @@ export function ApproveButton({
                       </div>
 
                       {/* Info Box */}
-                      <div className='p-4 rounded-xl bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800'>
+                      <div className='rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/20'>
                         <div className='flex gap-3'>
-                          <PiSparkle className='w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5' />
+                          <PiSparkle className='mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600 dark:text-blue-400' />
                           <div className='space-y-1'>
                             <p className='text-sm font-medium text-blue-900 dark:text-blue-300'>
                               Why leave a review?
                             </p>
-                            <ul className='text-xs text-blue-700 dark:text-blue-400 space-y-1'>
+                            <ul className='space-y-1 text-xs text-blue-700 dark:text-blue-400'>
                               <li>• Helps workers improve their services</li>
                               <li>• Builds trust in the marketplace</li>
                               <li>• Your feedback matters to the community</li>
@@ -306,36 +281,42 @@ export function ApproveButton({
                       {/* Footer gradient background */}
                       <div className='absolute inset-0 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900/50 dark:to-gray-800/50' />
 
-                      <div className='relative p-6 border-t border-gray-200 dark:border-gray-800 space-y-3'>
+                      <div className='relative space-y-3 border-t border-gray-200 p-6 dark:border-gray-800'>
                         {/* Action Buttons */}
                         <button
                           onClick={() => handleApprove(false)}
                           disabled={isApproving || isConfirming || rating === 0}
-                          className='
-                            w-full px-6 py-3 rounded-xl
-                            bg-gradient-to-r from-green-500 to-emerald-500
-                            font-medium text-sm
-                            transition-all duration-200
-                            hover:from-green-600 hover:to-emerald-600
-                            active:scale-[0.98]
-                            disabled:opacity-50 disabled:cursor-not-allowed
-                            shadow-lg shadow-green-500/25
-                            hover:shadow-xl hover:shadow-green-500/30
-                            hover:-translate-y-0.5
-                          '
+                          className='w-full rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 px-6 py-3 text-sm font-medium shadow-lg shadow-green-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:from-green-600 hover:to-emerald-600 hover:shadow-xl hover:shadow-green-500/30 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50'
                         >
                           {isApproving || isConfirming ? (
                             <span className='flex items-center justify-center gap-2 text-white'>
-                              <svg className='animate-spin h-4 w-4' fill='none' viewBox='0 0 24 24'>
-                                <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />
-                                <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z' />
+                              <svg
+                                className='h-4 w-4 animate-spin'
+                                fill='none'
+                                viewBox='0 0 24 24'
+                              >
+                                <circle
+                                  className='opacity-25'
+                                  cx='12'
+                                  cy='12'
+                                  r='10'
+                                  stroke='currentColor'
+                                  strokeWidth='4'
+                                />
+                                <path
+                                  className='opacity-75'
+                                  fill='currentColor'
+                                  d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z'
+                                />
                               </svg>
                               <span className='text-white'>Submitting...</span>
                             </span>
                           ) : (
                             <span className='flex items-center justify-center gap-2 text-white'>
-                              <PiPaperPlaneTilt className='w-4 h-4 text-white' />
-                              <span className='text-white'>Submit Review & Approve</span>
+                              <PiPaperPlaneTilt className='h-4 w-4 text-white' />
+                              <span className='text-white'>
+                                Submit Review & Approve
+                              </span>
                             </span>
                           )}
                         </button>
@@ -343,25 +324,17 @@ export function ApproveButton({
                         <button
                           onClick={() => handleApprove(true)}
                           disabled={isApproving || isConfirming}
-                          className='
-                            w-full px-6 py-2.5 rounded-xl
-                            bg-gray-100 dark:bg-gray-800
-                            border border-gray-200 dark:border-gray-700
-                            text-sm font-medium text-gray-700 dark:text-gray-300
-                            transition-all duration-200
-                            hover:bg-gray-200 dark:hover:bg-gray-700
-                            hover:border-gray-300 dark:hover:border-gray-600
-                            active:scale-[0.98]
-                          '
+                          className='w-full rounded-xl border border-gray-200 bg-gray-100 px-6 py-2.5 text-sm font-medium text-gray-700 transition-all duration-200 hover:border-gray-300 hover:bg-gray-200 active:scale-[0.98] dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:bg-gray-700'
                         >
                           <span className='flex items-center justify-center gap-2'>
-                            <PiSkipForward className='w-4 h-4' />
+                            <PiSkipForward className='h-4 w-4' />
                             Skip Review & Approve
                           </span>
                         </button>
 
-                        <p className='text-xs text-center text-gray-500 dark:text-gray-400'>
-                          By approving, you confirm the work meets your requirements
+                        <p className='text-center text-xs text-gray-500 dark:text-gray-400'>
+                          By approving, you confirm the work meets your
+                          requirements
                         </p>
                       </div>
                     </div>

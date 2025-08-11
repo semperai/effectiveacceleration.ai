@@ -18,32 +18,32 @@ const navigationItems = [
   {
     name: 'Post job',
     href: '/dashboard/post-job',
-    icon: <PiPaperPlaneTilt className="w-5 h-5" />,
+    icon: <PiPaperPlaneTilt className='h-5 w-5' />,
     target: '_self',
     special: true,
   },
   {
     name: 'Open Jobs',
     href: '/dashboard/open-job-list',
-    icon: <PiListHeart className="w-5 h-5" />,
+    icon: <PiListHeart className='h-5 w-5' />,
     target: '_self',
   },
   {
     name: 'Your Jobs',
     href: '/dashboard/owner-job-list',
-    icon: <PiNetwork className="w-5 h-5" />,
+    icon: <PiNetwork className='h-5 w-5' />,
     target: '_self',
   },
   {
     name: 'Worker Jobs',
     href: '/dashboard/worker-job-list',
-    icon: <PiBriefcase className="w-5 h-5" />,
+    icon: <PiBriefcase className='h-5 w-5' />,
     target: '_self',
   },
   {
     name: 'Docs',
     href: 'https://docs.effectiveacceleration.ai',
-    icon: <PiBooks className="w-5 h-5" />,
+    icon: <PiBooks className='h-5 w-5' />,
     target: '_blank',
   },
 ];
@@ -88,8 +88,8 @@ const Sidebar = ({
       </MobileSidebar>
 
       {/* Desktop sidebar - Client Component wrapper */}
-      <DesktopSidebar 
-        sidebarOpen={sidebarOpen} 
+      <DesktopSidebar
+        sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         hiddenSidebar={hiddenSidebar}
       >

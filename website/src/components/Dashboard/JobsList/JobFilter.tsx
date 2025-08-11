@@ -18,7 +18,7 @@ import {
   Tag as TagIcon,
   User,
   Users,
-  Scale
+  Scale,
 } from 'lucide-react';
 import type React from 'react';
 import { useState, useEffect, useRef } from 'react';
@@ -38,10 +38,14 @@ type JobFilterProps = {
   minTokens: number | undefined;
   setMinTokens: React.Dispatch<React.SetStateAction<number | undefined>>;
   selectedArbitratorAddress: string | undefined;
-  setSelectedArbitratorAddress: React.Dispatch<React.SetStateAction<string | undefined>>;
+  setSelectedArbitratorAddress: React.Dispatch<
+    React.SetStateAction<string | undefined>
+  >;
   arbitrators?: Arbitrator[];
   multipleApplicants: boolean | undefined;
-  setMultipleApplicants: React.Dispatch<React.SetStateAction<boolean | undefined>>;
+  setMultipleApplicants: React.Dispatch<
+    React.SetStateAction<boolean | undefined>
+  >;
   setCreatorAddress: React.Dispatch<React.SetStateAction<string | undefined>>;
   creatorAddress: string | undefined;
 };
@@ -73,7 +77,11 @@ export const JobFilter = ({
   const [localSearch, setLocalSearch] = useState(search);
   const [showUnitDropdown, setShowUnitDropdown] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+  const [dropdownPosition, setDropdownPosition] = useState({
+    top: 0,
+    left: 0,
+    width: 0,
+  });
 
   // Sync local search with prop
   useEffect(() => {
@@ -100,15 +108,21 @@ export const JobFilter = ({
       setDropdownPosition({
         top: rect.bottom + 8,
         left: rect.left,
-        width: rect.width
+        width: rect.width,
       });
     }
   }, [isFocused]);
 
   // Auto-expand filters if any are active from URL
   useEffect(() => {
-    const hasActiveFilters = selectedToken || minTokens || minDeadline || tags.length > 0 || 
-                           selectedArbitratorAddress || creatorAddress || typeof multipleApplicants !== 'undefined';
+    const hasActiveFilters =
+      selectedToken ||
+      minTokens ||
+      minDeadline ||
+      tags.length > 0 ||
+      selectedArbitratorAddress ||
+      creatorAddress ||
+      typeof multipleApplicants !== 'undefined';
     if (hasActiveFilters) {
       setShowAdvanced(true);
     }
@@ -151,28 +165,30 @@ export const JobFilter = ({
     tags.length > 0,
     selectedArbitratorAddress,
     creatorAddress,
-    typeof multipleApplicants !== 'undefined'
+    typeof multipleApplicants !== 'undefined',
   ].filter(Boolean).length;
 
   return (
     <div className='mb-6 w-full'>
-      <div className='relative rounded-xl backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50'>
-        <div className='absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-400/50 to-transparent' />
+      <div className='relative rounded-xl border border-gray-200/50 bg-white/50 backdrop-blur-sm dark:border-gray-700/50 dark:bg-gray-800/50'>
+        <div className='absolute left-0 right-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-400/50 to-transparent' />
 
         <div className='p-5'>
           <div className='space-y-3'>
-            <div className='relative group'>
-              <div className='absolute inset-0 bg-gradient-to-r from-blue-400/10 to-purple-400/10 rounded-lg blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-300' />
+            <div className='group relative'>
+              <div className='absolute inset-0 rounded-lg bg-gradient-to-r from-blue-400/10 to-purple-400/10 opacity-0 blur-xl transition-opacity duration-300 group-focus-within:opacity-100' />
               <div className='relative'>
-                <Search className={`
-                  absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4
-                  transition-all duration-200
-                  ${isFocused ? 'text-blue-500 scale-110' : 'text-gray-400'}
-                `} />
+                <Search
+                  className={`absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transition-all duration-200 ${isFocused ? 'scale-110 text-blue-500' : 'text-gray-400'} `}
+                />
 
                 <input
                   ref={searchInputRef}
-                  placeholder={isFocused ? 'Type to search...' : 'Search jobs by title, description, skills...'}
+                  placeholder={
+                    isFocused
+                      ? 'Type to search...'
+                      : 'Search jobs by title, description, skills...'
+                  }
                   value={localSearch}
                   onChange={(e) => setLocalSearch(e.target.value)}
                   onFocus={() => setIsFocused(true)}
@@ -188,36 +204,37 @@ export const JobFilter = ({
                       handleSearchSubmit();
                       (e.target as HTMLInputElement).blur();
                     }
-                    if ((e.key === 'Tab' || e.key === 'ArrowRight') && searchSuggestion) {
+                    if (
+                      (e.key === 'Tab' || e.key === 'ArrowRight') &&
+                      searchSuggestion
+                    ) {
                       e.preventDefault();
                       setLocalSearch(searchSuggestion);
                       setSearchSuggestion('');
                     }
                   }}
-                  className={`
-                    w-full pl-10 pr-24 h-10 rounded-lg border bg-white
-                    text-sm text-gray-900 placeholder-gray-400
-                    border-0 outline-none focus:outline-none focus:ring-0
-                    transition-all duration-200
-                    ${isFocused ? 'border-gray-300' : 'border-gray-200 hover:border-gray-300'}
-                  `}
-                  style={{ 
+                  className={`h-10 w-full rounded-lg border border-0 bg-white pl-10 pr-24 text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:outline-none focus:ring-0 ${isFocused ? 'border-gray-300' : 'border-gray-200 hover:border-gray-300'} `}
+                  style={{
                     borderWidth: '1px',
                     borderStyle: 'solid',
-                    borderColor: isFocused ? 'rgb(209 213 219)' : 'rgb(229 231 235)',
+                    borderColor: isFocused
+                      ? 'rgb(209 213 219)'
+                      : 'rgb(229 231 235)',
                     boxShadow: 'none',
                     WebkitAppearance: 'none',
                     MozAppearance: 'none',
                     appearance: 'none',
-                    height: '40px'
+                    height: '40px',
                   }}
                 />
 
                 {searchSuggestion && isFocused && (
-                  <div className='absolute inset-0 pl-10 pr-24 flex items-center pointer-events-none z-[100]'>
+                  <div className='pointer-events-none absolute inset-0 z-[100] flex items-center pl-10 pr-24'>
                     <span className='text-gray-400'>
                       {localSearch}
-                      <span className='text-gray-300'>{searchSuggestion.slice(localSearch.length)}</span>
+                      <span className='text-gray-300'>
+                        {searchSuggestion.slice(localSearch.length)}
+                      </span>
                     </span>
                   </div>
                 )}
@@ -229,25 +246,25 @@ export const JobFilter = ({
                       setSearch('');
                       setSearchSuggestion('');
                     }}
-                    className='absolute right-12 top-1/2 -translate-y-1/2 p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100/50 dark:hover:text-gray-200 dark:hover:bg-gray-800/50 transition-all duration-200'
+                    className='absolute right-12 top-1/2 -translate-y-1/2 rounded-md p-1 text-gray-400 transition-all duration-200 hover:bg-gray-100/50 hover:text-gray-600 dark:hover:bg-gray-800/50 dark:hover:text-gray-200'
                   >
                     <X className='h-3.5 w-3.5' />
                   </button>
                 )}
 
-                <div className='absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1'>
+                <div className='absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-1'>
                   {!localSearch && !isFocused && (
-                    <kbd className='hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium text-gray-400 bg-gray-100/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 rounded'>
+                    <kbd className='hidden items-center gap-0.5 rounded border border-gray-200/50 bg-gray-100/50 px-1.5 py-0.5 text-[10px] font-medium text-gray-400 sm:inline-flex dark:border-gray-700/50 dark:bg-gray-800/50'>
                       ⌘K
                     </kbd>
                   )}
                   {isFocused && (
-                    <kbd className='inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium text-gray-400 bg-gray-100/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 rounded'>
+                    <kbd className='inline-flex items-center gap-0.5 rounded border border-gray-200/50 bg-gray-100/50 px-1.5 py-0.5 text-[10px] font-medium text-gray-400 dark:border-gray-700/50 dark:bg-gray-800/50'>
                       ENTER
                     </kbd>
                   )}
                   {searchSuggestion && isFocused && (
-                    <kbd className='inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium text-gray-400 bg-gray-100/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 rounded animate-pulse'>
+                    <kbd className='inline-flex animate-pulse items-center gap-0.5 rounded border border-gray-200/50 bg-gray-100/50 px-1.5 py-0.5 text-[10px] font-medium text-gray-400 dark:border-gray-700/50 dark:bg-gray-800/50'>
                       TAB
                     </kbd>
                   )}
@@ -255,99 +272,104 @@ export const JobFilter = ({
               </div>
 
               {/* Quick search suggestions - Portaled to body */}
-              {isFocused && !localSearch && typeof document !== 'undefined' && ReactDOM.createPortal(
-                <>
-                  <div 
-                    style={{ 
-                      position: 'fixed',
-                      inset: 0,
-                      zIndex: 9998 
-                    }}
-                    onClick={() => setIsFocused(false)}
-                  />
-                  <div 
-                    style={{ 
-                      position: 'fixed',
-                      top: `${dropdownPosition.top}px`,
-                      left: `${dropdownPosition.left}px`,
-                      width: `${dropdownPosition.width}px`,
-                      zIndex: 9999,
-                      padding: '0.75rem',
-                      backgroundColor: 'white',
-                      borderRadius: '0.5rem',
-                      border: '1px solid rgb(229 231 235)',
-                      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
-                    }}
-                    className='dark:bg-gray-900 dark:border-gray-700'
-                  >
-                    <p className='text-xs font-medium text-gray-500 dark:text-gray-400 mb-2'>Quick searches:</p>
-                    <div className='flex flex-wrap gap-2'>
-                      {['Video', 'Programming', 'Blockchain', 'AI', 'Design'].map((tag) => (
-                        <button
-                          key={tag}
-                          onMouseDown={(e) => {
-                            e.preventDefault();
-                            setLocalSearch(tag.toLowerCase());
-                            setSearch(tag.toLowerCase());
-                          }}
-                          className='px-2.5 py-1 text-xs font-medium rounded-full bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 text-gray-600 dark:text-gray-300 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 dark:hover:bg-blue-950/30 dark:hover:border-blue-800 dark:hover:text-blue-400 transition-all duration-200'
-                        >
-                          {tag}
-                        </button>
-                      ))}
-                    </div>
-                    <div className='mt-2 pt-2 border-t border-gray-200/50 dark:border-gray-700/50'>
-                      <p className='text-xs text-gray-400 dark:text-gray-500'>
-                        <span className='font-medium'>Pro tip:</span> Press Enter to search, use quotes for exact matches
+              {isFocused &&
+                !localSearch &&
+                typeof document !== 'undefined' &&
+                ReactDOM.createPortal(
+                  <>
+                    <div
+                      style={{
+                        position: 'fixed',
+                        inset: 0,
+                        zIndex: 9998,
+                      }}
+                      onClick={() => setIsFocused(false)}
+                    />
+                    <div
+                      style={{
+                        position: 'fixed',
+                        top: `${dropdownPosition.top}px`,
+                        left: `${dropdownPosition.left}px`,
+                        width: `${dropdownPosition.width}px`,
+                        zIndex: 9999,
+                        padding: '0.75rem',
+                        backgroundColor: 'white',
+                        borderRadius: '0.5rem',
+                        border: '1px solid rgb(229 231 235)',
+                        boxShadow:
+                          '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                      }}
+                      className='dark:border-gray-700 dark:bg-gray-900'
+                    >
+                      <p className='mb-2 text-xs font-medium text-gray-500 dark:text-gray-400'>
+                        Quick searches:
                       </p>
+                      <div className='flex flex-wrap gap-2'>
+                        {[
+                          'Video',
+                          'Programming',
+                          'Blockchain',
+                          'AI',
+                          'Design',
+                        ].map((tag) => (
+                          <button
+                            key={tag}
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              setLocalSearch(tag.toLowerCase());
+                              setSearch(tag.toLowerCase());
+                            }}
+                            className='rounded-full border border-gray-200/50 bg-white/50 px-2.5 py-1 text-xs font-medium text-gray-600 transition-all duration-200 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 dark:border-gray-700/50 dark:bg-gray-800/50 dark:text-gray-300 dark:hover:border-blue-800 dark:hover:bg-blue-950/30 dark:hover:text-blue-400'
+                          >
+                            {tag}
+                          </button>
+                        ))}
+                      </div>
+                      <div className='mt-2 border-t border-gray-200/50 pt-2 dark:border-gray-700/50'>
+                        <p className='text-xs text-gray-400 dark:text-gray-500'>
+                          <span className='font-medium'>Pro tip:</span> Press
+                          Enter to search, use quotes for exact matches
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </>,
-                document.body
-              )}
+                  </>,
+                  document.body
+                )}
             </div>
 
             <button
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className={`
-                w-full flex items-center justify-between px-4 py-2.5 rounded-lg
-                bg-white dark:bg-gray-900
-                border border-gray-200 dark:border-gray-700
-                hover:border-gray-300 dark:hover:border-gray-600
-                transition-all duration-200 group
-              `}
+              className={`group flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-2.5 transition-all duration-200 hover:border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-gray-600`}
               style={{ height: '40px' }}
             >
               <span className='flex items-center gap-2.5'>
                 <div className='relative'>
-                  <Filter className='h-4 w-4 text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors' />
+                  <Filter className='h-4 w-4 text-gray-500 transition-colors group-hover:text-gray-700 dark:group-hover:text-gray-300' />
                   {activeFilterCount > 0 && (
-                    <span className='absolute -top-1.5 -right-1.5 h-3 w-3 bg-blue-500 rounded-full animate-pulse' />
+                    <span className='absolute -right-1.5 -top-1.5 h-3 w-3 animate-pulse rounded-full bg-blue-500' />
                   )}
                 </div>
                 <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>
                   Advanced Filters
                 </span>
                 {activeFilterCount > 0 && (
-                  <span className='px-2 py-0.5 text-xs font-medium rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20'>
+                  <span className='rounded-full border border-blue-500/20 bg-blue-500/10 px-2 py-0.5 text-xs font-medium text-blue-600 dark:text-blue-400'>
                     {activeFilterCount} active
                   </span>
                 )}
               </span>
-              <ChevronDown className={`
-                h-4 w-4 text-gray-400 transition-transform duration-200
-                ${showAdvanced ? 'rotate-180' : ''}
-              `} />
+              <ChevronDown
+                className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''} `}
+              />
             </button>
           </div>
 
-          <div className={`
-            grid grid-cols-1 lg:grid-cols-2 gap-6 overflow-hidden transition-all duration-300 ease-in-out
-            ${showAdvanced ? 'mt-6 opacity-100 max-h-[1000px]' : 'mt-0 opacity-0 max-h-0'}
-          `}>
+          <div
+            className={`grid grid-cols-1 gap-6 overflow-hidden transition-all duration-300 ease-in-out lg:grid-cols-2 ${showAdvanced ? 'mt-6 max-h-[1000px] opacity-100' : 'mt-0 max-h-0 opacity-0'} `}
+          >
             <div className='space-y-5'>
-              <div className='relative group'>
-                <div className='flex items-center justify-between mb-3'>
+              <div className='group relative'>
+                <div className='mb-3 flex items-center justify-between'>
                   <div className='flex items-center gap-2'>
                     <Coins className='h-4 w-4 text-gray-400' />
                     <h3 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
@@ -356,13 +378,8 @@ export const JobFilter = ({
                   </div>
                   <button
                     onClick={handleClearToken}
-                    className={`
-                      p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100
-                      dark:hover:text-gray-200 dark:hover:bg-gray-800
-                      transition-all duration-200
-                      ${(selectedToken || minTokens) ? 'opacity-100' : 'opacity-0 pointer-events-none'}
-                    `}
-                    title="Clear token settings"
+                    className={`rounded-md p-1 text-gray-400 transition-all duration-200 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-200 ${selectedToken || minTokens ? 'opacity-100' : 'pointer-events-none opacity-0'} `}
+                    title='Clear token settings'
                   >
                     <X className='h-3.5 w-3.5' />
                   </button>
@@ -375,8 +392,8 @@ export const JobFilter = ({
                 />
               </div>
 
-              <div className='relative group'>
-                <div className='flex items-center justify-between mb-3'>
+              <div className='group relative'>
+                <div className='mb-3 flex items-center justify-between'>
                   <div className='flex items-center gap-2'>
                     <Clock className='h-4 w-4 text-gray-400' />
                     <h3 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
@@ -385,22 +402,18 @@ export const JobFilter = ({
                   </div>
                   <button
                     onClick={handleClearDeliveryTime}
-                    className={`
-                      p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100
-                      dark:hover:text-gray-200 dark:hover:bg-gray-800
-                      transition-all duration-200
-                      ${minDeadline ? 'opacity-100' : 'opacity-0 pointer-events-none'}
-                    `}
-                    title="Clear delivery time"
+                    className={`rounded-md p-1 text-gray-400 transition-all duration-200 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-200 ${minDeadline ? 'opacity-100' : 'pointer-events-none opacity-0'} `}
+                    title='Clear delivery time'
                   >
                     <X className='h-3.5 w-3.5' />
                   </button>
                 </div>
-                
-                <div className='relative flex items-center rounded-lg border bg-white transition-all duration-200'
+
+                <div
+                  className='relative flex items-center rounded-lg border bg-white transition-all duration-200'
                   style={{
                     height: '40px',
-                    borderColor: 'rgb(229 231 235)'
+                    borderColor: 'rgb(229 231 235)',
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.borderColor = 'rgb(209 213 219)';
@@ -424,34 +437,39 @@ export const JobFilter = ({
                       }
                     }}
                     placeholder='0'
-                    className='flex-1 pr-2 h-full bg-transparent text-sm text-gray-900 placeholder-gray-400 border-0 outline-none focus:outline-none focus:ring-0'
-                    style={{ 
+                    className='h-full flex-1 border-0 bg-transparent pr-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:outline-none focus:ring-0'
+                    style={{
                       boxShadow: 'none',
                       WebkitAppearance: 'none',
                       MozAppearance: 'none',
-                      appearance: 'none'
+                      appearance: 'none',
                     }}
                   />
 
-                  <div className='h-5 w-px bg-gray-200 mr-1' />
+                  <div className='mr-1 h-5 w-px bg-gray-200' />
 
                   <div className='relative h-full'>
                     <button
                       type='button'
                       onClick={() => setShowUnitDropdown(!showUnitDropdown)}
-                      className='h-full px-3 flex items-center gap-2 rounded-r-lg hover:bg-gray-50 cursor-pointer transition-colors duration-150'
+                      className='flex h-full cursor-pointer items-center gap-2 rounded-r-lg px-3 transition-colors duration-150 hover:bg-gray-50'
                       style={{ minWidth: '100px' }}
                     >
                       <span className='text-sm font-medium text-gray-700'>
                         {selectedUnitTime.name}
                       </span>
-                      <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${showUnitDropdown ? 'rotate-180' : ''}`} />
+                      <ChevronDown
+                        className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${showUnitDropdown ? 'rotate-180' : ''}`}
+                      />
                     </button>
 
                     {showUnitDropdown && (
                       <>
-                        <div className='fixed inset-0 z-10' onClick={() => setShowUnitDropdown(false)} />
-                        <div className='absolute right-0 top-full mt-1 z-20 w-32 bg-white rounded-lg shadow-lg border border-gray-200 py-1'>
+                        <div
+                          className='fixed inset-0 z-10'
+                          onClick={() => setShowUnitDropdown(false)}
+                        />
+                        <div className='absolute right-0 top-full z-20 mt-1 w-32 rounded-lg border border-gray-200 bg-white py-1 shadow-lg'>
                           {unitsDeliveryTime.map((unit) => {
                             const isSelected = selectedUnitTime.id === unit.id;
                             return (
@@ -464,7 +482,7 @@ export const JobFilter = ({
                                 }}
                                 className={`w-full px-3 py-2 text-left text-sm transition-colors duration-150 ${
                                   isSelected
-                                    ? 'bg-blue-50 text-blue-700 font-medium' 
+                                    ? 'bg-blue-50 font-medium text-blue-700'
                                     : 'text-gray-700 hover:bg-gray-50'
                                 }`}
                               >
@@ -479,8 +497,8 @@ export const JobFilter = ({
                 </div>
               </div>
 
-              <div className='relative group'>
-                <div className='flex items-center justify-between mb-3'>
+              <div className='group relative'>
+                <div className='mb-3 flex items-center justify-between'>
                   <div className='flex items-center gap-2'>
                     <Scale className='h-4 w-4 text-gray-400' />
                     <h3 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
@@ -489,13 +507,8 @@ export const JobFilter = ({
                   </div>
                   <button
                     onClick={handleClearArbitrator}
-                    className={`
-                      p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100
-                      dark:hover:text-gray-200 dark:hover:bg-gray-800
-                      transition-all duration-200
-                      ${selectedArbitratorAddress ? 'opacity-100' : 'opacity-0 pointer-events-none'}
-                    `}
-                    title="Clear arbitrator"
+                    className={`rounded-md p-1 text-gray-400 transition-all duration-200 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-200 ${selectedArbitratorAddress ? 'opacity-100' : 'pointer-events-none opacity-0'} `}
+                    title='Clear arbitrator'
                   >
                     <X className='h-3.5 w-3.5' />
                   </button>
@@ -512,8 +525,8 @@ export const JobFilter = ({
             </div>
 
             <div className='space-y-5'>
-              <div className='relative group'>
-                <div className='flex items-center justify-between mb-3'>
+              <div className='group relative'>
+                <div className='mb-3 flex items-center justify-between'>
                   <div className='flex items-center gap-2'>
                     <TagIcon className='h-4 w-4 text-gray-400' />
                     <h3 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
@@ -522,13 +535,8 @@ export const JobFilter = ({
                   </div>
                   <button
                     onClick={handleClearTags}
-                    className={`
-                      p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100
-                      dark:hover:text-gray-200 dark:hover:bg-gray-800
-                      transition-all duration-200
-                      ${tags.length > 0 ? 'opacity-100' : 'opacity-0 pointer-events-none'}
-                    `}
-                    title="Clear tags"
+                    className={`rounded-md p-1 text-gray-400 transition-all duration-200 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-200 ${tags.length > 0 ? 'opacity-100' : 'pointer-events-none opacity-0'} `}
+                    title='Clear tags'
                   >
                     <X className='h-3.5 w-3.5' />
                   </button>
@@ -536,8 +544,8 @@ export const JobFilter = ({
                 <TagsInput tags={tags} setTags={setTags} />
               </div>
 
-              <div className='relative group'>
-                <div className='flex items-center justify-between mb-3'>
+              <div className='group relative'>
+                <div className='mb-3 flex items-center justify-between'>
                   <div className='flex items-center gap-2'>
                     <User className='h-4 w-4 text-gray-400' />
                     <h3 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
@@ -546,13 +554,8 @@ export const JobFilter = ({
                   </div>
                   <button
                     onClick={handleClearCreatorAddress}
-                    className={`
-                      p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100
-                      dark:hover:text-gray-200 dark:hover:bg-gray-800
-                      transition-all duration-200
-                      ${creatorAddress ? 'opacity-100' : 'opacity-0 pointer-events-none'}
-                    `}
-                    title="Clear creator address"
+                    className={`rounded-md p-1 text-gray-400 transition-all duration-200 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-200 ${creatorAddress ? 'opacity-100' : 'pointer-events-none opacity-0'} `}
+                    title='Clear creator address'
                   >
                     <X className='h-3.5 w-3.5' />
                   </button>
@@ -560,20 +563,22 @@ export const JobFilter = ({
                 <input
                   placeholder='0x...'
                   value={creatorAddress || ''}
-                  onChange={(e) => setCreatorAddress(e.target.value || undefined)}
-                  className='w-full px-3 h-10 rounded-lg border bg-white text-sm text-gray-900 placeholder-gray-400 font-mono border-gray-200 hover:border-gray-300 transition-all duration-200 outline-none focus:outline-none focus:ring-0 focus:border-gray-300'
-                  style={{ 
+                  onChange={(e) =>
+                    setCreatorAddress(e.target.value || undefined)
+                  }
+                  className='h-10 w-full rounded-lg border border-gray-200 bg-white px-3 font-mono text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 hover:border-gray-300 focus:border-gray-300 focus:outline-none focus:ring-0'
+                  style={{
                     height: '40px',
                     boxShadow: 'none',
                     WebkitAppearance: 'none',
                     MozAppearance: 'none',
-                    appearance: 'none'
+                    appearance: 'none',
                   }}
                 />
               </div>
 
-              <div className='relative group'>
-                <div className='flex items-center justify-between mb-3'>
+              <div className='group relative'>
+                <div className='mb-3 flex items-center justify-between'>
                   <div className='flex items-center gap-2'>
                     <Users className='h-4 w-4 text-gray-400' />
                     <h3 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
@@ -582,13 +587,8 @@ export const JobFilter = ({
                   </div>
                   <button
                     onClick={handleClearMultipleApplicants}
-                    className={`
-                      p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100
-                      dark:hover:text-gray-200 dark:hover:bg-gray-800
-                      transition-all duration-200
-                      ${typeof multipleApplicants !== 'undefined' ? 'opacity-100' : 'opacity-0 pointer-events-none'}
-                    `}
-                    title="Clear selection"
+                    className={`rounded-md p-1 text-gray-400 transition-all duration-200 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-200 ${typeof multipleApplicants !== 'undefined' ? 'opacity-100' : 'pointer-events-none opacity-0'} `}
+                    title='Clear selection'
                   >
                     <X className='h-3.5 w-3.5' />
                   </button>
@@ -598,14 +598,11 @@ export const JobFilter = ({
                     <button
                       key={option}
                       onClick={() => setMultipleApplicants(option === 'Yes')}
-                      className={`
-                        flex-1 px-4 py-2 rounded-lg text-sm font-medium
-                        transition-all duration-200 border
-                        ${multipleApplicants === (option === 'Yes')
-                          ? 'bg-blue-500/10 text-blue-600 border-blue-500/30'
-                          : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
-                        }
-                      `}
+                      className={`flex-1 rounded-lg border px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                        multipleApplicants === (option === 'Yes')
+                          ? 'border-blue-500/30 bg-blue-500/10 text-blue-600'
+                          : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                      } `}
                       style={{ height: '40px' }}
                     >
                       <span className='flex items-center justify-center gap-2'>
@@ -620,12 +617,13 @@ export const JobFilter = ({
           </div>
 
           {showAdvanced && activeFilterCount > 0 && (
-            <div className='mt-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50'>
+            <div className='mt-4 border-t border-gray-200/50 pt-4 dark:border-gray-700/50'>
               <div className='flex items-center justify-between'>
                 <div className='flex items-center gap-2'>
                   <Sparkles className='h-3.5 w-3.5 text-blue-500' />
                   <span className='text-xs text-gray-500 dark:text-gray-400'>
-                    {activeFilterCount} filter{activeFilterCount !== 1 ? 's' : ''} active
+                    {activeFilterCount} filter
+                    {activeFilterCount !== 1 ? 's' : ''} active
                   </span>
                 </div>
                 <button
@@ -637,7 +635,7 @@ export const JobFilter = ({
                     handleClearCreatorAddress();
                     handleClearMultipleApplicants();
                   }}
-                  className='text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors'
+                  className='text-xs font-medium text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300'
                 >
                   Clear all filters
                 </button>

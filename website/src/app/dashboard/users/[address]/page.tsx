@@ -81,7 +81,9 @@ const getCachedUserData = unstable_cache(
       const checksummedAddress = getAddress(address);
 
       const client = new ApolloClient({
-        uri: process.env.NEXT_PUBLIC_SUBSQUID_API_URL || 'https://arbius.squids.live/eacc-arb-one@v1/api/graphql',
+        uri:
+          process.env.NEXT_PUBLIC_SUBSQUID_API_URL ||
+          'https://arbius.squids.live/eacc-arb-one@v1/api/graphql',
         cache: new InMemoryCache(),
         defaultOptions: {
           query: {
@@ -116,7 +118,9 @@ const getCachedUserReviews = unstable_cache(
       const checksummedAddress = getAddress(address);
 
       const client = new ApolloClient({
-        uri: process.env.NEXT_PUBLIC_SUBSQUID_API_URL || 'https://arbius.squids.live/eacc-arb-one@v1/api/graphql',
+        uri:
+          process.env.NEXT_PUBLIC_SUBSQUID_API_URL ||
+          'https://arbius.squids.live/eacc-arb-one@v1/api/graphql',
         cache: new InMemoryCache(),
         defaultOptions: {
           query: {
@@ -154,16 +158,21 @@ function shortenAddress(address: string): string {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
-function calculateSuccessRate(reputationUp: number, reputationDown: number): number {
+function calculateSuccessRate(
+  reputationUp: number,
+  reputationDown: number
+): number {
   const total = reputationUp + reputationDown;
   if (total === 0) return 0;
   return Math.round((reputationUp / total) * 100);
 }
 
 // Generate dynamic metadata for the user page
-export async function generateMetadata(
-  { params }: { params: { address: string } }
-): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: { address: string };
+}): Promise<Metadata> {
   const address = params.address;
   console.log('Generating metadata for user address:', address);
 
@@ -197,11 +206,14 @@ export async function generateMetadata(
   // Fetch user data and reviews using cached versions with checksummed address
   const [user, reviews] = await Promise.all([
     getCachedUserData(checksummedAddress),
-    getCachedUserReviews(checksummedAddress)
+    getCachedUserReviews(checksummedAddress),
   ]);
 
   if (!user) {
-    console.log('User not found for metadata, returning fallback metadata for address:', address);
+    console.log(
+      'User not found for metadata, returning fallback metadata for address:',
+      address
+    );
     const shortAddress = shortenAddress(address);
 
     return {
@@ -234,7 +246,10 @@ export async function generateMetadata(
   }
 
   // Calculate statistics
-  const successRate = calculateSuccessRate(user.reputationUp || 0, user.reputationDown || 0);
+  const successRate = calculateSuccessRate(
+    user.reputationUp || 0,
+    user.reputationDown || 0
+  );
   const totalReviews = user.numberOfReviews || 0;
 
   // Calculate actual average rating
@@ -273,7 +288,9 @@ export async function generateMetadata(
     user.name,
     'reviews',
     'reputation',
-  ].filter(Boolean).join(', ');
+  ]
+    .filter(Boolean)
+    .join(', ');
 
   // Use user avatar if available, otherwise fallback to default OG image
   const ogImage = user.avatar || '/og.webp';

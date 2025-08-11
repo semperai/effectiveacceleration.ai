@@ -41,7 +41,9 @@ const getCachedArbitrators = unstable_cache(
   async (): Promise<Arbitrator[]> => {
     try {
       const client = new ApolloClient({
-        uri: process.env.NEXT_PUBLIC_SUBSQUID_API_URL || 'https://arbius.squids.live/eacc-arb-one@v1/api/graphql',
+        uri:
+          process.env.NEXT_PUBLIC_SUBSQUID_API_URL ||
+          'https://arbius.squids.live/eacc-arb-one@v1/api/graphql',
         cache: new InMemoryCache(),
         defaultOptions: {
           query: {
@@ -73,17 +75,26 @@ export async function generateMetadata(): Promise<Metadata> {
   const arbitrators = await getCachedArbitrators();
 
   const totalArbitrators = arbitrators.length;
-  const totalCasesSettled = arbitrators.reduce((sum, arb) => sum + (arb.settledCount || 0), 0);
-  const avgFee = arbitrators.length > 0
-    ? (arbitrators.reduce((sum, arb) => sum + arb.fee, 0) / arbitrators.length / 100).toFixed(2)
-    : '0';
+  const totalCasesSettled = arbitrators.reduce(
+    (sum, arb) => sum + (arb.settledCount || 0),
+    0
+  );
+  const avgFee =
+    arbitrators.length > 0
+      ? (
+          arbitrators.reduce((sum, arb) => sum + arb.fee, 0) /
+          arbitrators.length /
+          100
+        ).toFixed(2)
+      : '0';
 
   const description = `Browse ${totalArbitrators} verified arbitrators on Effective Acceleration. ${totalCasesSettled} cases settled. Average fee: ${avgFee}%. Find trusted dispute resolution services.`;
 
   return {
     title: 'Arbitrators - Effective Acceleration',
     description,
-    keywords: 'arbitrators, dispute resolution, blockchain arbitration, effective acceleration, marketplace, decentralized arbitration',
+    keywords:
+      'arbitrators, dispute resolution, blockchain arbitration, effective acceleration, marketplace, decentralized arbitration',
     openGraph: {
       title: 'Browse Arbitrators - Effective Acceleration',
       description,

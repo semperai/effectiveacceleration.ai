@@ -17,13 +17,13 @@ import { DeveloperCTA } from './DeveloperCTA';
 export default function WelcomePage() {
   return (
     <Layout borderless hiddenSidebar>
-      <div className="min-h-screen bg-white dark:bg-gray-900">
+      <div className='min-h-screen bg-white dark:bg-gray-900'>
         {/* Hero Section with Partners */}
         <Hero />
         <PartnersSection />
 
         {/* Main Content Sections */}
-        <div className="relative">
+        <div className='relative'>
           {/* Whitepaper Section - now more compact */}
           <WhitepaperSection />
 

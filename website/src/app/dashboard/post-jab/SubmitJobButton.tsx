@@ -146,9 +146,9 @@ export const SubmitJobButton = ({
   // Show loading state while checking allowance
   if (allowanceIsLoading || Config === undefined) {
     return (
-      <button 
-        disabled 
-        className='group relative min-w-[180px] px-6 py-3 rounded-xl font-medium bg-gray-100/50 dark:bg-gray-800/50 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 text-gray-400 dark:text-gray-500 cursor-not-allowed transition-all duration-200'
+      <button
+        disabled
+        className='group relative min-w-[180px] cursor-not-allowed rounded-xl border border-gray-200/50 bg-gray-100/50 px-6 py-3 font-medium text-gray-400 backdrop-blur-sm transition-all duration-200 dark:border-gray-700/50 dark:bg-gray-800/50 dark:text-gray-500'
       >
         <span className='flex items-center justify-center gap-2'>
           <Loader2 className='h-4 w-4 animate-spin' />
@@ -161,9 +161,7 @@ export const SubmitJobButton = ({
   // Show error state
   if (allowanceIsError) {
     return (
-      <button 
-        className='group relative min-w-[180px] px-6 py-3 rounded-xl font-medium bg-red-500/10 backdrop-blur-sm border border-red-500/20 text-red-600 dark:text-red-400 transition-all duration-200'
-      >
+      <button className='group relative min-w-[180px] rounded-xl border border-red-500/20 bg-red-500/10 px-6 py-3 font-medium text-red-600 backdrop-blur-sm transition-all duration-200 dark:text-red-400'>
         Error checking approval
       </button>
     );
@@ -186,18 +184,16 @@ export const SubmitJobButton = ({
     <button
       onClick={handleSubmitJob}
       disabled={isSubmitting || isConfirming}
-      className={`
-        group relative min-w-[180px] px-6 py-3 rounded-xl font-medium transition-all duration-200
-        ${isSubmitting || isConfirming
-          ? 'bg-gray-100/50 dark:bg-gray-800/50 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-          : 'bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 dark:from-white dark:via-purple-100/20 dark:to-white hover:shadow-xl shadow-lg border border-white/10 dark:border-gray-900/10'
-        }
-      `}
+      className={`group relative min-w-[180px] rounded-xl px-6 py-3 font-medium transition-all duration-200 ${
+        isSubmitting || isConfirming
+          ? 'cursor-not-allowed border border-gray-200/50 bg-gray-100/50 text-gray-400 backdrop-blur-sm dark:border-gray-700/50 dark:bg-gray-800/50 dark:text-gray-500'
+          : 'border border-white/10 bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900 shadow-lg hover:shadow-xl dark:border-gray-900/10 dark:from-white dark:via-purple-100/20 dark:to-white'
+      } `}
     >
       {/* Subtle shimmer effect on hover */}
       {!isSubmitting && !isConfirming && (
-        <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 dark:via-purple-500/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
+        <div className='absolute inset-0 overflow-hidden rounded-xl opacity-0 transition-opacity duration-500 group-hover:opacity-100'>
+          <div className='absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-full dark:via-purple-500/10' />
         </div>
       )}
 
@@ -217,10 +213,10 @@ export const SubmitJobButton = ({
 };
 
 // Updated ApproveButton component with glassmorphic design
-export const ApproveButton = ({ 
-  token, 
-  spender, 
-  onApproveSuccess, 
+export const ApproveButton = ({
+  token,
+  spender,
+  onApproveSuccess,
   onApproveError,
 }: {
   token: Address;
@@ -228,7 +224,8 @@ export const ApproveButton = ({
   onApproveSuccess: () => void;
   onApproveError?: (error: Error) => void;
 }) => {
-  const { writeContractWithNotifications, isConfirming } = useWriteContractWithNotifications();
+  const { writeContractWithNotifications, isConfirming } =
+    useWriteContractWithNotifications();
   const [isApproving, setIsApproving] = useState(false);
 
   const handleApprove = async () => {
@@ -238,7 +235,12 @@ export const ApproveButton = ({
         address: token,
         abi: ERC20Abi,
         functionName: 'approve',
-        args: [spender, BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')], // Max approval
+        args: [
+          spender,
+          BigInt(
+            '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+          ),
+        ], // Max approval
         onReceipt: () => {
           onApproveSuccess();
         },
@@ -254,18 +256,16 @@ export const ApproveButton = ({
     <button
       onClick={handleApprove}
       disabled={isApproving || isConfirming}
-      className={`
-        group relative min-w-[180px] px-6 py-3 rounded-xl font-medium transition-all duration-200
-        ${isApproving || isConfirming
-          ? 'bg-gray-100/50 dark:bg-gray-800/50 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-          : 'bg-white/5 dark:bg-gray-800/30 backdrop-blur-xl border border-purple-500/30 dark:border-purple-400/30 text-purple-600 dark:text-purple-400 hover:bg-white/10 dark:hover:bg-gray-800/50 hover:border-purple-500/50 dark:hover:border-purple-400/50 shadow-lg hover:shadow-xl'
-        }
-      `}
+      className={`group relative min-w-[180px] rounded-xl px-6 py-3 font-medium transition-all duration-200 ${
+        isApproving || isConfirming
+          ? 'cursor-not-allowed border border-gray-200/50 bg-gray-100/50 text-gray-400 backdrop-blur-sm dark:border-gray-700/50 dark:bg-gray-800/50 dark:text-gray-500'
+          : 'border border-purple-500/30 bg-white/5 text-purple-600 shadow-lg backdrop-blur-xl hover:border-purple-500/50 hover:bg-white/10 hover:shadow-xl dark:border-purple-400/30 dark:bg-gray-800/30 dark:text-purple-400 dark:hover:border-purple-400/50 dark:hover:bg-gray-800/50'
+      } `}
     >
       {/* Subtle shimmer effect on hover */}
       {!isApproving && !isConfirming && (
-        <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out" />
+        <div className='absolute inset-0 overflow-hidden rounded-xl opacity-0 transition-opacity duration-500 group-hover:opacity-100'>
+          <div className='absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-purple-500/5 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full' />
         </div>
       )}
 

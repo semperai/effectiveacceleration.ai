@@ -22,7 +22,7 @@ const PRICE_CACHE_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
 // Fetch token price from CoinGecko
 async function getTokenPrice(): Promise<number> {
   // Check if we have a valid cached price (within 1 hour)
-  if (priceCache && (Date.now() - priceCache.timestamp < PRICE_CACHE_TTL)) {
+  if (priceCache && Date.now() - priceCache.timestamp < PRICE_CACHE_TTL) {
     console.log('Returning cached token price');
     return priceCache.price;
   }
@@ -33,7 +33,7 @@ async function getTokenPrice(): Promise<number> {
       `${COINGECKO_API_URL}?ids=${COINGECKO_COIN_ID}&vs_currencies=usd`,
       {
         headers: {
-          'Accept': 'application/json',
+          Accept: 'application/json',
         },
         // Set a timeout for the fetch
         signal: AbortSignal.timeout(10000), // 10 second timeout
@@ -56,12 +56,11 @@ async function getTokenPrice(): Promise<number> {
     // Update cache
     priceCache = {
       price,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     console.log(`Fetched token price from CoinGecko: $${price}`);
     return price;
-
   } catch (error) {
     console.error('Error fetching token price from CoinGecko:', error);
 
@@ -85,7 +84,6 @@ async function calculateMarketCap(): Promise<string> {
 
     // Format to 2 decimal places
     return marketCap.toFixed(2);
-
   } catch (error) {
     console.error('Error calculating market cap:', error);
     throw error;
@@ -101,12 +99,11 @@ export async function GET() {
       status: 200,
       headers: {
         'Content-Type': 'text/plain',
-        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200' // 1 hour cache, 2 hours stale
-      }
+        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200', // 1 hour cache, 2 hours stale
+      },
     });
 
     return response;
-
   } catch (error) {
     console.error('Error in market cap endpoint:', error);
 
@@ -115,8 +112,8 @@ export async function GET() {
       status: 503,
       headers: {
         'Content-Type': 'text/plain',
-        'Retry-After': '300' // Suggest retry after 5 minutes
-      }
+        'Retry-After': '300', // Suggest retry after 5 minutes
+      },
     });
   }
 }

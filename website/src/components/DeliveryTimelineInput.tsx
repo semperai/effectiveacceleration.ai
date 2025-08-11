@@ -39,7 +39,7 @@ export const DeliveryTimelineInput: React.FC<DeliveryTimelineInputProps> = ({
   selectedUnit,
   onUnitChange,
   error,
-  placeholder = "0",
+  placeholder = '0',
   label,
   helperText,
   disabled = false,
@@ -79,10 +79,11 @@ export const DeliveryTimelineInput: React.FC<DeliveryTimelineInputProps> = ({
 
   // Get plural or singular form based on current value
   const getUnitLabel = () => {
-    const unit = timeUnits.find(u => 
-      u.id === selectedUnit.id || 
-      u.name === selectedUnit.name ||
-      u.plural === selectedUnit.name
+    const unit = timeUnits.find(
+      (u) =>
+        u.id === selectedUnit.id ||
+        u.name === selectedUnit.name ||
+        u.plural === selectedUnit.name
     );
     if (!unit) return selectedUnit.name;
     return numValue === 1 ? unit.name : unit.plural;
@@ -97,133 +98,112 @@ export const DeliveryTimelineInput: React.FC<DeliveryTimelineInputProps> = ({
   };
 
   const showValidationError = hasInteracted && !isValueValid();
-  const validationErrorMsg = !isValidValue 
+  const validationErrorMsg = !isValidValue
     ? 'Please enter a valid time'
-    : min !== undefined && numValue < min 
+    : min !== undefined && numValue < min
       ? `Minimum is ${min}`
-      : max !== undefined && numValue > max 
+      : max !== undefined && numValue > max
         ? `Maximum is ${max}`
         : '';
-  
+
   const displayError = error || (showValidationError ? validationErrorMsg : '');
 
   return (
     <div className={`w-full ${className}`}>
       {/* Label */}
       {label && (
-        <label className="block text-sm text-gray-700 mb-2">
+        <label className='mb-2 block text-sm text-gray-700'>
           {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
+          {required && <span className='ml-1 text-red-500'>*</span>}
         </label>
       )}
 
       {/* Main Input Container */}
-      <div className="space-y-1.5">
-        <div 
-          className={`
-            relative flex items-center rounded-lg border bg-white
-            transition-all duration-200
-            ${disabled ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}
-            ${displayError 
-              ? 'border-red-300 focus-within:border-red-400' 
+      <div className='space-y-1.5'>
+        <div
+          className={`relative flex items-center rounded-lg border bg-white transition-all duration-200 ${disabled ? 'cursor-not-allowed bg-gray-50 opacity-60' : ''} ${
+            displayError
+              ? 'border-red-300 focus-within:border-red-400'
               : isFocused
                 ? 'border-gray-300'
                 : 'border-gray-200 hover:border-gray-300'
-            }
-          `}
+          } `}
           style={{ height: '40px' }}
         >
           {/* Time Icon */}
-          <div className="pl-3 pr-2">
-            <Clock className="h-4 w-4 text-gray-400" />
+          <div className='pl-3 pr-2'>
+            <Clock className='h-4 w-4 text-gray-400' />
           </div>
 
           {/* Number Input - Remove all borders and outlines */}
           <input
             ref={inputRef}
-            type="text"
-            inputMode="numeric"
+            type='text'
+            inputMode='numeric'
             value={value || ''}
             onChange={handleValueChange}
             placeholder={placeholder}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             disabled={disabled}
-            className="
-              flex-1 pr-2 h-full
-              bg-transparent
-              text-sm text-gray-900 placeholder-gray-400
-              border-0 outline-none focus:outline-none focus:ring-0
-              disabled:cursor-not-allowed
-            "
-            style={{ 
+            className='h-full flex-1 border-0 bg-transparent pr-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:outline-none focus:ring-0 disabled:cursor-not-allowed'
+            style={{
               boxShadow: 'none',
               WebkitAppearance: 'none',
               MozAppearance: 'none',
-              appearance: 'none'
+              appearance: 'none',
             }}
           />
 
           {/* Divider - Soft gray */}
-          <div className="h-5 w-px bg-gray-200 mr-1" />
+          <div className='mr-1 h-5 w-px bg-gray-200' />
 
           {/* Unit Selector */}
-          <div className="relative h-full">
+          <div className='relative h-full'>
             <button
-              type="button"
+              type='button'
               onClick={() => !disabled && setIsDropdownOpen(!isDropdownOpen)}
               disabled={disabled}
-              className={`
-                h-full px-3 flex items-center gap-2
-                rounded-r-lg transition-colors duration-150
-                ${disabled ? 'cursor-not-allowed' : 'hover:bg-gray-50 cursor-pointer'}
-              `}
+              className={`flex h-full items-center gap-2 rounded-r-lg px-3 transition-colors duration-150 ${disabled ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-gray-50'} `}
               style={{ minWidth: '100px' }}
             >
-              <span className="text-sm font-medium text-gray-700">
+              <span className='text-sm font-medium text-gray-700'>
                 {getUnitLabel()}
               </span>
-              <ChevronDown className={`
-                h-4 w-4 text-gray-500 transition-transform duration-200
-                ${isDropdownOpen ? 'rotate-180' : ''}
-              `} />
+              <ChevronDown
+                className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''} `}
+              />
             </button>
 
             {/* Dropdown */}
             {isDropdownOpen && !disabled && (
               <>
                 {/* Backdrop */}
-                <div 
-                  className="fixed inset-0 z-10" 
+                <div
+                  className='fixed inset-0 z-10'
                   onClick={() => setIsDropdownOpen(false)}
                 />
-                
+
                 {/* Dropdown Menu */}
-                <div 
+                <div
                   ref={dropdownRef}
-                  className="
-                    absolute right-0 top-full mt-1 z-20
-                    w-32 bg-white rounded-lg shadow-lg
-                    border border-gray-200 py-1
-                  "
+                  className='absolute right-0 top-full z-20 mt-1 w-32 rounded-lg border border-gray-200 bg-white py-1 shadow-lg'
                 >
                   {timeUnits.map((unit) => {
-                    const isSelected = selectedUnit.id === unit.id || 
-                                     selectedUnit.name === unit.name || 
-                                     selectedUnit.name === unit.plural;
+                    const isSelected =
+                      selectedUnit.id === unit.id ||
+                      selectedUnit.name === unit.name ||
+                      selectedUnit.name === unit.plural;
                     return (
                       <button
                         key={unit.id}
-                        type="button"
+                        type='button'
                         onClick={() => handleUnitSelect(unit)}
-                        className={`
-                          w-full px-3 py-2 text-left text-sm
-                          transition-colors duration-150
-                          ${isSelected
-                            ? 'bg-blue-50 text-blue-700 font-medium' 
+                        className={`w-full px-3 py-2 text-left text-sm transition-colors duration-150 ${
+                          isSelected
+                            ? 'bg-blue-50 font-medium text-blue-700'
                             : 'text-gray-700 hover:bg-gray-50'
-                          }
-                        `}
+                        } `}
                       >
                         {numValue === 1 ? unit.name : unit.plural}
                       </button>
@@ -237,15 +217,15 @@ export const DeliveryTimelineInput: React.FC<DeliveryTimelineInputProps> = ({
 
         {/* Error - Only show after interaction */}
         {displayError && (
-          <div className="flex items-center gap-1 text-xs text-red-600 px-1">
-            <AlertCircle className="h-3 w-3" />
+          <div className='flex items-center gap-1 px-1 text-xs text-red-600'>
+            <AlertCircle className='h-3 w-3' />
             <span>{displayError}</span>
           </div>
         )}
 
         {/* Helper text */}
         {!displayError && helperText && (
-          <p className="text-xs text-gray-500 px-1">{helperText}</p>
+          <p className='px-1 text-xs text-gray-500'>{helperText}</p>
         )}
       </div>
     </div>

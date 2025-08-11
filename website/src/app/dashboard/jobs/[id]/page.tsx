@@ -48,7 +48,9 @@ const getCachedJobData = unstable_cache(
     try {
       // Create a new client instance for each request to avoid caching issues
       const client = new ApolloClient({
-        uri: process.env.NEXT_PUBLIC_SUBSQUID_API_URL || 'https://arbius.squids.live/eacc-arb-one@v1/api/graphql',
+        uri:
+          process.env.NEXT_PUBLIC_SUBSQUID_API_URL ||
+          'https://arbius.squids.live/eacc-arb-one@v1/api/graphql',
         cache: new InMemoryCache(),
         defaultOptions: {
           query: {
@@ -84,17 +86,23 @@ function truncateDescription(text: string, maxLength: number = 160): string {
 // Helper to format job state for display
 function getJobStateText(state: number): string {
   switch (state) {
-    case 0: return 'Open';
-    case 1: return 'In Progress';
-    case 2: return 'Closed';
-    default: return 'Unknown';
+    case 0:
+      return 'Open';
+    case 1:
+      return 'In Progress';
+    case 2:
+      return 'Closed';
+    default:
+      return 'Unknown';
   }
 }
 
 // Generate dynamic metadata for the job page
-export async function generateMetadata(
-  { params }: { params: { id: string } }
-): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: { id: string };
+}): Promise<Metadata> {
   const jobId = params.id;
   console.log('Generating metadata for job ID:', jobId);
 
@@ -102,7 +110,10 @@ export async function generateMetadata(
   const job = await getCachedJobData(jobId);
 
   if (!job) {
-    console.log('Job not found for metadata, returning fallback metadata for job ID:', jobId);
+    console.log(
+      'Job not found for metadata, returning fallback metadata for job ID:',
+      jobId
+    );
     // Return fallback metadata with job ID
     return {
       title: `Job #${jobId} - Effective Acceleration`,
@@ -136,7 +147,8 @@ export async function generateMetadata(
   // Build dynamic title and description
   const title = job.title ? `${job.title} - Job #${jobId}` : `Job #${jobId}`;
   const description = truncateDescription(
-    job.content || `View details for job #${jobId} on Effective Acceleration marketplace.`
+    job.content ||
+      `View details for job #${jobId} on Effective Acceleration marketplace.`
   );
 
   // Get job status and tags for enhanced metadata
@@ -148,7 +160,9 @@ export async function generateMetadata(
     jobState.toLowerCase(),
     'effective acceleration',
     'marketplace',
-  ].filter(Boolean).join(', ');
+  ]
+    .filter(Boolean)
+    .join(', ');
 
   // Generate dynamic metadata
   return {

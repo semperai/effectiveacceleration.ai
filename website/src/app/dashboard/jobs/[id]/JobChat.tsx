@@ -8,11 +8,7 @@ import {
 } from '@effectiveacceleration/contracts';
 import { zeroAddress } from 'viem';
 import JobChatEvents from './JobChat/JobChat';
-import {
-  PiChatCircleDots,
-  PiSparkle,
-  PiLockKey
-} from 'react-icons/pi';
+import { PiChatCircleDots, PiSparkle, PiLockKey } from 'react-icons/pi';
 
 const JobChat = ({
   users,
@@ -49,8 +45,7 @@ const JobChat = ({
   // 3. Worker when they are assigned to the job
   // 4. Worker when job is open and they can apply
   const isUserCreatorWithSelectedWorkerOrTaken =
-    (isUserCreator && selectedWorker) ||
-    (isUserCreator && isJobTaken);
+    (isUserCreator && selectedWorker) || (isUserCreator && isJobTaken);
 
   const shouldShowPostMessageButton =
     job.state !== JobState.Closed &&
@@ -58,14 +53,14 @@ const JobChat = ({
     Object.keys(sessionKeys).length > 0;
 
   return (
-    <div className='flex flex-col h-full bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden'>
+    <div className='flex h-full flex-col overflow-hidden rounded-xl bg-white shadow-lg dark:bg-gray-900'>
       {/* Enhanced header with gradient */}
-      <div className='relative bg-gradient-to-r from-blue-50 via-purple-50 to-blue-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800 border-b border-gray-200 dark:border-gray-700'>
+      <div className='relative border-b border-gray-200 bg-gradient-to-r from-blue-50 via-purple-50 to-blue-50 dark:border-gray-700 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800'>
         <div className='px-6 py-4'>
           <div className='flex items-center justify-between'>
             <div className='flex items-center gap-3'>
-              <div className='p-2 rounded-lg bg-gradient-to-br from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20'>
-                <PiChatCircleDots className='w-5 h-5 text-blue-600 dark:text-blue-400' />
+              <div className='rounded-lg bg-gradient-to-br from-blue-500/10 to-purple-500/10 p-2 dark:from-blue-500/20 dark:to-purple-500/20'>
+                <PiChatCircleDots className='h-5 w-5 text-blue-600 dark:text-blue-400' />
               </div>
               <div>
                 <h3 className='text-lg font-semibold text-gray-900 dark:text-white'>
@@ -80,15 +75,15 @@ const JobChat = ({
             {/* Connection status indicator */}
             <div className='flex items-center gap-2'>
               {Object.keys(sessionKeys).length > 0 ? (
-                <div className='flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-100 dark:bg-green-900/30'>
-                  <div className='w-2 h-2 rounded-full bg-green-500 animate-pulse' />
+                <div className='flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1.5 dark:bg-green-900/30'>
+                  <div className='h-2 w-2 animate-pulse rounded-full bg-green-500' />
                   <span className='text-xs font-medium text-green-700 dark:text-green-400'>
                     Encrypted
                   </span>
                 </div>
               ) : (
-                <div className='flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800'>
-                  <PiLockKey className='w-3 h-3 text-gray-500 dark:text-gray-400' />
+                <div className='flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5 dark:bg-gray-800'>
+                  <PiLockKey className='h-3 w-3 text-gray-500 dark:text-gray-400' />
                   <span className='text-xs font-medium text-gray-600 dark:text-gray-400'>
                     Not Connected
                   </span>
@@ -119,7 +114,7 @@ const JobChat = ({
           isUserCreatorWithSelectedWorkerOrTaken ||
           (isUserCreator && isJobTaken)) &&
         shouldShowPostMessageButton && (
-          <div className='border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900'>
+          <div className='border-t border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900'>
             <div className='p-1'>
               <PostMessageButton
                 address={address}

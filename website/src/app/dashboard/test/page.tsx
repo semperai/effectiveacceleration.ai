@@ -50,7 +50,7 @@ const Test = () => {
   const [subscribeAddress, setSubscribeAddress] = useState<string>(
     '0x66c402694eEe2235E892B950c9b330e5603FEbe1'
   );
-  useSwResetMessage("21");
+  useSwResetMessage('21');
 
   const publish = useCallback(
     async (file: File) => {

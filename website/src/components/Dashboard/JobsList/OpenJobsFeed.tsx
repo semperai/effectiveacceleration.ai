@@ -25,7 +25,7 @@ export const OpenJobsFeed = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { address } = useAccount();
-  
+
   // Initialize state from URL parameters
   const getInitialValues = useCallback(() => {
     const search = searchParams.get('search') || '';
@@ -36,27 +36,30 @@ export const OpenJobsFeed = () => {
     const minTokens = searchParams.get('minTokens') || undefined;
     const creatorAddress = searchParams.get('creator') || undefined;
     const arbitratorAddress = searchParams.get('arbitrator') || undefined;
-    const multipleApplicants = searchParams.get('multipleApplicants') || undefined;
+    const multipleApplicants =
+      searchParams.get('multipleApplicants') || undefined;
 
     // Parse token
     let selectedToken: Token | undefined;
     if (tokenAddress) {
-      selectedToken = tokens.find((token) => token.id.toLowerCase() === tokenAddress.toLowerCase());
+      selectedToken = tokens.find(
+        (token) => token.id.toLowerCase() === tokenAddress.toLowerCase()
+      );
     }
 
     // Parse deadline and unit
     let deadline: number | undefined;
     let unit = unitsDeliveryTime[2]; // Default to days
-    
+
     if (minDeadline) {
       const deadlineNum = parseInt(minDeadline);
       if (!isNaN(deadlineNum)) {
         deadline = deadlineNum;
       }
     }
-    
+
     if (unitTime) {
-      const foundUnit = unitsDeliveryTime.find(u => u.name === unitTime);
+      const foundUnit = unitsDeliveryTime.find((u) => u.name === unitTime);
       if (foundUnit) {
         unit = foundUnit;
       }
@@ -65,7 +68,7 @@ export const OpenJobsFeed = () => {
     // Parse tags
     const tags: Tag[] = tagsParam.map((tag, idx) => ({
       id: Date.now() + idx,
-      name: tag
+      name: tag,
     }));
 
     // Parse minTokens
@@ -96,7 +99,7 @@ export const OpenJobsFeed = () => {
       minTokens: minTokensNum,
       creatorAddress,
       arbitratorAddress,
-      multipleApplicants: multipleApplicantsValue
+      multipleApplicants: multipleApplicantsValue,
     };
   }, [searchParams]);
 
@@ -105,23 +108,37 @@ export const OpenJobsFeed = () => {
   const [search, setSearch] = useState<string>(initialValues.search);
   const [tags, setTags] = useState<Tag[]>(initialValues.tags);
   const [limit, setLimit] = useState<number>(100);
-  const [selectedToken, setSelectedToken] = useState<Token | undefined>(initialValues.selectedToken);
-  const [minDeadline, setMinDeadline] = useState<number | undefined>(initialValues.deadline);
-  const [selectedUnitTime, setSelectedUnitTime] = useState<ComboBoxOption>(initialValues.unit);
-  const [minTokens, setMinTokens] = useState<number | undefined>(initialValues.minTokens);
-  const [creatorAddress, setCreatorAddress] = useState<string | undefined>(initialValues.creatorAddress);
-  const [multipleApplicants, setMultipleApplicants] = useState<boolean | undefined>(initialValues.multipleApplicants);
-  const [selectedArbitratorAddress, setSelectedArbitratorAddress] = useState<string | undefined>(initialValues.arbitratorAddress);
-  
+  const [selectedToken, setSelectedToken] = useState<Token | undefined>(
+    initialValues.selectedToken
+  );
+  const [minDeadline, setMinDeadline] = useState<number | undefined>(
+    initialValues.deadline
+  );
+  const [selectedUnitTime, setSelectedUnitTime] = useState<ComboBoxOption>(
+    initialValues.unit
+  );
+  const [minTokens, setMinTokens] = useState<number | undefined>(
+    initialValues.minTokens
+  );
+  const [creatorAddress, setCreatorAddress] = useState<string | undefined>(
+    initialValues.creatorAddress
+  );
+  const [multipleApplicants, setMultipleApplicants] = useState<
+    boolean | undefined
+  >(initialValues.multipleApplicants);
+  const [selectedArbitratorAddress, setSelectedArbitratorAddress] = useState<
+    string | undefined
+  >(initialValues.arbitratorAddress);
+
   // Get arbitrators data - this returns the full Arbitrator objects with all properties
   const { data: arbitrators } = useArbitrators();
-  
+
   const [now, setNow] = useState(Math.floor(new Date().getTime() / 1000));
-  
+
   // Update URL when filters change
   useEffect(() => {
     const params = new URLSearchParams();
-    
+
     if (search) params.set('search', search);
     if (selectedToken) params.set('token', selectedToken.id);
     if (minDeadline !== undefined && !isNaN(minDeadline)) {
@@ -132,37 +149,53 @@ export const OpenJobsFeed = () => {
       params.set('minTokens', minTokens.toString());
     }
     if (creatorAddress) params.set('creator', creatorAddress);
-    if (selectedArbitratorAddress) params.set('arbitrator', selectedArbitratorAddress);
+    if (selectedArbitratorAddress)
+      params.set('arbitrator', selectedArbitratorAddress);
     if (multipleApplicants !== undefined) {
       params.set('multipleApplicants', multipleApplicants.toString());
     }
-    tags.forEach(tag => params.append('tags', tag.name));
+    tags.forEach((tag) => params.append('tags', tag.name));
 
     // Update URL without navigation
-    const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
+    const newUrl = params.toString()
+      ? `?${params.toString()}`
+      : window.location.pathname;
     if (newUrl !== window.location.search) {
       router.replace(newUrl, { scroll: false });
     }
-  }, [search, selectedToken, minDeadline, selectedUnitTime, minTokens, creatorAddress, selectedArbitratorAddress, multipleApplicants, tags, router]);
+  }, [
+    search,
+    selectedToken,
+    minDeadline,
+    selectedUnitTime,
+    minTokens,
+    creatorAddress,
+    selectedArbitratorAddress,
+    multipleApplicants,
+    tags,
+    router,
+  ]);
 
   const { data: jobs } = useJobSearch({
     jobSearch: {
       ...(search && { title: search }),
       ...(tags.length > 0 && { tags: tags.map((tag) => tag.name) }),
-      ...(minDeadline !== undefined && !isNaN(minDeadline) && {
-        maxTime_gte: convertToSeconds(minDeadline, selectedUnitTime.name),
-      }),
+      ...(minDeadline !== undefined &&
+        !isNaN(minDeadline) && {
+          maxTime_gte: convertToSeconds(minDeadline, selectedUnitTime.name),
+        }),
       state: JobState.Open,
       ...(selectedToken && { token: selectedToken.id }),
-      ...(minTokens !== undefined && !isNaN(minTokens) && {
-        amount_gte: minTokens,
-      }),
-      ...((selectedArbitratorAddress || creatorAddress) && { 
-        roles: { 
-          creator: creatorAddress ?? '', 
-          arbitrator: selectedArbitratorAddress ?? '', 
-          worker: '' 
-        } 
+      ...(minTokens !== undefined &&
+        !isNaN(minTokens) && {
+          amount_gte: minTokens,
+        }),
+      ...((selectedArbitratorAddress || creatorAddress) && {
+        roles: {
+          creator: creatorAddress ?? '',
+          arbitrator: selectedArbitratorAddress ?? '',
+          worker: '',
+        },
       }),
       ...(typeof multipleApplicants !== 'undefined' && { multipleApplicants }),
     },
@@ -171,25 +204,27 @@ export const OpenJobsFeed = () => {
     limit: limit,
     maxTimestamp: now,
   });
-  
+
   const { data: newJobs } = useJobSearch({
     jobSearch: {
       ...(search && { title: search }),
       ...(tags.length > 0 && { tags: tags.map((tag) => tag.name) }),
-      ...(minDeadline !== undefined && !isNaN(minDeadline) && {
-        maxTime_gte: convertToSeconds(minDeadline, selectedUnitTime.name),
-      }),
+      ...(minDeadline !== undefined &&
+        !isNaN(minDeadline) && {
+          maxTime_gte: convertToSeconds(minDeadline, selectedUnitTime.name),
+        }),
       state: JobState.Open,
       ...(selectedToken && { token: selectedToken.id }),
-      ...(minTokens !== undefined && !isNaN(minTokens) && {
-        amount_gte: minTokens,
-      }),
-      ...((selectedArbitratorAddress || creatorAddress) && { 
-        roles: { 
-          creator: creatorAddress ?? '', 
-          arbitrator: selectedArbitratorAddress ?? '', 
-          worker: '' 
-        } 
+      ...(minTokens !== undefined &&
+        !isNaN(minTokens) && {
+          amount_gte: minTokens,
+        }),
+      ...((selectedArbitratorAddress || creatorAddress) && {
+        roles: {
+          creator: creatorAddress ?? '',
+          arbitrator: selectedArbitratorAddress ?? '',
+          worker: '',
+        },
       }),
       ...(typeof multipleApplicants !== 'undefined' && { multipleApplicants }),
     },
@@ -251,9 +286,9 @@ export const OpenJobsFeed = () => {
       />
       {newJobs?.length ? (
         <div className='flex justify-center'>
-          <div 
-            onClick={() => setNow(Math.floor(new Date().getTime() / 1000))} 
-            className='bg-green-300 px-3 py-1 rounded-md border-2 border-green-500 border-solid cursor-pointer hover:bg-green-400 transition-colors'
+          <div
+            onClick={() => setNow(Math.floor(new Date().getTime() / 1000))}
+            className='cursor-pointer rounded-md border-2 border-solid border-green-500 bg-green-300 px-3 py-1 transition-colors hover:bg-green-400'
           >
             Found {newJobs.length} new jobs, click to refresh
           </div>

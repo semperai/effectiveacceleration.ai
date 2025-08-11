@@ -67,7 +67,7 @@ export const formatTokenNameAndAmount = (
   tokenId: string,
   amount: bigint | undefined
 ) => {
-  console.log
+  console.log;
   const amountBigint =
     ((amount ?? 0n) * 10000n) /
     10n ** BigInt(tokensMap[tokenId]?.decimals ?? 0);

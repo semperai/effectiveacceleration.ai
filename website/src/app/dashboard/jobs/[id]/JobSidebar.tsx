@@ -10,10 +10,7 @@ import {
   JobState,
   type User,
 } from '@effectiveacceleration/contracts';
-import {
-  LinkIcon,
-  UserIcon,
-} from '@heroicons/react/24/outline';
+import { LinkIcon, UserIcon } from '@heroicons/react/24/outline';
 import {
   PiCoin,
   PiTimer,
@@ -21,7 +18,7 @@ import {
   PiUsers,
   PiInfo,
   PiClock,
-  PiPackage
+  PiPackage,
 } from 'react-icons/pi';
 import moment from 'moment';
 import { zeroAddress, zeroHash } from 'viem';
@@ -71,30 +68,27 @@ export default function JobSidebar({
   }) => {
     const variantStyles = {
       default: 'bg-white dark:bg-gray-900/50',
-      highlight: 'bg-gradient-to-br from-blue-50/50 to-purple-50/50 dark:from-blue-950/20 dark:to-purple-950/20',
-      warning: 'bg-gradient-to-br from-amber-50/50 to-orange-50/50 dark:from-amber-950/20 dark:to-orange-950/20',
-      success: 'bg-gradient-to-br from-emerald-50/50 to-green-50/50 dark:from-emerald-950/20 dark:to-green-950/20',
+      highlight:
+        'bg-gradient-to-br from-blue-50/50 to-purple-50/50 dark:from-blue-950/20 dark:to-purple-950/20',
+      warning:
+        'bg-gradient-to-br from-amber-50/50 to-orange-50/50 dark:from-amber-950/20 dark:to-orange-950/20',
+      success:
+        'bg-gradient-to-br from-emerald-50/50 to-green-50/50 dark:from-emerald-950/20 dark:to-green-950/20',
     };
 
     return (
-      <div className={`
-        relative overflow-hidden
-        ${variantStyles[variant]}
-        border-b border-gray-100 dark:border-gray-800
-        p-6
-        transition-all duration-200
-        hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20
-        ${className}
-      `}>
+      <div
+        className={`relative overflow-hidden ${variantStyles[variant]} border-b border-gray-100 p-6 transition-all duration-200 hover:shadow-lg hover:shadow-black/5 dark:border-gray-800 dark:hover:shadow-black/20 ${className} `}
+      >
         {/* Decorative gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300" />
+        <div className='absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 transition-opacity duration-300 hover:opacity-100' />
 
-        <div className="relative">
+        <div className='relative'>
           {title && (
-            <div className='flex items-center gap-2 mb-4'>
+            <div className='mb-4 flex items-center gap-2'>
               {Icon && (
-                <div className='p-2 rounded-lg bg-gradient-to-br from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20'>
-                  <Icon className='w-4 h-4 text-blue-600 dark:text-blue-400' />
+                <div className='rounded-lg bg-gradient-to-br from-blue-500/10 to-purple-500/10 p-2 dark:from-blue-500/20 dark:to-purple-500/20'>
+                  <Icon className='h-4 w-4 text-blue-600 dark:text-blue-400' />
                 </div>
               )}
               <h3 className='text-base font-semibold text-gray-900 dark:text-white'>
@@ -120,12 +114,10 @@ export default function JobSidebar({
     icon?: React.ElementType;
     highlighted?: boolean;
   }) => (
-    <div className={`
-      flex items-center justify-between py-3 px-3 -mx-3 rounded-lg
-      transition-all duration-200
-      ${highlighted ? 'bg-blue-50/50 dark:bg-blue-950/20' : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'}
-    `}>
-      <span className='text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2'>
+    <div
+      className={`-mx-3 flex items-center justify-between rounded-lg px-3 py-3 transition-all duration-200 ${highlighted ? 'bg-blue-50/50 dark:bg-blue-950/20' : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'} `}
+    >
+      <span className='flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400'>
         {Icon && <Icon className='h-4 w-4 text-gray-400 dark:text-gray-500' />}
         {label}
       </span>
@@ -136,37 +128,39 @@ export default function JobSidebar({
   );
 
   // Enhanced tag component
-  const Tag = ({ children, variant = 'default' }: {
+  const Tag = ({
+    children,
+    variant = 'default',
+  }: {
     children: React.ReactNode;
     variant?: 'default' | 'category';
   }) => (
-    <span className={`
-      inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium
-      transition-all duration-200 hover:scale-105
-      ${variant === 'category'
-        ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/25'
-        : 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600'
-      }
-    `}>
+    <span
+      className={`inline-flex items-center rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-200 hover:scale-105 ${
+        variant === 'category'
+          ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/25'
+          : 'border border-gray-200 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 dark:border-gray-600 dark:from-gray-700 dark:to-gray-800 dark:text-gray-300'
+      } `}
+    >
       {children}
     </span>
   );
 
   // Progress bar component
   const ProgressBar = ({ value, label }: { value: number; label?: string }) => (
-    <div className="space-y-2">
+    <div className='space-y-2'>
       {label && (
-        <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400">
+        <div className='flex justify-between text-xs text-gray-600 dark:text-gray-400'>
           <span>{label}</span>
           <span>{value}%</span>
         </div>
       )}
-      <div className="relative h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+      <div className='relative h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700'>
         <div
-          className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500"
+          className='absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500'
           style={{ width: `${value}%` }}
         >
-          <div className="absolute inset-0 bg-white/20 animate-pulse" />
+          <div className='absolute inset-0 animate-pulse bg-white/20' />
         </div>
       </div>
     </div>
@@ -179,11 +173,11 @@ export default function JobSidebar({
   timeLeft -= ((+new Date() / 1000) | 0) + job.maxTime;
 
   return (
-    <div className='h-full md:max-h-customHeader overflow-y-auto rounded-xl bg-white dark:bg-gray-900 shadow-xl dark:shadow-2xl dark:shadow-black/20'>
+    <div className='h-full overflow-y-auto rounded-xl bg-white shadow-xl md:max-h-customHeader dark:bg-gray-900 dark:shadow-2xl dark:shadow-black/20'>
       <div>
         {/* Status Section */}
         {job && address && events && (
-          <div className="p-4 border-b border-gray-100 dark:border-gray-800">
+          <div className='border-b border-gray-100 p-4 dark:border-gray-800'>
             <JobStatusWrapper
               job={job}
               events={events}
@@ -196,13 +190,13 @@ export default function JobSidebar({
         )}
 
         {/* Job Header Section */}
-        <InfoSection variant="highlight">
+        <InfoSection variant='highlight'>
           {job && (
             <>
               <h2 className='mb-3 text-xl font-bold text-gray-900 dark:text-white'>
                 {job.title}
               </h2>
-              <p className='text-sm text-gray-600 dark:text-gray-400 leading-relaxed'>
+              <p className='text-sm leading-relaxed text-gray-600 dark:text-gray-400'>
                 {job.content}
               </p>
             </>
@@ -222,11 +216,7 @@ export default function JobSidebar({
 
             <TooltipButton
               outline
-              className='flex w-full items-center justify-center gap-2
-                bg-white dark:bg-gray-800
-                hover:bg-gray-50 dark:hover:bg-gray-700
-                border-gray-200 dark:border-gray-600
-                transition-all duration-200'
+              className='flex w-full items-center justify-center gap-2 border-gray-200 bg-white transition-all duration-200 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700'
               tooltipContent='Copy link to clipboard'
               popoverContent='Copied!'
               onClick={async () => {
@@ -248,7 +238,9 @@ export default function JobSidebar({
             value={
               job && (
                 <div className='flex items-center gap-2'>
-                  <span className="font-semibold">{formatTokenNameAndAmount(job.token, job.amount)}</span>
+                  <span className='font-semibold'>
+                    {formatTokenNameAndAmount(job.token, job.amount)}
+                  </span>
                   <img src={tokenIcon(job.token)} alt='' className='h-5 w-5' />
                 </div>
               )
@@ -258,13 +250,13 @@ export default function JobSidebar({
             label='Multiple Applicants'
             icon={PiUsers}
             value={
-              <span className={`
-                px-2 py-0.5 rounded-full text-xs font-medium
-                ${job?.multipleApplicants
-                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                  : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
-                }
-              `}>
+              <span
+                className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                  job?.multipleApplicants
+                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                    : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                } `}
+              >
                 {job?.multipleApplicants ? 'Allowed' : 'Not Allowed'}
               </span>
             }
@@ -273,19 +265,22 @@ export default function JobSidebar({
             label='Delivery Method'
             icon={PiPackage}
             value={
-              <span className="px-2 py-0.5 rounded-lg bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-xs font-medium">
+              <span className='rounded-lg bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'>
                 {job?.deliveryMethod}
               </span>
             }
           />
 
           {/* Last Updated Info */}
-          <div className='mt-4 pt-3 border-t border-gray-100 dark:border-gray-800'>
+          <div className='mt-4 border-t border-gray-100 pt-3 dark:border-gray-800'>
             <div className='flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400'>
               <UserIcon className='h-4 w-4' />
               <span>
-                Last updated by <span className="font-medium">{users[job?.roles.creator!]?.name}</span>
-                {' '}{moment(job?.timestamp! * 1000).fromNow()}
+                Last updated by{' '}
+                <span className='font-medium'>
+                  {users[job?.roles.creator!]?.name}
+                </span>{' '}
+                {moment(job?.timestamp! * 1000).fromNow()}
               </span>
             </div>
           </div>
@@ -295,7 +290,11 @@ export default function JobSidebar({
         {job?.state === JobState.Closed &&
           address === job.roles.creator &&
           job.collateralOwed > 0n && (
-            <InfoSection title='Collateral Withdrawal' icon={PiCoin} variant="warning">
+            <InfoSection
+              title='Collateral Withdrawal'
+              icon={PiCoin}
+              variant='warning'
+            >
               <div className='space-y-4'>
                 <div className='text-sm text-gray-600 dark:text-gray-400'>
                   {(() => {
@@ -308,7 +307,7 @@ export default function JobSidebar({
                 </div>
                 <ProgressBar
                   value={timePassed ? 100 : adjustedProgressValue}
-                  label="Withdrawal Progress"
+                  label='Withdrawal Progress'
                 />
                 <DetailRow
                   label='Collateral Amount'
@@ -317,8 +316,14 @@ export default function JobSidebar({
                   value={
                     job && (
                       <div className='flex items-center gap-2'>
-                        <span className="font-semibold">{formatTokenNameAndAmount(job.token, job.amount)}</span>
-                        <img src={tokenIcon(job.token)} alt='' className='h-5 w-5' />
+                        <span className='font-semibold'>
+                          {formatTokenNameAndAmount(job.token, job.amount)}
+                        </span>
+                        <img
+                          src={tokenIcon(job.token)}
+                          alt=''
+                          className='h-5 w-5'
+                        />
                       </div>
                     )
                   }
@@ -332,26 +337,30 @@ export default function JobSidebar({
           job.resultHash === zeroHash &&
           address === job.roles.creator &&
           events.length > 0 && (
-            <InfoSection title='Delivery Status' icon={PiClock} variant="warning">
+            <InfoSection
+              title='Delivery Status'
+              icon={PiClock}
+              variant='warning'
+            >
               <div className='space-y-4'>
                 <DetailRow
                   label='Time Remaining'
                   icon={PiTimer}
                   value={
-                    <span className={`
-                      px-2 py-0.5 rounded-lg text-xs font-medium
-                      ${timeLeft > 0
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                        : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                      }
-                    `}>
+                    <span
+                      className={`rounded-lg px-2 py-0.5 text-xs font-medium ${
+                        timeLeft > 0
+                          ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                          : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                      } `}
+                    >
                       {timeLeft > 0
                         ? formatTimeLeft(timeLeft)
                         : `Overdue by ${formatTimeLeft(-timeLeft)}`}
                     </span>
                   }
                 />
-                <ProgressBar value={5} label="Progress" />
+                <ProgressBar value={5} label='Progress' />
               </div>
             </InfoSection>
           )}
@@ -363,7 +372,7 @@ export default function JobSidebar({
               label='Max Delivery Time'
               icon={PiClock}
               value={
-                <span className="px-2 py-0.5 rounded-lg bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 text-xs font-medium">
+                <span className='rounded-lg bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'>
                   {moment.duration(job?.maxTime, 'seconds').humanize()}
                 </span>
               }
@@ -379,9 +388,12 @@ export default function JobSidebar({
               value={
                 <Link
                   href={`/dashboard/arbitrators/${job?.roles.arbitrator}`}
-                  className='text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors'
+                  className='font-medium text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300'
                 >
-                  {shortenText({ text: job?.roles.arbitrator, maxLength: 12 }) || ''}
+                  {shortenText({
+                    text: job?.roles.arbitrator,
+                    maxLength: 12,
+                  }) || ''}
                 </Link>
               }
             />
@@ -393,14 +405,18 @@ export default function JobSidebar({
           <div className='space-y-4'>
             {jobMeceTag && (
               <div>
-                <h4 className='mb-2 text-sm font-medium text-gray-700 dark:text-gray-300'>Category</h4>
-                <Tag variant="category">{jobMeceTag}</Tag>
+                <h4 className='mb-2 text-sm font-medium text-gray-700 dark:text-gray-300'>
+                  Category
+                </h4>
+                <Tag variant='category'>{jobMeceTag}</Tag>
               </div>
             )}
 
             {job?.tags && job.tags.length > 1 && (
               <div>
-                <h4 className='mb-2 text-sm font-medium text-gray-700 dark:text-gray-300'>Tags</h4>
+                <h4 className='mb-2 text-sm font-medium text-gray-700 dark:text-gray-300'>
+                  Tags
+                </h4>
                 <div className='flex flex-wrap gap-2'>
                   {job.tags.slice(1).map((value: string) => (
                     <Tag key={value}>{value}</Tag>

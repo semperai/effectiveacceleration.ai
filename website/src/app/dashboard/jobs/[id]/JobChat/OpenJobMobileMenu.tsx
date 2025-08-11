@@ -1,5 +1,5 @@
 import type React from 'react';
-import { type Dispatch, type SetStateAction, useEffect, useState } from 'react'
+import { type Dispatch, type SetStateAction, useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   type JobEventWithDiffs,
@@ -46,7 +46,7 @@ const OpenJobMobileMenu: React.FC<JobSidebarProps> = ({
   adjustedProgressValue,
   whitelistedWorkers,
   tokenIcon,
-  user
+  user,
 }) => {
   const isWorker: boolean = address === job.roles.worker;
   const isCreator: boolean = address === job.roles.creator;
@@ -73,7 +73,7 @@ const OpenJobMobileMenu: React.FC<JobSidebarProps> = ({
   return (
     <>
       {/* Mobile Menu Header - Only visible on mobile */}
-      <div className='block md:hidden bg-softBlue border-l border-r border-gray-100'>
+      <div className='block border-l border-r border-gray-100 bg-softBlue md:hidden'>
         <div className='flex h-14 items-center justify-between px-3'>
           {/* Left Button - Applicant List (conditional) */}
           <div className='flex items-center'>
@@ -92,10 +92,12 @@ const OpenJobMobileMenu: React.FC<JobSidebarProps> = ({
           </div>
 
           {/* Center - Status/Title */}
-          <div className='flex-1 flex justify-center items-center px-2'>
+          <div className='flex flex-1 items-center justify-center px-2'>
             {/* Show user pill when job is taken/closed or when there's a selected worker */}
-            {(selectedWorker && users[selectedWorker] && job.state === JobState.Open) ||
-             (job.state !== JobState.Open && (isCreator || isWorker)) ? (
+            {(selectedWorker &&
+              users[selectedWorker] &&
+              job.state === JobState.Open) ||
+            (job.state !== JobState.Open && (isCreator || isWorker)) ? (
               // Beautiful clickable pill for selected user
               (() => {
                 // Determine which user to show
@@ -122,10 +124,10 @@ const OpenJobMobileMenu: React.FC<JobSidebarProps> = ({
 
                 return (
                   <Link href={`/dashboard/users/${userAddress}`}>
-                    <div className='relative group cursor-pointer'>
+                    <div className='group relative cursor-pointer'>
                       {/* Enhanced gradient border effect */}
-                      <div className='absolute -inset-[2px] bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 rounded-full opacity-70 group-hover:opacity-90 group-hover:bg-gradient-to-r group-hover:from-pink-400 group-hover:via-purple-400 group-hover:to-blue-400 transition-all duration-500'></div>
-                      <div className='relative flex items-center gap-1.5 bg-white dark:bg-gray-900 px-2.5 py-1 rounded-full'>
+                      <div className='absolute -inset-[2px] rounded-full bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 opacity-70 transition-all duration-500 group-hover:bg-gradient-to-r group-hover:from-pink-400 group-hover:via-purple-400 group-hover:to-blue-400 group-hover:opacity-90'></div>
+                      <div className='relative flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1 dark:bg-gray-900'>
                         {/* User avatar - text sized */}
                         <ProfileImage
                           user={userToShow}

@@ -11,7 +11,15 @@ import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
 import * as Sentry from '@sentry/nextjs';
-import { AlertCircle, User, FileText, CheckCircle, ArrowRight, Home, Sparkles } from 'lucide-react';
+import {
+  AlertCircle,
+  User,
+  FileText,
+  CheckCircle,
+  ArrowRight,
+  Home,
+  Sparkles,
+} from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import type React from 'react';
 import { useEffect, useState } from 'react';
@@ -22,7 +30,7 @@ const RegisteredUserView = () => {
   const router = useRouter();
 
   return (
-    <div className='relative flex w-full max-w-md transform flex-col overflow-hidden rounded-3xl bg-white/95 backdrop-blur-md p-8 shadow-2xl transition-all dark:bg-gray-900/95'>
+    <div className='relative flex w-full max-w-md transform flex-col overflow-hidden rounded-3xl bg-white/95 p-8 shadow-2xl backdrop-blur-md transition-all dark:bg-gray-900/95'>
       {/* Decorative gradient background */}
       <div className='absolute inset-0 bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-green-950/20 dark:via-gray-900 dark:to-blue-950/20' />
 
@@ -49,7 +57,7 @@ const RegisteredUserView = () => {
         {/* Button */}
         <button
           onClick={() => router.push('/dashboard')}
-          className='group relative overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-3 font-semibold text-white shadow-lg transition-all duration-200 hover:shadow-xl hover:from-blue-700 hover:to-blue-800 active:scale-[0.98]'
+          className='group relative overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-3 font-semibold text-white shadow-lg transition-all duration-200 hover:from-blue-700 hover:to-blue-800 hover:shadow-xl active:scale-[0.98]'
         >
           <span className='relative z-10 flex items-center justify-center gap-2 text-white'>
             <Home className='h-5 w-5 text-white' />
@@ -186,7 +194,7 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
   };
 
   return (
-    <div className='relative flex w-full max-w-lg transform flex-col self-center overflow-hidden rounded-3xl bg-white/95 backdrop-blur-md p-8 shadow-2xl transition-all dark:bg-gray-900/95'>
+    <div className='relative flex w-full max-w-lg transform flex-col self-center overflow-hidden rounded-3xl bg-white/95 p-8 shadow-2xl backdrop-blur-md transition-all dark:bg-gray-900/95'>
       {/* Decorative gradient background */}
       <div className='absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-blue-950/20 dark:via-gray-900 dark:to-purple-950/20' />
 
@@ -216,14 +224,12 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
           {/* Avatar upload */}
           <Field>
             <Label>Profile Picture</Label>
-            <p className='text-sm text-gray-500 dark:text-gray-400 mb-2'>
+            <p className='mb-2 text-sm text-gray-500 dark:text-gray-400'>
               Add an avatar to stand out
             </p>
             <UploadAvatar
               avatar={formState?.avatar}
-              setAvatar={(value) =>
-                updateFormField('avatar', value as string)
-              }
+              setAvatar={(value) => updateFormField('avatar', value as string)}
               setAvatarFileUrl={(value) =>
                 updateFormField('avatarFileUrl', value as string)
               }
@@ -276,7 +282,7 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
           <button
             onClick={handleSubmit}
             disabled={!formState.userName || formState.isSubmitting}
-            className='w-full rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white shadow-md transition-all duration-200 hover:bg-blue-700 hover:shadow-lg active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600 disabled:hover:shadow-md disabled:active:scale-100'
+            className='w-full rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white shadow-md transition-all duration-200 hover:bg-blue-700 hover:shadow-lg active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-blue-600 disabled:hover:shadow-md disabled:active:scale-100'
           >
             <span className='flex items-center justify-center gap-2 text-white'>
               {formState.isSubmitting ? (

@@ -13,7 +13,6 @@ import { PiPaperPlaneRight } from 'react-icons/pi';
 import { Textarea } from '../Textarea';
 import { useWaitForTransactionReceipt } from 'wagmi';
 
-
 export type PostMessageButtonProps = {
   address: string | undefined;
   recipient: string;
@@ -50,22 +49,28 @@ export function PostMessageButton({
     }
   }, [toast]);
 
-  const { writeContractWithNotifications, isConfirming, isConfirmed, error, hash, loadingToastIdRef: contractLoadingToastIdRef } =
-    useWriteContractWithNotifications();
+  const {
+    writeContractWithNotifications,
+    isConfirming,
+    isConfirmed,
+    error,
+    hash,
+    loadingToastIdRef: contractLoadingToastIdRef,
+  } = useWriteContractWithNotifications();
 
   useEffect(() => {
-      if (contractLoadingToastIdRef.current) {
-        setIsPostingMessage(true);
-      }
-      if (isConfirmed) {
-          setMessage('');
-          setIsPostingMessage(false);
-          initialAddressRef.current = address;
-      }
-      if (error) {
-        setIsPostingMessage(false);
-        initialAddressRef.current = address;
-      }
+    if (contractLoadingToastIdRef.current) {
+      setIsPostingMessage(true);
+    }
+    if (isConfirmed) {
+      setMessage('');
+      setIsPostingMessage(false);
+      initialAddressRef.current = address;
+    }
+    if (error) {
+      setIsPostingMessage(false);
+      initialAddressRef.current = address;
+    }
   }, [isConfirmed, contractLoadingToastIdRef.current, error]);
 
   useEffect(() => {
@@ -85,9 +90,8 @@ export function PostMessageButton({
     initialAddressRef.current = address;
 
     const initialAddress = address;
-    const initialRecipient = recipient === initialAddress
-      ? job.roles.creator
-      : recipient;
+    const initialRecipient =
+      recipient === initialAddress ? job.roles.creator : recipient;
 
     const sessionKey = sessionKeys[`${initialAddress}-${initialRecipient}`];
 
@@ -98,7 +102,9 @@ export function PostMessageButton({
 
     if (message.length > 0) {
       dismissLoadingToast();
-      loadingToastIdRef.current = showLoading('Publishing job message to IPFS...');
+      loadingToastIdRef.current = showLoading(
+        'Publishing job message to IPFS...'
+      );
       setIsPostingMessage(true);
       try {
         const { hash } = await publishToIpfs(message, sessionKey);
@@ -127,7 +133,6 @@ export function PostMessageButton({
         functionName: 'postThreadMessage',
         args: [BigInt(job.id!), contentHash, initialRecipient],
       });
-
     } catch (err: any) {
       Sentry.captureException(err);
       showError(`Error posting job message: ${err.message}`);
@@ -142,8 +147,7 @@ export function PostMessageButton({
   return (
     <div className='w-full'>
       {/* Unified container with better styling */}
-      <div className='flex items-end gap-2 p-2 bg-white dark:bg-gray-800/50 backdrop-blur-sm rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm transition-all duration-200 focus-within:shadow-md'>
-
+      <div className='flex items-end gap-2 rounded-lg border border-gray-200 bg-white p-2 shadow-sm backdrop-blur-sm transition-all duration-200 focus-within:shadow-md dark:border-gray-700 dark:bg-gray-800/50'>
         {/* Message Input with improved styling - no outline/border */}
         <textarea
           rows={1}
@@ -157,7 +161,9 @@ export function PostMessageButton({
             textarea.style.height = 'auto'; // Reset height to calculate the new height
 
             // Calculate line height and set constraints
-            const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight || '20');
+            const lineHeight = parseFloat(
+              getComputedStyle(textarea).lineHeight || '20'
+            );
             const minHeight = lineHeight * 1.5; // Minimum height for better alignment
             const maxHeight = lineHeight * 6; // Maximum 6 lines
 
@@ -176,24 +182,11 @@ export function PostMessageButton({
             }
           }}
           placeholder='Type a message...'
-          className={`
-            flex-1
-            min-h-[36px]
-            px-2 py-1
-            bg-transparent
-            border-0 outline-none
-            rounded-lg
-            resize-none
-            text-sm text-gray-900 dark:text-gray-100
-            placeholder:text-gray-400 dark:placeholder:text-gray-500
-            focus:outline-none focus:ring-0 focus:border-transparent
-            transition-all duration-200
-            ${isProcessing ? 'opacity-60 cursor-not-allowed' : ''}
-          `}
+          className={`min-h-[36px] flex-1 resize-none rounded-lg border-0 bg-transparent px-2 py-1 text-sm text-gray-900 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-0 dark:text-gray-100 dark:placeholder:text-gray-500 ${isProcessing ? 'cursor-not-allowed opacity-60' : ''} `}
           style={{
             scrollbarWidth: 'thin',
             scrollbarColor: 'rgba(156, 163, 175, 0.3) transparent',
-            boxShadow: 'none'
+            boxShadow: 'none',
           }}
         />
 
@@ -201,25 +194,19 @@ export function PostMessageButton({
         <button
           disabled={!canSend}
           onClick={handlePostMessage}
-          className={`
-            relative flex items-center justify-center
-            h-9 w-9 min-w-[36px]
-            mb-0 self-end
-            rounded-xl
-            transition-all duration-200 transform
-            ${canSend
-              ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg shadow-blue-500/20'
-              : 'bg-gray-100 dark:bg-gray-700/50 cursor-not-allowed'
-            }
-          `}
-          aria-label="Send message"
+          className={`relative mb-0 flex h-9 w-9 min-w-[36px] transform items-center justify-center self-end rounded-xl transition-all duration-200 ${
+            canSend
+              ? 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-md shadow-blue-500/20 hover:scale-105 hover:from-blue-600 hover:to-blue-700 hover:shadow-lg active:scale-95'
+              : 'cursor-not-allowed bg-gray-100 dark:bg-gray-700/50'
+          } `}
+          aria-label='Send message'
         >
           {/* Loading state with spinner */}
           {isProcessing ? (
             <div className='relative flex items-center justify-center'>
               {/* Spinner ring */}
               <svg
-                className='w-5 h-5 animate-spin text-white/30 absolute'
+                className='absolute h-5 w-5 animate-spin text-white/30'
                 fill='none'
                 viewBox='0 0 24 24'
               >
@@ -238,27 +225,28 @@ export function PostMessageButton({
                 />
               </svg>
               {/* Inner icon */}
-              <PiPaperPlaneRight className='w-4 h-4 text-white/60' />
+              <PiPaperPlaneRight className='h-4 w-4 text-white/60' />
             </div>
           ) : (
             /* Normal state - send icon */
             <PiPaperPlaneRight
-              className={`
-                w-4 h-4 transition-all duration-200
-                ${canSend
-                  ? 'text-white'
-                  : 'text-gray-400 dark:text-gray-500'
-                }
-              `}
+              className={`h-4 w-4 transition-all duration-200 ${
+                canSend ? 'text-white' : 'text-gray-400 dark:text-gray-500'
+              } `}
             />
           )}
 
           {/* Pulse effect when ready to send */}
           {canSend && !isProcessing && (
             <>
-              <span className='absolute inset-0 rounded-xl bg-white opacity-0 hover:opacity-20 transition-opacity duration-200' />
-              <span className='absolute inset-0 rounded-xl animate-ping bg-blue-400 opacity-30'
-                    style={{ animationDuration: '2s', animationIterationCount: '1' }} />
+              <span className='absolute inset-0 rounded-xl bg-white opacity-0 transition-opacity duration-200 hover:opacity-20' />
+              <span
+                className='absolute inset-0 animate-ping rounded-xl bg-blue-400 opacity-30'
+                style={{
+                  animationDuration: '2s',
+                  animationIterationCount: '1',
+                }}
+              />
             </>
           )}
         </button>

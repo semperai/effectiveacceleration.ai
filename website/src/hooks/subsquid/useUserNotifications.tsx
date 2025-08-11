@@ -3,7 +3,11 @@ import { useQuery } from '@apollo/client';
 import { GET_USER_NOTIFICATIONS } from './queries';
 import useJobsByIds from './useJobsByIds';
 import useJobEventsWithDiffs from './useJobEventsWithDiffs';
-import { type Job, JobEventType, JobMessageEvent } from '@effectiveacceleration/contracts';
+import {
+  type Job,
+  JobEventType,
+  JobMessageEvent,
+} from '@effectiveacceleration/contracts';
 
 export interface NotificationWithJob {
   id: string;
@@ -44,16 +48,18 @@ export default function useUserNotifications(
     if (!data?.notifications) return [];
 
     const ids = data.notifications
-      .map((n: any) => n.jobId as string)  // Explicitly cast to string
-      .filter((id: string): id is string => !!id);  // Type guard to ensure non-empty strings
+      .map((n: any) => n.jobId as string) // Explicitly cast to string
+      .filter((id: string): id is string => !!id); // Type guard to ensure non-empty strings
 
-    return [...new Set(ids)] as string[];  // Ensure the result is string[]
+    return [...new Set(ids)] as string[]; // Ensure the result is string[]
   }, [data]);
 
   // Fetch all jobs for the notifications
   const { data: jobs } = useJobsByIds(jobIds);
 
-  const [notifications, setNotifications] = useState<NotificationWithJob[] | undefined>();
+  const [notifications, setNotifications] = useState<
+    NotificationWithJob[] | undefined
+  >();
 
   // Helper function to process notifications with read status and job data
   const processNotifications = (rawNotifications: any[], jobsData?: Job[]) => {
@@ -67,7 +73,7 @@ export default function useUserNotifications(
 
     // Create a map of jobs for quick lookup
     const jobMap = new Map<string, Job>();
-    jobsData?.forEach(job => {
+    jobsData?.forEach((job) => {
       if (job?.id) {
         jobMap.set(job.id, job);
       }
@@ -115,7 +121,7 @@ export default function useUserNotifications(
       data: notifications,
       loading: loading || !jobs,
       error,
-      ...rest
+      ...rest,
     }),
     [notifications, loading, error, jobs, rest]
   );

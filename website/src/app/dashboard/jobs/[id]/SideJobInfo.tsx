@@ -2,7 +2,11 @@
 import React, { Dispatch, Fragment, SetStateAction, useEffect } from 'react';
 import { Transition, Dialog } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import { Job, type JobEventWithDiffs, User } from '@effectiveacceleration/contracts';
+import {
+  Job,
+  type JobEventWithDiffs,
+  User,
+} from '@effectiveacceleration/contracts';
 import JobSidebar from './JobSidebar';
 import type { JobSidebarProps } from './JobChat/OpenJobMobileMenu';
 import { PiX } from 'react-icons/pi';
@@ -21,9 +25,8 @@ const SideJobInfo = ({
   tokenIcon,
   setSidebarOpen,
   setSelectedWorker,
-  sidebarOpen
+  sidebarOpen,
 }: JobSidebarProps) => {
-
   useEffect(() => {
     if (!sidebarOpen) return;
     const handleButtonClick = (event: Event) => {
@@ -33,11 +36,15 @@ const SideJobInfo = ({
 
       // Find the corresponding button in jobButtonActionsDivOther
       const clickedButton = event.target as HTMLButtonElement;
-      const buttonIndex = Array.from(clickedButton.parentElement!.children).indexOf(clickedButton);
-      const jobButtonActionsDivs = document.getElementsByClassName('jobButtonActions');
+      const buttonIndex = Array.from(
+        clickedButton.parentElement!.children
+      ).indexOf(clickedButton);
+      const jobButtonActionsDivs =
+        document.getElementsByClassName('jobButtonActions');
       if (jobButtonActionsDivs.length > 1) {
         const jobButtonActionsDivOther = jobButtonActionsDivs[0];
-        const otherButtons = jobButtonActionsDivOther.querySelectorAll('button');
+        const otherButtons =
+          jobButtonActionsDivOther.querySelectorAll('button');
         if (otherButtons[buttonIndex]) {
           otherButtons[buttonIndex].click();
         }
@@ -45,11 +52,12 @@ const SideJobInfo = ({
     };
 
     const initializeEventListeners = () => {
-      const jobButtonActionsDivs = document.getElementsByClassName('jobButtonActions');
+      const jobButtonActionsDivs =
+        document.getElementsByClassName('jobButtonActions');
       if (jobButtonActionsDivs.length > 1) {
         const jobButtonActionsDiv = jobButtonActionsDivs[1];
         const buttons = jobButtonActionsDiv.querySelectorAll('button');
-        buttons.forEach(button => {
+        buttons.forEach((button) => {
           button.addEventListener('click', handleButtonClick);
         });
       }
@@ -58,11 +66,12 @@ const SideJobInfo = ({
     const timeoutId = setTimeout(initializeEventListeners, 200);
     return () => {
       clearTimeout(timeoutId);
-      const jobButtonActionsDivs = document.getElementsByClassName('jobButtonActions');
+      const jobButtonActionsDivs =
+        document.getElementsByClassName('jobButtonActions');
       if (jobButtonActionsDivs.length > 1) {
         const jobButtonActionsDiv = jobButtonActionsDivs[1];
         const buttons = jobButtonActionsDiv.querySelectorAll('button');
-        buttons.forEach(button => {
+        buttons.forEach((button) => {
           button.removeEventListener('click', handleButtonClick);
         });
       }
@@ -111,14 +120,10 @@ const SideJobInfo = ({
                 <div className='absolute left-full top-0 flex w-16 justify-center pt-5'>
                   <button
                     type='button'
-                    className='
-                      -ml-14 p-2.5 rounded-xl
-                      bg-white/10 backdrop-blur-sm
-                      text-white hover:text-gray-200
-                      hover:bg-white/20
-                      transition-all duration-200
-                    '
-                    onClick={() => (setSidebarOpen ? setSidebarOpen(false) : undefined)}
+                    className='-ml-14 rounded-xl bg-white/10 p-2.5 text-white backdrop-blur-sm transition-all duration-200 hover:bg-white/20 hover:text-gray-200'
+                    onClick={() =>
+                      setSidebarOpen ? setSidebarOpen(false) : undefined
+                    }
                   >
                     <span className='sr-only'>Close sidebar</span>
                     <PiX className='h-5 w-5' />
@@ -126,7 +131,7 @@ const SideJobInfo = ({
                 </div>
               </Transition.Child>
 
-              <div className='flex grow flex-col overflow-y-auto bg-white dark:bg-gray-900 shadow-2xl'>
+              <div className='flex grow flex-col overflow-y-auto bg-white shadow-2xl dark:bg-gray-900'>
                 <JobSidebar
                   job={job}
                   address={address as `0x${string}`}

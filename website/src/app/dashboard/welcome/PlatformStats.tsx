@@ -44,18 +44,18 @@ export const PlatformStats = ({
   ];
 
   return (
-    <section className="py-16 bg-white dark:bg-gray-900">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+    <section className='bg-white py-16 dark:bg-gray-900'>
+      <div className='mx-auto max-w-7xl px-4 sm:px-6 lg:px-8'>
+        <div className='mb-8 text-center'>
+          <h2 className='text-3xl font-bold text-gray-900 dark:text-white'>
             Platform Statistics
           </h2>
-          <p className="mt-2 text-gray-600 dark:text-gray-300">
+          <p className='mt-2 text-gray-600 dark:text-gray-300'>
             Real-time metrics from our growing ecosystem
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className='grid grid-cols-2 gap-4 md:grid-cols-4'>
           {stats.map((stat) => {
             const Icon = stat.icon;
             const colorClasses = {
@@ -66,13 +66,17 @@ export const PlatformStats = ({
             };
 
             return (
-              <Card key={stat.label} className="text-center">
-                <CardContent className="pt-6">
-                  <Icon className={`mx-auto mb-2 h-6 w-6 ${colorClasses[stat.color as keyof typeof colorClasses]}`} />
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
+              <Card key={stat.label} className='text-center'>
+                <CardContent className='pt-6'>
+                  <Icon
+                    className={`mx-auto mb-2 h-6 w-6 ${colorClasses[stat.color as keyof typeof colorClasses]}`}
+                  />
+                  <div className='text-2xl font-bold text-gray-900 dark:text-white'>
                     {stat.value}
                   </div>
-                  <div className="text-gray-600 dark:text-gray-400">{stat.label}</div>
+                  <div className='text-gray-600 dark:text-gray-400'>
+                    {stat.label}
+                  </div>
                 </CardContent>
               </Card>
             );

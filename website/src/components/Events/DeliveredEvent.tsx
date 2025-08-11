@@ -37,22 +37,21 @@ export function DeliveredEvent({
       </div>
       <div className='min-w-0 flex-1 py-1.5'>
         <div className='text-sm text-gray-500 dark:text-gray-400'>
-          <a
-            className='font-medium text-gray-900 dark:text-gray-100'
-          >
+          <a className='font-medium text-gray-900 dark:text-gray-100'>
             {user?.name}
           </a>{' '}
           delivered the results{' '}
           <span className='whitespace-nowrap'>{date}</span>
         </div>
-        {markdownContent ?
-          <Markdown className='h-full download-markdown text-sm'>
+        {markdownContent ? (
+          <Markdown className='download-markdown h-full text-sm'>
             {markdownContent}
-          </Markdown> :
+          </Markdown>
+        ) : (
           <div className='mt-2 text-sm text-gray-700 dark:text-gray-500'>
             <p>{result}</p>
           </div>
-        }
+        )}
       </div>
     </>
   );

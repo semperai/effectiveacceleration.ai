@@ -1,12 +1,7 @@
 'use client';
 import { AddToHomescreen } from '@/components/AddToHomescreen';
 import { ConnectButton } from '@/components/ConnectButton';
-import {
-  Field,
-  FieldGroup,
-  Fieldset,
-  Label,
-} from '@/components/Fieldset';
+import { Field, FieldGroup, Fieldset, Label } from '@/components/Fieldset';
 import { Input } from '@/components/Input';
 import { Radio, RadioGroup } from '@/components/Radio';
 import TagsInput from '@/components/TagsInput';
@@ -27,7 +22,14 @@ import {
   getUnitAndValueFromSeconds,
 } from '@/utils/utils';
 import React from 'react';
-import { type ChangeEvent, useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import {
+  type ChangeEvent,
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useMemo,
+} from 'react';
 import { zeroAddress } from 'viem';
 import { useAccount } from 'wagmi';
 import LoadingModal from './LoadingModal';
@@ -72,33 +74,38 @@ const PostJob = () => {
   const { address, isConnected } = useAccount();
   const { data: user } = useUser(address!);
   const { data: arbitrators } = useArbitrators();
-  const [tokenBalance, setTokenBalance] = useState<string | undefined>(undefined);
+  const [tokenBalance, setTokenBalance] = useState<string | undefined>(
+    undefined
+  );
   const searchParams = useSearchParams();
 
-  const arbitratorAddresses = useMemo(() => [
-    zeroAddress,
-    ...(arbitrators?.map((worker) => worker.address_) ?? []),
-  ], [arbitrators]);
+  const arbitratorAddresses = useMemo(
+    () => [
+      zeroAddress,
+      ...(arbitrators?.map((worker) => worker.address_) ?? []),
+    ],
+    [arbitrators]
+  );
 
-  const arbitratorNames = useMemo(() => [
-    'None',
-    ...(arbitrators?.map((worker) => worker.name) ?? []),
-  ], [arbitrators]);
+  const arbitratorNames = useMemo(
+    () => ['None', ...(arbitrators?.map((worker) => worker.name) ?? [])],
+    [arbitrators]
+  );
 
-  const arbitratorFees = useMemo(() => [
-    '0',
-    ...(arbitrators?.map((worker) => worker.fee) ?? []),
-  ], [arbitrators]);
+  const arbitratorFees = useMemo(
+    () => ['0', ...(arbitrators?.map((worker) => worker.fee) ?? [])],
+    [arbitrators]
+  );
 
   // Convert between utils format and DeliveryTimelineInput format
   const convertUnitForDisplay = (unit: ComboBoxOption): ComboBoxOption => {
     const nameMap: { [key: string]: { name: string; id: string } } = {
-      'minutes': { name: 'Minute', id: '1' },
-      'hours': { name: 'Hour', id: '2' },
-      'days': { name: 'Day', id: '3' },
-      'weeks': { name: 'Week', id: '4' },
-      'months': { name: 'Day', id: '3' },
-      'years': { name: 'Day', id: '3' }
+      minutes: { name: 'Minute', id: '1' },
+      hours: { name: 'Hour', id: '2' },
+      days: { name: 'Day', id: '3' },
+      weeks: { name: 'Week', id: '4' },
+      months: { name: 'Day', id: '3' },
+      years: { name: 'Day', id: '3' },
     };
 
     const mapped = nameMap[unit.name];
@@ -110,7 +117,7 @@ const PostJob = () => {
       '1': { name: 'minutes', id: '0' },
       '2': { name: 'hours', id: '1' },
       '3': { name: 'days', id: '2' },
-      '4': { name: 'weeks', id: '3' }
+      '4': { name: 'weeks', id: '3' },
     };
 
     const mapped = idMap[unit.id];
@@ -119,19 +126,19 @@ const PostJob = () => {
     }
 
     const nameMap: { [key: string]: string } = {
-      'Minute': 'minutes',
-      'Minutes': 'minutes',
-      'Hour': 'hours',
-      'Hours': 'hours',
-      'Day': 'days',
-      'Days': 'days',
-      'Week': 'weeks',
-      'Weeks': 'weeks'
+      Minute: 'minutes',
+      Minutes: 'minutes',
+      Hour: 'hours',
+      Hours: 'hours',
+      Day: 'days',
+      Days: 'days',
+      Week: 'weeks',
+      Weeks: 'weeks',
     };
 
     return {
       ...unit,
-      name: nameMap[unit.name] || unit.name
+      name: nameMap[unit.name] || unit.name,
     };
   };
 
@@ -140,14 +147,17 @@ const PostJob = () => {
     const content = searchParams.get('content') || '';
     const tokenAddress = searchParams.get('token');
     const maxTime = searchParams.get('maxTime');
-    const deliveryMethod = searchParams.get('deliveryMethod') || deliveryMethods[0].id;
+    const deliveryMethod =
+      searchParams.get('deliveryMethod') || deliveryMethods[0].id;
     const arbitrator = searchParams.get('arbitrator') || zeroAddress;
     const tags = searchParams.getAll('tags');
     const amount = searchParams.get('amount') || '';
 
     let initialToken = tokens.find((token) => token.symbol === 'USDC');
     if (tokenAddress) {
-      const foundToken = tokens.find((token) => token.id.toLowerCase() === tokenAddress.toLowerCase());
+      const foundToken = tokens.find(
+        (token) => token.id.toLowerCase() === tokenAddress.toLowerCase()
+      );
       if (foundToken) initialToken = foundToken;
     }
 
@@ -159,14 +169,16 @@ const PostJob = () => {
       if (!isNaN(seconds)) {
         const result = getUnitAndValueFromSeconds(seconds);
         deadline = result.value;
-        unit = unitsDeliveryTime.find(u => u.name === result.unit) || unitsDeliveryTime[2];
+        unit =
+          unitsDeliveryTime.find((u) => u.name === result.unit) ||
+          unitsDeliveryTime[2];
       }
     }
 
     let category: { id: string; name: string } | undefined;
     const remainingTags: Tag[] = [];
     tags.forEach((tag, idx) => {
-      const foundCategory = jobMeceTags.find(cat => cat.id === tag);
+      const foundCategory = jobMeceTags.find((cat) => cat.id === tag);
       if (foundCategory && !category) {
         category = foundCategory;
       } else {
@@ -174,16 +186,31 @@ const PostJob = () => {
       }
     });
 
-    return { title, content, token: initialToken, deadline, unit, deliveryMethod, arbitrator, tags: remainingTags, category, amount };
+    return {
+      title,
+      content,
+      token: initialToken,
+      deadline,
+      unit,
+      deliveryMethod,
+      arbitrator,
+      tags: remainingTags,
+      category,
+      amount,
+    };
   }, [searchParams]);
 
   const initialValues = useMemo(() => getInitialValues(), [getInitialValues]);
 
-  const [selectedToken, setSelectedToken] = useState<Token | undefined>(initialValues.token);
+  const [selectedToken, setSelectedToken] = useState<Token | undefined>(
+    initialValues.token
+  );
   const noYes = ['No', 'Yes'];
   const [showSummary, setShowSummary] = useState(false);
   const [title, setTitle] = useState<string>(initialValues.title);
-  const [deliveryMethod, setDeliveryMethod] = useState(initialValues.deliveryMethod);
+  const [deliveryMethod, setDeliveryMethod] = useState(
+    initialValues.deliveryMethod
+  );
   const [description, setDescription] = useState<string>(initialValues.content);
   const [amount, setAmount] = useState(initialValues.amount);
   const [deadline, setDeadline] = useState<number>(initialValues.deadline || 1);
@@ -192,8 +219,11 @@ const PostJob = () => {
     convertUnitForDisplay(initialValues.unit || unitsDeliveryTime[2])
   );
   const [tags, setTags] = useState<Tag[]>(initialValues.tags);
-  const [selectedCategory, setSelectedCategory] = useState<{ id: string; name: string } | undefined>(initialValues.category);
-  const [selectedArbitratorAddress, setSelectedArbitratorAddress] = useState<string>(initialValues.arbitrator);
+  const [selectedCategory, setSelectedCategory] = useState<
+    { id: string; name: string } | undefined
+  >(initialValues.category);
+  const [selectedArbitratorAddress, setSelectedArbitratorAddress] =
+    useState<string>(initialValues.arbitrator);
 
   const [titleError, setTitleError] = useState<string>('');
   const [descriptionError, setDescriptionError] = useState<string>('');
@@ -222,20 +252,26 @@ const PostJob = () => {
     setIsLoadingModalOpen(false);
   }, []);
 
-  const handleBalanceUpdate = useCallback((balance: string | undefined) => {
-    setTokenBalance(balance);
-    if (amount && balance) {
-      const amountValue = parseFloat(amount);
-      const balanceValue = parseFloat(balance);
-      if (!isNaN(amountValue) && !isNaN(balanceValue)) {
-        if (amountValue > balanceValue) {
-          setPaymentTokenError('Amount exceeds available balance');
-        } else if (paymentTokenError === 'Amount exceeds available balance' || paymentTokenError === 'Insufficient balance') {
-          setPaymentTokenError('');
+  const handleBalanceUpdate = useCallback(
+    (balance: string | undefined) => {
+      setTokenBalance(balance);
+      if (amount && balance) {
+        const amountValue = parseFloat(amount);
+        const balanceValue = parseFloat(balance);
+        if (!isNaN(amountValue) && !isNaN(balanceValue)) {
+          if (amountValue > balanceValue) {
+            setPaymentTokenError('Amount exceeds available balance');
+          } else if (
+            paymentTokenError === 'Amount exceeds available balance' ||
+            paymentTokenError === 'Insufficient balance'
+          ) {
+            setPaymentTokenError('');
+          }
         }
       }
-    }
-  }, [amount, paymentTokenError]);
+    },
+    [amount, paymentTokenError]
+  );
 
   const handleSummary = useCallback(() => {
     if (!user) {
@@ -258,34 +294,40 @@ const PostJob = () => {
     setTitleError('');
   }, []);
 
-  const validatePaymentAmount = useCallback((paymentAmount: string) => {
-    setAmount(paymentAmount);
-    const value = parseFloat(paymentAmount);
+  const validatePaymentAmount = useCallback(
+    (paymentAmount: string) => {
+      setAmount(paymentAmount);
+      const value = parseFloat(paymentAmount);
 
-    if (paymentAmount === '' || isNaN(value) || value === 0) {
-      setPaymentTokenError('Please enter a valid amount');
-      return;
-    }
-
-    if (tokenBalance) {
-      const balanceValue = parseFloat(tokenBalance);
-      if (!isNaN(balanceValue) && value > balanceValue) {
-        setPaymentTokenError('Amount exceeds available balance');
+      if (paymentAmount === '' || isNaN(value) || value === 0) {
+        setPaymentTokenError('Please enter a valid amount');
         return;
       }
-    }
 
-    setPaymentTokenError('');
-  }, [tokenBalance]);
+      if (tokenBalance) {
+        const balanceValue = parseFloat(tokenBalance);
+        if (!isNaN(balanceValue) && value > balanceValue) {
+          setPaymentTokenError('Amount exceeds available balance');
+          return;
+        }
+      }
 
-  const validateArbitrator = useCallback((addr: string) => {
-    setSelectedArbitratorAddress(addr);
-    if (addr == address) {
-      setArbitratorError('You cannot be your own arbitrator');
-      return;
-    }
-    setArbitratorError('');
-  }, [address]);
+      setPaymentTokenError('');
+    },
+    [tokenBalance]
+  );
+
+  const validateArbitrator = useCallback(
+    (addr: string) => {
+      setSelectedArbitratorAddress(addr);
+      if (addr == address) {
+        setArbitratorError('You cannot be your own arbitrator');
+        return;
+      }
+      setArbitratorError('');
+    },
+    [address]
+  );
 
   const validateDeadline = useCallback((deadlineStr: string) => {
     if (deadlineStr === '') {
@@ -325,14 +367,33 @@ const PostJob = () => {
         setArbitratorError('');
       }
     }
-  }, [title, selectedCategory, amount, tokenBalance, deadline, selectedArbitratorAddress, address, validationAttempted]);
+  }, [
+    title,
+    selectedCategory,
+    amount,
+    tokenBalance,
+    deadline,
+    selectedArbitratorAddress,
+    address,
+    validationAttempted,
+  ]);
 
   useEffect(() => {
     if (initialValues.title) validateTitle(initialValues.title);
     if (initialValues.amount) validatePaymentAmount(initialValues.amount);
     if (initialValues.arbitrator) validateArbitrator(initialValues.arbitrator);
-    if (initialValues.deadline) validateDeadline(initialValues.deadline.toString());
-  }, [initialValues.title, initialValues.amount, initialValues.arbitrator, initialValues.deadline, validateTitle, validatePaymentAmount, validateArbitrator, validateDeadline]);
+    if (initialValues.deadline)
+      validateDeadline(initialValues.deadline.toString());
+  }, [
+    initialValues.title,
+    initialValues.amount,
+    initialValues.arbitrator,
+    initialValues.deadline,
+    validateTitle,
+    validatePaymentAmount,
+    validateArbitrator,
+    validateDeadline,
+  ]);
 
   const handleSubmit = useCallback(() => {
     setValidationAttempted(true);
@@ -344,92 +405,141 @@ const PostJob = () => {
     setDeadlineError('');
 
     let hasErrors = false;
-    const errorFields: Array<{ ref: React.RefObject<HTMLDivElement>, setter: (msg: string) => void, message: string }> = [];
+    const errorFields: Array<{
+      ref: React.RefObject<HTMLDivElement>;
+      setter: (msg: string) => void;
+      message: string;
+    }> = [];
 
     if (!title || title.length < 3) {
-      const msg = !title ? 'Job title is required' : 'Job title must be at least 3 characters';
-      errorFields.push({ ref: jobTitleRef, setter: setTitleError, message: msg });
+      const msg = !title
+        ? 'Job title is required'
+        : 'Job title must be at least 3 characters';
+      errorFields.push({
+        ref: jobTitleRef,
+        setter: setTitleError,
+        message: msg,
+      });
       hasErrors = true;
     }
 
     if (!selectedCategory) {
-      errorFields.push({ ref: jobCategoryRef, setter: setCategoryError, message: 'Please select a category' });
+      errorFields.push({
+        ref: jobCategoryRef,
+        setter: setCategoryError,
+        message: 'Please select a category',
+      });
       hasErrors = true;
     }
 
     if (!amount || parseFloat(amount) <= 0) {
-      errorFields.push({ ref: jobAmountRef, setter: setPaymentTokenError, message: 'Please enter a valid payment amount' });
+      errorFields.push({
+        ref: jobAmountRef,
+        setter: setPaymentTokenError,
+        message: 'Please enter a valid payment amount',
+      });
       hasErrors = true;
     } else if (tokenBalance) {
       const amountValue = parseFloat(amount);
       const balanceValue = parseFloat(tokenBalance);
-      if (!isNaN(amountValue) && !isNaN(balanceValue) && amountValue > balanceValue) {
-        errorFields.push({ ref: jobAmountRef, setter: setPaymentTokenError, message: 'Amount exceeds available balance' });
+      if (
+        !isNaN(amountValue) &&
+        !isNaN(balanceValue) &&
+        amountValue > balanceValue
+      ) {
+        errorFields.push({
+          ref: jobAmountRef,
+          setter: setPaymentTokenError,
+          message: 'Amount exceeds available balance',
+        });
         hasErrors = true;
       }
     }
 
     if (!deadline || isNaN(deadline) || deadline <= 0) {
-      errorFields.push({ ref: jobDeadlineRef, setter: setDeadlineError, message: 'Please enter a valid deadline' });
+      errorFields.push({
+        ref: jobDeadlineRef,
+        setter: setDeadlineError,
+        message: 'Please enter a valid deadline',
+      });
       hasErrors = true;
     }
 
     if (selectedArbitratorAddress && selectedArbitratorAddress === address) {
-      errorFields.push({ ref: jobArbitratorRef, setter: setArbitratorError, message: 'You cannot be your own arbitrator' });
+      errorFields.push({
+        ref: jobArbitratorRef,
+        setter: setArbitratorError,
+        message: 'You cannot be your own arbitrator',
+      });
       hasErrors = true;
     }
 
     if (hasErrors) {
       errorFields.forEach(({ setter, message }) => setter(message));
       if (errorFields.length > 0 && errorFields[0].ref.current) {
-        errorFields[0].ref.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        errorFields[0].ref.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
       }
       return;
     }
 
     handleSummary();
-  }, [title, amount, tokenBalance, selectedCategory, deadline, selectedArbitratorAddress, address, handleSummary]);
+  }, [
+    title,
+    amount,
+    tokenBalance,
+    selectedCategory,
+    deadline,
+    selectedArbitratorAddress,
+    address,
+    handleSummary,
+  ]);
 
   return (
     <div className='relative min-h-screen overflow-x-hidden'>
       {/* Background blur elements */}
-      <div className='fixed top-40 right-4 sm:right-20 w-64 sm:w-96 h-64 sm:h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none' />
-      <div className='fixed bottom-40 left-4 sm:left-20 w-64 sm:w-96 h-64 sm:h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none' />
+      <div className='pointer-events-none fixed right-4 top-40 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl sm:right-20 sm:h-96 sm:w-96' />
+      <div className='pointer-events-none fixed bottom-40 left-4 h-64 w-64 rounded-full bg-purple-500/10 blur-3xl sm:left-20 sm:h-96 sm:w-96' />
 
       {!showSummary && (
-        <Fieldset className='w-full relative px-2 sm:px-0'>
+        <Fieldset className='relative w-full px-2 sm:px-0'>
           <div className='mb-10'>
-            <div className='flex items-center gap-3 mb-4'>
-              <div className='p-3 rounded-xl bg-gradient-to-br from-blue-500/10 to-purple-500/10 backdrop-blur-sm border border-blue-500/20 flex-shrink-0'>
+            <div className='mb-4 flex items-center gap-3'>
+              <div className='flex-shrink-0 rounded-xl border border-blue-500/20 bg-gradient-to-br from-blue-500/10 to-purple-500/10 p-3 backdrop-blur-sm'>
                 <PiPaperPlaneTilt className='h-7 w-7 text-blue-500' />
               </div>
               <div className='min-w-0 flex-1'>
-                <h1 className='text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100'>Create a Job Post</h1>
-                <span className='text-sm sm:text-base text-gray-600 dark:text-gray-400 block'>
-                  Complete the form below to post your job and connect with potential candidates.
+                <h1 className='text-2xl font-bold text-gray-900 sm:text-3xl dark:text-gray-100'>
+                  Create a Job Post
+                </h1>
+                <span className='block text-sm text-gray-600 sm:text-base dark:text-gray-400'>
+                  Complete the form below to post your job and connect with
+                  potential candidates.
                 </span>
               </div>
             </div>
-            <div className='flex gap-2 mt-6'>
+            <div className='mt-6 flex gap-2'>
               <div className='h-1 flex-1 rounded-full bg-gradient-to-r from-blue-500 to-purple-500' />
               <div className='h-1 flex-1 rounded-full bg-gray-200 dark:bg-gray-700' />
             </div>
           </div>
 
           <div className='flex w-full flex-col gap-8 lg:flex-row lg:gap-12'>
-            <div className='flex-1 min-w-0'>
-              <div className='rounded-2xl bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 p-3 sm:p-6 shadow-xl'>
-                <h2 className='text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6 flex items-center gap-2'>
-                  <PiBriefcase className='h-5 w-5 text-blue-500 flex-shrink-0' />
+            <div className='min-w-0 flex-1'>
+              <div className='rounded-2xl border border-gray-200/50 bg-white/50 p-3 shadow-xl backdrop-blur-xl sm:p-6 dark:border-gray-700/50 dark:bg-gray-900/50'>
+                <h2 className='mb-6 flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100'>
+                  <PiBriefcase className='h-5 w-5 flex-shrink-0 text-blue-500' />
                   <span className='min-w-0'>Job Details</span>
                 </h2>
 
                 <FieldGroup className='space-y-6'>
                   <div ref={jobTitleRef} className='scroll-mt-24'>
-                    <MinimalField 
-                      error={titleError} 
-                      label='Job Title' 
-                      helperText='A short descriptive title for the job post' 
+                    <MinimalField
+                      error={titleError}
+                      label='Job Title'
+                      helperText='A short descriptive title for the job post'
                       required
                     >
                       <Input
@@ -438,7 +548,9 @@ const PostJob = () => {
                         placeholder='e.g., Build a React dashboard'
                         required
                         minLength={3}
-                        onChange={(e: ChangeEvent<HTMLInputElement>) => validateTitle(e.target.value)}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                          validateTitle(e.target.value)
+                        }
                         className={`bg-white/50 dark:bg-gray-800/50 ${titleError ? '!border-red-500' : ''}`}
                         data-invalid={titleError ? true : undefined}
                       />
@@ -446,9 +558,9 @@ const PostJob = () => {
                   </div>
 
                   <div ref={jobDescriptionRef} className='scroll-mt-24'>
-                    <MinimalField 
-                      error={descriptionError} 
-                      label='Description' 
+                    <MinimalField
+                      error={descriptionError}
+                      label='Description'
                       helperText='Provide a thorough description of the job'
                     >
                       <Textarea
@@ -456,21 +568,23 @@ const PostJob = () => {
                         name='description'
                         placeholder='Describe what needs to be done, deliverables, requirements...'
                         value={description}
-                        onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
+                        onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                          setDescription(e.target.value)
+                        }
                         className={`bg-white/50 dark:bg-gray-800/50 ${descriptionError ? '!border-red-500' : ''}`}
                         data-invalid={descriptionError ? true : undefined}
                       />
                     </MinimalField>
                   </div>
 
-                  <div className='p-4 rounded-xl bg-gradient-to-r from-blue-500/5 to-purple-500/5 border border-blue-500/10'>
-                    <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4'>
+                  <div className='rounded-xl border border-blue-500/10 bg-gradient-to-r from-blue-500/5 to-purple-500/5 p-4'>
+                    <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                       <div className='min-w-0 flex-1'>
-                        <Label className='text-gray-700 dark:text-gray-300 flex items-center gap-2'>
-                          <PiSparkle className='h-4 w-4 text-yellow-500 flex-shrink-0' />
+                        <Label className='flex items-center gap-2 text-gray-700 dark:text-gray-300'>
+                          <PiSparkle className='h-4 w-4 flex-shrink-0 text-yellow-500' />
                           <span>I'm feeling lucky</span>
                         </Label>
-                        <p className='text-gray-500 dark:text-gray-400 text-xs mt-1'>
+                        <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
                           Allow workers to start automatically without approval
                         </p>
                       </div>
@@ -481,11 +595,20 @@ const PostJob = () => {
                         aria-label='Auto-accept workers'
                       >
                         {noYes.map((option) => (
-                          <Field className='!mt-0 flex items-center' key={option}>
-                            <Radio className='mr-2' color='default' value={option}>
+                          <Field
+                            className='!mt-0 flex items-center'
+                            key={option}
+                          >
+                            <Radio
+                              className='mr-2'
+                              color='default'
+                              value={option}
+                            >
                               <span>{option}</span>
                             </Radio>
-                            <Label className='text-gray-700 dark:text-gray-300'>{option}</Label>
+                            <Label className='text-gray-700 dark:text-gray-300'>
+                              {option}
+                            </Label>
                           </Field>
                         ))}
                       </RadioGroup>
@@ -493,11 +616,11 @@ const PostJob = () => {
                   </div>
 
                   <div ref={jobCategoryRef} className='scroll-mt-24'>
-                    <MinimalField 
-                      error={categoryError} 
-                      label='Category' 
-                      icon={<PiTag className='h-4 w-4' />} 
-                      helperText='Select the category that best describes your job' 
+                    <MinimalField
+                      error={categoryError}
+                      label='Category'
+                      icon={<PiTag className='h-4 w-4' />}
+                      helperText='Select the category that best describes your job'
                       required
                     >
                       <ListBox
@@ -514,17 +637,20 @@ const PostJob = () => {
                     </MinimalField>
                   </div>
 
-                  <MinimalField label='Tags' helperText='Add relevant tags to help workers find your job'>
+                  <MinimalField
+                    label='Tags'
+                    helperText='Add relevant tags to help workers find your job'
+                  >
                     <TagsInput tags={tags} setTags={setTags} />
                   </MinimalField>
                 </FieldGroup>
               </div>
             </div>
 
-            <div className='flex-1 min-w-0'>
-              <div className='rounded-2xl bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 p-3 sm:p-6 shadow-xl'>
-                <h2 className='text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6 flex items-center gap-2'>
-                  <PiCurrencyDollar className='h-5 w-5 text-green-500 flex-shrink-0' />
+            <div className='min-w-0 flex-1'>
+              <div className='rounded-2xl border border-gray-200/50 bg-white/50 p-3 shadow-xl backdrop-blur-xl sm:p-6 dark:border-gray-700/50 dark:bg-gray-900/50'>
+                <h2 className='mb-6 flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100'>
+                  <PiCurrencyDollar className='h-5 w-5 flex-shrink-0 text-green-500' />
                   <span className='min-w-0'>Payment & Delivery</span>
                 </h2>
 
@@ -550,9 +676,9 @@ const PostJob = () => {
                     </MinimalField>
                   </div>
 
-                  <MinimalField 
-                    label='Delivery Method' 
-                    icon={<PiTruck className='h-4 w-4' />} 
+                  <MinimalField
+                    label='Delivery Method'
+                    icon={<PiTruck className='h-4 w-4' />}
                     helperText='Choose how the work should be delivered'
                   >
                     <ListBox
@@ -608,15 +734,15 @@ const PostJob = () => {
           </div>
 
           {!showSummary && (
-            <div className='mt-8 flex justify-end gap-4 pb-20 px-2 sm:px-0'>
+            <div className='mt-8 flex justify-end gap-4 px-2 pb-20 sm:px-0'>
               {isConnected ? (
                 <button
                   onClick={handleSubmit}
-                  className='group relative px-6 sm:px-8 py-3 rounded-xl font-medium transition-all duration-200 shadow-lg border border-white/10 bg-slate-800 hover:bg-slate-700'
+                  className='group relative rounded-xl border border-white/10 bg-slate-800 px-6 py-3 font-medium shadow-lg transition-all duration-200 hover:bg-slate-700 sm:px-8'
                 >
                   <span className='relative flex items-center gap-2 text-white'>
                     <span className='text-white'>Continue to Review</span>
-                    <ArrowRight className='h-4 w-4 group-hover:translate-x-0.5 transition-transform text-white' />
+                    <ArrowRight className='h-4 w-4 text-white transition-transform group-hover:translate-x-0.5' />
                   </span>
                 </button>
               ) : (
@@ -638,15 +764,24 @@ const PostJob = () => {
           selectedToken={selectedToken}
           amount={amount}
           selectedCategory={selectedCategory as { id: string; name: string }}
-          deadline={convertToSeconds(deadline, convertUnitFromDisplay(selectedUnitTime).name)}
+          deadline={convertToSeconds(
+            deadline,
+            convertUnitFromDisplay(selectedUnitTime).name
+          )}
           selectedArbitratorAddress={selectedArbitratorAddress}
           onTransactionStart={handleTransactionSubmit}
           onTransactionComplete={handleTransactionComplete}
         />
       )}
 
-      <RegisterModal open={isRegisterModalOpen} close={() => setIsRegisterModalOpen(false)} />
-      <LoadingModal open={isLoadingModalOpen} close={() => setIsLoadingModalOpen(false)} />
+      <RegisterModal
+        open={isRegisterModalOpen}
+        close={() => setIsRegisterModalOpen(false)}
+      />
+      <LoadingModal
+        open={isLoadingModalOpen}
+        close={() => setIsLoadingModalOpen(false)}
+      />
       <AddToHomescreen />
     </div>
   );

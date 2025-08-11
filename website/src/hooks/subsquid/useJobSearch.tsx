@@ -24,18 +24,24 @@ export default function useJobSearch({
   const buildSearchConditions = (obj: any): string => {
     const search: string[] = [];
     if (maxTimestamp && !timestampAdded) {
-      search.push(`jobTimes:{createdAt_lt: ${maxTimestamp}}`)
+      search.push(`jobTimes:{createdAt_lt: ${maxTimestamp}}`);
       timestampAdded = true;
     }
     if (minTimestamp && !timestampAdded) {
-      search.push(`jobTimes:{createdAt_gt: ${minTimestamp}}`)
+      search.push(`jobTimes:{createdAt_gt: ${minTimestamp}}`);
       timestampAdded = true;
     }
 
-    return [...search, ...Object.entries(obj)
-      .map(([key, value]) => {
+    return [
+      ...search,
+      ...Object.entries(obj).map(([key, value]) => {
         // Handle special cases for comparison operators
-        if (key.includes('_gte') || key.includes('_gt') || key.includes('_lte') || key.includes('_lt')) {
+        if (
+          key.includes('_gte') ||
+          key.includes('_gt') ||
+          key.includes('_lte') ||
+          key.includes('_lt')
+        ) {
           // If the key already has an operator, use it directly
           return `${key}: ${value}`;
         } else if (typeof value === 'string') {
@@ -49,8 +55,8 @@ export default function useJobSearch({
         } else {
           return `${key}_eq: ${value}`;
         }
-      })]
-      .join(',\n');
+      }),
+    ].join(',\n');
   };
 
   // Rest of the function remains the same...
@@ -85,6 +91,16 @@ export default function useJobSearch({
 
   return useMemo(
     () => ({ data: data ? (data?.jobs as Job[]) : undefined, ...rest }),
-    [jobSearch, orderBy, userAddress, limit, offset, maxTimestamp, minTimestamp, data, rest]
+    [
+      jobSearch,
+      orderBy,
+      userAddress,
+      limit,
+      offset,
+      maxTimestamp,
+      minTimestamp,
+      data,
+      rest,
+    ]
   );
 }

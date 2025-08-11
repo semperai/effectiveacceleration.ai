@@ -7,8 +7,12 @@ import {
   type Log,
   type TransactionReceipt,
 } from 'viem';
-import { useWaitForTransactionReceipt, useWriteContract, useConfig } from 'wagmi';
-import { simulateContract, type WriteContractErrorType } from "@wagmi/core";
+import {
+  useWaitForTransactionReceipt,
+  useWriteContract,
+  useConfig,
+} from 'wagmi';
+import { simulateContract, type WriteContractErrorType } from '@wagmi/core';
 import * as Sentry from '@sentry/nextjs';
 
 import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
@@ -88,10 +92,12 @@ type WriteContractConfig = {
 };
 
 export function useWriteContractWithNotifications() {
-  const config = useConfig()
+  const config = useConfig();
   const client = useApolloClient();
   const { showError, showSuccess, showLoading, toast } = useToast();
-  const [simulateError, setSimulateError] = useState<WriteContractErrorType | undefined>(undefined);
+  const [simulateError, setSimulateError] = useState<
+    WriteContractErrorType | undefined
+  >(undefined);
   const { data: hash, error, writeContract, isError } = useWriteContract();
   const onSuccessCallbackRef = useRef<
     ((receipt: TransactionReceipt, events: ParsedEvent[]) => void) | undefined
@@ -214,7 +220,7 @@ export function useWriteContractWithNotifications() {
           });
         } catch (e: any) {
           setSimulateError(e);
-          return
+          return;
         }
 
         await writeContract({
@@ -230,7 +236,14 @@ export function useWriteContractWithNotifications() {
         showError(`An error occurred: ${e?.message}`);
       }
     },
-    [writeContract, showError, showLoading, toast, getRevertReason, setSimulateError]
+    [
+      writeContract,
+      showError,
+      showLoading,
+      toast,
+      getRevertReason,
+      setSimulateError,
+    ]
   );
 
   // Handle receipt
@@ -271,7 +284,9 @@ export function useWriteContractWithNotifications() {
     if (error || simulateError) {
       dismissLoadingToast();
 
-      const { type, message } = getRevertReason((error || simulateError)!.message);
+      const { type, message } = getRevertReason(
+        (error || simulateError)!.message
+      );
 
       if (type === 'revert' && message) {
         showError(message);
@@ -307,6 +322,6 @@ export function useWriteContractWithNotifications() {
     isConfirming,
     isConfirmed,
     receipt,
-    loadingToastIdRef
+    loadingToastIdRef,
   };
 }

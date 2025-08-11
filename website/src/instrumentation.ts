@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/nextjs';
-import { registerOTel } from '@vercel/otel'
+import { registerOTel } from '@vercel/otel';
 
 export async function register() {
   registerOTel('next-app');

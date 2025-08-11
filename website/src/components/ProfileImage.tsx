@@ -12,11 +12,11 @@ interface ProfileImageProps {
 const ProfileImage = ({ user, className }: ProfileImageProps) => {
   const [isImgValid, setIsImgValid] = useState(true);
   const [sessionKey, setSessionKey] = useState<string>();
-  
+
   // Now using React Query - no more mount warnings!
   const avatarUrl = useFetchAvatar(user?.avatar, sessionKey);
-  
-  // If useFetchAvatar is causing side effects during render, 
+
+  // If useFetchAvatar is causing side effects during render,
   // you might need to handle avatar fetching differently
   useEffect(() => {
     // Reset image validity when user changes

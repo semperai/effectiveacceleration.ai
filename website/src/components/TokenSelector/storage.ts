@@ -64,14 +64,14 @@ const storage = {
    * Clear all token selector related data from localStorage
    */
   clear: (): void => {
-    Object.values(STORAGE_KEYS).forEach(storageKey => {
+    Object.values(STORAGE_KEYS).forEach((storageKey) => {
       try {
         localStorage.removeItem(storageKey);
       } catch (error) {
         console.error(`Error clearing localStorage:`, error);
       }
     });
-  }
+  },
 };
 
 export default storage;

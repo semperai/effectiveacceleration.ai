@@ -1,10 +1,10 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import { Check, ChevronsUpDown } from "lucide-react"
+import * as React from 'react';
+import { Check, ChevronsUpDown } from 'lucide-react';
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import {
   Command,
   CommandEmpty,
@@ -12,69 +12,76 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command"
+} from '@/components/ui/command';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
+} from '@/components/ui/popover';
 
 interface ComboboxProps {
-  placeholder: string
-  value: string
-  options: { value: string; label: string }[]
-  onChange: (value: string) => void
+  placeholder: string;
+  value: string;
+  options: { value: string; label: string }[];
+  onChange: (value: string) => void;
 }
 
-export function Combobox({ placeholder, value, options, onChange }: ComboboxProps) {
-  const [open, setOpen] = React.useState(false)
+export function Combobox({
+  placeholder,
+  value,
+  options,
+  onChange,
+}: ComboboxProps) {
+  const [open, setOpen] = React.useState(false);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
-          variant="outline"
-          role="combobox"
+          variant='outline'
+          role='combobox'
           aria-expanded={open}
           className={cn(
-            "w-full justify-between rounded-lg h-10",
-            "border bg-white text-sm text-gray-900 placeholder-gray-400",
-            "border-gray-200 hover:border-gray-300",
-            "transition-all duration-200",
-            "focus:border-gray-300 focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0",
-            open && "border-gray-300"
+            'h-10 w-full justify-between rounded-lg',
+            'border bg-white text-sm text-gray-900 placeholder-gray-400',
+            'border-gray-200 hover:border-gray-300',
+            'transition-all duration-200',
+            'focus:border-gray-300 focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0',
+            open && 'border-gray-300'
           )}
           style={{ height: '40px' }}
         >
           {value
             ? options.find((option) => option.value === value)?.label
             : placeholder}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0 rounded-lg border-gray-200">
-        <Command className="rounded-lg">
-          <CommandInput 
-            className="rounded-lg border-0 focus:ring-0 focus:ring-offset-0 text-sm" 
-            placeholder={`Search ${placeholder.toLowerCase()}...`} 
+      <PopoverContent className='w-full rounded-lg border-gray-200 p-0'>
+        <Command className='rounded-lg'>
+          <CommandInput
+            className='rounded-lg border-0 text-sm focus:ring-0 focus:ring-offset-0'
+            placeholder={`Search ${placeholder.toLowerCase()}...`}
           />
           <CommandList>
-            <CommandEmpty className="text-sm text-gray-500 py-2">No {placeholder.toLowerCase()} found.</CommandEmpty>
+            <CommandEmpty className='py-2 text-sm text-gray-500'>
+              No {placeholder.toLowerCase()} found.
+            </CommandEmpty>
             <CommandGroup>
               {options.map((option) => (
                 <CommandItem
-                  className="rounded text-sm text-gray-700 hover:bg-gray-50 focus:bg-gray-50"
+                  className='rounded text-sm text-gray-700 hover:bg-gray-50 focus:bg-gray-50'
                   key={option.value}
                   value={option.value}
                   onSelect={(currentValue) => {
-                    onChange(currentValue === value ? "" : currentValue)
-                    setOpen(false)
+                    onChange(currentValue === value ? '' : currentValue);
+                    setOpen(false);
                   }}
                 >
                   <Check
                     className={cn(
-                      "mr-2 h-4 w-4",
-                      value === option.value ? "opacity-100" : "opacity-0"
+                      'mr-2 h-4 w-4',
+                      value === option.value ? 'opacity-100' : 'opacity-0'
                     )}
                   />
                   {option.label}
@@ -85,5 +92,5 @@ export function Combobox({ placeholder, value, options, onChange }: ComboboxProp
         </Command>
       </PopoverContent>
     </Popover>
-  )
+  );
 }

@@ -11,12 +11,17 @@ export const useSwResetMessage = (jobId?: string) => {
 
   useEffect(() => {
     const channel = new BroadcastChannel('sw-messages');
-    channel.onmessage = (event: { data: { body: string, data: JobEventMessage }}) => {
-      if (jobId === undefined || String(event.data?.data?.jobId ?? -1n) === jobId) {
+    channel.onmessage = (event: {
+      data: { body: string; data: JobEventMessage };
+    }) => {
+      if (
+        jobId === undefined ||
+        String(event.data?.data?.jobId ?? -1n) === jobId
+      ) {
         client.resetStore();
         setResets((prev) => prev + 1);
       }
-    }
+    };
 
     return () => {
       channel.close();

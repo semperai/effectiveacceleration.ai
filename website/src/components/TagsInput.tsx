@@ -66,13 +66,14 @@ const TagsInput: React.FC<{ tags: Tag[]; setTags: (tags: Tag[]) => void }> = ({
   };
 
   return (
-    <div className={`
-      rounded-lg bg-white border
-      transition-all duration-200
-      ${isFocused ? 'border-gray-300' : 'border-gray-200 hover:border-gray-300'}
-    `}>
+    <div
+      className={`rounded-lg border bg-white transition-all duration-200 ${isFocused ? 'border-gray-300' : 'border-gray-200 hover:border-gray-300'} `}
+    >
       <div className='relative'>
-        <div className='relative flex items-center' style={{ minHeight: '40px' }}>
+        <div
+          className='relative flex items-center'
+          style={{ minHeight: '40px' }}
+        >
           <input
             ref={inputRef}
             type='text'
@@ -82,13 +83,8 @@ const TagsInput: React.FC<{ tags: Tag[]; setTags: (tags: Tag[]) => void }> = ({
             onFocus={() => setIsFocused(true)}
             onBlur={handleInputBlur}
             placeholder='Add a tag...'
-            className={`
-              flex-1 w-full px-3 py-2 bg-transparent
-              text-sm text-gray-900 placeholder-gray-400
-              outline-none focus:outline-none focus:ring-0
-              ${showAddButton ? 'pr-12' : 'pr-4'}
-            `}
-            style={{ 
+            className={`w-full flex-1 bg-transparent px-3 py-2 text-sm text-gray-900 placeholder-gray-400 outline-none focus:outline-none focus:ring-0 ${showAddButton ? 'pr-12' : 'pr-4'} `}
+            style={{
               height: '40px',
               borderBottom: '1px solid rgb(229 231 235)',
               borderTop: 'none',
@@ -97,7 +93,7 @@ const TagsInput: React.FC<{ tags: Tag[]; setTags: (tags: Tag[]) => void }> = ({
               boxShadow: 'none',
               WebkitAppearance: 'none',
               MozAppearance: 'none',
-              appearance: 'none'
+              appearance: 'none',
             }}
           />
 
@@ -106,7 +102,7 @@ const TagsInput: React.FC<{ tags: Tag[]; setTags: (tags: Tag[]) => void }> = ({
             <button
               type='button'
               onClick={addTag}
-              className='absolute right-2 group flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-r from-blue-500/10 to-purple-500/10 hover:from-blue-500/20 hover:to-purple-500/20 border border-blue-500/20 transition-all duration-200 hover:scale-105 active:scale-95'
+              className='group absolute right-2 flex h-7 w-7 items-center justify-center rounded-lg border border-blue-500/20 bg-gradient-to-r from-blue-500/10 to-purple-500/10 transition-all duration-200 hover:scale-105 hover:from-blue-500/20 hover:to-purple-500/20 active:scale-95'
               aria-label='Add tag'
             >
               <Plus className='h-4 w-4 text-blue-600 group-hover:text-blue-500' />
@@ -123,7 +119,7 @@ const TagsInput: React.FC<{ tags: Tag[]; setTags: (tags: Tag[]) => void }> = ({
               <button
                 key={tag.id}
                 onClick={() => removeTag(tag.id)}
-                className='group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-200 hover:bg-red-50 hover:border-red-200 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]'
+                className='group inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 transition-all duration-200 hover:scale-[1.02] hover:border-red-200 hover:bg-red-50 active:scale-[0.98]'
                 role='button'
                 tabIndex={0}
                 onKeyDown={(e) => {
@@ -134,10 +130,10 @@ const TagsInput: React.FC<{ tags: Tag[]; setTags: (tags: Tag[]) => void }> = ({
                 }}
                 aria-label={`Remove tag ${tag.name}`}
               >
-                <span className='text-sm font-medium text-gray-700 group-hover:text-red-600 transition-colors duration-200'>
+                <span className='text-sm font-medium text-gray-700 transition-colors duration-200 group-hover:text-red-600'>
                   {tag.name}
                 </span>
-                <X className='h-3.5 w-3.5 text-gray-400 group-hover:text-red-500 transition-colors duration-200' />
+                <X className='h-3.5 w-3.5 text-gray-400 transition-colors duration-200 group-hover:text-red-500' />
               </button>
             ))}
           </div>

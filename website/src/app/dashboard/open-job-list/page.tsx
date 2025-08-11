@@ -7,10 +7,12 @@ import { OpenJobsFeed } from '@/components/Dashboard/JobsList/OpenJobsFeed';
 
 export const metadata: Metadata = {
   title: 'Open Jobs',
-  description: 'Browse and apply for open jobs on Effective Acceleration marketplace.',
+  description:
+    'Browse and apply for open jobs on Effective Acceleration marketplace.',
   openGraph: {
     title: 'Open Jobs - Effective Acceleration',
-    description: 'Browse and apply for open jobs on Effective Acceleration marketplace.',
+    description:
+      'Browse and apply for open jobs on Effective Acceleration marketplace.',
     type: 'website',
     url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/jobs`,
     images: [
@@ -25,7 +27,8 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Open Jobs - Effective Acceleration',
-    description: 'Browse and apply for open jobs on Effective Acceleration marketplace.',
+    description:
+      'Browse and apply for open jobs on Effective Acceleration marketplace.',
     images: ['/og.webp'],
   },
   alternates: {

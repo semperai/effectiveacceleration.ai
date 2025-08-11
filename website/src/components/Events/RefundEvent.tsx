@@ -17,15 +17,11 @@ export function RefundEvent({
 
   return (
     <>
-      <div className='relative'>
-        {user && <ProfileImage user={user} />}
-      </div>
+      <div className='relative'>{user && <ProfileImage user={user} />}</div>
       <div className='min-w-0 flex-1'>
         <div>
           <div className='text-sm'>
-            <a
-              className='font-medium text-gray-900 dark:text-gray-100'
-            >
+            <a className='font-medium text-gray-900 dark:text-gray-100'>
               {user?.name}
             </a>
           </div>

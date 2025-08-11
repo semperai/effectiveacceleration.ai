@@ -20,20 +20,14 @@ export function AssignedEvent({
 
   return (
     <>
-      <div className='relative'>
-        {owner && <ProfileImage user={owner} />}
-      </div>
+      <div className='relative'>{owner && <ProfileImage user={owner} />}</div>
       <div className='min-w-0 flex-1 py-1.5'>
         <div className='text-sm text-gray-500 dark:text-gray-400'>
-          <a
-            className='font-medium text-gray-900 dark:text-gray-100'
-          >
+          <a className='font-medium text-gray-900 dark:text-gray-100'>
             {owner?.name}
           </a>{' '}
           assigned{' '}
-          <a
-            className='font-medium text-gray-900 dark:text-gray-100'
-          >
+          <a className='font-medium text-gray-900 dark:text-gray-100'>
             {worker?.name}
           </a>{' '}
           <span className='whitespace-nowrap'>{date}</span>

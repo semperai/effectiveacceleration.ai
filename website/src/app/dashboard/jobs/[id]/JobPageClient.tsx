@@ -153,14 +153,14 @@ export default function JobPageClient({ id }: JobPageClientProps) {
       const additionalEvents = events.filter(
         (event, index) =>
           index < lastIndex &&
-          (
-            (event.type_ === 17 &&
+          ((event.type_ === 17 &&
             event.address_ === selectedWorker &&
-            (event.details as JobMessageEvent)?.recipientAddress === job.roles.creator) ||
+            (event.details as JobMessageEvent)?.recipientAddress ===
+              job.roles.creator) ||
             (event.type_ === 18 &&
               event.address_ === job.roles.creator &&
-              (event.details as JobMessageEvent)?.recipientAddress === selectedWorker)
-          )
+              (event.details as JobMessageEvent)?.recipientAddress ===
+                selectedWorker))
       );
       // All events after job started
       const filteredEvents =
@@ -195,8 +195,7 @@ export default function JobPageClient({ id }: JobPageClientProps) {
   const isWorker = !isOwner && address && job?.roles.worker.includes(address);
   const isArbitrator =
     !isOwner && !isWorker && address && job?.roles.arbitrator.includes(address);
-  console.log(events, 'events')
-
+  console.log(events, 'events');
 
   return (
     <Layout borderless>

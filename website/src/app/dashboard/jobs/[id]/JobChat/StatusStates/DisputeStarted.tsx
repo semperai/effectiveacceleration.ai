@@ -12,7 +12,7 @@ import {
   PiFileText,
   PiGavel,
   PiArrowRight,
-  PiUser
+  PiUser,
 } from 'react-icons/pi';
 
 interface DisputeStartedProps {
@@ -21,56 +21,60 @@ interface DisputeStartedProps {
   users?: Record<string, User>;
 }
 
-const DisputeStarted: React.FC<DisputeStartedProps> = ({ job, address, users = {} }) => {
+const DisputeStarted: React.FC<DisputeStartedProps> = ({
+  job,
+  address,
+  users = {},
+}) => {
   // Get arbitrator data
   const arbitratorData = users[job.roles.arbitrator];
   const arbitratorName = arbitratorData?.name || 'Arbitrator';
 
   return (
-    <div className='w-full my-4'>
+    <div className='my-4 w-full'>
       {/* Main Container with warning theme */}
-      <div className='relative rounded-2xl overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50 dark:from-amber-950/20 dark:via-orange-950/20 dark:to-amber-950/20 border border-amber-300 dark:border-amber-800'>
+      <div className='relative overflow-hidden rounded-2xl border border-amber-300 bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50 dark:border-amber-800 dark:from-amber-950/20 dark:via-orange-950/20 dark:to-amber-950/20'>
         {/* Decorative elements */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-amber-500/10 to-orange-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-br from-orange-500/10 to-red-500/10 rounded-full blur-3xl" />
+        <div className='absolute right-0 top-0 h-64 w-64 rounded-full bg-gradient-to-br from-amber-500/10 to-orange-500/10 blur-3xl' />
+        <div className='absolute bottom-0 left-0 h-64 w-64 rounded-full bg-gradient-to-br from-orange-500/10 to-red-500/10 blur-3xl' />
 
         {/* Animated warning pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0 bg-stripes"></div>
+        <div className='absolute inset-0 opacity-10'>
+          <div className='bg-stripes absolute inset-0'></div>
         </div>
 
         {/* Content */}
         <div className='relative p-6 lg:p-8'>
           {/* Status Header */}
-          <div className='flex flex-col items-center mb-6'>
-            <div className='mb-4 relative'>
-              <div className='absolute inset-0 bg-gradient-to-br from-amber-500 to-orange-500 rounded-full blur-xl opacity-50 animate-pulse' />
-              <div className='relative p-4 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 shadow-lg shadow-amber-500/25'>
-                <PiScales className='w-10 h-10 text-white' />
+          <div className='mb-6 flex flex-col items-center'>
+            <div className='relative mb-4'>
+              <div className='absolute inset-0 animate-pulse rounded-full bg-gradient-to-br from-amber-500 to-orange-500 opacity-50 blur-xl' />
+              <div className='relative rounded-full bg-gradient-to-br from-amber-500 to-orange-500 p-4 shadow-lg shadow-amber-500/25'>
+                <PiScales className='h-10 w-10 text-white' />
               </div>
             </div>
 
             {/* Main Status Message */}
-            <h3 className='text-xl lg:text-2xl font-bold text-gray-900 dark:text-white mb-2'>
+            <h3 className='mb-2 text-xl font-bold text-gray-900 lg:text-2xl dark:text-white'>
               Dispute Resolution In Progress
             </h3>
 
-            <p className='text-sm text-gray-600 dark:text-gray-400 text-center max-w-md'>
+            <p className='max-w-md text-center text-sm text-gray-600 dark:text-gray-400'>
               An arbitrator has been assigned to review and resolve this dispute
             </p>
           </div>
 
           {/* Status Badges */}
-          <div className='flex flex-wrap justify-center gap-3 mb-6'>
-            <div className='inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700'>
-              <PiWarning className='w-4 h-4 text-amber-600 dark:text-amber-400' />
+          <div className='mb-6 flex flex-wrap justify-center gap-3'>
+            <div className='inline-flex items-center gap-2 rounded-full border border-amber-300 bg-amber-100 px-4 py-2 dark:border-amber-700 dark:bg-amber-900/30'>
+              <PiWarning className='h-4 w-4 text-amber-600 dark:text-amber-400' />
               <span className='text-sm font-medium text-amber-800 dark:text-amber-300'>
                 Dispute Active
               </span>
             </div>
 
-            <div className='inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700'>
-              <PiUserCirclePlus className='w-4 h-4 text-blue-600 dark:text-blue-400' />
+            <div className='inline-flex items-center gap-2 rounded-full border border-blue-300 bg-blue-100 px-4 py-2 dark:border-blue-700 dark:bg-blue-900/30'>
+              <PiUserCirclePlus className='h-4 w-4 text-blue-600 dark:text-blue-400' />
               <span className='text-sm font-medium text-blue-800 dark:text-blue-300'>
                 Arbitrator Assigned
               </span>
@@ -78,41 +82,42 @@ const DisputeStarted: React.FC<DisputeStartedProps> = ({ job, address, users = {
           </div>
 
           {/* Arbitrator Info Card */}
-          <div className='mb-6 rounded-xl bg-white/70 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-200 dark:border-gray-700 p-5'>
+          <div className='mb-6 rounded-xl border border-gray-200 bg-white/70 p-5 backdrop-blur-sm dark:border-gray-700 dark:bg-gray-900/50'>
             <div className='flex items-start gap-4'>
               <Link
                 href={`/dashboard/arbitrators/${job.roles.arbitrator}`}
                 className='group'
               >
-                <div className='p-3 rounded-lg bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 transition-transform group-hover:scale-110'>
-                  <PiGavel className='w-6 h-6 text-blue-600 dark:text-blue-400' />
+                <div className='rounded-lg bg-gradient-to-br from-blue-100 to-purple-100 p-3 transition-transform group-hover:scale-110 dark:from-blue-900/30 dark:to-purple-900/30'>
+                  <PiGavel className='h-6 w-6 text-blue-600 dark:text-blue-400' />
                 </div>
               </Link>
               <div className='flex-1'>
-                <div className='flex items-center gap-2 mb-1'>
+                <div className='mb-1 flex items-center gap-2'>
                   <h4 className='text-sm font-semibold text-gray-900 dark:text-white'>
                     Arbitrator Has Joined
                   </h4>
                   <Link
                     href={`/dashboard/arbitrators/${job.roles.arbitrator}`}
-                    className='inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 group'
+                    className='group inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300'
                   >
                     <span>{arbitratorName}</span>
-                    <PiArrowRight className='w-3 h-3 opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-0.5' />
+                    <PiArrowRight className='h-3 w-3 transform opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100' />
                   </Link>
                 </div>
-                <p className='text-sm text-gray-600 dark:text-gray-400 mb-3'>
-                  The arbitrator has received all case information and is now part of the conversation
+                <p className='mb-3 text-sm text-gray-600 dark:text-gray-400'>
+                  The arbitrator has received all case information and is now
+                  part of the conversation
                 </p>
 
                 {/* Arbitrator Avatar and Name if available */}
                 {arbitratorData && (
                   <Link
                     href={`/dashboard/arbitrators/${job.roles.arbitrator}`}
-                    className='inline-flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors'
+                    className='inline-flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800'
                   >
-                    <div className='w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center'>
-                      <PiUser className='w-5 h-5 text-white' />
+                    <div className='flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500'>
+                      <PiUser className='h-5 w-5 text-white' />
                     </div>
                     <div>
                       <p className='text-sm font-medium text-gray-900 dark:text-white'>
@@ -122,15 +127,16 @@ const DisputeStarted: React.FC<DisputeStartedProps> = ({ job, address, users = {
                         View Arbitrator Profile
                       </p>
                     </div>
-                    <PiArrowRight className='w-4 h-4 text-gray-400 ml-auto' />
+                    <PiArrowRight className='ml-auto h-4 w-4 text-gray-400' />
                   </Link>
                 )}
 
                 {/* Communication Notice */}
-                <div className='flex items-center gap-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 mt-3'>
-                  <PiChatCircleDots className='w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0' />
+                <div className='mt-3 flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-950/20'>
+                  <PiChatCircleDots className='h-5 w-5 flex-shrink-0 text-blue-600 dark:text-blue-400' />
                   <span className='text-xs text-blue-700 dark:text-blue-300'>
-                    All parties can now communicate directly with the arbitrator in the chat
+                    All parties can now communicate directly with the arbitrator
+                    in the chat
                   </span>
                 </div>
               </div>
@@ -138,11 +144,11 @@ const DisputeStarted: React.FC<DisputeStartedProps> = ({ job, address, users = {
           </div>
 
           {/* Process Information */}
-          <div className='grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6'>
+          <div className='mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3'>
             {/* Review Phase */}
-            <div className='p-4 rounded-xl bg-gradient-to-br from-white/50 to-gray-50/50 dark:from-gray-800/30 dark:to-gray-900/30 backdrop-blur-sm border border-gray-200 dark:border-gray-700'>
-              <div className='flex items-center gap-2 mb-2'>
-                <PiFileText className='w-4 h-4 text-gray-500 dark:text-gray-400' />
+            <div className='rounded-xl border border-gray-200 bg-gradient-to-br from-white/50 to-gray-50/50 p-4 backdrop-blur-sm dark:border-gray-700 dark:from-gray-800/30 dark:to-gray-900/30'>
+              <div className='mb-2 flex items-center gap-2'>
+                <PiFileText className='h-4 w-4 text-gray-500 dark:text-gray-400' />
                 <span className='text-xs font-semibold text-gray-700 dark:text-gray-300'>
                   Step 1: Review
                 </span>
@@ -153,9 +159,9 @@ const DisputeStarted: React.FC<DisputeStartedProps> = ({ job, address, users = {
             </div>
 
             {/* Investigation Phase */}
-            <div className='p-4 rounded-xl bg-gradient-to-br from-white/50 to-gray-50/50 dark:from-gray-800/30 dark:to-gray-900/30 backdrop-blur-sm border border-gray-200 dark:border-gray-700'>
-              <div className='flex items-center gap-2 mb-2'>
-                <PiChatCircleDots className='w-4 h-4 text-gray-500 dark:text-gray-400' />
+            <div className='rounded-xl border border-gray-200 bg-gradient-to-br from-white/50 to-gray-50/50 p-4 backdrop-blur-sm dark:border-gray-700 dark:from-gray-800/30 dark:to-gray-900/30'>
+              <div className='mb-2 flex items-center gap-2'>
+                <PiChatCircleDots className='h-4 w-4 text-gray-500 dark:text-gray-400' />
                 <span className='text-xs font-semibold text-gray-700 dark:text-gray-300'>
                   Step 2: Discussion
                 </span>
@@ -166,9 +172,9 @@ const DisputeStarted: React.FC<DisputeStartedProps> = ({ job, address, users = {
             </div>
 
             {/* Resolution Phase */}
-            <div className='p-4 rounded-xl bg-gradient-to-br from-white/50 to-gray-50/50 dark:from-gray-800/30 dark:to-gray-900/30 backdrop-blur-sm border border-gray-200 dark:border-gray-700'>
-              <div className='flex items-center gap-2 mb-2'>
-                <PiShieldCheck className='w-4 h-4 text-gray-500 dark:text-gray-400' />
+            <div className='rounded-xl border border-gray-200 bg-gradient-to-br from-white/50 to-gray-50/50 p-4 backdrop-blur-sm dark:border-gray-700 dark:from-gray-800/30 dark:to-gray-900/30'>
+              <div className='mb-2 flex items-center gap-2'>
+                <PiShieldCheck className='h-4 w-4 text-gray-500 dark:text-gray-400' />
                 <span className='text-xs font-semibold text-gray-700 dark:text-gray-300'>
                   Step 3: Resolution
                 </span>
@@ -180,29 +186,47 @@ const DisputeStarted: React.FC<DisputeStartedProps> = ({ job, address, users = {
           </div>
 
           {/* Important Notice */}
-          <div className='p-5 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200 dark:border-amber-800'>
+          <div className='rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-5 dark:border-amber-800 dark:from-amber-950/30 dark:to-orange-950/30'>
             <div className='flex gap-3'>
-              <PiInfo className='w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5' />
+              <PiInfo className='mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400' />
               <div className='space-y-2'>
                 <h4 className='text-sm font-semibold text-amber-900 dark:text-amber-300'>
                   Important Information
                 </h4>
                 <ul className='space-y-1 text-xs text-amber-800 dark:text-amber-400'>
                   <li className='flex items-start gap-2'>
-                    <span className='text-amber-600 dark:text-amber-500 mt-0.5'>•</span>
-                    <span>Respond promptly to any arbitrator requests for information</span>
+                    <span className='mt-0.5 text-amber-600 dark:text-amber-500'>
+                      •
+                    </span>
+                    <span>
+                      Respond promptly to any arbitrator requests for
+                      information
+                    </span>
                   </li>
                   <li className='flex items-start gap-2'>
-                    <span className='text-amber-600 dark:text-amber-500 mt-0.5'>•</span>
-                    <span>All communications are recorded and will be considered in the decision</span>
+                    <span className='mt-0.5 text-amber-600 dark:text-amber-500'>
+                      •
+                    </span>
+                    <span>
+                      All communications are recorded and will be considered in
+                      the decision
+                    </span>
                   </li>
                   <li className='flex items-start gap-2'>
-                    <span className='text-amber-600 dark:text-amber-500 mt-0.5'>•</span>
-                    <span>The arbitrator's decision will be final and binding</span>
+                    <span className='mt-0.5 text-amber-600 dark:text-amber-500'>
+                      •
+                    </span>
+                    <span>
+                      The arbitrator's decision will be final and binding
+                    </span>
                   </li>
                   <li className='flex items-start gap-2'>
-                    <span className='text-amber-600 dark:text-amber-500 mt-0.5'>•</span>
-                    <span>Maintain professional communication throughout the process</span>
+                    <span className='mt-0.5 text-amber-600 dark:text-amber-500'>
+                      •
+                    </span>
+                    <span>
+                      Maintain professional communication throughout the process
+                    </span>
                   </li>
                 </ul>
               </div>
@@ -212,12 +236,12 @@ const DisputeStarted: React.FC<DisputeStartedProps> = ({ job, address, users = {
           {/* Footer Status */}
           <div className='mt-6 flex flex-col items-center gap-3'>
             <div className='flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400'>
-              <PiClock className='w-3 h-3' />
+              <PiClock className='h-3 w-3' />
               <span>Resolution typically takes 24-48 hours</span>
             </div>
             <div className='flex items-center gap-2'>
-              <div className='flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-100 dark:bg-green-900/30'>
-                <div className='w-2 h-2 rounded-full bg-green-500 animate-pulse' />
+              <div className='flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1.5 dark:bg-green-900/30'>
+                <div className='h-2 w-2 animate-pulse rounded-full bg-green-500' />
                 <span className='text-xs font-medium text-green-700 dark:text-green-400'>
                   Arbitrator Online
                 </span>

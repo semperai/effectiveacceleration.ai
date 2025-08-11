@@ -45,7 +45,7 @@ const JobInformationPage = () => {
                   <span>{applicant.name}</span>
                 </div>
                 <div>
-                  <p className='... max-w-52 truncate text-sm text-darkBlueFont'>
+                  <p className='max-w-52 truncate text-sm text-darkBlueFont ...'>
                     {applicant.lastMessage}
                   </p>
                 </div>

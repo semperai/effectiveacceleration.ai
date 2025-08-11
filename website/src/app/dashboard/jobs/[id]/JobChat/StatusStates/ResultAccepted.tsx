@@ -24,7 +24,7 @@ import {
   PiPlus,
   PiArrowRight,
   PiHandshake,
-  PiStar
+  PiStar,
 } from 'react-icons/pi';
 
 interface ResultAcceptedProps {
@@ -55,18 +55,22 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
   const rawComment = deliveryEvent?.job?.result || '';
 
   // Fix: Get the worker address from the job, not selectedWorker
-  const workerAddress = job.roles.worker || deliveryEvent?.address_ || selectedWorker;
+  const workerAddress =
+    job.roles.worker || deliveryEvent?.address_ || selectedWorker;
   const workerData = users[workerAddress];
   const workerName = workerData?.name || 'Worker';
 
   // Check if current user is the job creator
-  const isJobCreator = currentUserAddress &&
+  const isJobCreator =
+    currentUserAddress &&
     job.roles.creator?.toLowerCase() === currentUserAddress.toLowerCase();
 
   // Calculate the formatted amount for the URL parameter
   const getFormattedAmount = () => {
     // Find the token to get its decimals
-    const token = tokens.find(t => t.id.toLowerCase() === job.token.toLowerCase());
+    const token = tokens.find(
+      (t) => t.id.toLowerCase() === job.token.toLowerCase()
+    );
     if (token && job.amount) {
       // Convert from wei/smallest unit to human readable format
       const formattedAmount = ethers.formatUnits(job.amount, token.decimals);
@@ -76,7 +80,7 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
   };
 
   useEffect(() => {
-    if (rawComment?.startsWith("#filename%3D")) {
+    if (rawComment?.startsWith('#filename%3D')) {
       formatMarkdownContent(rawComment, (formatted) => {
         setFormattedComment(formatted);
         setIsFormatted(true);
@@ -91,45 +95,46 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
   };
 
   const shouldTruncate = formattedComment.length > 200 && !isFormatted;
-  const displayContent = shouldTruncate && !isExpanded
-    ? `${formattedComment.slice(0, 200)}...`
-    : formattedComment;
+  const displayContent =
+    shouldTruncate && !isExpanded
+      ? `${formattedComment.slice(0, 200)}...`
+      : formattedComment;
 
   return (
     <div className='w-full'>
       {/* Success Container with celebration theme */}
-      <div className='relative rounded-2xl overflow-hidden bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-950/20 dark:via-emerald-950/20 dark:to-teal-950/20 border border-green-200 dark:border-green-800'>
+      <div className='relative overflow-hidden rounded-2xl border border-green-200 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:border-green-800 dark:from-green-950/20 dark:via-emerald-950/20 dark:to-teal-950/20'>
         {/* Decorative elements */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 rounded-full blur-3xl animate-pulse" />
+        <div className='absolute right-0 top-0 h-64 w-64 animate-pulse rounded-full bg-gradient-to-br from-green-500/10 to-emerald-500/10 blur-3xl' />
+        <div className='absolute bottom-0 left-0 h-64 w-64 animate-pulse rounded-full bg-gradient-to-br from-emerald-500/10 to-teal-500/10 blur-3xl' />
 
         {/* Confetti animation overlay */}
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-10 left-10 animate-bounce delay-100">
-            <PiConfetti className="w-8 h-8 text-yellow-500" />
+        <div className='absolute inset-0 opacity-30'>
+          <div className='absolute left-10 top-10 animate-bounce delay-100'>
+            <PiConfetti className='h-8 w-8 text-yellow-500' />
           </div>
-          <div className="absolute top-20 right-20 animate-bounce delay-200">
-            <PiSparkle className="w-6 h-6 text-purple-500" />
+          <div className='absolute right-20 top-20 animate-bounce delay-200'>
+            <PiSparkle className='h-6 w-6 text-purple-500' />
           </div>
-          <div className="absolute bottom-20 left-1/3 animate-bounce delay-300">
-            <PiStar className="w-7 h-7 text-blue-500" />
+          <div className='absolute bottom-20 left-1/3 animate-bounce delay-300'>
+            <PiStar className='h-7 w-7 text-blue-500' />
           </div>
-          <div className="absolute bottom-10 right-1/4 animate-bounce delay-400">
-            <PiConfetti className="w-6 h-6 text-pink-500" />
+          <div className='delay-400 absolute bottom-10 right-1/4 animate-bounce'>
+            <PiConfetti className='h-6 w-6 text-pink-500' />
           </div>
         </div>
 
         {/* Content */}
         <div className='relative p-8'>
           {/* Success Header */}
-          <div className='flex flex-col items-center mb-6'>
-            <div className='mb-4 relative'>
-              <div className='absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full blur-xl opacity-50 animate-pulse' />
-              <div className='relative p-4 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 shadow-lg shadow-green-500/25'>
-                <PiCheckCircle className='w-10 h-10 text-white' />
+          <div className='mb-6 flex flex-col items-center'>
+            <div className='relative mb-4'>
+              <div className='absolute inset-0 animate-pulse rounded-full bg-gradient-to-br from-green-500 to-emerald-500 opacity-50 blur-xl' />
+              <div className='relative rounded-full bg-gradient-to-br from-green-500 to-emerald-500 p-4 shadow-lg shadow-green-500/25'>
+                <PiCheckCircle className='h-10 w-10 text-white' />
               </div>
             </div>
-            <h3 className='text-2xl font-bold text-gray-900 dark:text-white mb-2'>
+            <h3 className='mb-2 text-2xl font-bold text-gray-900 dark:text-white'>
               Job Successfully Completed! 🎉
             </h3>
             <p className='text-sm text-gray-600 dark:text-gray-400'>
@@ -138,25 +143,25 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
           </div>
 
           {/* Worker Info Badge with Link */}
-          <div className='flex justify-center mb-6'>
-            <div className='inline-flex items-center gap-3 px-5 py-3 rounded-full bg-white dark:bg-gray-800 border border-green-200 dark:border-green-700 shadow-sm'>
+          <div className='mb-6 flex justify-center'>
+            <div className='inline-flex items-center gap-3 rounded-full border border-green-200 bg-white px-5 py-3 shadow-sm dark:border-green-700 dark:bg-gray-800'>
               <div className='flex items-center gap-2'>
-                <PiHandshake className='w-5 h-5 text-green-600 dark:text-green-400' />
+                <PiHandshake className='h-5 w-5 text-green-600 dark:text-green-400' />
                 <span className='text-sm font-medium text-gray-900 dark:text-white'>
                   Completed by
                 </span>
               </div>
               <Link
                 href={`/dashboard/users/${workerAddress}`}
-                className='flex items-center gap-2 group'
+                className='group flex items-center gap-2'
               >
-                <div className='w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center transition-transform group-hover:scale-110'>
-                  <PiUser className='w-4 h-4 text-white' />
+                <div className='flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 transition-transform group-hover:scale-110'>
+                  <PiUser className='h-4 w-4 text-white' />
                 </div>
-                <span className='text-sm font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors'>
+                <span className='text-sm font-semibold text-gray-900 transition-colors group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400'>
                   {workerName}
                 </span>
-                <PiArrowRight className='w-3 h-3 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-0.5' />
+                <PiArrowRight className='h-3 w-3 transform text-gray-400 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:text-blue-600 group-hover:opacity-100 dark:group-hover:text-blue-400' />
               </Link>
             </div>
           </div>
@@ -164,9 +169,9 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
           {/* Delivery Comment Section */}
           {formattedComment && (
             <div className='mb-6'>
-              <div className='rounded-xl bg-white/70 dark:bg-gray-900/50 backdrop-blur-sm border border-gray-200 dark:border-gray-700 p-6'>
-                <div className='flex items-center gap-2 mb-4'>
-                  <PiFileText className='w-4 h-4 text-gray-500 dark:text-gray-400' />
+              <div className='rounded-xl border border-gray-200 bg-white/70 p-6 backdrop-blur-sm dark:border-gray-700 dark:bg-gray-900/50'>
+                <div className='mb-4 flex items-center gap-2'>
+                  <PiFileText className='h-4 w-4 text-gray-500 dark:text-gray-400' />
                   <h4 className='text-sm font-semibold text-gray-700 dark:text-gray-300'>
                     Delivery Details
                   </h4>
@@ -183,16 +188,16 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
                 {shouldTruncate && (
                   <button
                     onClick={toggleExpanded}
-                    className='mt-3 flex items-center gap-1 text-sm font-medium text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 transition-colors'
+                    className='mt-3 flex items-center gap-1 text-sm font-medium text-green-600 transition-colors hover:text-green-700 dark:text-green-400 dark:hover:text-green-300'
                   >
                     {isExpanded ? (
                       <>
-                        <PiCaretUp className='w-4 h-4' />
+                        <PiCaretUp className='h-4 w-4' />
                         Show less
                       </>
                     ) : (
                       <>
-                        <PiCaretDown className='w-4 h-4' />
+                        <PiCaretDown className='h-4 w-4' />
                         Show more
                       </>
                     )}
@@ -201,8 +206,8 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
 
                 {/* Download indicator for files */}
                 {isFormatted && (
-                  <div className='mt-4 flex items-center gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800'>
-                    <PiDownload className='w-4 h-4 text-green-600 dark:text-green-400' />
+                  <div className='mt-4 flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-800 dark:bg-green-950/30'>
+                    <PiDownload className='h-4 w-4 text-green-600 dark:text-green-400' />
                     <span className='text-sm text-green-700 dark:text-green-300'>
                       Deliverable file received and available for download
                     </span>
@@ -213,9 +218,9 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
           )}
 
           {/* Success Message */}
-          <div className='text-center mb-8'>
-            <div className='inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 border border-green-300 dark:border-green-700'>
-              <PiCheckCircle className='w-5 h-5 text-green-600 dark:text-green-400' />
+          <div className='mb-8 text-center'>
+            <div className='inline-flex items-center gap-2 rounded-full border border-green-300 bg-gradient-to-r from-green-100 to-emerald-100 px-4 py-2 dark:border-green-700 dark:from-green-900/30 dark:to-emerald-900/30'>
+              <PiCheckCircle className='h-5 w-5 text-green-600 dark:text-green-400' />
               <span className='text-sm font-medium text-green-800 dark:text-green-300'>
                 Result Accepted Successfully
               </span>
@@ -223,9 +228,9 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
           </div>
 
           {/* Next Steps Section */}
-          <div className='p-6 rounded-xl bg-gradient-to-br from-white/50 to-gray-50/50 dark:from-gray-800/30 dark:to-gray-900/30 backdrop-blur-sm border border-gray-200 dark:border-gray-700'>
-            <h4 className='text-sm font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2'>
-              <PiArrowRight className='w-4 h-4' />
+          <div className='rounded-xl border border-gray-200 bg-gradient-to-br from-white/50 to-gray-50/50 p-6 backdrop-blur-sm dark:border-gray-700 dark:from-gray-800/30 dark:to-gray-900/30'>
+            <h4 className='mb-4 flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white'>
+              <PiArrowRight className='h-4 w-4' />
               What's Next?
             </h4>
 
@@ -248,60 +253,38 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
                   }}
                   className='w-full'
                 >
-                  <button className='
-                    w-full px-4 py-3 rounded-xl
-                    bg-gradient-to-r from-blue-500 to-purple-500
-                    font-medium text-sm
-                    transition-all duration-300
-                    hover:from-blue-600 hover:to-purple-600
-                    hover:shadow-lg hover:shadow-blue-500/25
-                    hover:-translate-y-0.5
-                    group
-                  '>
+                  <button className='group w-full rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 px-4 py-3 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 hover:from-blue-600 hover:to-purple-600 hover:shadow-lg hover:shadow-blue-500/25'>
                     <span className='flex items-center justify-center gap-2 text-white'>
-                      <PiPlus className='w-4 h-4 text-white' />
-                      <span className='text-white'>Create Similar Job with {workerName}</span>
-                      <PiArrowRight className='w-4 h-4 text-white group-hover:translate-x-1 transition-transform' />
+                      <PiPlus className='h-4 w-4 text-white' />
+                      <span className='text-white'>
+                        Create Similar Job with {workerName}
+                      </span>
+                      <PiArrowRight className='h-4 w-4 text-white transition-transform group-hover:translate-x-1' />
                     </span>
                   </button>
                 </Link>
               )}
 
               {/* View Worker Profile */}
-              <Link href={`/dashboard/users/${workerAddress}`} className='w-full'>
-                <button className='
-                  w-full px-4 py-2.5 rounded-xl
-                  bg-white dark:bg-gray-800
-                  border border-gray-200 dark:border-gray-700
-                  text-sm font-medium text-gray-700 dark:text-gray-300
-                  transition-all duration-200
-                  hover:bg-gray-50 dark:hover:bg-gray-700
-                  hover:border-gray-300 dark:hover:border-gray-600
-                  group
-                '>
+              <Link
+                href={`/dashboard/users/${workerAddress}`}
+                className='w-full'
+              >
+                <button className='group w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:bg-gray-700'>
                   <span className='flex items-center justify-center gap-2'>
-                    <PiUser className='w-4 h-4' />
+                    <PiUser className='h-4 w-4' />
                     View {workerName}'s Profile
-                    <PiArrowRight className='w-4 h-4 group-hover:translate-x-1 transition-transform' />
+                    <PiArrowRight className='h-4 w-4 transition-transform group-hover:translate-x-1' />
                   </span>
                 </button>
               </Link>
 
               {/* Browse Jobs */}
               <Link href='/dashboard/open-job-list' className='w-full'>
-                <button className='
-                  w-full px-4 py-2.5 rounded-xl
-                  bg-white dark:bg-gray-800
-                  border border-gray-200 dark:border-gray-700
-                  text-sm font-medium text-gray-700 dark:text-gray-300
-                  transition-all duration-200
-                  hover:bg-gray-50 dark:hover:bg-gray-700
-                  hover:border-gray-300 dark:hover:border-gray-600
-                  group
-                '>
+                <button className='group w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:bg-gray-700'>
                   <span className='flex items-center justify-center gap-2'>
                     Browse More Jobs
-                    <PiArrowRight className='w-4 h-4 group-hover:translate-x-1 transition-transform' />
+                    <PiArrowRight className='h-4 w-4 transition-transform group-hover:translate-x-1' />
                   </span>
                 </button>
               </Link>
@@ -312,21 +295,23 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
           <div className='mt-6 flex justify-center'>
             <div className='flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400'>
               <span className='flex items-center gap-1'>
-                <PiSparkle className='w-3 h-3 text-yellow-500 animate-pulse' />
+                <PiSparkle className='h-3 w-3 animate-pulse text-yellow-500' />
                 Thank you for using our platform
               </span>
               <span>•</span>
               <span className='flex items-center gap-1'>
-                {isJobCreator ? 'Payment has been released to' : 'Payment received from job creator'}
+                {isJobCreator
+                  ? 'Payment has been released to'
+                  : 'Payment received from job creator'}
                 {isJobCreator && (
                   <Link
                     href={`/dashboard/users/${workerAddress}`}
-                    className='text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 hover:underline'
+                    className='text-blue-600 hover:text-blue-500 hover:underline dark:text-blue-400 dark:hover:text-blue-300'
                   >
                     {workerName}
                   </Link>
                 )}
-                <PiCheckCircle className='w-3 h-3 text-green-500' />
+                <PiCheckCircle className='h-3 w-3 text-green-500' />
               </span>
             </div>
           </div>

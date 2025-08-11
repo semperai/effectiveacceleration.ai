@@ -9,10 +9,10 @@
     /* Layout Variables */
     --sidebar-width-desktop: 17vw;
     --layout-width-nosidebar-desktop: 83vw;
-    
+
     /* Border Radius */
     --radius: 0.5rem;
-    
+
     /* Legacy Variables (consider removing if unused) */
     --foreground-rgb: 0, 0, 0;
     --background-start-rgb: 214, 219, 220;
@@ -21,15 +21,26 @@
 
   /* Global Typography Defaults */
   body {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    font-family:
+      'Plus Jakarta Sans',
+      system-ui,
+      -apple-system,
+      sans-serif;
   }
 
-  html, body, #__next {
+  html,
+  body,
+  #__next {
     height: 100%;
   }
 
   /* Heading Styles */
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply text-blueGrayTitles;
   }
 
@@ -413,8 +424,12 @@
 
   /* Shimmer Animation */
   @keyframes shimmer {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
   }
 
   .animate-shimmer {

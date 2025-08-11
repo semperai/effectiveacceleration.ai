@@ -22,7 +22,9 @@ export const UserDropdown = forwardRef<HTMLDivElement, UserDropdownProps>(
     // Get the current profile for display
     const currentProfile = activeTab === 'user' ? user : arbitrator;
     const displayName = currentProfile?.name || 'Anonymous';
-    const displayAddress = address ? `${address.slice(0, 6)}...${address.slice(-4)}` : '';
+    const displayAddress = address
+      ? `${address.slice(0, 6)}...${address.slice(-4)}`
+      : '';
 
     // Detect mobile viewport
     useEffect(() => {
@@ -53,12 +55,9 @@ export const UserDropdown = forwardRef<HTMLDivElement, UserDropdownProps>(
             <div className='flex items-center gap-3'>
               {/* Avatar */}
               {currentProfile?.avatar ? (
-                <ProfileImage
-                  user={currentProfile}
-                  className='h-10 w-10'
-                />
+                <ProfileImage user={currentProfile} className='h-10 w-10' />
               ) : (
-                <div className='h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center'>
+                <div className='flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800'>
                   <svg
                     className='h-6 w-6 text-gray-400'
                     fill='none'
@@ -81,7 +80,7 @@ export const UserDropdown = forwardRef<HTMLDivElement, UserDropdownProps>(
                   {displayName}
                 </h3>
                 {address && (
-                  <p className='text-xs text-gray-500 dark:text-gray-400 font-mono'>
+                  <p className='font-mono text-xs text-gray-500 dark:text-gray-400'>
                     {displayAddress}
                   </p>
                 )}
@@ -132,7 +131,11 @@ export const UserDropdown = forwardRef<HTMLDivElement, UserDropdownProps>(
             <UserForm
               isArbitrator={activeTab === 'arbitrator'}
               user={activeTab === 'user' ? (user ?? undefined) : undefined}
-              arbitrator={activeTab === 'arbitrator' ? (arbitrator ?? undefined) : undefined}
+              arbitrator={
+                activeTab === 'arbitrator'
+                  ? (arbitrator ?? undefined)
+                  : undefined
+              }
               address={address}
             />
           ) : (
@@ -172,7 +175,7 @@ export const UserDropdown = forwardRef<HTMLDivElement, UserDropdownProps>(
           {/* Modal content - slides up from bottom */}
           <div
             ref={ref}
-            className='absolute inset-x-0 bottom-0 animate-in slide-in-from-bottom duration-300'
+            className='absolute inset-x-0 bottom-0 duration-300 animate-in slide-in-from-bottom'
           >
             <div className='rounded-t-2xl bg-white shadow-xl dark:bg-gray-900'>
               {/* Drag handle indicator */}
@@ -191,12 +194,12 @@ export const UserDropdown = forwardRef<HTMLDivElement, UserDropdownProps>(
     return (
       <div
         ref={ref}
-        className='absolute right-0 mt-2 hidden w-96 origin-top-right animate-in fade-in slide-in-from-top-1 duration-200 sm:block'
+        className='absolute right-0 mt-2 hidden w-96 origin-top-right duration-200 animate-in fade-in slide-in-from-top-1 sm:block'
         style={{ zIndex: 9999 }}
       >
         {/* Arrow pointing to button */}
         <div className='absolute -top-2 right-4 h-4 w-4'>
-          <div className='h-4 w-4 rotate-45 transform bg-white border-l border-t border-gray-200 dark:bg-gray-900 dark:border-gray-700' />
+          <div className='h-4 w-4 rotate-45 transform border-l border-t border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900' />
         </div>
 
         <div className='rounded-xl bg-white shadow-lg ring-1 ring-black ring-opacity-5 dark:bg-gray-900 dark:ring-gray-700'>

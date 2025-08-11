@@ -17,47 +17,49 @@ export default function TokenButton({
   const [isFocused, setIsFocused] = useState(false);
 
   // Compact mode styles
-  const buttonStyle = compact ? {
-    display: 'inline-flex',
-    alignItems: 'center',
-    width: '100%',
-    height: '100%', // Full height of parent
-    padding: '0 12px',
-    background: isHovered ? 'rgba(59, 130, 246, 0.04)' : 'transparent',
-    borderWidth: '0',
-    borderStyle: 'solid',
-    borderColor: 'transparent',
-    borderRadius: '0 0.5rem 0.5rem 0', // Rounded right side only
-    fontSize: '0.875rem',
-    fontWeight: 500,
-    cursor: 'pointer',
-    transition: 'all 0.15s ease',
-    outline: 'none',
-    position: 'relative' as const,
-    overflow: 'hidden',
-    color: selectedToken ? '#111827' : '#6b7280',
-  } : {
-    // Original styles for non-compact mode
-    display: 'inline-flex',
-    alignItems: 'center',
-    width: '100%',
-    height: '56px',
-    padding: '0 16px',
-    background: isHovered ? 'rgba(59, 130, 246, 0.04)' : 'transparent',
-    borderWidth: isFocused ? '2px' : '0',
-    borderStyle: 'solid',
-    borderColor: isFocused ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
-    borderRadius: '0.75rem',
-    fontSize: '0.875rem',
-    fontWeight: 500,
-    cursor: 'pointer',
-    transition: 'all 0.15s ease',
-    outline: 'none',
-    position: 'relative' as const,
-    overflow: 'hidden',
-    transform: isHovered ? 'scale(1.01)' : 'scale(1)',
-    color: selectedToken ? '#111827' : '#6b7280',
-  };
+  const buttonStyle = compact
+    ? {
+        display: 'inline-flex',
+        alignItems: 'center',
+        width: '100%',
+        height: '100%', // Full height of parent
+        padding: '0 12px',
+        background: isHovered ? 'rgba(59, 130, 246, 0.04)' : 'transparent',
+        borderWidth: '0',
+        borderStyle: 'solid',
+        borderColor: 'transparent',
+        borderRadius: '0 0.5rem 0.5rem 0', // Rounded right side only
+        fontSize: '0.875rem',
+        fontWeight: 500,
+        cursor: 'pointer',
+        transition: 'all 0.15s ease',
+        outline: 'none',
+        position: 'relative' as const,
+        overflow: 'hidden',
+        color: selectedToken ? '#111827' : '#6b7280',
+      }
+    : {
+        // Original styles for non-compact mode
+        display: 'inline-flex',
+        alignItems: 'center',
+        width: '100%',
+        height: '56px',
+        padding: '0 16px',
+        background: isHovered ? 'rgba(59, 130, 246, 0.04)' : 'transparent',
+        borderWidth: isFocused ? '2px' : '0',
+        borderStyle: 'solid',
+        borderColor: isFocused ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
+        borderRadius: '0.75rem',
+        fontSize: '0.875rem',
+        fontWeight: 500,
+        cursor: 'pointer',
+        transition: 'all 0.15s ease',
+        outline: 'none',
+        position: 'relative' as const,
+        overflow: 'hidden',
+        transform: isHovered ? 'scale(1.01)' : 'scale(1)',
+        color: selectedToken ? '#111827' : '#6b7280',
+      };
 
   const contentStyle = {
     display: 'flex',
@@ -129,7 +131,7 @@ export default function TokenButton({
 
     return (
       <button
-        type="button"
+        type='button'
         onClick={onClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -149,11 +151,7 @@ export default function TokenButton({
               }}
             />
           ) : (
-            <img
-              src={DEFAULT_TOKEN_ICON}
-              alt={symbol}
-              style={avatarStyle}
-            />
+            <img src={DEFAULT_TOKEN_ICON} alt={symbol} style={avatarStyle} />
           )}
           <span style={symbolStyle}>{symbol}</span>
           <ChevronDown style={chevronStyle} />
@@ -163,7 +161,7 @@ export default function TokenButton({
   } else {
     return (
       <button
-        type="button"
+        type='button'
         onClick={onClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -173,9 +171,18 @@ export default function TokenButton({
       >
         <div style={contentStyle}>
           <div style={placeholderIconStyle}>
-            <svg width={compact ? "16" : "20"} height={compact ? "16" : "20"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M12 6v6l4 2"/>
+            <svg
+              width={compact ? '16' : '20'}
+              height={compact ? '16' : '20'}
+              viewBox='0 0 24 24'
+              fill='none'
+              stroke='currentColor'
+              strokeWidth='2'
+              strokeLinecap='round'
+              strokeLinejoin='round'
+            >
+              <circle cx='12' cy='12' r='10' />
+              <path d='M12 6v6l4 2' />
             </svg>
           </div>
           <span style={textStyle}>Select</span>

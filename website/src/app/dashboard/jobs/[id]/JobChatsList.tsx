@@ -7,7 +7,7 @@ import {
   PiChatCircle,
   PiSparkle,
   PiCheckCircle,
-  PiClock
+  PiClock,
 } from 'react-icons/pi';
 
 const JobChatsList = ({
@@ -15,7 +15,7 @@ const JobChatsList = ({
   job,
   setSelectedWorker,
   setSidebarOpen,
-  selectedWorker
+  selectedWorker,
 }: {
   users: Record<string, User>;
   job: Job | undefined;
@@ -26,15 +26,15 @@ const JobChatsList = ({
   const numberOfWorkers = Object.keys(users).length - 1; // -1 to exclude the creator
 
   return (
-    <div className='h-full flex flex-col bg-white dark:bg-gray-900 rounded-xl shadow-xl overflow-hidden'>
+    <div className='flex h-full flex-col overflow-hidden rounded-xl bg-white shadow-xl dark:bg-gray-900'>
       {/* Header with gradient */}
-      <div className='relative bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-blue-500/5 dark:from-blue-500/10 dark:via-purple-500/10 dark:to-blue-500/10 border-b border-gray-200 dark:border-gray-800'>
-        <div className='absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer' />
+      <div className='relative border-b border-gray-200 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-blue-500/5 dark:border-gray-800 dark:from-blue-500/10 dark:via-purple-500/10 dark:to-blue-500/10'>
+        <div className='animate-shimmer absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent' />
         <div className='relative p-5'>
           <div className='flex items-center justify-between'>
             <div className='flex items-center gap-3'>
-              <div className='p-2 rounded-lg bg-gradient-to-br from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20'>
-                <PiUsers className='w-5 h-5 text-blue-600 dark:text-blue-400' />
+              <div className='rounded-lg bg-gradient-to-br from-blue-500/10 to-purple-500/10 p-2 dark:from-blue-500/20 dark:to-purple-500/20'>
+                <PiUsers className='h-5 w-5 text-blue-600 dark:text-blue-400' />
               </div>
               <div>
                 <h3 className='text-lg font-semibold text-gray-900 dark:text-white'>
@@ -48,7 +48,7 @@ const JobChatsList = ({
 
             {/* Applicant count badge */}
             {numberOfWorkers > 0 && (
-              <div className='px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30'>
+              <div className='rounded-full bg-blue-100 px-3 py-1 dark:bg-blue-900/30'>
                 <span className='text-sm font-medium text-blue-700 dark:text-blue-300'>
                   {numberOfWorkers}
                 </span>
@@ -60,10 +60,10 @@ const JobChatsList = ({
 
       {/* Status bar */}
       {numberOfWorkers > 0 && (
-        <div className='px-5 py-3 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800'>
+        <div className='border-b border-gray-200 bg-gray-50 px-5 py-3 dark:border-gray-800 dark:bg-gray-800/50'>
           <div className='flex items-center justify-between'>
             <div className='flex items-center gap-2'>
-              <PiCheckCircle className='w-4 h-4 text-green-500' />
+              <PiCheckCircle className='h-4 w-4 text-green-500' />
               <span className='text-sm text-gray-600 dark:text-gray-400'>
                 {numberOfWorkers}/{numberOfWorkers} applicants reviewed
               </span>
@@ -75,14 +75,14 @@ const JobChatsList = ({
       {/* Applicants list */}
       <div className='flex-1 overflow-y-auto'>
         {numberOfWorkers === 0 ? (
-          <div className='flex flex-col items-center justify-center h-full p-8'>
-            <div className='p-4 rounded-full bg-gray-100 dark:bg-gray-800 mb-4'>
-              <PiChatCircle className='w-8 h-8 text-gray-400 dark:text-gray-500' />
+          <div className='flex h-full flex-col items-center justify-center p-8'>
+            <div className='mb-4 rounded-full bg-gray-100 p-4 dark:bg-gray-800'>
+              <PiChatCircle className='h-8 w-8 text-gray-400 dark:text-gray-500' />
             </div>
-            <p className='text-gray-600 dark:text-gray-400 font-medium'>
+            <p className='font-medium text-gray-600 dark:text-gray-400'>
               No applicants yet
             </p>
-            <p className='text-sm text-gray-500 dark:text-gray-500 mt-1'>
+            <p className='mt-1 text-sm text-gray-500 dark:text-gray-500'>
               Waiting for workers to apply
             </p>
           </div>
@@ -92,14 +92,11 @@ const JobChatsList = ({
               job?.roles.creator !== key ? (
                 <li
                   key={key}
-                  className={`
-                    relative group cursor-pointer
-                    transition-all duration-200
-                    ${selectedWorker === key
+                  className={`group relative cursor-pointer transition-all duration-200 ${
+                    selectedWorker === key
                       ? 'bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30'
                       : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'
-                    }
-                  `}
+                  } `}
                   onClick={() => {
                     setSelectedWorker(key);
                     if (setSidebarOpen) setSidebarOpen(false);
@@ -107,20 +104,20 @@ const JobChatsList = ({
                 >
                   {/* Active indicator */}
                   {selectedWorker === key && (
-                    <div className='absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-purple-500' />
+                    <div className='absolute bottom-0 left-0 top-0 w-1 bg-gradient-to-b from-blue-500 to-purple-500' />
                   )}
 
                   <div className='flex items-center gap-3 p-4'>
                     {/* Profile image with online indicator */}
                     <div className='relative flex-shrink-0'>
                       <ProfileImage user={value} />
-                      <div className='absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full' />
+                      <div className='absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500 dark:border-gray-900' />
                     </div>
 
                     {/* User info */}
-                    <div className='flex-1 min-w-0'>
+                    <div className='min-w-0 flex-1'>
                       <div className='flex items-center gap-2'>
-                        <span className='font-medium text-sm text-gray-900 dark:text-white truncate'>
+                        <span className='truncate text-sm font-medium text-gray-900 dark:text-white'>
                           {value.name}
                         </span>
                         {/* TODO
@@ -129,12 +126,12 @@ const JobChatsList = ({
                         )}
                         */}
                       </div>
-                      <p className='text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5'>
+                      <p className='mt-0.5 truncate text-xs text-gray-500 dark:text-gray-400'>
                         {value.bio || 'No bio available'}
                       </p>
 
                       {/* Stats */}
-                      <div className='flex items-center gap-3 mt-2'>
+                      <div className='mt-2 flex items-center gap-3'>
                         {/* TODO
                         <span className='text-xs text-gray-400 dark:text-gray-500'>
                           ⭐ {value.rating?.toFixed(1) || '0.0'}
@@ -148,15 +145,13 @@ const JobChatsList = ({
 
                     {/* Time/Status indicator */}
                     <div className='flex flex-col items-end gap-1'>
-                      <PiClock className='w-3 h-3 text-gray-400' />
-                      <span className='text-xs text-gray-400'>
-                        2h ago
-                      </span>
+                      <PiClock className='h-3 w-3 text-gray-400' />
+                      <span className='text-xs text-gray-400'>2h ago</span>
                     </div>
                   </div>
 
                   {/* Hover effect gradient */}
-                  <div className='absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none' />
+                  <div className='pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
                 </li>
               ) : null
             )}
@@ -166,8 +161,8 @@ const JobChatsList = ({
 
       {/* Footer with action hint */}
       {numberOfWorkers > 0 && (
-        <div className='p-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-800'>
-          <p className='text-xs text-center text-gray-500 dark:text-gray-400'>
+        <div className='border-t border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/50'>
+          <p className='text-center text-xs text-gray-500 dark:text-gray-400'>
             Click on an applicant to view their messages
           </p>
         </div>

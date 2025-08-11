@@ -55,7 +55,7 @@ export const Input = forwardRef<
               '[&::-webkit-datetime-edit-meridiem-field]:p-0',
             ],
           // Basic layout - updated to match PaymentInput
-          'relative block w-full appearance-none rounded-lg px-3 h-10',
+          'relative block h-10 w-full appearance-none rounded-lg px-3',
           // Typography - updated to match
           'text-sm text-gray-900 placeholder:text-gray-400 dark:text-gray-100 dark:placeholder:text-gray-500',
           // Border - simplified to match PaymentInput
@@ -71,7 +71,7 @@ export const Input = forwardRef<
           'data-[invalid]:border-red-500 data-[invalid]:focus:border-red-500',
           'data-[invalid]:dark:border-red-500 data-[invalid]:dark:focus:border-red-500',
           // Disabled state - updated
-          'data-[disabled]:opacity-60 data-[disabled]:cursor-not-allowed',
+          'data-[disabled]:cursor-not-allowed data-[disabled]:opacity-60',
           'data-[disabled]:bg-gray-50 data-[disabled]:dark:bg-gray-900',
           'data-[disabled]:border-gray-200 data-[disabled]:dark:border-gray-700',
         ])}
@@ -80,7 +80,7 @@ export const Input = forwardRef<
           boxShadow: 'none',
           WebkitAppearance: 'none',
           MozAppearance: 'none',
-          appearance: 'none'
+          appearance: 'none',
         }}
         {...props}
       />

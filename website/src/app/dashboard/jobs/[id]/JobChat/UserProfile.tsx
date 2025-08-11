@@ -4,7 +4,10 @@ import { useEthersSigner } from '@/hooks/useEthersSigner';
 import useUser from '@/hooks/subsquid/useUser';
 import { isImageValid } from '@/utils/ImageValidity';
 import { Dialog, Transition } from '@headlessui/react';
-import { getEncryptionSigningKey, type User } from '@effectiveacceleration/contracts';
+import {
+  getEncryptionSigningKey,
+  type User,
+} from '@effectiveacceleration/contracts';
 import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
 import { Fragment, useEffect, useState } from 'react';
 import { useAccount } from 'wagmi';
@@ -33,16 +36,16 @@ interface ReputationProps {
 const Reputation = ({ positiveCount, negativeCount }: ReputationProps) => (
   <Field className=''>
     <Label>Reputation</Label>
-      <div className='py-3'>
-        <p className='whitespace-nowrap'>
-          <span className='text-green-500 mr-2 p-2 border rounded-full border-gray-300'>
-            +{positiveCount}
-          </span>
-          <span className='text-red p-2 border rounded-full border-gray-300'>
-            -{negativeCount}
-          </span>
-        </p>
-      </div>
+    <div className='py-3'>
+      <p className='whitespace-nowrap'>
+        <span className='mr-2 rounded-full border border-gray-300 p-2 text-green-500'>
+          +{positiveCount}
+        </span>
+        <span className='text-red rounded-full border border-gray-300 p-2'>
+          -{negativeCount}
+        </span>
+      </p>
+    </div>
   </Field>
 );
 
@@ -65,12 +68,9 @@ const NavButton = ({ name, avatar, children, openModal }: NavButtonProps) => {
   }, [avatar]);
 
   return (
-    <button
-    onClick={() => openModal()}
-        className='hover:text-primary'
-    >
-    {children|| 'View Profile'}
-  </button>
+    <button onClick={() => openModal()} className='hover:text-primary'>
+      {children || 'View Profile'}
+    </button>
   );
 };
 
@@ -79,7 +79,11 @@ interface UserProfileProps extends React.ComponentPropsWithoutRef<'div'> {
   children?: React.ReactNode;
 }
 
-export function UserProfile({ selectedUser, children, ...rest }: UserProfileProps) {
+export function UserProfile({
+  selectedUser,
+  children,
+  ...rest
+}: UserProfileProps) {
   const Config = useConfig();
   const viewAsValues = ['User', 'Arbitrator'];
   const signer = useEthersSigner();
@@ -198,12 +202,17 @@ export function UserProfile({ selectedUser, children, ...rest }: UserProfileProp
   console.log('avatar', avatar);
   return (
     <>
-      <NavButton name={name} avatar={avatar} openModal={() => setOpen(true)} >{children}</NavButton>
+      <NavButton name={name} avatar={avatar} openModal={() => setOpen(true)}>
+        {children}
+      </NavButton>
       <Transition appear show={open} as={Fragment}>
         <Dialog
           as='div'
           className='relative z-50'
-          onClose={() => { setOpen(false); setShowReviews(false); }} // Reset on close
+          onClose={() => {
+            setOpen(false);
+            setShowReviews(false);
+          }} // Reset on close
         >
           <Transition.Child
             as={Fragment}
@@ -228,22 +237,29 @@ export function UserProfile({ selectedUser, children, ...rest }: UserProfileProp
                 leaveFrom='opacity-100 scale-100'
                 leaveTo='opacity-0 scale-95'
               >
-                <Dialog.Panel className='w-full p-8 max-w-md transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all '>
-                  <div className='mb-2 flex flex-col gap-2 items-center'>
+                <Dialog.Panel className='w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-8 text-left align-middle shadow-xl transition-all'>
+                  <div className='mb-2 flex flex-col items-center gap-2'>
                     {(user || arbitrator) && (
                       <>
                         {!showReviews ? ( // 3. Conditionally render
                           <>
-                            <div className='w-[110px] h-[110px] justify-center flex items-center'>
-                                {selectedUser?.name && <ProfileImage className={'h-full w-full'} user={selectedUser}></ProfileImage>}
+                            <div className='flex h-[110px] w-[110px] items-center justify-center'>
+                              {selectedUser?.name && (
+                                <ProfileImage
+                                  className={'h-full w-full'}
+                                  user={selectedUser}
+                                ></ProfileImage>
+                              )}
                             </div>
                             <Dialog.Title
-                                as='h3'
-                                className='text-lg font-medium leading-6 text-gray-900'
+                              as='h3'
+                              className='text-lg font-medium leading-6 text-gray-900'
                             >
-                                {selectedUser?.name}
+                              {selectedUser?.name}
                             </Dialog.Title>
-                            <span className='text-sm font-md'>{selectedUser?.bio}</span>
+                            <span className='font-md text-sm'>
+                              {selectedUser?.bio}
+                            </span>
                             {userIndex === 1 && (
                               <Field>
                                 <Label>Fee</Label>
@@ -251,7 +267,9 @@ export function UserProfile({ selectedUser, children, ...rest }: UserProfileProp
                                   type='number'
                                   value={fee}
                                   readOnly={arbitrator !== undefined}
-                                  onChange={(e) => setFee(Number(e.target.value))}
+                                  onChange={(e) =>
+                                    setFee(Number(e.target.value))
+                                  }
                                   invalid={['-', 'e', '.'].some((char) =>
                                     String(fee).includes(char)
                                   )}
@@ -261,7 +279,9 @@ export function UserProfile({ selectedUser, children, ...rest }: UserProfileProp
                             {user && userIndex === 0 && (
                               <Reputation
                                 positiveCount={selectedUser?.reputationUp ?? 0}
-                                negativeCount={selectedUser?.reputationDown ?? 0}
+                                negativeCount={
+                                  selectedUser?.reputationDown ?? 0
+                                }
                               />
                             )}
                             {users[userIndex] && (
@@ -278,11 +298,14 @@ export function UserProfile({ selectedUser, children, ...rest }: UserProfileProp
                             )}
                           </>
                         ) : (
-                          <ReviewsList selectedUser={selectedUser} setShowReviews={setShowReviews} address={selectedUser?.address_}  />
+                          <ReviewsList
+                            selectedUser={selectedUser}
+                            setShowReviews={setShowReviews}
+                            address={selectedUser?.address_}
+                          />
                         )}
                       </>
                     )}
-
                   </div>
                 </Dialog.Panel>
               </Transition.Child>

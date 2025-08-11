@@ -22,7 +22,7 @@ const SideJobList: React.FC<SideJobListProps> = ({
   users,
   job,
   setSelectedWorker,
-  selectedWorker
+  selectedWorker,
 }) => {
   return (
     <Transition.Root show={sidebarOpen} as={Fragment}>
@@ -66,13 +66,7 @@ const SideJobList: React.FC<SideJobListProps> = ({
                 <div className='absolute left-full top-0 flex w-16 justify-center pt-5'>
                   <button
                     type='button'
-                    className='
-                      -m-2.5 p-2.5 rounded-xl
-                      bg-white/10 backdrop-blur-sm
-                      text-white hover:text-gray-200
-                      hover:bg-white/20
-                      transition-all duration-200
-                    '
+                    className='-m-2.5 rounded-xl bg-white/10 p-2.5 text-white backdrop-blur-sm transition-all duration-200 hover:bg-white/20 hover:text-gray-200'
                     onClick={() => setSidebarOpen(false)}
                   >
                     <span className='sr-only'>Close sidebar</span>
@@ -81,7 +75,7 @@ const SideJobList: React.FC<SideJobListProps> = ({
                 </div>
               </Transition.Child>
 
-              <div className='flex grow flex-col overflow-y-auto bg-white dark:bg-gray-900 shadow-2xl'>
+              <div className='flex grow flex-col overflow-y-auto bg-white shadow-2xl dark:bg-gray-900'>
                 <JobChatsList
                   users={users}
                   job={job}

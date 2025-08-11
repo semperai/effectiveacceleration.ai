@@ -31,14 +31,14 @@ import { ethers } from 'ethers';
 import moment from 'moment';
 import Link from 'next/link';
 import type React from 'react';
-import {type
-  ChangeEvent,type
-  LegacyRef,
+import {
+  type ChangeEvent,
+  type LegacyRef,
   SetStateAction,
   useEffect,
   useRef,
   useState,
-} from 'react'
+} from 'react';
 import { zeroAddress } from 'viem';
 import { useAccount, useReadContract } from 'wagmi';
 import LoadingModal from './LoadingModal';
@@ -511,16 +511,16 @@ const PostJob = () => {
   return (
     <>
       {!showSummary && (
-        <div className='flex h-customHeader flex-1 flex-col  min-h-[580px]'>
+        <div className='flex h-customHeader min-h-[580px] flex-1 flex-col'>
           <div className='border-gray flex w-auto flex-[10] flex-col place-content-between overflow-x-hidden border-t bg-white'>
             <div
-              className='formStepsWidth flex transition-transform duration-500 ease-in-out flex-1 items-center'
+              className='formStepsWidth flex flex-1 items-center transition-transform duration-500 ease-in-out'
               style={{ transform: `translateX(-${step * 100}%)` }}
             >
               {steps.map((stepContent, index) => (
                 <div
                   key={index}
-                  className='w-full flex-shrink-0 px-4 sm:px-12 py-5'
+                  className='w-full flex-shrink-0 px-4 py-5 sm:px-12'
                 >
                   {stepContent}
                 </div>
@@ -531,7 +531,7 @@ const PostJob = () => {
               <div className='h-1 w-full flex-row bg-gray-200'>
                 <div
                   style={{
-                    transform: `${step === 5 ? 'translateX(0%)' : `${ step === 0 ? 'translateX(-100%)' : `translateX(${(step - 1) * 100}%)`}`}`,
+                    transform: `${step === 5 ? 'translateX(0%)' : `${step === 0 ? 'translateX(-100%)' : `translateX(${(step - 1) * 100}%)`}`}`,
                     width: `${step === 5 ? '100%' : `25%`}`,
                   }}
                   className={`h-1 bg-lightPurple transition-transform duration-500 ease-in-out`}
@@ -546,7 +546,7 @@ const PostJob = () => {
                   Cancel
                 </Button>
                 <Button
-                  className='rounded bg-blue-500 px-4 py-2 mr-[150px] text-white disabled:opacity-50'
+                  className='mr-[150px] rounded bg-blue-500 px-4 py-2 text-white disabled:opacity-50'
                   onClick={() => setStep((prev) => Math.min(prev + 1, maxStep))}
                   disabled={step === maxStep}
                 >
@@ -1142,10 +1142,10 @@ const FormStepCreate = () => {
     <div className='flex w-full flex-col gap-8 lg:flex-row lg:gap-24'>
       <FormStepInfo
         stepInfo={'Create Your Job Post'}
-        stepTitle={'Start by filling out the form below to craft an effective job post'}
-        stepDescription={
-          `This will help you attract the right AI freelancers by clearly outlining your project's needs and expectations`
+        stepTitle={
+          'Start by filling out the form below to craft an effective job post'
         }
+        stepDescription={`This will help you attract the right AI freelancers by clearly outlining your project's needs and expectations`}
       />
       <div className='flex flex-1 flex-col items-center gap-y-6'>
         <Image

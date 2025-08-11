@@ -33,7 +33,8 @@ const JobChatStatus: React.FC<JobStatusProps> = ({
   const lastEventType = events[events.length - 1]?.type_;
   return (
     <>
-      {(lastEventType === JobEventType.Completed || lastEventType === JobEventType.Rated) && (
+      {(lastEventType === JobEventType.Completed ||
+        lastEventType === JobEventType.Rated) && (
         <ResultAccepted
           job={job}
           events={events}
@@ -69,7 +70,7 @@ const JobChatStatus: React.FC<JobStatusProps> = ({
         )}
 
       {job.state === JobState.Taken &&
-      job.disputed === false &&
+        job.disputed === false &&
         job.resultHash === zeroHash &&
         (address === job.roles.creator || address === job.roles.worker) &&
         events.length > 0 && <WorkerAccepted job={job} address={address} />}

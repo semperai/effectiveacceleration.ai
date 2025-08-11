@@ -44,7 +44,9 @@ const getCachedArbitratorData = unstable_cache(
       const checksummedAddress = getAddress(address);
 
       const client = new ApolloClient({
-        uri: process.env.NEXT_PUBLIC_SUBSQUID_API_URL || 'https://arbius.squids.live/eacc-arb-one@v1/api/graphql',
+        uri:
+          process.env.NEXT_PUBLIC_SUBSQUID_API_URL ||
+          'https://arbius.squids.live/eacc-arb-one@v1/api/graphql',
         cache: new InMemoryCache(),
         defaultOptions: {
           query: {
@@ -84,9 +86,11 @@ function shortenAddress(address: string): string {
 }
 
 // Generate dynamic metadata for the arbitrator page
-export async function generateMetadata(
-  { params }: { params: { address: string } }
-): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: { address: string };
+}): Promise<Metadata> {
   const address = params.address;
   console.log('Generating metadata for arbitrator address:', address);
 
@@ -121,7 +125,10 @@ export async function generateMetadata(
   const arbitrator = await getCachedArbitratorData(checksummedAddress);
 
   if (!arbitrator) {
-    console.log('Arbitrator not found for metadata, returning fallback metadata for address:', address);
+    console.log(
+      'Arbitrator not found for metadata, returning fallback metadata for address:',
+      address
+    );
     const shortAddress = shortenAddress(address);
 
     return {
@@ -159,16 +166,18 @@ export async function generateMetadata(
     : `Arbitrator ${shortenAddress(arbitrator.address_)}`;
 
   const totalCases = arbitrator.settledCount + arbitrator.refusedCount;
-  const settlementRate = totalCases > 0
-    ? Math.round((arbitrator.settledCount / totalCases) * 100)
-    : 0;
+  const settlementRate =
+    totalCases > 0
+      ? Math.round((arbitrator.settledCount / totalCases) * 100)
+      : 0;
 
   // Convert fee from basis points to percentage
   const feePercentage = (arbitrator.fee / 100).toFixed(2);
 
-  const description = arbitrator.bio && arbitrator.bio.trim()
-    ? truncateBio(arbitrator.bio)
-    : `Professional arbitrator on Effective Acceleration marketplace. ${arbitrator.settledCount} cases settled • ${arbitrator.refusedCount} cases refused • ${feePercentage}% fee`;
+  const description =
+    arbitrator.bio && arbitrator.bio.trim()
+      ? truncateBio(arbitrator.bio)
+      : `Professional arbitrator on Effective Acceleration marketplace. ${arbitrator.settledCount} cases settled • ${arbitrator.refusedCount} cases refused • ${feePercentage}% fee`;
 
   // Generate keywords
   const keywords = [
@@ -178,7 +187,9 @@ export async function generateMetadata(
     'marketplace',
     'blockchain arbitration',
     arbitrator.name,
-  ].filter(Boolean).join(', ');
+  ]
+    .filter(Boolean)
+    .join(', ');
 
   // Use arbitrator avatar if available, otherwise fallback to default OG image
   const ogImage = arbitrator.avatar || '/og.webp';
@@ -222,6 +233,10 @@ export async function generateMetadata(
 }
 
 // Server Component - passes the address to the client component
-export default function ArbitratorPage({ params }: { params: { address: string } }) {
+export default function ArbitratorPage({
+  params,
+}: {
+  params: { address: string };
+}) {
   return <ArbitratorPageClient address={params.address} />;
 }

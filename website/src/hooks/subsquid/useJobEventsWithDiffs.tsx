@@ -15,7 +15,7 @@ import { getAddress, ZeroAddress } from 'ethers';
 import useArbitratorPublicKeys from './useArbitratorPublicKeys';
 import useJobEvents from './useJobEvents';
 
-import { Mutex } from "async-mutex";
+import { Mutex } from 'async-mutex';
 
 const mutex = new Mutex();
 

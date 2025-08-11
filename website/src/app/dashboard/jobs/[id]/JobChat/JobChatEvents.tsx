@@ -43,21 +43,29 @@ const JobChatEvents: React.FC<ResultAcceptedProps> = ({
   const handleScroll = () => {
     if (!chatContainerRef.current) return;
     if (chatContainerRef.current) {
-      const isAtBottom = (chatContainerRef.current.scrollTop + 100 + chatContainerRef.current.clientHeight) >= chatContainerRef.current.scrollHeight;
+      const isAtBottom =
+        chatContainerRef.current.scrollTop +
+          100 +
+          chatContainerRef.current.clientHeight >=
+        chatContainerRef.current.scrollHeight;
       if (isAtBottom) {
         setNewMessage(false);
-        setShowNotification(false)
+        setShowNotification(false);
       } else {
-        setShowNotification(true)
+        setShowNotification(true);
       }
     }
   };
 
   const scrollToEnd = () => {
-    if (chatContainerRef.current && chatContainerRef.current.scrollHeight !== undefined) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    if (
+      chatContainerRef.current &&
+      chatContainerRef.current.scrollHeight !== undefined
+    ) {
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
     }
-  }
+  };
 
   useEffect(() => {
     const chatContainer = chatContainerRef.current;
@@ -74,16 +82,24 @@ const JobChatEvents: React.FC<ResultAcceptedProps> = ({
     if (chatContainerRef.current && lastEvent?.address_ === user?.address_) {
       scrollToEnd();
     }
-    if ((lastEvent?.type_ === JobEventType.OwnerMessage || lastEvent?.type_ === JobEventType.WorkerMessage) && lastEvent?.address_ !== user?.address_ && showNotification === true) {
+    if (
+      (lastEvent?.type_ === JobEventType.OwnerMessage ||
+        lastEvent?.type_ === JobEventType.WorkerMessage) &&
+      lastEvent?.address_ !== user?.address_ &&
+      showNotification === true
+    ) {
       setNewMessage(true);
     }
-  },[events]);
+  }, [events]);
 
   return (
-    <div ref={chatContainerRef} className='row-span-4 max-h-customHeader overflow-y-auto px-4 border border-gray-100 bg-softBlue relative'>
+    <div
+      ref={chatContainerRef}
+      className='relative row-span-4 max-h-customHeader overflow-y-auto border border-gray-100 bg-softBlue px-4'
+    >
       {selectedWorker && events.length > 0 ? (
         <>
-          <div className='flow-root w-full mt-4'>
+          <div className='mt-4 flow-root w-full'>
             <ul role='list' className='-mb-8'>
               {events?.slice().map((event, index) => (
                 <li key={index}>
@@ -117,7 +133,7 @@ const JobChatEvents: React.FC<ResultAcceptedProps> = ({
             address={address}
           />
         </>
-      ) : (job.state === JobState.Closed) ? (
+      ) : job.state === JobState.Closed ? (
         <div className='flex h-full max-h-customHeader flex-col items-center justify-center gap-4'>
           <div>
             <Image
@@ -128,9 +144,7 @@ const JobChatEvents: React.FC<ResultAcceptedProps> = ({
               height={250}
             />
           </div>
-          <div className='text-center'>
-            This job has been closed
-          </div>
+          <div className='text-center'>This job has been closed</div>
         </div>
       ) : (
         <div className='flex h-full max-h-customHeader flex-col items-center justify-center gap-4'>
@@ -171,16 +185,19 @@ const JobChatEvents: React.FC<ResultAcceptedProps> = ({
       )}
       {showNotification && (
         <div className='absolute bottom-3 right-12'>
-          <div className="fixed py-[4px] max-h-[32px] px-[16px] hover:cursor-pointer bottom-20 rounded-full bg-gray-400 w-6 text-white place-items-center animate-[slideIn_0.5s_ease-out]">
-            <ChevronDown size='2' onClick={() => scrollToEnd()} className='w-6 h-6 text-sm text-white' />
+          <div className='fixed bottom-20 max-h-[32px] w-6 animate-[slideIn_0.5s_ease-out] place-items-center rounded-full bg-gray-400 px-[16px] py-[4px] text-white hover:cursor-pointer'>
+            <ChevronDown
+              size='2'
+              onClick={() => scrollToEnd()}
+              className='h-6 w-6 text-sm text-white'
+            />
             {newMessage && (
-            <div className="top-[-38px] p-0.5 rounded-full left-[-12px] bg-rose-600 relative">
-              <Mail className='w-4 h-4' />
-            </div>
-          )}
+              <div className='relative left-[-12px] top-[-38px] rounded-full bg-rose-600 p-0.5'>
+                <Mail className='h-4 w-4' />
+              </div>
+            )}
           </div>
         </div>
-
       )}
     </div>
   );
