@@ -10,7 +10,7 @@ import { ZeroHash } from 'ethers';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { PiPaperPlaneRight } from 'react-icons/pi';
-import { Textarea } from '../Textarea';
+import { Textarea } from '@/components/Textarea';
 import { useWaitForTransactionReceipt } from 'wagmi';
 
 export type PostMessageButtonProps = {
