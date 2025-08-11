@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { ChevronDown } from 'lucide-react';
 import { Token } from '@/tokens';
 import { IArbitrumToken } from './helpers';
@@ -15,6 +16,7 @@ export default function TokenButton({
 }) {
   const [isHovered, setIsHovered] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   // Compact mode styles
   const buttonStyle = compact
@@ -68,17 +70,16 @@ export default function TokenButton({
     width: '100%',
   };
 
-  const avatarStyle = {
+  const avatarContainerStyle = {
+    position: 'relative' as const,
     width: compact ? '18px' : '24px',
     height: compact ? '18px' : '24px',
     minWidth: compact ? '18px' : '24px',
     minHeight: compact ? '18px' : '24px',
-    maxWidth: compact ? '18px' : '24px',
-    maxHeight: compact ? '18px' : '24px',
-    borderRadius: '50%',
-    objectFit: 'cover' as const,
-    background: 'rgba(0, 0, 0, 0.02)',
     flexShrink: 0,
+    borderRadius: '50%',
+    overflow: 'hidden',
+    background: 'rgba(0, 0, 0, 0.02)',
     boxShadow: compact ? 'none' : '0 1px 2px rgba(0, 0, 0, 0.05)',
   };
 
@@ -128,6 +129,7 @@ export default function TokenButton({
     }
 
     const symbol = selectedToken.symbol;
+    const displayIcon = imageError ? DEFAULT_TOKEN_ICON : (icon || DEFAULT_TOKEN_ICON);
 
     return (
       <button
@@ -140,19 +142,21 @@ export default function TokenButton({
         style={buttonStyle}
       >
         <div style={contentStyle}>
-          {icon ? (
-            <img
-              src={icon}
+          <div style={avatarContainerStyle}>
+            <Image
+              src={displayIcon}
               alt={symbol}
-              style={avatarStyle}
-              onError={(e: any) => {
-                e.target.onerror = null;
-                e.target.src = DEFAULT_TOKEN_ICON;
+              width={compact ? 18 : 24}
+              height={compact ? 18 : 24}
+              style={{
+                objectFit: 'cover',
               }}
+              onError={() => {
+                setImageError(true);
+              }}
+              unoptimized={displayIcon.startsWith('data:') || displayIcon.startsWith('blob:')}
             />
-          ) : (
-            <img src={DEFAULT_TOKEN_ICON} alt={symbol} style={avatarStyle} />
-          )}
+          </div>
           <span style={symbolStyle}>{symbol}</span>
           <ChevronDown style={chevronStyle} />
         </div>

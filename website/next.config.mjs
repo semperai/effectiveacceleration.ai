@@ -64,6 +64,19 @@ const nextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'assets.coingecko.com',
+        pathname: '/coins/images/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'raw.githubusercontent.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 's2.coinmarketcap.com',
+      },
     ],
   },
 };

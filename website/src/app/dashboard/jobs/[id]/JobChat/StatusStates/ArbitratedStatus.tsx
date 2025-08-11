@@ -1,5 +1,6 @@
 import type React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   type Job,
   type JobArbitratedEvent,
@@ -172,7 +173,13 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
                   <span className='text-lg font-bold text-gray-900 dark:text-white'>
                     {formatTokenNameAndAmount(job.token, creatorAmount)}
                   </span>
-                  <img src={tokenIcon(job.token)} alt='' className='h-5 w-5' />
+                  <Image 
+                    src={tokenIcon(job.token)} 
+                    alt={`${job.token} icon`} 
+                    width={20} 
+                    height={20}
+                    className='h-5 w-5' 
+                  />
                 </div>
                 {creatorAmount > BigInt(0) && (
                   <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
@@ -215,7 +222,13 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
                   <span className='text-lg font-bold text-gray-900 dark:text-white'>
                     {formatTokenNameAndAmount(job.token, workerAmount)}
                   </span>
-                  <img src={tokenIcon(job.token)} alt='' className='h-5 w-5' />
+                  <Image 
+                    src={tokenIcon(job.token)} 
+                    alt={`${job.token} icon`} 
+                    width={20} 
+                    height={20}
+                    className='h-5 w-5' 
+                  />
                 </div>
                 {workerAmount > BigInt(0) && (
                   <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
@@ -258,7 +271,13 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
                   <span className='text-lg font-bold text-gray-900 dark:text-white'>
                     {formatTokenNameAndAmount(job.token, arbitratorFee)}
                   </span>
-                  <img src={tokenIcon(job.token)} alt='' className='h-5 w-5' />
+                  <Image 
+                    src={tokenIcon(job.token)} 
+                    alt={`${job.token} icon`} 
+                    width={20} 
+                    height={20}
+                    className='h-5 w-5' 
+                  />
                 </div>
                 <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
                   Service fee
@@ -291,9 +310,11 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
                         {isArbitrator &&
                           formatTokenNameAndAmount(job.token, arbitratorFee)}
                       </span>
-                      <img
+                      <Image
                         src={tokenIcon(job.token)}
-                        alt=''
+                        alt={`${job.token} icon`}
+                        width={20}
+                        height={20}
                         className='h-5 w-5'
                       />
                     </div>

@@ -46,6 +46,7 @@ import {
   useState,
 } from 'react';
 import { zeroAddress } from 'viem';
+import Image from 'next/image';
 import { Field, Label, Description, FieldGroup } from '../Fieldset';
 import { Input } from '../Input';
 import { Textarea } from '../Textarea';
@@ -584,9 +585,11 @@ export function UpdateButton({
                               <Field className='flex-none'>
                                 <Label>Token</Label>
                                 <div className='mt-[7px] flex items-center gap-2 rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 px-4 py-2.5 dark:border-blue-800 dark:from-blue-950/30 dark:to-purple-950/30'>
-                                  <img
+                                  <Image
                                     src={tokenIcon(job.token)}
-                                    alt=''
+                                    alt={`${tokensMap[job.token]?.symbol} token icon`}
+                                    width={20}
+                                    height={20}
                                     className='h-5 w-5'
                                   />
                                   <span className='text-sm font-semibold text-blue-700 dark:text-blue-300'>

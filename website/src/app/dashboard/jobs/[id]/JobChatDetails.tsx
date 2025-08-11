@@ -1,4 +1,5 @@
 import type React from 'react';
+import Image from 'next/image';
 import { Button } from '@/components/Button';
 import { shortenText } from '@/utils/utils';
 import {
@@ -236,7 +237,13 @@ const JobChatDetails = ({
                 <span className='font-semibold'>
                   {formatTokenNameAndAmount(job.token, job.amount)}
                 </span>
-                <img src={tokenIcon(job.token)} alt='' className='h-5 w-5' />
+                <Image 
+                  src={tokenIcon(job.token)} 
+                  alt={`${job.token} icon`} 
+                  width={20} 
+                  height={20}
+                  className='h-5 w-5' 
+                />
               </div>
             )
           }
@@ -305,9 +312,11 @@ const JobChatDetails = ({
                       <span className='font-semibold'>
                         {formatTokenNameAndAmount(job.token, job.amount)}
                       </span>
-                      <img
+                      <Image
                         src={tokenIcon(job.token)}
-                        alt=''
+                        alt={`${job.token} icon`}
+                        width={20}
+                        height={20}
                         className='h-5 w-5'
                       />
                     </div>
