@@ -12,7 +12,7 @@ import * as Sentry from '@sentry/nextjs';
 interface ApproveButtonProps {
   token: Address;
   spender: Address;
-  onApproveSuccess?: () => void;
+  onApproveSuccess?: () => void | Promise<void>;
   onApproveError?: (error: Error) => void;
 }
 
@@ -46,11 +46,10 @@ export const ApproveButton = ({
   // Reset approving state when confirmation is complete
   useEffect(() => {
     if (isConfirmed) {
-      setIsApproving(false);
-      refetchAllowance();
-      onApproveSuccess?.();
+      // Don't immediately set isApproving to false here
+      // Let the onReceipt callback handle it
     }
-  }, [isConfirmed, onApproveSuccess]);
+  }, [isConfirmed]);
 
   // Handle errors
   useEffect(() => {
@@ -74,6 +73,15 @@ export const ApproveButton = ({
         address: token,
         functionName: 'approve',
         args: [spender, MaxUint256],
+        onReceipt: async () => {
+          // Give a small delay to ensure the blockchain state is updated
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          await refetchAllowance();
+          if (onApproveSuccess) {
+            await onApproveSuccess();
+          }
+          setIsApproving(false);
+        },
       });
     } catch (err) {
       Sentry.captureException(err);
