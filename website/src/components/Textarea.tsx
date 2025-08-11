@@ -16,48 +16,45 @@ export const Textarea = forwardRef<
         className,
         // Basic layout
         'relative block w-full',
-
-        // Background color + shadow applied to inset pseudo element, so shadow blends with border in light mode
-        'before:absolute before:rounded-xl before:inset-px before:bg-white before:shadow',
-
-        // Background color is moved to control and shadow is removed in dark mode so hide `before` pseudo
-        'dark:before:hidden',
-
-        // Focus ring
-        'after:pointer-events-none after:absolute after:inset-0 after:rounded-xl after:ring-inset after:ring-transparent sm:after:focus-within:ring-2',
-
-        // Disabled state
-        'has-[[data-disabled]]:opacity-50 before:has-[[data-disabled]]:bg-zinc-950/5 before:has-[[data-disabled]]:shadow-none',
+        // Remove shadow and pseudo elements for cleaner look
+        'before:hidden',
+        // Remove focus ring pseudo element
+        'after:hidden',
       ])}
     >
       <HeadlessTextarea
         ref={ref}
         className={clsx([
           className,
-          // Basic layout
-          'align-center relative block h-full w-full appearance-none rounded-xl px-[calc(theme(spacing[3.5])-1px)] py-[calc(theme(spacing[2.5])-1px)] sm:px-[calc(theme(spacing.3)-1px)] sm:py-[calc(theme(spacing[1.5])-1px)]',
-
-          // Typography
-          'text-base/6 text-zinc-950 placeholder:text-zinc-500 sm:text-sm/6 dark:text-white',
-
-          // Border
-          'border border-zinc-950/10 data-[hover]:border-zinc-950/20 dark:border-white/10 dark:data-[hover]:border-white/20',
-
-          // Background color
-          'bg-transparent dark:bg-white/5',
-
-          // Hide default focus styles
-          'focus:border-primary focus:outline-none focus:!ring-0',
-
-          // Invalid state
-          'data-[invalid]:border-red-500 data-[invalid]:data-[hover]:border-red-500 data-[invalid]:dark:border-red-600 data-[invalid]:data-[hover]:dark:border-red-600',
-
-          // Disabled state
-          'disabled:border-zinc-950/20 disabled:dark:border-white/15 disabled:dark:bg-white/[2.5%] dark:data-[hover]:disabled:border-white/15',
-
+          // Basic layout - updated to match PaymentInput styling
+          'relative block w-full appearance-none rounded-lg px-3 py-2',
+          // Typography - updated to match
+          'text-sm text-gray-900 placeholder:text-gray-400 dark:text-gray-100 dark:placeholder:text-gray-500',
+          // Border - simplified to match PaymentInput
+          'border border-gray-200 hover:border-gray-300 focus:border-gray-300',
+          'dark:border-gray-700 dark:hover:border-gray-600 dark:focus:border-gray-600',
+          // Background color - clean white
+          'bg-white dark:bg-gray-800',
+          // Transitions
+          'transition-all duration-200',
+          // Remove all focus rings and outlines
+          'focus:outline-none focus:ring-0',
+          // Invalid state - updated colors
+          'data-[invalid]:border-red-300 data-[invalid]:focus:border-red-400',
+          'data-[invalid]:dark:border-red-500 data-[invalid]:dark:focus:border-red-400',
+          // Disabled state - updated
+          'disabled:opacity-60 disabled:cursor-not-allowed',
+          'disabled:bg-gray-50 disabled:dark:bg-gray-900',
+          'disabled:border-gray-200 disabled:dark:border-gray-700',
           // Resizable
           resizable ? 'resize-y' : 'resize-none',
         ])}
+        style={{
+          boxShadow: 'none',
+          WebkitAppearance: 'none',
+          MozAppearance: 'none',
+          appearance: 'none'
+        }}
         {...props}
       />
     </span>

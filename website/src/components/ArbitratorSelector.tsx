@@ -3,14 +3,12 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import * as ReactDOM from 'react-dom';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, ChevronDown } from 'lucide-react';
 import { zeroAddress } from 'viem';
 import EventProfileImage from '@/components/Events/Components/EventProfileImage';
 import type { Arbitrator } from '@effectiveacceleration/contracts';
 
 // Type assertion helper to ensure Arbitrator has all required fields for EventProfileImage
-// This is needed because the auto-generated type from ReadContractReturnType might not
-// properly reflect all fields from the Solidity struct
 type ArbitratorWithProfile = Arbitrator & {
   address_: string;
   publicKey: string;
@@ -141,7 +139,7 @@ export const ArbitratorSelector: React.FC<ArbitratorSelectorProps> = ({
         onClick={() => setOpen(false)}
       />
 
-      {/* Dropdown Menu */}
+      {/* Dropdown Menu - Updated to match PaymentInput styling */}
       <div
         ref={dropdownRef}
         style={{
@@ -151,7 +149,7 @@ export const ArbitratorSelector: React.FC<ArbitratorSelectorProps> = ({
           borderRadius: '0.5rem',
           backgroundColor: 'white',
           boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-          border: '1px solid #e5e7eb'
+          border: '1px solid rgb(229 231 235)'
         }}
         className="dark:bg-gray-800 dark:border-gray-700"
       >
@@ -278,14 +276,13 @@ export const ArbitratorSelector: React.FC<ArbitratorSelectorProps> = ({
         disabled={disabled}
         className={`
           w-full flex items-center justify-between
-          px-3 py-2 rounded-lg border
-          bg-white dark:bg-gray-800
-          border-gray-200 dark:border-gray-700
-          hover:border-gray-300 dark:hover:border-gray-600
-          transition-colors duration-200
+          px-3 py-2 rounded-lg border bg-white
+          transition-all duration-200
           ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}
+          ${open ? 'border-gray-300' : 'border-gray-200 hover:border-gray-300'}
           ${className}
         `}
+        style={{ height: '40px' }}
       >
         <div className="flex items-center gap-3 flex-1">
           {selectedAddress === zeroAddress && showNoArbitrator ? (
@@ -309,16 +306,21 @@ export const ArbitratorSelector: React.FC<ArbitratorSelectorProps> = ({
               </div>
             </>
           ) : (
-            <span className="text-sm text-gray-500">{placeholder}</span>
+            <span className="text-sm text-gray-400">{placeholder}</span>
           )}
         </div>
+
+        <ChevronDown className={`
+          h-4 w-4 text-gray-500 transition-transform duration-200
+          ${open ? 'rotate-180' : ''}
+        `} />
 
         {showExternalLink && selectedArbitrator && selectedAddress !== zeroAddress && (
           <a
             href={`/dashboard/arbitrators/${selectedAddress}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ml-2"
             onClick={(e) => e.stopPropagation()}
           >
             <ExternalLink className="h-4 w-4 text-gray-500 dark:text-gray-400" />

@@ -36,23 +36,34 @@ export function Combobox({ placeholder, value, options, onChange }: ComboboxProp
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between rounded-xl border-gray-300 active:ring-offset-0 focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-0 focus:ring-primary"
+          className={cn(
+            "w-full justify-between rounded-lg h-10",
+            "border bg-white text-sm text-gray-900 placeholder-gray-400",
+            "border-gray-200 hover:border-gray-300",
+            "transition-all duration-200",
+            "focus:border-gray-300 focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0",
+            open && "border-gray-300"
+          )}
+          style={{ height: '40px' }}
         >
           {value
-          ? options.find((option) => option.value === value)?.label
+            ? options.find((option) => option.value === value)?.label
             : placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0 rounded-xl">
-        <Command className="rounded-xl">
-          <CommandInput className="rounded-xl border outline-1 outline-offset-1 focus:outline-offset-1 focus:outline-1 ring-primary border-primary before:ring-primary focus:ring-primary focus:border-0 ring-offset-0 focus:ring-offset-0" placeholder={`Search ${placeholder.toLowerCase()}...`} />
+      <PopoverContent className="w-full p-0 rounded-lg border-gray-200">
+        <Command className="rounded-lg">
+          <CommandInput 
+            className="rounded-lg border-0 focus:ring-0 focus:ring-offset-0 text-sm" 
+            placeholder={`Search ${placeholder.toLowerCase()}...`} 
+          />
           <CommandList>
-            <CommandEmpty>No {placeholder.toLowerCase()} found.</CommandEmpty>
+            <CommandEmpty className="text-sm text-gray-500 py-2">No {placeholder.toLowerCase()} found.</CommandEmpty>
             <CommandGroup>
               {options.map((option) => (
                 <CommandItem
-                  className="rounded-lg"
+                  className="rounded text-sm text-gray-700 hover:bg-gray-50 focus:bg-gray-50"
                   key={option.value}
                   value={option.value}
                   onSelect={(currentValue) => {

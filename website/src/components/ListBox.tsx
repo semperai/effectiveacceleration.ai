@@ -24,12 +24,23 @@ const ListBox: React.FC<ListBoxProps> = ({ placeholder, value, onChange, options
         onChange(id);
       }
     }}>
-      <SelectTrigger className="w-full rounded-xl border-gray-300 focus:ring-offset-0 focus:ring-primary focus:ring-1 ring-blue-500 border data-[hover]:border-zinc-950/20 dark:border-white/10 dark:data-[hover]:border-white/20 mt-[7px]">
+      <SelectTrigger 
+        className="w-full rounded-lg border bg-white text-sm text-gray-900 placeholder-gray-400 border-gray-200 hover:border-gray-300 focus:border-gray-300 transition-all duration-200 focus:ring-0 focus:ring-offset-0 data-[state=open]:border-gray-300"
+        style={{ 
+          height: '40px',
+          boxShadow: 'none',
+          marginTop: '0'
+        }}
+      >
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
-      <SelectContent className='rounded-xl'>
+      <SelectContent className='rounded-lg border-gray-200'>
         {options.map((option) => (
-          <SelectItem className='rounded-lg' key={option.id} value={option.id}>
+          <SelectItem 
+            className='rounded text-sm text-gray-700 hover:bg-gray-50 focus:bg-gray-50' 
+            key={option.id} 
+            value={option.id}
+          >
             {option.name}
           </SelectItem>
         ))}
