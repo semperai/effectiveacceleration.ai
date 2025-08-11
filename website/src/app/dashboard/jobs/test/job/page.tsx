@@ -193,126 +193,187 @@ const createScenarioEvents = (scenario: string): JobEventWithDiffs[] => {
         // 1. Job Creation
         createMockEvent(JobEventType.Created, mockAddress, {}, [
           { field: 'state', oldValue: null, newValue: 'Open' },
-          { field: 'title', oldValue: null, newValue: 'Build a DeFi Dashboard' },
+          {
+            field: 'title',
+            oldValue: null,
+            newValue: 'Build a DeFi Dashboard',
+          },
         ]),
-        
+
         // 2. Job Update
         createMockEvent(JobEventType.Updated, mockAddress, {}, [
-          { field: 'amount', oldValue: '1000000000000000000', newValue: '1500000000000000000' },
+          {
+            field: 'amount',
+            oldValue: '1000000000000000000',
+            newValue: '1500000000000000000',
+          },
           { field: 'maxTime', oldValue: '604800', newValue: '1209600' },
         ]),
-        
+
         // 3. Whitelist Worker Added
-        createMockEvent(JobEventType.WhitelistedWorkerAdded, mockWorkerAddress2, {}, [
-          { field: 'allowedWorkers', oldValue: '[]', newValue: '[0x6aed...]' },
-        ]),
-        
+        createMockEvent(
+          JobEventType.WhitelistedWorkerAdded,
+          mockWorkerAddress2,
+          {},
+          [{ field: 'allowedWorkers', oldValue: '[]', newValue: '[0x6aed...]' }]
+        ),
+
         // 4. Whitelist Worker Removed
-        createMockEvent(JobEventType.WhitelistedWorkerRemoved, mockWorkerAddress2, {}, [
-          { field: 'allowedWorkers', oldValue: '[0x6aed...]', newValue: '[]' },
-        ]),
-        
+        createMockEvent(
+          JobEventType.WhitelistedWorkerRemoved,
+          mockWorkerAddress2,
+          {},
+          [{ field: 'allowedWorkers', oldValue: '[0x6aed...]', newValue: '[]' }]
+        ),
+
         // 5. Worker Messages before taking
         createMockEvent(JobEventType.WorkerMessage, mockWorkerAddress, {
-          content: "Hi! I have 5 years of experience with DeFi dashboards. Check my portfolio: https://mywork.dev",
+          content:
+            'Hi! I have 5 years of experience with DeFi dashboards. Check my portfolio: https://mywork.dev',
           recipientAddress: mockAddress,
         } as JobMessageEvent),
-        
+
         // 6. Owner Message
         createMockEvent(JobEventType.OwnerMessage, mockAddress, {
           content: 'Great portfolio! When can you start?',
           recipientAddress: mockWorkerAddress,
         } as JobMessageEvent),
-        
+
         // 7. Job Taken
         createMockEvent(JobEventType.Taken, mockWorkerAddress, {}, [
           { field: 'state', oldValue: 'Open', newValue: 'Taken' },
-          { field: 'roles.worker', oldValue: null, newValue: mockWorkerAddress },
+          {
+            field: 'roles.worker',
+            oldValue: null,
+            newValue: mockWorkerAddress,
+          },
         ]),
-        
+
         // 8. Signed Event
         createMockEvent(JobEventType.Signed, mockWorkerAddress, {}, [
           { field: 'signed', oldValue: false, newValue: true },
         ]),
-        
+
         // 9. Paid Event
         createMockEvent(JobEventType.Paid, mockWorkerAddress, {}, [
-          { field: 'escrowBalance', oldValue: '0', newValue: '1500000000000000000' },
+          {
+            field: 'escrowBalance',
+            oldValue: '0',
+            newValue: '1500000000000000000',
+          },
         ]),
-        
+
         // 10. Progress Updates
         createMockEvent(JobEventType.WorkerMessage, mockWorkerAddress, {
-          content: "Started working on the dashboard. Setting up the development environment.",
+          content:
+            'Started working on the dashboard. Setting up the development environment.',
           recipientAddress: mockAddress,
         } as JobMessageEvent),
-        
+
         // 11. Delivery
         createMockEvent(JobEventType.Delivered, mockWorkerAddress, {
-          result: 'Dashboard complete! Live at: https://defi-dashboard.vercel.app\n\nFeatures implemented:\n- Multi-chain support\n- Real-time analytics\n- Portfolio tracking\n- Responsive design\n\nGitHub: https://github.com/example/defi-dashboard',
+          result:
+            'Dashboard complete! Live at: https://defi-dashboard.vercel.app\n\nFeatures implemented:\n- Multi-chain support\n- Real-time analytics\n- Portfolio tracking\n- Responsive design\n\nGitHub: https://github.com/example/defi-dashboard',
         }),
-        
+
         // 12. Dispute Flow
-        createMockEvent(JobEventType.Disputed, mockAddress, {
-          content: 'The dashboard is missing the portfolio tracking feature that was specified in the requirements.',
-        } as JobDisputedEvent, [
-          { field: 'disputed', oldValue: false, newValue: true },
-        ]),
-        
+        createMockEvent(
+          JobEventType.Disputed,
+          mockAddress,
+          {
+            content:
+              'The dashboard is missing the portfolio tracking feature that was specified in the requirements.',
+          } as JobDisputedEvent,
+          [{ field: 'disputed', oldValue: false, newValue: true }]
+        ),
+
         // 13. Arbitration Refused (arbitrator declines)
-        createMockEvent(JobEventType.ArbitrationRefused, mockArbitratorAddress, {}, [
-          { field: 'roles.arbitrator', oldValue: mockArbitratorAddress, newValue: zeroAddress },
-        ]),
-        
+        createMockEvent(
+          JobEventType.ArbitrationRefused,
+          mockArbitratorAddress,
+          {},
+          [
+            {
+              field: 'roles.arbitrator',
+              oldValue: mockArbitratorAddress,
+              newValue: zeroAddress,
+            },
+          ]
+        ),
+
         // Re-assign new arbitrator and continue
         createMockEvent(JobEventType.Updated, mockAddress, {}, [
-          { field: 'roles.arbitrator', oldValue: zeroAddress, newValue: mockArbitratorAddress },
+          {
+            field: 'roles.arbitrator',
+            oldValue: zeroAddress,
+            newValue: mockArbitratorAddress,
+          },
         ]),
-        
+
         // 14. Arbitrated
-        createMockEvent(JobEventType.Arbitrated, mockArbitratorAddress, {
-          creatorShare: 2000, // 20%
-          workerShare: 8000,  // 80%
-          creatorAmount: BigInt('300000000000000000'),
-          workerAmount: BigInt('1200000000000000000'),
-          reason: 'After reviewing the deliverables, the portfolio tracking feature is present but not clearly visible. Worker to receive 80% payment, creator refunded 20%.',
-        } as JobArbitratedEvent, [
-          { field: 'disputed', oldValue: true, newValue: false },
-          { field: 'state', oldValue: 'Taken', newValue: 'Closed' },
-        ]),
-        
+        createMockEvent(
+          JobEventType.Arbitrated,
+          mockArbitratorAddress,
+          {
+            creatorShare: 2000, // 20%
+            workerShare: 8000, // 80%
+            creatorAmount: BigInt('300000000000000000'),
+            workerAmount: BigInt('1200000000000000000'),
+            reason:
+              'After reviewing the deliverables, the portfolio tracking feature is present but not clearly visible. Worker to receive 80% payment, creator refunded 20%.',
+          } as JobArbitratedEvent,
+          [
+            { field: 'disputed', oldValue: true, newValue: false },
+            { field: 'state', oldValue: 'Taken', newValue: 'Closed' },
+          ]
+        ),
+
         // 15. Completed
         createMockEvent(JobEventType.Completed, mockAddress, {}, [
           { field: 'state', oldValue: 'Taken', newValue: 'Closed' },
         ]),
-        
+
         // 16. Rated
         createMockEvent(JobEventType.Rated, mockAddress, {
           rating: 4,
-          review: 'Good work overall, but communication about features could have been clearer.',
+          review:
+            'Good work overall, but communication about features could have been clearer.',
         } as JobRatedEvent),
-        
+
         // 17. Collateral Withdrawn
         createMockEvent(JobEventType.CollateralWithdrawn, mockAddress, {}, [
-          { field: 'collateralOwed', oldValue: BigInt('100000000000000000'), newValue: BigInt('0') },
+          {
+            field: 'collateralOwed',
+            oldValue: BigInt('100000000000000000'),
+            newValue: BigInt('0'),
+          },
         ]),
-        
+
         // 18. Reopened (after being closed)
         createMockEvent(JobEventType.Reopened, mockAddress, {}, [
           { field: 'state', oldValue: 'Closed', newValue: 'Open' },
         ]),
-        
+
         // 19. New worker takes it
         createMockEvent(JobEventType.Taken, mockWorkerAddress2, {}, [
           { field: 'state', oldValue: 'Open', newValue: 'Taken' },
-          { field: 'roles.worker', oldValue: null, newValue: mockWorkerAddress2 },
+          {
+            field: 'roles.worker',
+            oldValue: null,
+            newValue: mockWorkerAddress2,
+          },
         ]),
-        
+
         // 20. Refunded (worker rejects)
         createMockEvent(JobEventType.Refunded, mockWorkerAddress2, {}, [
           { field: 'state', oldValue: 'Taken', newValue: 'Open' },
-          { field: 'roles.worker', oldValue: mockWorkerAddress2, newValue: null },
+          {
+            field: 'roles.worker',
+            oldValue: mockWorkerAddress2,
+            newValue: null,
+          },
         ]),
-        
+
         // 21. Closed (final)
         createMockEvent(JobEventType.Closed, mockAddress, {}, [
           { field: 'state', oldValue: 'Open', newValue: 'Closed' },
@@ -323,7 +384,8 @@ const createScenarioEvents = (scenario: string): JobEventWithDiffs[] => {
       return [
         ...baseEvents,
         createMockEvent(JobEventType.WorkerMessage, mockWorkerAddress, {
-          content: "Hi! I'm interested in this job. I have 5 years of experience.",
+          content:
+            "Hi! I'm interested in this job. I have 5 years of experience.",
           recipientAddress: mockAddress,
         } as JobMessageEvent),
         createMockEvent(JobEventType.OwnerMessage, mockAddress, {
@@ -337,10 +399,15 @@ const createScenarioEvents = (scenario: string): JobEventWithDiffs[] => {
         ...baseEvents,
         createMockEvent(JobEventType.Taken, mockWorkerAddress, {}, [
           { field: 'state', oldValue: 'Open', newValue: 'Taken' },
-          { field: 'roles.worker', oldValue: null, newValue: mockWorkerAddress },
+          {
+            field: 'roles.worker',
+            oldValue: null,
+            newValue: mockWorkerAddress,
+          },
         ]),
         createMockEvent(JobEventType.WorkerMessage, mockWorkerAddress, {
-          content: "I've started working on the dashboard. Will update you soon!",
+          content:
+            "I've started working on the dashboard. Will update you soon!",
           recipientAddress: mockAddress,
         } as JobMessageEvent),
       ];
@@ -350,10 +417,15 @@ const createScenarioEvents = (scenario: string): JobEventWithDiffs[] => {
         ...baseEvents,
         createMockEvent(JobEventType.Taken, mockWorkerAddress, {}, [
           { field: 'state', oldValue: 'Open', newValue: 'Taken' },
-          { field: 'roles.worker', oldValue: null, newValue: mockWorkerAddress },
+          {
+            field: 'roles.worker',
+            oldValue: null,
+            newValue: mockWorkerAddress,
+          },
         ]),
         createMockEvent(JobEventType.Delivered, mockWorkerAddress, {
-          result: 'Dashboard complete! Live URL: https://defi-dashboard.vercel.app',
+          result:
+            'Dashboard complete! Live URL: https://defi-dashboard.vercel.app',
         }),
       ];
 
@@ -362,7 +434,11 @@ const createScenarioEvents = (scenario: string): JobEventWithDiffs[] => {
         ...baseEvents,
         createMockEvent(JobEventType.Taken, mockWorkerAddress, {}, [
           { field: 'state', oldValue: 'Open', newValue: 'Taken' },
-          { field: 'roles.worker', oldValue: null, newValue: mockWorkerAddress },
+          {
+            field: 'roles.worker',
+            oldValue: null,
+            newValue: mockWorkerAddress,
+          },
         ]),
         createMockEvent(JobEventType.Delivered, mockWorkerAddress, {
           result: 'Work completed successfully!',
@@ -381,13 +457,20 @@ const createScenarioEvents = (scenario: string): JobEventWithDiffs[] => {
         ...baseEvents,
         createMockEvent(JobEventType.Taken, mockWorkerAddress, {}, [
           { field: 'state', oldValue: 'Open', newValue: 'Taken' },
-          { field: 'roles.worker', oldValue: null, newValue: mockWorkerAddress },
+          {
+            field: 'roles.worker',
+            oldValue: null,
+            newValue: mockWorkerAddress,
+          },
         ]),
-        createMockEvent(JobEventType.Disputed, mockAddress, {
-          content: 'The delivered work is incomplete.',
-        } as JobDisputedEvent, [
-          { field: 'disputed', oldValue: false, newValue: true }
-        ]),
+        createMockEvent(
+          JobEventType.Disputed,
+          mockAddress,
+          {
+            content: 'The delivered work is incomplete.',
+          } as JobDisputedEvent,
+          [{ field: 'disputed', oldValue: false, newValue: true }]
+        ),
       ];
 
     default:
@@ -398,24 +481,60 @@ const createScenarioEvents = (scenario: string): JobEventWithDiffs[] => {
 // Create comprehensive mock users
 const mockUsers: Record<string, User> = {
   [mockAddress]: createMockUser(mockAddress, 'Alice Thompson', 'creator'),
-  [mockWorkerAddress]: createMockUser(mockWorkerAddress, 'Bob Johnson', 'developer'),
-  [mockWorkerAddress2]: createMockUser(mockWorkerAddress2, 'Carol Smith', 'developer'),
-  [mockArbitratorAddress]: createMockUser(mockArbitratorAddress, 'Charlie Wilson', 'arbitrator'),
+  [mockWorkerAddress]: createMockUser(
+    mockWorkerAddress,
+    'Bob Johnson',
+    'developer'
+  ),
+  [mockWorkerAddress2]: createMockUser(
+    mockWorkerAddress2,
+    'Carol Smith',
+    'developer'
+  ),
+  [mockArbitratorAddress]: createMockUser(
+    mockArbitratorAddress,
+    'Charlie Wilson',
+    'arbitrator'
+  ),
 };
 
 const scenarios = [
   { id: 'all', label: 'All', state: JobState.Closed, fullLabel: 'All Events' },
   { id: 'open', label: 'Open', state: JobState.Open, fullLabel: 'Open' },
-  { id: 'taken', label: 'Taken', state: JobState.Taken, fullLabel: 'In Progress' },
-  { id: 'delivered', label: 'Delivered', state: JobState.Taken, hasResult: true, fullLabel: 'Delivered' },
-  { id: 'completed', label: 'Complete', state: JobState.Closed, fullLabel: 'Completed' },
-  { id: 'disputed', label: 'Disputed', state: JobState.Taken, disputed: true, fullLabel: 'Disputed' },
+  {
+    id: 'taken',
+    label: 'Taken',
+    state: JobState.Taken,
+    fullLabel: 'In Progress',
+  },
+  {
+    id: 'delivered',
+    label: 'Delivered',
+    state: JobState.Taken,
+    hasResult: true,
+    fullLabel: 'Delivered',
+  },
+  {
+    id: 'completed',
+    label: 'Complete',
+    state: JobState.Closed,
+    fullLabel: 'Completed',
+  },
+  {
+    id: 'disputed',
+    label: 'Disputed',
+    state: JobState.Taken,
+    disputed: true,
+    fullLabel: 'Disputed',
+  },
 ];
 
 export default function JobInterfaceTestPage() {
   const [selectedScenario, setSelectedScenario] = useState(scenarios[0]);
   const [selectedWorker, setSelectedWorker] = useState(mockWorkerAddress);
-  const [userRole, setUserRole] = useState<'creator' | 'worker' | 'arbitrator'>('creator');
+  const [userRole, setUserRole] = useState<'creator' | 'worker' | 'arbitrator'>(
+    'creator'
+  );
 
   const getCurrentAddress = () => {
     switch (userRole) {
@@ -431,11 +550,16 @@ export default function JobInterfaceTestPage() {
   };
 
   const currentAddress = getCurrentAddress();
-  const currentJob = createMockJob(selectedScenario.state, selectedScenario.disputed);
+  const currentJob = createMockJob(
+    selectedScenario.state,
+    selectedScenario.disputed
+  );
 
   if (selectedScenario.hasResult) {
-    currentJob.resultHash = '0x123456789abcdef123456789abcdef123456789abcdef123456789abcdef12';
-    currentJob.result = 'Dashboard complete! Live URL: https://defi-dashboard.vercel.app';
+    currentJob.resultHash =
+      '0x123456789abcdef123456789abcdef123456789abcdef123456789abcdef12';
+    currentJob.result =
+      'Dashboard complete! Live URL: https://defi-dashboard.vercel.app';
   }
 
   const currentEvents = createScenarioEvents(selectedScenario.id);
@@ -450,7 +574,8 @@ export default function JobInterfaceTestPage() {
     [`${mockArbitratorAddress}-${mockWorkerAddress}`]: 'mock-session-key-6',
   };
 
-  const showChatList = userRole === 'creator' && currentJob.state === JobState.Open;
+  const showChatList =
+    userRole === 'creator' && currentJob.state === JobState.Open;
 
   return (
     <Layout borderless>
@@ -460,7 +585,9 @@ export default function JobInterfaceTestPage() {
           <div className='flex items-center justify-between gap-4'>
             {/* Left: Scenarios */}
             <div className='flex items-center gap-2'>
-              <span className='text-xs text-gray-500 dark:text-gray-400'>Scenario:</span>
+              <span className='text-xs text-gray-500 dark:text-gray-400'>
+                Scenario:
+              </span>
               <div className='flex gap-1'>
                 {scenarios.map((scenario) => (
                   <button
@@ -482,7 +609,9 @@ export default function JobInterfaceTestPage() {
 
             {/* Center: View Role */}
             <div className='flex items-center gap-2'>
-              <span className='text-xs text-gray-500 dark:text-gray-400'>View:</span>
+              <span className='text-xs text-gray-500 dark:text-gray-400'>
+                View:
+              </span>
               <div className='flex gap-1'>
                 {(['creator', 'worker', 'arbitrator'] as const).map((role) => (
                   <button
@@ -503,11 +632,11 @@ export default function JobInterfaceTestPage() {
 
             {/* Right: Status */}
             <div className='flex items-center gap-2'>
-              <span className='rounded px-2 py-0.5 text-xs font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'>
+              <span className='rounded bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'>
                 {JobState[currentJob.state]}
               </span>
               {currentJob.disputed && (
-                <span className='rounded px-2 py-0.5 text-xs font-semibold bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'>
+                <span className='rounded bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-600 dark:bg-red-900/30 dark:text-red-400'>
                   Disputed
                 </span>
               )}
@@ -561,7 +690,7 @@ export default function JobInterfaceTestPage() {
                   whitelistedWorkers={[]}
                   user={currentUser}
                 />
-                
+
                 {/* JobChatEvents - row 2, auto height */}
                 <JobChatEvents
                   job={currentJob}
@@ -571,7 +700,7 @@ export default function JobInterfaceTestPage() {
                   address={currentAddress}
                   currentUser={currentUser}
                 />
-                
+
                 {/* PostMessageButton - row 3, matching real conditions */}
                 {currentJob &&
                   (currentJob.state === JobState.Open ||

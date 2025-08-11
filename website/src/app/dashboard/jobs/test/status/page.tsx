@@ -286,7 +286,6 @@ export default function StatusStatesTestPage() {
                   <button
                     key={status.id}
                     onClick={() => setSelectedStatus(status)}
-
                     className={clsx(
                       'rounded-md px-3 py-1 text-xs font-medium transition-all',
                       getColorClasses(
@@ -325,8 +324,6 @@ export default function StatusStatesTestPage() {
               </div>
             </div>
           </div>
-
-
         </div>
 
         {/* Main Content Area */}
