@@ -161,7 +161,7 @@ export default function SocialProgramPage() {
 
             {/* Right side - Visual with Image Carousel */}
             <div className="relative">
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl">
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl group">
                 <div className="aspect-[4/3] lg:aspect-square relative">
                   {/* Image Carousel */}
                   {heroImages.map((image, index) => (
@@ -183,19 +183,19 @@ export default function SocialProgramPage() {
                     </div>
                   ))}
                   
-                  {/* Gradient Overlays - Multiple layers for depth */}
+                  {/* Gradient Overlays - Multiple layers for depth - Reduce opacity on hover */}
                   {/* Base gradient for overall tint */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/40 via-purple-600/30 to-pink-600/40" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/40 via-purple-600/30 to-pink-600/40 transition-opacity duration-500 group-hover:opacity-50" />
                   
                   {/* Directional gradients for edge darkening */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-black/30" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent transition-opacity duration-500 group-hover:opacity-30" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-black/30 transition-opacity duration-500 group-hover:opacity-20" />
                   
                   {/* Animated shimmer effect */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-shimmer" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-shimmer transition-opacity duration-500 group-hover:opacity-50" />
                   
                   {/* Optional: Mesh gradient for more organic look */}
-                  <div className="absolute inset-0 opacity-30">
+                  <div className="absolute inset-0 opacity-30 transition-opacity duration-500 group-hover:opacity-10">
                     <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-blue-500/30 blur-3xl" />
                     <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-purple-500/30 blur-3xl" />
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/3 h-1/3 bg-pink-500/30 blur-2xl" />
