@@ -6,7 +6,7 @@ import { getAddress } from 'viem';
 import type { EventProps } from './index';
 import Markdown from 'react-markdown';
 import { useEffect, useState } from 'react';
-import { formatMarkdownContent } from '@/utils/utils';
+import { formatMarkdownContent } from '@/lib/utils';
 
 export function DeliveredEvent({
   event,

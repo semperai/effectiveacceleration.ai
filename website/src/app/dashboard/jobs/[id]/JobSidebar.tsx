@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { TooltipButton } from '@/components/TooltipButton';
-import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
-import { shortenText, formatTimeLeft } from '@/utils/utils';
+import { formatTokenNameAndAmount, tokenIcon } from '@/lib/tokens';
+import { shortenText, formatTimeLeft } from '@/lib/utils';
 import {
   type Job,
   type JobEventWithDiffs,

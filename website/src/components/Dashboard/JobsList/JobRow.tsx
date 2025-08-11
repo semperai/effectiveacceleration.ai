@@ -5,7 +5,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/Tooltip';
-import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
+import { formatTokenNameAndAmount, tokenIcon } from '@/lib/tokens';
+import { formatTimeLeft } from '@/lib/utils';
 import type { Job } from '@effectiveacceleration/contracts';
 import {
   Check,
@@ -25,7 +26,6 @@ import {
 } from 'lucide-react';
 import moment from 'moment';
 import Link from 'next/link';
-import { formatTimeLeft } from '@/utils/utils';
 import { useState } from 'react';
 
 export const JobRow = ({ job }: { job: Job }) => {

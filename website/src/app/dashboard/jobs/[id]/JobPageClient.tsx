@@ -7,8 +7,8 @@ import useJob from '@/hooks/subsquid/useJob';
 import useJobEventsWithDiffs from '@/hooks/subsquid/useJobEventsWithDiffs';
 import useUser from '@/hooks/subsquid/useUser';
 import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
-import { tokenIcon } from '@/tokens';
-import { jobMeceTags } from '@/utils/jobMeceTags';
+import { tokenIcon } from '@/lib/tokens';
+import { jobMeceTags } from '@/lib/constants';
 import {
   type Job,
   JobEventType,

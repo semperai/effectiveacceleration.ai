@@ -1,6 +1,6 @@
 'use client';
 
-import { type Token, tokens } from '@/tokens';
+import { type Token, tokens } from '@/lib/tokens';
 import { useState, useEffect } from 'react';
 import TokenButton from './TokenButton';
 import TokenDialog from './TokenDialog';

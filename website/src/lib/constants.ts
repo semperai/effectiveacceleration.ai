@@ -8,3 +8,13 @@ export const jobMeceTags: { id: string; name: string }[] = [
   { id: 'NDS', name: 'Non-Digital Services' },
   { id: 'NDO', name: 'Non-Digital Others' },
 ];
+
+export const unitsDeliveryTime = [
+  { id: '0', name: 'minutes' },
+  { id: '1', name: 'hours' },
+  { id: '2', name: 'days' },
+  { id: '3', name: 'weeks' },
+  { id: '4', name: 'months' },
+  { id: '5', name: 'years' },
+];
+

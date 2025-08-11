@@ -4,7 +4,7 @@ import React, { useState, useCallback, useRef } from 'react';
 import { useAccount } from 'wagmi';
 import { useRouter } from 'next/navigation';
 import type { Address } from 'viem';
-import { type Token } from '@/tokens';
+import { type Token } from '@/lib/tokens';
 import { type Tag } from '@/service/FormsTypes';
 import { SubmitJobButton } from './SubmitJobButton';
 import { useConfig } from '@/hooks/useConfig';

@@ -8,10 +8,10 @@ import {
   type JobEventWithDiffs,
   type User,
 } from '@effectiveacceleration/contracts';
-import { formatMarkdownContent } from '@/utils/utils';
+import { formatMarkdownContent } from '@/lib/utils';
+import { tokens } from '@/lib/tokens';
 import Markdown from 'react-markdown';
 import { ethers } from 'ethers';
-import { tokens } from '@/tokens';
 import {
   PiCheckCircle,
   PiConfetti,

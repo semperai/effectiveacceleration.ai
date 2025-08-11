@@ -1,10 +1,9 @@
-// src/components/PaymentInput/index.tsx
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { TokenSelector } from '@/components/TokenSelector';
-import { type Token } from '@/tokens';
+import { type Token } from '@/lib/tokens';
 import { useAccount, useBalance } from 'wagmi';
 
 interface PaymentInputProps {

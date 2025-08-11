@@ -12,7 +12,7 @@ import {
 import { ApproveButton } from '@/components/JobActions/ApproveButton';
 import { DisputeButton } from '@/components/JobActions/DisputeButton';
 import { zeroAddress, zeroHash } from 'viem';
-import { formatMarkdownContent } from '@/utils/utils';
+import { formatMarkdownContent } from '@/lib/utils';
 import {
   PiCheckCircle,
   PiPackage,

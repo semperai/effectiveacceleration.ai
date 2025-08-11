@@ -1,7 +1,7 @@
 import type React from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/Button';
-import { shortenText } from '@/utils/utils';
+import { shortenText } from '@/lib/utils';
 import {
   CurrencyDollarIcon,
   LinkIcon,
@@ -23,7 +23,7 @@ import {
   PiShareNetwork,
   PiWarning,
 } from 'react-icons/pi';
-import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
+import { formatTokenNameAndAmount, tokenIcon } from '@/lib/tokens';
 import moment from 'moment';
 import LinearProgress from '@mui/material/LinearProgress';
 import {

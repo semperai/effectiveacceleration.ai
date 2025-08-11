@@ -14,13 +14,13 @@ import useArbitrators from '@/hooks/subsquid/useArbitrators';
 import useUser from '@/hooks/subsquid/useUser';
 import { useConfig } from '@/hooks/useConfig';
 import type { ComboBoxOption, Tag } from '@/service/FormsTypes';
-import { type Token, tokens } from '@/tokens';
-import { jobMeceTags } from '@/utils/jobMeceTags';
+import { type Token, tokens } from '@/lib/tokens';
+import { jobMeceTags } from '@/lib/constants';
 import {
   convertToSeconds,
   unitsDeliveryTime,
   getUnitAndValueFromSeconds,
-} from '@/utils/utils';
+} from '@/lib/utils';
 import React from 'react';
 import {
   type ChangeEvent,

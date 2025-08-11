@@ -1,12 +1,11 @@
-// src/components/Dashboard/JobsList/JobFilter.tsx
 import { Input } from '@/components/Input';
 import TagsInput from '@/components/TagsInput';
 import TokenFilter from '@/components/TokenFilter';
 import { ArbitratorSelector } from '@/components/ArbitratorSelector';
 import type { ComboBoxOption, Tag } from '@/service/FormsTypes';
-import type { Token } from '@/tokens';
+import type { Token } from '@/lib/tokens';
 import type { Arbitrator } from '@effectiveacceleration/contracts';
-import { unitsDeliveryTime } from '@/utils/utils';
+import { unitsDeliveryTime } from '@/lib/constants';
 import {
   ChevronDown,
   Filter,

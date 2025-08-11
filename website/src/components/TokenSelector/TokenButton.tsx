@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { ChevronDown } from 'lucide-react';
-import { Token } from '@/tokens';
+import { Token } from '@/lib/tokens';
 import { IArbitrumToken } from './helpers';
 import { DEFAULT_TOKEN_ICON } from './icons/DefaultTokenIcon';
 

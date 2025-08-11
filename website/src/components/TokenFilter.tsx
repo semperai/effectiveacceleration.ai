@@ -3,7 +3,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { TokenSelector } from '@/components/TokenSelector';
-import type { Token } from '@/tokens';
+import type { Token } from '@/lib/tokens';
 
 interface TokenFilterProps {
   selectedToken: Token | undefined;

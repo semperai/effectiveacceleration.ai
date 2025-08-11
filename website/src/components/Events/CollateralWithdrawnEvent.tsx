@@ -1,6 +1,6 @@
 import useUser from '@/hooks/subsquid/useUser';
 import ProfileImage from '@/components/ProfileImage';
-import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
+import { formatTokenNameAndAmount, tokenIcon } from '@/lib/tokens';
 import moment from 'moment';
 import { getAddress } from 'viem';
 import type { EventProps } from './index';

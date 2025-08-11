@@ -1,5 +1,5 @@
 import useArbitrator from '@/hooks/subsquid/useArbitrator';
-import { formatTokenNameAndAmount, tokenIcon } from '@/tokens';
+import { formatTokenNameAndAmount, tokenIcon } from '@/lib/tokens';
 import type { JobArbitratedEvent } from '@effectiveacceleration/contracts';
 import moment from 'moment';
 import { getAddress } from 'viem';

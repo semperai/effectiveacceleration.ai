@@ -23,7 +23,7 @@ import { formatUnits } from 'viem';
 import { X, Search, ExternalLink, Plus, Loader2, Star } from 'lucide-react';
 import { styles, mergeStyles, keyframes, mobileStyles } from './styles';
 import { DEFAULT_TOKEN_ICON } from './icons/DefaultTokenIcon';
-import { tokens as appTokens, type Token } from '@/tokens';
+import { tokens as appTokens, type Token } from '@/lib/tokens';
 
 // Extended IArbitrumToken to include balance
 interface IArbitrumTokenWithBalance extends Omit<IArbitrumToken, 'balance'> {

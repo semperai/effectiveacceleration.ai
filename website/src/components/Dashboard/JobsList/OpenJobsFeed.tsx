@@ -7,12 +7,12 @@ import { JobsListSkeleton } from './JobsListSkeleton';
 import { JobFilter } from './JobFilter';
 import useJobSearch from '@/hooks/subsquid/useJobSearch';
 import type { ComboBoxOption, Tag } from '@/service/FormsTypes';
-import { type Token, tokens } from '@/tokens';
+import { type Token, tokens } from '@/lib/tokens';
 import {
   convertToSeconds,
   unitsDeliveryTime,
   getUnitAndValueFromSeconds,
-} from '@/utils/utils';
+} from '@/lib/utils';
 import { JobState } from '@effectiveacceleration/contracts';
 
 import NoJobsOpenImage from '@/images/noOpenJobs.svg';
