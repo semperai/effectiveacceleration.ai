@@ -40,8 +40,8 @@ export const Textarea = forwardRef<
           // Remove all focus rings and outlines
           'focus:outline-none focus:ring-0',
           // Invalid state - updated colors
-          'data-[invalid]:border-red-300 data-[invalid]:focus:border-red-400',
-          'data-[invalid]:dark:border-red-500 data-[invalid]:dark:focus:border-red-400',
+          'data-[invalid]:border-red-500 data-[invalid]:focus:border-red-500',
+          'data-[invalid]:dark:border-red-500 data-[invalid]:dark:focus:border-red-500',
           // Disabled state - updated
           'disabled:opacity-60 disabled:cursor-not-allowed',
           'disabled:bg-gray-50 disabled:dark:bg-gray-900',
