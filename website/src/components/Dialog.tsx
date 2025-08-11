@@ -71,7 +71,7 @@ export function DialogDescription({
   className,
   children,
   ...props
-}: { 
+}: {
   className?: string;
   children?: React.ReactNode;
 } & Omit<Headless.DescriptionProps, 'as' | 'className'>) {
