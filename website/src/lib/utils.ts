@@ -1,4 +1,4 @@
-import Sentry from '@sentry/nextjs';
+import * as Sentry from '@sentry/nextjs';
 import { JobEventType } from '@effectiveacceleration/contracts';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
