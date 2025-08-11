@@ -10,8 +10,6 @@ import arbitrumTokens from './data/arbitrumTokens.json';
 import mainnetTokens from './data/mainnetTokens.json';
 import { useChainId } from 'wagmi';
 
-// FIX 1: Corrected IArbitrumTokenWithBalance interface
-// Use Omit to exclude the original balance property before adding the new one
 export interface IArbitrumTokenWithBalance
   extends Omit<IArbitrumToken, 'balance'> {
   balance?: {

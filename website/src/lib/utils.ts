@@ -2,6 +2,7 @@ import * as Sentry from '@sentry/nextjs';
 import { JobEventType } from '@effectiveacceleration/contracts';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { tokens, Token } from './tokens';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -212,4 +213,167 @@ export const formatMarkdownContent = (
   } else {
     setMarkdownContent(result);
   }
+};
+
+export const formatTokenNameAndAmount = (
+  tokenId: string,
+  amount: bigint | undefined
+) => {
+  // Ensure we have a valid BigInt value
+  let amountBigInt: bigint;
+  if (amount === undefined || amount === null) {
+    amountBigInt = 0n;
+  } else if (typeof amount === 'bigint') {
+    amountBigInt = amount;
+  } else {
+    // If amount is somehow not a bigint (e.g., number or string), convert it
+    try {
+      amountBigInt = BigInt(amount);
+    } catch {
+      console.error(
+        'Invalid amount provided to formatTokenNameAndAmount:',
+        amount
+      );
+      amountBigInt = 0n;
+    }
+  }
+
+  // Get token decimals, default to 18 if token not found
+  const decimals = tokensMap[tokenId]?.decimals ?? 18;
+
+  // Convert BigInt to string to preserve all digits
+  const amountString = amountBigInt.toString();
+
+  // Handle zero case
+  if (amountBigInt === 0n) {
+    const symbol = tokensMap[tokenId]?.symbol ?? 'UNKNOWN';
+    return `0 ${symbol}`;
+  }
+
+  // Pad with zeros if necessary
+  const paddedAmount = amountString.padStart(decimals + 1, '0');
+
+  // Insert decimal point
+  const beforeDecimal = paddedAmount.slice(0, -decimals) || '0';
+  const afterDecimal = paddedAmount.slice(-decimals);
+
+  // Combine to create the full number string
+  let formattedAmount = beforeDecimal + '.' + afterDecimal;
+
+  // Parse to number for formatting
+  const numericValue = parseFloat(formattedAmount);
+
+  // Format based on value size
+  let displayValue: string;
+  if (numericValue === 0) {
+    displayValue = '0';
+  } else if (numericValue < 0.000001) {
+    // For extremely small values, show up to 10 decimal places
+    displayValue = numericValue.toFixed(10).replace(/\.?0+$/, '');
+  } else if (numericValue < 0.0001) {
+    // For very small values, show up to 8 decimal places
+    displayValue = numericValue.toFixed(8).replace(/\.?0+$/, '');
+  } else if (numericValue < 0.001) {
+    // For small values, show up to 6 decimal places
+    displayValue = numericValue.toFixed(6).replace(/\.?0+$/, '');
+  } else if (numericValue < 1) {
+    // For small values, show up to 4 decimal places
+    displayValue = numericValue.toFixed(4).replace(/\.?0+$/, '');
+  } else if (numericValue < 100) {
+    // For medium values, show up to 2 decimal places
+    displayValue = numericValue.toFixed(2).replace(/\.?0+$/, '');
+  } else if (numericValue < 10000) {
+    // For larger values, show up to 1 decimal place
+    displayValue = numericValue.toFixed(1).replace(/\.?0+$/, '');
+  } else {
+    // For very large values, use comma separators
+    displayValue = numericValue.toLocaleString('en-US', {
+      maximumFractionDigits: 0,
+    });
+  }
+
+  // Get token symbol
+  const symbol = tokensMap[tokenId]?.symbol ?? 'UNKNOWN';
+
+  return `${displayValue} ${symbol}`;
+};
+
+// Alternative simpler version if you prefer consistent decimal places
+export const formatTokenNameAndAmountSimple = (
+  tokenId: string,
+  amount: bigint | undefined,
+  minDecimals: number = 6
+) => {
+  // Ensure we have a valid BigInt value
+  let amountBigInt: bigint;
+  if (amount === undefined || amount === null) {
+    amountBigInt = 0n;
+  } else if (typeof amount === 'bigint') {
+    amountBigInt = amount;
+  } else {
+    try {
+      amountBigInt = BigInt(amount);
+    } catch {
+      console.error(
+        'Invalid amount provided to formatTokenNameAndAmount:',
+        amount
+      );
+      amountBigInt = 0n;
+    }
+  }
+
+  // Get token decimals, default to 18 if token not found
+  const decimals = tokensMap[tokenId]?.decimals ?? 18;
+
+  // Convert to string with proper decimal placement
+  const divisor = 10n ** BigInt(decimals);
+  const wholePart = amountBigInt / divisor;
+  const fractionalPart = amountBigInt % divisor;
+
+  // Format fractional part with leading zeros
+  const fractionalStr = fractionalPart.toString().padStart(decimals, '0');
+
+  // Combine whole and fractional parts
+  const fullNumber = `${wholePart}.${fractionalStr}`;
+
+  // Parse and format
+  const numericValue = parseFloat(fullNumber);
+
+  // Determine decimal places to show
+  let displayValue: string;
+  if (numericValue === 0) {
+    displayValue = '0';
+  } else if (numericValue < 1) {
+    // For small values, always show at least minDecimals
+    const significantDecimals = Math.max(
+      minDecimals,
+      -Math.floor(Math.log10(numericValue)) + 2
+    );
+    displayValue = numericValue
+      .toFixed(significantDecimals)
+      .replace(/\.?0+$/, '');
+  } else {
+    // For larger values, use standard formatting
+    displayValue = numericValue.toLocaleString('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    });
+  }
+
+  // Get token symbol
+  const symbol = tokensMap[tokenId]?.symbol ?? 'UNKNOWN';
+
+  return `${displayValue} ${symbol}`;
+};
+
+export const tokensMap: Record<string, Token> = tokens.reduce(
+  (acc, token) => {
+    acc[token.id] = token;
+    return acc;
+  },
+  {} as Record<string, Token>
+);
+
+export const tokenIcon = (tokenId: string) => {
+  return tokensMap[tokenId]?.icon ?? '';
 };

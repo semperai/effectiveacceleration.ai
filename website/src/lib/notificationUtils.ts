@@ -1,6 +1,6 @@
 import { JobEventType } from '@effectiveacceleration/contracts';
 import type { NotificationWithJob } from '@/hooks/subsquid/useUserNotifications';
-import { formatTokenNameAndAmount } from '@/lib/tokens';
+import { formatTokenNameAndAmount } from '@/lib/utils';
 import {
   FileText,
   UserCheck,

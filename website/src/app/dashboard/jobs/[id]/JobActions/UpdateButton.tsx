@@ -4,12 +4,13 @@ import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import type { ComboBoxOption, Tag } from '@/service/FormsTypes';
-import { tokenIcon, tokensMap } from '@/lib/tokens';
 import { jobMeceTags } from '@/lib/constants';
 import {
   convertToSeconds,
   getUnitAndValueFromSeconds,
   unitsDeliveryTime,
+  tokenIcon,
+  tokensMap,
 } from '@/lib/utils';
 import {
   getFromIpfs,

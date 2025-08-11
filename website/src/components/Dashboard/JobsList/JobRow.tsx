@@ -5,8 +5,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/Tooltip';
-import { formatTokenNameAndAmount, tokenIcon } from '@/lib/tokens';
-import { formatTimeLeft } from '@/lib/utils';
+import {
+  formatTimeLeft,
+  formatTokenNameAndAmount,
+  tokenIcon,
+} from '@/lib/utils';
 import type { Job } from '@effectiveacceleration/contracts';
 import {
   Check,

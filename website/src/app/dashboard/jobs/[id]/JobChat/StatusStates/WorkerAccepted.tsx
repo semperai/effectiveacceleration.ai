@@ -18,7 +18,7 @@ import {
   PiLightning,
   PiWarningCircle,
 } from 'react-icons/pi';
-import { formatTokenNameAndAmount, tokenIcon } from '@/lib/tokens';
+import { formatTokenNameAndAmount, tokenIcon } from '@/lib/utils';
 import moment from 'moment';
 
 interface WorkerAcceptedProps {

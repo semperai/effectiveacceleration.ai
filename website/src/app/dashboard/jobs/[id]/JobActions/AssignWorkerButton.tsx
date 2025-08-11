@@ -4,9 +4,13 @@ import useUsers from '@/hooks/subsquid/useUsers';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
-import { formatTokenNameAndAmount, tokenIcon } from '@/lib/tokens';
 import { jobMeceTags } from '@/lib/constants';
-import { formatTimeLeft, shortenText } from '@/lib/utils';
+import {
+  formatTimeLeft,
+  shortenText,
+  formatTokenNameAndAmount,
+  tokenIcon,
+} from '@/lib/utils';
 import type { Job, User } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { Dialog, Transition } from '@headlessui/react';

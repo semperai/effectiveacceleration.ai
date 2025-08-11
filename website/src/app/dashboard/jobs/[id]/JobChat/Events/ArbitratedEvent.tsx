@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import moment from 'moment';
 import ProfileImage from '@/components/ProfileImage';
-import { formatTokenNameAndAmount, tokenIcon } from '@/lib/tokens';
+import { formatTokenNameAndAmount, tokenIcon } from '@/lib/utils';
 import {
   type JobEventWithDiffs,
   type JobArbitratedEvent,

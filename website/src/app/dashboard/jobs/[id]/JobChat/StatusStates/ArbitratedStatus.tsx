@@ -8,7 +8,7 @@ import {
   type JobEventWithDiffs,
   type User,
 } from '@effectiveacceleration/contracts';
-import { formatTokenNameAndAmount, tokenIcon } from '@/lib/tokens';
+import { formatTokenNameAndAmount, tokenIcon } from '@/lib/utils';
 import {
   PiScales,
   PiGavel,
