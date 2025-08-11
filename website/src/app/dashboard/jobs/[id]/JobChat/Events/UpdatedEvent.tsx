@@ -30,7 +30,7 @@ const UpdatedEvent: React.FC<UpdatedEventProps> = ({
   const creatorName = creator?.name || 'Job Creator';
 
   // Check if current user is the creator
-  const isCurrentUser = currentUser?.address === creatorAddress;
+  const isCurrentUser = currentUser?.address_ === creatorAddress;
 
   // Show only first 3 diffs when collapsed
   const displayedDiffs = isExpanded ? event.diffs : event.diffs.slice(0, 3);
