@@ -2,7 +2,6 @@
 
 import { Layout } from '@/components/Dashboard/Layout';
 import { PostMessageButton } from './JobActions';
-import { Text } from '@/components/Text';
 import useJob from '@/hooks/subsquid/useJob';
 import useJobEventsWithDiffs from '@/hooks/subsquid/useJobEventsWithDiffs';
 import useUser from '@/hooks/subsquid/useUser';
@@ -167,11 +166,12 @@ export default function JobPageClient({ id }: JobPageClientProps) {
     }
   }, [events, selectedWorker]);
 
-  // TODO - this should be centered
   if (error) {
     return (
       <Layout>
-        <Text>Job not found</Text>
+        <p className='text-base/6 text-zinc-500 sm:text-sm/6 dark:text-zinc-400'>
+          Job not found
+        </p>
       </Layout>
     );
   }
