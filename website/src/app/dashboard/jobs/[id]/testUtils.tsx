@@ -18,16 +18,39 @@ import React from 'react';
 export const mockAddress = '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0';
 export const mockWorkerAddress = '0x5aeda56215b167893e80b4fe645ba6d5bab767de';
 export const mockWorkerAddress2 = '0x6aeda56215b167893e80b4fe645ba6d5bab767df';
-export const mockArbitratorAddress = '0x8626f6940e2eb28930efb4cef49b2d1f2c9c1199';
+export const mockArbitratorAddress =
+  '0x8626f6940e2eb28930efb4cef49b2d1f2c9c1199';
 
 // ============ SCENARIOS ============
 export const scenarios = [
   { id: 'all', label: 'All', state: JobState.Closed, fullLabel: 'All Events' },
   { id: 'open', label: 'Open', state: JobState.Open, fullLabel: 'Open' },
-  { id: 'taken', label: 'Taken', state: JobState.Taken, fullLabel: 'In Progress' },
-  { id: 'delivered', label: 'Delivered', state: JobState.Taken, hasResult: true, fullLabel: 'Delivered' },
-  { id: 'completed', label: 'Complete', state: JobState.Closed, fullLabel: 'Completed' },
-  { id: 'disputed', label: 'Disputed', state: JobState.Taken, disputed: true, fullLabel: 'Disputed' },
+  {
+    id: 'taken',
+    label: 'Taken',
+    state: JobState.Taken,
+    fullLabel: 'In Progress',
+  },
+  {
+    id: 'delivered',
+    label: 'Delivered',
+    state: JobState.Taken,
+    hasResult: true,
+    fullLabel: 'Delivered',
+  },
+  {
+    id: 'completed',
+    label: 'Complete',
+    state: JobState.Closed,
+    fullLabel: 'Completed',
+  },
+  {
+    id: 'disputed',
+    label: 'Disputed',
+    state: JobState.Taken,
+    disputed: true,
+    fullLabel: 'Disputed',
+  },
 ];
 
 // ============ USER CREATION ============
@@ -51,13 +74,28 @@ export const createMockUser = (
 
 export const mockUsers: Record<string, User> = {
   [mockAddress]: createMockUser(mockAddress, 'Alice Thompson', 'creator'),
-  [mockWorkerAddress]: createMockUser(mockWorkerAddress, 'Bob Johnson', 'developer'),
-  [mockWorkerAddress2]: createMockUser(mockWorkerAddress2, 'Carol Smith', 'developer'),
-  [mockArbitratorAddress]: createMockUser(mockArbitratorAddress, 'Charlie Wilson', 'arbitrator'),
+  [mockWorkerAddress]: createMockUser(
+    mockWorkerAddress,
+    'Bob Johnson',
+    'developer'
+  ),
+  [mockWorkerAddress2]: createMockUser(
+    mockWorkerAddress2,
+    'Carol Smith',
+    'developer'
+  ),
+  [mockArbitratorAddress]: createMockUser(
+    mockArbitratorAddress,
+    'Charlie Wilson',
+    'arbitrator'
+  ),
 };
 
 // ============ JOB CREATION ============
-export const createMockJob = (state: JobState, disputed: boolean = false): Job => ({
+export const createMockJob = (
+  state: JobState,
+  disputed: boolean = false
+): Job => ({
   id: '1',
   state: state,
   title: 'Build a DeFi Dashboard with Real-time Analytics',
@@ -199,123 +237,184 @@ export const createScenarioEvents = (scenario: string): JobEventWithDiffs[] => {
         // 1. Job Creation
         createMockEvent(JobEventType.Created, mockAddress, {}, [
           { field: 'state', oldValue: null, newValue: 'Open' },
-          { field: 'title', oldValue: null, newValue: 'Build a DeFi Dashboard' },
+          {
+            field: 'title',
+            oldValue: null,
+            newValue: 'Build a DeFi Dashboard',
+          },
         ]),
-        
+
         // 2. Job Update
         createMockEvent(JobEventType.Updated, mockAddress, {}, [
-          { field: 'amount', oldValue: '1000000000000000000', newValue: '1500000000000000000' },
+          {
+            field: 'amount',
+            oldValue: '1000000000000000000',
+            newValue: '1500000000000000000',
+          },
           { field: 'maxTime', oldValue: '604800', newValue: '1209600' },
         ]),
-        
+
         // 3. Whitelist Worker Added
-        createMockEvent(JobEventType.WhitelistedWorkerAdded, mockWorkerAddress2, {}, [
-          { field: 'allowedWorkers', oldValue: '[]', newValue: '[0x6aed...]' },
-        ]),
-        
+        createMockEvent(
+          JobEventType.WhitelistedWorkerAdded,
+          mockWorkerAddress2,
+          {},
+          [{ field: 'allowedWorkers', oldValue: '[]', newValue: '[0x6aed...]' }]
+        ),
+
         // 4. Whitelist Worker Removed
-        createMockEvent(JobEventType.WhitelistedWorkerRemoved, mockWorkerAddress2, {}, [
-          { field: 'allowedWorkers', oldValue: '[0x6aed...]', newValue: '[]' },
-        ]),
-        
+        createMockEvent(
+          JobEventType.WhitelistedWorkerRemoved,
+          mockWorkerAddress2,
+          {},
+          [{ field: 'allowedWorkers', oldValue: '[0x6aed...]', newValue: '[]' }]
+        ),
+
         // 5-6. Worker and Owner Messages
         createMockEvent(JobEventType.WorkerMessage, mockWorkerAddress, {
-          content: "Hi! I have 5 years of experience with DeFi dashboards. Check my portfolio: https://mywork.dev",
+          content:
+            'Hi! I have 5 years of experience with DeFi dashboards. Check my portfolio: https://mywork.dev',
           recipientAddress: mockAddress,
         } as JobMessageEvent),
-        
+
         createMockEvent(JobEventType.OwnerMessage, mockAddress, {
           content: 'Great portfolio! When can you start?',
           recipientAddress: mockWorkerAddress,
         } as JobMessageEvent),
-        
+
         // 7-9. Job lifecycle
         createMockEvent(JobEventType.Taken, mockWorkerAddress, {}, [
           { field: 'state', oldValue: 'Open', newValue: 'Taken' },
-          { field: 'roles.worker', oldValue: null, newValue: mockWorkerAddress },
+          {
+            field: 'roles.worker',
+            oldValue: null,
+            newValue: mockWorkerAddress,
+          },
         ]),
-        
+
         createMockEvent(JobEventType.Signed, mockWorkerAddress, {}, [
           { field: 'signed', oldValue: false, newValue: true },
         ]),
-        
+
         createMockEvent(JobEventType.Paid, mockWorkerAddress, {}, [
-          { field: 'escrowBalance', oldValue: '0', newValue: '1500000000000000000' },
+          {
+            field: 'escrowBalance',
+            oldValue: '0',
+            newValue: '1500000000000000000',
+          },
         ]),
-        
+
         // 10. Progress message
         createMockEvent(JobEventType.WorkerMessage, mockWorkerAddress, {
-          content: "Started working on the dashboard. Setting up the development environment.",
+          content:
+            'Started working on the dashboard. Setting up the development environment.',
           recipientAddress: mockAddress,
         } as JobMessageEvent),
-        
+
         // 11. Delivery
         createMockEvent(JobEventType.Delivered, mockWorkerAddress, {
-          result: 'Dashboard complete! Live at: https://defi-dashboard.vercel.app\n\nFeatures implemented:\n- Multi-chain support\n- Real-time analytics\n- Portfolio tracking\n- Responsive design\n\nGitHub: https://github.com/example/defi-dashboard',
+          result:
+            'Dashboard complete! Live at: https://defi-dashboard.vercel.app\n\nFeatures implemented:\n- Multi-chain support\n- Real-time analytics\n- Portfolio tracking\n- Responsive design\n\nGitHub: https://github.com/example/defi-dashboard',
         }),
-        
+
         // 12. Dispute
-        createMockEvent(JobEventType.Disputed, mockAddress, {
-          content: 'The dashboard is missing the portfolio tracking feature that was specified in the requirements.',
-        } as JobDisputedEvent, [
-          { field: 'disputed', oldValue: false, newValue: true },
-        ]),
-        
+        createMockEvent(
+          JobEventType.Disputed,
+          mockAddress,
+          {
+            content:
+              'The dashboard is missing the portfolio tracking feature that was specified in the requirements.',
+          } as JobDisputedEvent,
+          [{ field: 'disputed', oldValue: false, newValue: true }]
+        ),
+
         // 13. Arbitration refused
-        createMockEvent(JobEventType.ArbitrationRefused, mockArbitratorAddress, {}, [
-          { field: 'roles.arbitrator', oldValue: mockArbitratorAddress, newValue: zeroAddress },
-        ]),
-        
+        createMockEvent(
+          JobEventType.ArbitrationRefused,
+          mockArbitratorAddress,
+          {},
+          [
+            {
+              field: 'roles.arbitrator',
+              oldValue: mockArbitratorAddress,
+              newValue: zeroAddress,
+            },
+          ]
+        ),
+
         // 14. Re-assign arbitrator
         createMockEvent(JobEventType.Updated, mockAddress, {}, [
-          { field: 'roles.arbitrator', oldValue: zeroAddress, newValue: mockArbitratorAddress },
+          {
+            field: 'roles.arbitrator',
+            oldValue: zeroAddress,
+            newValue: mockArbitratorAddress,
+          },
         ]),
-        
+
         // 15. Arbitrated
-        createMockEvent(JobEventType.Arbitrated, mockArbitratorAddress, {
-          creatorShare: 2000,
-          workerShare: 8000,
-          creatorAmount: BigInt('300000000000000000'),
-          workerAmount: BigInt('1200000000000000000'),
-          reason: 'After reviewing the deliverables, the portfolio tracking feature is present but not clearly visible. Worker to receive 80% payment, creator refunded 20%.',
-        } as JobArbitratedEvent, [
-          { field: 'disputed', oldValue: true, newValue: false },
-          { field: 'state', oldValue: 'Taken', newValue: 'Closed' },
-        ]),
-        
+        createMockEvent(
+          JobEventType.Arbitrated,
+          mockArbitratorAddress,
+          {
+            creatorShare: 2000,
+            workerShare: 8000,
+            creatorAmount: BigInt('300000000000000000'),
+            workerAmount: BigInt('1200000000000000000'),
+            reason:
+              'After reviewing the deliverables, the portfolio tracking feature is present but not clearly visible. Worker to receive 80% payment, creator refunded 20%.',
+          } as JobArbitratedEvent,
+          [
+            { field: 'disputed', oldValue: true, newValue: false },
+            { field: 'state', oldValue: 'Taken', newValue: 'Closed' },
+          ]
+        ),
+
         // 16. Completed
         createMockEvent(JobEventType.Completed, mockAddress, {}, [
           { field: 'state', oldValue: 'Taken', newValue: 'Closed' },
         ]),
-        
+
         // 17. Rated
         createMockEvent(JobEventType.Rated, mockAddress, {
           rating: 4,
-          review: 'Good work overall, but communication about features could have been clearer.',
+          review:
+            'Good work overall, but communication about features could have been clearer.',
         } as JobRatedEvent),
-        
+
         // 18. Collateral Withdrawn
         createMockEvent(JobEventType.CollateralWithdrawn, mockAddress, {}, [
-          { field: 'collateralOwed', oldValue: BigInt('100000000000000000'), newValue: BigInt('0') },
+          {
+            field: 'collateralOwed',
+            oldValue: BigInt('100000000000000000'),
+            newValue: BigInt('0'),
+          },
         ]),
-        
+
         // 19. Reopened
         createMockEvent(JobEventType.Reopened, mockAddress, {}, [
           { field: 'state', oldValue: 'Closed', newValue: 'Open' },
         ]),
-        
+
         // 20. New worker takes
         createMockEvent(JobEventType.Taken, mockWorkerAddress2, {}, [
           { field: 'state', oldValue: 'Open', newValue: 'Taken' },
-          { field: 'roles.worker', oldValue: null, newValue: mockWorkerAddress2 },
+          {
+            field: 'roles.worker',
+            oldValue: null,
+            newValue: mockWorkerAddress2,
+          },
         ]),
-        
+
         // 21. Refunded
         createMockEvent(JobEventType.Refunded, mockWorkerAddress2, {}, [
           { field: 'state', oldValue: 'Taken', newValue: 'Open' },
-          { field: 'roles.worker', oldValue: mockWorkerAddress2, newValue: null },
+          {
+            field: 'roles.worker',
+            oldValue: mockWorkerAddress2,
+            newValue: null,
+          },
         ]),
-        
+
         // 22. Closed
         createMockEvent(JobEventType.Closed, mockAddress, {}, [
           { field: 'state', oldValue: 'Open', newValue: 'Closed' },
@@ -326,7 +425,8 @@ export const createScenarioEvents = (scenario: string): JobEventWithDiffs[] => {
       return [
         ...baseEvents,
         createMockEvent(JobEventType.WorkerMessage, mockWorkerAddress, {
-          content: "Hi! I'm interested in this job. I have 5 years of experience.",
+          content:
+            "Hi! I'm interested in this job. I have 5 years of experience.",
           recipientAddress: mockAddress,
         } as JobMessageEvent),
         createMockEvent(JobEventType.OwnerMessage, mockAddress, {
@@ -340,10 +440,15 @@ export const createScenarioEvents = (scenario: string): JobEventWithDiffs[] => {
         ...baseEvents,
         createMockEvent(JobEventType.Taken, mockWorkerAddress, {}, [
           { field: 'state', oldValue: 'Open', newValue: 'Taken' },
-          { field: 'roles.worker', oldValue: null, newValue: mockWorkerAddress },
+          {
+            field: 'roles.worker',
+            oldValue: null,
+            newValue: mockWorkerAddress,
+          },
         ]),
         createMockEvent(JobEventType.WorkerMessage, mockWorkerAddress, {
-          content: "I've started working on the dashboard. Will update you soon!",
+          content:
+            "I've started working on the dashboard. Will update you soon!",
           recipientAddress: mockAddress,
         } as JobMessageEvent),
       ];
@@ -353,10 +458,15 @@ export const createScenarioEvents = (scenario: string): JobEventWithDiffs[] => {
         ...baseEvents,
         createMockEvent(JobEventType.Taken, mockWorkerAddress, {}, [
           { field: 'state', oldValue: 'Open', newValue: 'Taken' },
-          { field: 'roles.worker', oldValue: null, newValue: mockWorkerAddress },
+          {
+            field: 'roles.worker',
+            oldValue: null,
+            newValue: mockWorkerAddress,
+          },
         ]),
         createMockEvent(JobEventType.Delivered, mockWorkerAddress, {
-          result: 'Dashboard complete! Live URL: https://defi-dashboard.vercel.app',
+          result:
+            'Dashboard complete! Live URL: https://defi-dashboard.vercel.app',
         }),
       ];
 
@@ -365,7 +475,11 @@ export const createScenarioEvents = (scenario: string): JobEventWithDiffs[] => {
         ...baseEvents,
         createMockEvent(JobEventType.Taken, mockWorkerAddress, {}, [
           { field: 'state', oldValue: 'Open', newValue: 'Taken' },
-          { field: 'roles.worker', oldValue: null, newValue: mockWorkerAddress },
+          {
+            field: 'roles.worker',
+            oldValue: null,
+            newValue: mockWorkerAddress,
+          },
         ]),
         createMockEvent(JobEventType.Delivered, mockWorkerAddress, {
           result: 'Work completed successfully!',
@@ -384,13 +498,20 @@ export const createScenarioEvents = (scenario: string): JobEventWithDiffs[] => {
         ...baseEvents,
         createMockEvent(JobEventType.Taken, mockWorkerAddress, {}, [
           { field: 'state', oldValue: 'Open', newValue: 'Taken' },
-          { field: 'roles.worker', oldValue: null, newValue: mockWorkerAddress },
+          {
+            field: 'roles.worker',
+            oldValue: null,
+            newValue: mockWorkerAddress,
+          },
         ]),
-        createMockEvent(JobEventType.Disputed, mockAddress, {
-          content: 'The delivered work is incomplete.',
-        } as JobDisputedEvent, [
-          { field: 'disputed', oldValue: false, newValue: true },
-        ]),
+        createMockEvent(
+          JobEventType.Disputed,
+          mockAddress,
+          {
+            content: 'The delivered work is incomplete.',
+          } as JobDisputedEvent,
+          [{ field: 'disputed', oldValue: false, newValue: true }]
+        ),
       ];
 
     default:
@@ -399,17 +520,28 @@ export const createScenarioEvents = (scenario: string): JobEventWithDiffs[] => {
 };
 
 // ============ TEST DATA GENERATOR ============
-export const generateTestData = (selectedScenario: any, testUserRole: string) => {
-  const testAddress = testUserRole === 'creator' ? mockAddress :
-                     testUserRole === 'worker' ? mockWorkerAddress :
-                     mockArbitratorAddress;
-  
-  const testJob = createMockJob(selectedScenario.state, selectedScenario.disputed);
+export const generateTestData = (
+  selectedScenario: any,
+  testUserRole: string
+) => {
+  const testAddress =
+    testUserRole === 'creator'
+      ? mockAddress
+      : testUserRole === 'worker'
+        ? mockWorkerAddress
+        : mockArbitratorAddress;
+
+  const testJob = createMockJob(
+    selectedScenario.state,
+    selectedScenario.disputed
+  );
   if (selectedScenario.hasResult) {
-    testJob.resultHash = '0x123456789abcdef123456789abcdef123456789abcdef123456789abcdef12';
-    testJob.result = 'Dashboard complete! Live URL: https://defi-dashboard.vercel.app';
+    testJob.resultHash =
+      '0x123456789abcdef123456789abcdef123456789abcdef123456789abcdef12';
+    testJob.result =
+      'Dashboard complete! Live URL: https://defi-dashboard.vercel.app';
   }
-  
+
   const testEvents = createScenarioEvents(selectedScenario.id);
   const testAddresses = Object.keys(mockUsers);
   const testSessionKeys = {
@@ -420,7 +552,7 @@ export const generateTestData = (selectedScenario: any, testUserRole: string) =>
     [`${mockArbitratorAddress}-${mockAddress}`]: 'mock-session-key-5',
     [`${mockArbitratorAddress}-${mockWorkerAddress}`]: 'mock-session-key-6',
   };
-  
+
   return {
     job: testJob,
     events: testEvents,
@@ -432,6 +564,17 @@ export const generateTestData = (selectedScenario: any, testUserRole: string) =>
   };
 };
 
+// ============ STATUS STATES ============
+export const statusStates = [
+  { id: 'none', label: 'None' },
+  { id: 'assign', label: 'Assign Worker' },
+  { id: 'accepted', label: 'Worker Accepted' },
+  { id: 'verification', label: 'Result Verification' },
+  { id: 'completed', label: 'Result Accepted' },
+  { id: 'disputed', label: 'Dispute Started' },
+  { id: 'arbitrated', label: 'Arbitration Complete' },
+];
+
 // ============ TEST CONTROL BAR COMPONENT ============
 interface TestControlBarProps {
   selectedScenario: any;
@@ -439,76 +582,113 @@ interface TestControlBarProps {
   userRole: string;
   setUserRole: (role: any) => void;
   currentJob: Job;
+  selectedStatus?: string;
+  setSelectedStatus?: (status: string) => void;
 }
 
-export const TestControlBar: React.FC<TestControlBarProps> = ({ 
-  selectedScenario, 
-  setSelectedScenario, 
-  userRole, 
+export const TestControlBar: React.FC<TestControlBarProps> = ({
+  selectedScenario,
+  setSelectedScenario,
+  userRole,
   setUserRole,
-  currentJob 
+  currentJob,
+  selectedStatus = 'none',
+  setSelectedStatus,
 }) => (
   <div className='sticky top-0 z-50 mb-2 border-b border-gray-200 bg-white/95 backdrop-blur-sm dark:border-gray-700 dark:bg-gray-900/95'>
-    <div className='px-4 py-2'>
-      <div className='flex items-center justify-between gap-4'>
-        {/* Left: Scenarios */}
-        <div className='flex items-center gap-2'>
-          <span className='text-xs text-gray-500 dark:text-gray-400'>Test Scenario:</span>
-          <div className='flex gap-1'>
-            {scenarios.map((scenario) => (
-              <button
-                key={scenario.id}
-                onClick={() => setSelectedScenario(scenario)}
-                title={scenario.fullLabel}
-                className={clsx(
-                  'rounded px-2 py-0.5 text-xs font-medium transition-all',
-                  selectedScenario.id === scenario.id
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
-                )}
-              >
-                {scenario.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Center: View Role */}
-        <div className='flex items-center gap-2'>
-          <span className='text-xs text-gray-500 dark:text-gray-400'>View as:</span>
-          <div className='flex gap-1'>
-            {(['creator', 'worker', 'arbitrator'] as const).map((role) => (
-              <button
-                key={role}
-                onClick={() => setUserRole(role)}
-                className={clsx(
-                  'rounded px-2 py-0.5 text-xs font-medium capitalize transition-all',
-                  userRole === role
-                    ? 'bg-purple-600 text-white shadow-sm'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
-                )}
-              >
-                {role}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Right: Status */}
-        <div className='flex items-center gap-2'>
-          <span className='rounded bg-yellow-100 px-2 py-0.5 text-xs font-bold text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'>
-            TEST MODE
-          </span>
-          <span className='rounded px-2 py-0.5 text-xs font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'>
-            {JobState[currentJob.state]}
-          </span>
-          {currentJob.disputed && (
-            <span className='rounded px-2 py-0.5 text-xs font-semibold bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'>
-              Disputed
+    {/* Outer container with overflow-x-auto for horizontal scrolling */}
+    <div className='overflow-x-auto'>
+      {/* Inner container with min-width to prevent content from wrapping */}
+      <div className='min-w-max px-4 py-2'>
+        <div className='flex items-center justify-between gap-4'>
+          {/* Left: Scenarios */}
+          <div className='flex flex-shrink-0 items-center gap-2'>
+            <span className='text-xs text-gray-500 dark:text-gray-400'>
+              Scenario:
             </span>
+            <div className='flex gap-1'>
+              {scenarios.map((scenario) => (
+                <button
+                  key={scenario.id}
+                  onClick={() => setSelectedScenario(scenario)}
+                  title={scenario.fullLabel}
+                  className={clsx(
+                    'whitespace-nowrap rounded px-2 py-0.5 text-xs font-medium transition-all',
+                    selectedScenario.id === scenario.id
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
+                  )}
+                >
+                  {scenario.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Center: View Role */}
+          <div className='flex flex-shrink-0 items-center gap-2'>
+            <span className='text-xs text-gray-500 dark:text-gray-400'>
+              View:
+            </span>
+            <div className='flex gap-1'>
+              {(['creator', 'worker', 'arbitrator'] as const).map((role) => (
+                <button
+                  key={role}
+                  onClick={() => setUserRole(role)}
+                  className={clsx(
+                    'whitespace-nowrap rounded px-2 py-0.5 text-xs font-medium capitalize transition-all',
+                    userRole === role
+                      ? 'bg-purple-600 text-white shadow-sm'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
+                  )}
+                >
+                  {role}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Status State Dropdown */}
+          {setSelectedStatus && (
+            <div className='flex flex-shrink-0 items-center gap-2'>
+              <span className='text-xs text-gray-500 dark:text-gray-400'>
+                Status:
+              </span>
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className='rounded border border-gray-200 bg-white px-2 py-0.5 text-xs font-medium text-gray-700 transition-all hover:border-gray-300 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-500'
+              >
+                {statusStates.map((status) => (
+                  <option key={status.id} value={status.id}>
+                    {status.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           )}
+
+          {/* Right: Status badges */}
+          <div className='flex flex-shrink-0 items-center gap-2'>
+            <span className='whitespace-nowrap rounded bg-yellow-100 px-2 py-0.5 text-xs font-bold text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'>
+              TEST MODE
+            </span>
+            <span className='whitespace-nowrap rounded bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'>
+              {JobState[currentJob.state]}
+            </span>
+            {currentJob.disputed && (
+              <span className='whitespace-nowrap rounded bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-600 dark:bg-red-900/30 dark:text-red-400'>
+                Disputed
+              </span>
+            )}
+          </div>
         </div>
       </div>
+    </div>
+
+    {/* Optional: Scroll indicator for mobile */}
+    <div className='pointer-events-none absolute bottom-0 right-2 flex h-full items-center md:hidden'>
+      <div className='h-full w-8 bg-gradient-to-l from-white/95 to-transparent dark:from-gray-900/95 dark:to-transparent' />
     </div>
   </div>
 );
