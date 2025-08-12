@@ -588,7 +588,7 @@ export function UpdateButton({
                                     <PiSparkle className='h-4 w-4 flex-shrink-0 text-yellow-500' />
                                     <div>
                                       <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>
-                                        I'm Feeling Lucky
+                                        I&apos;m Feeling Lucky
                                       </span>
                                       <p className='mt-0.5 text-xs text-gray-500 dark:text-gray-400'>
                                         {imFeelingLucky

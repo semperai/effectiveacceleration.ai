@@ -364,7 +364,7 @@ const JobSummary: React.FC<JobSummaryProps> = ({
                 <div className='mb-3 flex items-center gap-2'>
                   <Sparkles className='h-5 w-5 text-yellow-500' />
                   <h3 className='font-semibold text-gray-900 dark:text-gray-100'>
-                    I'm Feeling Lucky
+                    I&apos;m Feeling Lucky
                   </h3>
                 </div>
                 <div className='rounded-xl bg-gray-50 p-4 dark:bg-gray-700/50'>
