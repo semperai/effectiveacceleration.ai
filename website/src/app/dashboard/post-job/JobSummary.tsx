@@ -460,6 +460,7 @@ const JobSummary: React.FC<JobSummaryProps> = ({
                   deadline={BigInt(deadline)}
                   deliveryMethod={deliveryMethod}
                   arbitrator={selectedArbitratorAddress as Address}
+                  onTransactionStart={onTransactionStart} // Added this line
                   onSuccess={handleSubmitSuccess}
                   onError={handleSubmitError}
                 />

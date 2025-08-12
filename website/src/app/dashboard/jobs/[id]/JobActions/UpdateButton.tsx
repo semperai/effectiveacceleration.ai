@@ -4,7 +4,7 @@ import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
 import type { ComboBoxOption, Tag } from '@/service/FormsTypes';
-import { jobMeceTags } from '@/lib/constants';
+import { jobMeceTags, deliveryMethods, noYesOptions } from '@/lib/constants';
 import {
   convertToSeconds,
   getUnitAndValueFromSeconds,
@@ -24,16 +24,13 @@ import {
   PiSparkle,
   PiFileText,
   PiTag,
-  PiHash,
   PiCurrencyDollar,
   PiClock,
-  PiUser,
-  PiWarning,
+  PiScales,
   PiPencilSimple,
-  PiArrowRight,
   PiInfo,
-  PiCoins,
-  PiTimer,
+  PiTruck,
+  PiBriefcase,
   PiUsersThree,
 } from 'react-icons/pi';
 import * as Sentry from '@sentry/nextjs';
@@ -48,143 +45,21 @@ import {
 } from 'react';
 import { zeroAddress } from 'viem';
 import Image from 'next/image';
-import { Field, Label, Description, FieldGroup } from '@/components/Fieldset';
+import { FieldGroup } from '@/components/Fieldset';
 import { Input } from '@/components/Input';
 import { Textarea } from '@/components/Textarea';
 import ListBox from '@/components/ListBox';
 import TagsInput from '@/components/TagsInput';
-import { Combobox } from '@/components/ComboBox';
+import { PaymentInput } from '@/components/PaymentInput';
+import { DeliveryTimelineInput } from '@/components/DeliveryTimelineInput';
+import { ArbitratorSelector } from '@/components/ArbitratorSelector';
+import MinimalField from '@/components/MinimalField';
+import { tokens as appTokens, type Token } from '@/lib/tokens';
 
 export type UpdateButtonProps = {
   address: string | undefined;
   job: Job;
 };
-
-type FieldValidation = {
-  required?: boolean;
-  minLength?: number;
-  pattern?: RegExp;
-  custom?: (value: string) => string;
-};
-
-const validateField = (value: string, validation: FieldValidation): string => {
-  if (validation.required && !value) {
-    return 'This field is required';
-  }
-  if (validation.minLength && value.length < validation.minLength) {
-    return `Must be at least ${validation.minLength} characters long`;
-  }
-  if (validation.pattern && !validation.pattern.test(value)) {
-    return 'Invalid format';
-  }
-  if (validation.custom) {
-    return validation.custom(value);
-  }
-  return '';
-};
-
-const handleInputChange =
-  (
-    setter: React.Dispatch<React.SetStateAction<string>>,
-    errorSetter: React.Dispatch<React.SetStateAction<string>>,
-    validation: FieldValidation
-  ) =>
-  (e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    setter(value);
-    const errorMessage = validateField(value, validation);
-    errorSetter(errorMessage);
-  };
-
-// Enhanced Section Header Component
-const SectionHeader = ({
-  icon: Icon,
-  title,
-  subtitle,
-}: {
-  icon: any;
-  title: string;
-  subtitle?: string;
-}) => (
-  <div className='mb-6 border-b border-gray-100 pb-4 dark:border-gray-800'>
-    <div className='flex items-center gap-3'>
-      <div className='rounded-lg bg-gradient-to-br from-blue-50 to-purple-50 p-2 dark:from-blue-950/30 dark:to-purple-950/30'>
-        <Icon className='h-5 w-5 text-blue-600 dark:text-blue-400' />
-      </div>
-      <div>
-        <h3 className='text-base font-semibold text-gray-900 dark:text-white'>
-          {title}
-        </h3>
-        {subtitle && (
-          <p className='mt-0.5 text-xs text-gray-500 dark:text-gray-400'>
-            {subtitle}
-          </p>
-        )}
-      </div>
-    </div>
-  </div>
-);
-
-// Enhanced Field Component with better styling
-const EnhancedField = ({
-  children,
-  className = '',
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) => (
-  <div className={`group relative ${className}`}>
-    <div className='absolute inset-0 rounded-lg bg-gradient-to-r from-blue-500/0 via-blue-500/5 to-purple-500/0 opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
-    <div className='relative'>{children}</div>
-  </div>
-);
-
-// Styled Radio Group with modern design
-const StyledRadioGroup = ({
-  label,
-  options,
-  value,
-  onChange,
-  description,
-  icon: Icon,
-}: {
-  label: string;
-  options: string[];
-  value: string;
-  onChange: (value: string) => void;
-  description?: string;
-  icon?: any;
-}) => (
-  <EnhancedField>
-    <Field>
-      <div className='mb-2 flex flex-row items-center justify-between'>
-        <Label className='mb-0 flex items-center gap-2 pb-0'>
-          {Icon && (
-            <Icon className='h-4 w-4 text-gray-500 dark:text-gray-400' />
-          )}
-          {label}
-        </Label>
-        <div className='flex gap-2'>
-          {options.map((option) => (
-            <button
-              key={option}
-              type='button'
-              onClick={() => onChange(option)}
-              className={`rounded-lg border px-4 py-2 text-sm font-medium transition-all duration-200 ${
-                value === option
-                  ? 'border-transparent bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg shadow-blue-500/25'
-                  : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 dark:border-gray-700 dark:bg-gray-800/50 dark:text-gray-400 dark:hover:border-gray-600'
-              } `}
-            >
-              {option}
-            </button>
-          ))}
-        </div>
-      </div>
-      {description && <Description>{description}</Description>}
-    </Field>
-  </EnhancedField>
-);
 
 export function UpdateButton({
   address,
@@ -192,18 +67,40 @@ export function UpdateButton({
   ...rest
 }: UpdateButtonProps & React.ComponentPropsWithoutRef<'div'>) {
   const Config = useConfig();
+  const { data: arbitrators } = useArbitrators();
+  const { showError, showSuccess, showLoading, toast } = useToast();
+  const loadingToastIdRef = useRef<string | number | null>(null);
+
+  // Find the token from the job
+  const jobToken =
+    appTokens.find(
+      (token) => token.id.toLowerCase() === job.token.toLowerCase()
+    ) || appTokens.find((token) => token.symbol === 'USDC');
+
+  // State management
   const [title, setTitle] = useState<string>(job.title);
   const [titleError, setTitleError] = useState('');
   const [tagsError, setTagsError] = useState('');
   const [amountError, setAmountError] = useState('');
-  const [maxJobTimeError, setMaxJobTimeError] = useState('');
+  const [deadlineError, setDeadlineError] = useState('');
+  const [arbitratorError, setArbitratorError] = useState('');
+  const [categoryError, setCategoryError] = useState('');
+  const [validationAttempted, setValidationAttempted] = useState(false);
+
   const [tags, setTags] = useState<Tag[]>(
     job.tags.slice(1).map((tag, idx) => ({ id: Date.now() + idx, name: tag }))
   );
   const [amount, setAmount] = useState<string>(
     formatUnits(job.amount, tokensMap[job.token]?.decimals)
   );
-  const [maxTime, setMaxTime] = useState<number>(0);
+  const [selectedToken, setSelectedToken] = useState<Token | undefined>(
+    jobToken
+  );
+  const [tokenBalance, setTokenBalance] = useState<string | undefined>(
+    undefined
+  );
+
+  const [deadline, setDeadline] = useState<number>(0);
   const [selectedCategory, setSelectedCategory] = useState<{
     id: string;
     name: string;
@@ -211,39 +108,76 @@ export function UpdateButton({
   const [selectedUnitTime, setSelectedUnitTime] = useState<ComboBoxOption>(
     unitsDeliveryTime[2]
   );
-  const [deadlineError, setDeadlineError] = useState<string>('');
+
+  const [deliveryMethod, setDeliveryMethod] = useState(deliveryMethods[0].id);
+
   const whitelistWorkersValues = ['Yes', 'No'];
   const [whitelistWorkers, setWhitelistWorkers] = useState<string>(
     job.whitelistWorkers ? whitelistWorkersValues[0] : whitelistWorkersValues[1]
   );
 
   const [content, setContent] = useState<string>(job.content!);
-  const { data: arbitrators } = useArbitrators();
-  const excludes = [address];
-  const arbitratorList = [
-    { address_: zeroAddress, name: 'None', fee: '0' },
-    ...Object.values(arbitrators ?? {}).filter(
-      (user) => !excludes.includes(user.address_)
-    ),
-  ];
   const [selectedArbitratorAddress, setSelectedArbitratorAddress] =
     useState<string>(job.roles.arbitrator);
 
   const [isUpdating, setIsUpdating] = useState(false);
-  const { showError, showSuccess, showLoading, toast } = useToast();
+  const [isOpen, setIsOpen] = useState(false);
 
-  const loadingToastIdRef = useRef<string | number | null>(null);
-
-  // Cleanup function for dismissing loading toasts
-  const dismissLoadingToast = useCallback(() => {
-    if (loadingToastIdRef.current !== null) {
-      toast.dismiss(loadingToastIdRef.current);
-      loadingToastIdRef.current = null;
-    }
-  }, [toast]);
+  // Create wrapper divs for scroll refs
+  const jobTitleRef = useRef<HTMLDivElement>(null);
+  const jobDescriptionRef = useRef<HTMLDivElement>(null);
+  const jobCategoryRef = useRef<HTMLDivElement>(null);
+  const jobAmountRef = useRef<HTMLDivElement>(null);
+  const jobDeadlineRef = useRef<HTMLDivElement>(null);
+  const jobArbitratorRef = useRef<HTMLDivElement>(null);
 
   const { writeContractWithNotifications, isConfirming, isConfirmed, error } =
     useWriteContractWithNotifications();
+
+  // Convert between utils format and DeliveryTimelineInput format
+  const convertUnitForDisplay = (unit: ComboBoxOption): ComboBoxOption => {
+    const nameMap: { [key: string]: { name: string; id: string } } = {
+      minutes: { name: 'Minute', id: '1' },
+      hours: { name: 'Hour', id: '2' },
+      days: { name: 'Day', id: '3' },
+      weeks: { name: 'Week', id: '4' },
+      months: { name: 'Day', id: '3' },
+      years: { name: 'Day', id: '3' },
+    };
+
+    const mapped = nameMap[unit.name];
+    return mapped ? { ...unit, name: mapped.name, id: mapped.id } : unit;
+  };
+
+  const convertUnitFromDisplay = (unit: ComboBoxOption): ComboBoxOption => {
+    const idMap: { [key: string]: { name: string; id: string } } = {
+      '1': { name: 'minutes', id: '0' },
+      '2': { name: 'hours', id: '1' },
+      '3': { name: 'days', id: '2' },
+      '4': { name: 'weeks', id: '3' },
+    };
+
+    const mapped = idMap[unit.id];
+    if (mapped) {
+      return { ...unit, name: mapped.name, id: mapped.id };
+    }
+
+    const nameMap: { [key: string]: string } = {
+      Minute: 'minutes',
+      Minutes: 'minutes',
+      Hour: 'hours',
+      Hours: 'hours',
+      Day: 'days',
+      Days: 'days',
+      Week: 'weeks',
+      Weeks: 'weeks',
+    };
+
+    return {
+      ...unit,
+      name: nameMap[unit.name] || unit.name,
+    };
+  };
 
   useEffect(() => {
     if (job.tags) {
@@ -253,102 +187,254 @@ export function UpdateButton({
       let { unit, value } = getUnitAndValueFromSeconds(job?.maxTime);
       if (unit && value) {
         value = Math.ceil(value);
-        setMaxTime(value);
+        setDeadline(value);
         const unitDelivery = unitsDeliveryTime.find(
           (option) => option.name === unit
         );
-        setSelectedUnitTime(unitDelivery || unitsDeliveryTime[0]);
+        const displayUnit = unitDelivery
+          ? convertUnitForDisplay(unitDelivery)
+          : convertUnitForDisplay(unitsDeliveryTime[2]);
+        setSelectedUnitTime(displayUnit);
       }
     }
   }, [job]);
 
-  async function handleUpdate() {
-    setIsUpdating(true);
-    // Validate all fields before submission
-    const titleValidationMessage = validateField(title, {
-      required: true,
-      minLength: 3,
-    });
-
-    const tagsValidationMessage =
-      tags.length === 0 ? 'At least one tag is required' : '';
-    setTagsError(tagsValidationMessage);
-
-    const amountValidationMessage = validateField(amount, {
-      required: true,
-      custom: (value) =>
-        parseFloat(value) > 0 ? '' : 'Amount must be greater than 0',
-    });
-    setAmountError(amountValidationMessage);
-
-    const maxJobTimeValidationMessage = validateField(maxTime.toString(), {
-      required: true,
-      custom: (value) =>
-        parseFloat(value) > 0 ? '' : 'Must be greater than 0',
-    });
-    setMaxJobTimeError(maxJobTimeValidationMessage);
-    setTitleError(titleValidationMessage);
-
-    if (
-      !titleValidationMessage &&
-      !tagsValidationMessage &&
-      !amountValidationMessage &&
-      !maxJobTimeValidationMessage
-    ) {
-      let contentHash = ZeroHash;
-
-      if (content.length > 0) {
-        dismissLoadingToast();
-        loadingToastIdRef.current = showLoading(
-          'Publishing job post to IPFS...'
-        );
-        try {
-          const { hash } = await publishToIpfs(content);
-          contentHash = hash;
-        } catch (err) {
-          Sentry.captureException(err);
-          dismissLoadingToast();
-          showError('Failed to publish job post to IPFS');
-          setIsUpdating(false);
-          return;
-        }
-        dismissLoadingToast();
-        showSuccess('Job post published to IPFS');
-      }
-
-      const rawAmount = parseUnits(amount, tokensMap[job.token]?.decimals);
-      const deadlineInSeconds = maxTime
-        ? convertToSeconds(maxTime, selectedUnitTime.name)
-        : 0;
-      try {
-        await writeContractWithNotifications({
-          abi: MARKETPLACE_V1_ABI,
-          address: Config!.marketplaceAddress,
-          functionName: 'updateJobPost',
-          args: [
-            BigInt(job.id!),
-            title,
-            contentHash,
-            [selectedCategory?.id || '', ...tags.map((tag) => tag.name)],
-            rawAmount,
-            deadlineInSeconds,
-            selectedArbitratorAddress,
-            whitelistWorkers === whitelistWorkersValues[0],
-          ],
-        });
-      } catch (err: any) {
-        Sentry.captureException(err);
-        showError(`Error updating job: ${err.message}`);
-      } finally {
-        setIsUpdating(false);
-      }
-    } else {
-      setIsUpdating(false);
-      console.log('Form has errors');
+  const dismissLoadingToast = useCallback(() => {
+    if (loadingToastIdRef.current !== null) {
+      toast.dismiss(loadingToastIdRef.current);
+      loadingToastIdRef.current = null;
     }
-  }
+  }, [toast]);
 
-  const [isOpen, setIsOpen] = useState(false);
+  const validateTitle = useCallback((value: string) => {
+    setTitle(value);
+    if (value === '') {
+      setTitleError('This field is required');
+      return;
+    }
+    if (value.length < 3) {
+      setTitleError('Must be at least 3 characters long');
+      return;
+    }
+    setTitleError('');
+  }, []);
+
+  const validatePaymentAmount = useCallback((paymentAmount: string) => {
+    setAmount(paymentAmount);
+    const value = parseFloat(paymentAmount);
+
+    if (paymentAmount === '' || isNaN(value) || value === 0) {
+      setAmountError('Please enter a valid amount');
+      return;
+    }
+
+    setAmountError('');
+  }, []);
+
+  const validateArbitrator = useCallback(
+    (addr: string) => {
+      setSelectedArbitratorAddress(addr);
+      if (addr == address) {
+        setArbitratorError('You cannot be your own arbitrator');
+        return;
+      }
+      setArbitratorError('');
+    },
+    [address]
+  );
+
+  const validateDeadline = useCallback((deadlineStr: string) => {
+    if (deadlineStr === '') {
+      setDeadline(NaN);
+      setDeadlineError('This field is required');
+      return;
+    }
+    let deadline = parseInt(deadlineStr);
+    if (deadline < 0) deadline = -deadline;
+    if (deadline === 0 || isNaN(deadline)) {
+      setDeadlineError('Please enter a valid deadline');
+      return;
+    }
+    setDeadline(deadline);
+    setDeadlineError('');
+  }, []);
+
+  const handleBalanceUpdate = useCallback(
+    (balance: string | undefined) => {
+      setTokenBalance(balance);
+      if (
+        amountError === 'Insufficient balance' ||
+        amountError === 'Amount exceeds available balance'
+      ) {
+        setAmountError('');
+      }
+    },
+    [amountError]
+  );
+
+  const handleSubmit = useCallback(async () => {
+    setValidationAttempted(true);
+    setTitleError('');
+    setCategoryError('');
+    setAmountError('');
+    setDeadlineError('');
+    setArbitratorError('');
+
+    let hasErrors = false;
+    const errorFields: Array<{
+      ref: React.RefObject<HTMLDivElement>;
+      setter: (msg: string) => void;
+      message: string;
+    }> = [];
+
+    if (!title || title.length < 3) {
+      const msg = !title
+        ? 'Job title is required'
+        : 'Job title must be at least 3 characters';
+      errorFields.push({
+        ref: jobTitleRef,
+        setter: setTitleError,
+        message: msg,
+      });
+      hasErrors = true;
+    }
+
+    if (!selectedCategory) {
+      errorFields.push({
+        ref: jobCategoryRef,
+        setter: setCategoryError,
+        message: 'Please select a category',
+      });
+      hasErrors = true;
+    }
+
+    if (!amount || parseFloat(amount) <= 0) {
+      errorFields.push({
+        ref: jobAmountRef,
+        setter: setAmountError,
+        message: 'Please enter a valid payment amount',
+      });
+      hasErrors = true;
+    } else if (tokenBalance) {
+      const amountValue = parseFloat(amount);
+      const balanceValue = parseFloat(tokenBalance);
+      if (
+        !isNaN(amountValue) &&
+        !isNaN(balanceValue) &&
+        amountValue > balanceValue
+      ) {
+        errorFields.push({
+          ref: jobAmountRef,
+          setter: () => {},
+          message: '',
+        });
+        hasErrors = true;
+      }
+    }
+
+    if (!deadline || isNaN(deadline) || deadline <= 0) {
+      errorFields.push({
+        ref: jobDeadlineRef,
+        setter: setDeadlineError,
+        message: 'Please enter a valid deadline',
+      });
+      hasErrors = true;
+    }
+
+    if (selectedArbitratorAddress && selectedArbitratorAddress === address) {
+      errorFields.push({
+        ref: jobArbitratorRef,
+        setter: setArbitratorError,
+        message: 'You cannot be your own arbitrator',
+      });
+      hasErrors = true;
+    }
+
+    if (hasErrors) {
+      errorFields.forEach(({ setter, message }) => {
+        if (message) setter(message);
+      });
+      if (errorFields.length > 0 && errorFields[0].ref.current) {
+        errorFields[0].ref.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
+      }
+      return;
+    }
+
+    // Proceed with update
+    setIsUpdating(true);
+    let contentHash = ZeroHash;
+
+    if (content.length > 0) {
+      dismissLoadingToast();
+      loadingToastIdRef.current = showLoading('Publishing job post to IPFS...');
+      try {
+        const { hash } = await publishToIpfs(content);
+        contentHash = hash;
+      } catch (err) {
+        Sentry.captureException(err);
+        dismissLoadingToast();
+        showError('Failed to publish job post to IPFS');
+        setIsUpdating(false);
+        return;
+      }
+      dismissLoadingToast();
+      showSuccess('Job post published to IPFS');
+    }
+
+    const rawAmount = parseUnits(amount, tokensMap[job.token]?.decimals);
+    const deadlineInSeconds = deadline
+      ? convertToSeconds(
+          deadline,
+          convertUnitFromDisplay(selectedUnitTime).name
+        )
+      : 0;
+
+    try {
+      await writeContractWithNotifications({
+        abi: MARKETPLACE_V1_ABI,
+        address: Config!.marketplaceAddress,
+        functionName: 'updateJobPost',
+        args: [
+          BigInt(job.id!),
+          title,
+          contentHash,
+          [selectedCategory?.id || '', ...tags.map((tag) => tag.name)],
+          rawAmount,
+          deadlineInSeconds,
+          selectedArbitratorAddress,
+          whitelistWorkers === whitelistWorkersValues[0],
+        ],
+      });
+      closeModal();
+    } catch (err: any) {
+      Sentry.captureException(err);
+      showError(`Error updating job: ${err.message}`);
+    } finally {
+      setIsUpdating(false);
+    }
+  }, [
+    title,
+    amount,
+    tokenBalance,
+    selectedCategory,
+    deadline,
+    selectedArbitratorAddress,
+    address,
+    content,
+    tags,
+    selectedUnitTime,
+    whitelistWorkers,
+    job,
+    Config,
+    showLoading,
+    showSuccess,
+    showError,
+    dismissLoadingToast,
+    writeContractWithNotifications,
+  ]);
 
   function closeModal() {
     setIsOpen(false);
@@ -357,28 +443,6 @@ export function UpdateButton({
   function openModal() {
     setIsOpen(true);
   }
-
-  const validateDeadline = (deadlineStr: string) => {
-    if (deadlineStr === '') {
-      setMaxTime(0);
-      setDeadlineError('This field is required');
-      return;
-    }
-
-    let deadline = parseInt(deadlineStr);
-
-    if (deadline < 0) {
-      deadline = -deadline;
-    }
-
-    if (deadline === 0 || isNaN(deadline)) {
-      setDeadlineError('Please enter a valid deadline');
-      return;
-    }
-
-    setMaxTime(deadline);
-    setDeadlineError('');
-  };
 
   return (
     <>
@@ -394,7 +458,6 @@ export function UpdateButton({
             Edit Details
           </span>
         </div>
-        {/* Subtle gradient overlay on hover */}
         <div className='absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/0 via-blue-500/5 to-purple-500/0 opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
       </button>
 
@@ -432,9 +495,7 @@ export function UpdateButton({
                   <div className='relative'>
                     {/* Enhanced Header */}
                     <div className='relative overflow-hidden'>
-                      {/* Header gradient background */}
                       <div className='absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-blue-500/5' />
-
                       <div className='relative flex items-center justify-between border-b border-gray-200 p-6 dark:border-gray-800'>
                         <div className='flex items-center gap-4'>
                           <div className='relative'>
@@ -463,234 +524,235 @@ export function UpdateButton({
 
                     {/* Enhanced Form Content */}
                     <div className='max-h-[70vh] overflow-y-auto p-8'>
-                      {/* Job Details Section */}
-                      <div className='mb-8'>
-                        <SectionHeader
-                          icon={PiFileText}
-                          title='Job Information'
-                          subtitle='Basic details about your job posting'
-                        />
+                      <div className='flex w-full flex-col gap-8 lg:flex-row lg:gap-12'>
+                        {/* Left Column */}
+                        <div className='min-w-0 flex-1'>
+                          <div className='rounded-2xl border border-gray-200/50 bg-white/50 p-6 shadow-xl backdrop-blur-xl dark:border-gray-700/50 dark:bg-gray-900/50'>
+                            <h2 className='mb-6 flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100'>
+                              <PiBriefcase className='h-5 w-5 flex-shrink-0 text-blue-500' />
+                              <span className='min-w-0'>Job Details</span>
+                            </h2>
 
-                        <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
-                          <EnhancedField className='lg:col-span-2'>
-                            <Field>
-                              <Label>Job Title</Label>
-                              <Input
-                                value={title}
-                                placeholder='Enter a descriptive job title'
-                                onChange={handleInputChange(
-                                  setTitle,
-                                  setTitleError,
-                                  {
-                                    required: true,
-                                    minLength: 3,
-                                  }
-                                )}
-                                className='transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-600'
-                              />
-                              {titleError && (
-                                <div className='mt-1 flex items-center gap-1 text-xs text-red-500 dark:text-red-400'>
-                                  <PiWarning className='h-3 w-3' />
-                                  {titleError}
-                                </div>
-                              )}
-                            </Field>
-                          </EnhancedField>
-
-                          <EnhancedField className='lg:col-span-2'>
-                            <Field>
-                              <Label>Description</Label>
-                              <Textarea
-                                rows={5}
-                                value={content}
-                                onChange={(
-                                  e: ChangeEvent<HTMLTextAreaElement>
-                                ) => setContent(e.target.value)}
-                                placeholder='Provide detailed information about the job requirements, deliverables, and expectations...'
-                                className='transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-600'
-                              />
-                            </Field>
-                          </EnhancedField>
-
-                          <EnhancedField>
-                            <Field>
-                              <Label>Category</Label>
-                              <ListBox
-                                placeholder='Select Category'
-                                value={selectedCategory}
-                                onChange={(category) => {
-                                  if (typeof category !== 'string') {
-                                    setSelectedCategory(category);
-                                  }
-                                }}
-                                options={jobMeceTags}
-                              />
-                            </Field>
-                          </EnhancedField>
-
-                          <EnhancedField>
-                            <Field>
-                              <Label>Tags</Label>
-                              <TagsInput tags={tags} setTags={setTags} />
-                              {tagsError && (
-                                <div className='mt-1 flex items-center gap-1 text-xs text-red-500 dark:text-red-400'>
-                                  <PiWarning className='h-3 w-3' />
-                                  {tagsError}
-                                </div>
-                              )}
-                            </Field>
-                          </EnhancedField>
-                        </div>
-                      </div>
-
-                      {/* Payment Section */}
-                      <div className='mb-8'>
-                        <SectionHeader
-                          icon={PiCoins}
-                          title='Payment & Timeline'
-                          subtitle='Set your budget and delivery expectations'
-                        />
-
-                        <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
-                          <EnhancedField>
-                            <div className='flex gap-3'>
-                              <Field className='flex-1'>
-                                <Label>Payment Amount</Label>
-                                <Input
-                                  type='number'
-                                  value={amount}
-                                  onChange={(e) => {
-                                    setAmount(e.target.value);
-                                    const validation = validateField(
-                                      e.target.value,
-                                      {
-                                        required: true,
-                                        custom: (value) =>
-                                          parseFloat(value) > 0
-                                            ? ''
-                                            : 'Amount must be greater than 0',
-                                      }
-                                    );
-                                    setAmountError(validation);
-                                  }}
-                                  placeholder='0.00'
-                                  className='transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-600'
-                                />
-                                {amountError && (
-                                  <div className='mt-1 flex items-center gap-1 text-xs text-red-500 dark:text-red-400'>
-                                    <PiWarning className='h-3 w-3' />
-                                    {amountError}
-                                  </div>
-                                )}
-                              </Field>
-                              <Field className='flex-none'>
-                                <Label>Token</Label>
-                                <div className='mt-[7px] flex items-center gap-2 rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 px-4 py-2.5 dark:border-blue-800 dark:from-blue-950/30 dark:to-purple-950/30'>
-                                  <Image
-                                    src={tokenIcon(job.token)}
-                                    alt={`${tokensMap[job.token]?.symbol} token icon`}
-                                    width={20}
-                                    height={20}
-                                    className='h-5 w-5'
+                            <FieldGroup className='space-y-6'>
+                              <div ref={jobTitleRef} className='scroll-mt-24'>
+                                <MinimalField
+                                  error={titleError}
+                                  label='Job Title'
+                                  helperText='A short descriptive title for the job post'
+                                  required
+                                >
+                                  <Input
+                                    name='title'
+                                    value={title}
+                                    placeholder='e.g., Build a React dashboard'
+                                    required
+                                    minLength={3}
+                                    onChange={(
+                                      e: ChangeEvent<HTMLInputElement>
+                                    ) => validateTitle(e.target.value)}
+                                    className={`bg-white/50 dark:bg-gray-800/50 ${titleError ? '!border-red-500' : ''}`}
+                                    data-invalid={titleError ? true : undefined}
                                   />
-                                  <span className='text-sm font-semibold text-blue-700 dark:text-blue-300'>
-                                    {tokensMap[job.token]?.symbol}
-                                  </span>
-                                </div>
-                              </Field>
-                            </div>
-                          </EnhancedField>
+                                </MinimalField>
+                              </div>
 
-                          <EnhancedField>
-                            <div className='flex gap-3'>
-                              <Field className='flex-1'>
-                                <Label>Delivery Time</Label>
-                                <Input
-                                  type='number'
-                                  value={maxTime || ''}
-                                  min={1}
-                                  step={1}
-                                  placeholder='Enter time'
-                                  onChange={(e) =>
-                                    validateDeadline(e.target.value)
-                                  }
-                                  className='transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-600'
-                                />
-                                {deadlineError && (
-                                  <div className='mt-1 flex items-center gap-1 text-xs text-red-500 dark:text-red-400'>
-                                    <PiWarning className='h-3 w-3' />
-                                    {deadlineError}
+                              <div
+                                ref={jobDescriptionRef}
+                                className='scroll-mt-24'
+                              >
+                                <MinimalField
+                                  label='Description'
+                                  helperText='Provide a thorough description of the job'
+                                >
+                                  <Textarea
+                                    rows={10}
+                                    name='description'
+                                    placeholder='Describe what needs to be done, deliverables, requirements...'
+                                    value={content}
+                                    onChange={(
+                                      e: ChangeEvent<HTMLTextAreaElement>
+                                    ) => setContent(e.target.value)}
+                                    className='bg-white/50 dark:bg-gray-800/50'
+                                  />
+                                </MinimalField>
+                              </div>
+
+                              <div className='rounded-xl border border-blue-500/10 bg-gradient-to-r from-blue-500/5 to-purple-500/5 p-4'>
+                                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+                                  <div className='min-w-0 flex-1'>
+                                    <div className='flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300'>
+                                      <PiUsersThree className='h-4 w-4 flex-shrink-0 text-blue-500' />
+                                      <span>Whitelist Workers</span>
+                                    </div>
+                                    <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
+                                      Restrict who can apply to work on your job
+                                    </p>
                                   </div>
-                                )}
-                              </Field>
-                              <Field className='flex-1'>
-                                <Label>Time Unit</Label>
+                                  <div className='flex gap-4'>
+                                    {whitelistWorkersValues.map((option) => (
+                                      <label
+                                        key={option}
+                                        className='flex cursor-pointer items-center'
+                                      >
+                                        <input
+                                          type='radio'
+                                          name='whitelistWorkers'
+                                          value={option}
+                                          checked={whitelistWorkers === option}
+                                          onChange={(e) =>
+                                            setWhitelistWorkers(e.target.value)
+                                          }
+                                          className='mr-2 border-gray-300 text-blue-600 focus:ring-blue-500'
+                                        />
+                                        <span className='text-sm text-gray-700 dark:text-gray-300'>
+                                          {option}
+                                        </span>
+                                      </label>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div
+                                ref={jobCategoryRef}
+                                className='scroll-mt-24'
+                              >
+                                <MinimalField
+                                  error={categoryError}
+                                  label='Category'
+                                  icon={<PiTag className='h-4 w-4' />}
+                                  helperText='Select the category that best describes your job'
+                                  required
+                                >
+                                  <ListBox
+                                    placeholder='Select Category'
+                                    value={selectedCategory}
+                                    onChange={(category) => {
+                                      if (typeof category !== 'string') {
+                                        setSelectedCategory(category);
+                                        setCategoryError('');
+                                      }
+                                    }}
+                                    options={jobMeceTags}
+                                  />
+                                </MinimalField>
+                              </div>
+
+                              <MinimalField
+                                label='Tags'
+                                helperText='Add relevant tags to help workers find your job'
+                              >
+                                <TagsInput tags={tags} setTags={setTags} />
+                              </MinimalField>
+                            </FieldGroup>
+                          </div>
+                        </div>
+
+                        {/* Right Column */}
+                        <div className='min-w-0 flex-1'>
+                          <div className='rounded-2xl border border-gray-200/50 bg-white/50 p-6 shadow-xl backdrop-blur-xl dark:border-gray-700/50 dark:bg-gray-900/50'>
+                            <h2 className='mb-6 flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100'>
+                              <PiCurrencyDollar className='h-5 w-5 flex-shrink-0 text-green-500' />
+                              <span className='min-w-0'>
+                                Payment & Delivery
+                              </span>
+                            </h2>
+
+                            <FieldGroup className='space-y-6'>
+                              <div ref={jobAmountRef} className='scroll-mt-24'>
+                                <MinimalField
+                                  error={amountError}
+                                  label='Payment Amount'
+                                  icon={
+                                    <PiCurrencyDollar className='h-4 w-4' />
+                                  }
+                                  helperText='Set the payment amount for this job'
+                                  required
+                                >
+                                  <PaymentInput
+                                    amount={amount}
+                                    onAmountChange={validatePaymentAmount}
+                                    selectedToken={selectedToken}
+                                    onTokenSelect={setSelectedToken}
+                                    onBalanceUpdate={handleBalanceUpdate}
+                                    placeholder='Enter amount'
+                                    required
+                                    validateAmount={true}
+                                    disableTokenChange={true}
+                                    showTokenSymbol={true}
+                                  />
+                                </MinimalField>
+                              </div>
+
+                              <MinimalField
+                                label='Delivery Method'
+                                icon={<PiTruck className='h-4 w-4' />}
+                                helperText='Choose how the work should be delivered'
+                              >
                                 <ListBox
-                                  placeholder='Select unit'
-                                  value={selectedUnitTime}
-                                  onChange={(unit) => {
-                                    if (typeof unit !== 'string') {
-                                      setSelectedUnitTime(unit);
+                                  placeholder='Select Delivery Method'
+                                  value={deliveryMethod}
+                                  onChange={(method) => {
+                                    if (typeof method !== 'string') {
+                                      setDeliveryMethod(method.id);
                                     }
                                   }}
-                                  options={unitsDeliveryTime.map((unit) => ({
-                                    id: unit.id.toString(),
-                                    name: unit.name,
-                                  }))}
+                                  options={deliveryMethods}
                                 />
-                              </Field>
-                            </div>
-                          </EnhancedField>
-                        </div>
-                      </div>
+                              </MinimalField>
 
-                      {/* Settings Section */}
-                      <div>
-                        <SectionHeader
-                          icon={PiUsersThree}
-                          title='Job Settings'
-                          subtitle='Configure arbitration and worker preferences'
-                        />
+                              <div
+                                ref={jobDeadlineRef}
+                                className='scroll-mt-24'
+                              >
+                                <MinimalField
+                                  error={deadlineError}
+                                  label='Delivery Timeline'
+                                  icon={<PiClock className='h-4 w-4' />}
+                                  helperText='Set the expected delivery time for this job'
+                                  required
+                                >
+                                  <DeliveryTimelineInput
+                                    value={deadline}
+                                    onValueChange={validateDeadline}
+                                    selectedUnit={selectedUnitTime}
+                                    onUnitChange={(unit) =>
+                                      setSelectedUnitTime(unit)
+                                    }
+                                    placeholder='Enter time'
+                                  />
+                                </MinimalField>
+                              </div>
 
-                        <div className='space-y-6'>
-                          <EnhancedField>
-                            <Field>
-                              <Label>Arbitrator</Label>
-                              <Combobox
-                                placeholder='Select Arbitrator'
-                                value={selectedArbitratorAddress || ''}
-                                options={arbitratorList.map((arb) => ({
-                                  value: arb.address_,
-                                  label: `${arb.name} ${arb.address_ !== zeroAddress ? `• ${(+arb.fee / 100).toFixed(1)}% fee` : ''}`,
-                                }))}
-                                onChange={(addr) =>
-                                  setSelectedArbitratorAddress(addr)
-                                }
-                              />
-                              <Description>
-                                An arbitrator can help resolve disputes between
-                                you and the worker
-                              </Description>
-                            </Field>
-                          </EnhancedField>
-
-                          <StyledRadioGroup
-                            label='Whitelist Workers'
-                            options={['Yes', 'No']}
-                            value={whitelistWorkers}
-                            onChange={setWhitelistWorkers}
-                            description='Restrict who can apply to work on your job'
-                            icon={PiUsersThree}
-                          />
+                              <div
+                                ref={jobArbitratorRef}
+                                className='scroll-mt-24'
+                              >
+                                <MinimalField
+                                  error={arbitratorError}
+                                  label='Dispute Resolution'
+                                  icon={<PiScales className='h-4 w-4' />}
+                                  helperText='Select an arbitrator for third-party dispute resolution (optional)'
+                                >
+                                  <ArbitratorSelector
+                                    arbitrators={arbitrators || []}
+                                    selectedAddress={selectedArbitratorAddress}
+                                    onChange={validateArbitrator}
+                                    disabled={false}
+                                    showExternalLink={true}
+                                    showNoArbitrator={true}
+                                  />
+                                </MinimalField>
+                              </div>
+                            </FieldGroup>
+                          </div>
                         </div>
                       </div>
                     </div>
 
                     {/* Enhanced Footer */}
                     <div className='relative overflow-hidden'>
-                      {/* Footer gradient background */}
                       <div className='absolute inset-0 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900/50 dark:to-gray-800/50' />
-
                       <div className='relative border-t border-gray-200 p-6 dark:border-gray-800'>
                         <div className='flex items-center justify-between'>
                           <p className='text-sm text-gray-500 dark:text-gray-400'>
@@ -705,7 +767,7 @@ export function UpdateButton({
                               Cancel
                             </button>
                             <button
-                              onClick={handleUpdate}
+                              onClick={handleSubmit}
                               disabled={isUpdating || isConfirming}
                               className='rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 px-6 py-2.5 text-sm font-medium text-white shadow-lg shadow-blue-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:from-blue-600 hover:to-purple-600 hover:shadow-xl hover:shadow-blue-500/30 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50'
                             >

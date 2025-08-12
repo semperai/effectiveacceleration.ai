@@ -1,4 +1,5 @@
 import { ethers } from 'ethers';
+import { ERC20_ABI } from '@/lib/constants';
 
 // Token contract address
 export const TOKEN_ADDRESS = '0x9Eeab030a17528eFb2aC0F81D76fab8754e461BD';
@@ -18,11 +19,6 @@ export const BURN_ADDRESSES = [
 
 // Fixed total supply
 export const FIXED_TOTAL_SUPPLY = ethers.parseEther('6969696969');
-
-// ERC20 ABI - only including the functions we need
-export const ERC20_ABI = [
-  'function balanceOf(address account) view returns (uint256)',
-];
 
 // Cache stores
 const cacheStore = new Map<string, { value: string; timestamp: number }>();

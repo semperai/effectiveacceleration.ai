@@ -456,6 +456,12 @@
   animation: pulse-highlight 1s ease-in-out 2;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse-highlight {
+    animation: none;
+  }
+}
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }

@@ -157,7 +157,7 @@ const JobChatEvents: React.FC<JobChatEventsProps> = ({
   }, [events, currentUser, highlightedEventId]);
 
   useEffect(() => {
-    const ids = new Set(events.map((e) => e.id).filter(Boolean) as string[]);
+    const ids = new Set(events.map((e) => String(e.id)).filter(Boolean) as string[]);
     for (const key of Object.keys(eventRefs.current)) {
       if (!ids.has(key)) delete eventRefs.current[key];
     }
@@ -179,7 +179,7 @@ const JobChatEvents: React.FC<JobChatEventsProps> = ({
                       className='relative pb-8'
                       ref={(el) => {
                         if (event.id) {
-                          eventRefs.current[event.id] = el;
+                          eventRefs.current[String(event.id)] = el;
                         }
                       }}
                     >
