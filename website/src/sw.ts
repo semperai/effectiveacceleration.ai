@@ -65,7 +65,7 @@ self.addEventListener('push', (event) => {
     self.registration.showNotification('Effective Acceleration', {
       body: body,
       data: data,
-      icon: '/favicon.svg',
+      icon: '/favicon-96x96.png',
       requireInteraction: true,
     })
   );
