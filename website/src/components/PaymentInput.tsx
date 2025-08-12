@@ -20,6 +20,8 @@ interface PaymentInputProps {
   required?: boolean;
   className?: string;
   validateAmount?: boolean;
+  disableTokenChange?: boolean; // New prop to disable token selection
+  showTokenSymbol?: boolean; // New prop to show token symbol when selector is disabled
 }
 
 // Intelligent balance formatting
@@ -74,6 +76,8 @@ export const PaymentInput: React.FC<PaymentInputProps> = ({
   required = false,
   className = '',
   validateAmount = true,
+  disableTokenChange = false,
+  showTokenSymbol = true,
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
@@ -132,9 +136,11 @@ export const PaymentInput: React.FC<PaymentInputProps> = ({
   };
 
   const handleTokenSelect = (token: Token) => {
-    onTokenSelect(token);
-    // Reset interaction state when token changes
-    setHasInteracted(false);
+    if (!disableTokenChange) {
+      onTokenSelect(token);
+      // Reset interaction state when token changes
+      setHasInteracted(false);
+    }
   };
 
   // Also accept balance updates from TokenSelector if it provides them
@@ -179,7 +185,7 @@ export const PaymentInput: React.FC<PaymentInputProps> = ({
     <div className={`w-full ${className}`}>
       {/* Label - if provided separately */}
       {label && (
-        <label className='mb-2 block text-sm text-gray-700'>
+        <label className='mb-2 block text-sm text-gray-700 dark:text-gray-300'>
           {label}
           {required && <span className='ml-1 text-red-500'>*</span>}
         </label>
@@ -188,12 +194,16 @@ export const PaymentInput: React.FC<PaymentInputProps> = ({
       {/* Main Input Container - No wrapper, single border */}
       <div className='space-y-1.5'>
         <div
-          className={`relative flex items-center rounded-lg border bg-white transition-all duration-200 ${disabled ? 'cursor-not-allowed bg-gray-50 opacity-60' : ''} ${
+          className={`relative flex items-center rounded-lg border bg-white transition-all duration-200 dark:bg-gray-800/50 ${
+            disabled
+              ? 'cursor-not-allowed bg-gray-50 opacity-60 dark:bg-gray-900/50'
+              : ''
+          } ${
             displayError
-              ? 'border-red-300 focus-within:border-red-400'
+              ? 'border-red-300 focus-within:border-red-400 dark:border-red-700 dark:focus-within:border-red-600'
               : isFocused
-                ? 'border-gray-300'
-                : 'border-gray-200 hover:border-gray-300'
+                ? 'border-gray-300 dark:border-gray-600'
+                : 'border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600'
           } `}
           style={{ height: '40px' }} // Fixed height matching normal inputs
         >
@@ -209,7 +219,9 @@ export const PaymentInput: React.FC<PaymentInputProps> = ({
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
               disabled={disabled}
-              className={`h-full flex-1 rounded-l-lg border-0 bg-transparent px-3 text-sm text-gray-900 placeholder-gray-400 outline-none focus:outline-none focus:ring-0 disabled:cursor-not-allowed ${tokenBalance ? 'pr-12' : 'pr-3'} `}
+              className={`h-full flex-1 rounded-l-lg border-0 bg-transparent px-3 text-sm text-gray-900 placeholder-gray-400 outline-none focus:outline-none focus:ring-0 disabled:cursor-not-allowed dark:text-gray-100 dark:placeholder-gray-500 ${
+                tokenBalance ? 'pr-12' : 'pr-3'
+              } `}
               style={{
                 boxShadow: 'none',
                 WebkitAppearance: 'none',
@@ -223,7 +235,7 @@ export const PaymentInput: React.FC<PaymentInputProps> = ({
               <button
                 type='button'
                 onClick={handleMaxClick}
-                className='absolute right-2 rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-500 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-700'
+                className='absolute right-2 rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-500 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700/50 dark:hover:text-gray-200'
               >
                 MAX
               </button>
@@ -231,28 +243,53 @@ export const PaymentInput: React.FC<PaymentInputProps> = ({
           </div>
 
           {/* Divider - Softer gray */}
-          <div className='mr-1 h-5 w-px bg-gray-200' />
+          <div className='mr-1 h-5 w-px bg-gray-200 dark:bg-gray-700' />
 
-          {/* Token Selector - Compact version with balance callback */}
+          {/* Token Selector or Static Token Display */}
           <div
-            className={`flex h-full items-center pr-1 ${disabled ? 'pointer-events-none opacity-60' : ''} `}
+            className={`flex h-full items-center pr-1 ${
+              disabled || disableTokenChange
+                ? 'pointer-events-none opacity-60'
+                : ''
+            } `}
           >
-            <TokenSelector
-              selectedToken={selectedToken}
-              onClick={handleTokenSelect}
-              onBalanceChange={handleBalanceChange}
-              persistSelection={true}
-              compact={true}
-            />
+            {disableTokenChange && selectedToken && showTokenSymbol ? (
+              // Static token display when selector is disabled
+              <div className='flex items-center gap-2 px-3 py-2'>
+                {selectedToken.icon && (
+                  <img
+                    src={selectedToken.icon}
+                    alt={selectedToken.symbol}
+                    className='h-5 w-5 rounded-full'
+                  />
+                )}
+                <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                  {selectedToken.symbol}
+                </span>
+              </div>
+            ) : (
+              // Full token selector
+              <TokenSelector
+                selectedToken={selectedToken}
+                onClick={handleTokenSelect}
+                onBalanceChange={handleBalanceChange}
+                persistSelection={!disableTokenChange}
+                compact={true}
+              />
+            )}
           </div>
         </div>
 
         {/* Balance Display - Always show if available */}
         {tokenBalance && selectedToken && (
-          <div className='px-1 text-xs text-gray-500'>
+          <div className='px-1 text-xs text-gray-500 dark:text-gray-400'>
             Balance:{' '}
             <span
-              className={`font-medium ${isInsufficientBalance && hasInteracted ? 'text-red-600' : 'text-gray-700'}`}
+              className={`font-medium ${
+                isInsufficientBalance && hasInteracted
+                  ? 'text-red-600 dark:text-red-400'
+                  : 'text-gray-700 dark:text-gray-300'
+              }`}
             >
               {formattedBalance} {selectedToken.symbol}
             </span>
@@ -261,7 +298,7 @@ export const PaymentInput: React.FC<PaymentInputProps> = ({
 
         {/* Error - Only show external errors or validation errors after interaction */}
         {displayError && (
-          <div className='flex items-center gap-1 px-1 text-xs text-red-600'>
+          <div className='flex items-center gap-1 px-1 text-xs text-red-600 dark:text-red-400'>
             <AlertCircle className='h-3 w-3' />
             <span>{displayError}</span>
           </div>
@@ -269,7 +306,9 @@ export const PaymentInput: React.FC<PaymentInputProps> = ({
 
         {/* Helper text */}
         {!displayError && helperText && (
-          <p className='px-1 text-xs text-gray-500'>{helperText}</p>
+          <p className='px-1 text-xs text-gray-500 dark:text-gray-400'>
+            {helperText}
+          </p>
         )}
       </div>
     </div>

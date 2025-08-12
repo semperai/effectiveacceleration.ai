@@ -7,7 +7,7 @@ import { useAccount, useReadContract } from 'wagmi';
 import useUser from '@/hooks/subsquid/useUser';
 import { ConnectButton } from '@/components/ConnectButton';
 import useArbitrator from '@/hooks/subsquid/useArbitrator';
-import ERC20Abi from '@/abis/ERC20.json';
+import { ERC20_ABI } from '@/lib/constants';
 import { formatUnits } from 'viem';
 import { UserPlus } from 'lucide-react';
 import Image from 'next/image';
@@ -30,9 +30,9 @@ const EACCBalance = () => {
 
   const { data: balance, isLoading } = useReadContract({
     address: EACC_TOKEN_ADDRESS,
-    abi: ERC20Abi,
+    abi: ERC20_ABI,
     functionName: 'balanceOf',
-    args: [address],
+    args: [address as `0x${string}`],
     query: {
       enabled: !!address,
     },
@@ -56,7 +56,7 @@ const EACCBalance = () => {
           await window.ethereum.request({
             method: 'wallet_watchAsset',
             params: {
-              type: 'ERC20',
+              type: 'ERC20_ABI',
               options: {
                 address: EACC_TOKEN_ADDRESS,
                 symbol: 'EACC',

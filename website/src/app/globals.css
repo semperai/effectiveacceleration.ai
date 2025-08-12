@@ -437,7 +437,53 @@
   }
 }
 
-/* Vendor-Specific Styles (Consider moving to component) */
-#sentry-feedback > button {
-  transform: translateY(-140px);
+@keyframes pulse-highlight {
+  0%,
+  100% {
+    background-color: rgba(251, 191, 36, 0);
+  }
+  50% {
+    background-color: rgba(251, 191, 36, 0.1);
+  }
+}
+
+.animate-pulse-highlight {
+  animation: pulse-highlight 1s ease-in-out 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse-highlight {
+    animation: none;
+  }
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.bg-stripes {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    rgba(251, 191, 36, 0.1) 10px,
+    rgba(251, 191, 36, 0.1) 20px
+  );
 }

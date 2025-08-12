@@ -1,5 +1,4 @@
 import React from 'react';
-import { Label } from '@/components/Fieldset';
 import { AlertCircle } from 'lucide-react';
 
 const MinimalField = React.memo(
@@ -28,12 +27,12 @@ const MinimalField = React.memo(
               {icon}
             </span>
           )}
-          <Label className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+          <label className='text-sm font-medium text-gray-700 dark:text-gray-300'>
             {label}
             {required && (
               <span className='ml-1 text-base font-bold text-red-500'>*</span>
             )}
-          </Label>
+          </label>
         </div>
       )}
       <div className='relative'>{children}</div>

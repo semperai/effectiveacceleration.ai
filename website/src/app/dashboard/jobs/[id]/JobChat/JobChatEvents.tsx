@@ -156,27 +156,18 @@ const JobChatEvents: React.FC<JobChatEventsProps> = ({
     }
   }, [events, currentUser, highlightedEventId]);
 
+  useEffect(() => {
+    const ids = new Set(events.map((e) => String(e.id)).filter(Boolean) as string[]);
+    for (const key of Object.keys(eventRefs.current)) {
+      if (!ids.has(key)) delete eventRefs.current[key];
+    }
+  }, [events]);
+
   return (
     <>
-      <style jsx global>{`
-        @keyframes pulse-highlight {
-          0%,
-          100% {
-            background-color: rgba(251, 191, 36, 0);
-          }
-          50% {
-            background-color: rgba(251, 191, 36, 0.1);
-          }
-        }
-
-        .animate-pulse-highlight {
-          animation: pulse-highlight 1s ease-in-out 2;
-        }
-      `}</style>
-
       <div
         ref={chatContainerRef}
-        className='relative row-span-4 max-h-customHeader overflow-y-auto border border-gray-100 bg-softBlue px-4'
+        className='relative row-span-4 max-h-customHeader overflow-y-auto border border-gray-100 bg-softBlue notifications-scroll px-4'
       >
         {selectedWorker && events.length > 0 ? (
           <>
@@ -188,7 +179,7 @@ const JobChatEvents: React.FC<JobChatEventsProps> = ({
                       className='relative pb-8'
                       ref={(el) => {
                         if (event.id) {
-                          eventRefs.current[event.id] = el;
+                          eventRefs.current[String(event.id)] = el;
                         }
                       }}
                     >
@@ -200,8 +191,8 @@ const JobChatEvents: React.FC<JobChatEventsProps> = ({
                       ) : null}
                       <div
                         className={clsx(
-                          'relative flex items-start space-x-3 rounded-lg transition-all duration-300',
-                          event.id === highlightedEventId
+                          'relative flex items-start space-x-3 rounded-lg transition-all duration-300 scroll-mt-24',
+                          String(event.id) === String(highlightedEventId)
                             ? 'border-r-4 border-dashed border-r-yellow-500 bg-yellow-50/50 pr-2 dark:bg-yellow-900/10'
                             : ''
                         )}
@@ -283,8 +274,10 @@ const JobChatEvents: React.FC<JobChatEventsProps> = ({
           <div className='absolute bottom-3 right-12'>
             <div className='fixed bottom-20 max-h-[32px] w-6 animate-[slideIn_0.5s_ease-out] place-items-center rounded-full bg-gray-400 px-[16px] py-[4px] text-white hover:cursor-pointer'>
               <ChevronDown
-                size='2'
                 onClick={() => scrollToEnd()}
+                role='button'
+                tabIndex={0}
+                aria-label='Scroll to latest message'
                 className='h-6 w-6 text-sm text-white'
               />
               {newMessage && (

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
-import Image from 'next/image';
+import Image, { StaticImageData } from 'next/image';
 import {
   PiSparkle,
   PiTrendUp,
@@ -12,6 +12,10 @@ import {
   PiRocket,
   PiHandshake,
   PiMegaphone,
+  PiTwitterLogoFill,
+  PiAt,
+  PiLink,
+  PiWarning,
 } from 'react-icons/pi';
 import {
   Target,
@@ -21,46 +25,56 @@ import {
   Gift,
   BarChart3,
   CheckCircle,
+  Hash,
+  MessageCircle,
+  Share2,
+  AlertCircle,
 } from 'lucide-react';
 import { WeeklyDistributionData } from './types';
 import { WeeklyDistribution } from './WeeklyDistribution';
 import { StatsCard } from './StatsCard';
-import { mockWeeklyData } from './mockData';
+import { WEEKLY_DATA } from './data';
+
+import socialHero1 from '@/images/social-hero-1.webp';
+import socialHero2 from '@/images/social-hero-2.webp';
+import socialHero3 from '@/images/social-hero-3.webp';
+import socialHero4 from '@/images/social-hero-4.webp';
+import socialHero5 from '@/images/social-hero-5.webp';
 
 export default function SocialProgramPage() {
   const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(
-    new Set([mockWeeklyData[0]?.weekNumber])
+    new Set([WEEKLY_DATA[0]?.weekNumber])
   );
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  // Array of hero images
-  const heroImages = [
-    '/social-hero-1.webp',
-    '/social-hero-2.webp',
-    '/social-hero-3.webp',
-    '/social-hero-4.webp',
-    '/social-hero-5.webp',
+  // Array of hero images with imported images
+  const heroImages: StaticImageData[] = [
+    socialHero1,
+    socialHero2,
+    socialHero3,
+    socialHero4,
+    socialHero5,
   ];
 
   // Auto-transition images every 5 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImageIndex((prevIndex) => (prevIndex + 1) % heroImages.length);
-    }, 5000); // Change image every 5 seconds
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [heroImages.length]);
 
   // Calculate totals
   const totals = useMemo(() => {
-    const totalDistributed = mockWeeklyData.reduce(
+    const totalDistributed = WEEKLY_DATA.reduce(
       (sum, week) => sum + week.totalDistributed,
       0
     );
     const totalContributors = new Set(
-      mockWeeklyData.flatMap((week) => week.contributors.map((c) => c.address))
+      WEEKLY_DATA.flatMap((week) => week.contributors.map((c) => c.address))
     ).size;
-    const weeksCompleted = mockWeeklyData.length;
+    const weeksCompleted = WEEKLY_DATA.length;
     const weeksRemaining = 52 - weeksCompleted;
 
     return {
@@ -118,6 +132,29 @@ export default function SocialProgramPage() {
                 distributed to top contributors based on their measurable
                 impact.
               </p>
+
+              {/* Twitter CTA Banner */}
+              <div className='mb-8 rounded-xl border-2 border-blue-500/30 bg-gradient-to-r from-blue-500/10 to-purple-500/10 p-4 backdrop-blur-sm'>
+                <div className='flex items-center gap-3'>
+                  <PiTwitterLogoFill className='h-8 w-8 text-blue-500' />
+                  <div className='flex-1'>
+                    <p className='font-semibold text-gray-900 dark:text-gray-100'>
+                      Tag @eaccmarket to be eligible for rewards!
+                    </p>
+                    <p className='text-sm text-gray-600 dark:text-gray-400'>
+                      Share your contributions on X with our handle and link
+                    </p>
+                  </div>
+                  <a
+                    href='https://x.com/intent/tweet?text=%F0%9F%9A%80%20Just%20shipped%20a%20new%20contribution%20to%20the%20EACC%20ecosystem!%0A%0ACheck%20it%20out%3A%20%5Byour-link-here%5D%0A%0A%40eaccmarket%20%23eacc'
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-600'
+                  >
+                    See How
+                  </a>
+                </div>
+              </div>
 
               {/* Progress bar */}
               <div className='mb-8'>
@@ -194,27 +231,16 @@ export default function SocialProgramPage() {
                         priority={index === 0}
                         sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px'
                         quality={90}
+                        placeholder='blur'
                       />
                     </div>
                   ))}
 
-                  {/* Gradient Overlays - Multiple layers for depth - Reduce opacity on hover */}
-                  {/* Base gradient for overall tint */}
+                  {/* Gradient Overlays */}
                   <div className='absolute inset-0 bg-gradient-to-br from-blue-600/40 via-purple-600/30 to-pink-600/40 transition-opacity duration-500 group-hover:opacity-50' />
-
-                  {/* Directional gradients for edge darkening */}
                   <div className='absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent transition-opacity duration-500 group-hover:opacity-30' />
                   <div className='absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-black/30 transition-opacity duration-500 group-hover:opacity-20' />
-
-                  {/* Animated shimmer effect */}
                   <div className='animate-shimmer absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-opacity duration-500 group-hover:opacity-50' />
-
-                  {/* Optional: Mesh gradient for more organic look */}
-                  <div className='absolute inset-0 opacity-30 transition-opacity duration-500 group-hover:opacity-10'>
-                    <div className='absolute left-0 top-0 h-1/2 w-1/2 bg-blue-500/30 blur-3xl' />
-                    <div className='absolute bottom-0 right-0 h-1/2 w-1/2 bg-purple-500/30 blur-3xl' />
-                    <div className='absolute left-1/2 top-1/2 h-1/3 w-1/3 -translate-x-1/2 -translate-y-1/2 bg-pink-500/30 blur-2xl' />
-                  </div>
 
                   {/* Image Indicators */}
                   <div className='absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 gap-2'>
@@ -262,7 +288,7 @@ export default function SocialProgramPage() {
         {/* How It Works Section */}
         <div className='mb-12'>
           <h2 className='mb-8 text-center text-3xl font-bold text-gray-900 dark:text-gray-100'>
-            How It Works
+            The Process
           </h2>
           <div className='grid gap-6 md:grid-cols-3'>
             <div className='rounded-xl border border-gray-200/50 bg-white/50 p-6 backdrop-blur-xl dark:border-gray-700/50 dark:bg-gray-900/50'>
@@ -270,13 +296,16 @@ export default function SocialProgramPage() {
                 <PiMegaphone className='h-6 w-6 text-blue-600 dark:text-blue-400' />
               </div>
               <h3 className='mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100'>
-                1. Create & Share
+                1. Create & Share on X
               </h3>
-              <p className='text-sm text-gray-600 dark:text-gray-400'>
-                Produce content, build tools, or grow the community. Every
-                contribution matters - from tweets to tutorials, from code to
-                collaborations.
+              <p className='mb-3 text-sm text-gray-600 dark:text-gray-400'>
+                Produce valuable content and share it on X.
               </p>
+              <div className='rounded-lg bg-blue-50 p-2 dark:bg-blue-900/20'>
+                <p className='text-xs font-medium text-blue-700 dark:text-blue-300'>
+                  Must tag @eaccmarket + include link
+                </p>
+              </div>
             </div>
 
             <div className='rounded-xl border border-gray-200/50 bg-white/50 p-6 backdrop-blur-xl dark:border-gray-700/50 dark:bg-gray-900/50'>
@@ -286,11 +315,14 @@ export default function SocialProgramPage() {
               <h3 className='mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100'>
                 2. AI Evaluation
               </h3>
-              <p className='text-sm text-gray-600 dark:text-gray-400'>
-                Our proprietary AI system evaluates contributions based on
-                quality, reach, engagement, and overall impact on ecosystem
-                growth.
+              <p className='mb-3 text-sm text-gray-600 dark:text-gray-400'>
+                Our AI scans X for @eaccmarket mentions and evaluates impact.
               </p>
+              <div className='rounded-lg bg-purple-50 p-2 dark:bg-purple-900/20'>
+                <p className='text-xs font-medium text-purple-700 dark:text-purple-300'>
+                  Quality, reach & engagement metrics
+                </p>
+              </div>
             </div>
 
             <div className='rounded-xl border border-gray-200/50 bg-white/50 p-6 backdrop-blur-xl dark:border-gray-700/50 dark:bg-gray-900/50'>
@@ -298,13 +330,16 @@ export default function SocialProgramPage() {
                 <Gift className='h-6 w-6 text-green-600 dark:text-green-400' />
               </div>
               <h3 className='mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100'>
-                3. Earn Rewards
+                3. Weekly Rewards
               </h3>
-              <p className='text-sm text-gray-600 dark:text-gray-400'>
-                Top contributors receive EACC tokens every week. All
-                distributions are transparent and recorded on-chain for complete
-                accountability.
+              <p className='mb-3 text-sm text-gray-600 dark:text-gray-400'>
+                Top contributors receive EACC tokens transparently on-chain.
               </p>
+              <div className='rounded-lg bg-green-50 p-2 dark:bg-green-900/20'>
+                <p className='text-xs font-medium text-green-700 dark:text-green-300'>
+                  Distributed every week for 52 weeks
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -433,20 +468,20 @@ export default function SocialProgramPage() {
 
         {/* Weekly Distributions */}
         <div className='space-y-4'>
-          {mockWeeklyData
-            .sort((a, b) => b.weekNumber - a.weekNumber)
-            .map((week) => (
+          {WEEKLY_DATA.sort((a, b) => b.weekNumber - a.weekNumber).map(
+            (week) => (
               <WeeklyDistribution
                 key={week.weekNumber}
                 weekData={week}
                 isExpanded={expandedWeeks.has(week.weekNumber)}
                 onToggle={() => toggleWeek(week.weekNumber)}
               />
-            ))}
+            )
+          )}
         </div>
 
         {/* Empty state */}
-        {mockWeeklyData.length === 0 && (
+        {WEEKLY_DATA.length === 0 && (
           <div className='py-12 text-center'>
             <p className='text-gray-500 dark:text-gray-400'>
               No distributions yet. Check back soon!
