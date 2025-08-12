@@ -441,3 +441,17 @@
 #sentry-feedback > button {
   transform: translateY(-140px);
 }
+
+@keyframes pulse-highlight {
+  0%,
+  100% {
+    background-color: rgba(251, 191, 36, 0);
+  }
+  50% {
+    background-color: rgba(251, 191, 36, 0.1);
+  }
+}
+
+.animate-pulse-highlight {
+  animation: pulse-highlight 1s ease-in-out 2;
+}

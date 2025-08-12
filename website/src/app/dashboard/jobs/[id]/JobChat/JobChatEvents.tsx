@@ -156,24 +156,15 @@ const JobChatEvents: React.FC<JobChatEventsProps> = ({
     }
   }, [events, currentUser, highlightedEventId]);
 
+  useEffect(() => {
+    const ids = new Set(events.map((e) => e.id).filter(Boolean) as string[]);
+    for (const key of Object.keys(eventRefs.current)) {
+      if (!ids.has(key)) delete eventRefs.current[key];
+    }
+  }, [events]);
+
   return (
     <>
-      <style jsx global>{`
-        @keyframes pulse-highlight {
-          0%,
-          100% {
-            background-color: rgba(251, 191, 36, 0);
-          }
-          50% {
-            background-color: rgba(251, 191, 36, 0.1);
-          }
-        }
-
-        .animate-pulse-highlight {
-          animation: pulse-highlight 1s ease-in-out 2;
-        }
-      `}</style>
-
       <div
         ref={chatContainerRef}
         className='relative row-span-4 max-h-customHeader overflow-y-auto border border-gray-100 bg-softBlue px-4'
