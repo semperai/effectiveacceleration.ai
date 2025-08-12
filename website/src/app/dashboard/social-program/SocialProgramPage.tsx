@@ -108,11 +108,11 @@ export default function SocialProgramPage() {
           <div className='absolute bottom-20 left-20 h-96 w-96 rounded-full bg-purple-500/10 blur-3xl' />
         </div>
 
-        <div className='relative mx-auto max-w-7xl px-4 py-16 sm:py-24'>
+        <div className='relative mx-auto max-w-7xl px-10 sm:py-12'>
           <div className='grid items-center gap-12 lg:grid-cols-2 lg:gap-16'>
             {/* Left side - Content */}
             <div>
-              <div className='mb-6 inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-gradient-to-r from-blue-500/10 to-purple-500/10 px-4 py-2 backdrop-blur-sm'>
+              <div className='mb-6 inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-gradient-to-r from-blue-500/10 to-purple-500/10 px-10 py-2 backdrop-blur-sm'>
                 <PiSparkle className='h-4 w-4 text-yellow-500' />
                 <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>
                   10% of Total Supply Allocated
@@ -126,7 +126,7 @@ export default function SocialProgramPage() {
                 </span>
               </h1>
 
-              <p className='mb-8 text-lg leading-relaxed text-gray-600 dark:text-gray-400'>
+              <p className='mb-8 leading-relaxed text-gray-600 dark:text-gray-400'>
                 Rewarding the builders, creators, and evangelists who grow the
                 Effective Acceleration ecosystem. Every week, EACC tokens are
                 distributed to top contributors based on their measurable
@@ -211,7 +211,7 @@ export default function SocialProgramPage() {
 
             {/* Right side - Visual with Image Carousel */}
             <div className='relative'>
-              <div className='group relative overflow-hidden rounded-2xl shadow-2xl'>
+              <div className='group relative overflow-hidden rounded-2xl shadow-2xl mx-[40px]'>
                 <div className='relative aspect-[4/3] lg:aspect-square'>
                   {/* Image Carousel */}
                   {heroImages.map((image, index) => (
@@ -284,7 +284,7 @@ export default function SocialProgramPage() {
       </section>
 
       {/* Main Content Section */}
-      <div className='relative mx-auto max-w-7xl px-4 py-12'>
+      <div className='relative mx-auto max-w-7xl px-10 py-12'>
         {/* How It Works Section */}
         <div className='mb-12'>
           <h2 className='mb-8 text-center text-3xl font-bold text-gray-900 dark:text-gray-100'>
