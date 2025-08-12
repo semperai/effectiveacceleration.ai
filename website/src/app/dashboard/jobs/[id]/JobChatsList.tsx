@@ -43,7 +43,7 @@ const JobChatsList = ({
                 <p className='text-xs text-gray-500 dark:text-gray-400'>
                   {selectedWorker
                     ? 'Click to change selection'
-                    : 'Select a conversation'}
+                    : 'Select an applicant'}
                 </p>
               </div>
             </div>
