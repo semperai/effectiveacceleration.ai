@@ -1,10 +1,10 @@
+import { ERC20_ABI } from '@/lib/constants';
 import React, { useState, useEffect } from 'react';
 import { useAccount, useReadContract } from 'wagmi';
 import type { Address } from 'viem';
 import { MaxUint256 } from 'ethers';
 import { Button } from '@/components/Button';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
-import ERC20Abi from '@/abis/ERC20.json';
 import { Alert, AlertDescription } from '@/components/Alert';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import * as Sentry from '@sentry/nextjs';
@@ -12,7 +12,7 @@ import * as Sentry from '@sentry/nextjs';
 interface ApproveButtonProps {
   token: Address;
   spender: Address;
-  onApproveSuccess?: () => void;
+  onApproveSuccess?: () => void | Promise<void>;
   onApproveError?: (error: Error) => void;
 }
 
@@ -32,9 +32,9 @@ export const ApproveButton = ({
     refetch: refetchAllowance,
   } = useReadContract({
     address: token,
-    abi: ERC20Abi,
+    abi: ERC20_ABI,
     functionName: 'allowance',
-    args: [address, spender],
+    args: [address as `0x${string}`, spender as `0x${string}`],
     query: {
       enabled: !!address && !!token && !!spender,
     },
@@ -46,11 +46,10 @@ export const ApproveButton = ({
   // Reset approving state when confirmation is complete
   useEffect(() => {
     if (isConfirmed) {
-      setIsApproving(false);
-      refetchAllowance();
-      onApproveSuccess?.();
+      // Don't immediately set isApproving to false here
+      // Let the onReceipt callback handle it
     }
-  }, [isConfirmed, onApproveSuccess]);
+  }, [isConfirmed]);
 
   // Handle errors
   useEffect(() => {
@@ -70,10 +69,19 @@ export const ApproveButton = ({
     try {
       setIsApproving(true);
       await writeContractWithNotifications({
-        abi: ERC20Abi,
+        abi: ERC20_ABI,
         address: token,
         functionName: 'approve',
         args: [spender, MaxUint256],
+        onReceipt: async () => {
+          // Give a small delay to ensure the blockchain state is updated
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          await refetchAllowance();
+          if (onApproveSuccess) {
+            await onApproveSuccess();
+          }
+          setIsApproving(false);
+        },
       });
     } catch (err) {
       Sentry.captureException(err);
@@ -84,7 +92,7 @@ export const ApproveButton = ({
 
   if (allowanceIsError) {
     return (
-      <Alert variant='destructive' className='bg-red-50 border-red-200'>
+      <Alert variant='destructive' className='border-red-200 bg-red-50'>
         <AlertCircle className='h-4 w-4 text-red-600' />
         <AlertDescription className='text-red-600'>
           Error checking token allowance. Please try again.
@@ -103,22 +111,20 @@ export const ApproveButton = ({
     <Button
       onClick={handleApprove}
       disabled={isApproving || isConfirming || isApproved || allowanceIsLoading}
-      className={`
-        min-w-[140px] px-6 py-3 rounded-xl font-medium transition-all duration-200
-        ${isApproved
-          ? 'bg-green-50 text-green-700 border border-green-200 cursor-not-allowed'
+      className={`min-w-[140px] rounded-xl px-6 py-3 font-medium transition-all duration-200 ${
+        isApproved
+          ? 'cursor-not-allowed border border-green-200 bg-green-50 text-green-700'
           : isApproving || isConfirming || allowanceIsLoading
-            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-            : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
-        }
-      `}
+            ? 'cursor-not-allowed bg-gray-200 text-gray-400'
+            : 'transform bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg hover:scale-105 hover:from-blue-700 hover:to-purple-700 hover:shadow-xl'
+      } `}
     >
       {isApproved ? (
         <span className='flex items-center gap-2'>
           <CheckCircle className='h-4 w-4' />
           {buttonText}
         </span>
-      ) : (isApproving || isConfirming) ? (
+      ) : isApproving || isConfirming ? (
         <span className='flex items-center gap-2'>
           <Loader2 className='h-4 w-4 animate-spin' />
           {buttonText}

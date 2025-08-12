@@ -4,7 +4,7 @@ import { Wallet, Shield, Zap } from 'lucide-react';
 
 const ConnectWallet = () => {
   return (
-    <div className='relative flex w-full max-w-md transform flex-col overflow-hidden rounded-3xl bg-white/95 backdrop-blur-md p-8 shadow-2xl transition-all dark:bg-gray-900/95'>
+    <div className='relative flex w-full max-w-md transform flex-col overflow-hidden rounded-3xl bg-white/95 p-8 shadow-2xl backdrop-blur-md transition-all dark:bg-gray-900/95'>
       {/* Decorative gradient background */}
       <div className='absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-blue-950/20 dark:via-gray-900 dark:to-purple-950/20' />
 

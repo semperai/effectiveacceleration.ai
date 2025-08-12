@@ -21,17 +21,26 @@ const DEFAULT: UseJobsProps = {
 };
 
 export default function useJobs(props: UseJobsProps = {}) {
-  const { fake, offset, limit, maxTimestamp, minTimestamp } = { ...DEFAULT, ...props };
-  if (fake) return { data: FAKE_JOBS_DATA };
+  const { fake, offset, limit, maxTimestamp, minTimestamp } = {
+    ...DEFAULT,
+    ...props,
+  };
 
+  // Always call hooks in the same order - use skip option for conditional execution
   const { data, ...rest } = useQuery(GET_JOBS(maxTimestamp, minTimestamp), {
     variables: { offset, limit: limit === 0 ? 1000 : limit },
+    skip: fake, // Skip the query if fake is true
   });
 
-  return useMemo(
-    () => ({ data: data ? (data?.jobs as Job[]) : undefined, ...rest }),
-    [offset, limit, maxTimestamp, minTimestamp, data, rest]
-  );
+  // Always call useMemo
+  const result = useMemo(() => {
+    if (fake) {
+      return { data: FAKE_JOBS_DATA };
+    }
+    return { data: data ? (data?.jobs as Job[]) : undefined, ...rest };
+  }, [fake, offset, limit, maxTimestamp, minTimestamp, data, rest]);
+
+  return result;
 }
 
 const FAKE_JOB = {

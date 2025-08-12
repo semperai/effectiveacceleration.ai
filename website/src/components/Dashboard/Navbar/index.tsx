@@ -7,7 +7,7 @@ import { useAccount, useReadContract } from 'wagmi';
 import useUser from '@/hooks/subsquid/useUser';
 import { ConnectButton } from '@/components/ConnectButton';
 import useArbitrator from '@/hooks/subsquid/useArbitrator';
-import ERC20Abi from '@/abis/ERC20.json';
+import { ERC20_ABI } from '@/lib/constants';
 import { formatUnits } from 'viem';
 import { UserPlus } from 'lucide-react';
 import Image from 'next/image';
@@ -30,9 +30,9 @@ const EACCBalance = () => {
 
   const { data: balance, isLoading } = useReadContract({
     address: EACC_TOKEN_ADDRESS,
-    abi: ERC20Abi,
+    abi: ERC20_ABI,
     functionName: 'balanceOf',
-    args: [address],
+    args: [address as `0x${string}`],
     query: {
       enabled: !!address,
     },
@@ -41,10 +41,13 @@ const EACCBalance = () => {
   if (!address || isLoading) return null;
 
   const formattedBalance = balance ? formatUnits(balance as bigint, 18) : '0';
-  const displayBalance = parseFloat(formattedBalance).toLocaleString(undefined, {
-    maximumFractionDigits: 2,
-    minimumFractionDigits: 0,
-  });
+  const displayBalance = parseFloat(formattedBalance).toLocaleString(
+    undefined,
+    {
+      maximumFractionDigits: 2,
+      minimumFractionDigits: 0,
+    }
+  );
 
   return (
     <button
@@ -53,7 +56,7 @@ const EACCBalance = () => {
           await window.ethereum.request({
             method: 'wallet_watchAsset',
             params: {
-              type: 'ERC20',
+              type: 'ERC20_ABI',
               options: {
                 address: EACC_TOKEN_ADDRESS,
                 symbol: 'EACC',
@@ -66,7 +69,7 @@ const EACCBalance = () => {
           console.error('Error adding token to MetaMask:', error);
         }
       }}
-      className='flex items-center gap-1.5 rounded-full bg-gray-100 pl-1.5 pr-2.5 py-1.5 text-sm font-medium transition-all hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700'
+      className='flex items-center gap-1.5 rounded-full bg-gray-100 py-1.5 pl-1.5 pr-2.5 text-sm font-medium transition-all hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700'
       title={`${formattedBalance} EACC - Click to add to wallet`}
     >
       <div className='h-5 w-5 overflow-hidden rounded-full'>
@@ -78,9 +81,7 @@ const EACCBalance = () => {
           className='h-full w-full object-cover'
         />
       </div>
-      <span className='text-gray-900 dark:text-gray-100'>
-        {displayBalance}
-      </span>
+      <span className='text-gray-900 dark:text-gray-100'>{displayBalance}</span>
     </button>
   );
 };
@@ -115,21 +116,30 @@ const SignUpButton = () => {
 
 // Custom 404 breadcrumb component
 const NotFoundBreadcrumb = () => (
-  <div className="flex items-center">
-    <a href="/dashboard" className="hover:underline font-medium text-sm text-gray-600 dark:text-gray-300 transition-colors">
+  <div className='flex items-center'>
+    <a
+      href='/dashboard'
+      className='text-sm font-medium text-gray-600 transition-colors hover:underline dark:text-gray-300'
+    >
       Dashboard
     </a>
-    <MdOutlineArrowForwardIos className='h-4 w-4 text-gray-300 dark:text-gray-600 mx-2' />
-    <span className="font-medium text-sm text-primary">
-      Page Not Found
-    </span>
+    <MdOutlineArrowForwardIos className='mx-2 h-4 w-4 text-gray-300 dark:text-gray-600' />
+    <span className='text-sm font-medium text-primary'>Page Not Found</span>
   </div>
 );
 
-const Navbar = ({ setSidebarOpen, sidebarOpen, hiddenSidebar, pageTitle, is404 }: NavbarProps) => {
+const Navbar = ({
+  setSidebarOpen,
+  sidebarOpen,
+  hiddenSidebar,
+  pageTitle,
+  is404,
+}: NavbarProps) => {
   const { address, isConnected, isReconnecting, isConnecting } = useAccount();
   const { data: user, loading: isLoadingUser } = useUser(address!);
-  const { data: arbitrator, loading: isLoadingArbitrator } = useArbitrator(address!);
+  const { data: arbitrator, loading: isLoadingArbitrator } = useArbitrator(
+    address!
+  );
 
   // Track if this is the initial mount to show skeleton while wagmi initializes
   const [hasMounted, setHasMounted] = useState(false);
@@ -153,7 +163,8 @@ const Navbar = ({ setSidebarOpen, sidebarOpen, hiddenSidebar, pageTitle, is404 }
   const isInitializing = !hasMounted || isReconnecting || isConnecting;
 
   // We're loading user data if connected and either hook is still loading
-  const isLoadingUserData = isConnected && (isLoadingUser || isLoadingArbitrator);
+  const isLoadingUserData =
+    isConnected && (isLoadingUser || isLoadingArbitrator);
 
   // User is registered if they have either a user or arbitrator profile
   const isRegistered = !!(user || arbitrator);
@@ -228,8 +239,8 @@ const Navbar = ({ setSidebarOpen, sidebarOpen, hiddenSidebar, pageTitle, is404 }
               {is404 ? (
                 <NotFoundBreadcrumb />
               ) : pageTitle ? (
-                <div className="flex items-center">
-                  <span className="font-medium text-sm text-gray-600 dark:text-gray-300">
+                <div className='flex items-center'>
+                  <span className='text-sm font-medium text-gray-600 dark:text-gray-300'>
                     {pageTitle}
                   </span>
                 </div>

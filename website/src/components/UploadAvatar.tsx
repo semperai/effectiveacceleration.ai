@@ -3,7 +3,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { BsPersonPlus } from 'react-icons/bs';
 import { Field } from './Fieldset';
 import * as Sentry from '@sentry/nextjs';
-import { publishMediaToIpfs, safeGetMediaFromIpfs } from '@effectiveacceleration/contracts';
+import {
+  publishMediaToIpfs,
+  safeGetMediaFromIpfs,
+} from '@effectiveacceleration/contracts';
 import useFetchAvatar from '@/hooks/useFetchAvatar';
 import { useToast } from '@/hooks/useToast';
 
@@ -101,9 +104,8 @@ const UploadAvatar = ({
       }
 
       // Show immediate feedback that file was selected
-      const fileName = file.name.length > 20
-        ? file.name.substring(0, 17) + '...'
-        : file.name;
+      const fileName =
+        file.name.length > 20 ? file.name.substring(0, 17) + '...' : file.name;
       showSuccess(`Selected: ${fileName}`);
 
       const reader = new FileReader();
@@ -139,15 +141,14 @@ const UploadAvatar = ({
           <button
             onClick={handleAvatarClick}
             disabled={isUploading}
-            className={`
-              relative flex h-12 w-12 items-center justify-center rounded-full
-              ${isUploading
-                ? 'bg-gray-100 cursor-not-allowed'
-                : 'bg-gray-200 hover:bg-gray-300 cursor-pointer'
-              }
-              text-gray-500 transition-colors
-            `}
-            title={isUploading ? 'Uploading to IPFS...' : 'Click to upload avatar'}
+            className={`relative flex h-12 w-12 items-center justify-center rounded-full ${
+              isUploading
+                ? 'cursor-not-allowed bg-gray-100'
+                : 'cursor-pointer bg-gray-200 hover:bg-gray-300'
+            } text-gray-500 transition-colors`}
+            title={
+              isUploading ? 'Uploading to IPFS...' : 'Click to upload avatar'
+            }
           >
             {avatar ? (
               <>
@@ -158,7 +159,7 @@ const UploadAvatar = ({
                 />
                 {isUploading && (
                   <div className='absolute inset-0 flex items-center justify-center'>
-                    <div className='h-8 w-8 rounded-full bg-white/90 flex items-center justify-center'>
+                    <div className='flex h-8 w-8 items-center justify-center rounded-full bg-white/90'>
                       <svg
                         className='h-5 w-5 animate-spin text-blue-600'
                         fill='none'
@@ -183,7 +184,9 @@ const UploadAvatar = ({
                 )}
               </>
             ) : (
-              <BsPersonPlus className={`text-2xl ${isUploading ? 'opacity-50' : ''}`} />
+              <BsPersonPlus
+                className={`text-2xl ${isUploading ? 'opacity-50' : ''}`}
+              />
             )}
           </button>
 
@@ -191,8 +194,8 @@ const UploadAvatar = ({
           {isUploading && (
             <div className='absolute -bottom-1 -right-1 h-3 w-3'>
               <span className='flex h-3 w-3'>
-                <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75'></span>
-                <span className='relative inline-flex rounded-full h-3 w-3 bg-blue-500'></span>
+                <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75'></span>
+                <span className='relative inline-flex h-3 w-3 rounded-full bg-blue-500'></span>
               </span>
             </div>
           )}

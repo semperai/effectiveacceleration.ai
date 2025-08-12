@@ -10,11 +10,10 @@ export const CloseButton = ({ onClick }: CloseButtonProps) => {
   return (
     <button
       type='button'
-      className='p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-all duration-200'
+      className='rounded-lg p-1.5 text-gray-400 transition-all duration-200 hover:bg-white/10 hover:text-white'
       onClick={onClick}
     >
       <XMarkIcon className='h-5 w-5' />
     </button>
   );
 };
-

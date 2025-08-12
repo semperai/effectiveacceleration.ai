@@ -51,7 +51,7 @@ export const NotificationsButton = () => {
   }, [notifications]);
 
   const loadMoreNotifications = useCallback(() => {
-    setLimit(prev => prev + 20);
+    setLimit((prev) => prev + 20);
   }, []);
 
   // Close dropdown when clicking outside

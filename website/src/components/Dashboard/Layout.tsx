@@ -12,7 +12,7 @@ export function Layout({
   hiddenSidebar,
   classNames,
   pageTitle,
-  is404
+  is404,
 }: {
   children: React.ReactNode;
   borderless?: boolean;
@@ -29,7 +29,11 @@ export function Layout({
   useEffect(() => {
     if (!isInitialized) {
       // On desktop, open sidebar by default unless hiddenSidebar is true
-      if (!hiddenSidebar && typeof window !== 'undefined' && window.innerWidth >= 1024) {
+      if (
+        !hiddenSidebar &&
+        typeof window !== 'undefined' &&
+        window.innerWidth >= 1024
+      ) {
         setSidebarOpen(true);
       }
       setIsInitialized(true);
@@ -55,7 +59,8 @@ export function Layout({
 
   // Calculate padding based on sidebar state
   // In hiddenSidebar mode, we still want padding when sidebar is open
-  const shouldAddPadding = sidebarOpen && typeof window !== 'undefined' && window.innerWidth >= 1024;
+  const shouldAddPadding =
+    sidebarOpen && typeof window !== 'undefined' && window.innerWidth >= 1024;
 
   return (
     <div className='h-full'>
@@ -64,11 +69,13 @@ export function Layout({
         setSidebarOpen={handleSetSidebarOpen}
         hiddenSidebar={hiddenSidebar}
       />
-      <div className={clsx(
-        'h-full overflow-x-hidden transition-all duration-300',
-        // Add left padding when sidebar is open on desktop
-        shouldAddPadding ? 'lg:pl-72' : ''
-      )}>
+      <div
+        className={clsx(
+          'h-full overflow-x-hidden transition-all duration-300',
+          // Add left padding when sidebar is open on desktop
+          shouldAddPadding ? 'lg:pl-72' : ''
+        )}
+      >
         <Navbar
           setSidebarOpen={handleSetSidebarOpen}
           sidebarOpen={sidebarOpen}

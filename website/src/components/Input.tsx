@@ -28,22 +28,11 @@ export const Input = forwardRef<
       className={clsx([
         className,
         // Basic layout
-        'relative !mt-1.1 block w-full',
-
-        // Background color + shadow applied to inset pseudo element, so shadow blends with border in light mode
-        'before:absolute before:inset-px before:rounded-[calc(theme(borderRadius.xl)-1px)] before:bg-white before:shadow',
-
-        // Background color is moved to control and shadow is removed in dark mode so hide `before` pseudo
-        'dark:before:hidden',
-
-        // Focus ring
-        'sm:after:focus-within:primary after:pointer-events-none after:absolute after:inset-0 after:rounded-xl after:ring-inset after:ring-transparent',
-
-        // Disabled state
-        'has-[[data-disabled]]:opacity-50 before:has-[[data-disabled]]:bg-zinc-950/5 before:has-[[data-disabled]]:shadow-none',
-
-        // Invalid state
-        'before:has-[[data-invalid]]:shadow-red-500/10',
+        'relative block w-full',
+        // Remove shadow and pseudo elements for cleaner look
+        'before:hidden',
+        // Remove focus ring pseudo element
+        'after:hidden',
       ])}
     >
       <HeadlessInput
@@ -65,28 +54,34 @@ export const Input = forwardRef<
               '[&::-webkit-datetime-edit-millisecond-field]:p-0',
               '[&::-webkit-datetime-edit-meridiem-field]:p-0',
             ],
-
-          // Basic layout
-          'relative block w-full appearance-none rounded-xl px-[calc(theme(spacing[3.5])-1px)] py-[calc(theme(spacing[2])-1px)] sm:px-[calc(theme(spacing[3])-1px)] sm:py-[calc(theme(spacing[2])-1px)]',
-
-          // Typography
-          'text-base/6 text-darkBlueFont placeholder:text-zinc-500 sm:text-sm/6 dark:text-white',
-
-          // Border
-          'border border-zinc-950/10 focus:border-white data-[hover]:border-zinc-950/20 dark:border-white/10 dark:data-[hover]:border-white/20',
-
-          // Background color
-          'bg-transparent dark:bg-white/5',
-
-          // Hide default focus styles
-          'focus:outline-none focus:ring-1 focus:ring-primary',
-
-          // Invalid state
-          'data-[invalid]:border-red-500 data-[invalid]:data-[hover]:border-red-500 data-[invalid]:dark:border-red-500 data-[invalid]:data-[hover]:dark:border-red-500',
-
-          // Disabled state
-          'data-[disabled]:border-zinc-950/20 dark:data-[hover]:data-[disabled]:border-white/15 data-[disabled]:dark:border-white/15 data-[disabled]:dark:bg-white/[2.5%]',
+          // Basic layout - updated to match PaymentInput
+          'relative block h-10 w-full appearance-none rounded-lg px-3',
+          // Typography - updated to match
+          'text-sm text-gray-900 placeholder:text-gray-400 dark:text-gray-100 dark:placeholder:text-gray-500',
+          // Border - simplified to match PaymentInput
+          'border border-gray-200 hover:border-gray-300 focus:border-gray-300',
+          'dark:border-gray-700 dark:hover:border-gray-600 dark:focus:border-gray-600',
+          // Background color - clean white
+          'bg-white dark:bg-gray-800',
+          // Transitions
+          'transition-all duration-200',
+          // Remove all focus rings and outlines
+          'focus:outline-none focus:ring-0',
+          // Invalid state - updated colors
+          'data-[invalid]:border-red-500 data-[invalid]:focus:border-red-500',
+          'data-[invalid]:dark:border-red-500 data-[invalid]:dark:focus:border-red-500',
+          // Disabled state - updated
+          'data-[disabled]:cursor-not-allowed data-[disabled]:opacity-60',
+          'data-[disabled]:bg-gray-50 data-[disabled]:dark:bg-gray-900',
+          'data-[disabled]:border-gray-200 data-[disabled]:dark:border-gray-700',
         ])}
+        style={{
+          height: '40px',
+          boxShadow: 'none',
+          WebkitAppearance: 'none',
+          MozAppearance: 'none',
+          appearance: 'none',
+        }}
         {...props}
       />
     </span>

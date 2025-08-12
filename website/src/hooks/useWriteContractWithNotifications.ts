@@ -7,15 +7,17 @@ import {
   type Log,
   type TransactionReceipt,
 } from 'viem';
-import { useWaitForTransactionReceipt, useWriteContract, useConfig } from 'wagmi';
-import { simulateContract, type WriteContractErrorType } from "@wagmi/core";
+import {
+  useWaitForTransactionReceipt,
+  useWriteContract,
+  useConfig,
+} from 'wagmi';
+import { simulateContract, type WriteContractErrorType } from '@wagmi/core';
 import * as Sentry from '@sentry/nextjs';
 
 import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { E_A_C_C_TOKEN_ABI as EACC_TOKEN_ABI } from '@effectiveacceleration/contracts/wagmi/EACCToken';
-import { E_A_C_C_BAR_ABI as EACC_BAR_ABI } from '@effectiveacceleration/contracts/wagmi/EACCBar';
-import { SABLIER_LOCKUP_ABI } from '@/abis/SablierLockup';
 import { useApolloClient } from '@apollo/client';
 
 type ParsedEvent = {
@@ -88,10 +90,12 @@ type WriteContractConfig = {
 };
 
 export function useWriteContractWithNotifications() {
-  const config = useConfig()
+  const config = useConfig();
   const client = useApolloClient();
   const { showError, showSuccess, showLoading, toast } = useToast();
-  const [simulateError, setSimulateError] = useState<WriteContractErrorType | undefined>(undefined);
+  const [simulateError, setSimulateError] = useState<
+    WriteContractErrorType | undefined
+  >(undefined);
   const { data: hash, error, writeContract, isError } = useWriteContract();
   const onSuccessCallbackRef = useRef<
     ((receipt: TransactionReceipt, events: ParsedEvent[]) => void) | undefined
@@ -140,20 +144,6 @@ export function useWriteContractWithNotifications() {
         address: contractsRef.current.eaccAddress,
         abi: EACC_TOKEN_ABI,
         name: 'EACCToken',
-      });
-    }
-    if (contractsRef.current.eaccBarAddress) {
-      contracts.push({
-        address: contractsRef.current.eaccBarAddress,
-        abi: EACC_BAR_ABI,
-        name: 'EACCBar',
-      });
-    }
-    if (contractsRef.current.sablierLockupAddress) {
-      contracts.push({
-        address: contractsRef.current.sablierLockupAddress,
-        abi: SABLIER_LOCKUP_ABI,
-        name: 'SablierLockup',
       });
     }
 
@@ -214,7 +204,7 @@ export function useWriteContractWithNotifications() {
           });
         } catch (e: any) {
           setSimulateError(e);
-          return
+          return;
         }
 
         await writeContract({
@@ -230,7 +220,14 @@ export function useWriteContractWithNotifications() {
         showError(`An error occurred: ${e?.message}`);
       }
     },
-    [writeContract, showError, showLoading, toast, getRevertReason, setSimulateError]
+    [
+      writeContract,
+      showError,
+      showLoading,
+      toast,
+      getRevertReason,
+      setSimulateError,
+    ]
   );
 
   // Handle receipt
@@ -271,7 +268,9 @@ export function useWriteContractWithNotifications() {
     if (error || simulateError) {
       dismissLoadingToast();
 
-      const { type, message } = getRevertReason((error || simulateError)!.message);
+      const { type, message } = getRevertReason(
+        (error || simulateError)!.message
+      );
 
       if (type === 'revert' && message) {
         showError(message);
@@ -307,6 +306,6 @@ export function useWriteContractWithNotifications() {
     isConfirming,
     isConfirmed,
     receipt,
-    loadingToastIdRef
+    loadingToastIdRef,
   };
 }

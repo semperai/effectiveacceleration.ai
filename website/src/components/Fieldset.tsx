@@ -115,7 +115,7 @@ export function ErrorMessage({
       data-slot='error'
       className={clsx(
         className,
-        'text-red-600 dark:text-red-500 text-base/6 data-[disabled]:opacity-50 sm:text-sm/6'
+        'text-base/6 text-red-600 data-[disabled]:opacity-50 sm:text-sm/6 dark:text-red-500'
       )}
     />
   );

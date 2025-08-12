@@ -1,6 +1,6 @@
 'use client';
 
-import { type Token, tokens } from '@/tokens';
+import { type Token, tokens } from '@/lib/tokens';
 import { useState, useEffect } from 'react';
 import TokenButton from './TokenButton';
 import TokenDialog from './TokenDialog';
@@ -10,9 +10,8 @@ import arbitrumTokens from './data/arbitrumTokens.json';
 import mainnetTokens from './data/mainnetTokens.json';
 import { useChainId } from 'wagmi';
 
-// FIX 1: Corrected IArbitrumTokenWithBalance interface
-// Use Omit to exclude the original balance property before adding the new one
-export interface IArbitrumTokenWithBalance extends Omit<IArbitrumToken, 'balance'> {
+export interface IArbitrumTokenWithBalance
+  extends Omit<IArbitrumToken, 'balance'> {
   balance?: {
     decimals: number;
     formatted: string;
@@ -38,11 +37,15 @@ export function TokenSelector({
   const chainId = useChainId();
   const [selectableTokens, setSelectableTokens] = useState<any>();
   const [preferredTokens, setPreferredTokens] = useState<IArbitrumToken[]>([]);
-  const [internalSelectedToken, setInternalSelectedToken] = useState<IArbitrumTokenWithBalance | Token | undefined>();
+  const [internalSelectedToken, setInternalSelectedToken] = useState<
+    IArbitrumTokenWithBalance | Token | undefined
+  >();
   const [hasLoadedFromStorage, setHasLoadedFromStorage] = useState(false);
 
   // Convert between Token and IArbitrumToken formats
-  const convertToToken = (arbitrumToken: IArbitrumToken | IArbitrumTokenWithBalance): Token => {
+  const convertToToken = (
+    arbitrumToken: IArbitrumToken | IArbitrumTokenWithBalance
+  ): Token => {
     return {
       id: arbitrumToken.address,
       name: arbitrumToken.name,
@@ -64,7 +67,9 @@ export function TokenSelector({
   };
 
   // FIX 2: Helper function to safely convert tokens with proper type handling
-  const convertToCompatibleToken = (token: IArbitrumToken): IArbitrumTokenWithBalance => {
+  const convertToCompatibleToken = (
+    token: IArbitrumToken
+  ): IArbitrumTokenWithBalance => {
     // Remove any existing balance property and return with our expected structure
     const { balance, ...tokenWithoutBalance } = token as any;
     return {
@@ -76,18 +81,22 @@ export function TokenSelector({
   // NEW: Convert IArbitrumTokenWithBalance back to IArbitrumToken for TokenButton
   const getTokenForButton = (): Token | IArbitrumToken | undefined => {
     if (!internalSelectedToken) return undefined;
-    
+
     // If it's a Token, return as is
-    if ('id' in internalSelectedToken && !('address' in internalSelectedToken)) {
+    if (
+      'id' in internalSelectedToken &&
+      !('address' in internalSelectedToken)
+    ) {
       return internalSelectedToken as Token;
     }
-    
+
     // If it's an IArbitrumTokenWithBalance, convert to IArbitrumToken
     if ('address' in internalSelectedToken) {
-      const { balance, ...tokenWithoutBalance } = internalSelectedToken as IArbitrumTokenWithBalance;
+      const { balance, ...tokenWithoutBalance } =
+        internalSelectedToken as IArbitrumTokenWithBalance;
       return tokenWithoutBalance as IArbitrumToken;
     }
-    
+
     return undefined;
   };
 
@@ -101,7 +110,7 @@ export function TokenSelector({
     const customTokens = storage.get('CUSTOM_TOKENS') || [];
 
     // Add tokens from src/tokens.ts first (highest priority)
-    appTokens.forEach(token => {
+    appTokens.forEach((token) => {
       tokenMap.set(token.address.toLowerCase(), token);
     });
 
@@ -141,7 +150,8 @@ export function TokenSelector({
   // Load tokens based on network
   useEffect(() => {
     const currentChainId = chainId || 1;
-    const networkTokens = currentChainId === 42161 ? arbitrumTokens : mainnetTokens;
+    const networkTokens =
+      currentChainId === 42161 ? arbitrumTokens : mainnetTokens;
     const mergedTokens = mergeTokenLists(networkTokens);
     setSelectableTokens(mergedTokens);
   }, [chainId]);
@@ -243,9 +253,13 @@ export function TokenSelector({
   // Find initial token for dialog
   const getInitialDialogToken = (): IArbitrumToken => {
     if (internalSelectedToken) {
-      if ('logoURI' in internalSelectedToken || 'address' in internalSelectedToken) {
+      if (
+        'logoURI' in internalSelectedToken ||
+        'address' in internalSelectedToken
+      ) {
         // It's already an IArbitrumToken, remove balance for initial dialog
-        const { balance, ...tokenWithoutBalance } = internalSelectedToken as IArbitrumTokenWithBalance;
+        const { balance, ...tokenWithoutBalance } =
+          internalSelectedToken as IArbitrumTokenWithBalance;
         return tokenWithoutBalance as IArbitrumToken;
       } else {
         // It's a Token, convert it
@@ -260,19 +274,21 @@ export function TokenSelector({
     }
 
     // Default to USDC from our app tokens
-    const usdcToken = tokens.find(t => t.symbol === 'USDC');
+    const usdcToken = tokens.find((t) => t.symbol === 'USDC');
     if (usdcToken) {
       return convertToArbitrumToken(usdcToken);
     }
 
     // Fallback to first token from our list
-    return selectableTokens?.tokens?.[0] || {
-      address: '0x0000000000000000000000000000000000000000',
-      name: 'Ethereum',
-      symbol: 'ETH',
-      decimals: 18,
-      chainId: chainId || 1,
-    };
+    return (
+      selectableTokens?.tokens?.[0] || {
+        address: '0x0000000000000000000000000000000000000000',
+        name: 'Ethereum',
+        symbol: 'ETH',
+        decimals: 18,
+        chainId: chainId || 1,
+      }
+    );
   };
 
   return (

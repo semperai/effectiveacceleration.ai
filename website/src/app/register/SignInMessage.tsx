@@ -52,7 +52,10 @@ const SignInMessage = ({
       Sentry.captureException(error);
       console.error('Error signing message:', error);
 
-      if (error?.message?.includes('User rejected') || error?.message?.includes('User denied')) {
+      if (
+        error?.message?.includes('User rejected') ||
+        error?.message?.includes('User denied')
+      ) {
         setError('Signature request was cancelled');
       } else {
         setError('Failed to sign message. Please try again.');
@@ -63,7 +66,7 @@ const SignInMessage = ({
   };
 
   return (
-    <div className='relative flex w-full max-w-md transform flex-col overflow-hidden rounded-3xl bg-white/95 backdrop-blur-md p-8 shadow-2xl transition-all dark:bg-gray-900/95'>
+    <div className='relative flex w-full max-w-md transform flex-col overflow-hidden rounded-3xl bg-white/95 p-8 shadow-2xl backdrop-blur-md transition-all dark:bg-gray-900/95'>
       {/* Decorative gradient background */}
       <div className='absolute inset-0 bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-purple-950/20 dark:via-gray-900 dark:to-blue-950/20' />
 
@@ -110,7 +113,7 @@ const SignInMessage = ({
         <button
           onClick={handleSignMessage}
           disabled={isLoading}
-          className='group relative overflow-hidden rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-6 py-3 font-semibold text-white shadow-lg transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:transform-none'
+          className='group relative overflow-hidden rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-6 py-3 font-semibold text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:transform-none'
         >
           <span className='relative z-10 flex items-center justify-center gap-2 text-white'>
             {isLoading ? (

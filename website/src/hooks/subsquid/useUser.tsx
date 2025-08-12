@@ -25,26 +25,23 @@ export default function useUser(userAddress: string) {
     skip: !userAddress,
   });
 
-  return useMemo(
-    () => {
-      // If no address provided, return null data with not loading
-      if (!userAddress) {
-        return {
-          data: null,
-          loading: false,  // Changed from isLoading to loading
-          error: undefined,
-          ...rest
-        };
-      }
-
-      // Return proper loading state
+  return useMemo(() => {
+    // If no address provided, return null data with not loading
+    if (!userAddress) {
       return {
-        data: data?.users?.[0] as ExtendedUser | null | undefined,
-        loading,  // Changed from isLoading to loading
-        error,
-        ...rest
+        data: null,
+        loading: false, // Changed from isLoading to loading
+        error: undefined,
+        ...rest,
       };
-    },
-    [userAddress, data, loading, error, rest]
-  );
+    }
+
+    // Return proper loading state
+    return {
+      data: data?.users?.[0] as ExtendedUser | null | undefined,
+      loading, // Changed from isLoading to loading
+      error,
+      ...rest,
+    };
+  }, [userAddress, data, loading, error, rest]);
 }

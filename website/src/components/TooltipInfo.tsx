@@ -16,7 +16,9 @@ type TooltipInfoProps = {
 };
 
 function useIsMobile(breakpoint = 768) {
-  const [isMobile, setIsMobile] = React.useState(() => window.innerWidth < breakpoint);
+  const [isMobile, setIsMobile] = React.useState(
+    () => window.innerWidth < breakpoint
+  );
 
   React.useEffect(() => {
     function handleResize() {
@@ -30,9 +32,17 @@ function useIsMobile(breakpoint = 768) {
 }
 
 export const TooltipInfo = React.forwardRef<HTMLSpanElement, TooltipInfoProps>(
-  ({ tooltipContent, popoverContent, className, ariaLabel = 'More info', children }, ref) => {
+  (
+    {
+      tooltipContent,
+      popoverContent,
+      className,
+      ariaLabel = 'More info',
+      children,
+    },
+    ref
+  ) => {
     const isMobile = useIsMobile();
-
     const [popoverOpen, setPopoverOpen] = React.useState(false);
     const [tooltipOpen, setTooltipOpen] = React.useState(false);
 
@@ -71,27 +81,27 @@ export const TooltipInfo = React.forwardRef<HTMLSpanElement, TooltipInfoProps>(
                     ref={ref}
                     tabIndex={0}
                     aria-label={ariaLabel}
-                    role="button"
-                    className={`inline-flex items-center justify-center cursor-pointer text-gray-500 ${className ?? ''}`}
+                    role='button'
+                    className={`inline-flex cursor-pointer items-center justify-center text-gray-500 ${className ?? ''}`}
                   >
                     {children}
                   </span>
                 </PopoverTrigger>
-                <PopoverContent side="top">{popoverContent}</PopoverContent>
+                <PopoverContent side='top'>{popoverContent}</PopoverContent>
               </Popover>
             ) : (
               <span
                 ref={ref}
                 tabIndex={0}
                 aria-label={ariaLabel}
-                role="tooltip-trigger"
-                className={`inline-flex items-center justify-center cursor-pointer text-gray-500 ${className ?? ''}`}
+                role='tooltip-trigger'
+                className={`inline-flex cursor-pointer items-center justify-center text-gray-500 ${className ?? ''}`}
               >
                 {children}
               </span>
             )}
           </TooltipTrigger>
-          <TooltipContent side="top" align="center" className="max-w-xs">
+          <TooltipContent side='top' align='center' className='max-w-xs'>
             {tooltipContent}
           </TooltipContent>
         </Tooltip>
@@ -99,3 +109,6 @@ export const TooltipInfo = React.forwardRef<HTMLSpanElement, TooltipInfoProps>(
     );
   }
 );
+
+// Add display name for debugging
+TooltipInfo.displayName = 'TooltipInfo';

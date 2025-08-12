@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import useJobEventsWithDiffs from './useJobEventsWithDiffs';
-import { JobEventType, type JobMessageEvent } from '@effectiveacceleration/contracts';
+import {
+  JobEventType,
+  type JobMessageEvent,
+} from '@effectiveacceleration/contracts';
 import type { NotificationWithJob } from './useUserNotifications';
 
 /**
@@ -15,10 +18,11 @@ export default function useNotificationWithEvent(
   const [isLoading, setIsLoading] = useState(false);
 
   // Only fetch events for message notifications when enabled
-  const shouldFetchEvents = shouldFetch && notification && (
-    notification.type === JobEventType.OwnerMessage ||
-    notification.type === JobEventType.WorkerMessage
-  );
+  const shouldFetchEvents =
+    shouldFetch &&
+    notification &&
+    (notification.type === JobEventType.OwnerMessage ||
+      notification.type === JobEventType.WorkerMessage);
 
   const { data: events, loading } = useJobEventsWithDiffs(
     shouldFetchEvents ? notification.jobId : ''
@@ -39,9 +43,10 @@ export default function useNotificationWithEvent(
     }
 
     // Find the matching event by timestamp and type
-    const matchingEvent = events.find(event =>
-      event.timestamp_ === notification.timestamp &&
-      event.type_ === notification.type
+    const matchingEvent = events.find(
+      (event) =>
+        event.timestamp_ === notification.timestamp &&
+        event.type_ === notification.type
     );
 
     if (matchingEvent && matchingEvent.details) {
@@ -61,6 +66,6 @@ export default function useNotificationWithEvent(
 
   return {
     messageContent,
-    isLoading
+    isLoading,
   };
 }

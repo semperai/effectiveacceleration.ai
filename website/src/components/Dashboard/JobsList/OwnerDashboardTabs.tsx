@@ -18,7 +18,8 @@ import NoJobsCompletedImage from '@/images/noCompletedJobs.svg';
 import NoJobsDisputedImage from '@/images/noDisputesYet.svg';
 import NojobsClosedImage from '@/images/noCompletedJobs.svg';
 
-const jobsCountClassNames = 'ml-2 text-xs self-end rounded-full bg-gray-300 px-[6px] py-[1px] text-white opacity-90';
+const jobsCountClassNames =
+  'ml-2 text-xs self-end rounded-full bg-gray-300 px-[6px] py-[1px] text-white opacity-90';
 
 export const OwnerDashboardTabs = () => {
   const { address } = useAccount();
@@ -47,23 +48,44 @@ export const OwnerDashboardTabs = () => {
     <Tabs defaultValue='Open Jobs'>
       <TabsList className='mb-4 flex h-auto flex-wrap items-center gap-6 md:mb-8 md:gap-4'>
         <TabsTrigger value='Open Jobs'>
-          Open Jobs {openJobs?.length ? <span className={jobsCountClassNames}>{openJobs.length}</span> : null}
+          Open Jobs{' '}
+          {openJobs?.length ? (
+            <span className={jobsCountClassNames}>{openJobs.length}</span>
+          ) : null}
         </TabsTrigger>
         <TabsTrigger value='In Progress'>
-          In Progress {takenJobs?.length ? <span className={jobsCountClassNames}>{takenJobs.length}</span> : null}
+          In Progress{' '}
+          {takenJobs?.length ? (
+            <span className={jobsCountClassNames}>{takenJobs.length}</span>
+          ) : null}
         </TabsTrigger>
         <TabsTrigger value='Completed'>
-          Completed {completedJobs?.length ? <span className={jobsCountClassNames}>{completedJobs.length ?? 0}</span> : null}
+          Completed{' '}
+          {completedJobs?.length ? (
+            <span className={jobsCountClassNames}>
+              {completedJobs.length ?? 0}
+            </span>
+          ) : null}
         </TabsTrigger>
         <TabsTrigger value='Disputed'>
-          Disputed {disputedJobs?.length ? <span className={jobsCountClassNames}>{disputedJobs.length ?? 0}</span> : null}
+          Disputed{' '}
+          {disputedJobs?.length ? (
+            <span className={jobsCountClassNames}>
+              {disputedJobs.length ?? 0}
+            </span>
+          ) : null}
         </TabsTrigger>
         <TabsTrigger value='Closed'>
-          Closed {closedJobs?.length ? <span className={jobsCountClassNames}>{closedJobs.length ?? 0}</span> : null}
+          Closed{' '}
+          {closedJobs?.length ? (
+            <span className={jobsCountClassNames}>
+              {closedJobs.length ?? 0}
+            </span>
+          ) : null}
         </TabsTrigger>
       </TabsList>
       <TabsContent value='Open Jobs'>
-      {!address ? (
+        {!address ? (
           <>
             <EmptyJobsList image={NoJobsOpenImage} text='No address provided' />
           </>
@@ -81,7 +103,10 @@ export const OwnerDashboardTabs = () => {
       <TabsContent value='In Progress'>
         {!address ? (
           <>
-            <EmptyJobsList image={NoJobsProgessImage} text='No address provided' />
+            <EmptyJobsList
+              image={NoJobsProgessImage}
+              text='No address provided'
+            />
           </>
         ) : takenJobs ? (
           <>
@@ -100,7 +125,10 @@ export const OwnerDashboardTabs = () => {
       <TabsContent value='Completed'>
         {!address ? (
           <>
-            <EmptyJobsList image={NoJobsCompletedImage} text='No address provided' />
+            <EmptyJobsList
+              image={NoJobsCompletedImage}
+              text='No address provided'
+            />
           </>
         ) : completedJobs ? (
           <>
@@ -119,7 +147,10 @@ export const OwnerDashboardTabs = () => {
       <TabsContent value='Disputed'>
         {!address ? (
           <>
-            <EmptyJobsList image={NoJobsDisputedImage} text='No address provided' />
+            <EmptyJobsList
+              image={NoJobsDisputedImage}
+              text='No address provided'
+            />
           </>
         ) : disputedJobs ? (
           <>
@@ -138,7 +169,10 @@ export const OwnerDashboardTabs = () => {
       <TabsContent value='Closed'>
         {!address ? (
           <>
-            <EmptyJobsList image={NojobsClosedImage} text='No address provided' />
+            <EmptyJobsList
+              image={NojobsClosedImage}
+              text='No address provided'
+            />
           </>
         ) : closedJobs ? (
           <>

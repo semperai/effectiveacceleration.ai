@@ -1,5 +1,4 @@
 'use client';
-import DefaultNavBar from '@/components/DefaultNavBar';
 import useUser from '@/hooks/subsquid/useUser';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -26,7 +25,18 @@ export default function RegisterPage() {
 
   return (
     <>
-      <DefaultNavBar />
+      {/* Merged NavBar directly into the page */}
+      <div className='flex h-20 w-full justify-center bg-primary sm:h-16'>
+        <div className='content-center'>
+          <Image
+            height={50}
+            width={50}
+            src={'/negativeLogo.svg'}
+            alt={'Effective Acceleration Logo'}
+          />
+        </div>
+      </div>
+
       <div className='relative mx-auto flex min-h-customHeader items-center justify-center'>
         <Image
           src={'/backgroundSignIn.webp'}
@@ -40,7 +50,9 @@ export default function RegisterPage() {
               {encryptionPublicKey !== `0x` ? (
                 <CreateProfile encryptionPublicKey={encryptionPublicKey} />
               ) : (
-                <SignInMessage setEncryptionPublicKey={setEncryptionPublicKey} />
+                <SignInMessage
+                  setEncryptionPublicKey={setEncryptionPublicKey}
+                />
               )}
             </>
           ) : (

@@ -1,5 +1,4 @@
-// src/app/dashboard/post-job/SubmitJobButton.tsx
-import ERC20Abi from '@/abis/ERC20.json';
+import { ERC20_ABI } from '@/lib/constants';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
@@ -23,6 +22,7 @@ interface SubmitJobButtonProps {
   deadline: bigint;
   deliveryMethod: string;
   arbitrator: Address;
+  onTransactionStart?: () => void;
   onSuccess?: () => void;
   onError?: (error: Error) => void;
 }
@@ -37,6 +37,7 @@ export const SubmitJobButton = ({
   deadline,
   deliveryMethod,
   arbitrator,
+  onTransactionStart,
   onSuccess,
   onError,
 }: SubmitJobButtonProps) => {
@@ -54,8 +55,6 @@ export const SubmitJobButton = ({
     );
   };
 
-
-
   // Cleanup function for dismissing loading toasts
   const dismissLoadingToast = useCallback(() => {
     if (loadingToastIdRef.current !== null) {
@@ -72,9 +71,12 @@ export const SubmitJobButton = ({
     refetch: refetchAllowance,
   } = useReadContract({
     address: token,
-    abi: ERC20Abi,
+    abi: ERC20_ABI,
     functionName: 'allowance',
-    args: [address, Config?.marketplaceAddress],
+    args: [
+      address as `0x${string}`,
+      Config?.marketplaceAddress as `0x${string}`,
+    ],
     query: {
       enabled: !!address && !!token && !!Config?.marketplaceAddress,
     },
@@ -96,9 +98,11 @@ export const SubmitJobButton = ({
         return;
       }
 
-
-
       setIsSubmitting(true);
+
+      // Notify parent that transaction is starting (shows loading modal)
+      onTransactionStart?.();
+
       let contentHash = ZeroHash;
 
       if (description.length > 0) {
@@ -134,8 +138,6 @@ export const SubmitJobButton = ({
         [], // allowedWorkers - empty array
       ];
 
-
-
       try {
         await writeContractWithNotifications({
           address: Config.marketplaceAddress,
@@ -161,7 +163,9 @@ export const SubmitJobButton = ({
         // Parse the error message to provide more helpful feedback
         const errorMessage = error.message || error.toString();
         if (errorMessage.includes('exactly one MECE tag is required')) {
-          showError('Error: Exactly one MECE category tag is required. Please ensure you have selected a category.');
+          showError(
+            'Error: Exactly one MECE category tag is required. Please ensure you have selected a category.'
+          );
         } else if (errorMessage.includes('title too short or long')) {
           showError('Error: Title must be between 1 and 254 characters.');
         } else if (errorMessage.includes('amount must be greater than 0')) {
@@ -176,7 +180,7 @@ export const SubmitJobButton = ({
       }
     } catch (err) {
       Sentry.captureException(err);
-      
+
       // Enhanced error handling
       const errorMessage = err instanceof Error ? err.message : String(err);
       if (errorMessage.includes('exactly one MECE tag is required')) {
@@ -185,7 +189,7 @@ export const SubmitJobButton = ({
         // Only show this if we haven't already shown a more specific error
         showError(`Failed to submit job: ${errorMessage}`);
       }
-      
+
       onError?.(err as Error);
     } finally {
       setIsSubmitting(false);
@@ -197,7 +201,7 @@ export const SubmitJobButton = ({
     return (
       <button
         disabled
-        className='group relative min-w-[180px] px-6 py-3 rounded-xl font-medium bg-gray-100/50 dark:bg-gray-800/50 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 text-gray-400 dark:text-gray-500 cursor-not-allowed transition-all duration-200'
+        className='group relative min-w-[180px] cursor-not-allowed rounded-xl border border-gray-200/50 bg-gray-100/50 px-6 py-3 font-medium text-gray-400 backdrop-blur-sm transition-all duration-200 dark:border-gray-700/50 dark:bg-gray-800/50 dark:text-gray-500'
       >
         <span className='flex items-center justify-center gap-2'>
           <Loader2 className='h-4 w-4 animate-spin' />
@@ -210,9 +214,7 @@ export const SubmitJobButton = ({
   // Show error state
   if (allowanceIsError) {
     return (
-      <button
-        className='group relative min-w-[180px] px-6 py-3 rounded-xl font-medium bg-red-500/10 backdrop-blur-sm border border-red-500/20 text-red-600 dark:text-red-400 transition-all duration-200'
-      >
+      <button className='group relative min-w-[180px] rounded-xl border border-red-500/20 bg-red-500/10 px-6 py-3 font-medium text-red-600 backdrop-blur-sm transition-all duration-200 dark:text-red-400'>
         Error checking approval
       </button>
     );
@@ -224,7 +226,10 @@ export const SubmitJobButton = ({
       <ApproveButton
         token={token}
         spender={Config.marketplaceAddress}
-        onApproveSuccess={() => refetchAllowance()}
+        onApproveSuccess={async () => {
+          // Wait for the allowance to be refetched before proceeding
+          await refetchAllowance();
+        }}
         onApproveError={onError}
       />
     );
@@ -232,13 +237,13 @@ export const SubmitJobButton = ({
 
   // Show submit button if approved
   return (
-    <div className="flex flex-col items-end gap-2">
+    <div className='flex flex-col items-end gap-2'>
       <button
         onClick={handleSubmitJob}
         disabled={isSubmitting || isConfirming}
-        className={`group relative px-8 py-3 rounded-xl font-medium transition-all duration-200 shadow-lg border border-white/10 ${
+        className={`group relative rounded-xl border border-white/10 px-8 py-3 font-medium shadow-lg transition-all duration-200 ${
           isSubmitting || isConfirming
-            ? 'bg-gray-600 cursor-not-allowed'
+            ? 'cursor-not-allowed bg-gray-600'
             : 'bg-slate-800 hover:bg-slate-700'
         }`}
       >
@@ -267,10 +272,11 @@ export const ApproveButton = ({
 }: {
   token: Address;
   spender: Address;
-  onApproveSuccess: () => void;
+  onApproveSuccess: () => void | Promise<void>;
   onApproveError?: (error: Error) => void;
 }) => {
-  const { writeContractWithNotifications, isConfirming } = useWriteContractWithNotifications();
+  const { writeContractWithNotifications, isConfirming } =
+    useWriteContractWithNotifications();
   const [isApproving, setIsApproving] = useState(false);
 
   const handleApprove = async () => {
@@ -278,17 +284,24 @@ export const ApproveButton = ({
       setIsApproving(true);
       await writeContractWithNotifications({
         address: token,
-        abi: ERC20Abi,
+        abi: ERC20_ABI,
         functionName: 'approve',
-        args: [spender, BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')], // Max approval
-        onReceipt: () => {
-          onApproveSuccess();
+        args: [
+          spender,
+          BigInt(
+            '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
+          ),
+        ], // Max approval
+        onReceipt: async () => {
+          // Give a small delay to ensure the blockchain state is updated
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          await onApproveSuccess();
+          setIsApproving(false);
         },
       });
     } catch (err) {
-      onApproveError?.(err as Error);
-    } finally {
       setIsApproving(false);
+      onApproveError?.(err as Error);
     }
   };
 
@@ -296,18 +309,16 @@ export const ApproveButton = ({
     <button
       onClick={handleApprove}
       disabled={isApproving || isConfirming}
-      className={`
-        group relative min-w-[180px] px-6 py-3 rounded-xl font-medium transition-all duration-200
-        ${isApproving || isConfirming
-          ? 'bg-gray-100/50 dark:bg-gray-800/50 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-          : 'bg-white/10 dark:bg-gray-800/50 backdrop-blur-sm border border-blue-500/50 dark:border-blue-400/50 text-blue-600 dark:text-blue-400 hover:bg-white/20 dark:hover:bg-gray-800/70 hover:border-blue-500/70 dark:hover:border-blue-400/70 shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]'
-        }
-      `}
+      className={`group relative min-w-[180px] rounded-xl px-6 py-3 font-medium transition-all duration-200 ${
+        isApproving || isConfirming
+          ? 'cursor-not-allowed border border-gray-200/50 bg-gray-100/50 text-gray-400 backdrop-blur-sm dark:border-gray-700/50 dark:bg-gray-800/50 dark:text-gray-500'
+          : 'transform border border-blue-500/50 bg-white/10 text-blue-600 shadow-lg backdrop-blur-sm hover:scale-[1.02] hover:border-blue-500/70 hover:bg-white/20 hover:shadow-xl active:scale-[0.98] dark:border-blue-400/50 dark:bg-gray-800/50 dark:text-blue-400 dark:hover:border-blue-400/70 dark:hover:bg-gray-800/70'
+      } `}
     >
       {/* Subtle shimmer effect on hover */}
       {!isApproving && !isConfirming && (
-        <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
+        <div className='absolute inset-0 overflow-hidden rounded-xl opacity-0 transition-opacity duration-500 group-hover:opacity-100'>
+          <div className='absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-blue-500/10 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-full' />
         </div>
       )}
 

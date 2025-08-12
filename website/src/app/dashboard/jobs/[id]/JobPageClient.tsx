@@ -1,18 +1,13 @@
 'use client';
 
 import { Layout } from '@/components/Dashboard/Layout';
-import { PostMessageButton } from '@/components/JobActions/PostMessageButton';
-import { Text } from '@/components/Text';
+import { PostMessageButton } from './JobActions';
 import useJob from '@/hooks/subsquid/useJob';
 import useJobEventsWithDiffs from '@/hooks/subsquid/useJobEventsWithDiffs';
 import useUser from '@/hooks/subsquid/useUser';
 import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
-import { tokenIcon } from '@/tokens';
-import {
-  LOCAL_JOBS_OWNER_CACHE,
-  LOCAL_JOBS_WORKER_CACHE,
-} from '@/utils/constants';
-import { jobMeceTags } from '@/utils/jobMeceTags';
+import { tokenIcon } from '@/lib/utils';
+import { jobMeceTags } from '@/lib/constants';
 import {
   type Job,
   JobEventType,
@@ -23,14 +18,44 @@ import {
 import { Loader2 } from 'lucide-react';
 import { clsx } from 'clsx';
 import moment from 'moment';
-import { useEffect, useRef, useState } from 'react';
-import { zeroAddress, zeroHash } from 'viem';
+import { useEffect, useRef, useState, useMemo } from 'react';
+import { zeroAddress } from 'viem';
 import { useAccount } from 'wagmi';
-import JobChatEvents from './Components/JobChat/JobChatEvents';
-import JobChatsList from './Components/JobChatsList';
-import JobSidebar from './Components/JobSidebar';
-import OpenJobMobileMenu from './Components/JobChat/OpenJobMobileMenu';
+import JobChatEvents from './JobChat/JobChatEvents';
+import JobChatsList from './JobChatsList';
+import JobSidebar from './JobSidebar';
+import OpenJobMobileMenu from './JobChat/OpenJobMobileMenu';
 import { useSwResetMessage } from '@/hooks/useSwResetMessage';
+import { useSearchParams } from 'next/navigation';
+
+// Import test utilities
+import {
+  TestControlBar,
+  generateTestData,
+  scenarios,
+  statusStates,
+} from './testUtils';
+
+// Import Status State Components (lazy load for better performance)
+import dynamic from 'next/dynamic';
+const AssignWorker = dynamic(
+  () => import('./JobChat/StatusStates/AssignWorker')
+);
+const WorkerAccepted = dynamic(
+  () => import('./JobChat/StatusStates/WorkerAccepted')
+);
+const ResultVerification = dynamic(
+  () => import('./JobChat/StatusStates/ResultVerification')
+);
+const ResultAccepted = dynamic(
+  () => import('./JobChat/StatusStates/ResultAccepted')
+);
+const DisputeStarted = dynamic(
+  () => import('./JobChat/StatusStates/DisputeStarted')
+);
+const ArbitratedStatus = dynamic(
+  () => import('./JobChat/StatusStates/ArbitratedStatus')
+);
 
 const JobPostSkeleton = () => {
   return (
@@ -79,58 +104,132 @@ interface JobPageClientProps {
 export default function JobPageClient({ id }: JobPageClientProps) {
   const jobId = id;
   const { address } = useAccount();
-  const { data: job, error, ...rest } = useJob(jobId);
-  const { data: events, addresses, sessionKeys } = useJobEventsWithDiffs(jobId);
-  const { data: users } = useUsersByAddresses(addresses);
-  const whitelistedWorkers = events.at(-1)?.job.allowedWorkers ?? [];
+  const searchParams = useSearchParams();
+  const isTestMode = searchParams.get('test') === '1';
+
+  // Test mode state
+  const [selectedScenario, setSelectedScenario] = useState(scenarios[0]);
+  const [testUserRole, setTestUserRole] = useState<
+    'creator' | 'worker' | 'arbitrator'
+  >('creator');
+  const [selectedStatus, setSelectedStatus] = useState('none');
+
+  // Real data hooks - use dummy ID when in test mode to avoid null issues
+  // The hooks will return undefined/empty data which we'll replace with test data
+  const dummyId = 'test-job-id';
+  const { data: job, error } = useJob(isTestMode ? dummyId : jobId);
+  const {
+    data: events,
+    addresses,
+    sessionKeys,
+  } = useJobEventsWithDiffs(isTestMode ? dummyId : jobId);
+  const { data: users } = useUsersByAddresses(isTestMode ? [] : addresses);
+  const { data: user } = useUser(isTestMode ? '' : address || '');
+
+  // Generate test data when in test mode
+  const testData = useMemo(() => {
+    if (!isTestMode) return null;
+    return generateTestData(selectedScenario, testUserRole);
+  }, [isTestMode, selectedScenario, testUserRole]);
+
+  // Use test data or real data
+  const currentJob = isTestMode ? testData?.job : job;
+  const currentEvents = isTestMode ? testData?.events : events;
+  const currentAddresses = isTestMode ? testData?.addresses : addresses;
+  const currentSessionKeys = isTestMode ? testData?.sessionKeys : sessionKeys;
+  const currentUsers = isTestMode ? testData?.users : users;
+  const currentUser = isTestMode ? testData?.user : user;
+  const currentAddress = isTestMode ? testData?.address : address;
+
+  const whitelistedWorkers = currentEvents?.at(-1)?.job.allowedWorkers ?? [];
   const [selectedWorker, setSelectedWorker] = useState<string>('');
-  const [eventMessages, setEventMessages] = useState(events);
-  const { data: user } = useUser(address!);
-  const workerJobCache = `${address}${LOCAL_JOBS_WORKER_CACHE}`;
-  const ownerJobCache = `${address}${LOCAL_JOBS_OWNER_CACHE}`;
+  const [eventMessages, setEventMessages] = useState<
+    JobEventWithDiffs[] | undefined
+  >(currentEvents);
   const prevJobRef = useRef<Job | undefined>(undefined);
 
-  useSwResetMessage(jobId);
+  // Only use real jobId for message reset, not test ID
+  useSwResetMessage(isTestMode ? '' : jobId);
 
   // Calculate the time passed since the job was closed
-  const timestamp = events
+  const timestamp = currentEvents
     ?.filter((event: JobEventWithDiffs) => event.type_ === JobEventType.Closed)
     .slice(-1)[0]?.timestamp_;
-  const hoursPassed = moment().diff(moment(timestamp! * 1000), 'hours'); // hours passed since the job was closed
-  const timePassed = hoursPassed >= 24; // If 24 hours have passed since the job was closed
-  const progressValue = (hoursPassed / 24) * 100; // Calculate the progress value (0 to 100)
+  const hoursPassed = moment().diff(moment(timestamp! * 1000), 'hours');
+  const timePassed = hoursPassed >= 24;
+  const progressValue = (hoursPassed / 24) * 100;
   const adjustedProgressValue =
     progressValue < 0 ? 100 + progressValue : 100 - progressValue;
-  const jobMeceTag = jobMeceTags.find((tag) => tag.id === job?.tags[0])?.name;
+  const jobMeceTag = jobMeceTags.find(
+    (tag) => tag.id === currentJob?.tags[0]
+  )?.name;
 
+  // Check if user is associated with the job
+  const isOwner =
+    currentAddress && currentJob?.roles.creator === currentAddress;
+  const isWorker =
+    currentAddress && currentJob?.roles.worker === currentAddress;
+  const isArbitrator =
+    currentAddress && currentJob?.roles.arbitrator === currentAddress;
+
+  // Check if user was a participant (for closed jobs)
+  const wasParticipant = useMemo(() => {
+    if (!currentAddress || !currentEvents) return false;
+
+    // Check if user sent any messages or took any actions in this job
+    return currentEvents.some(
+      (event: JobEventWithDiffs) =>
+        event.address_ === currentAddress ||
+        (event.details as JobMessageEvent)?.recipientAddress === currentAddress
+    );
+  }, [currentAddress, currentEvents]);
+
+  // Fixed conditions for showing chat interface
   const isJobOpenForWorker =
-    job?.roles.worker === zeroAddress &&
-    job?.state === JobState.Open &&
-    address !== job?.roles.creator &&
-    address !== job?.roles.arbitrator;
+    currentJob?.roles.worker === zeroAddress &&
+    currentJob?.state === JobState.Open &&
+    currentAddress !== currentJob?.roles.creator &&
+    currentAddress !== currentJob?.roles.arbitrator;
+
+  // Show chat for closed jobs if user was involved
+  const isClosedJobParticipant =
+    currentJob?.state === JobState.Closed &&
+    (isOwner || isWorker || wasParticipant);
 
   const isUserCreatorWithSelectedWorkerOrTaken =
-    (address === job?.roles.creator && selectedWorker) ||
-    (address === job?.roles.creator && job?.state === JobState.Taken);
+    (currentAddress === currentJob?.roles.creator && selectedWorker) ||
+    (currentAddress === currentJob?.roles.creator &&
+      currentJob?.state === JobState.Taken);
+
+  // Fixed: Show message button for open jobs when worker wants to apply
+  // OR for participants in any state except fully closed without involvement
   const shouldShowPostMessageButton =
-    job?.state !== JobState.Closed &&
-    addresses.length &&
-    Object.keys(sessionKeys).length > 0;
+    (currentJob?.state !== JobState.Closed || isClosedJobParticipant) &&
+    currentAddresses?.length &&
+    Object.keys(currentSessionKeys || {}).length > 0 &&
+    (isJobOpenForWorker || // Worker applying to open job
+      isWorker || // Current worker on the job
+      isOwner || // Job creator
+      isUserCreatorWithSelectedWorkerOrTaken || // Creator with selected worker
+      wasParticipant); // Was involved in the job
 
   useEffect(() => {
-    if (job?.state === JobState.Taken || job?.state === JobState.Closed) {
-      setSelectedWorker(job.roles.worker);
+    if (
+      currentJob?.state === JobState.Taken ||
+      currentJob?.state === JobState.Closed
+    ) {
+      setSelectedWorker(currentJob.roles.worker);
     }
     if (
-      address &&
-      job?.state === JobState.Open &&
-      address !== job.roles.creator
+      currentAddress &&
+      currentJob?.state === JobState.Open &&
+      currentAddress !== currentJob.roles.creator
     ) {
-      setSelectedWorker(address);
+      setSelectedWorker(currentAddress);
     }
-    if (job?.state === JobState.Open) {
+    if (currentJob?.state === JobState.Open) {
       setEventMessages(
-        events.filter(
+        currentEvents?.filter(
           (event: JobEventWithDiffs) =>
             event.address_ === selectedWorker ||
             (event.details as JobMessageEvent)?.recipientAddress ===
@@ -138,52 +237,55 @@ export default function JobPageClient({ id }: JobPageClientProps) {
         )
       );
     } else if (
-      job?.state === JobState.Taken ||
-      job?.state === JobState.Closed
+      currentJob?.state === JobState.Taken ||
+      currentJob?.state === JobState.Closed
     ) {
       let lastIndex = -1;
 
-      for (let i = events.length - 1; i >= 0; i--) {
-        if (events[i].type_ === 2) {
+      for (let i = (currentEvents?.length || 0) - 1; i >= 0; i--) {
+        if (currentEvents![i].type_ === 2) {
           lastIndex = i;
           break;
         }
       }
       // All message events before job started
-      const additionalEvents = events.filter(
+      const additionalEvents = currentEvents?.filter(
         (event, index) =>
           index < lastIndex &&
-          (
-            (event.type_ === 17 &&
+          ((event.type_ === 17 &&
             event.address_ === selectedWorker &&
-            (event.details as JobMessageEvent)?.recipientAddress === job.roles.creator) ||
+            (event.details as JobMessageEvent)?.recipientAddress ===
+              currentJob.roles.creator) ||
             (event.type_ === 18 &&
-              event.address_ === job.roles.creator &&
-              (event.details as JobMessageEvent)?.recipientAddress === selectedWorker)
-          )
+              event.address_ === currentJob.roles.creator &&
+              (event.details as JobMessageEvent)?.recipientAddress ===
+                selectedWorker))
       );
       // All events after job started
       const filteredEvents =
         lastIndex !== -1
-          ? [...additionalEvents, ...events.slice(lastIndex)]
-          : [...additionalEvents];
+          ? [
+              ...(additionalEvents || []),
+              ...(currentEvents?.slice(lastIndex) || []),
+            ]
+          : [...(additionalEvents || [])];
       setEventMessages(filteredEvents);
     } else {
-      setEventMessages(events);
+      setEventMessages(currentEvents);
     }
-  }, [events, selectedWorker]);
+  }, [currentEvents, selectedWorker, currentJob, currentAddress]);
 
-  // TODO - this should be centered
-  if (error) {
+  if (!isTestMode && error) {
     return (
       <Layout>
-        <Text>Job not found</Text>
+        <p className='text-base/6 text-zinc-500 sm:text-sm/6 dark:text-zinc-400'>
+          Job not found
+        </p>
       </Layout>
     );
   }
 
-  // TODO should determine if loading and show loading spinner
-  if (!job) {
+  if (!currentJob) {
     return (
       <Layout>
         <JobPostSkeleton />
@@ -191,99 +293,230 @@ export default function JobPageClient({ id }: JobPageClientProps) {
     );
   }
 
-  const isOwner = address && job?.roles.creator.includes(address);
-  const isWorker = !isOwner && address && job?.roles.worker.includes(address);
-  const isArbitrator =
-    !isOwner && !isWorker && address && job?.roles.arbitrator.includes(address);
-  console.log(events, 'events')
+  // Render status state component if selected in test mode
+  const renderStatusComponent = () => {
+    if (!isTestMode || selectedStatus === 'none' || !currentJob) return null;
 
+    const mockDeliveryEvents =
+      currentEvents?.filter((e) => e.type_ === JobEventType.Delivered) || [];
+    const mockCompletedEvents =
+      currentEvents?.filter(
+        (e) =>
+          e.type_ === JobEventType.Delivered || e.type_ === JobEventType.Rated
+      ) || [];
+    const mockArbitrationEvents =
+      currentEvents?.filter((e) => e.type_ === JobEventType.Arbitrated) || [];
+
+    switch (selectedStatus) {
+      case 'assign':
+        return (
+          <AssignWorker
+            job={currentJob}
+            address={currentAddress}
+            selectedWorker={
+              selectedWorker || Object.keys(currentUsers || {})[1]
+            }
+            users={currentUsers || {}}
+          />
+        );
+      case 'accepted':
+        return (
+          <WorkerAccepted
+            job={currentJob}
+            address={currentAddress}
+            users={currentUsers || {}}
+          />
+        );
+      case 'verification':
+        return (
+          <ResultVerification
+            job={currentJob}
+            users={currentUsers || {}}
+            selectedWorker={selectedWorker}
+            events={mockDeliveryEvents}
+            address={currentAddress}
+            sessionKeys={currentSessionKeys || {}}
+            addresses={currentAddresses || []}
+          />
+        );
+      case 'completed':
+        return (
+          <ResultAccepted
+            job={currentJob}
+            events={mockCompletedEvents}
+            users={currentUsers || {}}
+            selectedWorker={selectedWorker}
+          />
+        );
+      case 'disputed':
+        return (
+          <DisputeStarted
+            job={currentJob}
+            address={currentAddress}
+            users={currentUsers || {}}
+          />
+        );
+      case 'arbitrated':
+        return (
+          <ArbitratedStatus
+            job={currentJob}
+            events={mockArbitrationEvents}
+            users={currentUsers || {}}
+            selectedWorker={selectedWorker}
+            address={currentAddress}
+          />
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <Layout borderless>
-      <div className='grid min-h-customHeader grid-cols-1'>
-        <div className='grid min-h-customHeader grid-cols-2 md:grid-cols-4'>
-          {isOwner && job?.state === JobState.Open && (
-            <div className='col-span-1 hidden max-h-customHeader overflow-y-auto border border-gray-100 bg-white p-3 md:block'>
-              <JobChatsList
-                users={users ?? {}}
-                job={job}
-                setSelectedWorker={setSelectedWorker}
-              />
-            </div>
-          )}
+      {/* Test Control Bar - only shown in test mode */}
+      {isTestMode && (
+        <TestControlBar
+          selectedScenario={selectedScenario}
+          setSelectedScenario={setSelectedScenario}
+          userRole={testUserRole}
+          setUserRole={setTestUserRole}
+          currentJob={currentJob}
+          selectedStatus={selectedStatus}
+          setSelectedStatus={setSelectedStatus}
+        />
+      )}
 
-          <div
-            className={clsx(
-              (job.state === JobState.Open && !isOwner) ||
-                job.state === JobState.Taken ||
-                job.state === JobState.Closed
-                ? 'col-span-3'
-                : 'col-span-2',
-              'max-h-customHeader bg-white'
-            )}
-          >
-            {job && (
-              <div className='grid max-h-customHeader min-h-customHeader grid-rows-[74px_auto_1fr]'>
-                <OpenJobMobileMenu
-                  users={users ?? {}}
-                  selectedWorker={selectedWorker}
-                  eventMessages={eventMessages}
-                  address={address as `0x${string}`}
-                  job={job}
-                  events={eventMessages}
-                  addresses={addresses}
-                  sessionKeys={sessionKeys}
-                  jobMeceTag={jobMeceTag ?? ''}
-                  timePassed={timePassed}
-                  adjustedProgressValue={adjustedProgressValue}
-                  tokenIcon={tokenIcon}
-                  setSelectedWorker={setSelectedWorker}
-                  whitelistedWorkers={whitelistedWorkers}
-                />
-                <JobChatEvents
-                  users={users ?? {}}
-                  selectedWorker={selectedWorker}
-                  events={eventMessages as JobEventWithDiffs[]}
-                  job={job}
-                  address={address}
-                />
-                {job &&
-                  (isJobOpenForWorker ||
-                    isWorker ||
-                    isUserCreatorWithSelectedWorkerOrTaken) &&
-                  shouldShowPostMessageButton && (
-                    <>
-                      <div className='row-span-1 flex flex-1 content-center items-center border border-gray-100 md:block'>
-                        <PostMessageButton
-                          address={address}
-                          recipient={selectedWorker as string}
-                          addresses={addresses as any}
-                          sessionKeys={sessionKeys}
-                          job={job}
-                        />
-                      </div>
-                    </>
-                  )}
-              </div>
-            )}
-          </div>
-          <div className='hidden md:block'>
-            <JobSidebar
-              job={job}
-              address={address as `0x${string}`}
-              events={eventMessages as JobEventWithDiffs[]}
-              addresses={addresses}
-              sessionKeys={sessionKeys}
-              users={users ?? {}}
-              jobMeceTag={jobMeceTag ?? ''}
-              timePassed={timePassed}
-              adjustedProgressValue={adjustedProgressValue}
-              whitelistedWorkers={whitelistedWorkers}
-              tokenIcon={tokenIcon}
-            />
+      {/* Status State Component - shown when selected in test mode */}
+      {isTestMode && selectedStatus !== 'none' && (
+        <div className='mx-auto max-w-4xl p-4'>
+          <div className='rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800'>
+            {renderStatusComponent()}
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Main Job Interface - hidden when status state is selected */}
+      {(!isTestMode || selectedStatus === 'none') && (
+        <div className='grid min-h-customHeader grid-cols-1'>
+          <div className='grid min-h-customHeader grid-cols-2 md:grid-cols-4'>
+            {isOwner && currentJob?.state === JobState.Open && (
+              <div className='col-span-1 hidden max-h-customHeader overflow-y-auto border border-gray-100 bg-white p-3 md:block'>
+                <JobChatsList
+                  users={currentUsers ?? {}}
+                  job={currentJob}
+                  setSelectedWorker={setSelectedWorker}
+                />
+              </div>
+            )}
+
+            <div
+              className={clsx(
+                (currentJob.state === JobState.Open && !isOwner) ||
+                  currentJob.state === JobState.Taken ||
+                  currentJob.state === JobState.Closed
+                  ? 'col-span-3'
+                  : 'col-span-2',
+                'max-h-customHeader bg-white'
+              )}
+            >
+              {currentJob && (
+                <div className='grid max-h-customHeader min-h-customHeader grid-rows-[74px_auto_1fr]'>
+                  <OpenJobMobileMenu
+                    users={currentUsers ?? {}}
+                    selectedWorker={selectedWorker}
+                    eventMessages={eventMessages ?? []}
+                    address={currentAddress as `0x${string}`}
+                    job={currentJob}
+                    events={eventMessages ?? []}
+                    addresses={currentAddresses ?? []}
+                    sessionKeys={currentSessionKeys ?? {}}
+                    jobMeceTag={jobMeceTag ?? ''}
+                    timePassed={timePassed}
+                    adjustedProgressValue={adjustedProgressValue}
+                    tokenIcon={tokenIcon}
+                    setSelectedWorker={setSelectedWorker}
+                    whitelistedWorkers={whitelistedWorkers}
+                    user={currentUser ?? undefined}
+                  />
+                  <JobChatEvents
+                    users={currentUsers ?? {}}
+                    selectedWorker={selectedWorker}
+                    events={(eventMessages as JobEventWithDiffs[]) ?? []}
+                    job={currentJob}
+                    address={currentAddress}
+                    currentUser={currentUser ?? undefined}
+                  />
+                  {currentJob && shouldShowPostMessageButton && (
+                    <div className='row-span-1 flex flex-1 content-center items-center border border-gray-100 md:block'>
+                      {isTestMode ? (
+                        // Mock PostMessageButton for test mode
+                        <div className='flex h-full items-center justify-center p-4'>
+                          <div className='w-full'>
+                            <div className='flex items-end gap-2 rounded-lg border border-gray-200 bg-white p-2 shadow-sm'>
+                              <textarea
+                                rows={1}
+                                placeholder='Type a message... (disabled in test mode)'
+                                className='min-h-[36px] flex-1 resize-none rounded-lg border-0 bg-transparent px-2 py-1 text-sm text-gray-900 outline-none'
+                                disabled
+                              />
+                              <button
+                                disabled
+                                className='flex h-9 w-9 cursor-not-allowed items-center justify-center rounded-xl bg-gray-100'
+                              >
+                                <svg
+                                  className='h-4 w-4 text-gray-400'
+                                  fill='none'
+                                  stroke='currentColor'
+                                  viewBox='0 0 24 24'
+                                >
+                                  <path
+                                    strokeLinecap='round'
+                                    strokeLinejoin='round'
+                                    strokeWidth={2}
+                                    d='M12 19l9 2-9-18-9 18 9-2zm0 0v-8'
+                                  />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <PostMessageButton
+                          address={currentAddress}
+                          recipient={
+                            selectedWorker ||
+                            (isJobOpenForWorker
+                              ? currentJob.roles.creator
+                              : selectedWorker)
+                          }
+                          addresses={currentAddresses ?? []}
+                          sessionKeys={currentSessionKeys ?? {}}
+                          job={currentJob}
+                        />
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            <div className='hidden md:block'>
+              <JobSidebar
+                job={currentJob}
+                address={currentAddress as `0x${string}`}
+                events={(eventMessages as JobEventWithDiffs[]) ?? []}
+                addresses={currentAddresses ?? []}
+                sessionKeys={currentSessionKeys ?? {}}
+                users={currentUsers ?? {}}
+                jobMeceTag={jobMeceTag ?? ''}
+                timePassed={timePassed}
+                adjustedProgressValue={adjustedProgressValue}
+                whitelistedWorkers={whitelistedWorkers}
+                tokenIcon={tokenIcon}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }

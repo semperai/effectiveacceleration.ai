@@ -50,7 +50,9 @@ const getCachedUsers = unstable_cache(
   async (): Promise<User[]> => {
     try {
       const client = new ApolloClient({
-        uri: process.env.NEXT_PUBLIC_SUBSQUID_API_URL || 'https://arbius.squids.live/eacc-arb-one@v1/api/graphql',
+        uri:
+          process.env.NEXT_PUBLIC_SUBSQUID_API_URL ||
+          'https://arbius.squids.live/eacc-arb-one@v1/api/graphql',
         cache: new InMemoryCache(),
         defaultOptions: {
           query: {
@@ -82,28 +84,37 @@ export async function generateMetadata(): Promise<Metadata> {
   const users = await getCachedUsers();
 
   const totalUsers = users.length;
-  const totalReviews = users.reduce((sum, user) => sum + (user.numberOfReviews || 0), 0);
+  const totalReviews = users.reduce(
+    (sum, user) => sum + (user.numberOfReviews || 0),
+    0
+  );
 
   // Calculate actual average rating correctly
-  const usersWithReviews = users.filter(u => u.numberOfReviews > 0);
-  const avgRating = usersWithReviews.length > 0
-    ? (usersWithReviews.reduce((sum, user) => {
-        // Calculate from actual reviews if available
-        if (user.reviews && user.reviews.length > 0) {
-          const userAvg = user.reviews.reduce((s, r) => s + r.rating, 0) / user.reviews.length;
-          return sum + userAvg;
-        }
-        // Fallback - should not happen if data is consistent
-        return sum;
-      }, 0) / usersWithReviews.length).toFixed(1)
-    : '0';
+  const usersWithReviews = users.filter((u) => u.numberOfReviews > 0);
+  const avgRating =
+    usersWithReviews.length > 0
+      ? (
+          usersWithReviews.reduce((sum, user) => {
+            // Calculate from actual reviews if available
+            if (user.reviews && user.reviews.length > 0) {
+              const userAvg =
+                user.reviews.reduce((s, r) => s + r.rating, 0) /
+                user.reviews.length;
+              return sum + userAvg;
+            }
+            // Fallback - should not happen if data is consistent
+            return sum;
+          }, 0) / usersWithReviews.length
+        ).toFixed(1)
+      : '0';
 
   const description = `Discover ${totalUsers} skilled professionals on Effective Acceleration. ${totalReviews} reviews with ${avgRating} average rating. Find trusted freelancers and service providers.`;
 
   return {
     title: 'Users - Effective Acceleration',
     description,
-    keywords: 'users, freelancers, professionals, service providers, effective acceleration, marketplace, blockchain, reviews',
+    keywords:
+      'users, freelancers, professionals, service providers, effective acceleration, marketplace, blockchain, reviews',
     openGraph: {
       title: 'Browse Users - Effective Acceleration',
       description,

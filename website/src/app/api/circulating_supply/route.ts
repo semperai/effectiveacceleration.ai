@@ -13,12 +13,11 @@ export async function GET() {
       status: 200,
       headers: {
         'Content-Type': 'text/plain',
-        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200'
-      }
+        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200',
+      },
     });
 
     return response;
-
   } catch (error) {
     console.error('Error calculating circulating supply:', error);
 
@@ -30,8 +29,8 @@ export async function GET() {
         headers: {
           'Content-Type': 'text/plain',
           'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
-          'X-Cached-Fallback': 'true'
-        }
+          'X-Cached-Fallback': 'true',
+        },
       });
     }
 
@@ -39,8 +38,8 @@ export async function GET() {
     return new NextResponse('Service temporarily unavailable', {
       status: 500,
       headers: {
-        'Content-Type': 'text/plain'
-      }
+        'Content-Type': 'text/plain',
+      },
     });
   }
 }

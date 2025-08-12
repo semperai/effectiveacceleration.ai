@@ -7,8 +7,12 @@ import useUser from '@/hooks/subsquid/useUser';
 import useReviews from '@/hooks/subsquid/useReviews';
 import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
 import { Button } from '@/components/Button';
-import { LinkIcon, DocumentDuplicateIcon, ArrowTopRightOnSquareIcon } from '@heroicons/react/20/solid';
-import EventProfileImage from '@/components/Events/Components/EventProfileImage';
+import {
+  LinkIcon,
+  DocumentDuplicateIcon,
+  ArrowTopRightOnSquareIcon,
+} from '@heroicons/react/20/solid';
+import ProfileImage from '@/components/ProfileImage';
 import { useMemo, useState } from 'react';
 
 interface UserPageClientProps {
@@ -18,30 +22,30 @@ interface UserPageClientProps {
 // Loading skeleton component
 const UserProfileSkeleton = () => {
   return (
-    <div className='flex min-h-full flex-col h-full animate-pulse'>
-      <div className='flex w-full basis-1/5 justify-between p-6 min-h-[20%]'>
+    <div className='flex h-full min-h-full animate-pulse flex-col'>
+      <div className='flex min-h-[20%] w-full basis-1/5 justify-between p-6'>
         <div className='relative flex flex-row'>
-          <div className='h-20 w-20 mr-4 bg-gray-200 rounded-full' />
+          <div className='mr-4 h-20 w-20 rounded-full bg-gray-200' />
           <div className='flex flex-col gap-y-2'>
-            <div className='h-6 w-32 bg-gray-200 rounded' />
-            <div className='h-4 w-48 bg-gray-200 rounded' />
-            <div className='h-4 w-24 bg-gray-200 rounded' />
+            <div className='h-6 w-32 rounded bg-gray-200' />
+            <div className='h-4 w-48 rounded bg-gray-200' />
+            <div className='h-4 w-24 rounded bg-gray-200' />
           </div>
         </div>
-        <div className='h-10 w-24 bg-gray-200 rounded' />
+        <div className='h-10 w-24 rounded bg-gray-200' />
       </div>
-      <div className='flex basis-4/5 flex-row bg-white border-t min-h-[80%]'>
+      <div className='flex min-h-[80%] basis-4/5 flex-row border-t bg-white'>
         <div className='flex basis-3/4 border-r p-6'>
           <div className='w-full space-y-3'>
-            <div className='h-6 w-3/4 bg-gray-200 rounded' />
-            <div className='h-4 w-full bg-gray-200 rounded' />
-            <div className='h-4 w-full bg-gray-200 rounded' />
-            <div className='h-4 w-2/3 bg-gray-200 rounded' />
+            <div className='h-6 w-3/4 rounded bg-gray-200' />
+            <div className='h-4 w-full rounded bg-gray-200' />
+            <div className='h-4 w-full rounded bg-gray-200' />
+            <div className='h-4 w-2/3 rounded bg-gray-200' />
           </div>
         </div>
         <div className='flex basis-1/4 p-6'>
           <div className='w-full space-y-4'>
-            <div className='h-32 w-full bg-gray-200 rounded' />
+            <div className='h-32 w-full rounded bg-gray-200' />
           </div>
         </div>
       </div>
@@ -50,7 +54,11 @@ const UserProfileSkeleton = () => {
 };
 
 export default function UserPageClient({ address }: UserPageClientProps) {
-  const { data: user, loading: userLoading, error: userError } = useUser(address);
+  const {
+    data: user,
+    loading: userLoading,
+    error: userError,
+  } = useUser(address);
   const { data: reviews, loading: reviewsLoading } = useReviews(address);
   const { data: users } = useUsersByAddresses(
     reviews?.map((review) => review.reviewer) ?? []
@@ -66,7 +74,10 @@ export default function UserPageClient({ address }: UserPageClientProps) {
   // Calculate actual average rating from reviews
   const actualAverageRating = useMemo(() => {
     if (reviews && reviews.length > 0) {
-      const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+      const totalRating = reviews.reduce(
+        (sum, review) => sum + review.rating,
+        0
+      );
       return totalRating / reviews.length;
     }
     // Fallback to calculated average if reviews not loaded
@@ -103,7 +114,7 @@ export default function UserPageClient({ address }: UserPageClientProps) {
     return (
       <Layout borderless>
         <div className='flex min-h-full items-center justify-center'>
-          <div className='text-center py-12'>
+          <div className='py-12 text-center'>
             <h2 className='text-2xl font-bold text-gray-900 dark:text-gray-100'>
               User not found
             </h2>
@@ -125,11 +136,13 @@ export default function UserPageClient({ address }: UserPageClientProps) {
   // Function to share profile
   const handleShare = () => {
     if (navigator.share) {
-      navigator.share({
-        title: `${user.name || 'User'} Profile`,
-        text: `Check out ${user.name || 'this user'}'s profile on Effective Acceleration`,
-        url: window.location.href,
-      }).catch(console.error);
+      navigator
+        .share({
+          title: `${user.name || 'User'} Profile`,
+          text: `Check out ${user.name || 'this user'}'s profile on Effective Acceleration`,
+          url: window.location.href,
+        })
+        .catch(console.error);
     } else {
       // Fallback to copy to clipboard
       navigator.clipboard.writeText(window.location.href);
@@ -139,11 +152,14 @@ export default function UserPageClient({ address }: UserPageClientProps) {
 
   return (
     <Layout borderless>
-      <div className='flex min-h-full flex-col h-full'>
-        <div className='flex w-full basis-1/5 justify-between p-6 min-h-[20%]'>
+      <div className='flex h-full min-h-full flex-col'>
+        <div className='flex min-h-[20%] w-full basis-1/5 justify-between p-6'>
           <div className='relative flex flex-row'>
             {user && (
-              <EventProfileImage className='h-20 w-20 mr-4 rounded-full' user={user}/>
+              <ProfileImage
+                className='mr-4 h-20 w-20 rounded-full'
+                user={user}
+              />
             )}
             <div className='flex flex-col gap-y-1'>
               <span className='flex text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-xl sm:tracking-tight dark:text-gray-100'>
@@ -152,18 +168,20 @@ export default function UserPageClient({ address }: UserPageClientProps) {
 
               {/* Address and Arbiscan link */}
               <div className='flex items-center gap-2 text-sm'>
-                <span className='text-gray-600 dark:text-gray-400 font-mono'>
+                <span className='font-mono text-gray-600 dark:text-gray-400'>
                   {formatAddress(address)}
                 </span>
                 <button
                   onClick={copyAddress}
-                  className='text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors'
+                  className='text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
                   title='Copy address'
                 >
                   <DocumentDuplicateIcon className='h-4 w-4' />
                 </button>
                 {copiedAddress && (
-                  <span className='text-xs text-green-600 dark:text-green-400'>Copied!</span>
+                  <span className='text-xs text-green-600 dark:text-green-400'>
+                    Copied!
+                  </span>
                 )}
                 <a
                   href={`https://arbiscan.io/address/${address}`}
@@ -185,7 +203,8 @@ export default function UserPageClient({ address }: UserPageClientProps) {
               </span>
               {user?.numberOfReviews !== undefined && (
                 <span className='text-sm text-gray-500 dark:text-gray-400'>
-                  {user.numberOfReviews} total reviews • {actualAverageRating?.toFixed(1) || '0'} avg rating
+                  {user.numberOfReviews} total reviews •{' '}
+                  {actualAverageRating?.toFixed(1) || '0'} avg rating
                 </span>
               )}
             </div>
@@ -205,8 +224,8 @@ export default function UserPageClient({ address }: UserPageClientProps) {
           </div>
         </div>
 
-        <div className='flex basis-4/5 flex-row bg-white border-t min-h-[80%]'>
-          <div className='flex basis-3/4 border-r p-6 min-h-full'>
+        <div className='flex min-h-[80%] basis-4/5 flex-row border-t bg-white'>
+          <div className='flex min-h-full basis-3/4 border-r p-6'>
             <div className='w-full'>
               {/* If user has an extended bio/description, show it prominently */}
               {user?.bio && (
@@ -215,7 +234,7 @@ export default function UserPageClient({ address }: UserPageClientProps) {
                     About {user?.name || 'User'}
                   </h2>
                   <div className='prose prose-gray dark:prose-invert max-w-none'>
-                    <p className='text-gray-700 dark:text-gray-300 whitespace-pre-wrap'>
+                    <p className='whitespace-pre-wrap text-gray-700 dark:text-gray-300'>
                       {user.bio}
                     </p>
                   </div>
@@ -226,11 +245,11 @@ export default function UserPageClient({ address }: UserPageClientProps) {
               <div className={`${user?.bio ? 'mt-8' : ''} space-y-6`}>
                 {/* Show statistics */}
                 <div>
-                  <h3 className='text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4'>
+                  <h3 className='mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100'>
                     Performance Overview
                   </h3>
-                  <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
-                    <div className='bg-gray-50 dark:bg-gray-800 p-4 rounded-lg'>
+                  <div className='grid grid-cols-2 gap-4 md:grid-cols-4'>
+                    <div className='rounded-lg bg-gray-50 p-4 dark:bg-gray-800'>
                       <div className='text-2xl font-bold text-primary'>
                         {user?.numberOfReviews || 0}
                       </div>
@@ -238,7 +257,7 @@ export default function UserPageClient({ address }: UserPageClientProps) {
                         Total Reviews
                       </div>
                     </div>
-                    <div className='bg-gray-50 dark:bg-gray-800 p-4 rounded-lg'>
+                    <div className='rounded-lg bg-gray-50 p-4 dark:bg-gray-800'>
                       <div className='text-2xl font-bold text-primary'>
                         {positiveReviewPercentage}%
                       </div>
@@ -246,7 +265,7 @@ export default function UserPageClient({ address }: UserPageClientProps) {
                         Success Rate
                       </div>
                     </div>
-                    <div className='bg-gray-50 dark:bg-gray-800 p-4 rounded-lg'>
+                    <div className='rounded-lg bg-gray-50 p-4 dark:bg-gray-800'>
                       <div className='text-2xl font-bold text-primary'>
                         {actualAverageRating?.toFixed(1) || '0'}
                       </div>
@@ -254,7 +273,7 @@ export default function UserPageClient({ address }: UserPageClientProps) {
                         Average Rating
                       </div>
                     </div>
-                    <div className='bg-gray-50 dark:bg-gray-800 p-4 rounded-lg'>
+                    <div className='rounded-lg bg-gray-50 p-4 dark:bg-gray-800'>
                       <div className='text-2xl font-bold text-primary'>
                         {user?.myReviews?.length || 0}
                       </div>
@@ -265,41 +284,25 @@ export default function UserPageClient({ address }: UserPageClientProps) {
                   </div>
                 </div>
 
-                {/* Member since and Wallet Address */}
+                {/* Member since */}
                 <div>
-                  <h3 className='text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2'>
+                  <h3 className='mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100'>
                     Member Information
                   </h3>
                   {user?.timestamp && (
-                    <p className='text-gray-600 dark:text-gray-400 mb-2'>
-                      Member since {moment(user.timestamp * 1000).format('MMMM YYYY')}
+                    <p className='mb-2 text-gray-600 dark:text-gray-400'>
+                      Member since{' '}
+                      {moment(user.timestamp * 1000).format('MMMM YYYY')}
                     </p>
                   )}
-                  <div className='flex items-center gap-2'>
-                    <span className='text-gray-600 dark:text-gray-400'>
-                      Wallet:
-                    </span>
-                    <code className='text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded font-mono'>
-                      {address}
-                    </code>
-                    <button
-                      onClick={copyAddress}
-                      className='text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors'
-                      title='Copy full address'
-                    >
-                      <DocumentDuplicateIcon className='h-4 w-4' />
-                    </button>
-                    {copiedAddress && (
-                      <span className='text-xs text-green-600 dark:text-green-400'>Copied!</span>
-                    )}
-                  </div>
                 </div>
 
                 {/* If no bio, show a message */}
                 {!user?.bio && (
-                  <div className='bg-gray-50 dark:bg-gray-800 p-6 rounded-lg text-center'>
+                  <div className='rounded-lg bg-gray-50 p-6 text-center dark:bg-gray-800'>
                     <p className='text-gray-600 dark:text-gray-400'>
-                      This user hasn't added a bio yet. Check out their reviews and completed jobs to learn more about their work.
+                      This user hasn&apos;t added a bio yet. Check out their
+                      reviews and completed jobs to learn more about their work.
                     </p>
                   </div>
                 )}
@@ -307,10 +310,10 @@ export default function UserPageClient({ address }: UserPageClientProps) {
             </div>
           </div>
 
-          <div className='flex basis-1/4 p-6 overflow-y-auto'>
+          <div className='flex basis-1/4 overflow-y-auto p-6'>
             <div className='w-full'>
               {reviews && reviews.length > 0 && (
-                <div className='my-0 mr-3 flex flex-row gap-4 mb-10'>
+                <div className='my-0 mb-10 mr-3 flex flex-row gap-4'>
                   <div className='flex flex-1 flex-col items-center'>
                     <span className='text-2xl font-semibold text-primary'>
                       {totalReviews}
@@ -346,21 +349,24 @@ export default function UserPageClient({ address }: UserPageClientProps) {
                 </div>
               )}
 
-              <h3 className='text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4'>
+              <h3 className='mb-4 text-lg font-semibold text-gray-900 dark:text-gray-100'>
                 Reviews
               </h3>
 
               {!reviews || reviews.length === 0 ? (
                 <div className='flex h-48 items-center justify-center'>
                   <span className='text-md text-center font-semibold text-gray-500 dark:text-gray-400'>
-                    <b className='text-primary'>{user?.name || 'This user'}</b> doesn't have
-                    any reviews yet
+                    <b className='text-primary'>{user?.name || 'This user'}</b>{' '}
+                    doesn&apos;t have any reviews yet
                   </span>
                 </div>
               ) : (
                 <div className='space-y-4'>
                   {reviews.map((review, index) => (
-                    <div key={review.id || index} className='pb-4 border-b border-gray-200 dark:border-gray-700 last:border-0'>
+                    <div
+                      key={review.id || index}
+                      className='border-b border-gray-200 pb-4 last:border-0 dark:border-gray-700'
+                    >
                       <p className='text-sm font-semibold text-gray-500 dark:text-gray-400'>
                         {users?.[review.reviewer]?.name || 'Anonymous'} reviewed{' '}
                         <Link
@@ -370,7 +376,7 @@ export default function UserPageClient({ address }: UserPageClientProps) {
                           Job #{review.jobId}
                         </Link>
                       </p>
-                      <p className='text-sm mt-1 text-gray-700 dark:text-gray-300'>
+                      <p className='mt-1 text-sm text-gray-700 dark:text-gray-300'>
                         {review.text}
                       </p>
                       <div className='mt-2 flex items-center justify-between'>

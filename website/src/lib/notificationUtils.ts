@@ -1,7 +1,6 @@
-// src/lib/notificationUtils.ts
 import { JobEventType } from '@effectiveacceleration/contracts';
 import type { NotificationWithJob } from '@/hooks/subsquid/useUserNotifications';
-import { formatTokenNameAndAmount } from '@/tokens';
+import { formatTokenNameAndAmount } from '@/lib/utils';
 import {
   FileText,
   UserCheck,
@@ -21,7 +20,7 @@ import {
   Lock,
   Unlock,
   MessageSquare,
-  FileCheck
+  FileCheck,
 } from 'lucide-react';
 import React from 'react';
 
@@ -61,13 +60,16 @@ export const getNotificationContent = (
   const userRole = getUserRole();
 
   // DEBUG logging for message notifications
-  if (type === JobEventType.OwnerMessage || type === JobEventType.WorkerMessage) {
+  if (
+    type === JobEventType.OwnerMessage ||
+    type === JobEventType.WorkerMessage
+  ) {
     console.log('[notificationUtils] Processing message notification:', {
       notificationId: notification.id,
       type,
       hasMessageContent: !!notification.messageContent,
       messageContent: notification.messageContent,
-      messageContentLength: notification.messageContent?.length
+      messageContentLength: notification.messageContent?.length,
     });
   }
 
@@ -75,21 +77,23 @@ export const getNotificationContent = (
     case JobEventType.Created:
       return {
         title: isRead ? 'Job Created' : 'New Job Created',
-        description: userRole === 'arbitrator'
-          ? 'You have been assigned as the arbitrator for this job'
-          : 'A job has been created',
+        description:
+          userRole === 'arbitrator'
+            ? 'You have been assigned as the arbitrator for this job'
+            : 'A job has been created',
         icon: React.createElement(FileText, { className: 'h-3.5 w-3.5' }),
-        priority: 'high'
+        priority: 'high',
       };
 
     case JobEventType.Taken:
       return {
         title: 'Job Taken',
-        description: userRole === 'creator'
-          ? 'A worker has accepted your job'
-          : 'This job has been taken by a worker',
+        description:
+          userRole === 'creator'
+            ? 'A worker has accepted your job'
+            : 'This job has been taken by a worker',
         icon: React.createElement(UserCheck, { className: 'h-3.5 w-3.5' }),
-        priority: 'high'
+        priority: 'high',
       };
 
     case JobEventType.Paid:
@@ -99,7 +103,7 @@ export const getNotificationContent = (
           ? `Payment of ${formatTokenNameAndAmount(job.token, job.amount)} has been made`
           : 'Payment has been made for this job',
         icon: React.createElement(DollarSign, { className: 'h-3.5 w-3.5' }),
-        priority: 'high'
+        priority: 'high',
       };
 
     case JobEventType.Updated:
@@ -107,69 +111,75 @@ export const getNotificationContent = (
         title: 'Job Updated',
         description: 'Job details have been modified',
         icon: React.createElement(Edit, { className: 'h-3.5 w-3.5' }),
-        priority: 'medium'
+        priority: 'medium',
       };
 
     case JobEventType.Signed:
       return {
         title: 'Contract Signed',
-        description: userRole === 'creator'
-          ? 'The worker has signed the job agreement'
-          : 'The job agreement has been signed',
+        description:
+          userRole === 'creator'
+            ? 'The worker has signed the job agreement'
+            : 'The job agreement has been signed',
         icon: React.createElement(PenTool, { className: 'h-3.5 w-3.5' }),
-        priority: 'medium'
+        priority: 'medium',
       };
 
     case JobEventType.Completed:
       return {
         title: 'Job Completed',
-        description: userRole === 'worker'
-          ? 'Your work has been approved and payment released'
-          : userRole === 'arbitrator'
-          ? 'This job has been successfully completed'
-          : 'The job has been completed and approved',
+        description:
+          userRole === 'worker'
+            ? 'Your work has been approved and payment released'
+            : userRole === 'arbitrator'
+              ? 'This job has been successfully completed'
+              : 'The job has been completed and approved',
         icon: React.createElement(CheckCircle, { className: 'h-3.5 w-3.5' }),
-        priority: 'high'
+        priority: 'high',
       };
 
     case JobEventType.Delivered:
       return {
         title: 'Work Delivered',
-        description: userRole === 'creator'
-          ? 'The worker has submitted their deliverables'
-          : 'Deliverables have been submitted for review',
+        description:
+          userRole === 'creator'
+            ? 'The worker has submitted their deliverables'
+            : 'Deliverables have been submitted for review',
         icon: React.createElement(Package, { className: 'h-3.5 w-3.5' }),
-        priority: 'high'
+        priority: 'high',
       };
 
     case JobEventType.Rated:
       return {
         title: isRead ? 'Rating Received' : 'New Rating',
-        description: userRole === 'worker'
-          ? 'You have received a rating for your work'
-          : 'A rating has been submitted',
+        description:
+          userRole === 'worker'
+            ? 'You have received a rating for your work'
+            : 'A rating has been submitted',
         icon: React.createElement(Star, { className: 'h-3.5 w-3.5' }),
-        priority: 'medium'
+        priority: 'medium',
       };
 
     case JobEventType.Refunded:
       return {
         title: 'Job Refunded',
-        description: userRole === 'creator'
-          ? 'Your payment has been refunded'
-          : 'The job payment has been refunded',
+        description:
+          userRole === 'creator'
+            ? 'Your payment has been refunded'
+            : 'The job payment has been refunded',
         icon: React.createElement(RotateCcw, { className: 'h-3.5 w-3.5' }),
-        priority: 'high'
+        priority: 'high',
       };
 
     case JobEventType.Disputed:
       return {
         title: 'Dispute Raised',
-        description: userRole === 'arbitrator'
-          ? 'Your arbitration is needed to resolve this dispute'
-          : 'A dispute has been raised and sent to arbitration',
+        description:
+          userRole === 'arbitrator'
+            ? 'Your arbitration is needed to resolve this dispute'
+            : 'A dispute has been raised and sent to arbitration',
         icon: React.createElement(AlertTriangle, { className: 'h-3.5 w-3.5' }),
-        priority: 'high'
+        priority: 'high',
       };
 
     case JobEventType.Arbitrated:
@@ -177,7 +187,7 @@ export const getNotificationContent = (
         title: 'Arbitration Complete',
         description: 'The dispute has been resolved by the arbitrator',
         icon: React.createElement(Scale, { className: 'h-3.5 w-3.5' }),
-        priority: 'high'
+        priority: 'high',
       };
 
     case JobEventType.ArbitrationRefused:
@@ -185,27 +195,31 @@ export const getNotificationContent = (
         title: 'Arbitration Refused',
         description: 'The arbitrator has refused to handle this dispute',
         icon: React.createElement(XCircle, { className: 'h-3.5 w-3.5' }),
-        priority: 'high'
+        priority: 'high',
       };
 
     case JobEventType.WhitelistedWorkerAdded:
       return {
         title: 'Added to Whitelist',
-        description: userRole === 'worker' || address?.toLowerCase() === currentUserAddress?.toLowerCase()
-          ? 'You have been added to the whitelist for this job'
-          : 'A worker has been added to the whitelist',
+        description:
+          userRole === 'worker' ||
+          address?.toLowerCase() === currentUserAddress?.toLowerCase()
+            ? 'You have been added to the whitelist for this job'
+            : 'A worker has been added to the whitelist',
         icon: React.createElement(UserPlus, { className: 'h-3.5 w-3.5' }),
-        priority: 'medium'
+        priority: 'medium',
       };
 
     case JobEventType.WhitelistedWorkerRemoved:
       return {
         title: 'Removed from Whitelist',
-        description: userRole === 'worker' || address?.toLowerCase() === currentUserAddress?.toLowerCase()
-          ? 'You have been removed from the whitelist'
-          : 'A worker has been removed from the whitelist',
+        description:
+          userRole === 'worker' ||
+          address?.toLowerCase() === currentUserAddress?.toLowerCase()
+            ? 'You have been removed from the whitelist'
+            : 'A worker has been removed from the whitelist',
         icon: React.createElement(UserMinus, { className: 'h-3.5 w-3.5' }),
-        priority: 'low'
+        priority: 'low',
       };
 
     case JobEventType.CollateralWithdrawn:
@@ -215,7 +229,7 @@ export const getNotificationContent = (
           ? `${formatTokenNameAndAmount(job.token, job.collateralOwed)} withdrawn`
           : 'Collateral has been withdrawn',
         icon: React.createElement(Banknote, { className: 'h-3.5 w-3.5' }),
-        priority: 'medium'
+        priority: 'medium',
       };
 
     case JobEventType.Closed:
@@ -223,7 +237,7 @@ export const getNotificationContent = (
         title: 'Job Closed',
         description: 'This job has been closed',
         icon: React.createElement(Lock, { className: 'h-3.5 w-3.5' }),
-        priority: 'medium'
+        priority: 'medium',
       };
 
     case JobEventType.Reopened:
@@ -231,7 +245,7 @@ export const getNotificationContent = (
         title: 'Job Reopened',
         description: 'This job has been reopened for applications',
         icon: React.createElement(Unlock, { className: 'h-3.5 w-3.5' }),
-        priority: 'high'
+        priority: 'high',
       };
 
     case JobEventType.OwnerMessage:
@@ -244,8 +258,10 @@ export const getNotificationContent = (
 
       if (messageContent && messageContent.trim()) {
         // We have actual content
-        if (messageContent === '[Unable to load message]' ||
-            messageContent === '[Error loading message]') {
+        if (
+          messageContent === '[Unable to load message]' ||
+          messageContent === '[Error loading message]'
+        ) {
           // Error states from the fetch
           description = messageContent;
         } else {
@@ -267,14 +283,14 @@ export const getNotificationContent = (
         notificationId: notification.id,
         hasContent: !!messageContent,
         contentLength: messageContent?.length,
-        finalDescription: description
+        finalDescription: description,
       });
 
       return {
         title: isRead ? 'Message' : 'New Message',
         description,
         icon: React.createElement(MessageSquare, { className: 'h-3.5 w-3.5' }),
-        priority: 'medium'
+        priority: 'medium',
       };
     }
 
@@ -283,7 +299,7 @@ export const getNotificationContent = (
         title: 'Job Update',
         description: `Activity on job #${notification.jobId}`,
         icon: React.createElement(FileCheck, { className: 'h-3.5 w-3.5' }),
-        priority: 'low'
+        priority: 'low',
       };
   }
-}
+};

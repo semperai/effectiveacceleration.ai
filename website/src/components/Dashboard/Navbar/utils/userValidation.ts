@@ -16,12 +16,12 @@ export const validateUserForm = ({
   name,
   bio,
   fee,
-  isArbitrator
+  isArbitrator,
 }: ValidationInput): ValidationErrors => {
   const errors: ValidationErrors = {
     name: '',
     bio: '',
-    fee: ''
+    fee: '',
   };
 
   // Name validation
@@ -47,5 +47,3 @@ export const validateUserForm = ({
 
   return errors;
 };
-
-

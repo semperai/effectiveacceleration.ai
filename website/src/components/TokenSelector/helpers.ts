@@ -1,13 +1,5 @@
-// src/components/TokenDialog/Dependencies/tokenHelpers.ts
 import { ethers } from 'ethers';
-
-// Minimal ERC20 ABI for fetching token metadata
-const ERC20_ABI = [
-  'function name() view returns (string)',
-  'function symbol() view returns (string)',
-  'function decimals() view returns (uint8)',
-  'function balanceOf(address) view returns (uint256)',
-];
+import { ERC20_ABI } from '@/lib/constants';
 
 export interface IArbitrumToken {
   logoURI?: string;
@@ -41,7 +33,10 @@ export async function fetchTokenMetadata(
     }
 
     // Handle native ETH specially
-    if (address === ethers.ZeroAddress || address === '0x0000000000000000000000000000000000000000') {
+    if (
+      address === ethers.ZeroAddress ||
+      address === '0x0000000000000000000000000000000000000000'
+    ) {
       return {
         address: address,
         name: 'Ethereum',
@@ -52,7 +47,7 @@ export async function fetchTokenMetadata(
       };
     }
 
-    // Create contract instance
+    // Create contract instance with the full ABI
     const contract = new ethers.Contract(address, ERC20_ABI, provider);
 
     // Fetch token metadata in parallel for efficiency
@@ -125,37 +120,32 @@ export async function isValidTokenContract(
  * @param sortKey - Optional key to sort the results
  * @returns A new array with unique objects based on the specified key
  */
-export function uniqueBy<T>(
-  key: keyof T,
-  array: T[],
-  sortKey?: keyof T
-): T[] {
+export function uniqueBy<T>(key: keyof T, array: T[], sortKey?: keyof T): T[] {
   const seen = new Map<any, T>();
-  
+
   for (const item of array) {
     const keyValue = item[key];
     if (!seen.has(keyValue)) {
       seen.set(keyValue, item);
     }
   }
-  
+
   const result = Array.from(seen.values());
-  
+
   if (sortKey) {
     result.sort((a, b) => {
       const aVal = a[sortKey];
       const bVal = b[sortKey];
-      
+
       if (typeof aVal === 'string' && typeof bVal === 'string') {
         return aVal.localeCompare(bVal);
       }
-      
+
       if (aVal < bVal) return -1;
       if (aVal > bVal) return 1;
       return 0;
     });
   }
-  
+
   return result;
 }
-

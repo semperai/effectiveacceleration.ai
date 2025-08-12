@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { UserDropdown } from './UserDropdown';
-import EventProfileImage from '@/components/Events/Components/EventProfileImage';
+import ProfileImage from '@/components/ProfileImage';
 import type { User, Arbitrator } from '@effectiveacceleration/contracts';
 import { PiUser } from 'react-icons/pi';
 
@@ -43,17 +43,14 @@ export const UserButton = ({ user, arbitrator }: UserButtonProps) => {
       <button
         ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
-        className='relative h-10 w-10 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors overflow-hidden focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900'
+        className='relative h-10 w-10 overflow-hidden rounded-full bg-gray-100 transition-colors hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-offset-gray-900'
         aria-label='User menu'
       >
         {currentProfile?.avatar ? (
-          <EventProfileImage
-            user={currentProfile}
-            className='h-10 w-10'
-          />
+          <ProfileImage user={currentProfile} className='h-10 w-10' />
         ) : (
           // Default PiUser icon when no avatar is set
-          <div className='h-full w-full flex items-center justify-center'>
+          <div className='flex h-full w-full items-center justify-center'>
             <PiUser className='h-5 w-5 text-gray-600' />
           </div>
         )}
