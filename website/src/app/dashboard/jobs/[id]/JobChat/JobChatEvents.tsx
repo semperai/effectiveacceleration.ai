@@ -167,7 +167,7 @@ const JobChatEvents: React.FC<JobChatEventsProps> = ({
     <>
       <div
         ref={chatContainerRef}
-        className='relative row-span-4 max-h-customHeader overflow-y-auto border border-gray-100 bg-softBlue px-4'
+        className='relative row-span-4 max-h-customHeader overflow-y-auto border border-gray-100 bg-softBlue notifications-scroll px-4'
       >
         {selectedWorker && events.length > 0 ? (
           <>
