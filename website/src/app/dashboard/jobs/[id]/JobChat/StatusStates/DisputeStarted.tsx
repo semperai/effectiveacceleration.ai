@@ -272,19 +272,6 @@ const DisputeStarted: React.FC<DisputeStartedProps> = ({
           </div>
         </div>
       </div>
-
-      {/* Add striped pattern styles */}
-      <style jsx>{`
-        .bg-stripes {
-          background-image: repeating-linear-gradient(
-            45deg,
-            transparent,
-            transparent 10px,
-            rgba(251, 191, 36, 0.1) 10px,
-            rgba(251, 191, 36, 0.1) 20px
-          );
-        }
-      `}</style>
     </div>
   );
 };
