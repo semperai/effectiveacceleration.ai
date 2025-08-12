@@ -191,8 +191,8 @@ const JobChatEvents: React.FC<JobChatEventsProps> = ({
                       ) : null}
                       <div
                         className={clsx(
-                          'relative flex items-start space-x-3 rounded-lg transition-all duration-300',
-                          event.id === highlightedEventId
+                          'relative flex items-start space-x-3 rounded-lg transition-all duration-300 scroll-mt-24',
+                          String(event.id) === String(highlightedEventId)
                             ? 'border-r-4 border-dashed border-r-yellow-500 bg-yellow-50/50 pr-2 dark:bg-yellow-900/10'
                             : ''
                         )}
