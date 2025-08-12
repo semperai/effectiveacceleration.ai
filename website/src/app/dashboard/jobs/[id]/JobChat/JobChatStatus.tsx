@@ -7,12 +7,15 @@ import {
   type User,
 } from '@effectiveacceleration/contracts';
 import { zeroHash } from 'viem';
-import ArbitratedStatus from './StatusStates/ArbitratedStatus';
-import AssignWorker from './StatusStates/AssignWorker';
-import DisputeStarted from './StatusStates/DisputeStarted';
-import ResultAccepted from './StatusStates/ResultAccepted';
-import ResultVerification from './StatusStates/ResultVerification';
-import WorkerAccepted from './StatusStates/WorkerAccepted';
+import {
+  ArbitratedStatus,
+  AssignWorker,
+  DisputeStarted,
+  FCFSAvailable,
+  ResultAccepted,
+  ResultVerification,
+  WorkerAccepted,
+} from './StatusStates';
 
 interface JobStatusProps {
   events: JobEventWithDiffs[];
@@ -20,7 +23,7 @@ interface JobStatusProps {
   selectedWorker: string;
   job: Job;
   address: string | undefined;
-  currentUser?: User | null; // Add current user as optional prop
+  currentUser?: User | null;
 }
 
 const JobChatStatus: React.FC<JobStatusProps> = ({
@@ -29,12 +32,30 @@ const JobChatStatus: React.FC<JobStatusProps> = ({
   selectedWorker,
   job,
   address,
-  currentUser, // Accept current user directly
+  currentUser,
 }) => {
   const lastEventType = events[events.length - 1]?.type_;
 
+  // Show FCFS Available status for workers on FCFS jobs
+  const showFCFSStatus =
+    job.state === JobState.Open &&
+    !job.multipleApplicants && // FCFS job
+    address !== job.roles.creator && // Not the creator
+    address !== job.roles.arbitrator; // Not the arbitrator
+
   return (
     <>
+      {/* FCFS Job - Show special status for workers */}
+      {showFCFSStatus && (
+        <FCFSAvailable
+          job={job}
+          address={address}
+          users={users}
+          currentUser={currentUser}
+        />
+      )}
+
+      {/* Completed/Rated Jobs */}
       {(lastEventType === JobEventType.Completed ||
         lastEventType === JobEventType.Rated) && (
         <ResultAccepted
@@ -45,6 +66,8 @@ const JobChatStatus: React.FC<JobStatusProps> = ({
           currentUser={currentUser}
         />
       )}
+
+      {/* Result Verification */}
       {job.state === JobState.Taken &&
         job.resultHash !== zeroHash &&
         address === job.roles.creator &&
@@ -59,7 +82,10 @@ const JobChatStatus: React.FC<JobStatusProps> = ({
             currentUser={currentUser}
           />
         )}
+
+      {/* Assign Worker - for multiple applicant jobs */}
       {job.state === JobState.Open &&
+        job.multipleApplicants === true && // Only for multiple applicant jobs
         address === job.roles.creator &&
         events.length > 0 && (
           <AssignWorker
@@ -71,6 +97,8 @@ const JobChatStatus: React.FC<JobStatusProps> = ({
             currentUser={currentUser}
           />
         )}
+
+      {/* Worker Accepted/In Progress */}
       {job.state === JobState.Taken &&
         job.disputed === false &&
         job.resultHash === zeroHash &&
@@ -84,6 +112,8 @@ const JobChatStatus: React.FC<JobStatusProps> = ({
             currentUser={currentUser}
           />
         )}
+
+      {/* Dispute Started */}
       {job.state === JobState.Taken && job.disputed === true && (
         <DisputeStarted
           job={job}
@@ -93,6 +123,8 @@ const JobChatStatus: React.FC<JobStatusProps> = ({
           currentUser={currentUser}
         />
       )}
+
+      {/* Arbitration Complete */}
       {lastEventType === JobEventType.Arbitrated &&
         job.state === JobState.Closed && (
           <ArbitratedStatus

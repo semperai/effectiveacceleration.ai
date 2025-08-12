@@ -28,34 +28,13 @@ import OpenJobMobileMenu from './JobChat/OpenJobMobileMenu';
 import { useSwResetMessage } from '@/hooks/useSwResetMessage';
 import { useSearchParams } from 'next/navigation';
 
-// Import test utilities
 import {
   TestControlBar,
   generateTestData,
   scenarios,
   statusStates,
+  renderStatusComponent,
 } from './testUtils';
-
-// Import Status State Components (lazy load for better performance)
-import dynamic from 'next/dynamic';
-const AssignWorker = dynamic(
-  () => import('./JobChat/StatusStates/AssignWorker')
-);
-const WorkerAccepted = dynamic(
-  () => import('./JobChat/StatusStates/WorkerAccepted')
-);
-const ResultVerification = dynamic(
-  () => import('./JobChat/StatusStates/ResultVerification')
-);
-const ResultAccepted = dynamic(
-  () => import('./JobChat/StatusStates/ResultAccepted')
-);
-const DisputeStarted = dynamic(
-  () => import('./JobChat/StatusStates/DisputeStarted')
-);
-const ArbitratedStatus = dynamic(
-  () => import('./JobChat/StatusStates/ArbitratedStatus')
-);
 
 const JobPostSkeleton = () => {
   return (
@@ -114,6 +93,7 @@ export default function JobPageClient({ id }: JobPageClientProps) {
     'creator' | 'worker' | 'arbitrator'
   >('creator');
   const [selectedStatus, setSelectedStatus] = useState('none');
+  const [multipleApplicants, setMultipleApplicants] = useState(true);
 
   // Real data hooks - use dummy ID when in test mode to avoid null issues
   const dummyId = 'test-job-id';
@@ -129,8 +109,8 @@ export default function JobPageClient({ id }: JobPageClientProps) {
   // Generate test data when in test mode
   const testData = useMemo(() => {
     if (!isTestMode) return null;
-    return generateTestData(selectedScenario, testUserRole);
-  }, [isTestMode, selectedScenario, testUserRole]);
+    return generateTestData(selectedScenario, testUserRole, multipleApplicants);
+  }, [isTestMode, selectedScenario, testUserRole, multipleApplicants]);
 
   // Use test data or real data
   const currentJob = isTestMode ? testData?.job : job;
@@ -320,84 +300,6 @@ export default function JobPageClient({ id }: JobPageClientProps) {
     currentAddress &&
     currentJob?.roles.arbitrator.includes(currentAddress);
 
-  // Render status state component if selected in test mode
-  const renderStatusComponent = () => {
-    if (!isTestMode || selectedStatus === 'none' || !currentJob) return null;
-
-    const mockDeliveryEvents =
-      currentEvents?.filter((e) => e.type_ === JobEventType.Delivered) || [];
-    const mockCompletedEvents =
-      currentEvents?.filter(
-        (e) =>
-          e.type_ === JobEventType.Delivered || e.type_ === JobEventType.Rated
-      ) || [];
-    const mockArbitrationEvents =
-      currentEvents?.filter((e) => e.type_ === JobEventType.Arbitrated) || [];
-
-    switch (selectedStatus) {
-      case 'assign':
-        return (
-          <AssignWorker
-            job={currentJob}
-            address={currentAddress}
-            selectedWorker={
-              selectedWorker || Object.keys(currentUsers || {})[1]
-            }
-            users={currentUsers || {}}
-          />
-        );
-      case 'accepted':
-        return (
-          <WorkerAccepted
-            job={currentJob}
-            address={currentAddress}
-            users={currentUsers || {}}
-          />
-        );
-      case 'verification':
-        return (
-          <ResultVerification
-            job={currentJob}
-            users={currentUsers || {}}
-            selectedWorker={selectedWorker}
-            events={mockDeliveryEvents}
-            address={currentAddress}
-            sessionKeys={currentSessionKeys || {}}
-            addresses={currentAddresses || []}
-          />
-        );
-      case 'completed':
-        return (
-          <ResultAccepted
-            job={currentJob}
-            events={mockCompletedEvents}
-            users={currentUsers || {}}
-            selectedWorker={selectedWorker}
-          />
-        );
-      case 'disputed':
-        return (
-          <DisputeStarted
-            job={currentJob}
-            address={currentAddress}
-            users={currentUsers || {}}
-          />
-        );
-      case 'arbitrated':
-        return (
-          <ArbitratedStatus
-            job={currentJob}
-            events={mockArbitrationEvents}
-            users={currentUsers || {}}
-            selectedWorker={selectedWorker}
-            address={currentAddress}
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
   return (
     <Layout borderless>
       {/* Test Control Bar - only shown in test mode */}
@@ -410,6 +312,8 @@ export default function JobPageClient({ id }: JobPageClientProps) {
           currentJob={currentJob}
           selectedStatus={selectedStatus}
           setSelectedStatus={setSelectedStatus}
+          multipleApplicants={multipleApplicants}
+          setMultipleApplicants={setMultipleApplicants}
         />
       )}
 
@@ -417,7 +321,17 @@ export default function JobPageClient({ id }: JobPageClientProps) {
       {isTestMode && selectedStatus !== 'none' && (
         <div className='mx-auto max-w-4xl p-4'>
           <div className='rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800'>
-            {renderStatusComponent()}
+            {renderStatusComponent(
+              selectedStatus,
+              currentJob,
+              currentAddress,
+              currentUsers,
+              currentUser,
+              selectedWorker,
+              currentEvents,
+              currentSessionKeys,
+              currentAddresses
+            )}
           </div>
         </div>
       )}
