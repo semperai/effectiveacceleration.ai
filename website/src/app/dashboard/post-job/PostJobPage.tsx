@@ -147,7 +147,7 @@ const PostJob = () => {
     const amount = searchParams.get('amount') || '';
     // Check for multipleApplicants param
     const multipleApplicants =
-      searchParams.get('multipleApplicants') === 'true';
+      searchParams.get('multipleApplicants') === 'false' ? false : true;
 
     let initialToken = tokens.find((token) => token.symbol === 'USDC');
     if (tokenAddress) {
