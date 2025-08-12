@@ -12,6 +12,7 @@ import {
   type JobEventWithDiffs,
   JobState,
   type User,
+  type JobMessageEvent,
 } from '@effectiveacceleration/contracts/dist/src/interfaces';
 import JobChatStatus from './JobChatStatus';
 import { useSearchParams } from 'next/navigation';
@@ -43,6 +44,37 @@ const JobChatEvents: React.FC<JobChatEventsProps> = ({
   const lastEvent = events[events.length - 1];
   const eventRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const hasScrolledToEvent = useRef(false);
+
+  // Check if user was an applicant but not selected
+  const wasApplicantButNotSelected = (() => {
+    if (!address || !events || !job) return false;
+
+    // Check if job is taken or closed
+    if (job.state !== JobState.Taken && job.state !== JobState.Closed) {
+      return false;
+    }
+
+    // Check if current user is NOT the selected worker
+    if (job.roles.worker === address) {
+      return false;
+    }
+
+    // Check if current user is NOT the creator or arbitrator
+    if (job.roles.creator === address || job.roles.arbitrator === address) {
+      return false;
+    }
+
+    // Check if user had previously messaged in this job (was an applicant)
+    const hadPreviousInteraction = events.some(
+      (event: JobEventWithDiffs) =>
+        (event.type_ === JobEventType.WorkerMessage &&
+          event.address_ === address) ||
+        (event.type_ === JobEventType.OwnerMessage &&
+          (event.details as JobMessageEvent)?.recipientAddress === address)
+    );
+
+    return hadPreviousInteraction;
+  })();
 
   const handleScroll = () => {
     if (!chatContainerRef.current) return;
@@ -157,17 +189,101 @@ const JobChatEvents: React.FC<JobChatEventsProps> = ({
   }, [events, currentUser, highlightedEventId]);
 
   useEffect(() => {
-    const ids = new Set(events.map((e) => String(e.id)).filter(Boolean) as string[]);
+    const ids = new Set(
+      events.map((e) => String(e.id)).filter(Boolean) as string[]
+    );
     for (const key of Object.keys(eventRefs.current)) {
       if (!ids.has(key)) delete eventRefs.current[key];
     }
   }, [events]);
 
+  // Show special message for non-selected applicants
+  const getEmptyStateMessage = () => {
+    if (wasApplicantButNotSelected) {
+      return (
+        <div className='flex h-full max-h-customHeader flex-col items-center justify-center gap-4'>
+          <div>
+            <Image
+              className='max-h-[135px] max-w-[250px] text-center'
+              src={noWorkInProgress}
+              alt=''
+              width={250}
+              height={250}
+            />
+          </div>
+          <div className='text-center'>
+            <p className='text-gray-700 dark:text-gray-300'>
+              Your conversation history is shown above
+            </p>
+            <p className='mt-2 text-sm text-gray-500 dark:text-gray-400'>
+              The creator has selected another applicant for this job
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    if (job.state === JobState.Closed) {
+      return (
+        <div className='flex h-full max-h-customHeader flex-col items-center justify-center gap-4'>
+          <div>
+            <Image
+              className='max-h-[135px] max-w-[250px] text-center'
+              src={noWorkInProgress}
+              alt=''
+              width={250}
+              height={250}
+            />
+          </div>
+          <div className='text-center'>This job has been closed</div>
+        </div>
+      );
+    }
+
+    return (
+      <div className='flex h-full max-h-customHeader flex-col items-center justify-center gap-4'>
+        <div>
+          <Image
+            className='max-h-[35px] max-w-[150px] text-center'
+            src={logoDark}
+            alt=''
+            width={150}
+            height={150}
+          />
+        </div>
+
+        {job.roles.creator === address && (
+          <div className='text-center'>
+            A chat with the applying workers will appear here
+          </div>
+        )}
+        {job.roles.creator !== address &&
+          job.roles.worker !== address &&
+          job.roles.arbitrator !== address && (
+            <div className='text-center'>
+              Apply to this job by chatting with the creator
+            </div>
+          )}
+        {!currentUser && address !== job.roles.arbitrator && (
+          <div className='text-center'>
+            <Button href='/register'>Sign in to chat with the creator</Button>
+          </div>
+        )}
+        {address === job.roles.arbitrator && (
+          <div className='text-center'>
+            You are the arbitrator for this job, you will get a notification if
+            there is a dispute
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <>
       <div
         ref={chatContainerRef}
-        className='relative row-span-4 max-h-customHeader overflow-y-auto border border-gray-100 bg-softBlue notifications-scroll px-4'
+        className='notifications-scroll relative row-span-4 max-h-customHeader overflow-y-auto border border-gray-100 bg-softBlue px-4'
       >
         {selectedWorker && events.length > 0 ? (
           <>
@@ -191,7 +307,7 @@ const JobChatEvents: React.FC<JobChatEventsProps> = ({
                       ) : null}
                       <div
                         className={clsx(
-                          'relative flex items-start space-x-3 rounded-lg transition-all duration-300 scroll-mt-24',
+                          'relative flex scroll-mt-24 items-start space-x-3 rounded-lg transition-all duration-300',
                           String(event.id) === String(highlightedEventId)
                             ? 'border-r-4 border-dashed border-r-yellow-500 bg-yellow-50/50 pr-2 dark:bg-yellow-900/10'
                             : ''
@@ -218,57 +334,8 @@ const JobChatEvents: React.FC<JobChatEventsProps> = ({
               currentUser={currentUser}
             />
           </>
-        ) : job.state === JobState.Closed ? (
-          <div className='flex h-full max-h-customHeader flex-col items-center justify-center gap-4'>
-            <div>
-              <Image
-                className='max-h-[135px] max-w-[250px] text-center'
-                src={noWorkInProgress}
-                alt=''
-                width={250}
-                height={250}
-              />
-            </div>
-            <div className='text-center'>This job has been closed</div>
-          </div>
         ) : (
-          <div className='flex h-full max-h-customHeader flex-col items-center justify-center gap-4'>
-            <div>
-              <Image
-                className='max-h-[35px] max-w-[150px] text-center'
-                src={logoDark}
-                alt=''
-                width={150}
-                height={150}
-              />
-            </div>
-
-            {job.roles.creator === address && (
-              <div className='text-center'>
-                A chat with the applying workers will appear here
-              </div>
-            )}
-            {job.roles.creator !== address &&
-              job.roles.worker !== address &&
-              job.roles.arbitrator !== address && (
-                <div className='text-center'>
-                  Apply to this job by chatting with the creator
-                </div>
-              )}
-            {!currentUser && address !== job.roles.arbitrator && (
-              <div className='text-center'>
-                <Button href='/register'>
-                  Sign in to chat with the creator
-                </Button>
-              </div>
-            )}
-            {address === job.roles.arbitrator && (
-              <div className='text-center'>
-                You are the arbitrator for this job, you will get a notification
-                if there is a dispute
-              </div>
-            )}
-          </div>
+          getEmptyStateMessage()
         )}
         {showNotification && (
           <div className='absolute bottom-3 right-12'>

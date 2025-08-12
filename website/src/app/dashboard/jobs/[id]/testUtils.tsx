@@ -20,6 +20,8 @@ import {
   ResultAccepted,
   DisputeStarted,
   ArbitratedStatus,
+  JobObserver,
+  NotSelected,
 } from './JobChat/StatusStates';
 
 // ============ MOCK DATA ============
@@ -28,6 +30,7 @@ export const mockWorkerAddress = '0x5aeda56215b167893e80b4fe645ba6d5bab767de';
 export const mockWorkerAddress2 = '0x6aeda56215b167893e80b4fe645ba6d5bab767df';
 export const mockArbitratorAddress =
   '0x8626f6940e2eb28930efb4cef49b2d1f2c9c1199';
+export const mockGuestAddress = '0x9aeda56215b167893e80b4fe645ba6d5bab767e0';
 
 // ============ SCENARIOS ============
 export const scenarios = [
@@ -67,6 +70,20 @@ export const jobModes = [
   { id: 'fcfs', label: 'FCFS (First Come)', value: false },
 ];
 
+// ============ STATUS STATES ============
+export const statusStates = [
+  { id: 'none', label: 'None' },
+  { id: 'fcfs', label: 'FCFS Available' },
+  { id: 'assign', label: 'Assign Worker' },
+  { id: 'accepted', label: 'Worker Accepted' },
+  { id: 'verification', label: 'Result Verification' },
+  { id: 'completed', label: 'Result Accepted' },
+  { id: 'disputed', label: 'Dispute Started' },
+  { id: 'arbitrated', label: 'Arbitration Complete' },
+  { id: 'observer', label: 'Observer View' },
+  { id: 'notselected', label: 'Not Selected' },
+];
+
 // ============ USER CREATION ============
 export const createMockUser = (
   address: string,
@@ -79,7 +96,9 @@ export const createMockUser = (
   bio: `Experienced ${role || 'professional'} specializing in blockchain and web3 technologies. ${
     role === 'arbitrator'
       ? 'Fair and impartial dispute resolution with 50+ cases resolved.'
-      : 'Building innovative solutions for the decentralized future.'
+      : role === 'observer'
+        ? 'Browsing the platform and exploring opportunities.'
+        : 'Building innovative solutions for the decentralized future.'
   }`,
   avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${address}`,
   reputationUp: Math.floor(Math.random() * 50) + 10,
@@ -102,6 +121,11 @@ export const mockUsers: Record<string, User> = {
     mockArbitratorAddress,
     'Charlie Wilson',
     'arbitrator'
+  ),
+  [mockGuestAddress]: createMockUser(
+    mockGuestAddress,
+    'Guest User',
+    'observer'
   ),
 };
 
@@ -635,7 +659,9 @@ export const generateTestData = (
       ? mockAddress
       : testUserRole === 'worker'
         ? mockWorkerAddress
-        : mockArbitratorAddress;
+        : testUserRole === 'arbitrator'
+          ? mockArbitratorAddress
+          : mockGuestAddress;
 
   const testJob = createMockJob(
     selectedScenario.state,
@@ -662,6 +688,7 @@ export const generateTestData = (
     [`${mockWorkerAddress}-${mockArbitratorAddress}`]: 'mock-session-key-4',
     [`${mockArbitratorAddress}-${mockAddress}`]: 'mock-session-key-5',
     [`${mockArbitratorAddress}-${mockWorkerAddress}`]: 'mock-session-key-6',
+    // Guest doesn't have session keys with anyone
   };
 
   return {
@@ -674,18 +701,6 @@ export const generateTestData = (
     address: testAddress,
   };
 };
-
-// ============ STATUS STATES ============
-export const statusStates = [
-  { id: 'none', label: 'None' },
-  { id: 'fcfs', label: 'FCFS Available' },
-  { id: 'assign', label: 'Assign Worker' },
-  { id: 'accepted', label: 'Worker Accepted' },
-  { id: 'verification', label: 'Result Verification' },
-  { id: 'completed', label: 'Result Accepted' },
-  { id: 'disputed', label: 'Dispute Started' },
-  { id: 'arbitrated', label: 'Arbitration Complete' },
-];
 
 // ============ TEST CONTROL BAR COMPONENT ============
 interface TestControlBarProps {
@@ -766,26 +781,28 @@ export const TestControlBar: React.FC<TestControlBarProps> = ({
             </div>
           )}
 
-          {/* Center: View Role */}
+          {/* Center: View Role - UPDATED to include Guest */}
           <div className='flex flex-shrink-0 items-center gap-2'>
             <span className='text-xs text-gray-500 dark:text-gray-400'>
               View:
             </span>
             <div className='flex gap-1'>
-              {(['creator', 'worker', 'arbitrator'] as const).map((role) => (
-                <button
-                  key={role}
-                  onClick={() => setUserRole(role)}
-                  className={clsx(
-                    'whitespace-nowrap rounded px-2 py-0.5 text-xs font-medium capitalize transition-all',
-                    userRole === role
-                      ? 'bg-green-600 text-white shadow-sm'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
-                  )}
-                >
-                  {role}
-                </button>
-              ))}
+              {(['creator', 'worker', 'arbitrator', 'guest'] as const).map(
+                (role) => (
+                  <button
+                    key={role}
+                    onClick={() => setUserRole(role)}
+                    className={clsx(
+                      'whitespace-nowrap rounded px-2 py-0.5 text-xs font-medium capitalize transition-all',
+                      userRole === role
+                        ? 'bg-green-600 text-white shadow-sm'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
+                    )}
+                  >
+                    {role}
+                  </button>
+                )
+              )}
             </div>
           </div>
 
@@ -814,6 +831,11 @@ export const TestControlBar: React.FC<TestControlBarProps> = ({
             <span className='whitespace-nowrap rounded bg-yellow-100 px-2 py-0.5 text-xs font-bold text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'>
               TEST MODE
             </span>
+            {userRole === 'guest' && (
+              <span className='whitespace-nowrap rounded bg-gray-100 px-2 py-0.5 text-xs font-bold text-gray-700 dark:bg-gray-900/30 dark:text-gray-300'>
+                👁️ OBSERVER
+              </span>
+            )}
             {!multipleApplicants && (
               <span className='whitespace-nowrap rounded bg-gradient-to-r from-blue-500 to-purple-500 px-2 py-0.5 text-xs font-bold text-white'>
                 ⚡ FCFS
@@ -933,6 +955,25 @@ export const renderStatusComponent = (
           users={currentUsers || {}}
           selectedWorker={selectedWorker}
           address={currentAddress}
+          currentUser={currentUser}
+        />
+      );
+    case 'observer':
+      return (
+        <JobObserver
+          job={currentJob}
+          address={currentAddress}
+          users={currentUsers || {}}
+          currentUser={currentUser}
+        />
+      );
+    case 'notselected':
+      return (
+        <NotSelected
+          job={currentJob}
+          address={currentAddress}
+          users={currentUsers || {}}
+          selectedWorker={selectedWorker}
           currentUser={currentUser}
         />
       );

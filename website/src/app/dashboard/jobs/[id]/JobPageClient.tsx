@@ -90,7 +90,7 @@ export default function JobPageClient({ id }: JobPageClientProps) {
   // Test mode state
   const [selectedScenario, setSelectedScenario] = useState(scenarios[0]);
   const [testUserRole, setTestUserRole] = useState<
-    'creator' | 'worker' | 'arbitrator'
+    'creator' | 'worker' | 'arbitrator' | 'guest'
   >('creator');
   const [selectedStatus, setSelectedStatus] = useState('none');
   const [multipleApplicants, setMultipleApplicants] = useState(true);
@@ -130,6 +130,44 @@ export default function JobPageClient({ id }: JobPageClientProps) {
 
   // Only use real jobId for message reset, not test ID
   useSwResetMessage(isTestMode ? '' : jobId);
+
+  // Check if user was an applicant but not selected
+  const wasApplicantButNotSelected = useMemo(() => {
+    if (!currentAddress || !currentEvents || !currentJob) return false;
+
+    // Check if job is taken or closed
+    if (
+      currentJob.state !== JobState.Taken &&
+      currentJob.state !== JobState.Closed
+    ) {
+      return false;
+    }
+
+    // Check if current user is NOT the selected worker
+    if (currentJob.roles.worker === currentAddress) {
+      return false;
+    }
+
+    // Check if current user is NOT the creator or arbitrator
+    if (
+      currentJob.roles.creator === currentAddress ||
+      currentJob.roles.arbitrator === currentAddress
+    ) {
+      return false;
+    }
+
+    // Check if user had previously messaged in this job (was an applicant)
+    const hadPreviousInteraction = currentEvents.some(
+      (event: JobEventWithDiffs) =>
+        (event.type_ === JobEventType.WorkerMessage &&
+          event.address_ === currentAddress) ||
+        (event.type_ === JobEventType.OwnerMessage &&
+          (event.details as JobMessageEvent)?.recipientAddress ===
+            currentAddress)
+    );
+
+    return hadPreviousInteraction;
+  }, [currentAddress, currentEvents, currentJob]);
 
   // Auto-select worker from notification event
   useEffect(() => {
@@ -224,10 +262,12 @@ export default function JobPageClient({ id }: JobPageClientProps) {
 
   // Fixed: Show message button for open jobs when worker wants to apply
   // OR for participants in any state except fully closed without involvement
+  // UPDATED: Don't show for non-selected applicants
   const shouldShowPostMessageButton =
     (currentJob?.state !== JobState.Closed || isClosedJobParticipant) &&
     currentAddresses?.length &&
     Object.keys(currentSessionKeys || {}).length > 0 &&
+    !wasApplicantButNotSelected && // Don't show for non-selected applicants
     (isJobOpenForWorker || // Worker applying to open job
       isWorker || // Current worker on the job
       isOwner || // Job creator
@@ -237,6 +277,12 @@ export default function JobPageClient({ id }: JobPageClientProps) {
   useEffect(() => {
     // Don't override worker selection if it came from notification
     if (highlightedEventId && selectedWorker) {
+      return;
+    }
+
+    // If user was an applicant but not selected, show their own conversation
+    if (wasApplicantButNotSelected && currentAddress) {
+      setSelectedWorker(currentAddress);
       return;
     }
 
@@ -253,9 +299,32 @@ export default function JobPageClient({ id }: JobPageClientProps) {
     ) {
       setSelectedWorker(currentAddress);
     }
-  }, [currentJob, currentAddress]); // Removed highlightedEventId and selectedWorker from deps
+  }, [currentJob, currentAddress, wasApplicantButNotSelected]); // Added wasApplicantButNotSelected
 
   useEffect(() => {
+    // If user was an applicant but not selected, show only their conversation
+    if (wasApplicantButNotSelected) {
+      setEventMessages(
+        currentEvents?.filter(
+          (event: JobEventWithDiffs) =>
+            (event.type_ === JobEventType.WorkerMessage &&
+              event.address_ === currentAddress) ||
+            (event.type_ === JobEventType.OwnerMessage &&
+              (event.details as JobMessageEvent)?.recipientAddress ===
+                currentAddress) ||
+            // Include important job events but not other workers' messages
+            [
+              JobEventType.Created,
+              JobEventType.Updated,
+              JobEventType.Taken,
+              JobEventType.Closed,
+              JobEventType.Completed,
+            ].includes(event.type_)
+        )
+      );
+      return;
+    }
+
     if (currentJob?.state === JobState.Open) {
       setEventMessages(
         currentEvents?.filter(
@@ -302,7 +371,13 @@ export default function JobPageClient({ id }: JobPageClientProps) {
     } else {
       setEventMessages(currentEvents);
     }
-  }, [currentEvents, selectedWorker, currentJob, currentAddress]);
+  }, [
+    currentEvents,
+    selectedWorker,
+    currentJob,
+    currentAddress,
+    wasApplicantButNotSelected,
+  ]);
 
   if (!isTestMode && error) {
     return (

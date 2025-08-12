@@ -5,6 +5,7 @@ import {
   type JobEventWithDiffs,
   JobState,
   type User,
+  type JobMessageEvent,
 } from '@effectiveacceleration/contracts';
 import { zeroHash } from 'viem';
 import {
@@ -15,6 +16,8 @@ import {
   ResultAccepted,
   ResultVerification,
   WorkerAccepted,
+  NotSelected, // Import the new component
+  JobObserver, // Import the observer component
 } from './StatusStates';
 
 interface JobStatusProps {
@@ -35,6 +38,85 @@ const JobChatStatus: React.FC<JobStatusProps> = ({
   currentUser,
 }) => {
   const lastEventType = events[events.length - 1]?.type_;
+
+  // Check if user was an applicant but not selected
+  const wasApplicantButNotSelected = (() => {
+    if (!address || !events || !job) return false;
+
+    // Check if job is taken or closed
+    if (job.state !== JobState.Taken && job.state !== JobState.Closed) {
+      return false;
+    }
+
+    // Check if current user is NOT the selected worker
+    if (job.roles.worker === address) {
+      return false;
+    }
+
+    // Check if current user is NOT the creator or arbitrator
+    if (job.roles.creator === address || job.roles.arbitrator === address) {
+      return false;
+    }
+
+    // Check if user had previously messaged in this job (was an applicant)
+    const hadPreviousInteraction = events.some(
+      (event: JobEventWithDiffs) =>
+        (event.type_ === JobEventType.WorkerMessage &&
+          event.address_ === address) ||
+        (event.type_ === JobEventType.OwnerMessage &&
+          (event.details as JobMessageEvent)?.recipientAddress === address)
+    );
+
+    return hadPreviousInteraction;
+  })();
+
+  // Check if user is just an observer (not creator, worker, arbitrator, or applicant)
+  const isObserver = (() => {
+    if (!address) return false;
+
+    // Not an observer if job is still open
+    if (job.state === JobState.Open) return false;
+
+    // Not an observer if they are creator, worker, or arbitrator
+    if (
+      job.roles.creator === address ||
+      job.roles.worker === address ||
+      job.roles.arbitrator === address
+    ) {
+      return false;
+    }
+
+    // Not an observer if they were an applicant (already handled by wasApplicantButNotSelected)
+    if (wasApplicantButNotSelected) return false;
+
+    // They are an observer if job is taken/closed and they have no role
+    return job.state === JobState.Taken || job.state === JobState.Closed;
+  })();
+
+  // Show Observer status for non-participants viewing taken/closed jobs
+  if (isObserver) {
+    return (
+      <JobObserver
+        job={job}
+        address={address}
+        users={users}
+        currentUser={currentUser}
+      />
+    );
+  }
+
+  // Show NotSelected status for non-selected applicants
+  if (wasApplicantButNotSelected) {
+    return (
+      <NotSelected
+        job={job}
+        address={address}
+        users={users}
+        selectedWorker={selectedWorker}
+        currentUser={currentUser}
+      />
+    );
+  }
 
   // Show FCFS Available status for workers on FCFS jobs
   const showFCFSStatus =
