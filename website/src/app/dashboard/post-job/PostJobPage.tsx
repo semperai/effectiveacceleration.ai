@@ -10,6 +10,7 @@ import { DeliveryTimelineInput } from '@/components/DeliveryTimelineInput';
 import { PaymentInput } from '@/components/PaymentInput';
 import { ArbitratorSelector } from '@/components/ArbitratorSelector';
 import ListBox from '@/components/ListBox';
+import MinimalField from '@/components/MinimalField';
 import useArbitrators from '@/hooks/subsquid/useArbitrators';
 import useUser from '@/hooks/subsquid/useUser';
 import { useConfig } from '@/hooks/useConfig';
@@ -35,7 +36,6 @@ import { useAccount } from 'wagmi';
 import LoadingModal from './LoadingModal';
 import RegisterModal from './RegisterModal';
 import JobSummary from './JobSummary';
-import MinimalField from './MinimalField';
 import {
   PiSparkle,
   PiBriefcase,
