@@ -172,10 +172,13 @@ export default function JobSidebar({
   );
 
   let timeLeft = 0;
-  if (job && job.jobTimes) {
-    timeLeft += job.jobTimes.assignedAt;
+  if (job && job.jobTimes && job.jobTimes.assignedAt) {
+    // Calculate deadline: assignedAt + maxTime
+    const deadline = job.jobTimes.assignedAt + job.maxTime;
+    // Calculate time remaining: deadline - current time
+    const currentTime = Math.floor(Date.now() / 1000);
+    timeLeft = deadline - currentTime;
   }
-  timeLeft -= ((+new Date() / 1000) | 0) + job.maxTime;
 
   return (
     <div className='h-full overflow-y-auto rounded-xl bg-white shadow-xl md:max-h-customHeader dark:bg-gray-900 dark:shadow-2xl dark:shadow-black/20'>
