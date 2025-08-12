@@ -106,6 +106,7 @@ export default function JobPageClient({ id }: JobPageClientProps) {
   const { address } = useAccount();
   const searchParams = useSearchParams();
   const isTestMode = searchParams.get('test') === '1';
+  const highlightedEventId = searchParams.get('eventId');
 
   // Test mode state
   const [selectedScenario, setSelectedScenario] = useState(scenarios[0]);
@@ -115,7 +116,6 @@ export default function JobPageClient({ id }: JobPageClientProps) {
   const [selectedStatus, setSelectedStatus] = useState('none');
 
   // Real data hooks - use dummy ID when in test mode to avoid null issues
-  // The hooks will return undefined/empty data which we'll replace with test data
   const dummyId = 'test-job-id';
   const { data: job, error } = useJob(isTestMode ? dummyId : jobId);
   const {
@@ -151,6 +151,47 @@ export default function JobPageClient({ id }: JobPageClientProps) {
   // Only use real jobId for message reset, not test ID
   useSwResetMessage(isTestMode ? '' : jobId);
 
+  // Auto-select worker from notification event
+  useEffect(() => {
+    if (highlightedEventId && currentEvents && currentJob && currentAddress) {
+      // Find the event that matches the notification
+      const targetEvent = currentEvents.find(
+        (event) => event.id === highlightedEventId
+      );
+
+      if (
+        targetEvent &&
+        currentJob.state === JobState.Open &&
+        currentAddress === currentJob.roles.creator
+      ) {
+        // For open jobs, if the creator is viewing and there's a message event
+        // Select the worker who sent the message or is involved in the event
+        let workerToSelect: string | null = null;
+
+        if (targetEvent.type_ === JobEventType.WorkerMessage) {
+          // Worker message - select the worker who sent it
+          workerToSelect = targetEvent.address_;
+        } else if (targetEvent.type_ === JobEventType.OwnerMessage) {
+          // Owner message - select the recipient
+          const messageDetails = targetEvent.details as JobMessageEvent;
+          if (messageDetails?.recipientAddress) {
+            workerToSelect = messageDetails.recipientAddress;
+          }
+        } else if (
+          targetEvent.address_ &&
+          targetEvent.address_ !== currentJob.roles.creator
+        ) {
+          // Any other event from a worker
+          workerToSelect = targetEvent.address_;
+        }
+
+        if (workerToSelect) {
+          setSelectedWorker(workerToSelect);
+        }
+      }
+    }
+  }, [highlightedEventId, currentEvents, currentJob, currentAddress]);
+
   // Calculate the time passed since the job was closed
   const timestamp = currentEvents
     ?.filter((event: JobEventWithDiffs) => event.type_ === JobEventType.Closed)
@@ -180,6 +221,11 @@ export default function JobPageClient({ id }: JobPageClientProps) {
     Object.keys(currentSessionKeys || {}).length > 0;
 
   useEffect(() => {
+    // Don't override worker selection if it came from notification
+    if (highlightedEventId && selectedWorker) {
+      return;
+    }
+
     if (
       currentJob?.state === JobState.Taken ||
       currentJob?.state === JobState.Closed
@@ -193,6 +239,9 @@ export default function JobPageClient({ id }: JobPageClientProps) {
     ) {
       setSelectedWorker(currentAddress);
     }
+  }, [currentJob, currentAddress]); // Removed highlightedEventId and selectedWorker from deps
+
+  useEffect(() => {
     if (currentJob?.state === JobState.Open) {
       setEventMessages(
         currentEvents?.filter(
@@ -383,6 +432,7 @@ export default function JobPageClient({ id }: JobPageClientProps) {
                   users={currentUsers ?? {}}
                   job={currentJob}
                   setSelectedWorker={setSelectedWorker}
+                  selectedWorker={selectedWorker}
                 />
               </div>
             )}
