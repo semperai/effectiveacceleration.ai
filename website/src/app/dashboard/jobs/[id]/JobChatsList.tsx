@@ -41,7 +41,9 @@ const JobChatsList = ({
                   Applicants
                 </h3>
                 <p className='text-xs text-gray-500 dark:text-gray-400'>
-                  Select a conversation
+                  {selectedWorker
+                    ? 'Click to change selection'
+                    : 'Select an applicant'}
                 </p>
               </div>
             </div>
@@ -59,13 +61,17 @@ const JobChatsList = ({
       </div>
 
       {/* Status bar */}
-      {numberOfWorkers > 0 && (
+      {numberOfWorkers > 0 && selectedWorker && (
         <div className='border-b border-gray-200 bg-gray-50 px-5 py-3 dark:border-gray-800 dark:bg-gray-800/50'>
           <div className='flex items-center justify-between'>
             <div className='flex items-center gap-2'>
               <PiCheckCircle className='h-4 w-4 text-green-500' />
               <span className='text-sm text-gray-600 dark:text-gray-400'>
-                {numberOfWorkers}/{numberOfWorkers} applicants reviewed
+                Viewing:{' '}
+                {users[selectedWorker]?.name ||
+                  (selectedWorker
+                    ? `${selectedWorker.slice(0, 6)}…${selectedWorker.slice(-4)}`
+                    : 'Unknown')}
               </span>
             </div>
           </div>
@@ -143,11 +149,17 @@ const JobChatsList = ({
                       </div>
                     </div>
 
-                    {/* Time/Status indicator */}
-                    <div className='flex flex-col items-end gap-1'>
-                      <PiClock className='h-3 w-3 text-gray-400' />
-                      <span className='text-xs text-gray-400'>2h ago</span>
-                    </div>
+                    {/* Selection indicator */}
+                    {selectedWorker === key && (
+                      <div className='flex flex-col items-end gap-1' aria-label='Selected applicant'>
+                        <div className='rounded-full bg-blue-500 p-1'>
+                          <PiCheckCircle className='h-3 w-3 text-white' />
+                        </div>
+                        <span className='text-xs font-medium text-blue-600 dark:text-blue-400'>
+                          Selected
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Hover effect gradient */}
@@ -163,7 +175,9 @@ const JobChatsList = ({
       {numberOfWorkers > 0 && (
         <div className='border-t border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/50'>
           <p className='text-center text-xs text-gray-500 dark:text-gray-400'>
-            Click on an applicant to view their messages
+            {selectedWorker
+              ? 'Click on another applicant to switch'
+              : 'Select an applicant to view their messages'}
           </p>
         </div>
       )}
