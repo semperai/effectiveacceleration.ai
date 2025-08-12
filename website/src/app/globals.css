@@ -455,3 +455,9 @@
 .animate-pulse-highlight {
   animation: pulse-highlight 1s ease-in-out 2;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse-highlight {
+    animation: none;
+  }
+}
