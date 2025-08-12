@@ -476,12 +476,6 @@
 .animate-float {
   animation: float 3s ease-in-out infinite;
 }
-.delay-200 {
-  animation-delay: 200ms;
-}
-.delay-400 {
-  animation-delay: 400ms;
-}
 
 .bg-stripes {
   background-image: repeating-linear-gradient(
