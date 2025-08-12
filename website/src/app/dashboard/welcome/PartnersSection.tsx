@@ -143,17 +143,6 @@ export const PartnersSection = () => {
           </div>
         )}
       </div>
-
-      {/* Hide scrollbar with CSS */}
-      <style jsx>{`
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
     </section>
   );
 };
