@@ -174,7 +174,7 @@ export default function SocialProgramPage() {
 
             {/* Right side - Visual with Image Carousel */}
             <div className='relative'>
-              <div className='group relative overflow-hidden rounded-2xl shadow-2xl mx-[40px]'>
+              <div className='group relative mx-[40px] overflow-hidden rounded-2xl shadow-2xl'>
                 <div className='relative aspect-[4/3] lg:aspect-square'>
                   {/* Image Carousel */}
                   {heroImages.map((image, index) => (
