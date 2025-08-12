@@ -274,8 +274,10 @@ const JobChatEvents: React.FC<JobChatEventsProps> = ({
           <div className='absolute bottom-3 right-12'>
             <div className='fixed bottom-20 max-h-[32px] w-6 animate-[slideIn_0.5s_ease-out] place-items-center rounded-full bg-gray-400 px-[16px] py-[4px] text-white hover:cursor-pointer'>
               <ChevronDown
-                size='2'
                 onClick={() => scrollToEnd()}
+                role='button'
+                tabIndex={0}
+                aria-label='Scroll to latest message'
                 className='h-6 w-6 text-sm text-white'
               />
               {newMessage && (
