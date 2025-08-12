@@ -1,5 +1,4 @@
-// src/app/dashboard/post-job/SubmitJobButton.tsx
-import ERC20Abi from '@/abis/ERC20.json';
+import { ERC20_ABI } from '@/lib/constants';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
@@ -23,6 +22,7 @@ interface SubmitJobButtonProps {
   deadline: bigint;
   deliveryMethod: string;
   arbitrator: Address;
+  onTransactionStart?: () => void;
   onSuccess?: () => void;
   onError?: (error: Error) => void;
 }
@@ -37,6 +37,7 @@ export const SubmitJobButton = ({
   deadline,
   deliveryMethod,
   arbitrator,
+  onTransactionStart,
   onSuccess,
   onError,
 }: SubmitJobButtonProps) => {
@@ -70,9 +71,12 @@ export const SubmitJobButton = ({
     refetch: refetchAllowance,
   } = useReadContract({
     address: token,
-    abi: ERC20Abi,
+    abi: ERC20_ABI,
     functionName: 'allowance',
-    args: [address, Config?.marketplaceAddress],
+    args: [
+      address as `0x${string}`,
+      Config?.marketplaceAddress as `0x${string}`,
+    ],
     query: {
       enabled: !!address && !!token && !!Config?.marketplaceAddress,
     },
@@ -95,6 +99,10 @@ export const SubmitJobButton = ({
       }
 
       setIsSubmitting(true);
+
+      // Notify parent that transaction is starting (shows loading modal)
+      onTransactionStart?.();
+
       let contentHash = ZeroHash;
 
       if (description.length > 0) {
@@ -218,7 +226,10 @@ export const SubmitJobButton = ({
       <ApproveButton
         token={token}
         spender={Config.marketplaceAddress}
-        onApproveSuccess={() => refetchAllowance()}
+        onApproveSuccess={async () => {
+          // Wait for the allowance to be refetched before proceeding
+          await refetchAllowance();
+        }}
         onApproveError={onError}
       />
     );
@@ -261,7 +272,7 @@ export const ApproveButton = ({
 }: {
   token: Address;
   spender: Address;
-  onApproveSuccess: () => void;
+  onApproveSuccess: () => void | Promise<void>;
   onApproveError?: (error: Error) => void;
 }) => {
   const { writeContractWithNotifications, isConfirming } =
@@ -273,7 +284,7 @@ export const ApproveButton = ({
       setIsApproving(true);
       await writeContractWithNotifications({
         address: token,
-        abi: ERC20Abi,
+        abi: ERC20_ABI,
         functionName: 'approve',
         args: [
           spender,
@@ -281,14 +292,16 @@ export const ApproveButton = ({
             '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
           ),
         ], // Max approval
-        onReceipt: () => {
-          onApproveSuccess();
+        onReceipt: async () => {
+          // Give a small delay to ensure the blockchain state is updated
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          await onApproveSuccess();
+          setIsApproving(false);
         },
       });
     } catch (err) {
-      onApproveError?.(err as Error);
-    } finally {
       setIsApproving(false);
+      onApproveError?.(err as Error);
     }
   };
 

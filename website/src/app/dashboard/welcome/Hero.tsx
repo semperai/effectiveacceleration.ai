@@ -17,6 +17,7 @@ export const Hero = () => {
           alt='Welcome to Effective Acceleration'
           fill
           className='object-cover opacity-30 mix-blend-overlay'
+          placeholder='blur'
         />
       </div>
 

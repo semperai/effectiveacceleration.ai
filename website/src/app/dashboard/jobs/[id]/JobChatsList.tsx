@@ -43,7 +43,7 @@ const JobChatsList = ({
                 <p className='text-xs text-gray-500 dark:text-gray-400'>
                   {selectedWorker
                     ? 'Click to change selection'
-                    : 'Select a conversation'}
+                    : 'Select an applicant'}
                 </p>
               </div>
             </div>
@@ -67,7 +67,11 @@ const JobChatsList = ({
             <div className='flex items-center gap-2'>
               <PiCheckCircle className='h-4 w-4 text-green-500' />
               <span className='text-sm text-gray-600 dark:text-gray-400'>
-                Viewing: {users[selectedWorker]?.name || 'Unknown'}
+                Viewing:{' '}
+                {users[selectedWorker]?.name ||
+                  (selectedWorker
+                    ? `${selectedWorker.slice(0, 6)}…${selectedWorker.slice(-4)}`
+                    : 'Unknown')}
               </span>
             </div>
           </div>
@@ -147,7 +151,7 @@ const JobChatsList = ({
 
                     {/* Selection indicator */}
                     {selectedWorker === key && (
-                      <div className='flex flex-col items-end gap-1'>
+                      <div className='flex flex-col items-end gap-1' aria-label='Selected applicant'>
                         <div className='rounded-full bg-blue-500 p-1'>
                           <PiCheckCircle className='h-3 w-3 text-white' />
                         </div>

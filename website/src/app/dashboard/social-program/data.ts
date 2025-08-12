@@ -1,7 +1,6 @@
 import { WeeklyDistributionData } from './types';
 
-// This is mock data - replace with actual data from your API or blockchain
-export const mockWeeklyData: WeeklyDistributionData[] = [
+export const WEEKLY_DATA: WeeklyDistributionData[] = [
   {
     weekNumber: 1,
     startDate: '2025-01-06',
@@ -94,54 +93,3 @@ export const mockWeeklyData: WeeklyDistributionData[] = [
   },
   // Add more weeks here as needed
 ];
-
-// Helper function to add a new week's data
-export function addWeeklyDistribution(weekData: WeeklyDistributionData): void {
-  // In a real implementation, this would save to your database/API
-  mockWeeklyData.push(weekData);
-}
-
-// Template for creating new weekly distribution data
-export const weeklyDistributionTemplate: WeeklyDistributionData = {
-  weekNumber: 3, // Update with actual week number
-  startDate: '2025-01-20', // Update with actual start date
-  endDate: '2025-01-26', // Update with actual end date
-  totalDistributed: 10000, // Update with actual total
-  highlights: ['Add highlights here'], // Add any highlights for the week
-  contributors: [
-    {
-      name: 'contributor_name',
-      address: '0x0000000000000000000000000000000000000000',
-      amount: 0,
-      percentage: 0,
-      txHash:
-        '0x0000000000000000000000000000000000000000000000000000000000000000',
-      category: 'Category Name',
-    },
-    // Add more contributors as needed
-  ],
-};
-
-// Example of how to add a new week:
-/*
-const newWeek: WeeklyDistributionData = {
-  weekNumber: 3,
-  startDate: '2025-01-20',
-  endDate: '2025-01-26',
-  totalDistributed: 10000,
-  highlights: ['Major milestone reached', 'New integration launched'],
-  contributors: [
-    {
-      name: 'new_contributor',
-      address: '0x1234567890123456789012345678901234567890',
-      amount: 5000,
-      percentage: 50,
-      txHash: '0xabcdef1234567890123456789012345678901234567890abcdef1234567890',
-      category: 'Content Creation'
-    },
-    // ... more contributors
-  ]
-};
-
-addWeeklyDistribution(newWeek);
-*/

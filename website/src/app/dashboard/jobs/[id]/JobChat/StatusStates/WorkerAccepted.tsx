@@ -422,28 +422,6 @@ const WorkerAccepted: React.FC<WorkerAcceptedProps> = ({
           </div>
         </div>
       </div>
-
-      {/* Add floating animation styles */}
-      <style jsx>{`
-        @keyframes float {
-          0%,
-          100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-10px);
-          }
-        }
-        .animate-float {
-          animation: float 3s ease-in-out infinite;
-        }
-        .delay-200 {
-          animation-delay: 200ms;
-        }
-        .delay-400 {
-          animation-delay: 400ms;
-        }
-      `}</style>
     </div>
   );
 };
