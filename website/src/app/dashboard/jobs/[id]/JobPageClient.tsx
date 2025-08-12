@@ -348,7 +348,7 @@ export default function JobPageClient({ id }: JobPageClientProps) {
               currentJob,
               currentAddress,
               currentUsers,
-              currentUser,
+              currentUser ?? undefined,
               selectedWorker,
               currentEvents,
               currentSessionKeys,

@@ -21,8 +21,7 @@ export function TakeJobButton({
   address,
   job,
   showTooltip = true,
-  ...rest
-}: TakeJobButtonProps & React.ComponentPropsWithoutRef<'div'>) {
+}: TakeJobButtonProps) {
   const { signMessageAsync } = useSignMessage();
   const Config = useConfig();
   const [isTaking, setIsTaking] = useState(false);
@@ -31,16 +30,22 @@ export function TakeJobButton({
     useWriteContractWithNotifications();
 
   // Get events to calculate the revision number
-  const { data: events } = useJobEventsWithDiffs(job.id);
+  // Only fetch events if job.id exists
+  const { data: events } = useJobEventsWithDiffs(job.id || '');
 
   async function handleTakeJob() {
+    // Check if job.id exists before proceeding
+    if (!job.id) {
+      showError('Invalid job: Job ID is missing');
+      return;
+    }
+
     if (!events) {
       showError('Unable to fetch job events. Please try again.');
       return;
     }
 
     setIsTaking(true);
-
     try {
       // Calculate revision based on events length
       const revision = events.length;
@@ -53,7 +58,7 @@ export function TakeJobButton({
             ethers.keccak256(
               ethers.AbiCoder.defaultAbiCoder().encode(
                 ['uint256', 'uint256'],
-                [revision, job.id!]
+                [revision, job.id]
               )
             )
           ),
@@ -65,7 +70,7 @@ export function TakeJobButton({
         abi: MARKETPLACE_V1_ABI,
         address: Config!.marketplaceAddress,
         functionName: 'takeJob',
-        args: [BigInt(job.id!), signature],
+        args: [BigInt(job.id), signature],
       });
 
       showSuccess('Successfully accepted the job! Work can begin immediately.');
@@ -83,6 +88,9 @@ export function TakeJobButton({
       ? 'Confirming...'
       : 'Take Job';
 
+  // Disable button if no job.id
+  const isDisabled = !job.id || isTaking || isConfirming;
+
   return (
     <div className='relative w-full'>
       {showTooltip && (
@@ -92,11 +100,9 @@ export function TakeJobButton({
         </div>
       )}
       <Button
-        disabled={isTaking || isConfirming}
+        disabled={isDisabled}
         onClick={handleTakeJob}
-        color={'primary'}
         className={'w-full'}
-        {...rest}
       >
         {(isTaking || isConfirming) && (
           <Loader2 className='mr-2 h-4 w-4 animate-spin' />
