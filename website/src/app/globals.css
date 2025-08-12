@@ -437,11 +437,6 @@
   }
 }
 
-/* Vendor-Specific Styles (Consider moving to component) */
-#sentry-feedback > button {
-  transform: translateY(-140px);
-}
-
 @keyframes pulse-highlight {
   0%,
   100% {
