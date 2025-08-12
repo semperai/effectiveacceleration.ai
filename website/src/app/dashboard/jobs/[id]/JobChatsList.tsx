@@ -67,7 +67,11 @@ const JobChatsList = ({
             <div className='flex items-center gap-2'>
               <PiCheckCircle className='h-4 w-4 text-green-500' />
               <span className='text-sm text-gray-600 dark:text-gray-400'>
-                Viewing: {users[selectedWorker]?.name || 'Unknown'}
+                Viewing:{' '}
+                {users[selectedWorker]?.name ||
+                  (selectedWorker
+                    ? `${selectedWorker.slice(0, 6)}…${selectedWorker.slice(-4)}`
+                    : 'Unknown')}
               </span>
             </div>
           </div>
