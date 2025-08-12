@@ -179,7 +179,7 @@ const JobChatEvents: React.FC<JobChatEventsProps> = ({
                       className='relative pb-8'
                       ref={(el) => {
                         if (event.id) {
-                          eventRefs.current[event.id] = el;
+                          eventRefs.current[String(event.id)] = el;
                         }
                       }}
                     >
