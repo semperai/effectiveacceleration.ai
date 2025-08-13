@@ -74,15 +74,19 @@ export default function SocialProgramPage() {
     const totalContributors = new Set(
       WEEKLY_DATA.flatMap((week) => week.contributors.map((c) => c.address))
     ).size;
-    const weeksCompleted = WEEKLY_DATA.length;
+    // Add 3 to account for beta testing weeks included in Week 1
+    const weeksCompleted = WEEKLY_DATA.length + 3;
+    // Subtract 3 from remaining weeks
     const weeksRemaining = 52 - weeksCompleted;
+    // Weekly average is constant (same amount each week)
+    const weeklyAverage = 13403263;
 
     return {
       totalDistributed,
       totalContributors,
       weeksCompleted,
       weeksRemaining,
-      weeklyAverage: totalDistributed / weeksCompleted,
+      weeklyAverage,
     };
   }, []);
 
