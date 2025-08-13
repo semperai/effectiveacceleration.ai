@@ -46,7 +46,7 @@ export const WEEKLY_DATA: WeeklyDistributionData[] = [
       },
       {
         name: '@Hetman134',
-        address: '0xecEbF5dF123a332B4E75c8732105defc3bB3B77e',
+        address: '0x6C5C29A1E4e4c77F12d143587E6c14fa79988dEB',
         amount: 4873913,
         percentage: 9,
         txHash:
