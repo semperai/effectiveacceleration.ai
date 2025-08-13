@@ -292,14 +292,31 @@ export default function JobPageClient({ id }: JobPageClientProps) {
     ) {
       setSelectedWorker(currentJob.roles.worker);
     }
+
+    // For FCFS jobs, automatically set selectedWorker for potential workers
     if (
       currentAddress &&
       currentJob?.state === JobState.Open &&
+      !currentJob?.multipleApplicants && // FCFS job
+      currentAddress !== currentJob.roles.creator &&
+      currentAddress !== currentJob.roles.arbitrator
+    ) {
+      setSelectedWorker(currentAddress); // Set worker as selected to show FCFS status
+    } else if (
+      currentAddress &&
+      currentJob?.state === JobState.Open &&
+      currentJob?.multipleApplicants && // Multiple applicant job
       currentAddress !== currentJob.roles.creator
     ) {
       setSelectedWorker(currentAddress);
     }
-  }, [currentJob, currentAddress, wasApplicantButNotSelected]); // Added wasApplicantButNotSelected
+  }, [
+    currentJob,
+    currentAddress,
+    wasApplicantButNotSelected,
+    highlightedEventId,
+    selectedWorker,
+  ]);
 
   useEffect(() => {
     // If user was an applicant but not selected, show only their conversation
@@ -325,49 +342,88 @@ export default function JobPageClient({ id }: JobPageClientProps) {
       return;
     }
 
-    if (currentJob?.state === JobState.Open) {
+    // Check if user is an observer (not creator, worker, or arbitrator)
+    const isObserver =
+      currentAddress &&
+      currentJob?.roles.creator !== currentAddress &&
+      currentJob?.roles.worker !== currentAddress &&
+      currentJob?.roles.arbitrator !== currentAddress &&
+      (currentJob?.state === JobState.Taken ||
+        currentJob?.state === JobState.Closed);
+
+    // If user is an observer, only show non-message events
+    if (isObserver) {
       setEventMessages(
         currentEvents?.filter(
           (event: JobEventWithDiffs) =>
-            event.address_ === selectedWorker ||
-            (event.details as JobMessageEvent)?.recipientAddress ===
-              selectedWorker
+            // Only show system events, not messages
+            ![JobEventType.WorkerMessage, JobEventType.OwnerMessage].includes(
+              event.type_
+            )
         )
       );
+      return;
+    }
+
+    if (currentJob?.state === JobState.Open) {
+      // For FCFS jobs that are open, show all events (or empty array if none)
+      if (!currentJob.multipleApplicants) {
+        setEventMessages(currentEvents || []);
+      } else {
+        // For multiple applicant jobs, filter by selected worker
+        setEventMessages(
+          currentEvents?.filter(
+            (event: JobEventWithDiffs) =>
+              event.address_ === selectedWorker ||
+              (event.details as JobMessageEvent)?.recipientAddress ===
+                selectedWorker ||
+              // Include system events like Created, Updated
+              [JobEventType.Created, JobEventType.Updated].includes(event.type_)
+          ) || []
+        );
+      }
     } else if (
       currentJob?.state === JobState.Taken ||
       currentJob?.state === JobState.Closed
     ) {
-      let lastIndex = -1;
+      // For FCFS jobs that are taken/closed, show all events
+      if (!currentJob.multipleApplicants) {
+        setEventMessages(currentEvents);
+      } else {
+        // For multiple applicant jobs, use existing logic
+        let lastIndex = -1;
 
-      for (let i = (currentEvents?.length || 0) - 1; i >= 0; i--) {
-        if (currentEvents![i].type_ === 2) {
-          lastIndex = i;
-          break;
+        for (let i = (currentEvents?.length || 0) - 1; i >= 0; i--) {
+          if (currentEvents![i].type_ === JobEventType.Taken) {
+            lastIndex = i;
+            break;
+          }
         }
-      }
-      // All message events before job started
-      const additionalEvents = currentEvents?.filter(
-        (event, index) =>
-          index < lastIndex &&
-          ((event.type_ === 17 &&
-            event.address_ === selectedWorker &&
-            (event.details as JobMessageEvent)?.recipientAddress ===
-              currentJob.roles.creator) ||
-            (event.type_ === 18 &&
-              event.address_ === currentJob.roles.creator &&
+
+        // All message events before job started
+        const additionalEvents = currentEvents?.filter(
+          (event, index) =>
+            index < lastIndex &&
+            ((event.type_ === JobEventType.WorkerMessage &&
+              event.address_ === selectedWorker &&
               (event.details as JobMessageEvent)?.recipientAddress ===
-                selectedWorker))
-      );
-      // All events after job started
-      const filteredEvents =
-        lastIndex !== -1
-          ? [
-              ...(additionalEvents || []),
-              ...(currentEvents?.slice(lastIndex) || []),
-            ]
-          : [...(additionalEvents || [])];
-      setEventMessages(filteredEvents);
+                currentJob.roles.creator) ||
+              (event.type_ === JobEventType.OwnerMessage &&
+                event.address_ === currentJob.roles.creator &&
+                (event.details as JobMessageEvent)?.recipientAddress ===
+                  selectedWorker))
+        );
+
+        // All events after job started
+        const filteredEvents =
+          lastIndex !== -1
+            ? [
+                ...(additionalEvents || []),
+                ...(currentEvents?.slice(lastIndex) || []),
+              ]
+            : [...(additionalEvents || [])];
+        setEventMessages(filteredEvents);
+      }
     } else {
       setEventMessages(currentEvents);
     }

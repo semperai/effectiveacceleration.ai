@@ -433,9 +433,10 @@
   }
 
   @keyframes shine {
-    to { transform: translateX(200%) skewX(-12deg); }
+    to {
+      transform: translateX(200%) skewX(-12deg);
+    }
   }
-
 
   .animate-shimmer {
     animation: shimmer 2s infinite;

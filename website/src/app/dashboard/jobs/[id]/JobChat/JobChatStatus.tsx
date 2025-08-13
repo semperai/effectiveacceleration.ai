@@ -16,8 +16,8 @@ import {
   ResultAccepted,
   ResultVerification,
   WorkerAccepted,
-  NotSelected, // Import the new component
-  JobObserver, // Import the observer component
+  NotSelected,
+  JobObserver,
 } from './StatusStates';
 
 interface JobStatusProps {
@@ -149,11 +149,10 @@ const JobChatStatus: React.FC<JobStatusProps> = ({
         />
       )}
 
-      {/* Result Verification */}
+      {/* Result Verification - Show for FCFS jobs too */}
       {job.state === JobState.Taken &&
         job.resultHash !== zeroHash &&
         address === job.roles.creator &&
-        job &&
         job.disputed === false && (
           <ResultVerification
             job={job}
@@ -165,7 +164,7 @@ const JobChatStatus: React.FC<JobStatusProps> = ({
           />
         )}
 
-      {/* Assign Worker - for multiple applicant jobs */}
+      {/* Assign Worker - ONLY for multiple applicant jobs (not FCFS) */}
       {job.state === JobState.Open &&
         job.multipleApplicants === true && // Only for multiple applicant jobs
         address === job.roles.creator &&
@@ -180,7 +179,7 @@ const JobChatStatus: React.FC<JobStatusProps> = ({
           />
         )}
 
-      {/* Worker Accepted/In Progress */}
+      {/* Worker Accepted/In Progress - Show for both FCFS and regular jobs */}
       {job.state === JobState.Taken &&
         job.disputed === false &&
         job.resultHash === zeroHash &&
