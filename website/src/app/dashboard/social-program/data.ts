@@ -50,7 +50,7 @@ export const WEEKLY_DATA: WeeklyDistributionData[] = [
         amount: 4873913,
         percentage: 9,
         txHash:
-          '0x53d6bcb326da9428a64b54ef98143ef8f93fa3e52a38cefbbd08238a0aeae594',
+          '0xa21826c525392640c21673ec5a477e3f97e5d238011595f668d28bdc57eba6b0',
         category: 'Beta Tester',
       },
       {
