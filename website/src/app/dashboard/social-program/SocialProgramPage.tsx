@@ -108,7 +108,7 @@ export default function SocialProgramPage() {
           <div className='absolute bottom-20 left-20 h-96 w-96 rounded-full bg-purple-500/10 blur-3xl' />
         </div>
 
-        <div className='relative mx-auto max-w-7xl px-10 sm:py-12'>
+        <div className='relative mx-auto max-w-7xl px-10 py-8 sm:py-12'>
           <div className='grid items-center gap-12 lg:grid-cols-2 lg:gap-16'>
             {/* Left side - Content */}
             <div>
