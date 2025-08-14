@@ -13,11 +13,14 @@ import {
   UpdateButton,
   WhitelistButton,
   WithdrawCollateralButton,
+  TakeJobButton,
+  AssignWorkerButton,
 } from './JobActions';
 import {
   type Job,
   type JobEventWithDiffs,
   JobState,
+  JobEventType,
 } from '@effectiveacceleration/contracts';
 import { zeroAddress, zeroHash } from 'viem';
 import {
@@ -31,6 +34,8 @@ import {
   PiPackage,
   PiStar,
   PiPencilSimple,
+  PiRocket,
+  PiHandshake,
 } from 'react-icons/pi';
 
 // Section wrapper for grouping related actions
@@ -84,6 +89,7 @@ const JobButtonActions = ({
   events,
   whitelistedWorkers,
   timePassed,
+  selectedWorker,
 }: {
   job: Job | undefined;
   address: string | undefined;
@@ -92,24 +98,15 @@ const JobButtonActions = ({
   events: JobEventWithDiffs[];
   whitelistedWorkers: string[];
   timePassed?: boolean;
+  selectedWorker?: string;
 }) => {
   // Early return if no job
   if (!job) return null;
 
-  const showDisputeButton =
-    job.state === JobState.Taken &&
-    job.roles.arbitrator !== zeroAddress &&
-    address !== job.roles.arbitrator &&
-    addresses.length &&
-    !job.disputed &&
-    (job.roles.creator === address || job.roles.worker === address) &&
-    Object.keys(sessionKeys).length > 0;
+  // ========== CREATOR ACTIONS ==========
 
-  const showReviewButton =
-    job.state === JobState.Closed &&
-    job.rating === 0 &&
-    job.resultHash !== zeroHash &&
-    address === job.roles.creator;
+  const showUpdateButton =
+    job.state === JobState.Open && address === job.roles.creator;
 
   const showCloseButton =
     job.state === JobState.Open && address === job.roles.creator;
@@ -137,21 +134,53 @@ const JobButtonActions = ({
     events.length > 0 &&
     events.at(-1)!.job.allowedWorkers!.length! > 0;
 
-  const showUpdateButton =
-    job.state === JobState.Open && address === job.roles.creator;
+  const showReviewButton =
+    job.state === JobState.Closed &&
+    job.rating === 0 &&
+    job.resultHash !== zeroHash &&
+    address === job.roles.creator;
+
+  // Show assign button for creator when they've selected a worker
+  // Works for both FCFS and multiple applicant jobs
+  const showAssignWorkerButton =
+    job.state === JobState.Open &&
+    address === job.roles.creator &&
+    selectedWorker && // A worker has been selected in the UI
+    selectedWorker !== address; // Not trying to assign to themselves
+
+  // ========== WORKER ACTIONS ==========
+
+  // For FCFS jobs - workers can immediately take them
+  const showTakeJobButton =
+    job.state === JobState.Open &&
+    job.multipleApplicants === false && // FCFS job
+    address !== job.roles.creator && // Not the creator
+    address !== job.roles.arbitrator && // Not the arbitrator
+    (!job.whitelistWorkers || whitelistedWorkers.includes(address!)); // Either no whitelist or user is whitelisted
+
+  // For multiple applicant jobs - workers can apply (signal interest)
+  // The AcceptButton actually calls takeJob to signal interest, not to immediately get the job
+  const showApplyButton =
+    job.state === JobState.Open &&
+    job.multipleApplicants === true &&
+    address !== job.roles.creator &&
+    address !== job.roles.arbitrator &&
+    (!job.whitelistWorkers || whitelistedWorkers.includes(address!)) &&
+    // Check if the worker hasn't already applied (signed)
+    !events.some(
+      (event) =>
+        event.type_ === JobEventType.Signed && event.address_ === address
+    );
 
   const showRefundButton =
     job.state === JobState.Taken && address === job.roles.worker;
-
-  const showAcceptButton =
-    job.state === JobState.Open &&
-    address === job.roles.worker &&
-    events.length > 0;
 
   const showDeliverResultButton =
     job.state === JobState.Taken &&
     address === job.roles.worker &&
     Object.keys(sessionKeys).length > 0;
+
+  // ========== ARBITRATOR ACTIONS ==========
 
   const showArbitrateButton =
     job.state === JobState.Taken && address === job.roles.arbitrator;
@@ -159,13 +188,24 @@ const JobButtonActions = ({
   const showRefuseArbitrationButton =
     job.state !== JobState.Closed && address === job.roles.arbitrator;
 
+  // ========== DISPUTE ACTIONS ==========
+
+  const showDisputeButton =
+    job.state === JobState.Taken &&
+    job.roles.arbitrator !== zeroAddress &&
+    address !== job.roles.arbitrator &&
+    addresses.length &&
+    !job.disputed &&
+    (job.roles.creator === address || job.roles.worker === address) &&
+    Object.keys(sessionKeys).length > 0;
+
   // Group actions by category
   const ownerActions = [];
   const workerActions = [];
   const arbitratorActions = [];
   const disputeActions = [];
 
-  // Populate owner actions - directly render the buttons without wrapper
+  // Populate owner actions
   if (showUpdateButton)
     ownerActions.push(
       <UpdateButton key='update' address={address} job={job} />
@@ -197,11 +237,24 @@ const JobButtonActions = ({
         whitelist={whitelistedWorkers}
       />
     );
+  if (showAssignWorkerButton && selectedWorker)
+    ownerActions.push(
+      <AssignWorkerButton
+        key='assign'
+        address={address}
+        job={job}
+        selectedWorker={selectedWorker}
+      />
+    );
 
   // Populate worker actions
-  if (showAcceptButton)
+  if (showTakeJobButton)
     workerActions.push(
-      <AcceptButton key='accept' address={address} job={job} events={events} />
+      <TakeJobButton key='take' address={address} job={job} />
+    );
+  if (showApplyButton)
+    workerActions.push(
+      <AcceptButton key='apply' address={address} job={job} events={events} />
     );
   if (showDeliverResultButton)
     workerActions.push(
@@ -239,8 +292,50 @@ const JobButtonActions = ({
       />
     );
 
+  // Special highlight for FCFS jobs
+  const isFCFSJob = job.state === JobState.Open && !job.multipleApplicants;
+  const isMultipleApplicantJob =
+    job.state === JobState.Open && job.multipleApplicants;
+
   return (
     <div className='jobButtonActions space-y-3'>
+      {/* FCFS Job Notice */}
+      {isFCFSJob && address !== job.roles.creator && (
+        <div className='rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 p-3 dark:border-blue-800 dark:from-blue-950/20 dark:to-purple-950/20'>
+          <div className='flex items-center gap-2'>
+            <PiRocket className='h-5 w-5 text-blue-600 dark:text-blue-400' />
+            <div>
+              <p className='text-sm font-semibold text-blue-900 dark:text-blue-300'>
+                First Come, First Served Job
+              </p>
+              <p className='text-xs text-blue-700 dark:text-blue-400'>
+                Take this job immediately - no application process required!
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Multiple Applicant Job Notice for Workers */}
+      {isMultipleApplicantJob &&
+        address !== job.roles.creator &&
+        address !== job.roles.arbitrator && (
+          <div className='rounded-lg border border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 p-3 dark:border-green-800 dark:from-green-950/20 dark:to-emerald-950/20'>
+            <div className='flex items-center gap-2'>
+              <PiHandshake className='h-5 w-5 text-green-600 dark:text-green-400' />
+              <div>
+                <p className='text-sm font-semibold text-green-900 dark:text-green-300'>
+                  Application Required
+                </p>
+                <p className='text-xs text-green-700 dark:text-green-400'>
+                  Apply to this job and wait for the creator to review your
+                  application
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
       {/* Owner Actions */}
       {ownerActions.length > 0 && (
         <ActionSection

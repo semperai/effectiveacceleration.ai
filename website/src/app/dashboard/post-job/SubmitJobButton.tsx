@@ -47,6 +47,7 @@ export const SubmitJobButton = ({
   const { showError, showSuccess, showLoading, toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const loadingToastIdRef = useRef<string | number | null>(null);
+  const hasNavigatedRef = useRef(false);
 
   // Helper function to safely stringify BigInt values
   const stringifyWithBigInt = (obj: any): string => {
@@ -82,8 +83,38 @@ export const SubmitJobButton = ({
     },
   });
 
-  const { writeContractWithNotifications, isConfirming } =
-    useWriteContractWithNotifications();
+  const {
+    writeContractWithNotifications,
+    isConfirming,
+    isConfirmed,
+    error: writeError,
+  } = useWriteContractWithNotifications();
+
+  // Monitor transaction confirmation status
+  useEffect(() => {
+    if (isConfirmed && !hasNavigatedRef.current) {
+      // Transaction confirmed but we haven't navigated yet
+      // This can happen if the receipt callback didn't fire (e.g., app switch on mobile)
+      showSuccess('Job post submitted successfully!');
+      onSuccess?.();
+      setIsSubmitting(false);
+
+      // Give a small delay before navigation to ensure state updates
+      setTimeout(() => {
+        if (!hasNavigatedRef.current) {
+          router.push('/dashboard/jobs');
+        }
+      }, 1000);
+    }
+  }, [isConfirmed, onSuccess, router, showSuccess]);
+
+  // Monitor for errors
+  useEffect(() => {
+    if (writeError) {
+      setIsSubmitting(false);
+      onError?.(writeError);
+    }
+  }, [writeError, onError]);
 
   // Handle job submission
   const handleSubmitJob = async () => {
@@ -99,6 +130,7 @@ export const SubmitJobButton = ({
       }
 
       setIsSubmitting(true);
+      hasNavigatedRef.current = false;
 
       // Notify parent that transaction is starting (shows loading modal)
       onTransactionStart?.();
@@ -151,12 +183,16 @@ export const SubmitJobButton = ({
           onReceipt: (receipt, parsedEvents) => {
             showSuccess('Job post submitted successfully!');
             onSuccess?.();
+            hasNavigatedRef.current = true;
+
             for (const event of parsedEvents) {
               if (event.eventName === 'JobEvent') {
                 router.push(`/dashboard/jobs/${event.args.jobId}`);
                 return;
               }
             }
+            // Fallback if no job ID found in events
+            router.push('/dashboard/jobs');
           },
         });
       } catch (error: any) {
@@ -192,7 +228,11 @@ export const SubmitJobButton = ({
 
       onError?.(err as Error);
     } finally {
-      setIsSubmitting(false);
+      // Only set isSubmitting to false if we haven't successfully submitted
+      // This prevents the button from becoming enabled again after successful submission
+      if (!isConfirmed) {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -275,9 +315,20 @@ export const ApproveButton = ({
   onApproveSuccess: () => void | Promise<void>;
   onApproveError?: (error: Error) => void;
 }) => {
-  const { writeContractWithNotifications, isConfirming } =
+  const { writeContractWithNotifications, isConfirming, isConfirmed } =
     useWriteContractWithNotifications();
   const [isApproving, setIsApproving] = useState(false);
+
+  // Monitor approval confirmation
+  useEffect(() => {
+    if (isConfirmed && isApproving) {
+      // Approval confirmed, trigger success callback
+      setTimeout(async () => {
+        await onApproveSuccess();
+        setIsApproving(false);
+      }, 1000);
+    }
+  }, [isConfirmed, isApproving, onApproveSuccess]);
 
   const handleApprove = async () => {
     try {
