@@ -114,7 +114,7 @@ const DeliveredEvent: React.FC<DeliveredEventProps> = ({
             {formattedResult && (
               <div className='rounded-lg bg-white p-2 sm:p-3 dark:bg-gray-800/50'>
                 <div className='prose prose-sm dark:prose-invert max-w-none'>
-                  <Markdown className='text-xs text-gray-700 sm:text-sm dark:text-gray-300'>
+                  <Markdown className='text-xs text-gray-700 sm:text-sm dark:text-gray-300 overflowWrapBreakword'>
                     {displayContent || 'Work has been delivered'}
                   </Markdown>
                 </div>

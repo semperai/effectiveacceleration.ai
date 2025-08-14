@@ -204,7 +204,7 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
 
                 {/* Message Content */}
                 <div className='prose prose-sm dark:prose-invert max-w-none'>
-                  <Markdown className='text-gray-700 dark:text-gray-300'>
+                  <Markdown className='text-gray-700 dark:text-gray-300 overflowWrapBreakword'>
                     {displayContent || 'No message provided'}
                   </Markdown>
                 </div>

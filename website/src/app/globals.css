@@ -487,3 +487,7 @@
     rgba(251, 191, 36, 0.1) 20px
   );
 }
+
+.overflowWrapBreakword {
+  overflow-wrap: break-word;
+}
