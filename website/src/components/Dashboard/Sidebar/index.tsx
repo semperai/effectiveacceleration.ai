@@ -2,6 +2,7 @@ import React from 'react';
 import { Logo } from '@/components/Logo';
 import {
   PiBriefcase,
+  PiChatCircle,
   PiPaperPlaneTilt,
   PiNetwork,
   PiListHeart,
@@ -46,6 +47,12 @@ const navigationItems = [
     href: '/dashboard/social-program',
     icon: <PiTrendUp className='h-5 w-5' />,
     target: '_self',
+  },
+  {
+    name: 'Telegram',
+    href: 'https://t.me/eaccmarket',
+    icon: <PiChatCircle className='h-5 w-5' />,
+    target: '_blank',
   },
   {
     name: 'Docs',
