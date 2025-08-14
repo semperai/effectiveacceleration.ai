@@ -488,6 +488,6 @@
   );
 }
 
-.overflowWrapBreakword {
+.overflow-wrap-breakword {
   overflow-wrap: break-word;
 }
