@@ -27,6 +27,8 @@ import {
 } from './testUtils';
 
 export const OpenJobsFeed = () => {
+  const excludedTags = ['hidden'];
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const { address } = useAccount();
@@ -187,11 +189,12 @@ export const OpenJobsFeed = () => {
     searchParams,
   ]);
 
-  // Use testable version of job search hooks
+  // Use testable version of job search hooks with excluded tags
   const { data: jobs } = useTestableJobSearch(useJobSearch, {
     jobSearch: {
       ...(search && { title: search }),
       ...(tags.length > 0 && { tags: tags.map((tag) => tag.name) }),
+      ...(excludedTags.length > 0 && { excludeTags: excludedTags }),
       ...(minDeadline !== undefined &&
         !isNaN(minDeadline) && {
           maxTime_gte: convertToSeconds(minDeadline, selectedUnitTime.name),
@@ -221,6 +224,7 @@ export const OpenJobsFeed = () => {
     jobSearch: {
       ...(search && { title: search }),
       ...(tags.length > 0 && { tags: tags.map((tag) => tag.name) }),
+      ...(excludedTags.length > 0 && { excludeTags: excludedTags }),
       ...(minDeadline !== undefined &&
         !isNaN(minDeadline) && {
           maxTime_gte: convertToSeconds(minDeadline, selectedUnitTime.name),

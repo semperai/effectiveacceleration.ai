@@ -307,7 +307,8 @@ export default function SocialProgramPage() {
               </p>
               <div className='rounded-lg bg-blue-50 p-2 dark:bg-blue-900/20'>
                 <p className='text-xs font-medium text-blue-700 dark:text-blue-300'>
-                  Must tag @eaccmarket (+ include link if contribution is external)
+                  Must tag @eaccmarket (+ include link if contribution is
+                  external)
                 </p>
               </div>
             </div>

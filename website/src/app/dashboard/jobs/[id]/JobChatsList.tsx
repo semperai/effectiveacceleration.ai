@@ -151,7 +151,10 @@ const JobChatsList = ({
 
                     {/* Selection indicator */}
                     {selectedWorker === key && (
-                      <div className='flex flex-col items-end gap-1' aria-label='Selected applicant'>
+                      <div
+                        className='flex flex-col items-end gap-1'
+                        aria-label='Selected applicant'
+                      >
                         <div className='rounded-full bg-blue-500 p-1'>
                           <PiCheckCircle className='h-3 w-3 text-white' />
                         </div>

@@ -157,7 +157,9 @@ const JobChatEvents: React.FC<JobChatEventsProps> = ({
   }, [events, currentUser, highlightedEventId]);
 
   useEffect(() => {
-    const ids = new Set(events.map((e) => String(e.id)).filter(Boolean) as string[]);
+    const ids = new Set(
+      events.map((e) => String(e.id)).filter(Boolean) as string[]
+    );
     for (const key of Object.keys(eventRefs.current)) {
       if (!ids.has(key)) delete eventRefs.current[key];
     }
@@ -167,7 +169,7 @@ const JobChatEvents: React.FC<JobChatEventsProps> = ({
     <>
       <div
         ref={chatContainerRef}
-        className='relative row-span-4 max-h-customHeader overflow-y-auto border border-gray-100 bg-softBlue notifications-scroll px-4'
+        className='notifications-scroll relative row-span-4 max-h-customHeader overflow-y-auto border border-gray-100 bg-softBlue px-4'
       >
         {selectedWorker && events.length > 0 ? (
           <>
@@ -191,7 +193,7 @@ const JobChatEvents: React.FC<JobChatEventsProps> = ({
                       ) : null}
                       <div
                         className={clsx(
-                          'relative flex items-start space-x-3 rounded-lg transition-all duration-300 scroll-mt-24',
+                          'relative flex scroll-mt-24 items-start space-x-3 rounded-lg transition-all duration-300',
                           String(event.id) === String(highlightedEventId)
                             ? 'border-r-4 border-dashed border-r-yellow-500 bg-yellow-50/50 pr-2 dark:bg-yellow-900/10'
                             : ''

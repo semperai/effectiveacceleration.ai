@@ -3,6 +3,10 @@ import { useMemo } from 'react';
 import { useQuery } from '@apollo/client';
 import { GET_JOB_SEARCH } from './queries';
 
+interface JobSearchParams extends Partial<Job> {
+  excludeTags?: string[];
+}
+
 export default function useJobSearch({
   jobSearch,
   orderBy,
@@ -12,7 +16,7 @@ export default function useJobSearch({
   maxTimestamp,
   minTimestamp,
 }: {
-  jobSearch: Partial<Job>;
+  jobSearch: JobSearchParams;
   orderBy: string;
   userAddress?: string;
   limit?: number;
@@ -21,8 +25,11 @@ export default function useJobSearch({
   minTimestamp?: number;
 }) {
   let timestampAdded = false;
+
   const buildSearchConditions = (obj: any): string => {
     const search: string[] = [];
+
+    // Add timestamp conditions
     if (maxTimestamp && !timestampAdded) {
       search.push(`jobTimes:{createdAt_lt: ${maxTimestamp}}`);
       timestampAdded = true;
@@ -32,9 +39,10 @@ export default function useJobSearch({
       timestampAdded = true;
     }
 
-    return [
-      ...search,
-      ...Object.entries(obj).map(([key, value]) => {
+    // Process the search object
+    const conditions = Object.entries(obj)
+      .filter(([key]) => key !== 'excludeTags') // Filter out excludeTags from regular processing
+      .map(([key, value]) => {
         // Handle special cases for comparison operators
         if (
           key.includes('_gte') ||
@@ -55,12 +63,27 @@ export default function useJobSearch({
         } else {
           return `${key}_eq: ${value}`;
         }
-      }),
-    ].join(',\n');
+      });
+
+    // Add exclude tags condition if provided
+    if (
+      obj.excludeTags &&
+      Array.isArray(obj.excludeTags) &&
+      obj.excludeTags.length > 0
+    ) {
+      // Use tags_containsNone to exclude jobs with any of the specified tags
+      conditions.push(
+        `tags_containsNone: [${obj.excludeTags.map((tag: string) => `"${tag}"`).join(', ')}]`
+      );
+    }
+
+    return [...search, ...conditions].join(',\n');
   };
 
-  // Rest of the function remains the same...
+  // Build search conditions
   const searchConditions = buildSearchConditions(jobSearch);
+
+  // Handle whitelist/allowed workers logic
   const search = userAddress
     ? `
       OR: [
