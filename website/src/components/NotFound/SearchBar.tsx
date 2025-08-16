@@ -11,7 +11,7 @@ export function SearchBar() {
   const handleSearch = () => {
     if (searchValue.trim()) {
       router.push(
-        `/dashboard/open-job-list?search=${encodeURIComponent(searchValue.trim())}`
+        `/open-job-list?search=${encodeURIComponent(searchValue.trim())}`
       );
     }
   };

@@ -48,6 +48,11 @@ const nextConfig = {
         destination: '/arbitrators/:path*',
         permanent: true,
       },
+      {
+        source: '/dashboard/open-job-list',
+        destination: '/open-job-list',
+        permanent: true,
+      },
     ];
   },
   images: {

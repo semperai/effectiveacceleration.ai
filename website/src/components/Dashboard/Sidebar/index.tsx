@@ -26,7 +26,7 @@ const navigationItems = [
   },
   {
     name: 'Open Jobs',
-    href: '/dashboard/open-job-list',
+    href: '/open-job-list',
     icon: <PiListHeart className='h-5 w-5' />,
     target: '_self',
   },

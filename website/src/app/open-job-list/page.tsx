@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     images: ['/og.webp'],
   },
   alternates: {
-    canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/open-job-list`,
+    canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/open-job-list`,
   },
 };
 

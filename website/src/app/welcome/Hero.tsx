@@ -72,7 +72,7 @@ export const Hero = () => {
               </Link>
 
               <Link
-                href='/dashboard/open-job-list'
+                href='/open-job-list'
                 className='group relative inline-flex items-center gap-2 overflow-hidden rounded-xl border-2 border-white/40 bg-gradient-to-r from-white/10 to-white/5 px-8 py-4 font-semibold backdrop-blur-sm transition-all duration-300 hover:border-white/60 hover:from-white/20 hover:to-white/10'
               >
                 {/* Glow effect */}
