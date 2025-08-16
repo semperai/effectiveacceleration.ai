@@ -1,4 +1,3 @@
-// src/app/dashboard/welcome/page.tsx
 import React from 'react';
 import { Layout } from '@/components/Dashboard/Layout';
 

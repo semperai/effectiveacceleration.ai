@@ -52,7 +52,7 @@ const CreatedEvent: React.FC<CreatedEventProps> = ({
               </span>
             ) : (
               <Link
-                href={`/dashboard/users/${creatorAddress}`}
+                href={`/users/${creatorAddress}`}
                 className='font-semibold text-gray-900 transition-colors hover:text-blue-600 dark:text-gray-100 dark:hover:text-blue-400'
               >
                 {creatorName}

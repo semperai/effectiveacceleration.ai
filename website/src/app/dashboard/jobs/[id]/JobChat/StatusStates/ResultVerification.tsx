@@ -125,7 +125,7 @@ const ResultVerification: React.FC<ResultVerificationProps> = ({
           <div className='mb-6 flex justify-center'>
             <div className='inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 shadow-sm dark:border-gray-700 dark:bg-gray-800'>
               <Link
-                href={`/dashboard/users/${workerAddress}`}
+                href={`/users/${workerAddress}`}
                 className='group flex items-center gap-2'
               >
                 <div className='flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 transition-transform group-hover:scale-110'>
@@ -219,7 +219,7 @@ const ResultVerification: React.FC<ResultVerificationProps> = ({
                     <span>
                       Send a message to{' '}
                       <Link
-                        href={`/dashboard/users/${workerAddress}`}
+                        href={`/users/${workerAddress}`}
                         className='font-medium text-amber-700 hover:underline dark:text-amber-300'
                       >
                         {workerName}

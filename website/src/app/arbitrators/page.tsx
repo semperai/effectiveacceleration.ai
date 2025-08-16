@@ -1,4 +1,3 @@
-// app/dashboard/arbitrators/page.tsx
 import type { Metadata } from 'next';
 import { unstable_cache } from 'next/cache';
 import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
@@ -99,7 +98,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: 'Browse Arbitrators - Effective Acceleration',
       description,
       type: 'website',
-      url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/arbitrators`,
+      url: `${process.env.NEXT_PUBLIC_SITE_URL}/arbitrators`,
       images: [
         {
           url: '/og.webp',
@@ -116,7 +115,7 @@ export async function generateMetadata(): Promise<Metadata> {
       images: ['/og.webp'],
     },
     alternates: {
-      canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/arbitrators`,
+      canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/arbitrators`,
     },
   };
 }

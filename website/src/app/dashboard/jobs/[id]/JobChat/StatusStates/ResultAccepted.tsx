@@ -167,7 +167,7 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
                 </span>
               </div>
               <Link
-                href={`/dashboard/users/${workerAddress}`}
+                href={`/users/${workerAddress}`}
                 className='group flex items-center gap-2'
               >
                 {/* Use ProfileImage component or fallback to initials */}
@@ -264,7 +264,7 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
               {isJobCreator && (
                 <Link
                   href={{
-                    pathname: '/dashboard/post-job',
+                    pathname: '/post-job',
                     query: {
                       title: job.title,
                       content: job.content,
@@ -293,7 +293,7 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
               {/* View Worker Profile - Only show if viewer is not the worker */}
               {!isWorker && (
                 <Link
-                  href={`/dashboard/users/${workerAddress}`}
+                  href={`/users/${workerAddress}`}
                   className='w-full'
                 >
                   <button className='group w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:bg-gray-700'>
@@ -307,7 +307,7 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
               )}
 
               {/* Browse Jobs */}
-              <Link href='/dashboard/open-job-list' className='w-full'>
+              <Link href='/open-job-list' className='w-full'>
                 <button className='group w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:bg-gray-700'>
                   <span className='flex items-center justify-center gap-2'>
                     Browse More Jobs
@@ -332,7 +332,7 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
                   : 'Payment received from job creator'}
                 {isJobCreator && (
                   <Link
-                    href={`/dashboard/users/${workerAddress}`}
+                    href={`/users/${workerAddress}`}
                     className='text-blue-600 hover:text-blue-500 hover:underline dark:text-blue-400 dark:hover:text-blue-300'
                   >
                     {workerName}

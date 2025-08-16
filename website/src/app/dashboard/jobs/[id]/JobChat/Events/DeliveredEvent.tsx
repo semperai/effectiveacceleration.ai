@@ -85,7 +85,7 @@ const DeliveredEvent: React.FC<DeliveredEventProps> = ({
               </span>
             ) : (
               <Link
-                href={`/dashboard/users/${workerAddress}`}
+                href={`/users/${workerAddress}`}
                 className='font-semibold text-gray-900 transition-colors hover:text-blue-600 dark:text-gray-100 dark:hover:text-blue-400'
               >
                 {workerName}
@@ -168,7 +168,7 @@ const DeliveredEvent: React.FC<DeliveredEventProps> = ({
                   </div>
                 )}
                 <Link
-                  href={`/dashboard/users/${workerAddress}`}
+                  href={`/users/${workerAddress}`}
                   className='text-xs font-medium text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400'
                 >
                   {workerName}

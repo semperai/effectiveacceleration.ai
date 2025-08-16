@@ -19,32 +19,32 @@ import { CloseButton } from './CloseButton';
 const navigationItems = [
   {
     name: 'Post job',
-    href: '/dashboard/post-job',
+    href: '/post-job',
     icon: <PiPaperPlaneTilt className='h-5 w-5' />,
     target: '_self',
     special: true,
   },
   {
     name: 'Open Jobs',
-    href: '/dashboard/open-job-list',
+    href: '/open-job-list',
     icon: <PiListHeart className='h-5 w-5' />,
     target: '_self',
   },
   {
     name: 'Your Jobs',
-    href: '/dashboard/owner-job-list',
+    href: '/owner-job-list',
     icon: <PiNetwork className='h-5 w-5' />,
     target: '_self',
   },
   {
     name: 'Worker Jobs',
-    href: '/dashboard/worker-job-list',
+    href: '/worker-job-list',
     icon: <PiBriefcase className='h-5 w-5' />,
     target: '_self',
   },
   {
     name: 'Social Program',
-    href: '/dashboard/social-program',
+    href: '/social-program',
     icon: <PiTrendUp className='h-5 w-5' />,
     target: '_self',
   },

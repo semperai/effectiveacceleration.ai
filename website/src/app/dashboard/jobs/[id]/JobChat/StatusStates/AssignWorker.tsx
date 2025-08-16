@@ -98,7 +98,7 @@ const AssignWorker: React.FC<AssignWorkerProps> = ({
                 <div className='flex items-center gap-4'>
                   {/* Avatar - Using ProfileImage component */}
                   <Link
-                    href={`/dashboard/users/${selectedWorker}`}
+                    href={`/users/${selectedWorker}`}
                     className='group relative'
                   >
                     {workerData?.avatar ? (
@@ -122,7 +122,7 @@ const AssignWorker: React.FC<AssignWorkerProps> = ({
                   <div className='flex-1'>
                     {/* Name - Clickable link to profile with hover effect */}
                     <Link
-                      href={`/dashboard/users/${selectedWorker}`}
+                      href={`/users/${selectedWorker}`}
                       className='group inline-flex items-center gap-1'
                     >
                       <h4 className='text-base font-semibold text-gray-900 transition-colors group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400'>

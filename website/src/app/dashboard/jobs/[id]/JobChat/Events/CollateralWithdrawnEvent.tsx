@@ -52,7 +52,7 @@ const CollateralWithdrawnEvent: React.FC<CollateralWithdrawnEventProps> = ({
               </span>
             ) : (
               <Link
-                href={`/dashboard/users/${creatorAddress}`}
+                href={`/users/${creatorAddress}`}
                 className='font-semibold text-gray-900 transition-colors hover:text-indigo-600 dark:text-gray-100 dark:hover:text-indigo-400'
               >
                 {creatorName}

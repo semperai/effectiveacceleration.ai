@@ -30,9 +30,9 @@ const BreadCrumbs = ({
         {pathNames.map((link, index, row) => {
           let href = `/${pathNames.slice(0, index + 1).join('/')}`;
           if (userRole === 'owner' && href === '/dashboard/jobs') {
-            href = '/dashboard/owner-job-list';
+            href = '/owner-job-list';
           } else if (userRole !== 'owner' && href === '/dashboard/jobs') {
-            href = '/dashboard/worker-job-list';
+            href = '/worker-job-list';
           }
           const itemClasses =
             paths === href ? `${listClasses} ${activeClasses}` : listClasses;

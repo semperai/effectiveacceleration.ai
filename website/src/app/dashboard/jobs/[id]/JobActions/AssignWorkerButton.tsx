@@ -280,7 +280,7 @@ export function AssignWorkerButton({
                           <div>
                             <p className='text-sm font-medium text-gray-900 dark:text-white'>
                               <Link
-                                href={`/dashboard/users/${selectedWorker}`}
+                                href={`/users/${selectedWorker}`}
                                 className='hover:underline'
                               >
                                 {selectedWorkerData?.name || 'Unknown Worker'}

@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     description:
       "View and manage jobs you're working on and track your applications. Monitor active work, deliverables, and payment status.",
     type: 'website',
-    url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/worker-job-list`,
+    url: `${process.env.NEXT_PUBLIC_SITE_URL}/worker-job-list`,
     images: [
       {
         url: '/og.webp',
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     images: ['/og.webp'],
   },
   alternates: {
-    canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/worker-job-list`,
+    canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/worker-job-list`,
   },
 };
 

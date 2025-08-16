@@ -106,7 +106,7 @@ export default function ArbitratorPageClient({
             found.
           </p>
           <Link
-            href='/dashboard/arbitrators'
+            href='/arbitrators'
             className='mt-6 inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
           >
             Back to Arbitrators
@@ -174,7 +174,7 @@ export default function ArbitratorPageClient({
             <li>
               <div className='flex'>
                 <Link
-                  href='/dashboard/arbitrators'
+                  href='/arbitrators'
                   className='text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
                 >
                   Arbitrators

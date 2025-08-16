@@ -73,7 +73,7 @@ const RatedEvent: React.FC<RatedEventProps> = ({
               </span>
             ) : (
               <Link
-                href={`/dashboard/users/${creatorAddress}`}
+                href={`/users/${creatorAddress}`}
                 className='font-semibold text-gray-900 transition-colors hover:text-yellow-600 dark:text-gray-100 dark:hover:text-yellow-400'
               >
                 {creatorName}
@@ -83,7 +83,7 @@ const RatedEvent: React.FC<RatedEventProps> = ({
               rated{' '}
               {worker && (
                 <Link
-                  href={`/dashboard/users/${workerAddress}`}
+                  href={`/users/${workerAddress}`}
                   className='font-medium text-gray-700 hover:text-yellow-600 dark:text-gray-300 dark:hover:text-yellow-400'
                 >
                   {workerName}
@@ -134,7 +134,7 @@ const RatedEvent: React.FC<RatedEventProps> = ({
                     </div>
                   )}
                   <Link
-                    href={`/dashboard/users/${workerAddress}`}
+                    href={`/users/${workerAddress}`}
                     className='text-xs font-medium text-gray-700 hover:text-yellow-600 dark:text-gray-300 dark:hover:text-yellow-400'
                   >
                     {workerName}

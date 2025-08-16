@@ -49,7 +49,7 @@ const RefundedEvent: React.FC<RefundedEventProps> = ({
               </span>
             ) : worker ? (
               <Link
-                href={`/dashboard/users/${workerAddress}`}
+                href={`/users/${workerAddress}`}
                 className='group inline-flex items-center gap-1 font-semibold text-gray-900 transition-colors hover:text-red-600 dark:text-gray-100 dark:hover:text-red-400'
               >
                 {workerName}

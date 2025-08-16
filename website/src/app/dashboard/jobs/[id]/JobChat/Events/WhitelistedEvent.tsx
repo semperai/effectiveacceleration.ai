@@ -65,7 +65,7 @@ const WhitelistedEvent: React.FC<WhitelistedEventProps> = ({
               </span>
             ) : creator ? (
               <Link
-                href={`/dashboard/users/${creatorAddress}`}
+                href={`/users/${creatorAddress}`}
                 className='font-semibold text-gray-900 transition-colors hover:text-teal-600 dark:text-gray-100 dark:hover:text-teal-400'
               >
                 {creatorName}
@@ -83,7 +83,7 @@ const WhitelistedEvent: React.FC<WhitelistedEventProps> = ({
                 </span>
               ) : (
                 <Link
-                  href={`/dashboard/users/${targetAddress}`}
+                  href={`/users/${targetAddress}`}
                   className='font-medium text-gray-700 hover:text-teal-600 dark:text-gray-300 dark:hover:text-teal-400'
                 >
                   {targetName}
