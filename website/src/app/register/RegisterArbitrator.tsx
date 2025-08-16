@@ -172,28 +172,25 @@ const RegisterArbitrator: React.FC<RegisterArbitratorProps> = ({
       await writeContractWithNotifications({
         abi: MARKETPLACE_DATA_V1_ABI,
         address: Config!.marketplaceDataAddress,
-        functionName: 'registerArbitrator', // This might need to be checked against the actual ABI
+        functionName: 'registerArbitrator',
         args: [
           encryptionPublicKey,
           formState.userName,
           formState.userBio,
           formState.avatarFileUrl,
+          formState.fee,
         ],
       });
     } catch (error) {
       Sentry.captureException(error);
-      const errMsg =
-        'Failed to register as arbitrator. Please try again. Function may not exist in contract.';
+      const errMsg = 'Failed to register as arbitrator. Please try again.';
       showError(errMsg);
       setFormState((prev) => ({
         ...prev,
         error: errMsg,
         isSubmitting: false,
       }));
-      console.error(
-        'Error writing contract (check if registerArbitrator exists in ABI): ',
-        error
-      );
+      console.error('Error writing contract', error);
     }
   };
 
