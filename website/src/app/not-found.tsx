@@ -20,7 +20,7 @@ export default function NotFound() {
     },
     {
       title: 'Post a Job',
-      href: '/dashboard/post-job',
+      href: '/post-job',
       icon: <PiPencilLine className='h-7 w-7' />,
       color: 'text-green-500',
     },

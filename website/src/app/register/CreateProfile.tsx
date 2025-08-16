@@ -24,7 +24,7 @@ import { useRouter } from 'next/navigation';
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import { useAccount } from 'wagmi';
-import { PostJobParams } from '@/app/dashboard/post-job/PostJobPage';
+import { PostJobParams } from '@/app/post-job/PostJobPage';
 
 const RegisteredUserView = () => {
   const router = useRouter();
@@ -56,7 +56,7 @@ const RegisteredUserView = () => {
 
         {/* Button */}
         <button
-          onClick={() => router.push('/dashboard')}
+          onClick={() => router.push('/')}
           className='group relative overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-3 font-semibold text-white shadow-lg transition-all duration-200 hover:from-blue-700 hover:to-blue-800 hover:shadow-xl active:scale-[0.98]'
         >
           <span className='relative z-10 flex items-center justify-center gap-2 text-white'>
@@ -140,7 +140,7 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
     sessionStorage.setItem(`user-${address}`, JSON.stringify(updatedUser));
 
     const hasUnfinishedJob = jobsAfterSignUp[0]?.title;
-    router.push(hasUnfinishedJob ? '/dashboard/post-job' : '/dashboard');
+    router.push(hasUnfinishedJob ? '/post-job' : '/');
   };
 
   // Submit handler

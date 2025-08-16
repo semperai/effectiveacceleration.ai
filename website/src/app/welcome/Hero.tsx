@@ -56,7 +56,7 @@ export const Hero = () => {
             {/* CTA Buttons - Fancy with gradients and animations */}
             <div className='flex flex-col items-center justify-center gap-4 sm:flex-row'>
               <Link
-                href='/dashboard/post-job'
+                href='/post-job'
                 className='group relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-white to-blue-50 px-8 py-4 font-semibold text-blue-600 shadow-xl transition-all duration-300 hover:shadow-2xl'
               >
                 {/* Animated gradient background on hover */}

@@ -33,6 +33,11 @@ const nextConfig = {
         destination: '/social-program',
         permanent: true,
       },
+      {
+        source: '/dashboard/post-job',
+        destination: '/post-job',
+        permanent: true,
+      },
     ];
   },
   images: {

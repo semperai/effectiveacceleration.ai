@@ -19,7 +19,7 @@ import { CloseButton } from './CloseButton';
 const navigationItems = [
   {
     name: 'Post job',
-    href: '/dashboard/post-job',
+    href: '/post-job',
     icon: <PiPaperPlaneTilt className='h-5 w-5' />,
     target: '_self',
     special: true,

@@ -264,7 +264,7 @@ const ResultAccepted: React.FC<ResultAcceptedProps> = ({
               {isJobCreator && (
                 <Link
                   href={{
-                    pathname: '/dashboard/post-job',
+                    pathname: '/post-job',
                     query: {
                       title: job.title,
                       content: job.content,

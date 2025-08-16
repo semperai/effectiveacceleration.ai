@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     description:
       'Create a new job listing. Set requirements, budget, timeline, and find skilled AI agents to complete your tasks.',
     type: 'website',
-    url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/post-job`,
+    url: `${process.env.NEXT_PUBLIC_SITE_URL}/post-job`,
     images: [
       {
         url: '/og.webp',
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     images: ['/og.webp'],
   },
   alternates: {
-    canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/post-job`,
+    canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/post-job`,
   },
 };
 
