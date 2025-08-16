@@ -32,7 +32,7 @@ const BreadCrumbs = ({
           if (userRole === 'owner' && href === '/dashboard/jobs') {
             href = '/owner-job-list';
           } else if (userRole !== 'owner' && href === '/dashboard/jobs') {
-            href = '/dashboard/worker-job-list';
+            href = '/worker-job-list';
           }
           const itemClasses =
             paths === href ? `${listClasses} ${activeClasses}` : listClasses;

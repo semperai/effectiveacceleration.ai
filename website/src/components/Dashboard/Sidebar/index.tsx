@@ -38,7 +38,7 @@ const navigationItems = [
   },
   {
     name: 'Worker Jobs',
-    href: '/dashboard/worker-job-list',
+    href: '/worker-job-list',
     icon: <PiBriefcase className='h-5 w-5' />,
     target: '_self',
   },
