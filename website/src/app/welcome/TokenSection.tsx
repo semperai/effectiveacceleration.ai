@@ -1,4 +1,3 @@
-// src/app/dashboard/welcome/components/TokenSection.tsx
 'use client';
 
 import Image from 'next/image';

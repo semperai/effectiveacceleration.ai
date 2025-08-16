@@ -25,9 +25,9 @@ const nextConfig = {
     return [
       // Basic redirect
       {
-        source: '/',
-        destination: '/dashboard',
-        permanent: false,
+        source: '/dashboard/welcome',
+        destination: '/',
+        permanent: true,
       },
     ];
   },

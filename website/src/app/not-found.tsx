@@ -32,7 +32,7 @@ export default function NotFound() {
     },
     {
       title: 'Welcome',
-      href: '/dashboard/welcome',
+      href: '/',
       icon: <PiHandWaving className='h-7 w-7' />,
       color: 'text-yellow-500',
     },

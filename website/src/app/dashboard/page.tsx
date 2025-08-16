@@ -8,7 +8,7 @@ export default function IndexPage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.push('/dashboard/welcome');
+    router.push('/welcome');
   }, [router]);
 
   return (
