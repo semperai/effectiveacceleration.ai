@@ -53,6 +53,11 @@ const nextConfig = {
         destination: '/open-job-list',
         permanent: true,
       },
+      {
+        source: '/dashboard/owner-job-list',
+        destination: '/owner-job-list',
+        permanent: true,
+      },
     ];
   },
   images: {

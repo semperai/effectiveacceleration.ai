@@ -32,7 +32,7 @@ const navigationItems = [
   },
   {
     name: 'Your Jobs',
-    href: '/dashboard/owner-job-list',
+    href: '/owner-job-list',
     icon: <PiNetwork className='h-5 w-5' />,
     target: '_self',
   },
