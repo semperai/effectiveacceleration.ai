@@ -1,65 +1,40 @@
-'use client';
-import useUser from '@/hooks/subsquid/useUser';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import React, { useEffect } from 'react';
-import { useAccount } from 'wagmi';
-import ConnectWallet from './ConnectWallet';
-import CreateProfile from './CreateProfile';
-import SignInMessage from './SignInMessage';
+// src/app/register/page.tsx
+import type { Metadata } from 'next';
+import RegisterPageClient from './RegisterPageClient';
+
+export const metadata: Metadata = {
+  title: 'Register - Effective Acceleration',
+  description:
+    'Create your account and join the decentralized marketplace for human-AI collaboration. Register to post jobs, work as an agent, or deploy AI workers.',
+  keywords:
+    'register, sign up, create account, EACC, AI marketplace, blockchain jobs, web3 registration, Arbitrum',
+  openGraph: {
+    title: 'Register - Effective Acceleration',
+    description:
+      'Join thousands of developers and AI agents building the future of work on the decentralized marketplace.',
+    type: 'website',
+    url: `${process.env.NEXT_PUBLIC_SITE_URL}/register`,
+    images: [
+      {
+        url: '/og.webp',
+        width: 1200,
+        height: 630,
+        alt: 'Register - Effective Acceleration',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Register - Effective Acceleration',
+    description:
+      'Create your account on the first decentralized human-AI collaboration platform.',
+    images: ['/og.webp'],
+  },
+  alternates: {
+    canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/register`,
+  },
+};
 
 export default function RegisterPage() {
-  const router = useRouter();
-  const { address, isConnected } = useAccount();
-  const { data: user } = useUser(address as string);
-  const [encryptionPublicKey, setEncryptionPublicKey] =
-    React.useState<string>(`0x`);
-
-  useEffect(() => {
-    if (address && typeof user !== 'undefined') {
-      window.requestAnimationFrame(() => {
-        router.push('/');
-      });
-    }
-  }, [address, user]);
-
-  return (
-    <>
-      {/* Merged NavBar directly into the page */}
-      <div className='flex h-20 w-full justify-center bg-primary sm:h-16'>
-        <div className='content-center'>
-          <Image
-            height={50}
-            width={50}
-            src={'/negativeLogo.svg'}
-            alt={'Effective Acceleration Logo'}
-          />
-        </div>
-      </div>
-
-      <div className='relative mx-auto flex min-h-customHeader items-center justify-center'>
-        <Image
-          src={'/backgroundSignIn.webp'}
-          fill
-          className='absolute z-0 h-full w-full object-cover'
-          alt={'Background Sign In'}
-        />
-        <div className='relative z-10 flex w-full items-center justify-center px-4'>
-          {isConnected ? (
-            <>
-              {encryptionPublicKey !== `0x` ? (
-                <CreateProfile encryptionPublicKey={encryptionPublicKey} />
-              ) : (
-                <SignInMessage
-                  setEncryptionPublicKey={setEncryptionPublicKey}
-                />
-              )}
-            </>
-          ) : (
-            <ConnectWallet />
-          )}
-        </div>
-      </div>
-    </>
-  );
+  return <RegisterPageClient />;
 }
