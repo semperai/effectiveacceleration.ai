@@ -277,7 +277,7 @@ export default function ArbitratorsListClient({
             {filteredArbitrators.map((arbitrator) => (
               <Link
                 key={arbitrator.id}
-                href={`/dashboard/arbitrators/${arbitrator.address_}`}
+                href={`/arbitrators/${arbitrator.address_}`}
                 className='group'
               >
                 <div className='h-full overflow-hidden rounded-lg bg-white shadow-sm transition-shadow duration-200 hover:shadow-lg dark:bg-gray-800'>

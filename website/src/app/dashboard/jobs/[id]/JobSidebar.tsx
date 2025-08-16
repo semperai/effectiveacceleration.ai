@@ -395,7 +395,7 @@ export default function JobSidebar({
               label='Arbitrator'
               value={
                 <Link
-                  href={`/dashboard/arbitrators/${job?.roles.arbitrator}`}
+                  href={`/arbitrators/${job?.roles.arbitrator}`}
                   className='font-medium text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300'
                 >
                   {shortenText({

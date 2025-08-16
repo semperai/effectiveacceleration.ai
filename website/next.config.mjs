@@ -43,6 +43,11 @@ const nextConfig = {
         destination: '/users/:path*',
         permanent: true,
       },
+      {
+        source: '/dashboard/arbitrators/:path*',
+        destination: '/arbitrators/:path*',
+        permanent: true,
+      },
     ];
   },
   images: {

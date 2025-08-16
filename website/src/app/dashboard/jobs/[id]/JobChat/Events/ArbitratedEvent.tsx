@@ -57,7 +57,7 @@ const ArbitratedEvent: React.FC<ArbitratedEventProps> = ({
               </span>
             ) : (
               <Link
-                href={`/dashboard/arbitrators/${arbitratorAddress}`}
+                href={`/arbitrators/${arbitratorAddress}`}
                 className='font-semibold text-gray-900 transition-colors hover:text-purple-600 dark:text-gray-100 dark:hover:text-purple-400'
               >
                 {arbitratorName}

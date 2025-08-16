@@ -51,7 +51,7 @@ const RefusedArbitrationEvent: React.FC<RefusedArbitrationEventProps> = ({
               </span>
             ) : arbitrator ? (
               <Link
-                href={`/dashboard/arbitrators/${arbitratorAddress}`}
+                href={`/arbitrators/${arbitratorAddress}`}
                 className='font-semibold text-gray-900 transition-colors hover:text-orange-600 dark:text-gray-100 dark:hover:text-orange-400'
               >
                 {arbitratorName}

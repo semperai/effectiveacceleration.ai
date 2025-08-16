@@ -137,7 +137,7 @@ const DisputedEvent: React.FC<DisputedEventProps> = ({
                   <div className='flex items-center gap-1'>
                     <PiShieldCheck className='h-3.5 w-3.5 text-amber-600 sm:h-4 sm:w-4 dark:text-amber-400' />
                     <Link
-                      href={`/dashboard/arbitrators/${arbitratorAddress}`}
+                      href={`/arbitrators/${arbitratorAddress}`}
                       className='text-xs font-medium text-gray-700 hover:text-amber-600 dark:text-gray-300 dark:hover:text-amber-400'
                     >
                       {arbitratorName}

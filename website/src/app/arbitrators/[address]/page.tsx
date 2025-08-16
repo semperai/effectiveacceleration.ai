@@ -108,7 +108,7 @@ export async function generateMetadata({
         title: `Invalid Address - Effective Acceleration`,
         description: `The provided address is not a valid Ethereum address.`,
         type: 'website',
-        url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/arbitrators/${address}`,
+        url: `${process.env.NEXT_PUBLIC_SITE_URL}/arbitrators/${address}`,
         images: [
           {
             url: '/og.webp',
@@ -138,7 +138,7 @@ export async function generateMetadata({
         title: `Arbitrator ${shortAddress} - Effective Acceleration`,
         description: `View arbitrator profile for ${shortAddress} on Effective Acceleration marketplace.`,
         type: 'profile',
-        url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/arbitrators/${address}`,
+        url: `${process.env.NEXT_PUBLIC_SITE_URL}/arbitrators/${address}`,
         images: [
           {
             url: '/og.webp',
@@ -155,7 +155,7 @@ export async function generateMetadata({
         images: ['/og.webp'],
       },
       alternates: {
-        canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/arbitrators/${address}`,
+        canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/arbitrators/${address}`,
       },
     };
   }
@@ -202,7 +202,7 @@ export async function generateMetadata({
       title,
       description,
       type: 'profile',
-      url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/arbitrators/${address}`,
+      url: `${process.env.NEXT_PUBLIC_SITE_URL}/arbitrators/${address}`,
       images: [
         {
           url: ogImage,
@@ -219,7 +219,7 @@ export async function generateMetadata({
       images: [ogImage],
     },
     alternates: {
-      canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/arbitrators/${address}`,
+      canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/arbitrators/${address}`,
     },
     other: {
       'arbitrator:address': arbitrator.address_,
