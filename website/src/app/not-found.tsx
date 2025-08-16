@@ -14,7 +14,7 @@ export default function NotFound() {
   const suggestions = [
     {
       title: 'Open Jobs',
-      href: '/dashboard/open-job-list',
+      href: '/open-job-list',
       icon: <PiBriefcase className='h-7 w-7' />,
       color: 'text-blue-500',
     },
