@@ -44,7 +44,7 @@ const ClosedEvent: React.FC<ClosedEventProps> = ({
               </span>
             ) : (
               <Link
-                href={`/dashboard/users/${creatorAddress}`}
+                href={`/users/${creatorAddress}`}
                 className='font-semibold text-gray-900 transition-colors hover:text-gray-600 dark:text-gray-100 dark:hover:text-gray-400'
               >
                 {creatorName}

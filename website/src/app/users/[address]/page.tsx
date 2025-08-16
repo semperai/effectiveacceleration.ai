@@ -1,4 +1,3 @@
-// app/dashboard/users/[address]/page.tsx
 import type { Metadata } from 'next';
 import { unstable_cache } from 'next/cache';
 import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
@@ -190,7 +189,7 @@ export async function generateMetadata({
         title: `Invalid Address - Effective Acceleration`,
         description: `The provided address is not a valid Ethereum address.`,
         type: 'website',
-        url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/users/${address}`,
+        url: `${process.env.NEXT_PUBLIC_SITE_URL}/users/${address}`,
         images: [
           {
             url: '/og.webp',
@@ -223,7 +222,7 @@ export async function generateMetadata({
         title: `User ${shortAddress} - Effective Acceleration`,
         description: `View user profile for ${shortAddress} on Effective Acceleration marketplace.`,
         type: 'profile',
-        url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/users/${address}`,
+        url: `${process.env.NEXT_PUBLIC_SITE_URL}/users/${address}`,
         images: [
           {
             url: '/og.webp',
@@ -240,7 +239,7 @@ export async function generateMetadata({
         images: ['/og.webp'],
       },
       alternates: {
-        canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/users/${address}`,
+        canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/users/${address}`,
       },
     };
   }
@@ -303,7 +302,7 @@ export async function generateMetadata({
       title,
       description,
       type: 'profile',
-      url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/users/${address}`,
+      url: `${process.env.NEXT_PUBLIC_SITE_URL}/users/${address}`,
       images: [
         {
           url: ogImage,
@@ -320,7 +319,7 @@ export async function generateMetadata({
       images: [ogImage],
     },
     alternates: {
-      canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/users/${address}`,
+      canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/users/${address}`,
     },
     other: {
       'user:address': user.address_,

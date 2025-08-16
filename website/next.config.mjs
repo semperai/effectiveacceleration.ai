@@ -38,6 +38,11 @@ const nextConfig = {
         destination: '/post-job',
         permanent: true,
       },
+      {
+        source: '/dashboard/users/:path*',
+        destination: '/users/:path*',
+        permanent: true,
+      },
     ];
   },
   images: {

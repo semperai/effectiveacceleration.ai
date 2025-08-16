@@ -157,7 +157,7 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
                   </span>
                   {creatorData && !isCreator && (
                     <Link
-                      href={`/dashboard/users/${job.roles.creator}`}
+                      href={`/users/${job.roles.creator}`}
                       className='ml-auto'
                     >
                       <PiArrowRight className='h-3 w-3 text-gray-400 transition-colors hover:text-blue-600 dark:hover:text-blue-400' />
@@ -166,7 +166,7 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
                 </div>
                 {creatorData && !isCreator && (
                   <Link
-                    href={`/dashboard/users/${job.roles.creator}`}
+                    href={`/users/${job.roles.creator}`}
                     className='text-xs text-blue-600 hover:text-blue-500 hover:underline dark:text-blue-400 dark:hover:text-blue-300'
                   >
                     {creatorData.name}
@@ -206,7 +206,7 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
                   </span>
                   {workerData && !isWorker && (
                     <Link
-                      href={`/dashboard/users/${job.roles.worker}`}
+                      href={`/users/${job.roles.worker}`}
                       className='ml-auto'
                     >
                       <PiArrowRight className='h-3 w-3 text-gray-400 transition-colors hover:text-blue-600 dark:hover:text-blue-400' />
@@ -215,7 +215,7 @@ const ArbitratedStatus: React.FC<ArbitratedStatusProps> = ({
                 </div>
                 {workerData && !isWorker && (
                   <Link
-                    href={`/dashboard/users/${job.roles.worker}`}
+                    href={`/users/${job.roles.worker}`}
                     className='text-xs text-blue-600 hover:text-blue-500 hover:underline dark:text-blue-400 dark:hover:text-blue-300'
                   >
                     {workerData.name}

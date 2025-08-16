@@ -119,7 +119,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: 'Browse Users - Effective Acceleration',
       description,
       type: 'website',
-      url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/users`,
+      url: `${process.env.NEXT_PUBLIC_SITE_URL}/users`,
       images: [
         {
           url: '/og.webp',
@@ -136,7 +136,7 @@ export async function generateMetadata(): Promise<Metadata> {
       images: ['/og.webp'],
     },
     alternates: {
-      canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/users`,
+      canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/users`,
     },
   };
 }

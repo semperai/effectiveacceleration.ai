@@ -350,7 +350,7 @@ export default function UsersListClient({
             {filteredUsers.map((user) => (
               <Link
                 key={user.id}
-                href={`/dashboard/users/${user.address_}`}
+                href={`/users/${user.address_}`}
                 className='group'
               >
                 <div className='h-full overflow-hidden rounded-lg bg-white shadow-sm transition-shadow duration-200 hover:shadow-lg dark:bg-gray-800'>

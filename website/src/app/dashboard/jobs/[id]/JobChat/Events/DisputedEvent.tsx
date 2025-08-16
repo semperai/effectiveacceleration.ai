@@ -61,7 +61,7 @@ const DisputedEvent: React.FC<DisputedEventProps> = ({
               </span>
             ) : (
               <Link
-                href={`/dashboard/users/${disputerAddress}`}
+                href={`/users/${disputerAddress}`}
                 className='font-semibold text-gray-900 transition-colors hover:text-amber-600 dark:text-gray-100 dark:hover:text-amber-400'
               >
                 {disputerName}
@@ -120,7 +120,7 @@ const DisputedEvent: React.FC<DisputedEventProps> = ({
                     </div>
                   )}
                   <Link
-                    href={`/dashboard/users/${disputerAddress}`}
+                    href={`/users/${disputerAddress}`}
                     className='text-xs font-medium text-gray-700 hover:text-amber-600 dark:text-gray-300 dark:hover:text-amber-400'
                   >
                     {disputerName}
