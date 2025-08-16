@@ -90,8 +90,6 @@ export function UserProfile({
   const { address } = useAccount();
   const { data: user } = useUser(address!);
   const { data: arbitrator } = useArbitrator(address!);
-  const users = [user, arbitrator];
-  const [userIndex, setUserIndex] = useState<number>(0);
   const [name, setName] = useState<string>('');
   const [bio, setBio] = useState<string>('');
   const [avatar, setAvatar] = useState<string | undefined>('');
@@ -100,7 +98,8 @@ export function UserProfile({
   const [nameError, setNameError] = useState<string>('');
   const [bioError, setBioError] = useState<string>('');
   const [fee, setFee] = useState<number>();
-  const [buttonDisabled, setButtonDisabled] = useState<boolean>(false);
+  const [showReviewsButtonDisabled, setShowReviewsButtonDisabled] =
+    useState<boolean>(false);
   const [open, setOpen] = useState(false);
   const [showReviews, setShowReviews] = useState(false);
 
@@ -108,13 +107,25 @@ export function UserProfile({
     useWriteContractWithNotifications();
 
   useEffect(() => {
-    const avatarUrl = users[userIndex]?.avatar;
-    if (users[userIndex]?.name) {
-      setName(users[userIndex].name);
+    let avatarUrl;
+    if (user?.avatar) {
+      avatarUrl = user.avatar;
+    } else if (arbitrator?.avatar) {
+      avatarUrl = arbitrator.avatar;
     }
-    if (users[userIndex]?.bio) {
-      setBio(users[userIndex].bio);
+
+    if (user?.name) {
+      setName(user.name);
+    } else if (arbitrator?.name) {
+      setName(arbitrator.name);
     }
+
+    if (user?.bio) {
+      setBio(user.bio);
+    } else if (arbitrator?.bio) {
+      setBio(arbitrator.bio);
+    }
+
     setAvatarFileUrl(avatarUrl);
     setNewAvatar(avatarUrl);
     setAvatar(avatarUrl);
@@ -122,13 +133,23 @@ export function UserProfile({
   }, [user, arbitrator]);
 
   useEffect(() => {
-    setButtonDisabled(false);
+    setShowReviewsButtonDisabled(false);
   }, [isConfirmed]);
 
   async function updateButtonClick() {
-    setButtonDisabled(true);
+    setShowReviewsButtonDisabled(true);
 
-    const methodName = userIndex === 0 ? 'updateUser' : 'updateArbitrator';
+    let methodName;
+    if (user) {
+      methodName = 'updateUser';
+    } else if (arbitrator) {
+      methodName = 'updateArbitrator';
+    }
+
+    if (!methodName) {
+      console.error('No method name found for update');
+      return;
+    }
 
     await writeContractWithNotifications({
       abi: MARKETPLACE_DATA_V1_ABI,
@@ -136,29 +157,6 @@ export function UserProfile({
       functionName: methodName,
       args: [name!, bio!, avatarFileUrl!],
     });
-  }
-
-  async function registerButtonClick() {
-    setButtonDisabled(true);
-
-    const encryptionPublicKey = (await getEncryptionSigningKey(signer as any))
-      .compressedPublicKey;
-
-    if (userIndex === 0) {
-      await writeContractWithNotifications({
-        abi: MARKETPLACE_DATA_V1_ABI,
-        address: Config!.marketplaceDataAddress,
-        functionName: 'registerUser',
-        args: [encryptionPublicKey, name!, bio!, avatarFileUrl!],
-      });
-    } else {
-      await writeContractWithNotifications({
-        abi: MARKETPLACE_DATA_V1_ABI,
-        address: Config!.marketplaceDataAddress,
-        functionName: 'registerArbitrator',
-        args: [encryptionPublicKey, name!, bio!, avatarFileUrl!, fee!],
-      });
-    }
   }
 
   useEffect(() => {
@@ -194,12 +192,12 @@ export function UserProfile({
     })();
 
     if (nameErrorEncountered || bioErrorEncountered) {
-      setButtonDisabled(true);
+      setShowReviewsButtonDisabled(true);
     } else {
-      setButtonDisabled(false);
+      setShowReviewsButtonDisabled(false);
     }
   }, [name, bio]);
-  console.log('avatar', avatar);
+
   return (
     <>
       <NavButton name={name} avatar={avatar} openModal={() => setOpen(true)}>
@@ -241,7 +239,7 @@ export function UserProfile({
                   <div className='mb-2 flex flex-col items-center gap-2'>
                     {(user || arbitrator) && (
                       <>
-                        {!showReviews ? ( // 3. Conditionally render
+                        {!showReviews ? (
                           <>
                             <div className='flex h-[110px] w-[110px] items-center justify-center'>
                               {selectedUser?.name && (
@@ -260,7 +258,8 @@ export function UserProfile({
                             <span className='font-md text-sm'>
                               {selectedUser?.bio}
                             </span>
-                            {userIndex === 1 && (
+
+                            {arbitrator && (
                               <Field>
                                 <Label>Fee</Label>
                                 <Input
@@ -276,7 +275,8 @@ export function UserProfile({
                                 />
                               </Field>
                             )}
-                            {user && userIndex === 0 && (
+
+                            {user && (
                               <Reputation
                                 positiveCount={selectedUser?.reputationUp ?? 0}
                                 negativeCount={
@@ -284,14 +284,15 @@ export function UserProfile({
                                 }
                               />
                             )}
-                            {users[userIndex] && (
+
+                            {(user || arbitrator) && (
                               <Button
                                 disabled={
-                                  buttonDisabled ||
+                                  showReviewsButtonDisabled ||
                                   nameError.length > 0 ||
                                   bioError.length > 0
                                 }
-                                onClick={() => setShowReviews(true)} // 2. Show reviews
+                                onClick={() => setShowReviews(true)}
                               >
                                 View Reviews
                               </Button>
