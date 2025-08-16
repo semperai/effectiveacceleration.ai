@@ -1,4 +1,3 @@
-// src/app/dashboard/social-program/WeeklyDistribution.tsx
 import React from 'react';
 import {
   Calendar,

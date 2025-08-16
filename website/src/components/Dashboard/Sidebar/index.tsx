@@ -44,7 +44,7 @@ const navigationItems = [
   },
   {
     name: 'Social Program',
-    href: '/dashboard/social-program',
+    href: '/social-program',
     icon: <PiTrendUp className='h-5 w-5' />,
     target: '_self',
   },

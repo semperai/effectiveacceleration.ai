@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     images: ['/og.webp'],
   },
   alternates: {
-    canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/social-program`,
+    canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/social-program`,
   },
 };
 

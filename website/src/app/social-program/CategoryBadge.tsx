@@ -1,4 +1,3 @@
-// src/app/dashboard/social-program/CategoryBadge.tsx
 import React from 'react';
 import { PiSparkle, PiRocket, PiMegaphone, PiHandshake } from 'react-icons/pi';
 import { Users } from 'lucide-react';

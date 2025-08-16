@@ -23,10 +23,14 @@ const nextConfig = {
   },
   async redirects() {
     return [
-      // Basic redirect
       {
         source: '/dashboard/welcome',
         destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/dashboard/social-program',
+        destination: '/social-program',
         permanent: true,
       },
     ];
