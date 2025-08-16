@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { AlertCircle, Sparkles, Home } from 'lucide-react';
 import { SearchBar } from '@/components/NotFound/SearchBar';
 import { BackButton } from '@/components/NotFound/BackButton';
@@ -118,7 +119,7 @@ export default function NotFound() {
                   </p>
                   <div className='grid grid-cols-2 gap-3 sm:grid-cols-4'>
                     {suggestions.map((item) => (
-                      <a
+                      <Link
                         key={item.title}
                         href={item.href}
                         className='group relative overflow-hidden rounded-lg border border-white/10 bg-white/5 p-3 text-center backdrop-blur-sm transition-all duration-300 hover:border-white/20 hover:bg-white/10'
@@ -136,7 +137,7 @@ export default function NotFound() {
                             {item.title}
                           </div>
                         </div>
-                      </a>
+                      </Link>
                     ))}
                   </div>
                 </div>
