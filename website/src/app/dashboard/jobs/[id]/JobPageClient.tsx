@@ -366,9 +366,45 @@ export default function JobPageClient({ id }: JobPageClientProps) {
     }
 
     if (currentJob?.state === JobState.Open) {
-      // For FCFS jobs that are open, show all events (or empty array if none)
+      // For FCFS jobs that are open
       if (!currentJob.multipleApplicants) {
-        setEventMessages(currentEvents || []);
+        if (isOwner) {
+          // Owner should only see events related to selected worker
+          setEventMessages(
+            currentEvents?.filter(
+              (event: JobEventWithDiffs) =>
+                event.address_ === selectedWorker ||
+                (event.details as JobMessageEvent)?.recipientAddress ===
+                  selectedWorker ||
+                // Include system events like Created, Updated
+                [JobEventType.Created, JobEventType.Updated].includes(event.type_)
+            ) || []
+          );
+        } else if (isWorker) {
+          // Worker should only see events related to job owner and their own chat
+          setEventMessages(
+            currentEvents?.filter(
+              (event: JobEventWithDiffs) =>
+                event.address_ === currentJob.roles.creator ||
+                event.address_ === currentAddress ||
+                (event.details as JobMessageEvent)?.recipientAddress ===
+                  currentAddress ||
+                (event.details as JobMessageEvent)?.recipientAddress ===
+                  currentJob.roles.creator ||
+                // Include system events like Created, Updated
+                [ 
+                  JobEventType.Created,
+                  JobEventType.Updated,
+                  JobEventType.Taken,
+                  JobEventType.Closed,
+                  JobEventType.Completed
+                ].includes(event.type_)
+            ) || []
+          );
+        } else {
+          // For other users, show all events (default FCFS behavior)
+          setEventMessages(currentEvents || []);
+        }
       } else {
         // For multiple applicant jobs, filter by selected worker
         setEventMessages(
@@ -377,8 +413,14 @@ export default function JobPageClient({ id }: JobPageClientProps) {
               event.address_ === selectedWorker ||
               (event.details as JobMessageEvent)?.recipientAddress ===
                 selectedWorker ||
-              // Include system events like Created, Updated
-              [JobEventType.Created, JobEventType.Updated].includes(event.type_)
+              // Include important system events 
+              [ 
+                JobEventType.Created,
+                JobEventType.Updated,
+                JobEventType.Taken,
+                JobEventType.Closed,
+                JobEventType.Completed
+              ].includes(event.type_)
           ) || []
         );
       }
