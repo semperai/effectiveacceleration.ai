@@ -117,7 +117,7 @@ export const WeeklyDistribution = ({
                           {formatAddress(contributor.address)}
                         </code>
                         <a
-                          href={`https://etherscan.io/tx/${contributor.txHash}`}
+                          href={`https://arbiscan.io/tx/${contributor.txHash}`}
                           target='_blank'
                           rel='noopener noreferrer'
                           className='text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300'
