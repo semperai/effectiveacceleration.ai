@@ -103,7 +103,7 @@ const JobButtonActions = ({
   // Early return if no job
   if (!job) return null;
 
-  // ========== CREATOR ACTIONS ==========
+  // CREATOR ACTIONS
 
   const showUpdateButton =
     job.state === JobState.Open && address === job.roles.creator;
@@ -148,7 +148,7 @@ const JobButtonActions = ({
     selectedWorker && // A worker has been selected in the UI
     selectedWorker !== address; // Not trying to assign to themselves
 
-  // ========== WORKER ACTIONS ==========
+  // WORKER ACTIONS
 
   // For FCFS jobs - workers can immediately take them
   const showTakeJobButton =
@@ -180,7 +180,7 @@ const JobButtonActions = ({
     address === job.roles.worker &&
     Object.keys(sessionKeys).length > 0;
 
-  // ========== ARBITRATOR ACTIONS ==========
+  // ARBITRATOR ACTIONS
 
   const showArbitrateButton =
     job.state === JobState.Taken && address === job.roles.arbitrator;
@@ -188,7 +188,7 @@ const JobButtonActions = ({
   const showRefuseArbitrationButton =
     job.state !== JobState.Closed && address === job.roles.arbitrator;
 
-  // ========== DISPUTE ACTIONS ==========
+  // DISPUTE ACTIONS
 
   const showDisputeButton =
     job.state === JobState.Taken &&
