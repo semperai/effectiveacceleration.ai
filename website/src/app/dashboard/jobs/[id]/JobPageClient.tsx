@@ -369,7 +369,7 @@ export default function JobPageClient({ id }: JobPageClientProps) {
       // For FCFS jobs that are open
       if (!currentJob.multipleApplicants) {
         if (isOwner) {
-          // Owner should only see events related to selected worker
+          // Open FCFS for owner
           setEventMessages(
             currentEvents?.filter(
               (event: JobEventWithDiffs) =>
@@ -377,49 +377,45 @@ export default function JobPageClient({ id }: JobPageClientProps) {
                 (event.details as JobMessageEvent)?.recipientAddress ===
                   selectedWorker ||
                 // Include system events like Created, Updated
-                [JobEventType.Created, JobEventType.Updated].includes(event.type_)
+                [JobEventType.Created, JobEventType.Updated].includes(
+                  event.type_
+                )
             ) || []
           );
-        } else if (isWorker) {
-          // Worker should only see events related to job owner and their own chat
+        } else {
+          // Open FCFS for selected workers/applicants
           setEventMessages(
             currentEvents?.filter(
               (event: JobEventWithDiffs) =>
-                event.address_ === currentJob.roles.creator ||
-                event.address_ === currentAddress ||
+                event.address_ === selectedWorker ||
                 (event.details as JobMessageEvent)?.recipientAddress ===
-                  currentAddress ||
-                (event.details as JobMessageEvent)?.recipientAddress ===
-                  currentJob.roles.creator ||
-                // Include system events like Created, Updated
-                [ 
+                  selectedWorker ||
+                // Include important system events
+                [
                   JobEventType.Created,
                   JobEventType.Updated,
                   JobEventType.Taken,
                   JobEventType.Closed,
-                  JobEventType.Completed
+                  JobEventType.Completed,
                 ].includes(event.type_)
             ) || []
           );
-        } else {
-          // For other users, show all events (default FCFS behavior)
-          setEventMessages(currentEvents || []);
         }
       } else {
-        // For multiple applicant jobs, filter by selected worker
+        // Open multiple applicant jobs
         setEventMessages(
           currentEvents?.filter(
             (event: JobEventWithDiffs) =>
               event.address_ === selectedWorker ||
               (event.details as JobMessageEvent)?.recipientAddress ===
                 selectedWorker ||
-              // Include important system events 
-              [ 
+              // Include important system events
+              [
                 JobEventType.Created,
                 JobEventType.Updated,
                 JobEventType.Taken,
                 JobEventType.Closed,
-                JobEventType.Completed
+                JobEventType.Completed,
               ].includes(event.type_)
           ) || []
         );
@@ -428,15 +424,26 @@ export default function JobPageClient({ id }: JobPageClientProps) {
       currentJob?.state === JobState.Taken ||
       currentJob?.state === JobState.Closed
     ) {
-      // For FCFS jobs that are taken/closed, show all events
+      // For FCFS jobs that are taken/closed
       if (!currentJob.multipleApplicants) {
-        setEventMessages(currentEvents);
+                  setEventMessages(
+            currentEvents?.filter(
+              (event: JobEventWithDiffs) =>
+                event.address_ === selectedWorker ||
+                (event.details as JobMessageEvent)?.recipientAddress ===
+                  selectedWorker ||
+                // Include system events like Created, Updated
+                [JobEventType.Created, JobEventType.Updated].includes(
+                  event.type_
+                )
+            ) || []
+          );
       } else {
         // For multiple applicant jobs, use existing logic
         let lastIndex = -1;
 
         for (let i = (currentEvents?.length || 0) - 1; i >= 0; i--) {
-          if (currentEvents![i].type_ === JobEventType.Taken) {
+          if (currentEvents![i].type_ === JobEventType.Paid) {
             lastIndex = i;
             break;
           }
