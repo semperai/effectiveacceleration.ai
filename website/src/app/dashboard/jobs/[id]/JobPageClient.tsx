@@ -28,34 +28,13 @@ import OpenJobMobileMenu from './JobChat/OpenJobMobileMenu';
 import { useSwResetMessage } from '@/hooks/useSwResetMessage';
 import { useSearchParams } from 'next/navigation';
 
-// Import test utilities
 import {
   TestControlBar,
   generateTestData,
   scenarios,
   statusStates,
+  renderStatusComponent,
 } from './testUtils';
-
-// Import Status State Components (lazy load for better performance)
-import dynamic from 'next/dynamic';
-const AssignWorker = dynamic(
-  () => import('./JobChat/StatusStates/AssignWorker')
-);
-const WorkerAccepted = dynamic(
-  () => import('./JobChat/StatusStates/WorkerAccepted')
-);
-const ResultVerification = dynamic(
-  () => import('./JobChat/StatusStates/ResultVerification')
-);
-const ResultAccepted = dynamic(
-  () => import('./JobChat/StatusStates/ResultAccepted')
-);
-const DisputeStarted = dynamic(
-  () => import('./JobChat/StatusStates/DisputeStarted')
-);
-const ArbitratedStatus = dynamic(
-  () => import('./JobChat/StatusStates/ArbitratedStatus')
-);
 
 const JobPostSkeleton = () => {
   return (
@@ -111,9 +90,10 @@ export default function JobPageClient({ id }: JobPageClientProps) {
   // Test mode state
   const [selectedScenario, setSelectedScenario] = useState(scenarios[0]);
   const [testUserRole, setTestUserRole] = useState<
-    'creator' | 'worker' | 'arbitrator'
+    'creator' | 'worker' | 'arbitrator' | 'guest'
   >('creator');
   const [selectedStatus, setSelectedStatus] = useState('none');
+  const [multipleApplicants, setMultipleApplicants] = useState(true);
 
   // Real data hooks - use dummy ID when in test mode to avoid null issues
   const dummyId = 'test-job-id';
@@ -129,8 +109,8 @@ export default function JobPageClient({ id }: JobPageClientProps) {
   // Generate test data when in test mode
   const testData = useMemo(() => {
     if (!isTestMode) return null;
-    return generateTestData(selectedScenario, testUserRole);
-  }, [isTestMode, selectedScenario, testUserRole]);
+    return generateTestData(selectedScenario, testUserRole, multipleApplicants);
+  }, [isTestMode, selectedScenario, testUserRole, multipleApplicants]);
 
   // Use test data or real data
   const currentJob = isTestMode ? testData?.job : job;
@@ -150,6 +130,44 @@ export default function JobPageClient({ id }: JobPageClientProps) {
 
   // Only use real jobId for message reset, not test ID
   useSwResetMessage(isTestMode ? '' : jobId);
+
+  // Check if user was an applicant but not selected
+  const wasApplicantButNotSelected = useMemo(() => {
+    if (!currentAddress || !currentEvents || !currentJob) return false;
+
+    // Check if job is taken or closed
+    if (
+      currentJob.state !== JobState.Taken &&
+      currentJob.state !== JobState.Closed
+    ) {
+      return false;
+    }
+
+    // Check if current user is NOT the selected worker
+    if (currentJob.roles.worker === currentAddress) {
+      return false;
+    }
+
+    // Check if current user is NOT the creator or arbitrator
+    if (
+      currentJob.roles.creator === currentAddress ||
+      currentJob.roles.arbitrator === currentAddress
+    ) {
+      return false;
+    }
+
+    // Check if user had previously messaged in this job (was an applicant)
+    const hadPreviousInteraction = currentEvents.some(
+      (event: JobEventWithDiffs) =>
+        (event.type_ === JobEventType.WorkerMessage &&
+          event.address_ === currentAddress) ||
+        (event.type_ === JobEventType.OwnerMessage &&
+          (event.details as JobMessageEvent)?.recipientAddress ===
+            currentAddress)
+    );
+
+    return hadPreviousInteraction;
+  }, [currentAddress, currentEvents, currentJob]);
 
   // Auto-select worker from notification event
   useEffect(() => {
@@ -244,10 +262,12 @@ export default function JobPageClient({ id }: JobPageClientProps) {
 
   // Fixed: Show message button for open jobs when worker wants to apply
   // OR for participants in any state except fully closed without involvement
+  // UPDATED: Don't show for non-selected applicants
   const shouldShowPostMessageButton =
     (currentJob?.state !== JobState.Closed || isClosedJobParticipant) &&
     currentAddresses?.length &&
     Object.keys(currentSessionKeys || {}).length > 0 &&
+    !wasApplicantButNotSelected && // Don't show for non-selected applicants
     (isJobOpenForWorker || // Worker applying to open job
       isWorker || // Current worker on the job
       isOwner || // Job creator
@@ -260,69 +280,209 @@ export default function JobPageClient({ id }: JobPageClientProps) {
       return;
     }
 
+    // If user was an applicant but not selected, show their own conversation
+    if (wasApplicantButNotSelected && currentAddress) {
+      setSelectedWorker(currentAddress);
+      return;
+    }
+
     if (
       currentJob?.state === JobState.Taken ||
       currentJob?.state === JobState.Closed
     ) {
       setSelectedWorker(currentJob.roles.worker);
     }
+
+    // For FCFS jobs, automatically set selectedWorker for potential workers
     if (
       currentAddress &&
       currentJob?.state === JobState.Open &&
+      !currentJob?.multipleApplicants && // FCFS job
+      currentAddress !== currentJob.roles.creator &&
+      currentAddress !== currentJob.roles.arbitrator
+    ) {
+      setSelectedWorker(currentAddress); // Set worker as selected to show FCFS status
+    } else if (
+      currentAddress &&
+      currentJob?.state === JobState.Open &&
+      currentJob?.multipleApplicants && // Multiple applicant job
       currentAddress !== currentJob.roles.creator
     ) {
       setSelectedWorker(currentAddress);
     }
-  }, [currentJob, currentAddress]); // Removed highlightedEventId and selectedWorker from deps
+  }, [
+    currentJob,
+    currentAddress,
+    wasApplicantButNotSelected,
+    highlightedEventId,
+    selectedWorker,
+  ]);
 
   useEffect(() => {
-    if (currentJob?.state === JobState.Open) {
+    // If user was an applicant but not selected, show only their conversation
+    if (wasApplicantButNotSelected) {
       setEventMessages(
         currentEvents?.filter(
           (event: JobEventWithDiffs) =>
-            event.address_ === selectedWorker ||
-            (event.details as JobMessageEvent)?.recipientAddress ===
-              selectedWorker
+            (event.type_ === JobEventType.WorkerMessage &&
+              event.address_ === currentAddress) ||
+            (event.type_ === JobEventType.OwnerMessage &&
+              (event.details as JobMessageEvent)?.recipientAddress ===
+                currentAddress) ||
+            // Include important job events but not other workers' messages
+            [
+              JobEventType.Created,
+              JobEventType.Updated,
+              JobEventType.Taken,
+              JobEventType.Closed,
+              JobEventType.Completed,
+            ].includes(event.type_)
         )
       );
+      return;
+    }
+
+    // Check if user is an observer (not creator, worker, or arbitrator)
+    const isObserver =
+      currentAddress &&
+      currentJob?.roles.creator !== currentAddress &&
+      currentJob?.roles.worker !== currentAddress &&
+      currentJob?.roles.arbitrator !== currentAddress &&
+      (currentJob?.state === JobState.Taken ||
+        currentJob?.state === JobState.Closed);
+
+    // If user is an observer, only show non-message events
+    if (isObserver) {
+      setEventMessages(
+        currentEvents?.filter(
+          (event: JobEventWithDiffs) =>
+            // Only show system events, not messages
+            ![JobEventType.WorkerMessage, JobEventType.OwnerMessage].includes(
+              event.type_
+            )
+        )
+      );
+      return;
+    }
+
+    if (currentJob?.state === JobState.Open) {
+      // For FCFS jobs that are open
+      if (!currentJob.multipleApplicants) {
+        if (isOwner) {
+          // Open FCFS for owner
+          setEventMessages(
+            currentEvents?.filter(
+              (event: JobEventWithDiffs) =>
+                event.address_ === selectedWorker ||
+                (event.details as JobMessageEvent)?.recipientAddress ===
+                  selectedWorker ||
+                // Include system events like Created, Updated
+                [JobEventType.Created, JobEventType.Updated].includes(
+                  event.type_
+                )
+            ) || []
+          );
+        } else {
+          // Open FCFS for selected workers/applicants
+          setEventMessages(
+            currentEvents?.filter(
+              (event: JobEventWithDiffs) =>
+                event.address_ === selectedWorker ||
+                (event.details as JobMessageEvent)?.recipientAddress ===
+                  selectedWorker ||
+                // Include important system events
+                [
+                  JobEventType.Created,
+                  JobEventType.Updated,
+                  JobEventType.Taken,
+                  JobEventType.Closed,
+                  JobEventType.Completed,
+                ].includes(event.type_)
+            ) || []
+          );
+        }
+      } else {
+        // Open multiple applicant jobs
+        setEventMessages(
+          currentEvents?.filter(
+            (event: JobEventWithDiffs) =>
+              event.address_ === selectedWorker ||
+              (event.details as JobMessageEvent)?.recipientAddress ===
+                selectedWorker ||
+              // Include important system events
+              [
+                JobEventType.Created,
+                JobEventType.Updated,
+                JobEventType.Taken,
+                JobEventType.Closed,
+                JobEventType.Completed,
+              ].includes(event.type_)
+          ) || []
+        );
+      }
     } else if (
       currentJob?.state === JobState.Taken ||
       currentJob?.state === JobState.Closed
     ) {
-      let lastIndex = -1;
+      // For FCFS jobs that are taken/closed
+      if (!currentJob.multipleApplicants) {
+                  setEventMessages(
+            currentEvents?.filter(
+              (event: JobEventWithDiffs) =>
+                event.address_ === selectedWorker ||
+                (event.details as JobMessageEvent)?.recipientAddress ===
+                  selectedWorker ||
+                // Include system events like Created, Updated
+                [JobEventType.Created, JobEventType.Updated].includes(
+                  event.type_
+                )
+            ) || []
+          );
+      } else {
+        // For multiple applicant jobs, use existing logic
+        let lastIndex = -1;
 
-      for (let i = (currentEvents?.length || 0) - 1; i >= 0; i--) {
-        if (currentEvents![i].type_ === 2) {
-          lastIndex = i;
-          break;
+        for (let i = (currentEvents?.length || 0) - 1; i >= 0; i--) {
+          if (currentEvents![i].type_ === JobEventType.Paid) {
+            lastIndex = i;
+            break;
+          }
         }
-      }
-      // All message events before job started
-      const additionalEvents = currentEvents?.filter(
-        (event, index) =>
-          index < lastIndex &&
-          ((event.type_ === 17 &&
-            event.address_ === selectedWorker &&
-            (event.details as JobMessageEvent)?.recipientAddress ===
-              currentJob.roles.creator) ||
-            (event.type_ === 18 &&
-              event.address_ === currentJob.roles.creator &&
+
+        // All message events before job started
+        const additionalEvents = currentEvents?.filter(
+          (event, index) =>
+            index < lastIndex &&
+            ((event.type_ === JobEventType.WorkerMessage &&
+              event.address_ === selectedWorker &&
               (event.details as JobMessageEvent)?.recipientAddress ===
-                selectedWorker))
-      );
-      // All events after job started
-      const filteredEvents =
-        lastIndex !== -1
-          ? [
-              ...(additionalEvents || []),
-              ...(currentEvents?.slice(lastIndex) || []),
-            ]
-          : [...(additionalEvents || [])];
-      setEventMessages(filteredEvents);
+                currentJob.roles.creator) ||
+              (event.type_ === JobEventType.OwnerMessage &&
+                event.address_ === currentJob.roles.creator &&
+                (event.details as JobMessageEvent)?.recipientAddress ===
+                  selectedWorker))
+        );
+
+        // All events after job started
+        const filteredEvents =
+          lastIndex !== -1
+            ? [
+                ...(additionalEvents || []),
+                ...(currentEvents?.slice(lastIndex) || []),
+              ]
+            : [...(additionalEvents || [])];
+        setEventMessages(filteredEvents);
+      }
     } else {
       setEventMessages(currentEvents);
     }
-  }, [currentEvents, selectedWorker, currentJob, currentAddress]);
+  }, [
+    currentEvents,
+    selectedWorker,
+    currentJob,
+    currentAddress,
+    wasApplicantButNotSelected,
+  ]);
 
   if (!isTestMode && error) {
     return (
@@ -342,84 +502,6 @@ export default function JobPageClient({ id }: JobPageClientProps) {
     );
   }
 
-  // Render status state component if selected in test mode
-  const renderStatusComponent = () => {
-    if (!isTestMode || selectedStatus === 'none' || !currentJob) return null;
-
-    const mockDeliveryEvents =
-      currentEvents?.filter((e) => e.type_ === JobEventType.Delivered) || [];
-    const mockCompletedEvents =
-      currentEvents?.filter(
-        (e) =>
-          e.type_ === JobEventType.Delivered || e.type_ === JobEventType.Rated
-      ) || [];
-    const mockArbitrationEvents =
-      currentEvents?.filter((e) => e.type_ === JobEventType.Arbitrated) || [];
-
-    switch (selectedStatus) {
-      case 'assign':
-        return (
-          <AssignWorker
-            job={currentJob}
-            address={currentAddress}
-            selectedWorker={
-              selectedWorker || Object.keys(currentUsers || {})[1]
-            }
-            users={currentUsers || {}}
-          />
-        );
-      case 'accepted':
-        return (
-          <WorkerAccepted
-            job={currentJob}
-            address={currentAddress}
-            users={currentUsers || {}}
-          />
-        );
-      case 'verification':
-        return (
-          <ResultVerification
-            job={currentJob}
-            users={currentUsers || {}}
-            selectedWorker={selectedWorker}
-            events={mockDeliveryEvents}
-            address={currentAddress}
-            sessionKeys={currentSessionKeys || {}}
-            addresses={currentAddresses || []}
-          />
-        );
-      case 'completed':
-        return (
-          <ResultAccepted
-            job={currentJob}
-            events={mockCompletedEvents}
-            users={currentUsers || {}}
-            selectedWorker={selectedWorker}
-          />
-        );
-      case 'disputed':
-        return (
-          <DisputeStarted
-            job={currentJob}
-            address={currentAddress}
-            users={currentUsers || {}}
-          />
-        );
-      case 'arbitrated':
-        return (
-          <ArbitratedStatus
-            job={currentJob}
-            events={mockArbitrationEvents}
-            users={currentUsers || {}}
-            selectedWorker={selectedWorker}
-            address={currentAddress}
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
   return (
     <Layout borderless>
       {/* Test Control Bar - only shown in test mode */}
@@ -432,6 +514,8 @@ export default function JobPageClient({ id }: JobPageClientProps) {
           currentJob={currentJob}
           selectedStatus={selectedStatus}
           setSelectedStatus={setSelectedStatus}
+          multipleApplicants={multipleApplicants}
+          setMultipleApplicants={setMultipleApplicants}
         />
       )}
 
@@ -439,7 +523,17 @@ export default function JobPageClient({ id }: JobPageClientProps) {
       {isTestMode && selectedStatus !== 'none' && (
         <div className='mx-auto max-w-4xl p-4'>
           <div className='rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800'>
-            {renderStatusComponent()}
+            {renderStatusComponent(
+              selectedStatus,
+              currentJob,
+              currentAddress,
+              currentUsers,
+              currentUser ?? undefined,
+              selectedWorker,
+              currentEvents,
+              currentSessionKeys,
+              currentAddresses
+            )}
           </div>
         </div>
       )}

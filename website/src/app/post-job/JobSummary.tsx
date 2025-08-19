@@ -357,20 +357,20 @@ const JobSummary: React.FC<JobSummaryProps> = ({
               </div>
             </div>
 
-            {/* Additional Settings */}
+            {/* I'm Feeling Lucky and Arbitrator */}
             <div className='grid gap-6 md:grid-cols-2'>
-              {/* Auto-Accept */}
+              {/* I'm Feeling Lucky */}
               <div>
                 <div className='mb-3 flex items-center gap-2'>
                   <Sparkles className='h-5 w-5 text-yellow-500' />
                   <h3 className='font-semibold text-gray-900 dark:text-gray-100'>
-                    Worker Approval
+                    I&apos;m Feeling Lucky
                   </h3>
                 </div>
                 <div className='rounded-xl bg-gray-50 p-4 dark:bg-gray-700/50'>
                   <div className='flex items-center justify-between'>
                     <span className='text-gray-600 dark:text-gray-400'>
-                      Auto-accept:
+                      Status:
                     </span>
                     <span
                       className={`font-medium ${
@@ -379,13 +379,13 @@ const JobSummary: React.FC<JobSummaryProps> = ({
                           : 'text-gray-900 dark:text-gray-100'
                       }`}
                     >
-                      {imFeelingLucky === 'Yes' ? 'Enabled' : 'Disabled'}
+                      {imFeelingLucky === 'Yes' ? 'Enabled ✨' : 'Disabled'}
                     </span>
                   </div>
                   <p className='mt-2 text-xs text-gray-500 dark:text-gray-400'>
                     {imFeelingLucky === 'Yes'
-                      ? 'Workers can start immediately without approval'
-                      : 'You will need to approve workers before they can start'}
+                      ? 'First worker to apply will be auto-accepted and can start immediately'
+                      : 'You will manually review and approve each worker application'}
                   </p>
                 </div>
               </div>
@@ -439,7 +439,7 @@ const JobSummary: React.FC<JobSummaryProps> = ({
               </div>
             </div>
 
-            {/* Submit Button - IMPORTANT: Pass the correct tags array */}
+            {/* Submit Button - IMPORTANT: Pass the correct tags array and inverted multipleApplicants */}
             <div className='border-t border-gray-200 pt-6 dark:border-gray-700'>
               <div className='flex items-center justify-between'>
                 <div className='text-sm text-gray-600 dark:text-gray-400'>
@@ -453,7 +453,7 @@ const JobSummary: React.FC<JobSummaryProps> = ({
                 <SubmitJobButton
                   title={title}
                   description={description}
-                  multipleApplicants={imFeelingLucky === 'Yes'}
+                  multipleApplicants={imFeelingLucky === 'No'} // Inverted - "I'm feeling lucky" = Yes means single applicant (NOT multiple)
                   tags={allTagsForContract} // Pass the combined array with MECE tag included
                   token={selectedToken.id as Address}
                   amount={getAmountInWei()}
