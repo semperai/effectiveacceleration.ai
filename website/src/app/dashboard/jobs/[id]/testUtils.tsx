@@ -24,7 +24,7 @@ import {
   NotSelected,
 } from './JobChat/StatusStates';
 
-// ============ MOCK DATA ============
+// MOCK DATA
 export const mockAddress = '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0';
 export const mockWorkerAddress = '0x5aeda56215b167893e80b4fe645ba6d5bab767de';
 export const mockWorkerAddress2 = '0x6aeda56215b167893e80b4fe645ba6d5bab767df';
@@ -32,7 +32,7 @@ export const mockArbitratorAddress =
   '0x8626f6940e2eb28930efb4cef49b2d1f2c9c1199';
 export const mockGuestAddress = '0x9aeda56215b167893e80b4fe645ba6d5bab767e0';
 
-// ============ SCENARIOS ============
+// SCENARIOS
 export const scenarios = [
   { id: 'all', label: 'All', state: JobState.Closed, fullLabel: 'All Events' },
   { id: 'open', label: 'Open', state: JobState.Open, fullLabel: 'Open' },
@@ -64,13 +64,13 @@ export const scenarios = [
   },
 ];
 
-// ============ JOB MODES ============
+// JOB MODES
 export const jobModes = [
   { id: 'multiple', label: 'Multiple Applicants', value: true },
   { id: 'fcfs', label: 'FCFS (First Come)', value: false },
 ];
 
-// ============ STATUS STATES ============
+// STATUS STATES
 export const statusStates = [
   { id: 'none', label: 'None' },
   { id: 'fcfs', label: 'FCFS Available' },
@@ -84,7 +84,7 @@ export const statusStates = [
   { id: 'notselected', label: 'Not Selected' },
 ];
 
-// ============ USER CREATION ============
+// USER CREATION
 export const createMockUser = (
   address: string,
   name: string,
@@ -129,7 +129,7 @@ export const mockUsers: Record<string, User> = {
   ),
 };
 
-// ============ JOB CREATION ============
+// JOB CREATION
 export const createMockJob = (
   state: JobState,
   disputed: boolean = false,
@@ -187,7 +187,7 @@ export const createMockJob = (
   result: '',
 });
 
-// ============ EVENT CREATION ============
+// EVENT CREATION
 const getEventData = (type: JobEventType): string => {
   switch (type) {
     case JobEventType.Taken:
@@ -259,7 +259,7 @@ export const createMockEvent = (
   };
 };
 
-// ============ SCENARIO GENERATION ============
+// SCENARIO GENERATION
 export const createScenarioEvents = (
   scenario: string,
   multipleApplicants: boolean = true
@@ -648,7 +648,7 @@ export const createScenarioEvents = (
   }
 };
 
-// ============ TEST DATA GENERATOR ============
+// TEST DATA GENERATOR
 export const generateTestData = (
   selectedScenario: any,
   testUserRole: string,
@@ -702,7 +702,7 @@ export const generateTestData = (
   };
 };
 
-// ============ TEST CONTROL BAR COMPONENT ============
+// TEST CONTROL BAR COMPONENT
 interface TestControlBarProps {
   selectedScenario: any;
   setSelectedScenario: (scenario: any) => void;
