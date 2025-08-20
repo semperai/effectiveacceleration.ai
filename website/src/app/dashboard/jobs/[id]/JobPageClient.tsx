@@ -264,7 +264,7 @@ export default function JobPageClient({ id }: JobPageClientProps) {
   // OR for participants in any state except fully closed without involvement
   // UPDATED: Don't show for non-selected applicants
   const shouldShowPostMessageButton =
-    (currentJob?.state !== JobState.Closed || isClosedJobParticipant) &&
+    (currentJob?.state !== JobState.Closed) &&
     currentAddresses?.length &&
     Object.keys(currentSessionKeys || {}).length > 0 &&
     !wasApplicantButNotSelected && // Don't show for non-selected applicants
@@ -498,7 +498,7 @@ export default function JobPageClient({ id }: JobPageClientProps) {
                     address={currentAddress}
                     currentUser={currentUser ?? undefined}
                   />
-                  {currentJob && shouldShowPostMessageButton && (
+                  {currentJob && shouldShowPostMessageButton && selectedWorker !== '' && (
                     <div className='row-span-1 flex flex-1 content-center items-center border border-gray-100 md:block'>
                       {isTestMode ? (
                         // Mock PostMessageButton for test mode
