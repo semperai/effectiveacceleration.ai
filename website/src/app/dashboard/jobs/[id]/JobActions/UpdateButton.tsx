@@ -32,6 +32,7 @@ import {
   PiTruck,
   PiBriefcase,
   PiUsersThree,
+  PiLockKey,
 } from 'react-icons/pi';
 import * as Sentry from '@sentry/nextjs';
 import { formatUnits, parseUnits, ZeroHash } from 'ethers';
@@ -115,6 +116,9 @@ export function UpdateButton({
   const [whitelistWorkers, setWhitelistWorkers] = useState<string>(
     job.whitelistWorkers ? whitelistWorkersValues[0] : whitelistWorkersValues[1]
   );
+
+  // Read-only "I'm feeling lucky" status - inverted from multipleApplicants
+  const imFeelingLucky = !job.multipleApplicants;
 
   const [content, setContent] = useState<string>(job.content!);
   const [selectedArbitratorAddress, setSelectedArbitratorAddress] =
@@ -577,6 +581,43 @@ export function UpdateButton({
                                 </MinimalField>
                               </div>
 
+                              {/* Read-only I'm Feeling Lucky Status */}
+                              <div className='rounded-xl border border-yellow-500/20 bg-gradient-to-r from-yellow-500/5 to-orange-500/5 p-4'>
+                                <div className='flex items-center justify-between'>
+                                  <div className='flex items-center gap-2'>
+                                    <PiSparkle className='h-4 w-4 flex-shrink-0 text-yellow-500' />
+                                    <div>
+                                      <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                                        I&apos;m Feeling Lucky
+                                      </span>
+                                      <p className='mt-0.5 text-xs text-gray-500 dark:text-gray-400'>
+                                        {imFeelingLucky
+                                          ? 'First worker to apply will be auto-accepted'
+                                          : 'You manually review and approve workers'}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className='flex items-center gap-2'>
+                                    <span
+                                      className={`rounded-full px-3 py-1 text-xs font-medium ${
+                                        imFeelingLucky
+                                          ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                          : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                                      }`}
+                                    >
+                                      {imFeelingLucky
+                                        ? 'Enabled ✨'
+                                        : 'Disabled'}
+                                    </span>
+                                    <PiLockKey
+                                      className='h-4 w-4 text-gray-400'
+                                      title='Cannot be changed after job creation'
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Whitelist Workers - Editable */}
                               <div className='rounded-xl border border-blue-500/10 bg-gradient-to-r from-blue-500/5 to-purple-500/5 p-4'>
                                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                                   <div className='min-w-0 flex-1'>
