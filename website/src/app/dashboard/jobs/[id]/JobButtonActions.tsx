@@ -21,6 +21,7 @@ import {
   type JobEventWithDiffs,
   JobState,
   JobEventType,
+  type User,
 } from '@effectiveacceleration/contracts';
 import { zeroAddress, zeroHash } from 'viem';
 import {
@@ -90,6 +91,7 @@ const JobButtonActions = ({
   whitelistedWorkers,
   timePassed,
   selectedWorker,
+  currentUser,
 }: {
   job: Job | undefined;
   address: string | undefined;
@@ -99,6 +101,7 @@ const JobButtonActions = ({
   whitelistedWorkers: string[];
   timePassed?: boolean;
   selectedWorker?: string;
+  currentUser?: User | null;
 }) => {
   // Early return if no job
   if (!job) return null;
@@ -152,6 +155,7 @@ const JobButtonActions = ({
 
   // For FCFS jobs - workers can immediately take them
   const showTakeJobButton =
+    currentUser && 
     job.state === JobState.Open &&
     job.multipleApplicants === false && // FCFS job
     address !== job.roles.creator && // Not the creator
@@ -161,6 +165,7 @@ const JobButtonActions = ({
   // For multiple applicant jobs - workers can apply (signal interest)
   // The AcceptButton actually calls takeJob to signal interest, not to immediately get the job
   const showApplyButton =
+    currentUser && 
     job.state === JobState.Open &&
     job.multipleApplicants === true &&
     address !== job.roles.creator &&

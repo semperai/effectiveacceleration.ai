@@ -9,15 +9,18 @@ import {
 } from '@effectiveacceleration/contracts';
 import { zeroHash } from 'viem';
 import {
+  ApplicationSubmitted,
   ArbitratedStatus,
   AssignWorker,
   DisputeStarted,
   FCFSAvailable,
+  MultipleApplicantAvailable,
   ResultAccepted,
   ResultVerification,
   WorkerAccepted,
   NotSelected,
   JobObserver,
+  SignInToApply,
 } from './StatusStates';
 
 interface JobStatusProps {
@@ -38,6 +41,9 @@ const JobChatStatus: React.FC<JobStatusProps> = ({
   currentUser,
 }) => {
   const lastEventType = events[events.length - 1]?.type_;
+  console.log(address, currentUser, 'ADDRESS')
+  // Check if user is not signed in and job is open
+  const isUnsignedUserViewingOpenJob = !currentUser && job.state === JobState.Open;
 
   // Check if user was an applicant but not selected
   const wasApplicantButNotSelected = (() => {
@@ -93,6 +99,18 @@ const JobChatStatus: React.FC<JobStatusProps> = ({
     return job.state === JobState.Taken || job.state === JobState.Closed;
   })();
 
+  // Show SignInToApply status for unsigned users viewing open jobs
+  if (isUnsignedUserViewingOpenJob) {
+    return (
+      <SignInToApply
+        job={job}
+        address={address}
+        users={users}
+        currentUser={currentUser}
+      />
+    );
+  }
+
   // Show Observer status for non-participants viewing taken/closed jobs
   if (isObserver) {
     return (
@@ -125,11 +143,56 @@ const JobChatStatus: React.FC<JobStatusProps> = ({
     address !== job.roles.creator && // Not the creator
     address !== job.roles.arbitrator; // Not the arbitrator
 
+    // Show Multiple Applicant Accept Status
+  const showAcceptStatus =
+    job.state === JobState.Open &&
+    job.multipleApplicants && 
+    address !== job.roles.creator && 
+    address !== job.roles.arbitrator &&
+    // Check if the user hasn't already applied (signed)
+    !events.some(
+      (event) =>
+        event.type_ === JobEventType.Signed && event.address_ === address
+    );
+
+  // Show Application Submitted Status (user has already applied)
+  const showApplicationSubmitted =
+    job.state === JobState.Open &&
+    job.multipleApplicants && 
+    address !== job.roles.creator && 
+    address !== job.roles.arbitrator &&
+    // Check if the user has already applied (signed)
+    events.some(
+      (event) =>
+        event.type_ === JobEventType.Signed && event.address_ === address
+    ); 
+
   return (
     <>
       {/* FCFS Job - Show special status for workers */}
       {showFCFSStatus && (
         <FCFSAvailable
+          job={job}
+          address={address}
+          users={users}
+          currentUser={currentUser}
+        />
+      )}
+
+      {/* Multiple Applicant Job - Show special status for workers */}
+      {showAcceptStatus && (
+        <MultipleApplicantAvailable
+          job={job}
+          address={address}
+          users={users}
+          currentUser={currentUser}
+          events={events}
+        />
+      )}
+
+      {/* Application Submitted - Show thank you message for applicants */}
+      {showApplicationSubmitted && (
+        <ApplicationSubmitted
           job={job}
           address={address}
           users={users}

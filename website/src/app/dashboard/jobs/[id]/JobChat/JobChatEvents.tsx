@@ -338,9 +338,9 @@ const JobChatEvents: React.FC<JobChatEventsProps> = ({
           <>
             {events.length > 0 ? (
               <div className='mt-4 flow-root w-full'>
-                <ul role='list' className='-mb-8'>
+                <ul role='list' className='-mb-8 pb-4'>
                   {events?.slice().map((event, index) => (
-                    <li key={event.id || index}>
+                    <li className='pb-4' key={event.id || index}>
                       <div
                         className={clsx(
                           'relative flex scroll-mt-24 items-start space-x-3 rounded-lg transition-all duration-300',
@@ -362,7 +362,7 @@ const JobChatEvents: React.FC<JobChatEventsProps> = ({
                         ) : null}
                         <div
                           className={clsx(
-                            'relative flex scroll-mt-24 items-start space-x-3 rounded-lg transition-all duration-300',
+                            '!ml-0 relative flex scroll-mt-24 items-start space-x-3 rounded-lg transition-all duration-300',
                             String(event.id) === String(highlightedEventId)
                               ? 'border-r-4 border-dashed border-r-yellow-500 bg-yellow-50/50 pr-2 dark:bg-yellow-900/10'
                               : ''

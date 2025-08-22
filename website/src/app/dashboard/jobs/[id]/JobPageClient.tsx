@@ -564,6 +564,7 @@ export default function JobPageClient({ id }: JobPageClientProps) {
                 adjustedProgressValue={adjustedProgressValue}
                 whitelistedWorkers={whitelistedWorkers}
                 tokenIcon={tokenIcon}
+                currentUser={currentUser}
               />
             </div>
           </div>
