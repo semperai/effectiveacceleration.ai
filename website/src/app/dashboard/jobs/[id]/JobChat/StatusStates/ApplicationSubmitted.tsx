@@ -212,7 +212,7 @@ const ApplicationSubmitted: React.FC<ApplicationSubmittedProps> = ({
                     Notification Sent
                   </p>
                   <p className='text-xs text-green-700 dark:text-green-400'>
-                    You'll be contacted if selected
+                    You&apos;ll be contacted if selected
                   </p>
                 </div>
               </div>
