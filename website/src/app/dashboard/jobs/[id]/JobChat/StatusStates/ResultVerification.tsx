@@ -95,9 +95,9 @@ const ResultVerification: React.FC<ResultVerificationProps> = ({
     Object.keys(sessionKeys).length > 0;
 
   return (
-    <div className='w-full'>
+    <div className='w-full py-4'>
       {/* Main Container with gradient background */}
-      <div className='relative overflow-hidden rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 via-purple-50 to-blue-50 dark:border-blue-800 dark:from-blue-950/20 dark:via-purple-950/20 dark:to-blue-950/20'>
+      <div className='relative  overflow-hidden rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 via-purple-50 to-blue-50 dark:border-blue-800 dark:from-blue-950/20 dark:via-purple-950/20 dark:to-blue-950/20'>
         {/* Decorative elements */}
         <div className='absolute right-0 top-0 h-64 w-64 rounded-full bg-gradient-to-br from-blue-500/10 to-purple-500/10 blur-3xl' />
         <div className='absolute bottom-0 left-0 h-64 w-64 rounded-full bg-gradient-to-br from-purple-500/10 to-pink-500/10 blur-3xl' />

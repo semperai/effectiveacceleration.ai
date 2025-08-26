@@ -145,6 +145,9 @@ const PostJob = () => {
     const arbitrator = searchParams.get('arbitrator') || zeroAddress;
     const tags = searchParams.getAll('tags');
     const amount = searchParams.get('amount') || '';
+    // Check for multipleApplicants param
+    const multipleApplicants =
+      searchParams.get('multipleApplicants') === 'false' ? false : true;
 
     let initialToken = tokens.find((token) => token.symbol === 'USDC');
     if (tokenAddress) {
@@ -190,6 +193,7 @@ const PostJob = () => {
       tags: remainingTags,
       category,
       amount,
+      multipleApplicants,
     };
   }, [searchParams]);
 
@@ -206,7 +210,9 @@ const PostJob = () => {
   const [description, setDescription] = useState<string>(initialValues.content);
   const [amount, setAmount] = useState(initialValues.amount);
   const [deadline, setDeadline] = useState<number>(initialValues.deadline || 1);
-  const [imFeelingLucky, setImFeelingLucky] = useState(noYesOptions[0].name);
+  const [imFeelingLucky, setImFeelingLucky] = useState(
+    initialValues.multipleApplicants ? 'No' : 'Yes' // Inverted logic - "I'm feeling lucky" means NOT multiple applicants
+  );
   const [selectedUnitTime, setselectedUnitTime] = useState<ComboBoxOption>(
     convertUnitForDisplay(initialValues.unit || unitsDeliveryTime[2])
   );
@@ -558,7 +564,8 @@ const PostJob = () => {
                           <span>I&apos;m feeling lucky</span>
                         </Label>
                         <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
-                          Allow workers to start automatically without approval
+                          Auto-accept the first worker who applies (no approval
+                          needed)
                         </p>
                       </div>
                       <RadioGroup
@@ -576,9 +583,7 @@ const PostJob = () => {
                               className='mr-2'
                               color='default'
                               value={option.name}
-                            >
-                              <span>{option.name}</span>
-                            </Radio>
+                            />
                             <Label className='text-gray-700 dark:text-gray-300'>
                               {option.name}
                             </Label>
