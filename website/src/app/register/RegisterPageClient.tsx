@@ -28,7 +28,7 @@ export default function RegisterPageClient() {
     // Only redirect on page load if user has BOTH user and arbitrator profiles
     if (address && user && arbitrator) {
       window.requestAnimationFrame(() => {
-        router.push('/dashboard');
+        router.push('/');
       });
     }
   }, [address, user, arbitrator, router]);
