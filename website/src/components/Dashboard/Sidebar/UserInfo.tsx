@@ -36,7 +36,7 @@ export const UserInfo = () => {
 
   return (
     <div className='mx-3 mb-4 mt-auto p-4'>
-      <Link href={`/dashboard/users/${address}`}>
+      <Link href={`/users/${address}`}>
         <div className='group relative overflow-hidden rounded-xl border border-white/10 bg-gradient-to-r from-blue-500/10 to-purple-500/10 p-4 backdrop-blur-sm transition-all duration-300 hover:border-white/20'>
           {/* Subtle shimmer effect on hover */}
           <div className='absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100'>

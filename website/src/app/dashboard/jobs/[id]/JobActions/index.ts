@@ -12,6 +12,7 @@ export { RefuseArbitrationButton } from './RefuseArbitrationButton';
 export { RemoveFromWhitelistButton } from './RemoveFromWhitelistButton';
 export { ReopenButton } from './ReopenButton';
 export { ReviewButton } from './ReviewButton';
+export { TakeJobButton } from './TakeJobButton';
 export { UpdateButton } from './UpdateButton';
 export { WhitelistButton } from './WhitelistButton';
 export { WithdrawCollateralButton } from './WithdrawCollateralButton';

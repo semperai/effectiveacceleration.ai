@@ -49,7 +49,7 @@ const DefaultEvent: React.FC<DefaultEventProps> = ({
               </span>
             ) : user ? (
               <Link
-                href={`/dashboard/users/${userAddress}`}
+                href={`/users/${userAddress}`}
                 className='font-semibold text-gray-900 transition-colors hover:text-gray-600 dark:text-gray-100 dark:hover:text-gray-400'
               >
                 {userName}

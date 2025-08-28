@@ -23,11 +23,50 @@ const nextConfig = {
   },
   async redirects() {
     return [
-      // Basic redirect
       {
-        source: '/',
-        destination: '/dashboard',
-        permanent: false,
+        source: '/dashboard',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/dashboard/welcome',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/dashboard/social-program',
+        destination: '/social-program',
+        permanent: true,
+      },
+      {
+        source: '/dashboard/post-job',
+        destination: '/post-job',
+        permanent: true,
+      },
+      {
+        source: '/dashboard/users/:path*',
+        destination: '/users/:path*',
+        permanent: true,
+      },
+      {
+        source: '/dashboard/arbitrators/:path*',
+        destination: '/arbitrators/:path*',
+        permanent: true,
+      },
+      {
+        source: '/dashboard/open-job-list',
+        destination: '/open-job-list',
+        permanent: true,
+      },
+      {
+        source: '/dashboard/owner-job-list',
+        destination: '/owner-job-list',
+        permanent: true,
+      },
+      {
+        source: '/dashboard/worker-job-list',
+        destination: '/worker-job-list',
+        permanent: true,
       },
     ];
   },

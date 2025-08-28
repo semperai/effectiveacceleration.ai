@@ -42,6 +42,7 @@ type JobSidebarProps = {
   adjustedProgressValue: number;
   whitelistedWorkers: string[];
   tokenIcon: (token: string) => string;
+  currentUser?: User | null;
 };
 
 export default function JobSidebar({
@@ -56,6 +57,7 @@ export default function JobSidebar({
   adjustedProgressValue,
   whitelistedWorkers,
   tokenIcon,
+  currentUser,
 }: JobSidebarProps) {
   // Enhanced section component with gradient backgrounds
   const InfoSection = ({
@@ -220,6 +222,7 @@ export default function JobSidebar({
               whitelistedWorkers={whitelistedWorkers}
               address={address}
               timePassed={timePassed}
+              currentUser={currentUser}
             />
 
             <TooltipButton
@@ -395,7 +398,7 @@ export default function JobSidebar({
               label='Arbitrator'
               value={
                 <Link
-                  href={`/dashboard/arbitrators/${job?.roles.arbitrator}`}
+                  href={`/arbitrators/${job?.roles.arbitrator}`}
                   className='font-medium text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300'
                 >
                   {shortenText({

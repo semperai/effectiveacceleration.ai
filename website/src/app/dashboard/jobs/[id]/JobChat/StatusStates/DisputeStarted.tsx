@@ -98,7 +98,7 @@ const DisputeStarted: React.FC<DisputeStartedProps> = ({
           <div className='mb-6 rounded-xl border border-gray-200 bg-white/70 p-5 backdrop-blur-sm dark:border-gray-700 dark:bg-gray-900/50'>
             <div className='flex items-start gap-4'>
               <Link
-                href={`/dashboard/arbitrators/${job.roles.arbitrator}`}
+                href={`/arbitrators/${job.roles.arbitrator}`}
                 className='group'
               >
                 <div className='rounded-lg bg-gradient-to-br from-blue-100 to-purple-100 p-3 transition-transform group-hover:scale-110 dark:from-blue-900/30 dark:to-purple-900/30'>
@@ -111,7 +111,7 @@ const DisputeStarted: React.FC<DisputeStartedProps> = ({
                     Arbitrator Has Joined
                   </h4>
                   <Link
-                    href={`/dashboard/arbitrators/${job.roles.arbitrator}`}
+                    href={`/arbitrators/${job.roles.arbitrator}`}
                     className='group inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300'
                   >
                     <span>{arbitratorName}</span>
@@ -126,7 +126,7 @@ const DisputeStarted: React.FC<DisputeStartedProps> = ({
                 {/* Arbitrator Avatar and Name with ProfileImage */}
                 {arbitratorData && (
                   <Link
-                    href={`/dashboard/arbitrators/${job.roles.arbitrator}`}
+                    href={`/arbitrators/${job.roles.arbitrator}`}
                     className='inline-flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800'
                   >
                     {arbitratorData?.avatar ? (

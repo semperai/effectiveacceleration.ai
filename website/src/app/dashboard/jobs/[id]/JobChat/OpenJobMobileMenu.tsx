@@ -123,7 +123,7 @@ const OpenJobMobileMenu: React.FC<JobSidebarProps> = ({
                 if (!userToShow) return null;
 
                 return (
-                  <Link href={`/dashboard/users/${userAddress}`}>
+                  <Link href={`/users/${userAddress}`}>
                     <div className='group relative cursor-pointer'>
                       {/* Enhanced gradient border effect */}
                       <div className='absolute -inset-[2px] rounded-full bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 opacity-70 transition-all duration-500 group-hover:bg-gradient-to-r group-hover:from-pink-400 group-hover:via-purple-400 group-hover:to-blue-400 group-hover:opacity-90'></div>

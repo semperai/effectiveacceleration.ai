@@ -109,7 +109,7 @@ const WorkerMessageEvent: React.FC<WorkerMessageEventProps> = ({
                   </span>
                 ) : (
                   <Link
-                    href={`/dashboard/users/${senderAddress}`}
+                    href={`/users/${senderAddress}`}
                     className='font-semibold text-gray-900 transition-colors hover:text-blue-600 dark:text-gray-100 dark:hover:text-blue-400'
                   >
                     {senderName}
@@ -126,7 +126,7 @@ const WorkerMessageEvent: React.FC<WorkerMessageEventProps> = ({
                   <>
                     <span className='text-xs text-gray-400'>to</span>
                     <Link
-                      href={`/dashboard/users/${recipientAddress}`}
+                      href={`/users/${recipientAddress}`}
                       className='text-sm font-medium text-gray-600 transition-colors hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400'
                     >
                       {recipientName}

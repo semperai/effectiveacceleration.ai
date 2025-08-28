@@ -266,7 +266,7 @@ export const ArbitratorSelector: React.FC<ArbitratorSelectorProps> = ({
               </div>
               {showExternalLink && (
                 <a
-                  href={`/dashboard/arbitrators/${arbitrator.address_}`}
+                  href={`/arbitrators/${arbitrator.address_}`}
                   target='_blank'
                   rel='noopener noreferrer'
                   style={{
@@ -335,7 +335,7 @@ export const ArbitratorSelector: React.FC<ArbitratorSelectorProps> = ({
           selectedArbitrator &&
           selectedAddress !== zeroAddress && (
             <a
-              href={`/dashboard/arbitrators/${selectedAddress}`}
+              href={`/arbitrators/${selectedAddress}`}
               target='_blank'
               rel='noopener noreferrer'
               className='ml-2 rounded p-1.5 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700'

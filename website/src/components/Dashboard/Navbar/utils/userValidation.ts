@@ -1,4 +1,3 @@
-// ===== src/components/Dashboard/Navbar/utils/userValidation.ts =====
 interface ValidationInput {
   name: string;
   bio: string;

@@ -49,7 +49,7 @@ const TakenEvent: React.FC<TakenEventProps> = ({
               </span>
             ) : (
               <Link
-                href={`/dashboard/users/${workerAddress}`}
+                href={`/users/${workerAddress}`}
                 className='font-semibold text-gray-900 transition-colors hover:text-green-600 dark:text-gray-100 dark:hover:text-green-400'
               >
                 {workerName}
@@ -102,7 +102,7 @@ const TakenEvent: React.FC<TakenEventProps> = ({
                   </div>
                 )}
                 <Link
-                  href={`/dashboard/users/${workerAddress}`}
+                  href={`/users/${workerAddress}`}
                   className='text-xs font-medium text-gray-700 hover:text-green-600 dark:text-gray-300 dark:hover:text-green-400'
                 >
                   {workerName}
@@ -115,7 +115,7 @@ const TakenEvent: React.FC<TakenEventProps> = ({
                     For:
                   </span>
                   <Link
-                    href={`/dashboard/users/${creatorAddress}`}
+                    href={`/users/${creatorAddress}`}
                     className='text-xs font-medium text-gray-700 hover:text-green-600 dark:text-gray-300 dark:hover:text-green-400'
                   >
                     {creatorName}
