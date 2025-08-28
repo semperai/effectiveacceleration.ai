@@ -118,5 +118,77 @@ export const WEEKLY_DATA: WeeklyDistributionData[] = [
       },
     ],
   },
+  {
+    weekNumber: 2,
+    startDate: '2025-08-14',
+    endDate: '2025-08-21',
+    totalDistributed: 13403263,
+    highlights: [''],
+    contributors: [
+      {
+        name: 'marciali',
+        address: '0xEfd01D5DBBE5885362F84f288024F6EA1362Dc3a',
+        amount: 4959207.458711539,
+        percentage: 37,
+        txHash:
+          '0x1b06bc2433fdfcf5b7c3df35ab3b89c21a3f4dd99c589ed1b3c13a902e',
+        category: 'Social Growth',
+      },
+      {
+        name: 'gustinos',
+        address: '0x787B385393E46B385196025e83551884410adf2d',
+        amount: 670163.170096154,
+        percentage: 5,
+        txHash:
+          '0x3071115662e28018e136414f378e97c9ed5c10f5fb1218bb0772838766087f50',
+        category: 'Social Growth',
+      },
+      {
+        name: 'hisokaceo',
+        address: '0x6C5C29A1E4e4c77F12d143587E6c14fa79988dEB',
+        amount: 938228.4381346157,
+        percentage: 7,
+        txHash:
+          '0x2d50a9338a5bcd91fa396bfd3f64226d2caddfc2e46577c20dcaa49f704675f3',
+        category: 'Social Growth',
+      },
+      {
+        name: 'pequ',
+        address: '0x865955e44efA08c54b5dc43b4D4F024280AaDE9A',
+        amount: 1206293.706173077,
+        percentage: 9,
+        txHash:
+          '0xe09091cabd0b0af198c2580076b36c1dd2e3850019147b80313bf422d9edaa63',
+        category: 'Social Growth',
+      },
+      {
+        name: 'cody',
+        address: '0xD7d5bCaC95d26aB06333238E57219B15270DFc8d',
+        amount: 1340326.340192308,
+        percentage: 10,
+        txHash:
+          '0x8bc592cdedc7fec6f7a20ffb2232690406c87c4bd471f30746dbdb3ce850ba6a',
+        category: 'Social Growth',
+      },
+      {
+        name: 'shippy724',
+        address: '0xecEbF5dF123a332B4E75c8732105defc3bB3B77e',
+        amount: 1608391.6082307694,
+        percentage: 12,
+        txHash:
+          '0x4c309f59bdc4de3a4414e16ceed6a395b357c052890a1e6a75b1c63995dda9fa',
+        category: 'Social Growth',
+      },
+      {
+        name: 'CR_MikenBoya',
+        address: '0x7ae2D5BE3B8c9F53A58200cfdF3dc526afE39f69',
+        amount: 938228.4381346157,
+        percentage: 7,
+        txHash:
+          '0x127045fb6ddbaa4fc56919fdc4e11f6a25876d0f0b29cfed60821c9535b6bbd5',
+        category: 'Social Growth',
+      },
+    ],
+  },
   // Add more weeks here as needed
 ];
