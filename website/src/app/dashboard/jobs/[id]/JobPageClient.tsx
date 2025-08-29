@@ -326,6 +326,10 @@ export default function JobPageClient({ id }: JobPageClientProps) {
       JobEventType.Closed,
       JobEventType.Completed,
       JobEventType.Reopened,
+      JobEventType.Refunded,
+      JobEventType.Arbitrated,
+      JobEventType.Disputed,
+      JobEventType.ArbitrationRefused,
     ];
     
     // If user was an applicant but not selected, show only their conversation
