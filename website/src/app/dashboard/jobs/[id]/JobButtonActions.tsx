@@ -188,7 +188,7 @@ const JobButtonActions = ({
   // ARBITRATOR ACTIONS
 
   const showArbitrateButton =
-    job.state === JobState.Taken && address === job.roles.arbitrator;
+    job.disputed && job.state === JobState.Taken && address === job.roles.arbitrator;
 
   const showRefuseArbitrationButton =
     job.state !== JobState.Closed && address === job.roles.arbitrator;

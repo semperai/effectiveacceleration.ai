@@ -1,5 +1,6 @@
 export { default as ApplicationSubmitted } from './ApplicationSubmitted';
 export { default as ArbitratedStatus } from './ArbitratedStatus';
+export { default as ArbitratorRefuse } from './ArbitratorRefuse';
 export { default as AssignWorker } from './AssignWorker';
 export { default as DisputeStarted } from './DisputeStarted';
 export { default as FCFSAvailable } from './FCFSAvailable';

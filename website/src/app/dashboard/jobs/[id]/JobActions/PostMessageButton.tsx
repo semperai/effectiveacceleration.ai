@@ -38,7 +38,7 @@ export function PostMessageButton({
   const initialAddressRef = useRef<string | undefined>();
   const [isPostingMessage, setIsPostingMessage] = useState(false);
   const { showError, showSuccess, showLoading, toast } = useToast();
-
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const loadingToastIdRef = useRef<string | number | null>(null);
 
   // Cleanup function for dismissing loading toasts
@@ -66,6 +66,14 @@ export function PostMessageButton({
       setMessage('');
       setIsPostingMessage(false);
       initialAddressRef.current = address;
+      // Reset textarea height after sending
+      if (textareaRef.current) {
+        const lineHeight = parseFloat(
+          getComputedStyle(textareaRef.current).lineHeight || '20'
+        );
+        const minHeight = lineHeight * 1.5;
+        textareaRef.current.style.height = `${minHeight}px`;
+      }
     }
     if (error) {
       setIsPostingMessage(false);
@@ -150,6 +158,7 @@ export function PostMessageButton({
       <div className='flex items-end gap-2 rounded-lg border border-gray-200 bg-white p-2 shadow-sm backdrop-blur-sm transition-all duration-200 focus-within:shadow-md dark:border-gray-700 dark:bg-gray-800/50'>
         {/* Message Input with improved styling - no outline/border */}
         <textarea
+          ref={textareaRef}
           rows={1}
           value={message}
           disabled={isProcessing}
