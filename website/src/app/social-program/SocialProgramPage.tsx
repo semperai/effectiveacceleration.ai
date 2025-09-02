@@ -43,7 +43,7 @@ import socialHero5 from '@/images/social-hero-5.webp';
 
 export default function SocialProgramPage() {
   const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(
-    new Set([WEEKLY_DATA[0]?.weekNumber])
+    new Set([Math.max(...WEEKLY_DATA.map(week => week.weekNumber))])
   );
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
