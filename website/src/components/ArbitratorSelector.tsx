@@ -296,7 +296,7 @@ export const ArbitratorSelector: React.FC<ArbitratorSelectorProps> = ({
         type='button'
         onClick={() => !disabled && setOpen(!open)}
         disabled={disabled}
-        className={`flex w-full items-center justify-between rounded-lg border bg-white px-3 py-2 transition-all duration-200 ${disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} ${open ? 'border-gray-300' : 'border-gray-200 hover:border-gray-300'} ${className} `}
+        className={`flex w-full items-center justify-between rounded-lg border bg-white px-3 py-6 transition-all duration-200 ${disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} ${open ? 'border-gray-300' : 'border-gray-200 hover:border-gray-300'} ${className} `}
         style={{ height: '40px' }}
       >
         <div className='flex flex-1 items-center gap-3'>
