@@ -105,8 +105,32 @@ export function DisputeButton({
   const characterCount = message.length;
   const minCharacters = 50;
 
+    // DISPUTE ACTIONS
+  let timeLeft = 0;
+  let timeLeftAfterDeadline = 0;
+  if (job && job.jobTimes && job.jobTimes.assignedAt) {
+    // Calculate deadline: assignedAt + maxTime
+    const deadline = job.jobTimes.assignedAt + job.maxTime;
+    // Calculate time remaining: deadline - current time
+    const currentTime = Math.floor(Date.now() / 1000);
+    timeLeft = deadline - currentTime;
+    timeLeftAfterDeadline = deadline + 86400 - currentTime; // 24 hours after deadline
+  }
+
   return (
     <>
+      {/* Overdue warning if job is overdue but still within 24h dispute window */}
+      {job.roles.creator === address && timeLeft < 0 && timeLeftAfterDeadline > 0 && (
+        <div className="mb-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200 flex items-center gap-3">
+          <PiWarning className="h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
+          <div>
+            <div className="font-semibold">Job is overdue</div>
+            <div className="text-xs">
+              After the job is overdue, you have <span className="font-bold">24 hours</span> left to raise a dispute if needed.
+            </div>
+          </div>
+        </div>
+      )}
       {/* Fixed trigger button - removed horizontal padding, reduced vertical padding */}
       <button
         disabled={isDisputing || isConfirming}
