@@ -346,7 +346,7 @@ export default function JobSidebar({
         {/* Delivery Status Section */}
         {job?.state === JobState.Taken &&
           job.resultHash === zeroHash &&
-          address === job.roles.creator &&
+          (address === job.roles.creator || address === job.roles.worker) &&
           events.length > 0 && (
             <InfoSection
               title='Delivery Status'
@@ -371,7 +371,7 @@ export default function JobSidebar({
                     </span>
                   }
                 />
-                <ProgressBar value={5} label='Progress' />
+                <ProgressBar value={timeLeft > 0 ? 5 : 10-0} label='Progress' />
               </div>
             </InfoSection>
           )}
