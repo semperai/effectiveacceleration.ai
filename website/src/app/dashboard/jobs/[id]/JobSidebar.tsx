@@ -346,6 +346,7 @@ export default function JobSidebar({
         {/* Delivery Status Section */}
         {job?.state === JobState.Taken &&
           job.resultHash === zeroHash &&
+          job.jobTimes?.assignedAt &&
           (isAddressEqual(address, job.roles.creator) || isAddressEqual(address, job.roles.worker)) &&
           events.length > 0 && (
             <InfoSection
