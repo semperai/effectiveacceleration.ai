@@ -1,4 +1,3 @@
-// src/components/Dashboard/JobsList/OpenJobsFeed.tsx
 'use client';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { JobsList } from './JobsList';

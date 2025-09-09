@@ -105,6 +105,7 @@ export default function JobPageClient({ id }: JobPageClientProps) {
   } = useJobEventsWithDiffs(isTestMode ? dummyId : jobId);
   const { data: users } = useUsersByAddresses(isTestMode ? [] : addresses);
   const { data: user } = useUser(isTestMode ? '' : address || '');
+
   // Generate test data when in test mode
   const testData = useMemo(() => {
     if (!isTestMode) return null;

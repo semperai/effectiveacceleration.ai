@@ -370,7 +370,7 @@ export default function UserPageClient({ address }: UserPageClientProps) {
                       <p className='text-sm font-semibold text-gray-500 dark:text-gray-400'>
                         {users?.[review.reviewer]?.name || 'Anonymous'} reviewed{' '}
                         <Link
-                          href={`/dashboard/jobs/${review.jobId}`}
+                          href={`/jobs/${review.jobId}`}
                           className='text-primary hover:underline'
                         >
                           Job #{review.jobId}

@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     description:
       'Browse and apply for open jobs on Effective Acceleration marketplace.',
     type: 'website',
-    url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/jobs`,
+    url: `${process.env.NEXT_PUBLIC_SITE_URL}/jobs`,
     images: [
       {
         url: '/og.webp',

@@ -83,10 +83,10 @@ self.addEventListener('notificationclick', (event) => {
   }
 
   const url = event.notification.data?.jobId
-    ? `${self.location.origin}/dashboard/jobs/${event.notification.data.jobId}?eventId=${event.notification.data.id}`
+    ? `${self.location.origin}/jobs/${event.notification.data.jobId}?eventId=${event.notification.data.id}`
     : href
       ? href
-      : `${self.location.origin}/dashboard`;
+      : `${self.location.origin}/`;
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window' }).then(async (clientsArr) => {
