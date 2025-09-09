@@ -371,7 +371,22 @@ export default function JobSidebar({
                     </span>
                   }
                 />
-                <ProgressBar value={timeLeft > 0 ? 5 : 10-0} label='Progress' />
+                <ProgressBar
+                  label='Progress'
+                  value={
+                    timeLeft <= 0
+                      ? 100
+                      : Math.max(
+                          5,
+                          Math.min(
+                            99,
+                            Math.round(
+                              ((job.maxTime - timeLeft) / job.maxTime) * 100
+                            )
+                          )
+                        )
+                  }
+                />
               </div>
             </InfoSection>
           )}
