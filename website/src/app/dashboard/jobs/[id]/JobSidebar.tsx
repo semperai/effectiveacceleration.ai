@@ -26,7 +26,7 @@ import {
   PiWarning,
 } from 'react-icons/pi';
 import moment from 'moment';
-import { zeroAddress, zeroHash } from 'viem';
+import { zeroAddress, zeroHash, isAddressEqual } from 'viem';
 import JobButtonActions from './JobButtonActions';
 import JobStatusWrapper from './JobStatusWrapper';
 
@@ -346,7 +346,7 @@ export default function JobSidebar({
         {/* Delivery Status Section */}
         {job?.state === JobState.Taken &&
           job.resultHash === zeroHash &&
-          address === job.roles.creator &&
+          (isAddressEqual(address, job.roles.creator) || isAddressEqual(address, job.roles.worker)) &&
           events.length > 0 && (
             <InfoSection
               title='Delivery Status'
@@ -371,7 +371,22 @@ export default function JobSidebar({
                     </span>
                   }
                 />
-                <ProgressBar value={5} label='Progress' />
+                <ProgressBar
+                  label='Progress'
+                  value={
+                    timeLeft <= 0
+                      ? 100
+                      : Math.max(
+                          5,
+                          Math.min(
+                            99,
+                            Math.round(
+                              ((job.maxTime - timeLeft) / job.maxTime) * 100
+                            )
+                          )
+                        )
+                  }
+                />
               </div>
             </InfoSection>
           )}
