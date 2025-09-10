@@ -187,8 +187,7 @@ export const SubmitJobButton = ({
 
             for (const event of parsedEvents) {
               if (event.eventName === 'JobEvent') {
-                router.push(`/jobs/${event.args.jobId}`);
-                return;
+                router.push(`/jobs/${String(event.args.jobId)}`);                return;
               }
             }
             // Fallback if no job ID found in events
