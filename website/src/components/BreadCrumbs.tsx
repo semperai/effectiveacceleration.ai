@@ -29,9 +29,9 @@ const BreadCrumbs = ({
       <ul className={containerClasses}>
         {pathNames.map((link, index, row) => {
           let href = `/${pathNames.slice(0, index + 1).join('/')}`;
-          if (userRole === 'owner' && href === '/dashboard/jobs') {
+          if (userRole === 'owner' && href === '/jobs') {
             href = '/owner-job-list';
-          } else if (userRole !== 'owner' && href === '/dashboard/jobs') {
+          } else if (userRole !== 'owner' && href === '/jobs') {
             href = '/worker-job-list';
           }
           const itemClasses =

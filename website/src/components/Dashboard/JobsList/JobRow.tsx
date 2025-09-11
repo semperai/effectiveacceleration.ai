@@ -56,7 +56,7 @@ export const JobRow = ({ job }: { job: Job }) => {
 
   return (
     <Link
-      href={`/dashboard/jobs/${job.id}`}
+      href={`/jobs/${job.id}`}
       key={job.id}
       className='group block'
       onMouseEnter={() => setIsHovered(true)}

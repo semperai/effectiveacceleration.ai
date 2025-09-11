@@ -29,6 +29,11 @@ const nextConfig = {
         permanent: true,
       },
       {
+        source: '/dashboard/jobs/:id',
+        destination: '/jobs/:id',
+        permanent: true,
+      },
+      {
         source: '/dashboard/welcome',
         destination: '/',
         permanent: true,

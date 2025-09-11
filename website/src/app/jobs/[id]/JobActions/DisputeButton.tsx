@@ -119,7 +119,7 @@ export function DisputeButton({
 
   return (
     <>
-      {/* Overdue warning if job is overdue but still within 24h dispute window */}
+      {/* Overdue warning if job is overdue but still within 24h diJspute window */}
       {job.roles.creator === address && timeLeft < 0 && timeLeftAfterDeadline > 0 && (
         <div className="mb-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200 flex items-center gap-3">
           <PiWarning className="h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400" />

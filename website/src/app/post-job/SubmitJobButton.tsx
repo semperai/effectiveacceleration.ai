@@ -102,7 +102,7 @@ export const SubmitJobButton = ({
       // Give a small delay before navigation to ensure state updates
       setTimeout(() => {
         if (!hasNavigatedRef.current) {
-          router.push('/dashboard/jobs');
+          router.push('/jobs');
         }
       }, 1000);
     }
@@ -187,12 +187,12 @@ export const SubmitJobButton = ({
 
             for (const event of parsedEvents) {
               if (event.eventName === 'JobEvent') {
-                router.push(`/dashboard/jobs/${event.args.jobId}`);
+                router.push(`/jobs/${String(event.args.jobId)}`);                
                 return;
               }
             }
             // Fallback if no job ID found in events
-            router.push('/dashboard/jobs');
+            router.push('/jobs');
           },
         });
       } catch (error: any) {

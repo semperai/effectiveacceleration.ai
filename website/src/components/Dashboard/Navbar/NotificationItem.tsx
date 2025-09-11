@@ -78,7 +78,7 @@ export const NotificationItem = ({
       {getPriorityIndicator()}
 
       <Link
-        href={`/dashboard/jobs/${notification.jobId}?eventId=${notification.id}`}
+        href={`/jobs/${notification.jobId}?eventId=${notification.id}`}
         className='flex items-start gap-3 px-4 py-3.5'
         onClick={() => onClick(notification)}
       >
