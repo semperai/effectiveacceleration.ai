@@ -16,6 +16,14 @@ export const GET_MARKETPLACES = gql`
   }
 `;
 
+export const GET_SQUID_STATUS = gql`
+  query GetSquidStatus {
+    squidStatus {
+      height
+    }
+  }
+`;
+
 export const GET_ARBITRATORS = gql`
   query GetArbitrators($offset: Int!, $limit: Int!) {
     arbitrators(orderBy: timestamp_ASC, offset: $offset, limit: $limit) {
