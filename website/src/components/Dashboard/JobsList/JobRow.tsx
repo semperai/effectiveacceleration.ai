@@ -30,9 +30,14 @@ import {
 import moment from 'moment';
 import Link from 'next/link';
 import { useState } from 'react';
+import ProfileImage from '@/components/ProfileImage';
+import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
 
 export const JobRow = ({ job }: { job: Job }) => {
   const [isHovered, setIsHovered] = useState(false);
+  
+  const { data: users } = useUsersByAddresses([job.roles.creator]);
+  const creatorUser = users?.[job.roles.creator];
 
   const formatAddress = (address: string) => {
     if (!address) return '';
@@ -99,6 +104,40 @@ export const JobRow = ({ job }: { job: Job }) => {
                 ))}
               </div>
 
+              {/* Creator section with avatar and name */}
+              <div className='mb-3 flex items-center gap-3'>
+                {creatorUser && (
+                  <ProfileImage 
+                    user={creatorUser} 
+                    className='h-8 w-8 transition-transform duration-200 group-hover:scale-105' 
+                  />
+                )}
+                <div className='flex flex-col gap-0.5'>
+                  <div className='flex items-center gap-2'>
+                    <span className='text-sm font-medium text-gray-900 dark:text-gray-100'>
+                      {creatorUser?.name || 'Anonymous Creator'}
+                    </span>
+                    <span className='rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400'>
+                      Creator
+                    </span>
+                  </div>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className='flex cursor-help items-center gap-1.5 text-gray-500 dark:text-gray-400'>
+                          <span className='font-mono text-xs'>
+                            {formatAddress(job.roles.creator)}
+                          </span>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className='text-xs'>Creator: {job.roles.creator}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </div>
+
               {/* Meta information with improved styling */}
               <div className='flex flex-wrap items-center gap-4 text-sm'>
                 <div className='flex items-center gap-1.5 text-gray-500 dark:text-gray-400'>
@@ -110,22 +149,6 @@ export const JobRow = ({ job }: { job: Job }) => {
                     ).fromNow()}
                   </span>
                 </div>
-
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className='flex cursor-help items-center gap-1.5 text-gray-500 dark:text-gray-400'>
-                        <User className='h-3.5 w-3.5' />
-                        <span className='font-mono text-xs'>
-                          {formatAddress(job.roles.creator)}
-                        </span>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className='text-xs'>Creator: {job.roles.creator}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
 
                 <TooltipProvider>
                   <Tooltip>
