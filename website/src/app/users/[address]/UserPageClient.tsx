@@ -59,48 +59,21 @@ export default function UserPageClient({ address }: UserPageClientProps) {
     loading: userLoading,
     error: userError,
   } = useUser(address);
-  const { data: reviews, loading: reviewsLoading } = useReviews(address);
+  const {
+    data: reviews,
+    loading: reviewsLoading,
+    totalReviews = 0,
+    positiveReviews = 0,
+    negativeReviews = 0,
+    positiveReviewPercentage = 0,
+    actualAverageRating = 0,
+  } = useReviews(address);
   const { data: users } = useUsersByAddresses(
     reviews?.map((review) => review.reviewer) ?? []
   );
   const [copiedAddress, setCopiedAddress] = useState(false);
 
-  const { totalReviews, positiveReviews, negativeReviews, positiveReviewPercentage, actualAverageRating } = useMemo(() => {
-    if (!reviews || reviews.length === 0) {
-      return {
-        totalReviews: 0,
-        positiveReviews: 0,
-        negativeReviews: 0,
-        positiveReviewPercentage: 0,
-        actualAverageRating: user?.averageRating ?? 0,
-      };
-    }
 
-    type Stats = { total: number; positive: number; negative: number; sum: number };
-
-    // acc is the accumulator (running totals) — clearer than "s"
-    const acc = reviews.reduce(
-      (acc: Stats, review) => {
-        acc.total++;
-        acc.sum += review.rating;
-        if (review.rating >= 3) acc.positive++;
-        else acc.negative++;
-        return acc; // return the updated accumulator for the next iteration
-      },
-      { total: 0, positive: 0, negative: 0, sum: 0 }
-    );
-
-    const avg = acc.total > 0 ? acc.sum / acc.total : 0;
-    const percentage = acc.total > 0 ? Math.round((acc.positive / acc.total) * 100) : 0;
-
-    return {
-      totalReviews: acc.total,
-      positiveReviews: acc.positive,
-      negativeReviews: acc.negative,
-      positiveReviewPercentage: percentage,
-      actualAverageRating: avg,
-    };
-  }, [reviews, user?.averageRating]);
 
   // Format address for display (0x1234...5678)
   const formatAddress = (addr: string) => {

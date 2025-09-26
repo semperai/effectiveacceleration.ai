@@ -15,52 +15,18 @@ export function ReviewsList({
   selectedUser?: User;
 }) {
   // const { data: user } = useUser(address as string);
-  const { data: reviews } = useReviews(address as string);
+  const {
+    data: reviews,
+    totalReviews = 0,
+    positiveReviews = 0,
+    negativeReviews = 0,
+    positiveReviewPercentage = 0,
+  } = useReviews(address as string);
+  
   const { data: users } = useUsersByAddresses(
     reviews?.map((review) => review.reviewer) ?? []
   );
   
-  const {
-    totalReviews,
-    positiveReviews,
-    negativeReviews,
-    positiveReviewPercentage,
-    actualAverageRating,
-  } = useMemo(() => {
-    if (!reviews || reviews.length === 0) {
-      return {
-        totalReviews: 0,
-        positiveReviews: 0,
-        negativeReviews: 0,
-        positiveReviewPercentage: 0,
-        actualAverageRating: 0,
-      };
-    }
-
-    type Stats = { total: number; positive: number; negative: number; sum: number };
-
-    const acc = reviews.reduce(
-      (acc: Stats, review) => {
-        acc.total++;
-        acc.sum += review.rating;
-        if (review.rating >= 3) acc.positive++;
-        else acc.negative++;
-        return acc;
-      },
-      { total: 0, positive: 0, negative: 0, sum: 0 }
-    );
-
-    const avg = acc.total > 0 ? acc.sum / acc.total : 0;
-    const percentage = acc.total > 0 ? Math.round((acc.positive / acc.total) * 100) : 0;
-
-    return {
-      totalReviews: acc.total,
-      positiveReviews: acc.positive,
-      negativeReviews: acc.negative,
-      positiveReviewPercentage: percentage,
-      actualAverageRating: avg,
-    };
-  }, [reviews]);
   return (
     <div>
       <div className='flex items-center'>
