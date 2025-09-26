@@ -2,6 +2,7 @@ import useReviews from '@/hooks/subsquid/useReviews';
 import useUsersByAddresses from '@/hooks/subsquid/useUsersByAddresses';
 import type { User } from '@effectiveacceleration/contracts/dist/src/interfaces';
 import moment from 'moment';
+import { useMemo } from 'react';
 import { IoChevronBack } from 'react-icons/io5';
 
 export function ReviewsList({
@@ -18,13 +19,48 @@ export function ReviewsList({
   const { data: users } = useUsersByAddresses(
     reviews?.map((review) => review.reviewer) ?? []
   );
-  const totalReviews =
-    (selectedUser?.reputationUp ?? 0) + (selectedUser?.reputationDown ?? 0);
-  const positiveReviewPercentage =
-    totalReviews === 0
-      ? 0
-      : Math.round(((selectedUser?.reputationUp ?? 0) / totalReviews) * 100);
+  
+  const {
+    totalReviews,
+    positiveReviews,
+    negativeReviews,
+    positiveReviewPercentage,
+    actualAverageRating,
+  } = useMemo(() => {
+    if (!reviews || reviews.length === 0) {
+      return {
+        totalReviews: 0,
+        positiveReviews: 0,
+        negativeReviews: 0,
+        positiveReviewPercentage: 0,
+        actualAverageRating: 0,
+      };
+    }
 
+    type Stats = { total: number; positive: number; negative: number; sum: number };
+
+    const acc = reviews.reduce(
+      (acc: Stats, review) => {
+        acc.total++;
+        acc.sum += review.rating;
+        if (review.rating >= 3) acc.positive++;
+        else acc.negative++;
+        return acc;
+      },
+      { total: 0, positive: 0, negative: 0, sum: 0 }
+    );
+
+    const avg = acc.total > 0 ? acc.sum / acc.total : 0;
+    const percentage = acc.total > 0 ? Math.round((acc.positive / acc.total) * 100) : 0;
+
+    return {
+      totalReviews: acc.total,
+      positiveReviews: acc.positive,
+      negativeReviews: acc.negative,
+      positiveReviewPercentage: percentage,
+      actualAverageRating: avg,
+    };
+  }, [reviews]);
   return (
     <div>
       <div className='flex items-center'>
@@ -56,7 +92,7 @@ export function ReviewsList({
               </div>
               <div className='flex flex-1 flex-col items-center'>
                 <span className='text-2xl font-semibold text-primary'>
-                  {selectedUser?.reputationUp ?? 0}
+                  {positiveReviews}
                 </span>
                 <span className='text-center text-xs leading-3'>
                   Positive reviews
@@ -64,7 +100,7 @@ export function ReviewsList({
               </div>
               <div className='flex flex-1 flex-col items-center'>
                 <span className='text-2xl font-semibold text-primary'>
-                  {selectedUser?.reputationDown ?? 0}
+                  {negativeReviews}
                 </span>
                 <span className='text-center text-xs leading-3'>
                   Negative reviews
