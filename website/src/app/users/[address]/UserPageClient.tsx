@@ -137,7 +137,7 @@ export default function UserPageClient({ address }: UserPageClientProps) {
       // You might want to show a toast notification here
     }
   };
-  console.log('reviews', reviews);
+
   return (
     <Layout borderless>
       <div className='flex h-full min-h-full flex-col'>
