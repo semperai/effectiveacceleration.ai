@@ -42,7 +42,6 @@ const JobChatStatus: React.FC<JobStatusProps> = ({
   currentUser,
 }) => {
   const lastEventType = events[events.length - 1]?.type_;
-  console.log(address, currentUser, 'ADDRESS')
   // Check if user is not signed in and job is open
   const isUnsignedUserViewingOpenJob = !currentUser && job.state === JobState.Open;
 

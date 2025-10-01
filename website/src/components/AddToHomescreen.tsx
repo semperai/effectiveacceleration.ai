@@ -59,7 +59,6 @@ export function AddToHomescreen() {
                         onClick={async () => {
                           try {
                             const installed = await promptToInstall();
-                            console.log(installed);
                             if (installed.outcome === 'accepted') {
                               localStorage.setItem(
                                 'show_add_to_homescreen',

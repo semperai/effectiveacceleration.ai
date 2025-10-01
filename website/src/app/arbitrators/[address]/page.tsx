@@ -92,14 +92,12 @@ export async function generateMetadata({
   params: { address: string };
 }): Promise<Metadata> {
   const address = params.address;
-  console.log('Generating metadata for arbitrator address:', address);
 
   // Handle invalid addresses gracefully
   let checksummedAddress: string;
   try {
     checksummedAddress = getAddress(address);
   } catch (error) {
-    console.log('Invalid address format:', address);
     // Return fallback metadata for invalid addresses
     return {
       title: `Invalid Address - Effective Acceleration`,
@@ -125,10 +123,6 @@ export async function generateMetadata({
   const arbitrator = await getCachedArbitratorData(checksummedAddress);
 
   if (!arbitrator) {
-    console.log(
-      'Arbitrator not found for metadata, returning fallback metadata for address:',
-      address
-    );
     const shortAddress = shortenAddress(address);
 
     return {

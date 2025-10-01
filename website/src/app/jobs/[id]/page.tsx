@@ -104,16 +104,11 @@ export async function generateMetadata({
   params: { id: string };
 }): Promise<Metadata> {
   const jobId = params.id;
-  console.log('Generating metadata for job ID:', jobId);
 
   // Fetch job data using cached version
   const job = await getCachedJobData(jobId);
 
   if (!job) {
-    console.log(
-      'Job not found for metadata, returning fallback metadata for job ID:',
-      jobId
-    );
     // Return fallback metadata with job ID
     return {
       title: `Job #${jobId} - Effective Acceleration`,
