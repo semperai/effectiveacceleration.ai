@@ -12,11 +12,6 @@ const nextConfig = {
   reactStrictMode: true,
   pageExtensions: ['js', 'jsx', 'ts', 'tsx'],
 
-  // Add experimental instrumentation hook for new Sentry setup
-  experimental: {
-    instrumentationHook: true,
-  },
-
   webpack: (config) => {
     config.externals.push('pino-pretty', 'lokijs', 'encoding');
     return config;

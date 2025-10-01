@@ -99,11 +99,11 @@ export function useWriteContractWithNotifications() {
   const { data: hash, error, writeContract, isError } = useWriteContract();
   const onSuccessCallbackRef = useRef<
     ((receipt: TransactionReceipt, events: ParsedEvent[]) => void) | undefined
-  >();
+  >(undefined);
   const onReceiptCallbackRef = useRef<
     ((receipt: TransactionReceipt, events: ParsedEvent[]) => void) | undefined
-  >();
-  const contractsRef = useRef<WriteContractConfig['contracts']>();
+  >(undefined);
+  const contractsRef = useRef<WriteContractConfig['contracts']>(undefined);
   const [customErrorMessages, setCustomErrorMessages] = useState<
     WriteContractConfig['customErrorMessages']
   >({});

@@ -101,9 +101,9 @@ function getJobStateText(state: number): string {
 export async function generateMetadata({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }): Promise<Metadata> {
-  const jobId = params.id;
+  const { id: jobId } = await params;
 
   // Fetch job data using cached version
   const job = await getCachedJobData(jobId);
@@ -198,6 +198,11 @@ export async function generateMetadata({
 }
 
 // Server Component - just passes the ID to the client component
-export default function JobPage({ params }: { params: { id: string } }) {
-  return <JobPageClient id={params.id} />;
+export default async function JobPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  return <JobPageClient id={id} />;
 }

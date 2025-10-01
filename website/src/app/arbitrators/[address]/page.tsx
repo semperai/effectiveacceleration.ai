@@ -89,9 +89,9 @@ function shortenAddress(address: string): string {
 export async function generateMetadata({
   params,
 }: {
-  params: { address: string };
+  params: Promise<{ address: string }>;
 }): Promise<Metadata> {
-  const address = params.address;
+  const { address } = await params;
 
   // Handle invalid addresses gracefully
   let checksummedAddress: string;
@@ -227,10 +227,11 @@ export async function generateMetadata({
 }
 
 // Server Component - passes the address to the client component
-export default function ArbitratorPage({
+export default async function ArbitratorPage({
   params,
 }: {
-  params: { address: string };
+  params: Promise<{ address: string }>;
 }) {
-  return <ArbitratorPageClient address={params.address} />;
+  const { address } = await params;
+  return <ArbitratorPageClient address={address} />;
 }

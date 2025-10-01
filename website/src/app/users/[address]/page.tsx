@@ -170,17 +170,15 @@ function calculateSuccessRate(
 export async function generateMetadata({
   params,
 }: {
-  params: { address: string };
+  params: Promise<{ address: string }>;
 }): Promise<Metadata> {
-  const address = params.address;
-  console.log('Generating metadata for user address:', address);
+  const { address } = await params;
 
   // Handle invalid addresses gracefully
   let checksummedAddress: string;
   try {
     checksummedAddress = getAddress(address);
   } catch (error) {
-    console.log('Invalid address format:', address);
     // Return fallback metadata for invalid addresses
     return {
       title: `Invalid Address - Effective Acceleration`,
@@ -209,10 +207,6 @@ export async function generateMetadata({
   ]);
 
   if (!user) {
-    console.log(
-      'User not found for metadata, returning fallback metadata for address:',
-      address
-    );
     const shortAddress = shortenAddress(address);
 
     return {
@@ -334,6 +328,11 @@ export async function generateMetadata({
 }
 
 // Server Component - passes the address to the client component
-export default function UserPage({ params }: { params: { address: string } }) {
-  return <UserPageClient address={params.address} />;
+export default async function UserPage({
+  params,
+}: {
+  params: Promise<{ address: string }>;
+}) {
+  const { address } = await params;
+  return <UserPageClient address={address} />;
 }

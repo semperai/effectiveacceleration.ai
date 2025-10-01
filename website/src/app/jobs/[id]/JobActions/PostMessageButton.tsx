@@ -35,7 +35,7 @@ export function PostMessageButton({
   const [message, setMessage] = useState<string>('');
   const selectedUserRecipient =
     recipient === address ? job.roles.creator : recipient;
-  const initialAddressRef = useRef<string | undefined>();
+  const initialAddressRef = useRef<string | undefined>(undefined);
   const [isPostingMessage, setIsPostingMessage] = useState(false);
   const { showError, showSuccess, showLoading, toast } = useToast();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
