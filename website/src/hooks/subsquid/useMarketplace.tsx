@@ -1,17 +1,19 @@
 import { useMemo } from 'react';
-import { useQuery } from '@apollo/client';
+import { useQuery } from 'urql';
 import { GET_MARKETPLACES } from './queries';
 
 export default function useMarketplace() {
-  const { data, ...rest } = useQuery(GET_MARKETPLACES, {
+  const [result] = useQuery({
+    query: GET_MARKETPLACES,
     variables: {},
   });
 
   return useMemo(
     () => ({
-      data: data ? (data?.marketplaces[0] as any) : undefined,
-      ...rest,
+      data: result.data ? (result.data?.marketplaces[0] as any) : undefined,
+      loading: result.fetching,
+      error: result.error
     }),
-    [data, rest]
+    [result]
   );
 }

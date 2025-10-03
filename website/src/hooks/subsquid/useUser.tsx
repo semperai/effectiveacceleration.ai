@@ -1,6 +1,6 @@
 import type { User as ContractUser } from '@effectiveacceleration/contracts';
 import { useMemo } from 'react';
-import { useQuery } from '@apollo/client';
+import { useQuery } from 'urql';
 import { GET_USER_BY_ADDRESS } from './queries';
 
 // Extend the base User type with additional fields from GraphQL
@@ -20,9 +20,10 @@ export interface ExtendedUser extends ContractUser {
 }
 
 export default function useUser(userAddress: string) {
-  const { data, loading, error, ...rest } = useQuery(GET_USER_BY_ADDRESS, {
+  const [result] = useQuery({
+    query: GET_USER_BY_ADDRESS,
     variables: { userAddress: userAddress ?? '' },
-    skip: !userAddress,
+    pause: !userAddress,
   });
 
   return useMemo(() => {
@@ -30,18 +31,16 @@ export default function useUser(userAddress: string) {
     if (!userAddress) {
       return {
         data: null,
-        loading: false, // Changed from isLoading to loading
+        loading: false,
         error: undefined,
-        ...rest,
       };
     }
 
     // Return proper loading state
     return {
-      data: data?.users?.[0] as ExtendedUser | null | undefined,
-      loading, // Changed from isLoading to loading
-      error,
-      ...rest,
+      data: result.data?.users?.[0] as ExtendedUser | null | undefined,
+      loading: result.fetching,
+      error: result.error,
     };
-  }, [userAddress, data, loading, error, rest]);
+  }, [userAddress, result]);
 }

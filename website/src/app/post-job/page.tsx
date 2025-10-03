@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import { Layout } from '@/components/Dashboard/Layout';
 import PostJob from './PostJobPage';
 
+// Make this page dynamic to avoid prerendering issues
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Post a New Job',
   description:

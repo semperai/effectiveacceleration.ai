@@ -1,6 +1,6 @@
 import type { Job } from '@effectiveacceleration/contracts';
 import { useMemo } from 'react';
-import { useQuery } from '@apollo/client';
+import { useQuery } from 'urql';
 import { GET_JOB_SEARCH } from './queries';
 
 interface JobSearchParams extends Partial<Job> {
@@ -100,20 +100,22 @@ export default function useJobSearch({
     `
     : searchConditions;
 
-  const { data, ...rest } = useQuery(
-    GET_JOB_SEARCH({
+  const [result] = useQuery({
+    query: GET_JOB_SEARCH({
       search,
       orderBy,
       limit: limit ?? 100,
       offset: offset ?? 0,
     }),
-    {
-      variables: {},
-    }
-  );
+    variables: {},
+  });
 
   return useMemo(
-    () => ({ data: data ? (data?.jobs as Job[]) : undefined, ...rest }),
+    () => ({
+      data: result.data ? (result.data?.jobs as Job[]) : undefined,
+      loading: result.fetching,
+      error: result.error
+    }),
     [
       jobSearch,
       orderBy,
@@ -122,8 +124,7 @@ export default function useJobSearch({
       offset,
       maxTimestamp,
       minTimestamp,
-      data,
-      rest,
+      result,
     ]
   );
 }

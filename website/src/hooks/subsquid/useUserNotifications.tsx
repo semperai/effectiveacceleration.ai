@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useQuery } from '@apollo/client';
+import { useQuery } from 'urql';
 import { GET_USER_NOTIFICATIONS } from './queries';
 import useJobsByIds from './useJobsByIds';
 import useJobEventsWithDiffs from './useJobEventsWithDiffs';
@@ -33,26 +33,27 @@ export default function useUserNotifications(
   limit?: number,
   fetchMessageContent: boolean = false // Optional flag to enable message fetching
 ) {
-  const { data, loading, error, ...rest } = useQuery(GET_USER_NOTIFICATIONS, {
+  const [result] = useQuery({
+    query: GET_USER_NOTIFICATIONS,
     variables: {
       userAddress: userAddress ?? '',
       minTimestamp: minTimestamp ?? 0,
       offset: offset ?? 0,
       limit: limit ?? 10,
     },
-    skip: !userAddress,
+    pause: !userAddress,
   });
 
   // Extract unique job IDs from notifications with proper typing
   const jobIds = useMemo(() => {
-    if (!data?.notifications) return [];
+    if (!result.data?.notifications) return [];
 
-    const ids = data.notifications
+    const ids = result.data.notifications
       .map((n: any) => n.jobId as string) // Explicitly cast to string
       .filter((id: string): id is string => !!id); // Type guard to ensure non-empty strings
 
     return [...new Set(ids)] as string[]; // Ensure the result is string[]
-  }, [data]);
+  }, [result.data]);
 
   // Fetch all jobs for the notifications
   const { data: jobs } = useJobsByIds(jobIds);
@@ -94,17 +95,17 @@ export default function useUserNotifications(
 
   // Process notifications when data changes
   useEffect(() => {
-    if (data?.notifications) {
-      const processed = processNotifications(data.notifications, jobs);
+    if (result.data?.notifications) {
+      const processed = processNotifications(result.data.notifications, jobs);
       setNotifications(processed);
     }
-  }, [data, jobs]);
+  }, [result.data, jobs]);
 
   // Listen for storage events to update read status
   useEffect(() => {
     const handler = (event: StorageEvent) => {
-      if (event.key === 'ReadNotifications' && data?.notifications) {
-        const processed = processNotifications(data.notifications, jobs);
+      if (event.key === 'ReadNotifications' && result.data?.notifications) {
+        const processed = processNotifications(result.data.notifications, jobs);
         setNotifications(processed);
       }
     };
@@ -114,15 +115,14 @@ export default function useUserNotifications(
     return () => {
       window.removeEventListener('storage', handler);
     };
-  }, [data, jobs]);
+  }, [result.data, jobs]);
 
   return useMemo(
     () => ({
       data: notifications,
-      loading: loading || !jobs,
-      error,
-      ...rest,
+      loading: result.fetching || !jobs,
+      error: result.error,
     }),
-    [notifications, loading, error, jobs, rest]
+    [notifications, result.fetching, result.error, jobs]
   );
 }

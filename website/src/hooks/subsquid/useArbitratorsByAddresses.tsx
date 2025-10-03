@@ -1,6 +1,6 @@
 import type { Arbitrator } from '@effectiveacceleration/contracts';
 import { useEffect, useMemo, useState } from 'react';
-import { useQuery } from '@apollo/client';
+import { useQuery } from 'urql';
 import { GET_ARBITRATORS_BY_ADDRESSES } from './queries';
 
 export default function useArbitratorsByAddresses(
@@ -10,24 +10,29 @@ export default function useArbitratorsByAddresses(
     {}
   );
 
-  const { data, ...rest } = useQuery(GET_ARBITRATORS_BY_ADDRESSES, {
+  const [result] = useQuery({
+    query: GET_ARBITRATORS_BY_ADDRESSES,
     variables: { arbitratorAddresses: arbitratorAddresses ?? [] },
-    skip: !arbitratorAddresses?.length,
+    pause: !arbitratorAddresses?.length,
   });
 
   useEffect(() => {
-    if (data) {
+    if (result.data) {
       const results: Record<string, Arbitrator> = {};
-      for (const arbitrator of data.arbitrators) {
+      for (const arbitrator of result.data.arbitrators) {
         results[arbitrator.address_] = arbitrator;
       }
 
       setArbitrators((prev) => ({ ...prev, ...results }));
     }
-  }, [data]);
+  }, [result.data]);
 
   return useMemo(
-    () => ({ data: data ? arbitrators : undefined, ...rest }),
-    [arbitratorAddresses, data, rest]
+    () => ({
+      data: result.data ? arbitrators : undefined,
+      loading: result.fetching,
+      error: result.error
+    }),
+    [arbitratorAddresses, result, arbitrators]
   );
 }

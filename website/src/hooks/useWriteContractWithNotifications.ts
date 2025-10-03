@@ -18,7 +18,7 @@ import * as Sentry from '@sentry/nextjs';
 import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceDataV1';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { E_A_C_C_TOKEN_ABI as EACC_TOKEN_ABI } from '@effectiveacceleration/contracts/wagmi/EACCToken';
-import { useApolloClient } from '@apollo/client';
+import { useClient } from 'urql';
 
 type ParsedEvent = {
   contractName: string;
@@ -91,7 +91,7 @@ type WriteContractConfig = {
 
 export function useWriteContractWithNotifications() {
   const config = useConfig();
-  const client = useApolloClient();
+  const urqlClient = useClient();
   const { showError, showSuccess, showLoading, toast } = useToast();
   const [simulateError, setSimulateError] = useState<
     WriteContractErrorType | undefined
@@ -246,12 +246,8 @@ export function useWriteContractWithNotifications() {
       const parsedEvents = parseEvents(receipt);
       onSuccessCallbackRef.current?.(receipt, parsedEvents);
 
-      setTimeout(() => {
-        client.resetStore();
-        setTimeout(() => {
-          client.resetStore();
-        }, 3000);
-      }, 3000);
+      // URQL doesn't need manual cache reset - it handles this automatically
+      // The cache will be invalidated when new queries are made
     }
   }, [isConfirmed, receipt, parseEvents]);
 

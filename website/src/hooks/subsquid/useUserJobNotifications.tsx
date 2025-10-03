@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useQuery } from '@apollo/client';
+import { useQuery } from 'urql';
 import { GET_USER_JOB_NOTIFICATIONS } from './queries';
 import type { Notification } from '@/service/Interfaces';
 
@@ -10,14 +10,15 @@ export default function useUserJobNotifications(
   offset?: number,
   limit?: number
 ) {
-  const { data, ...rest } = useQuery(GET_USER_JOB_NOTIFICATIONS, {
+  const [result] = useQuery({
+    query: GET_USER_JOB_NOTIFICATIONS,
     variables: {
       userAddress: userAddress ?? '',
       minTimestamp: minTimestamp ?? 0,
       offset: offset ?? 0,
       limit: limit ?? 10,
     },
-    skip: !userAddress || !jobIds.length,
+    pause: !userAddress || !jobIds.length,
   });
 
   const [notificationMap, setNotificationMap] = useState<
@@ -27,7 +28,7 @@ export default function useUserJobNotifications(
   useEffect(() => {
     const handler = (event: StorageEvent) => {
       if (event.key === 'ReadNotifications') {
-        if (!data?.notifications.length) {
+        if (!result.data?.notifications.length) {
           return;
         }
 
@@ -35,7 +36,7 @@ export default function useUserJobNotifications(
           localStorage.getItem('ReadNotifications') || '[]'
         ) as string[];
         const notificationMap: Record<string, Notification[]> = {};
-        data.notifications.map((notification: Notification) => {
+        result.data.notifications.map((notification: Notification) => {
           const copy = { ...notification };
 
           copy.read = readNotifications.includes(notification.id);
@@ -54,10 +55,14 @@ export default function useUserJobNotifications(
     return () => {
       window.removeEventListener('storage', handler, true);
     };
-  }, [data]);
+  }, [result.data]);
 
   return useMemo(
-    () => ({ data: notificationMap, ...rest }),
-    [userAddress, notificationMap, rest]
+    () => ({
+      data: notificationMap,
+      loading: result.fetching,
+      error: result.error
+    }),
+    [userAddress, notificationMap, result]
   );
 }

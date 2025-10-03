@@ -5,6 +5,9 @@ import { Layout } from '@/components/Dashboard/Layout';
 import React from 'react';
 import { OpenJobsFeed } from '@/components/Dashboard/JobsList/OpenJobsFeed';
 
+// Make this page dynamic to avoid prerendering issues with URQL
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Open Jobs',
   description:

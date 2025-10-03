@@ -1,6 +1,6 @@
 import type { Job } from '@effectiveacceleration/contracts';
 import { useMemo } from 'react';
-import { useQuery } from '@apollo/client';
+import { useQuery } from 'urql';
 import { GET_JOBS } from './queries';
 import { ZeroHash } from 'ethers';
 
@@ -26,21 +26,26 @@ export default function useJobs(props: UseJobsProps = {}) {
     ...props,
   };
 
-  // Always call hooks in the same order - use skip option for conditional execution
-  const { data, ...rest } = useQuery(GET_JOBS(maxTimestamp, minTimestamp), {
+  // Always call hooks in the same order - use pause option for conditional execution
+  const [result] = useQuery({
+    query: GET_JOBS(maxTimestamp, minTimestamp),
     variables: { offset, limit: limit === 0 ? 1000 : limit },
-    skip: fake, // Skip the query if fake is true
+    pause: fake, // Pause the query if fake is true
   });
 
   // Always call useMemo
-  const result = useMemo(() => {
+  const returnValue = useMemo(() => {
     if (fake) {
-      return { data: FAKE_JOBS_DATA };
+      return { data: FAKE_JOBS_DATA, loading: false, error: undefined };
     }
-    return { data: data ? (data?.jobs as Job[]) : undefined, ...rest };
-  }, [fake, offset, limit, maxTimestamp, minTimestamp, data, rest]);
+    return {
+      data: result.data ? (result.data?.jobs as Job[]) : undefined,
+      loading: result.fetching,
+      error: result.error
+    };
+  }, [fake, offset, limit, maxTimestamp, minTimestamp, result]);
 
-  return result;
+  return returnValue;
 }
 
 const FAKE_JOB = {

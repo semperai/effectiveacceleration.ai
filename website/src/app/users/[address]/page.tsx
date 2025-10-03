@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { unstable_cache } from 'next/cache';
-import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
+import { createServerUrqlClient } from '@/lib/urql-server';
+import { gql } from 'graphql-tag';
 import { getAddress } from 'viem';
 import UserPageClient from './UserPageClient';
 
@@ -79,22 +80,12 @@ const getCachedUserData = unstable_cache(
       // Convert address to checksummed format
       const checksummedAddress = getAddress(address);
 
-      const client = new ApolloClient({
-        uri:
-          process.env.NEXT_PUBLIC_SUBSQUID_API_URL ||
-          'https://arbius.squids.live/eacc-arb-one@v1/api/graphql',
-        cache: new InMemoryCache(),
-        defaultOptions: {
-          query: {
-            fetchPolicy: 'no-cache',
-          },
-        },
-      });
+      const client = createServerUrqlClient();
 
-      const { data } = await client.query({
-        query: GET_USER_QUERY,
-        variables: { address: checksummedAddress },
-      });
+      const result = await client
+        .query(GET_USER_QUERY, { address: checksummedAddress })
+        .toPromise();
+      const data = result.data;
 
       return data?.users?.[0] || null;
     } catch (error) {
@@ -116,22 +107,12 @@ const getCachedUserReviews = unstable_cache(
       // Convert address to checksummed format
       const checksummedAddress = getAddress(address);
 
-      const client = new ApolloClient({
-        uri:
-          process.env.NEXT_PUBLIC_SUBSQUID_API_URL ||
-          'https://arbius.squids.live/eacc-arb-one@v1/api/graphql',
-        cache: new InMemoryCache(),
-        defaultOptions: {
-          query: {
-            fetchPolicy: 'no-cache',
-          },
-        },
-      });
+      const client = createServerUrqlClient();
 
-      const { data } = await client.query({
-        query: GET_USER_REVIEWS_QUERY,
-        variables: { address: checksummedAddress },
-      });
+      const result = await client
+        .query(GET_USER_REVIEWS_QUERY, { address: checksummedAddress })
+        .toPromise();
+      const data = result.data;
 
       return data?.reviews || [];
     } catch (error) {

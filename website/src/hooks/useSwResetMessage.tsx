@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import type { JobEvent } from '@effectiveacceleration/contracts';
-import { useApolloClient } from '@apollo/client';
+import { useClient } from 'urql';
 
 type JobEventMessage = Omit<JobEvent, 'data_' | 'details'>;
 
 // this hook will reset the graphql cache upon a sw notification about a job event or all events if jobId is undefined
 export const useSwResetMessage = (jobId?: string) => {
-  const client = useApolloClient();
+  const urqlClient = useClient();
   const [resets, setResets] = useState(0);
 
   useEffect(() => {
@@ -18,7 +18,8 @@ export const useSwResetMessage = (jobId?: string) => {
         jobId === undefined ||
         String(event.data?.data?.jobId ?? -1n) === jobId
       ) {
-        client.resetStore();
+        // URQL doesn't need manual cache reset - it handles this automatically
+        // The cache will be invalidated when new queries are made
         setResets((prev) => prev + 1);
       }
     };

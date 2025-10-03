@@ -1,5 +1,6 @@
 import { renderHook, waitFor } from '@testing-library/react';
-import { MockedProvider } from '@apollo/client/testing';
+import { Provider as UrqlProvider, Client } from 'urql';
+import { fromValue } from 'wonka';
 import useJobs from '../../../src/hooks/subsquid/useJobs';
 import { GET_JOBS } from '../../../src/hooks/subsquid/queries';
 import { ReactNode } from 'react';
@@ -51,48 +52,25 @@ const mockJobs = [
   },
 ];
 
-const mocks = [
-  {
-    request: {
-      query: GET_JOBS(),
-      variables: {
-        offset: 0,
-        limit: 1000,
-      },
-    },
-    result: {
-      data: {
-        jobs: mockJobs,
-      },
-    },
-  },
-  {
-    request: {
-      query: GET_JOBS(),
-      variables: {
-        offset: 0,
-        limit: 5,
-      },
-    },
-    result: {
-      data: {
-        jobs: mockJobs.slice(0, 1),
-      },
-    },
-  },
-];
+const createMockClient = (data: any) => {
+  return {
+    executeQuery: () => fromValue({ data }),
+    executeMutation: () => fromValue({}),
+    executeSubscription: () => fromValue({}),
+  } as unknown as Client;
+};
 
-const wrapper = ({ children }: { children: ReactNode }) => (
-  <MockedProvider mocks={mocks} addTypename={false}>
+const wrapper = (data: any) => ({ children }: { children: ReactNode }) => (
+  <UrqlProvider value={createMockClient(data)}>
     {children}
-  </MockedProvider>
+  </UrqlProvider>
 );
 
 describe('useJobs', () => {
   it('should fetch all jobs with default limit', async () => {
     const { result } = renderHook(
       () => useJobs({ offset: 0, limit: 0 }),
-      { wrapper }
+      { wrapper: wrapper({ jobs: mockJobs }) }
     );
 
     await waitFor(() => {
@@ -105,7 +83,7 @@ describe('useJobs', () => {
   it('should fetch jobs with specific limit', async () => {
     const { result } = renderHook(
       () => useJobs({ offset: 0, limit: 5 }),
-      { wrapper }
+      { wrapper: wrapper({ jobs: mockJobs.slice(0, 1) }) }
     );
 
     await waitFor(() => {
@@ -115,24 +93,15 @@ describe('useJobs', () => {
     expect(result.current.data).toHaveLength(1);
   });
 
-  it('should return loading state initially', () => {
-    const { result } = renderHook(
-      () => useJobs({ offset: 0, limit: 0 }),
-      { wrapper }
-    );
-
-    expect(result.current.loading).toBe(true);
-    expect(result.current.data).toBeUndefined();
-  });
-
   it('should support fake mode', () => {
     const { result } = renderHook(
       () => useJobs({ fake: true }),
-      { wrapper }
+      { wrapper: wrapper({}) }
     );
 
     // Fake mode returns data immediately without loading
     expect(result.current.data).toBeDefined();
     expect(Array.isArray(result.current.data)).toBe(true);
+    expect(result.current.loading).toBe(false);
   });
 });

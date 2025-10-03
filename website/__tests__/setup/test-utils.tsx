@@ -1,7 +1,8 @@
 import { ReactElement } from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ApolloClient, ApolloProvider, InMemoryCache, ApolloLink } from '@apollo/client';
+import { Client, Provider as UrqlProvider, fetchExchange } from 'urql';
+import { never } from 'wonka';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -11,13 +12,12 @@ const queryClient = new QueryClient({
   },
 });
 
-// Create a simple mock link for Apollo
-const mockLink = new ApolloLink(() => null);
-
-const apolloClient = new ApolloClient({
-  link: mockLink,
-  cache: new InMemoryCache(),
-});
+// Create a simple mock URQL client
+const urqlClient = {
+  executeQuery: () => never,
+  executeMutation: () => never,
+  executeSubscription: () => never,
+} as unknown as Client;
 
 interface AllTheProvidersProps {
   children: React.ReactNode;
@@ -26,9 +26,9 @@ interface AllTheProvidersProps {
 export function AllTheProviders({ children }: AllTheProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
-      <ApolloProvider client={apolloClient}>
+      <UrqlProvider value={urqlClient}>
         {children}
-      </ApolloProvider>
+      </UrqlProvider>
     </QueryClientProvider>
   );
 }

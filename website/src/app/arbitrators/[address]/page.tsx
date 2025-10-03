@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { unstable_cache } from 'next/cache';
-import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
+import { createServerUrqlClient } from '@/lib/urql-server';
+import { gql } from 'graphql-tag';
 import { getAddress } from 'viem';
 import ArbitratorPageClient from './ArbitratorPageClient';
 
@@ -36,29 +37,19 @@ interface Arbitrator {
   refusedCount: number;
 }
 
-// Cache the Apollo query result using unstable_cache
+// Cache the URQL query result using unstable_cache
 const getCachedArbitratorData = unstable_cache(
   async (address: string): Promise<Arbitrator | null> => {
     try {
       // Convert address to checksummed format
       const checksummedAddress = getAddress(address);
 
-      const client = new ApolloClient({
-        uri:
-          process.env.NEXT_PUBLIC_SUBSQUID_API_URL ||
-          'https://arbius.squids.live/eacc-arb-one@v1/api/graphql',
-        cache: new InMemoryCache(),
-        defaultOptions: {
-          query: {
-            fetchPolicy: 'no-cache',
-          },
-        },
-      });
+      const client = createServerUrqlClient();
 
-      const { data } = await client.query({
-        query: GET_ARBITRATOR_QUERY,
-        variables: { address: checksummedAddress },
-      });
+      const result = await client
+        .query(GET_ARBITRATOR_QUERY, { address: checksummedAddress })
+        .toPromise();
+      const data = result.data;
 
       return data?.arbitrators?.[0] || null;
     } catch (error) {
