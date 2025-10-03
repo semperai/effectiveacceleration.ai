@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "scripts": {
     "build": "rm -rf lib && tsc",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage"
   },
   "repository": {
     "type": "git",
@@ -40,8 +44,11 @@
   "devDependencies": {
     "@subsquid/evm-typegen": "^4.2.0",
     "@subsquid/typeorm-codegen": "^2.0.1",
-    "@types/node": "^20.14.8",
+    "@types/node": "^20.19.19",
     "@types/web-push": "^3.6.4",
-    "typescript": "~5.5.2"
+    "@vitest/ui": "^3.2.4",
+    "reflect-metadata": "^0.2.2",
+    "typescript": "~5.5.2",
+    "vitest": "^3.2.4"
   }
 }
