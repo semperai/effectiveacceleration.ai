@@ -14,6 +14,7 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
+import { AAWalletDisplay } from '@/lib/arbius-wallet';
 
 interface NavbarProps {
   setSidebarOpen: (value: boolean) => void;
@@ -186,6 +187,7 @@ const Navbar = ({
       return (
         <div className='flex items-center justify-end gap-x-3'>
           <EACCBalance />
+          <AAWalletDisplay arbiusLogoSrc='/arbius-logo.png' />
           <NotificationsButton />
           <UserButton user={user} arbitrator={arbitrator} />
         </div>
