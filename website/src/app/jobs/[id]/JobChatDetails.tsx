@@ -24,7 +24,6 @@ import {
   PiWarning,
 } from 'react-icons/pi';
 import moment from 'moment';
-import LinearProgress from '@mui/material/LinearProgress';
 import {
   type Job,
   JobEventType,
