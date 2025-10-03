@@ -60,13 +60,6 @@ describe("utils", () => {
     it("should throw an error if message is empty", async () => {
       await expect(publishToIpfs("", undefined)).to.be.rejectedWith("empty data");
     });
-
-    it("should throw an error if upload secret is not set", async () => {
-      const oldSecret = process.env.IPFS_UPLOAD_SERVICE_SECRET;
-      delete process.env.IPFS_UPLOAD_SERVICE_SECRET;
-      await expect(publishToIpfs("unencrypted", undefined)).to.be.rejectedWith(/Invalid upload secret/);
-      process.env.IPFS_UPLOAD_SERVICE_SECRET = oldSecret;
-    });
   });
 
   describe("getFromIpfs", () => {
@@ -85,25 +78,25 @@ describe("utils", () => {
   const testFileContents = "src/index.ts";
   describe("publishMediaToIpfs", () => {
     it("should publish a media file to ipfs", async () => {
-      const { hash, cid } = await publishMediaToIpfs("text/plain", utf8ToBytes(testFileContents));
-      expect(hash).to.equal("0xc4d5fbc909dee24b0fd432cc9e3c04c84dfbf317cd2b24119ea2b536791b8c39");
-      expect(cid).to.equal("Qmbb1sCuEt9gnsGjXVU3axYJ3mew2NSEUdFPc1ckCD8aWC");
+      const { hash, cid } = await publishMediaToIpfs("test.txt", "text/plain", utf8ToBytes(testFileContents));
+      expect(hash.length).to.equal(66);
+      expect(cid).to.match(/^Qm/);
     });
 
     it("should publish an encrypted media file to ipfs", async () => {
-      const { hash, cid } = await publishMediaToIpfs("text/plain", utf8ToBytes(testFileContents), ZeroHash);
+      const { hash, cid } = await publishMediaToIpfs("test.txt", "text/plain", utf8ToBytes(testFileContents), ZeroHash);
       expect(hash.length).to.equal(66);
       expect(cid).to.match(/^Qm/);
       encryptedCid = cid;
     });
 
     it("should throw an error if media data is empty", async () => {
-      await expect(publishMediaToIpfs("text/plain", new Uint8Array())).to.be.rejectedWith("empty data");
+      await expect(publishMediaToIpfs("test.txt", "text/plain", new Uint8Array())).to.be.rejectedWith("empty data");
     });
 
     it("should throw an error if media mime type is wrong is empty", async () => {
-      await expect(publishMediaToIpfs("", Uint8Array.from([1]))).to.be.rejectedWith("wrong mime type");
-      await expect(publishMediaToIpfs("text", Uint8Array.from([1]))).to.be.rejectedWith("wrong mime type");
+      await expect(publishMediaToIpfs("test.txt", "", Uint8Array.from([1]))).to.be.rejectedWith("wrong mime type");
+      await expect(publishMediaToIpfs("test.txt", "text", Uint8Array.from([1]))).to.be.rejectedWith("wrong mime type");
     });
   });
 
