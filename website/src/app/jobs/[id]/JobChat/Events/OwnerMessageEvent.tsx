@@ -15,18 +15,18 @@ import {
   PiCaretDown,
   PiCaretUp,
   PiFile,
+  PiCrown,
   PiUser,
-  PiShieldCheck,
 } from 'react-icons/pi';
 
-interface WorkerMessageEventProps {
+interface OwnerMessageEventProps {
   event: JobEventWithDiffs;
   users: Record<string, User>;
   currentUser?: User | null;
   job?: Job;
 }
 
-const WorkerMessageEvent: React.FC<WorkerMessageEventProps> = ({
+const OwnerMessageEvent: React.FC<OwnerMessageEventProps> = ({
   event,
   users,
   currentUser,
@@ -39,10 +39,7 @@ const WorkerMessageEvent: React.FC<WorkerMessageEventProps> = ({
   const messageDetails = event.details as JobMessageEvent;
   const senderAddress = event.address_;
   const sender = users[senderAddress];
-  const senderName = sender?.name || 'Worker';
-
-  // Check if sender is the arbitrator
-  const isArbitrator = job?.roles.arbitrator === senderAddress;
+  const senderName = sender?.name || 'Job Creator';
 
   // Check if current user is the sender
   const isCurrentUser = currentUser?.address_ === senderAddress;
@@ -85,49 +82,45 @@ const WorkerMessageEvent: React.FC<WorkerMessageEventProps> = ({
             className='h-8 w-8 rounded-full ring-2 ring-white sm:h-10 sm:w-10 sm:ring-4 dark:ring-gray-900'
           />
         ) : (
-          <div className='flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 ring-2 ring-white sm:h-10 sm:w-10 sm:ring-4 dark:ring-gray-900'>
+          <div className='flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500 ring-2 ring-white sm:h-10 sm:w-10 sm:ring-4 dark:ring-gray-900'>
             <PiUser className='h-4 w-4 text-white sm:h-5 sm:w-5' />
           </div>
         )}
-        {isArbitrator && (
-          <div className='absolute -bottom-1 -right-1 rounded-full bg-amber-500 p-0.5 sm:p-1'>
-            <PiShieldCheck className='h-2.5 w-2.5 text-white sm:h-3 sm:w-3' />
-          </div>
-        )}
+        <div className='absolute -bottom-1 -right-1 rounded-full bg-purple-500 p-0.5 sm:p-1'>
+          <PiCrown className='h-2.5 w-2.5 text-white sm:h-3 sm:w-3' />
+        </div>
       </div>
 
       {/* Content with adjusted spacing */}
       <div className='ml-3 min-w-0 flex-1 sm:ml-4'>
-        <div className='rounded-2xl bg-white p-3 shadow-sm sm:p-4 dark:bg-gray-800'>
+        <div className='rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 p-3 shadow-sm sm:p-4 dark:from-purple-950/20 dark:to-pink-950/20'>
           {/* Message Header */}
           <div className='mb-2 flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between'>
             <div className='flex-1'>
               <div className='flex flex-wrap items-center gap-1 sm:gap-2'>
                 {isCurrentUser ? (
-                  <span className='font-semibold text-blue-600 dark:text-blue-400'>
+                  <span className='font-semibold text-purple-600 dark:text-purple-400'>
                     You
                   </span>
                 ) : (
                   <Link
                     href={`/users/${senderAddress}`}
-                    className='font-semibold text-gray-900 transition-colors hover:text-blue-600 dark:text-gray-100 dark:hover:text-blue-400'
+                    className='font-semibold text-gray-900 transition-colors hover:text-purple-600 dark:text-gray-100 dark:hover:text-purple-400'
                   >
                     {senderName}
                   </Link>
                 )}
 
-                {isArbitrator && (
-                  <span className='rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'>
-                    Arbitrator
-                  </span>
-                )}
+                <span className='rounded bg-purple-100 px-1.5 py-0.5 text-xs text-purple-600 dark:bg-purple-900/30 dark:text-purple-400'>
+                  Creator
+                </span>
 
                 {recipient && (
                   <>
                     <span className='text-xs text-gray-400'>to</span>
                     <Link
                       href={`/users/${recipientAddress}`}
-                      className='text-sm font-medium text-gray-600 transition-colors hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400'
+                      className='text-sm font-medium text-gray-600 transition-colors hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400'
                     >
                       {recipientName}
                     </Link>
@@ -144,16 +137,16 @@ const WorkerMessageEvent: React.FC<WorkerMessageEventProps> = ({
 
           {/* Message Content */}
           <div className='prose prose-sm dark:prose-invert max-w-none'>
-            <Markdown className='text-sm text-gray-700 sm:text-base dark:text-gray-300'>
+            <Markdown className='text-sm text-gray-700 sm:text-base dark:text-gray-300 overflow-wrap-breakword'>
               {displayContent || 'No message content'}
             </Markdown>
           </div>
 
           {/* File Indicator */}
           {isFormatted && (
-            <div className='mt-3 inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-2 py-1 sm:px-3 sm:py-1.5 dark:border-blue-800 dark:bg-blue-950/20'>
-              <PiFile className='h-3.5 w-3.5 text-blue-600 sm:h-4 sm:w-4 dark:text-blue-400' />
-              <span className='text-xs text-blue-700 dark:text-blue-300'>
+            <div className='mt-3 inline-flex items-center gap-2 rounded-lg border border-purple-200 bg-purple-50 px-2 py-1 sm:px-3 sm:py-1.5 dark:border-purple-800 dark:bg-purple-950/20'>
+              <PiFile className='h-3.5 w-3.5 text-purple-600 sm:h-4 sm:w-4 dark:text-purple-400' />
+              <span className='text-xs text-purple-700 dark:text-purple-300'>
                 File attachment
               </span>
             </div>
@@ -163,7 +156,7 @@ const WorkerMessageEvent: React.FC<WorkerMessageEventProps> = ({
           {shouldTruncate && (
             <button
               onClick={toggleExpanded}
-              className='mt-2 flex items-center gap-1 text-xs font-medium text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300'
+              className='mt-2 flex items-center gap-1 text-xs font-medium text-purple-600 transition-colors hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300'
             >
               {isExpanded ? (
                 <>
@@ -184,4 +177,4 @@ const WorkerMessageEvent: React.FC<WorkerMessageEventProps> = ({
   );
 };
 
-export default WorkerMessageEvent;
+export default OwnerMessageEvent;

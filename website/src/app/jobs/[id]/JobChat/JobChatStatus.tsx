@@ -11,6 +11,7 @@ import { zeroHash } from 'viem';
 import {
   ApplicationSubmitted,
   ArbitratedStatus,
+  ArbitratorRefuse,
   AssignWorker,
   DisputeStarted,
   FCFSAvailable,
@@ -100,9 +101,21 @@ const JobChatStatus: React.FC<JobStatusProps> = ({
   })();
 
   // Show SignInToApply status for unsigned users viewing open jobs
-  if (isUnsignedUserViewingOpenJob) {
+  if (isUnsignedUserViewingOpenJob && address !== job.roles.arbitrator) {
     return (
       <SignInToApply
+        job={job}
+        address={address}
+        users={users}
+        currentUser={currentUser}
+      />
+    );
+  }
+
+    // Show ArbitratorRefuse status for arbitrators
+  if ((job.state === JobState.Open || job.state === JobState.Taken) && job.disputed === false && address === job.roles.arbitrator) {
+    return (
+      <ArbitratorRefuse
         job={job}
         address={address}
         users={users}

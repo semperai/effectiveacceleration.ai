@@ -26,7 +26,7 @@ import {
   PiWarning,
 } from 'react-icons/pi';
 import moment from 'moment';
-import { zeroAddress, zeroHash } from 'viem';
+import { zeroAddress, zeroHash, isAddressEqual } from 'viem';
 import JobButtonActions from './JobButtonActions';
 import JobStatusWrapper from './JobStatusWrapper';
 
@@ -285,13 +285,10 @@ export default function JobSidebar({
           {/* Last Updated Info */}
           <div className='mt-4 border-t border-gray-100 pt-3 dark:border-gray-800'>
             <div className='flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400'>
-              <UserIcon className='h-4 w-4' />
+              <PiClock className='h-4 w-4' />
               <span>
-                Last updated by{' '}
-                <span className='font-medium'>
-                  {users[job?.roles.creator!]?.name}
-                </span>{' '}
-                {moment(job?.timestamp! * 1000).fromNow()}
+                Last updated{' '}
+                {moment(job?.jobTimes?.lastEventAt! * 1000).fromNow()}
               </span>
             </div>
           </div>
@@ -346,7 +343,8 @@ export default function JobSidebar({
         {/* Delivery Status Section */}
         {job?.state === JobState.Taken &&
           job.resultHash === zeroHash &&
-          address === job.roles.creator &&
+          job.jobTimes?.assignedAt &&
+          (isAddressEqual(address, job.roles.creator) || isAddressEqual(address, job.roles.worker)) &&
           events.length > 0 && (
             <InfoSection
               title='Delivery Status'
@@ -371,7 +369,22 @@ export default function JobSidebar({
                     </span>
                   }
                 />
-                <ProgressBar value={5} label='Progress' />
+                <ProgressBar
+                  label='Progress'
+                  value={
+                    timeLeft <= 0
+                      ? 100
+                      : Math.max(
+                          5,
+                          Math.min(
+                            99,
+                            Math.round(
+                              ((job.maxTime - timeLeft) / job.maxTime) * 100
+                            )
+                          )
+                        )
+                  }
+                />
               </div>
             </InfoSection>
           )}

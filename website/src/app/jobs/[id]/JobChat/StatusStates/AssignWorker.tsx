@@ -51,7 +51,7 @@ const AssignWorker: React.FC<AssignWorkerProps> = ({
       .slice(0, 2) || 'SW';
 
   return (
-    <div className='w-full py-4 '>
+    <div className='w-full py-4'>
       {/* Main Container with gradient background */}
       <div className='relative overflow-hidden rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 via-purple-50 to-blue-50 dark:border-blue-800 dark:from-blue-950/20 dark:via-purple-950/20 dark:to-blue-950/20'>
         {/* Decorative elements */}

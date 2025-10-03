@@ -188,14 +188,27 @@ const JobButtonActions = ({
   // ARBITRATOR ACTIONS
 
   const showArbitrateButton =
-    job.state === JobState.Taken && address === job.roles.arbitrator;
+    job.disputed && job.state === JobState.Taken && address === job.roles.arbitrator;
 
   const showRefuseArbitrationButton =
     job.state !== JobState.Closed && address === job.roles.arbitrator;
 
   // DISPUTE ACTIONS
+  let timeLeft = 0;
+  let timeLeftAfterDeadline = 0;
+  if (job && job.jobTimes && job.jobTimes.assignedAt) {
+    // Calculate deadline: assignedAt + maxTime
+    const deadline = job.jobTimes.assignedAt + job.maxTime;
+    // Calculate time remaining: deadline - current time
+    const currentTime = Math.floor(Date.now() / 1000);
+    timeLeft = deadline - currentTime;
+    timeLeftAfterDeadline = deadline + 86400 - currentTime; // 24 hours after deadline
+  }
+
 
   const showDisputeButton =
+    (job.roles.creator === address && timeLeftAfterDeadline > 0) ||
+    job.roles.worker === address &&
     job.state === JobState.Taken &&
     job.roles.arbitrator !== zeroAddress &&
     address !== job.roles.arbitrator &&

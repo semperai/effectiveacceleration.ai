@@ -609,13 +609,6 @@ processor.run(db, async (ctx) => {
 
                 job.resultHash = event.data_;
 
-                const userId = job.roles.worker;
-                const user: User =
-                  userCache[userId] ??
-                  (await ctx.store.findOneByOrFail(User, { id: userId }))!;
-                user.reputationUp++;
-                userCache[userId] = user;
-
                 await handleNotification(job.roles.creator, jobEvent, ctx);
 
                 break;

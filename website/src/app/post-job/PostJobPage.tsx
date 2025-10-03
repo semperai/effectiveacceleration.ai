@@ -142,7 +142,8 @@ const PostJob = () => {
     const maxTime = searchParams.get('maxTime');
     const deliveryMethod =
       searchParams.get('deliveryMethod') || deliveryMethods[0].id;
-    const arbitrator = searchParams.get('arbitrator') || zeroAddress;
+    const defaultHardcodedArbitrator = '0xa4DA2B49aDb3d1cFd1DbBB0Fb50803a2ea26cFdd';
+    const arbitrator = searchParams.get('arbitrator') || defaultHardcodedArbitrator;
     const tags = searchParams.getAll('tags');
     const amount = searchParams.get('amount') || '';
     // Check for multipleApplicants param

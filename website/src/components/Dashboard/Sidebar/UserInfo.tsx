@@ -5,6 +5,7 @@ import { useAccount } from 'wagmi';
 import useUser from '@/hooks/subsquid/useUser';
 import useArbitrator from '@/hooks/subsquid/useArbitrator';
 import ProfileImage from '@/components/ProfileImage';
+import useReviews from '@/hooks/subsquid/useReviews';
 
 export const UserInfo = () => {
   const { address } = useAccount();
@@ -15,6 +16,11 @@ export const UserInfo = () => {
   const userInfo = user || arbitrator;
   const displayName = userInfo?.name || 'Anonymous';
   const displayRole = arbitrator ? 'Arbitrator' : user ? 'Member' : 'Guest';
+  const {
+    totalReviews = 0,
+    actualAverageRating = 0,
+  } = useReviews(address as string);
+
   const initials =
     displayName
       .split(' ')
@@ -24,16 +30,7 @@ export const UserInfo = () => {
       .slice(0, 2) || 'AN';
 
   // TODO: Get actual values from user data
-  const jobCount = user?.reputationUp || 0; // Using reputation as placeholder
-  const rating =
-    userInfo && (user?.reputationUp || 0) > 0
-      ? ((user?.reputationUp || 0) /
-          ((user?.reputationUp || 0) + (user?.reputationDown || 0))) *
-        5
-      : 0;
-
   if (!address || !userInfo) return null;
-
   return (
     <div className='mx-3 mb-4 mt-auto p-4'>
       <Link href={`/users/${address}`}>
@@ -79,14 +76,14 @@ export const UserInfo = () => {
                 <p className='text-xs text-gray-400 transition-colors duration-300 group-hover:text-gray-300'>
                   Jobs
                 </p>
-                <p className='text-sm font-bold text-white'>{jobCount}</p>
+                <p className='text-sm font-bold text-white'>{totalReviews}</p>
               </div>
               <div className='flex-1 text-center'>
                 <p className='text-xs text-gray-400 transition-colors duration-300 group-hover:text-gray-300'>
                   Rating
                 </p>
                 <p className='text-sm font-bold text-white'>
-                  {rating.toFixed(1)}
+                  {actualAverageRating}
                 </p>
               </div>
             </div>

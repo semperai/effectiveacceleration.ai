@@ -79,7 +79,7 @@ const JobChatsList = ({
       )}
 
       {/* Applicants list */}
-      <div className='flex-1 overflow-y-auto'>
+      <div className='flex-1 overflow-y-auto notifications-scroll'>
         {numberOfWorkers === 0 ? (
           <div className='flex h-full flex-col items-center justify-center p-8'>
             <div className='mb-4 rounded-full bg-gray-100 p-4 dark:bg-gray-800'>

@@ -59,33 +59,21 @@ export default function UserPageClient({ address }: UserPageClientProps) {
     loading: userLoading,
     error: userError,
   } = useUser(address);
-  const { data: reviews, loading: reviewsLoading } = useReviews(address);
+  const {
+    data: reviews,
+    loading: reviewsLoading,
+    totalReviews = 0,
+    positiveReviews = 0,
+    negativeReviews = 0,
+    positiveReviewPercentage = 0,
+    actualAverageRating = 0,
+  } = useReviews(address);
   const { data: users } = useUsersByAddresses(
     reviews?.map((review) => review.reviewer) ?? []
   );
   const [copiedAddress, setCopiedAddress] = useState(false);
 
-  const totalReviews = (user?.reputationUp ?? 0) + (user?.reputationDown ?? 0);
-  const positiveReviewPercentage =
-    totalReviews === 0
-      ? 0
-      : Math.round(((user?.reputationUp ?? 0) / totalReviews) * 100);
 
-  // Calculate actual average rating from reviews
-  const actualAverageRating = useMemo(() => {
-    if (reviews && reviews.length > 0) {
-      const totalRating = reviews.reduce(
-        (sum, review) => sum + review.rating,
-        0
-      );
-      return totalRating / reviews.length;
-    }
-    // Fallback to calculated average if reviews not loaded
-    if (user?.numberOfReviews && user.numberOfReviews > 0) {
-      return user.averageRating / user.numberOfReviews;
-    }
-    return 0;
-  }, [reviews, user]);
 
   // Format address for display (0x1234...5678)
   const formatAddress = (addr: string) => {
@@ -251,7 +239,7 @@ export default function UserPageClient({ address }: UserPageClientProps) {
                   <div className='grid grid-cols-2 gap-4 md:grid-cols-4'>
                     <div className='rounded-lg bg-gray-50 p-4 dark:bg-gray-800'>
                       <div className='text-2xl font-bold text-primary'>
-                        {user?.numberOfReviews || 0}
+                        {totalReviews}
                       </div>
                       <div className='text-sm text-gray-600 dark:text-gray-400'>
                         Total Reviews
@@ -324,7 +312,7 @@ export default function UserPageClient({ address }: UserPageClientProps) {
                   </div>
                   <div className='flex flex-1 flex-col items-center'>
                     <span className='text-2xl font-semibold text-primary'>
-                      {user?.reputationUp ?? 0}
+                      {positiveReviews}
                     </span>
                     <span className='text-center text-xs leading-3'>
                       Positive reviews
@@ -332,7 +320,7 @@ export default function UserPageClient({ address }: UserPageClientProps) {
                   </div>
                   <div className='flex flex-1 flex-col items-center'>
                     <span className='text-2xl font-semibold text-primary'>
-                      {user?.reputationDown ?? 0}
+                      {negativeReviews}
                     </span>
                     <span className='text-center text-xs leading-3'>
                       Negative reviews
@@ -370,7 +358,7 @@ export default function UserPageClient({ address }: UserPageClientProps) {
                       <p className='text-sm font-semibold text-gray-500 dark:text-gray-400'>
                         {users?.[review.reviewer]?.name || 'Anonymous'} reviewed{' '}
                         <Link
-                          href={`/dashboard/jobs/${review.jobId}`}
+                          href={`/jobs/${review.jobId}`}
                           className='text-primary hover:underline'
                         >
                           Job #{review.jobId}

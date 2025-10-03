@@ -810,7 +810,7 @@ export function UpdateButton({
                             <button
                               onClick={handleSubmit}
                               disabled={isUpdating || isConfirming}
-                              className='rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 px-6 py-2.5 text-sm font-medium text-white shadow-lg shadow-blue-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:from-blue-600 hover:to-purple-600 hover:shadow-xl hover:shadow-blue-500/30 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50'
+                              className='rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 px-6 py-2.5 text-sm font-medium text-white shadow-lg shadow-blue-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:from-blue-600 hover:to-purple-600 hover:shadow-xl hover:shadow-blue-500/30 active:scale-[0.98] disabled:cursor-not-allowed disabled:from-blue-400 disabled:to-purple-400 disabled:shadow-none'
                             >
                               {isUpdating || isConfirming ? (
                                 <span className='flex items-center gap-2'>

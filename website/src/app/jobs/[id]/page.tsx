@@ -122,7 +122,7 @@ export async function generateMetadata({
         title: `Job #${jobId} - Effective Acceleration`,
         description: `View details for job #${jobId} on Effective Acceleration marketplace.`,
         type: 'website',
-        url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/jobs/${jobId}`,
+        url: `${process.env.NEXT_PUBLIC_SITE_URL}/jobs/${jobId}`,
         images: [
           {
             url: '/og.webp',
@@ -139,7 +139,7 @@ export async function generateMetadata({
         images: ['/og.webp'],
       },
       alternates: {
-        canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/jobs/${jobId}`,
+        canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/jobs/${jobId}`,
       },
     };
   }
@@ -173,7 +173,7 @@ export async function generateMetadata({
       title,
       description,
       type: 'article',
-      url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/jobs/${jobId}`,
+      url: `${process.env.NEXT_PUBLIC_SITE_URL}/jobs/${jobId}`,
       images: [
         {
           url: '/og.webp',
@@ -190,7 +190,7 @@ export async function generateMetadata({
       images: ['/og.webp'],
     },
     alternates: {
-      canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/jobs/${jobId}`,
+      canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/jobs/${jobId}`,
     },
     other: {
       'job:id': jobId,

@@ -1,4 +1,3 @@
-// src/components/Dashboard/JobsList/OpenJobsFeed.tsx
 'use client';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { JobsList } from './JobsList';
@@ -12,12 +11,13 @@ import {
   convertToSeconds,
   unitsDeliveryTime,
   getUnitAndValueFromSeconds,
+  formatTokenNameAndAmount,
 } from '@/lib/utils';
 import { JobState } from '@effectiveacceleration/contracts';
 
 import NoJobsOpenImage from '@/images/noOpenJobs.svg';
 import useArbitrators from '@/hooks/subsquid/useArbitrators';
-import { zeroAddress } from 'viem';
+import { parseUnits, zeroAddress } from 'viem';
 import { useAccount } from 'wagmi';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
@@ -25,6 +25,7 @@ import {
   useTestableJobSearch,
   useTestableArbitrators,
 } from './testUtils';
+import { stringify } from 'querystring';
 
 export const OpenJobsFeed = () => {
   const excludedTags = ['hidden'];
@@ -201,9 +202,9 @@ export const OpenJobsFeed = () => {
         }),
       state: JobState.Open,
       ...(selectedToken && { token: selectedToken.id }),
-      ...(minTokens !== undefined &&
+      ...(selectedToken && minTokens !== undefined &&
         !isNaN(minTokens) && {
-          amount_gte: minTokens,
+          amount_gte: parseUnits(minTokens?.toString() ?? '0', selectedToken.decimals),
         }),
       ...((selectedArbitratorAddress || creatorAddress) && {
         roles: {
@@ -231,9 +232,9 @@ export const OpenJobsFeed = () => {
         }),
       state: JobState.Open,
       ...(selectedToken && { token: selectedToken.id }),
-      ...(minTokens !== undefined &&
+      ...(selectedToken && minTokens !== undefined &&
         !isNaN(minTokens) && {
-          amount_gte: minTokens,
+          amount_gte: parseUnits(minTokens?.toString() ?? '0', selectedToken.decimals),
         }),
       ...((selectedArbitratorAddress || creatorAddress) && {
         roles: {

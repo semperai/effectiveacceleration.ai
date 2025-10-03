@@ -212,7 +212,7 @@ export const JobFilter = ({
                       setSearchSuggestion('');
                     }
                   }}
-                  className={`h-10 w-full rounded-lg border border-0 bg-white pl-10 pr-24 text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:outline-none focus:ring-0 ${isFocused ? 'border-gray-300' : 'border-gray-200 hover:border-gray-300'} `}
+                  className={`h-10 w-full rounded-lg border-0 bg-white pl-10 pr-24 text-sm text-gray-900 placeholder-gray-400 outline-none transition-all duration-200 focus:outline-none focus:ring-0 ${isFocused ? 'border-gray-300' : 'border-gray-200 hover:border-gray-300'} `}
                   style={{
                     borderWidth: '1px',
                     borderStyle: 'solid',

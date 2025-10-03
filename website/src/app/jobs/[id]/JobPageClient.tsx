@@ -326,6 +326,10 @@ export default function JobPageClient({ id }: JobPageClientProps) {
       JobEventType.Closed,
       JobEventType.Completed,
       JobEventType.Reopened,
+      JobEventType.Refunded,
+      JobEventType.Arbitrated,
+      JobEventType.Disputed,
+      JobEventType.ArbitrationRefused,
     ];
     
     // If user was an applicant but not selected, show only their conversation
@@ -449,7 +453,7 @@ export default function JobPageClient({ id }: JobPageClientProps) {
       {/* Main Job Interface - hidden when status state is selected */}
       {(!isTestMode || selectedStatus === 'none') && (
         <div className='grid min-h-customHeader grid-cols-1'>
-          <div className='grid min-h-customHeader grid-cols-2 md:grid-cols-4'>
+          <div className='grid min-h-customHeader grid-cols-2 md:grid-cols-4 overflow-y-hidden'>
             {isOwner && currentJob?.state === JobState.Open && (
               <div className='col-span-1 hidden max-h-customHeader overflow-y-auto border border-gray-100 bg-white p-3 md:block'>
                 <JobChatsList
