@@ -28,13 +28,7 @@ jobs:
         run: cd ${{ matrix.package }} && npm ci
 
       - name: Run coverage
-        run: |
-          cd ${{ matrix.package }}
-          if [ "${{ matrix.package }}" = "contract" ]; then
-            npm run coverage
-          else
-            npm run test:coverage
-          fi
+        run: cd ${{ matrix.package }} && npm run test:coverage
 
       - name: Determine lcov path
         id: lcov-path
