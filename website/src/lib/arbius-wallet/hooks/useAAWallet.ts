@@ -17,54 +17,27 @@ export function useAAWallet() {
   const initializingRef = useRef(false);
   const initializedForAddress = useRef<string | null>(null);
 
-  // Initialize derived wallet when connected
+  // Check for cached wallet on mount/address change
   useEffect(() => {
-    const initWallet = async () => {
-      // Prevent multiple simultaneous initializations or re-init for same address
-      if (!connectedAddress || !walletClient || initializingRef.current || initializedForAddress.current === connectedAddress) {
-        return;
-      }
+    if (!connectedAddress) {
+      // Clear state when disconnected
+      setSmartAccountAddress(null);
+      setDerivedAccount(null);
+      initializedForAddress.current = null;
+      return;
+    }
 
-      // Check if we already have a cached wallet
-      const cachedAddress = getCachedWalletAddress(connectedAddress);
-      if (cachedAddress) {
-        const cachedAccount = getCachedWallet(cachedAddress);
-        if (cachedAccount) {
-          setSmartAccountAddress(cachedAddress);
-          setDerivedAccount(cachedAccount);
-          initializedForAddress.current = connectedAddress;
-          return;
-        }
-      }
-
-      initializingRef.current = true;
-      setIsInitializing(true);
-      setError(null);
-
-      try {
-        const signMessage = async (message: string): Promise<Hex> => {
-          const signature = await walletClient.signMessage({
-            account: connectedAddress,
-            message
-          });
-          return signature;
-        };
-
-        const account = await initDeterministicWallet(connectedAddress, signMessage);
-        setDerivedAccount(account);
-        setSmartAccountAddress(account.address);
+    // Only load from cache, don't auto-initialize
+    const cachedAddress = getCachedWalletAddress(connectedAddress);
+    if (cachedAddress) {
+      const cachedAccount = getCachedWallet(cachedAddress);
+      if (cachedAccount) {
+        setSmartAccountAddress(cachedAddress);
+        setDerivedAccount(cachedAccount);
         initializedForAddress.current = connectedAddress;
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to initialize AA wallet';
-        setError(errorMessage);
-      } finally {
-        setIsInitializing(false);
-        initializingRef.current = false;
       }
-    };
-
-    initWallet();
-  }, [connectedAddress, walletClient]);
+    }
+  }, [connectedAddress]);
 
   const signMessageWithAAWallet = useCallback(async (message: string): Promise<Hex | null> => {
     if (!derivedAccount) {
@@ -99,6 +72,48 @@ export function useAAWallet() {
     }
   }, [smartAccountAddress, publicClient]);
 
+  const initializeWallet = useCallback(async (): Promise<void> => {
+    if (!connectedAddress || !walletClient) {
+      throw new Error('Wallet not connected');
+    }
+
+    // Prevent multiple simultaneous initializations
+    if (initializingRef.current) {
+      throw new Error('Initialization already in progress');
+    }
+
+    // Check if already initialized for this address
+    if (initializedForAddress.current === connectedAddress && derivedAccount) {
+      return;
+    }
+
+    initializingRef.current = true;
+    setIsInitializing(true);
+    setError(null);
+
+    try {
+      const signMessage = async (message: string): Promise<Hex> => {
+        const signature = await walletClient.signMessage({
+          account: connectedAddress,
+          message
+        });
+        return signature;
+      };
+
+      const account = await initDeterministicWallet(connectedAddress, signMessage);
+      setDerivedAccount(account);
+      setSmartAccountAddress(account.address);
+      initializedForAddress.current = connectedAddress;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to initialize AA wallet';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setIsInitializing(false);
+      initializingRef.current = false;
+    }
+  }, [connectedAddress, walletClient, derivedAccount]);
+
   return {
     ...context,
     smartAccountAddress,
@@ -107,5 +122,6 @@ export function useAAWallet() {
     estimateGas,
     isInitializing,
     error,
+    initializeWallet,
   };
 }
