@@ -1,0 +1,42 @@
+version: 2
+updates:
+  # Contract dependencies
+  - package-ecosystem: "npm"
+    directory: "/contract"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Website dependencies
+  - package-ecosystem: "npm"
+    directory: "/website"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Subsquid dependencies
+  - package-ecosystem: "npm"
+    directory: "/subsquid"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Notifications dependencies
+  - package-ecosystem: "npm"
+    directory: "/notifications"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # IPFS Service dependencies
+  - package-ecosystem: "npm"
+    directory: "/ipfs-service"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
