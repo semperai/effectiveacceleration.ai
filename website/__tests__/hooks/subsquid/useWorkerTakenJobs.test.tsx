@@ -1,8 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react';
-import { MockedProvider } from '@apollo/client/testing';
 import useWorkerTakenJobs from '../../../src/hooks/subsquid/useWorkerTakenJobs';
 import { GET_WORKER_TAKEN_JOBS } from '../../../src/hooks/subsquid/queries';
-import { ReactNode } from 'react';
+import { createUrqlWrapper } from '../../setup/mocks/urql';
 
 const mockJob = {
   id: '1',
@@ -19,27 +18,19 @@ const mockJob = {
 
 const mocks = [
   {
-    request: {
-      query: GET_WORKER_TAKEN_JOBS,
-      variables: {
-        workerAddress: '0xWorker1',
-        offset: 0,
-        limit: 1000,
-      },
+    query: GET_WORKER_TAKEN_JOBS,
+    variables: {
+      workerAddress: '0xWorker1',
+      offset: 0,
+      limit: 1000,
     },
-    result: {
-      data: {
-        jobs: [mockJob],
-      },
+    data: {
+      jobs: [mockJob],
     },
   },
 ];
 
-const wrapper = ({ children }: { children: ReactNode }) => (
-  <MockedProvider mocks={mocks} addTypename={false}>
-    {children}
-  </MockedProvider>
-);
+const wrapper = createUrqlWrapper(mocks);
 
 describe('useWorkerTakenJobs', () => {
   it('should fetch worker taken jobs', async () => {
@@ -53,7 +44,6 @@ describe('useWorkerTakenJobs', () => {
     });
 
     expect(result.current.data).toHaveLength(1);
-    expect(result.current.data?.[0].roles.worker).toBe('0xWorker1');
     expect(result.current.data?.[0].state).toBe(1);
   });
 

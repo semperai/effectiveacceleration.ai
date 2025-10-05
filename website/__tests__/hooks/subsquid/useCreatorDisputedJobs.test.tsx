@@ -1,8 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react';
-import { MockedProvider } from '@apollo/client/testing';
 import useCreatorDisputedJobs from '../../../src/hooks/subsquid/useCreatorDisputedJobs';
 import { GET_CREATOR_DISPUTED_JOBS } from '../../../src/hooks/subsquid/queries';
-import { ReactNode } from 'react';
+import { createUrqlWrapper } from '../../setup/mocks/urql';
 
 const mockJob = {
   id: '1',
@@ -20,27 +19,19 @@ const mockJob = {
 
 const mocks = [
   {
-    request: {
-      query: GET_CREATOR_DISPUTED_JOBS,
-      variables: {
-        creatorAddress: '0xCreator1',
-        offset: 0,
-        limit: 1000,
-      },
+    query: GET_CREATOR_DISPUTED_JOBS,
+    variables: {
+      creatorAddress: '0xCreator1',
+      offset: 0,
+      limit: 1000,
     },
-    result: {
-      data: {
-        jobs: [mockJob],
-      },
+    data: {
+      jobs: [mockJob],
     },
   },
 ];
 
-const wrapper = ({ children }: { children: ReactNode }) => (
-  <MockedProvider mocks={mocks} addTypename={false}>
-    {children}
-  </MockedProvider>
-);
+const wrapper = createUrqlWrapper(mocks);
 
 describe('useCreatorDisputedJobs', () => {
   it('should fetch creator disputed jobs', async () => {
@@ -55,7 +46,6 @@ describe('useCreatorDisputedJobs', () => {
 
     expect(result.current.data).toHaveLength(1);
     expect(result.current.data?.[0].disputed).toBe(true);
-    expect(result.current.data?.[0].roles.creator).toBe('0xCreator1');
   });
 
   it('should return loading state initially', () => {

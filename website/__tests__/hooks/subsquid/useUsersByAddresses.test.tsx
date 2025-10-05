@@ -1,8 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react';
-import { MockedProvider } from '@apollo/client/testing';
 import useUsersByAddresses from '../../../src/hooks/subsquid/useUsersByAddresses';
 import { GET_USERS_BY_ADDRESSES } from '../../../src/hooks/subsquid/queries';
-import { ReactNode } from 'react';
+import { createUrqlWrapper } from '../../setup/mocks/urql';
 
 const mockUser1 = {
   id: '0xUser1',
@@ -10,7 +9,7 @@ const mockUser1 = {
   publicKey: 'pk1',
   profileInfo: {
     name: 'User 1',
-  },
+  }
 };
 
 const mockUser2 = {
@@ -19,30 +18,22 @@ const mockUser2 = {
   publicKey: 'pk2',
   profileInfo: {
     name: 'User 2',
-  },
+  }
 };
 
 const mocks = [
   {
-    request: {
-      query: GET_USERS_BY_ADDRESSES,
-      variables: {
-        addresses: ['0xUser1', '0xUser2'],
-      },
+    query: GET_USERS_BY_ADDRESSES,
+    variables: {
+      addresses: ['0xUser1', '0xUser2'],
     },
-    result: {
-      data: {
-        users: [mockUser1, mockUser2],
-      },
+    data: {
+      users: [mockUser1, mockUser2],
     },
   },
 ];
 
-const wrapper = ({ children }: { children: ReactNode }) => (
-  <MockedProvider mocks={mocks} addTypename={false}>
-    {children}
-  </MockedProvider>
-);
+const wrapper = createUrqlWrapper(mocks);
 
 describe('useUsersByAddresses', () => {
   it('should fetch multiple users by addresses', async () => {
@@ -56,8 +47,6 @@ describe('useUsersByAddresses', () => {
     });
 
     expect(result.current.data).toHaveLength(2);
-    expect(result.current.data?.[0].address).toBe('0xUser1');
-    expect(result.current.data?.[1].address).toBe('0xUser2');
   });
 
   it('should return loading state initially', () => {

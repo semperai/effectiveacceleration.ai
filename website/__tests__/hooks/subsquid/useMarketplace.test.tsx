@@ -1,8 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react';
-import { MockedProvider } from '@apollo/client/testing';
 import useMarketplace from '../../../src/hooks/subsquid/useMarketplace';
 import { GET_MARKETPLACES } from '../../../src/hooks/subsquid/queries';
-import { ReactNode } from 'react';
+import { createUrqlWrapper } from '../../setup/mocks/urql';
 
 const mockMarketplace = {
   id: '1',
@@ -15,23 +14,15 @@ const mockMarketplace = {
 
 const mocks = [
   {
-    request: {
-      query: GET_MARKETPLACES,
-      variables: {},
-    },
-    result: {
-      data: {
-        marketplaces: [mockMarketplace],
-      },
+    query: GET_MARKETPLACES,
+    variables: {},
+    data: {
+      marketplaces: [mockMarketplace],
     },
   },
 ];
 
-const wrapper = ({ children }: { children: ReactNode }) => (
-  <MockedProvider mocks={mocks} addTypename={false}>
-    {children}
-  </MockedProvider>
-);
+const wrapper = createUrqlWrapper(mocks);
 
 describe('useMarketplace', () => {
   it('should fetch marketplace stats', async () => {
@@ -44,10 +35,7 @@ describe('useMarketplace', () => {
       expect(result.current.loading).toBe(false);
     });
 
-    expect(result.current.data).toBeDefined();
-    expect(result.current.data?.totalJobs).toBe(100);
-    expect(result.current.data?.totalUsers).toBe(50);
-    expect(result.current.data?.totalArbitrators).toBe(10);
+    expect(result.current.data).toEqual(mockMarketplace);
   });
 
   it('should return loading state initially', () => {

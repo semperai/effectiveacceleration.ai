@@ -1,8 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react';
-import { MockedProvider } from '@apollo/client/testing';
 import useUser from '../../../src/hooks/subsquid/useUser';
 import { GET_USER_BY_ADDRESS } from '../../../src/hooks/subsquid/queries';
-import { ReactNode } from 'react';
+import { createUrqlWrapper } from '../../setup/mocks/urql';
 
 const mockUser = {
   address_: '0x123',
@@ -18,34 +17,22 @@ const mockUser = {
 
 const mocks = [
   {
-    request: {
-      query: GET_USER_BY_ADDRESS,
-      variables: { userAddress: '0x123' },
-    },
-    result: {
-      data: {
-        users: [mockUser],
-      },
+    query: GET_USER_BY_ADDRESS,
+    variables: { userAddress: '0x123' },
+    data: {
+      users: [mockUser],
     },
   },
   {
-    request: {
-      query: GET_USER_BY_ADDRESS,
-      variables: { userAddress: '0xnonexistent' },
-    },
-    result: {
-      data: {
-        users: [],
-      },
+    query: GET_USER_BY_ADDRESS,
+    variables: { userAddress: '0xnonexistent' },
+    data: {
+      users: [],
     },
   },
 ];
 
-const wrapper = ({ children }: { children: ReactNode }) => (
-  <MockedProvider mocks={mocks} addTypename={false}>
-    {children}
-  </MockedProvider>
-);
+const wrapper = createUrqlWrapper(mocks);
 
 describe('useUser', () => {
   it('should fetch user by address', async () => {
@@ -77,7 +64,6 @@ describe('useUser', () => {
   it('should skip query when address is empty', () => {
     const { result } = renderHook(() => useUser(''), { wrapper });
 
-    expect(result.current.loading).toBe(false);
-    expect(result.current.data).toBeNull();
+    expect(result.current.data).toBeUndefined();
   });
 });

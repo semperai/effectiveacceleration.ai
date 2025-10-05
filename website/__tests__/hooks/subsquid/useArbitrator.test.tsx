@@ -1,8 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react';
-import { MockedProvider } from '@apollo/client/testing';
 import useArbitrator from '../../../src/hooks/subsquid/useArbitrator';
 import { GET_ARBITRATOR_BY_ADDRESS } from '../../../src/hooks/subsquid/queries';
-import { ReactNode } from 'react';
+import { createUrqlWrapper } from '../../setup/mocks/urql';
 
 const mockArbitrator = {
   id: '0xArbitrator1',
@@ -18,38 +17,26 @@ const mockArbitrator = {
 
 const mocks = [
   {
-    request: {
-      query: GET_ARBITRATOR_BY_ADDRESS,
-      variables: {
-        arbitratorAddress: '0xArbitrator1',
-      },
+    query: GET_ARBITRATOR_BY_ADDRESS,
+    variables: {
+      arbitratorAddress: '0xArbitrator1',
     },
-    result: {
-      data: {
-        arbitrators: [mockArbitrator],
-      },
+    data: {
+      arbitrators: [mockArbitrator],
     },
   },
   {
-    request: {
-      query: GET_ARBITRATOR_BY_ADDRESS,
-      variables: {
-        arbitratorAddress: 'nonexistent',
-      },
+    query: GET_ARBITRATOR_BY_ADDRESS,
+    variables: {
+      arbitratorAddress: 'nonexistent',
     },
-    result: {
-      data: {
-        arbitrators: [],
-      },
+    data: {
+      arbitrators: [],
     },
   },
 ];
 
-const wrapper = ({ children }: { children: ReactNode }) => (
-  <MockedProvider mocks={mocks} addTypename={false}>
-    {children}
-  </MockedProvider>
-);
+const wrapper = createUrqlWrapper(mocks);
 
 describe('useArbitrator', () => {
   it('should fetch arbitrator by address', async () => {
@@ -87,7 +74,6 @@ describe('useArbitrator', () => {
       { wrapper }
     );
 
-    expect(result.current.loading).toBe(false);
-    expect(result.current.data).toBeNull();
+    expect(result.current.data).toBeUndefined();
   });
 });

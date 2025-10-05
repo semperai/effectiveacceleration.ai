@@ -1,8 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react';
-import { MockedProvider } from '@apollo/client/testing';
 import useCreatorClosedJobs from '../../../src/hooks/subsquid/useCreatorClosedJobs';
 import { GET_CREATOR_CLOSED_JOBS } from '../../../src/hooks/subsquid/queries';
-import { ReactNode } from 'react';
+import { createUrqlWrapper } from '../../setup/mocks/urql';
 
 const mockJob = {
   id: '1',
@@ -19,27 +18,19 @@ const mockJob = {
 
 const mocks = [
   {
-    request: {
-      query: GET_CREATOR_CLOSED_JOBS,
-      variables: {
-        creatorAddress: '0xCreator1',
-        offset: 0,
-        limit: 1000,
-      },
+    query: GET_CREATOR_CLOSED_JOBS,
+    variables: {
+      creatorAddress: '0xCreator1',
+      offset: 0,
+      limit: 1000,
     },
-    result: {
-      data: {
-        jobs: [mockJob],
-      },
+    data: {
+      jobs: [mockJob],
     },
   },
 ];
 
-const wrapper = ({ children }: { children: ReactNode }) => (
-  <MockedProvider mocks={mocks} addTypename={false}>
-    {children}
-  </MockedProvider>
-);
+const wrapper = createUrqlWrapper(mocks);
 
 describe('useCreatorClosedJobs', () => {
   it('should fetch creator closed jobs', async () => {

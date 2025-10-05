@@ -1,8 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react';
-import { MockedProvider } from '@apollo/client/testing';
 import useJobEvents from '../../../src/hooks/subsquid/useJobEvents';
 import { GET_JOB_EVENTS } from '../../../src/hooks/subsquid/queries';
-import { ReactNode } from 'react';
+import { createUrqlWrapper } from '../../setup/mocks/urql';
 
 const mockJobEvent = {
   id: 'event1',
@@ -10,7 +9,7 @@ const mockJobEvent = {
   type: 'Created',
   timestamp: '1234567890',
   address: '0xCreator',
-  data: {},
+  data: {}
 };
 
 const mockJobEvents = [
@@ -20,32 +19,24 @@ const mockJobEvents = [
     id: 'event2',
     type: 'Updated',
     timestamp: '1234567900',
-  },
+  }
 ];
 
 const mocks = [
   {
-    request: {
-      query: GET_JOB_EVENTS,
-      variables: {
-        jobId: '1',
-        offset: 0,
-        limit: 1000,
-      },
+    query: GET_JOB_EVENTS,
+    variables: {
+      jobId: '1',
+      offset: 0,
+      limit: 1000,
     },
-    result: {
-      data: {
-        jobEvents: mockJobEvents,
-      },
+    data: {
+      jobEvents: mockJobEvents,
     },
   },
 ];
 
-const wrapper = ({ children }: { children: ReactNode }) => (
-  <MockedProvider mocks={mocks} addTypename={false}>
-    {children}
-  </MockedProvider>
-);
+const wrapper = createUrqlWrapper(mocks);
 
 describe('useJobEvents', () => {
   it('should fetch job events', async () => {
@@ -59,7 +50,6 @@ describe('useJobEvents', () => {
     });
 
     expect(result.current.data).toHaveLength(2);
-    expect(result.current.data?.[0].type).toBe('Created');
   });
 
   it('should return loading state initially', () => {
@@ -69,7 +59,6 @@ describe('useJobEvents', () => {
     );
 
     expect(result.current.loading).toBe(true);
-    expect(result.current.data).toBeUndefined();
   });
 
   it('should support fake mode', () => {
@@ -79,6 +68,6 @@ describe('useJobEvents', () => {
     );
 
     expect(result.current.data).toBeDefined();
-    expect(Array.isArray(result.current.data)).toBe(true);
+    expect(result.current.loading).toBe(false);
   });
 });

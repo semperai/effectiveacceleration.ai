@@ -2,9 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 import useJob from '../../../src/hooks/subsquid/useJob';
 import { GET_JOB_BY_ID } from '../../../src/hooks/subsquid/queries';
-import { ReactNode } from 'react';
-import { Provider as UrqlProvider } from 'urql';
-import { fromValue, never } from 'wonka';
+import { createUrqlWrapper } from '../../setup/mocks/urql';
 
 const mockJob = {
   id: '1',
@@ -45,34 +43,22 @@ const mockJob = {
 
 const mocks = [
   {
-    request: {
-      query: GET_JOB_BY_ID,
-      variables: { jobId: '1' },
-    },
-    result: {
-      data: {
-        jobs: [mockJob],
-      },
+    query: GET_JOB_BY_ID,
+    variables: { jobId: '1' },
+    data: {
+      jobs: [mockJob],
     },
   },
   {
-    request: {
-      query: GET_JOB_BY_ID,
-      variables: { jobId: 'nonexistent' },
-    },
-    result: {
-      data: {
-        jobs: [],
-      },
+    query: GET_JOB_BY_ID,
+    variables: { jobId: 'nonexistent' },
+    data: {
+      jobs: [],
     },
   },
 ];
 
-const wrapper = ({ children }: { children: ReactNode }) => (
-  <MockedProvider mocks={mocks} addTypename={false}>
-    {children}
-  </MockedProvider>
-);
+const wrapper = createUrqlWrapper(mocks);
 
 describe('useJob', () => {
   it('should fetch job by ID', async () => {
