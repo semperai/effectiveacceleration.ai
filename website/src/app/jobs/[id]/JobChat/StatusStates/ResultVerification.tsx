@@ -153,8 +153,8 @@ const ResultVerification: React.FC<ResultVerificationProps> = ({
               </div>
 
               {/* Message Content */}
-              <div className='prose prose-sm dark:prose-invert max-w-none'>
-                <Markdown className='text-gray-700 dark:text-gray-300 overflow-wrap-breakword'>
+              <div className='prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 overflow-wrap-breakword'>
+                <Markdown>
                   {displayContent || 'No message provided'}
                 </Markdown>
               </div>

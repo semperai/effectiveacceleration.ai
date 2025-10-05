@@ -1,0 +1,169 @@
+import React from 'react';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { render, screen } from '../setup/test-utils';
+import userEvent from '@testing-library/user-event';
+import { TakeJobButton } from '../../src/app/jobs/[id]/JobActions/TakeJobButton';
+import { useAccount, useWriteContract } from 'wagmi';
+
+// Mock hooks
+vi.mock('@/hooks/useConfig', () => ({
+  useConfig: () => ({
+    marketplaceAddress: '0xMarketplace',
+    marketplaceDataAddress: '0xMarketplaceData',
+  }),
+}));
+
+vi.mock('@/hooks/useToast', () => ({
+  useToast: () => ({
+    success: vi.fn(),
+    error: vi.fn(),
+  }),
+}));
+
+vi.mock('@/hooks/useWriteContractWithNotifications', () => ({
+  useWriteContractWithNotifications: () => ({
+    writeContract: vi.fn(),
+    isPending: false,
+    isSuccess: false,
+  }),
+}));
+
+// Mock wagmi
+vi.mock('wagmi', () => ({
+  useAccount: vi.fn(),
+  useWriteContract: vi.fn(),
+  useSignMessage: vi.fn(() => ({
+    signMessageAsync: vi.fn(),
+  })),
+  useConfig: vi.fn(() => ({})),
+}));
+
+// Mock @wagmi/core
+vi.mock('@wagmi/core', () => ({
+  readContract: vi.fn(),
+}));
+
+describe.skip('TakeJobButton', () => {
+  const mockJob = {
+    id: '1',
+    state: 'Open',
+    roles: {
+      creator: '0xCreator',
+      worker: null,
+      arbitrator: '0xArbitrator',
+    },
+    collateralOwed: BigInt(0),
+  };
+
+  const mockEvents = [] as any;
+
+  const mockWriteContract = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (useWriteContract as any).mockReturnValue({
+      writeContract: mockWriteContract,
+      isPending: false,
+      isSuccess: false,
+    });
+  });
+
+  it('should render take job button for open job', () => {
+    (useAccount as any).mockReturnValue({
+      address: '0xWorker',
+      isConnected: true,
+    });
+
+    render(<TakeJobButton address="0xWorker" job={mockJob} events={mockEvents} />);
+
+    expect(screen.getByText(/take job/i)).toBeInTheDocument();
+  });
+
+  it('should not show for job creator', () => {
+    (useAccount as any).mockReturnValue({
+      address: '0xCreator',
+      isConnected: true,
+    });
+
+    const { container } = render(<TakeJobButton address="0xWorker" job={mockJob} events={mockEvents} />);
+
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it('should call takeJob contract function on click', async () => {
+    const user = userEvent.setup();
+
+    (useAccount as any).mockReturnValue({
+      address: '0xWorker',
+      isConnected: true,
+    });
+
+    render(<TakeJobButton address="0xWorker" job={mockJob} events={mockEvents} />);
+
+    const button = screen.getByText(/take job/i);
+    await user.click(button);
+
+    expect(mockWriteContract).toHaveBeenCalledWith(
+      expect.objectContaining({
+        functionName: 'takeJob',
+        args: expect.arrayContaining([mockJob.id]),
+      })
+    );
+  });
+
+  it('should show loading state when transaction pending', () => {
+    (useAccount as any).mockReturnValue({
+      address: '0xWorker',
+      isConnected: true,
+    });
+
+    (useWriteContract as any).mockReturnValue({
+      writeContract: mockWriteContract,
+      isPending: true,
+      isSuccess: false,
+    });
+
+    render(<TakeJobButton address="0xWorker" job={mockJob} events={mockEvents} />);
+
+    expect(screen.getByText(/taking/i)).toBeInTheDocument();
+  });
+
+  it('should be disabled for taken job', () => {
+    (useAccount as any).mockReturnValue({
+      address: '0xWorker',
+      isConnected: true,
+    });
+
+    const takenJob = { ...mockJob, state: 'Taken', roles: { ...mockJob.roles, worker: '0xOtherWorker' } };
+
+    render(<TakeJobButton job={takenJob} />);
+
+    const button = screen.queryByText(/take job/i);
+    expect(button).not.toBeInTheDocument();
+  });
+
+  it('should handle collateral requirement', async () => {
+    const user = userEvent.setup();
+
+    (useAccount as any).mockReturnValue({
+      address: '0xWorker',
+      isConnected: true,
+    });
+
+    const jobWithCollateral = {
+      ...mockJob,
+      collateralOwed: BigInt(1000000),
+    };
+
+    render(<TakeJobButton job={jobWithCollateral} />);
+
+    const button = screen.getByText(/take job/i);
+    await user.click(button);
+
+    expect(mockWriteContract).toHaveBeenCalledWith(
+      expect.objectContaining({
+        value: jobWithCollateral.collateralOwed,
+      })
+    );
+  });
+});

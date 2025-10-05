@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useQuery } from '@apollo/client';
+import { useQuery } from 'urql';
 import { GET_ARBITRATORS_BY_ADDRESSES } from './queries';
 
 export default function useArbitratorsByAddresses(
@@ -7,24 +7,29 @@ export default function useArbitratorsByAddresses(
 ) {
   const [resultMap, setResultMap] = useState<Record<string, string>>({});
 
-  const { data, ...rest } = useQuery(GET_ARBITRATORS_BY_ADDRESSES, {
+  const [result] = useQuery({
+    query: GET_ARBITRATORS_BY_ADDRESSES,
     variables: { arbitratorAddresses: arbitratorAddresses ?? [] },
-    skip: !arbitratorAddresses?.length,
+    pause: !arbitratorAddresses?.length,
   });
 
   useEffect(() => {
-    if (data) {
+    if (result.data) {
       const results: Record<string, string> = {};
-      for (const arbitrator of data.arbitrators) {
+      for (const arbitrator of result.data.arbitrators) {
         resultMap[arbitrator.address_] = arbitrator.publicKey;
       }
 
       setResultMap((prev) => ({ ...prev, ...results }));
     }
-  }, [data]);
+  }, [result.data]);
 
   return useMemo(
-    () => ({ data: data ? resultMap : undefined, ...rest }),
-    [arbitratorAddresses, data, rest]
+    () => ({
+      data: result.data ? resultMap : undefined,
+      loading: result.fetching,
+      error: result.error
+    }),
+    [arbitratorAddresses, result, resultMap]
   );
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { unstable_cache } from 'next/cache';
-import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
+import { createServerUrqlClient } from '@/lib/urql-server';
+import { gql } from 'graphql-tag';
 import { getAddress } from 'viem';
 import ArbitratorPageClient from './ArbitratorPageClient';
 
@@ -36,29 +37,19 @@ interface Arbitrator {
   refusedCount: number;
 }
 
-// Cache the Apollo query result using unstable_cache
+// Cache the URQL query result using unstable_cache
 const getCachedArbitratorData = unstable_cache(
   async (address: string): Promise<Arbitrator | null> => {
     try {
       // Convert address to checksummed format
       const checksummedAddress = getAddress(address);
 
-      const client = new ApolloClient({
-        uri:
-          process.env.NEXT_PUBLIC_SUBSQUID_API_URL ||
-          'https://arbius.squids.live/eacc-arb-one@v1/api/graphql',
-        cache: new InMemoryCache(),
-        defaultOptions: {
-          query: {
-            fetchPolicy: 'no-cache',
-          },
-        },
-      });
+      const client = createServerUrqlClient();
 
-      const { data } = await client.query({
-        query: GET_ARBITRATOR_QUERY,
-        variables: { address: checksummedAddress },
-      });
+      const result = await client
+        .query(GET_ARBITRATOR_QUERY, { address: checksummedAddress })
+        .toPromise();
+      const data = result.data;
 
       return data?.arbitrators?.[0] || null;
     } catch (error) {
@@ -89,17 +80,15 @@ function shortenAddress(address: string): string {
 export async function generateMetadata({
   params,
 }: {
-  params: { address: string };
+  params: Promise<{ address: string }>;
 }): Promise<Metadata> {
-  const address = params.address;
-  console.log('Generating metadata for arbitrator address:', address);
+  const { address } = await params;
 
   // Handle invalid addresses gracefully
   let checksummedAddress: string;
   try {
     checksummedAddress = getAddress(address);
   } catch (error) {
-    console.log('Invalid address format:', address);
     // Return fallback metadata for invalid addresses
     return {
       title: `Invalid Address - Effective Acceleration`,
@@ -125,10 +114,6 @@ export async function generateMetadata({
   const arbitrator = await getCachedArbitratorData(checksummedAddress);
 
   if (!arbitrator) {
-    console.log(
-      'Arbitrator not found for metadata, returning fallback metadata for address:',
-      address
-    );
     const shortAddress = shortenAddress(address);
 
     return {
@@ -233,10 +218,11 @@ export async function generateMetadata({
 }
 
 // Server Component - passes the address to the client component
-export default function ArbitratorPage({
+export default async function ArbitratorPage({
   params,
 }: {
-  params: { address: string };
+  params: Promise<{ address: string }>;
 }) {
-  return <ArbitratorPageClient address={params.address} />;
+  const { address } = await params;
+  return <ArbitratorPageClient address={address} />;
 }

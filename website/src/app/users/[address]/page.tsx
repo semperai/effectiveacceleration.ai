@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { unstable_cache } from 'next/cache';
-import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
+import { createServerUrqlClient } from '@/lib/urql-server';
+import { gql } from 'graphql-tag';
 import { getAddress } from 'viem';
 import UserPageClient from './UserPageClient';
 
@@ -79,22 +80,12 @@ const getCachedUserData = unstable_cache(
       // Convert address to checksummed format
       const checksummedAddress = getAddress(address);
 
-      const client = new ApolloClient({
-        uri:
-          process.env.NEXT_PUBLIC_SUBSQUID_API_URL ||
-          'https://arbius.squids.live/eacc-arb-one@v1/api/graphql',
-        cache: new InMemoryCache(),
-        defaultOptions: {
-          query: {
-            fetchPolicy: 'no-cache',
-          },
-        },
-      });
+      const client = createServerUrqlClient();
 
-      const { data } = await client.query({
-        query: GET_USER_QUERY,
-        variables: { address: checksummedAddress },
-      });
+      const result = await client
+        .query(GET_USER_QUERY, { address: checksummedAddress })
+        .toPromise();
+      const data = result.data;
 
       return data?.users?.[0] || null;
     } catch (error) {
@@ -116,22 +107,12 @@ const getCachedUserReviews = unstable_cache(
       // Convert address to checksummed format
       const checksummedAddress = getAddress(address);
 
-      const client = new ApolloClient({
-        uri:
-          process.env.NEXT_PUBLIC_SUBSQUID_API_URL ||
-          'https://arbius.squids.live/eacc-arb-one@v1/api/graphql',
-        cache: new InMemoryCache(),
-        defaultOptions: {
-          query: {
-            fetchPolicy: 'no-cache',
-          },
-        },
-      });
+      const client = createServerUrqlClient();
 
-      const { data } = await client.query({
-        query: GET_USER_REVIEWS_QUERY,
-        variables: { address: checksummedAddress },
-      });
+      const result = await client
+        .query(GET_USER_REVIEWS_QUERY, { address: checksummedAddress })
+        .toPromise();
+      const data = result.data;
 
       return data?.reviews || [];
     } catch (error) {
@@ -170,17 +151,15 @@ function calculateSuccessRate(
 export async function generateMetadata({
   params,
 }: {
-  params: { address: string };
+  params: Promise<{ address: string }>;
 }): Promise<Metadata> {
-  const address = params.address;
-  console.log('Generating metadata for user address:', address);
+  const { address } = await params;
 
   // Handle invalid addresses gracefully
   let checksummedAddress: string;
   try {
     checksummedAddress = getAddress(address);
   } catch (error) {
-    console.log('Invalid address format:', address);
     // Return fallback metadata for invalid addresses
     return {
       title: `Invalid Address - Effective Acceleration`,
@@ -209,10 +188,6 @@ export async function generateMetadata({
   ]);
 
   if (!user) {
-    console.log(
-      'User not found for metadata, returning fallback metadata for address:',
-      address
-    );
     const shortAddress = shortenAddress(address);
 
     return {
@@ -334,6 +309,11 @@ export async function generateMetadata({
 }
 
 // Server Component - passes the address to the client component
-export default function UserPage({ params }: { params: { address: string } }) {
-  return <UserPageClient address={params.address} />;
+export default async function UserPage({
+  params,
+}: {
+  params: Promise<{ address: string }>;
+}) {
+  const { address } = await params;
+  return <UserPageClient address={address} />;
 }

@@ -7,14 +7,8 @@ import { defineChain } from 'viem';
 import { WagmiProvider } from 'wagmi';
 import { arbitrum, arbitrumSepolia, mainnet, hardhat } from 'wagmi/chains';
 
-import {
-  ApolloClient,
-  InMemoryCache,
-  ApolloProvider,
-  type NormalizedCacheObject,
-  type InMemoryCacheConfig,
-} from '@apollo/client';
-import { LocalStorageWrapper, CachePersistor } from 'apollo3-cache-persist';
+import { Provider as UrqlProvider } from 'urql';
+import { urqlClient } from '@/lib/urql-client';
 import { useEffect, useState } from 'react';
 import { useMediaDownloadHandler } from '@/hooks/useMediaDownloadHandler';
 import { useRegisterWebPushNotifications } from '@/hooks/useRegisterWebPushNotifications';
@@ -74,49 +68,6 @@ export const config = getDefaultConfig({
 
 const queryClient = new QueryClient();
 
-const bigintPolicy = {
-  read: (value: string) => BigInt(value),
-};
-
-const cacheConfig: InMemoryCacheConfig = {
-  typePolicies: {
-    Job: {
-      fields: {
-        amount: bigintPolicy,
-        collateralOwed: bigintPolicy,
-        escrowId: bigintPolicy,
-      },
-    },
-    Review: {
-      fields: {
-        jobId: bigintPolicy,
-      },
-    },
-    JobEvent: {
-      fields: {
-        jobId: bigintPolicy,
-      },
-    },
-    JobCreatedEvent: {
-      fields: {
-        amount: bigintPolicy,
-      },
-    },
-    JobUpdatedEvent: {
-      fields: {
-        amount: bigintPolicy,
-      },
-    },
-    JobArbitratedEvent: {
-      fields: {
-        creatorAmount: bigintPolicy,
-        workerAmount: bigintPolicy,
-        arbitratorAmount: bigintPolicy,
-      },
-    },
-  },
-};
-
 const Inititalizers = ({
   children,
 }: {
@@ -130,46 +81,8 @@ const Inititalizers = ({
 export function Providers({ children }: { children: React.ReactNode }) {
   useMediaDownloadHandler();
 
-  const [apolloClient, setApolloClient] =
-    useState<ApolloClient<NormalizedCacheObject>>();
-
-  useEffect(() => {
-    async function init() {
-      const cache = new InMemoryCache(cacheConfig);
-      // let newPersistor = new CachePersistor({
-      //   cache,
-      //   storage: new LocalStorageWrapper(window.sessionStorage),
-      //   debug: true,
-      //   trigger: 'write',
-      // });
-      // await newPersistor.restore();
-      setApolloClient(
-        new ApolloClient({
-          uri: process.env.NEXT_PUBLIC_SUBSQUID_API_URL,
-          cache,
-        })
-      );
-    }
-
-    init().catch(console.error);
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(
-      async () => {
-        await apolloClient?.cache.reset();
-      },
-      1000 * 60 * 1
-    );
-    return () => clearInterval(interval);
-  }, [apolloClient]);
-
-  if (!apolloClient) {
-    return null;
-  }
-
   return (
-    <ApolloProvider client={apolloClient}>
+    <UrqlProvider value={urqlClient}>
       <WagmiProvider config={config}>
         <QueryClientProvider client={queryClient}>
           <RainbowKitProvider initialChain={initialChain}>
@@ -177,6 +90,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
           </RainbowKitProvider>
         </QueryClientProvider>
       </WagmiProvider>
-    </ApolloProvider>
+    </UrqlProvider>
   );
 }

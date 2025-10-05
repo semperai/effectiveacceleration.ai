@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { unstable_cache } from 'next/cache';
-import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
+import { createServerUrqlClient } from '@/lib/urql-server';
+import { gql } from 'graphql-tag';
 import UsersListClient from './UsersListClient';
 
 // GraphQL query to fetch all users with their review ratings
@@ -49,21 +50,10 @@ interface User {
 const getCachedUsers = unstable_cache(
   async (): Promise<User[]> => {
     try {
-      const client = new ApolloClient({
-        uri:
-          process.env.NEXT_PUBLIC_SUBSQUID_API_URL ||
-          'https://arbius.squids.live/eacc-arb-one@v1/api/graphql',
-        cache: new InMemoryCache(),
-        defaultOptions: {
-          query: {
-            fetchPolicy: 'no-cache',
-          },
-        },
-      });
+      const client = createServerUrqlClient();
 
-      const { data } = await client.query({
-        query: GET_USERS_QUERY,
-      });
+      const result = await client.query(GET_USERS_QUERY, {}).toPromise();
+      const data = result.data;
 
       return data?.users || [];
     } catch (error) {

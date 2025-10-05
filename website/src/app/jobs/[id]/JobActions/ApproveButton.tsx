@@ -6,10 +6,10 @@ import type { Job } from '@effectiveacceleration/contracts';
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { Dialog, Transition } from '@headlessui/react';
 import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { Rating } from '@mui/material';
 import {
   PiCheckCircle,
   PiStar,
+  PiStarFill,
   PiSparkle,
   PiChatCircle,
   PiWarning,
@@ -203,25 +203,45 @@ export function ApproveButton({
                         {/* Rating Component with custom styling */}
                         <div className='flex flex-col items-center gap-3'>
                           <div className='rounded-xl border border-gray-200 bg-gradient-to-br from-gray-50 to-gray-100 p-4 dark:border-gray-700 dark:from-gray-800/50 dark:to-gray-900/50'>
-                            <Rating
-                              name='service-rating'
-                              value={rating}
-                              size='large'
-                              onChange={(event, newValue) => {
-                                setRating(newValue || 0);
-                              }}
-                              sx={{
-                                '& .MuiRating-iconFilled': {
-                                  color: '#fbbf24',
-                                },
-                                '& .MuiRating-iconHover': {
-                                  color: '#f59e0b',
-                                },
-                                '& .MuiRating-icon': {
-                                  fontSize: '2rem',
-                                },
-                              }}
-                            />
+                            <div className='flex gap-2'>
+                              {[1, 2, 3, 4, 5].map((value) => (
+                                <button
+                                  key={value}
+                                  type='button'
+                                  onClick={() => setRating(value)}
+                                  onMouseEnter={(e) => {
+                                    const stars = e.currentTarget.parentElement?.querySelectorAll('button');
+                                    stars?.forEach((star, idx) => {
+                                      const icon = star.querySelector('svg');
+                                      if (idx < value && icon) {
+                                        icon.classList.add('text-amber-500');
+                                        icon.classList.remove('text-gray-300');
+                                      }
+                                    });
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    const stars = e.currentTarget.parentElement?.querySelectorAll('button');
+                                    stars?.forEach((star, idx) => {
+                                      const icon = star.querySelector('svg');
+                                      if (idx < rating && icon) {
+                                        icon.classList.add('text-amber-400');
+                                        icon.classList.remove('text-gray-300', 'text-amber-500');
+                                      } else if (icon) {
+                                        icon.classList.add('text-gray-300');
+                                        icon.classList.remove('text-amber-400', 'text-amber-500');
+                                      }
+                                    });
+                                  }}
+                                  className='transition-transform hover:scale-110'
+                                >
+                                  {value <= rating ? (
+                                    <PiStarFill className='h-8 w-8 text-amber-400' />
+                                  ) : (
+                                    <PiStar className='h-8 w-8 text-gray-300 dark:text-gray-600' />
+                                  )}
+                                </button>
+                              ))}
+                            </div>
                           </div>
 
                           {/* Rating feedback */}

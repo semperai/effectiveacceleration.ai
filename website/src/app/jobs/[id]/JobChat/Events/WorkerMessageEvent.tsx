@@ -143,8 +143,8 @@ const WorkerMessageEvent: React.FC<WorkerMessageEventProps> = ({
           </div>
 
           {/* Message Content */}
-          <div className='prose prose-sm dark:prose-invert max-w-none'>
-            <Markdown className='text-sm text-gray-700 sm:text-base dark:text-gray-300 overflow-wrap-breakword'>
+          <div className='prose prose-sm dark:prose-invert max-w-none text-sm text-gray-700 sm:text-base dark:text-gray-300 overflow-wrap-breakword'>
+            <Markdown>
               {displayContent || 'No message content'}
             </Markdown>
           </div>

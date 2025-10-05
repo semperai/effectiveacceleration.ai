@@ -286,7 +286,7 @@ export function UpdateButton({
 
     let hasErrors = false;
     const errorFields: Array<{
-      ref: React.RefObject<HTMLDivElement>;
+      ref: React.RefObject<HTMLDivElement | null>;
       setter: (msg: string) => void;
       message: string;
     }> = [];

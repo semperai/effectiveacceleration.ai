@@ -11,11 +11,7 @@ const withSerwist = withSerwistInit({
 const nextConfig = {
   reactStrictMode: true,
   pageExtensions: ['js', 'jsx', 'ts', 'tsx'],
-
-  // Add experimental instrumentation hook for new Sentry setup
-  experimental: {
-    instrumentationHook: true,
-  },
+  transpilePackages: ['@effectiveacceleration/contracts'],
 
   webpack: (config) => {
     config.externals.push('pino-pretty', 'lokijs', 'encoding');

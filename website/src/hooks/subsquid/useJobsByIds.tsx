@@ -1,16 +1,21 @@
 import type { Job } from '@effectiveacceleration/contracts';
 import { useMemo } from 'react';
-import { useQuery } from '@apollo/client';
+import { useQuery } from 'urql';
 import { GET_JOBS_BY_IDS } from './queries';
 
 export default function useJobsByIds(jobIds: string[]) {
-  const { data, ...rest } = useQuery(GET_JOBS_BY_IDS, {
+  const [result] = useQuery({
+    query: GET_JOBS_BY_IDS,
     variables: { jobIds: jobIds ?? [] },
-    skip: !jobIds?.length,
+    pause: !jobIds?.length,
   });
 
   return useMemo(
-    () => ({ data: data ? (data?.jobs as Job[]) : undefined, ...rest }),
-    [jobIds, data, rest]
+    () => ({
+      data: result.data ? (result.data?.jobs as Job[]) : undefined,
+      loading: result.fetching,
+      error: result.error
+    }),
+    [jobIds, result]
   );
 }

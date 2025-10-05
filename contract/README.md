@@ -41,7 +41,7 @@ You can find more tasks in the `./tasks/index.ts` file.
 To run the project locally, you need to install the dependencies:
 
 ```bash
-yarn install
+npm install
 npx hardhat node
 npx hardhat --network localhost run scripts/000-deploy-marketplace.ts
 ```

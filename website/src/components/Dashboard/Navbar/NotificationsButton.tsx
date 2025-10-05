@@ -13,7 +13,7 @@ export const NotificationsButton = () => {
   const { address } = useAccount();
 
   const [limit, setLimit] = useState(20);
-  const { data: notifications, refetch } = useUserNotifications(
+  const { data: notifications } = useUserNotifications(
     address ?? '',
     undefined,
     0,

@@ -1,6 +1,6 @@
 import type { Review as ContractReview } from '@effectiveacceleration/contracts';
 import { useMemo } from 'react';
-import { useQuery } from '@apollo/client';
+import { useQuery } from 'urql';
 import { GET_REVIEWS } from './queries';
 
 // Extend the base Review type with id field from GraphQL
@@ -14,17 +14,18 @@ export default function useReviews(
   offset: number = 0,
   limit: number = 100
 ) {
-  const { data, ...rest } = useQuery(GET_REVIEWS, {
+  const [result] = useQuery({
+    query: GET_REVIEWS,
     variables: {
       targetAddress: targetAddress ?? '',
       offset,
       limit,
     },
-    skip: !targetAddress,
+    pause: !targetAddress,
   });
 
   return useMemo(() => {
-    const reviews = data ? (data.reviews as ExtendedReview[]) : undefined;
+    const reviews = result.data ? (result.data.reviews as ExtendedReview[]) : undefined;
 
     // Compute review statistics
     const stats = (() => {
@@ -65,8 +66,9 @@ export default function useReviews(
 
     return {
       data: reviews,
-      ...rest,
+      loading: result.fetching,
+      error: result.error,
       ...stats,
     };
-  }, [targetAddress, offset, limit, data, rest]);
+  }, [targetAddress, offset, limit, result]);
 }

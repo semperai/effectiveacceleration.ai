@@ -13,7 +13,7 @@ const fetchAvatar = async ({
     sessionKey as any
   );
 
-  const blob = new Blob([mediaBytes], { type: mimeType });
+  const blob = new Blob([mediaBytes.buffer as ArrayBuffer], { type: mimeType });
   return URL.createObjectURL(blob);
 };
 

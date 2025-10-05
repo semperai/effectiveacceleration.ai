@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { unstable_cache } from 'next/cache';
-import { ApolloClient, InMemoryCache, gql } from '@apollo/client';
+import { createServerUrqlClient } from '@/lib/urql-server';
+import { gql } from 'graphql-tag';
 import type { Job } from '@effectiveacceleration/contracts';
 import JobPageClient from './JobPageClient';
 
@@ -42,27 +43,17 @@ const GET_JOB_BY_ID_QUERY = gql`
   }
 `;
 
-// Cache the Apollo query result using unstable_cache
+// Cache the URQL query result using unstable_cache
 const getCachedJobData = unstable_cache(
   async (jobId: string): Promise<Job | null> => {
     try {
       // Create a new client instance for each request to avoid caching issues
-      const client = new ApolloClient({
-        uri:
-          process.env.NEXT_PUBLIC_SUBSQUID_API_URL ||
-          'https://arbius.squids.live/eacc-arb-one@v1/api/graphql',
-        cache: new InMemoryCache(),
-        defaultOptions: {
-          query: {
-            fetchPolicy: 'no-cache',
-          },
-        },
-      });
+      const client = createServerUrqlClient();
 
-      const { data } = await client.query({
-        query: GET_JOB_BY_ID_QUERY,
-        variables: { jobId },
-      });
+      const result = await client
+        .query(GET_JOB_BY_ID_QUERY, { jobId })
+        .toPromise();
+      const data = result.data;
 
       return data?.jobs?.[0] || null;
     } catch (error) {
@@ -101,19 +92,14 @@ function getJobStateText(state: number): string {
 export async function generateMetadata({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }): Promise<Metadata> {
-  const jobId = params.id;
-  console.log('Generating metadata for job ID:', jobId);
+  const { id: jobId } = await params;
 
   // Fetch job data using cached version
   const job = await getCachedJobData(jobId);
 
   if (!job) {
-    console.log(
-      'Job not found for metadata, returning fallback metadata for job ID:',
-      jobId
-    );
     // Return fallback metadata with job ID
     return {
       title: `Job #${jobId} - Effective Acceleration`,
@@ -203,6 +189,11 @@ export async function generateMetadata({
 }
 
 // Server Component - just passes the ID to the client component
-export default function JobPage({ params }: { params: { id: string } }) {
-  return <JobPageClient id={params.id} />;
+export default async function JobPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  return <JobPageClient id={id} />;
 }
