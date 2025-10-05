@@ -1,4 +1,5 @@
 import React from 'react';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Button } from '../../src/components/Button';
@@ -10,7 +11,7 @@ describe('Button Component', () => {
   });
 
   it('should handle onClick event', async () => {
-    const handleClick = jest.fn();
+    const handleClick = vi.fn();
     const user = userEvent.setup();
 
     render(<Button onClick={handleClick}>Click me</Button>);
@@ -27,7 +28,7 @@ describe('Button Component', () => {
   });
 
   it('should not trigger onClick when disabled', async () => {
-    const handleClick = jest.fn();
+    const handleClick = vi.fn();
     const user = userEvent.setup();
 
     render(<Button disabled onClick={handleClick}>Disabled</Button>);

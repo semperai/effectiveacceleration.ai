@@ -1,4 +1,5 @@
 import { JobEventType } from '@effectiveacceleration/contracts';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import {
   cn,
   formatDate,
@@ -149,15 +150,15 @@ describe('EventTextMap', () => {
 
 describe('isImageValid', () => {
   beforeEach(() => {
-    global.fetch = jest.fn();
+    global.fetch = vi.fn();
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('should return true for valid image URL', async () => {
-    (global.fetch as jest.Mock).mockResolvedValue({ ok: true });
+    (global.fetch as any).mockResolvedValue({ ok: true });
     const result = await isImageValid('https://example.com/image.jpg');
     expect(result).toBe(true);
     expect(global.fetch).toHaveBeenCalledWith(
@@ -167,14 +168,14 @@ describe('isImageValid', () => {
   });
 
   it('should return false for invalid image URL', async () => {
-    (global.fetch as jest.Mock).mockResolvedValue({ ok: false });
+    (global.fetch as any).mockResolvedValue({ ok: false });
     const result = await isImageValid('https://example.com/notfound.jpg');
     expect(result).toBe(false);
   });
 
   it('should return false on fetch error', async () => {
-    (global.fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+    (global.fetch as any).mockRejectedValue(new Error('Network error'));
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation();
     const result = await isImageValid('https://example.com/error.jpg');
     expect(result).toBe(false);
     consoleSpy.mockRestore();
@@ -200,14 +201,14 @@ describe('shortenText', () => {
   });
 
   it('should handle undefined text', () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation();
     expect(shortenText({ text: undefined, maxLength: 10 })).toBe('');
     expect(consoleSpy).toHaveBeenCalledWith('No text provided');
     consoleSpy.mockRestore();
   });
 
   it('should handle empty string', () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation();
     expect(shortenText({ text: '', maxLength: 10 })).toBe('');
     consoleSpy.mockRestore();
   });

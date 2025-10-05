@@ -1,10 +1,11 @@
 import { GET } from '../../src/app/api/circulating_supply/route';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { NextResponse } from 'next/server';
 
 // Mock Next.js Response
-jest.mock('next/server', () => ({
+vi.mock('next/server', () => ({
   NextResponse: {
-    json: jest.fn((data, options) => ({
+    json: vi.fn((data, options) => ({
       json: async () => data,
       status: options?.status || 200,
     })),
@@ -12,18 +13,30 @@ jest.mock('next/server', () => ({
 }));
 
 // Mock ethers
-jest.mock('ethers', () => ({
-  Contract: jest.fn().mockImplementation(() => ({
-    balanceOf: jest.fn().mockResolvedValue(BigInt('1000000000000000000000')), // 1000 tokens
-    totalSupply: jest.fn().mockResolvedValue(BigInt('10000000000000000000000')), // 10000 tokens
+vi.mock('ethers', () => ({
+  ethers: {
+    Contract: vi.fn().mockImplementation(() => ({
+      balanceOf: vi.fn().mockResolvedValue(BigInt('1000000000000000000000')),
+      totalSupply: vi.fn().mockResolvedValue(BigInt('10000000000000000000000')),
+    })),
+    JsonRpcProvider: vi.fn(),
+    formatUnits: vi.fn((value) => (Number(value) / 1e18).toString()),
+    formatEther: vi.fn((value) => (Number(value) / 1e18).toString()),
+    parseEther: vi.fn((value) => BigInt(value) * BigInt(10 ** 18)),
+  },
+  Contract: vi.fn().mockImplementation(() => ({
+    balanceOf: vi.fn().mockResolvedValue(BigInt('1000000000000000000000')),
+    totalSupply: vi.fn().mockResolvedValue(BigInt('10000000000000000000000')),
   })),
-  JsonRpcProvider: jest.fn(),
-  formatUnits: jest.fn((value) => (Number(value) / 1e18).toString()),
+  JsonRpcProvider: vi.fn(),
+  formatUnits: vi.fn((value) => (Number(value) / 1e18).toString()),
+  formatEther: vi.fn((value) => (Number(value) / 1e18).toString()),
+  parseEther: vi.fn((value) => BigInt(value) * BigInt(10 ** 18)),
 }));
 
 describe('/api/circulating_supply', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should return circulating supply', async () => {
@@ -57,7 +70,7 @@ describe('/api/circulating_supply', () => {
     // Mock contract error
     const { Contract } = require('ethers');
     Contract.mockImplementationOnce(() => ({
-      totalSupply: jest.fn().mockRejectedValue(new Error('RPC Error')),
+      totalSupply: vi.fn().mockRejectedValue(new Error('RPC Error')),
     }));
 
     const response = await GET();

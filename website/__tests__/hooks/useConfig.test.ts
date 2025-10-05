@@ -1,15 +1,16 @@
 import { renderHook } from '@testing-library/react';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { useConfig } from '../../src/hooks/useConfig';
 import { useWalletClient } from 'wagmi';
 
 // Mock wagmi hooks
-jest.mock('wagmi', () => ({
-  useWalletClient: jest.fn(),
+vi.mock('wagmi', () => ({
+  useWalletClient: vi.fn(),
 }));
 
 // Mock contracts
-jest.mock('@effectiveacceleration/contracts', () => ({
-  Config: jest.fn((chainName: string) => {
+vi.mock('@effectiveacceleration/contracts', () => ({
+  Config: vi.fn((chainName: string) => {
     if (chainName === 'Mainnet' || chainName === 'Ethereum') {
       return {
         marketplaceAddress: '0xMainnetMarketplace',
@@ -27,11 +28,11 @@ jest.mock('@effectiveacceleration/contracts', () => ({
 
 describe('useConfig', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should return config for connected wallet on mainnet', () => {
-    (useWalletClient as jest.Mock).mockReturnValue({
+    (useWalletClient as any).mockReturnValue({
       data: {
         chain: { name: 'Mainnet' },
       },
@@ -44,7 +45,7 @@ describe('useConfig', () => {
   });
 
   it('should return config for connected wallet on Arbitrum', () => {
-    (useWalletClient as jest.Mock).mockReturnValue({
+    (useWalletClient as any).mockReturnValue({
       data: {
         chain: { name: 'Arbitrum One' },
       },
@@ -57,7 +58,7 @@ describe('useConfig', () => {
   });
 
   it('should return default config when wallet not connected', () => {
-    (useWalletClient as jest.Mock).mockReturnValue({
+    (useWalletClient as any).mockReturnValue({
       data: undefined,
     });
 
@@ -67,7 +68,7 @@ describe('useConfig', () => {
   });
 
   it('should update config when chain changes', () => {
-    const mockUseWalletClient = useWalletClient as jest.Mock;
+    const mockUseWalletClient = useWalletClient as any;
     mockUseWalletClient.mockReturnValue({
       data: {
         chain: { name: 'Mainnet' },

@@ -1,10 +1,11 @@
 import React from 'react';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '../setup/test-utils';
-import JobsList from '../../src/components/Dashboard/JobsList';
+import JobsList from '../../src/components/Dashboard/JobsList/JobsList';
 import { useJobs } from '@/hooks/subsquid/useJobs';
 
 // Mock hooks
-jest.mock('@/hooks/subsquid/useJobs');
+vi.mock('@/hooks/subsquid/useJobs');
 
 describe('JobsList Component', () => {
   const mockJobs = [
@@ -27,11 +28,11 @@ describe('JobsList Component', () => {
   ];
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should render list of jobs', () => {
-    (useJobs as jest.Mock).mockReturnValue({
+    (useJobs as any).mockReturnValue({
       data: { jobs: mockJobs },
       loading: false,
       error: null,
@@ -44,7 +45,7 @@ describe('JobsList Component', () => {
   });
 
   it('should show loading skeleton', () => {
-    (useJobs as jest.Mock).mockReturnValue({
+    (useJobs as any).mockReturnValue({
       data: null,
       loading: true,
       error: null,
@@ -56,7 +57,7 @@ describe('JobsList Component', () => {
   });
 
   it('should show empty state when no jobs', () => {
-    (useJobs as jest.Mock).mockReturnValue({
+    (useJobs as any).mockReturnValue({
       data: { jobs: [] },
       loading: false,
       error: null,
@@ -68,7 +69,7 @@ describe('JobsList Component', () => {
   });
 
   it('should show error state', () => {
-    (useJobs as jest.Mock).mockReturnValue({
+    (useJobs as any).mockReturnValue({
       data: null,
       loading: false,
       error: new Error('Failed to fetch jobs'),
@@ -80,7 +81,7 @@ describe('JobsList Component', () => {
   });
 
   it('should display job status badges', () => {
-    (useJobs as jest.Mock).mockReturnValue({
+    (useJobs as any).mockReturnValue({
       data: { jobs: mockJobs },
       loading: false,
       error: null,
@@ -93,7 +94,7 @@ describe('JobsList Component', () => {
   });
 
   it('should format job amounts correctly', () => {
-    (useJobs as jest.Mock).mockReturnValue({
+    (useJobs as any).mockReturnValue({
       data: { jobs: mockJobs },
       loading: false,
       error: null,
@@ -106,12 +107,12 @@ describe('JobsList Component', () => {
   });
 
   it('should handle job click navigation', async () => {
-    const mockPush = jest.fn();
-    jest.spyOn(require('next/navigation'), 'useRouter').mockReturnValue({
+    const mockPush = vi.fn();
+    vi.spyOn(require('next/navigation'), 'useRouter').mockReturnValue({
       push: mockPush,
     });
 
-    (useJobs as jest.Mock).mockReturnValue({
+    (useJobs as any).mockReturnValue({
       data: { jobs: mockJobs },
       loading: false,
       error: null,

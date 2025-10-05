@@ -1,17 +1,31 @@
 import { GET } from '../../src/app/api/total_supply/route';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 // Mock ethers
-jest.mock('ethers', () => ({
-  Contract: jest.fn().mockImplementation(() => ({
-    totalSupply: jest.fn().mockResolvedValue(BigInt('10000000000000000000000')), // 10000 tokens with 18 decimals
+vi.mock('ethers', () => ({
+  ethers: {
+    Contract: vi.fn().mockImplementation(() => ({
+      totalSupply: vi.fn().mockResolvedValue(BigInt('10000000000000000000000')),
+      balanceOf: vi.fn().mockResolvedValue(BigInt('1000000000000000000000')),
+    })),
+    JsonRpcProvider: vi.fn(),
+    formatUnits: vi.fn((value) => (Number(value) / 1e18).toString()),
+    formatEther: vi.fn((value) => (Number(value) / 1e18).toString()),
+    parseEther: vi.fn((value) => BigInt(value) * BigInt(10 ** 18)),
+  },
+  Contract: vi.fn().mockImplementation(() => ({
+    totalSupply: vi.fn().mockResolvedValue(BigInt('10000000000000000000000')),
+    balanceOf: vi.fn().mockResolvedValue(BigInt('1000000000000000000000')),
   })),
-  JsonRpcProvider: jest.fn(),
-  formatUnits: jest.fn((value) => (Number(value) / 1e18).toString()),
+  JsonRpcProvider: vi.fn(),
+  formatUnits: vi.fn((value) => (Number(value) / 1e18).toString()),
+  formatEther: vi.fn((value) => (Number(value) / 1e18).toString()),
+  parseEther: vi.fn((value) => BigInt(value) * BigInt(10 ** 18)),
 }));
 
 describe('/api/total_supply', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should return total supply', async () => {
@@ -44,7 +58,7 @@ describe('/api/total_supply', () => {
   it('should handle RPC errors', async () => {
     const { Contract } = require('ethers');
     Contract.mockImplementationOnce(() => ({
-      totalSupply: jest.fn().mockRejectedValue(new Error('Network error')),
+      totalSupply: vi.fn().mockRejectedValue(new Error('Network error')),
     }));
 
     const response = await GET();

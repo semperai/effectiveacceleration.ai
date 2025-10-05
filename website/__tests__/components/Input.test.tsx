@@ -1,4 +1,5 @@
 import React from 'react';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Input } from '../../src/components/Input';
@@ -58,7 +59,7 @@ describe('Input Component', () => {
   });
 
   it('should handle onChange event', async () => {
-    const handleChange = jest.fn();
+    const handleChange = vi.fn();
     const user = userEvent.setup();
 
     render(<Input onChange={handleChange} placeholder="Test" />);

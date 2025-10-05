@@ -1,17 +1,18 @@
 import React from 'react';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@/__tests__/setup/test-utils';
 import userEvent from '@testing-library/user-event';
 import PostJobPage from '../../src/app/post-job/page';
 import { useAccount } from 'wagmi';
 
 // Mock wagmi
-jest.mock('wagmi', () => ({
-  ...jest.requireActual('wagmi'),
-  useAccount: jest.fn(),
+vi.mock('wagmi', () => ({
+  ...vi.importActual('wagmi'),
+  useAccount: vi.fn(),
 }));
 
 // Mock hooks
-jest.mock('@/hooks/useConfig', () => ({
+vi.mock('@/hooks/useConfig', () => ({
   useConfig: () => ({
     marketplaceAddress: '0xMarketplace',
     marketplaceDataAddress: '0xMarketplaceData',
@@ -20,8 +21,8 @@ jest.mock('@/hooks/useConfig', () => ({
 
 describe('PostJobPage Component', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    (useAccount as jest.Mock).mockReturnValue({
+    vi.clearAllMocks();
+    (useAccount as any).mockReturnValue({
       address: '0x123',
       isConnected: true,
     });
@@ -97,7 +98,7 @@ describe('PostJobPage Component', () => {
   });
 
   it('should redirect to connect wallet if not connected', () => {
-    (useAccount as jest.Mock).mockReturnValue({
+    (useAccount as any).mockReturnValue({
       address: undefined,
       isConnected: false,
     });

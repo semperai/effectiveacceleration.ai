@@ -1,13 +1,14 @@
 import React from 'react';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '../setup/test-utils';
 import userEvent from '@testing-library/user-event';
 import TakeJobButton from '../../src/app/jobs/[id]/JobActions/TakeJobButton';
 import { useAccount, useWriteContract } from 'wagmi';
 
 // Mock wagmi
-jest.mock('wagmi', () => ({
-  useAccount: jest.fn(),
-  useWriteContract: jest.fn(),
+vi.mock('wagmi', () => ({
+  useAccount: vi.fn(),
+  useWriteContract: vi.fn(),
 }));
 
 describe('TakeJobButton', () => {
@@ -22,11 +23,11 @@ describe('TakeJobButton', () => {
     collateralOwed: BigInt(0),
   };
 
-  const mockWriteContract = jest.fn();
+  const mockWriteContract = vi.fn();
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    (useWriteContract as jest.Mock).mockReturnValue({
+    vi.clearAllMocks();
+    (useWriteContract as any).mockReturnValue({
       writeContract: mockWriteContract,
       isPending: false,
       isSuccess: false,
@@ -34,7 +35,7 @@ describe('TakeJobButton', () => {
   });
 
   it('should render take job button for open job', () => {
-    (useAccount as jest.Mock).mockReturnValue({
+    (useAccount as any).mockReturnValue({
       address: '0xWorker',
       isConnected: true,
     });
@@ -45,7 +46,7 @@ describe('TakeJobButton', () => {
   });
 
   it('should not show for job creator', () => {
-    (useAccount as jest.Mock).mockReturnValue({
+    (useAccount as any).mockReturnValue({
       address: '0xCreator',
       isConnected: true,
     });
@@ -58,7 +59,7 @@ describe('TakeJobButton', () => {
   it('should call takeJob contract function on click', async () => {
     const user = userEvent.setup();
 
-    (useAccount as jest.Mock).mockReturnValue({
+    (useAccount as any).mockReturnValue({
       address: '0xWorker',
       isConnected: true,
     });
@@ -77,12 +78,12 @@ describe('TakeJobButton', () => {
   });
 
   it('should show loading state when transaction pending', () => {
-    (useAccount as jest.Mock).mockReturnValue({
+    (useAccount as any).mockReturnValue({
       address: '0xWorker',
       isConnected: true,
     });
 
-    (useWriteContract as jest.Mock).mockReturnValue({
+    (useWriteContract as any).mockReturnValue({
       writeContract: mockWriteContract,
       isPending: true,
       isSuccess: false,
@@ -94,7 +95,7 @@ describe('TakeJobButton', () => {
   });
 
   it('should be disabled for taken job', () => {
-    (useAccount as jest.Mock).mockReturnValue({
+    (useAccount as any).mockReturnValue({
       address: '0xWorker',
       isConnected: true,
     });
@@ -110,7 +111,7 @@ describe('TakeJobButton', () => {
   it('should handle collateral requirement', async () => {
     const user = userEvent.setup();
 
-    (useAccount as jest.Mock).mockReturnValue({
+    (useAccount as any).mockReturnValue({
       address: '0xWorker',
       isConnected: true,
     });

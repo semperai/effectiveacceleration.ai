@@ -1,20 +1,21 @@
 import { renderHook, act } from '@testing-library/react';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { useToast } from '../../src/hooks/useToast';
 import { toast } from 'sonner';
 
 // Mock sonner
-jest.mock('sonner', () => ({
+vi.mock('sonner', () => ({
   toast: {
-    error: jest.fn(),
-    warning: jest.fn(),
-    success: jest.fn(),
-    loading: jest.fn(),
+    error: vi.fn(),
+    warning: vi.fn(),
+    success: vi.fn(),
+    loading: vi.fn(),
   },
 }));
 
 describe('useToast', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should provide toast functions', () => {

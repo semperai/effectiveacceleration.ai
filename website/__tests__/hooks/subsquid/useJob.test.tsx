@@ -1,8 +1,10 @@
 import { renderHook, waitFor } from '@testing-library/react';
-import { MockedProvider } from '@apollo/client/testing';
+import { vi } from 'vitest';
 import useJob from '../../../src/hooks/subsquid/useJob';
 import { GET_JOB_BY_ID } from '../../../src/hooks/subsquid/queries';
 import { ReactNode } from 'react';
+import { Provider as UrqlProvider } from 'urql';
+import { fromValue, never } from 'wonka';
 
 const mockJob = {
   id: '1',

@@ -1,10 +1,11 @@
 import { renderHook } from '@testing-library/react';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import useDimensions from '../../src/hooks/useDimensions';
 import { useRef } from 'react';
 
 describe('useDimensions', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should return initial dimensions of 0x0', () => {
@@ -47,7 +48,7 @@ describe('useDimensions', () => {
   });
 
   it('should subscribe to window resize events', () => {
-    const addEventListenerSpy = jest.spyOn(window, 'addEventListener');
+    const addEventListenerSpy = vi.spyOn(window, 'addEventListener');
 
     renderHook(() => {
       const ref = useRef<HTMLDivElement>(null);
@@ -64,7 +65,7 @@ describe('useDimensions', () => {
   });
 
   it('should cleanup on unmount', () => {
-    const removeEventListenerSpy = jest.spyOn(window, 'removeEventListener');
+    const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
 
     const { unmount } = renderHook(() => {
       const ref = useRef<HTMLDivElement>(null);

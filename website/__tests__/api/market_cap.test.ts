@@ -1,22 +1,35 @@
 import { GET } from '../../src/app/api/market_cap/route';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 // Mock fetch for price data
-global.fetch = jest.fn();
+global.fetch = vi.fn();
 
 // Mock ethers for supply data
-jest.mock('ethers', () => ({
-  Contract: jest.fn().mockImplementation(() => ({
-    totalSupply: jest.fn().mockResolvedValue(BigInt('10000000000000000000000')),
-    balanceOf: jest.fn().mockResolvedValue(BigInt('1000000000000000000000')),
+vi.mock('ethers', () => ({
+  ethers: {
+    Contract: vi.fn().mockImplementation(() => ({
+      totalSupply: vi.fn().mockResolvedValue(BigInt('10000000000000000000000')),
+      balanceOf: vi.fn().mockResolvedValue(BigInt('1000000000000000000000')),
+    })),
+    JsonRpcProvider: vi.fn(),
+    formatUnits: vi.fn((value) => (Number(value) / 1e18).toString()),
+    formatEther: vi.fn((value) => (Number(value) / 1e18).toString()),
+    parseEther: vi.fn((value) => BigInt(value) * BigInt(10 ** 18)),
+  },
+  Contract: vi.fn().mockImplementation(() => ({
+    totalSupply: vi.fn().mockResolvedValue(BigInt('10000000000000000000000')),
+    balanceOf: vi.fn().mockResolvedValue(BigInt('1000000000000000000000')),
   })),
-  JsonRpcProvider: jest.fn(),
-  formatUnits: jest.fn((value) => (Number(value) / 1e18).toString()),
+  JsonRpcProvider: vi.fn(),
+  formatUnits: vi.fn((value) => (Number(value) / 1e18).toString()),
+  formatEther: vi.fn((value) => (Number(value) / 1e18).toString()),
+  parseEther: vi.fn((value) => BigInt(value) * BigInt(10 ** 18)),
 }));
 
 describe('/api/market_cap', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    (global.fetch as jest.Mock).mockResolvedValue({
+    vi.clearAllMocks();
+    (global.fetch as any).mockResolvedValue({
       ok: true,
       json: async () => ({
         'effectiveaccelerationai-token': {
@@ -52,7 +65,7 @@ describe('/api/market_cap', () => {
   });
 
   it('should handle price fetch errors', async () => {
-    (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('API Error'));
+    (global.fetch as any).mockRejectedValueOnce(new Error('API Error'));
 
     const response = await GET();
 
@@ -71,7 +84,7 @@ describe('/api/market_cap', () => {
   });
 
   it('should handle zero price', async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
+    (global.fetch as any).mockResolvedValueOnce({
       ok: true,
       json: async () => ({
         'effectiveaccelerationai-token': {

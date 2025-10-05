@@ -1,13 +1,14 @@
 import React from 'react';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '../setup/test-utils';
 import userEvent from '@testing-library/user-event';
 import DeliverResultButton from '../../src/app/jobs/[id]/JobActions/DeliverResultButton';
 import { useAccount, useWriteContract } from 'wagmi';
 
 // Mock wagmi
-jest.mock('wagmi', () => ({
-  useAccount: jest.fn(),
-  useWriteContract: jest.fn(),
+vi.mock('wagmi', () => ({
+  useAccount: vi.fn(),
+  useWriteContract: vi.fn(),
 }));
 
 describe('DeliverResultButton', () => {
@@ -21,11 +22,11 @@ describe('DeliverResultButton', () => {
     },
   };
 
-  const mockWriteContract = jest.fn();
+  const mockWriteContract = vi.fn();
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    (useWriteContract as jest.Mock).mockReturnValue({
+    vi.clearAllMocks();
+    (useWriteContract as any).mockReturnValue({
       writeContract: mockWriteContract,
       isPending: false,
       isSuccess: false,
@@ -33,7 +34,7 @@ describe('DeliverResultButton', () => {
   });
 
   it('should render deliver button for assigned worker', () => {
-    (useAccount as jest.Mock).mockReturnValue({
+    (useAccount as any).mockReturnValue({
       address: '0xWorker',
       isConnected: true,
     });
@@ -44,7 +45,7 @@ describe('DeliverResultButton', () => {
   });
 
   it('should not show for non-worker', () => {
-    (useAccount as jest.Mock).mockReturnValue({
+    (useAccount as any).mockReturnValue({
       address: '0xCreator',
       isConnected: true,
     });
@@ -57,7 +58,7 @@ describe('DeliverResultButton', () => {
   it('should show result input dialog on click', async () => {
     const user = userEvent.setup();
 
-    (useAccount as jest.Mock).mockReturnValue({
+    (useAccount as any).mockReturnValue({
       address: '0xWorker',
       isConnected: true,
     });
@@ -73,7 +74,7 @@ describe('DeliverResultButton', () => {
   it('should submit result with IPFS hash', async () => {
     const user = userEvent.setup();
 
-    (useAccount as jest.Mock).mockReturnValue({
+    (useAccount as any).mockReturnValue({
       address: '0xWorker',
       isConnected: true,
     });
@@ -104,7 +105,7 @@ describe('DeliverResultButton', () => {
   it('should validate result input', async () => {
     const user = userEvent.setup();
 
-    (useAccount as jest.Mock).mockReturnValue({
+    (useAccount as any).mockReturnValue({
       address: '0xWorker',
       isConnected: true,
     });
@@ -121,7 +122,7 @@ describe('DeliverResultButton', () => {
   });
 
   it('should only be available for taken jobs', () => {
-    (useAccount as jest.Mock).mockReturnValue({
+    (useAccount as any).mockReturnValue({
       address: '0xWorker',
       isConnected: true,
     });

@@ -1,13 +1,14 @@
 import React from 'react';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '../setup/test-utils';
 import userEvent from '@testing-library/user-event';
 import AcceptButton from '../../src/app/jobs/[id]/JobActions/AcceptButton';
 import { useAccount, useWriteContract } from 'wagmi';
 
 // Mock wagmi
-jest.mock('wagmi', () => ({
-  useAccount: jest.fn(),
-  useWriteContract: jest.fn(),
+vi.mock('wagmi', () => ({
+  useAccount: vi.fn(),
+  useWriteContract: vi.fn(),
 }));
 
 describe('AcceptButton', () => {
@@ -22,11 +23,11 @@ describe('AcceptButton', () => {
     result: 'QmDeliveredResult',
   };
 
-  const mockWriteContract = jest.fn();
+  const mockWriteContract = vi.fn();
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    (useWriteContract as jest.Mock).mockReturnValue({
+    vi.clearAllMocks();
+    (useWriteContract as any).mockReturnValue({
       writeContract: mockWriteContract,
       isPending: false,
       isSuccess: false,
@@ -34,7 +35,7 @@ describe('AcceptButton', () => {
   });
 
   it('should render accept button for job creator', () => {
-    (useAccount as jest.Mock).mockReturnValue({
+    (useAccount as any).mockReturnValue({
       address: '0xCreator',
       isConnected: true,
     });
@@ -45,7 +46,7 @@ describe('AcceptButton', () => {
   });
 
   it('should not show for non-creator', () => {
-    (useAccount as jest.Mock).mockReturnValue({
+    (useAccount as any).mockReturnValue({
       address: '0xWorker',
       isConnected: true,
     });
@@ -58,7 +59,7 @@ describe('AcceptButton', () => {
   it('should call acceptJob contract function', async () => {
     const user = userEvent.setup();
 
-    (useAccount as jest.Mock).mockReturnValue({
+    (useAccount as any).mockReturnValue({
       address: '0xCreator',
       isConnected: true,
     });
@@ -83,7 +84,7 @@ describe('AcceptButton', () => {
   it('should show confirmation dialog', async () => {
     const user = userEvent.setup();
 
-    (useAccount as jest.Mock).mockReturnValue({
+    (useAccount as any).mockReturnValue({
       address: '0xCreator',
       isConnected: true,
     });
@@ -98,7 +99,7 @@ describe('AcceptButton', () => {
   });
 
   it('should only show for jobs with delivered results', () => {
-    (useAccount as jest.Mock).mockReturnValue({
+    (useAccount as any).mockReturnValue({
       address: '0xCreator',
       isConnected: true,
     });
@@ -112,12 +113,12 @@ describe('AcceptButton', () => {
   it('should show rating dialog after acceptance', async () => {
     const user = userEvent.setup();
 
-    (useAccount as jest.Mock).mockReturnValue({
+    (useAccount as any).mockReturnValue({
       address: '0xCreator',
       isConnected: true,
     });
 
-    (useWriteContract as jest.Mock).mockReturnValue({
+    (useWriteContract as any).mockReturnValue({
       writeContract: mockWriteContract,
       isPending: false,
       isSuccess: true,
