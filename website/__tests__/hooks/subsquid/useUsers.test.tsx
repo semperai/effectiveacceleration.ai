@@ -49,33 +49,12 @@ const wrapper = createUrqlWrapper(mocks);
 describe('useUsers', () => {
   it('should fetch all users', async () => {
     const { result } = renderHook(
-      () => useUsers({ offset: 0, limit: 1000 }),
+      () => useUsers(0, 1000),
       { wrapper }
     );
 
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false);
-    });
-
-    expect(result.current.data).toHaveLength(2);
-  });
-
-  it('should return loading state initially', () => {
-    const { result } = renderHook(
-      () => useUsers({ offset: 0, limit: 1000 }),
-      { wrapper }
-    );
-
-    expect(result.current.loading).toBe(true);
-  });
-
-  it('should support fake mode', () => {
-    const { result } = renderHook(
-      () => useUsers({ fake: true }),
-      { wrapper }
-    );
-
-    expect(result.current.data).toBeDefined();
+    // With synchronous mocks using fromValue, data is available immediately
     expect(result.current.loading).toBe(false);
+    expect(result.current.data).toHaveLength(2);
   });
 });

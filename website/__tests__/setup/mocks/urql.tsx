@@ -1,7 +1,7 @@
 import { vi } from 'vitest';
 import { fromValue, pipe, map } from 'wonka';
 import { Client, Provider } from 'urql';
-import { ReactNode } from 'react';
+import React, { ReactNode } from 'react';
 
 export interface MockedQuery {
   query: any;
@@ -13,9 +13,12 @@ export interface MockedQuery {
 export function createMockUrqlClient(mocks: MockedQuery[]) {
   const executeQuery = vi.fn((request: any) => {
     const mock = mocks.find(
-      (m) =>
-        m.query === request.query &&
-        JSON.stringify(m.variables || {}) === JSON.stringify(request.variables || {})
+      (m) => {
+        // Compare query by converting to string (handles DocumentNode comparison)
+        const queryMatch = String(m.query) === String(request.query) || m.query === request.query;
+        const variablesMatch = JSON.stringify(m.variables || {}) === JSON.stringify(request.variables || {});
+        return queryMatch && variablesMatch;
+      }
     );
 
     if (mock) {
@@ -42,7 +45,7 @@ export function createMockUrqlClient(mocks: MockedQuery[]) {
     return fromValue({
       operation: request,
       data: undefined,
-      error: new Error(\`No mock found for query: \${request.query}\`),
+      error: new Error(`No mock found for query: ${request.query}`),
       stale: false,
       hasNext: false,
     });

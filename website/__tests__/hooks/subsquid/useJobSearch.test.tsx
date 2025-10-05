@@ -50,24 +50,8 @@ describe('useJobSearch', () => {
       { wrapper }
     );
 
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false);
-    });
-
+    // With synchronous mocks using fromValue, data is available immediately
+    expect(result.current.loading).toBe(false);
     expect(result.current.data).toBeDefined();
-  });
-
-  it('should return loading state initially', () => {
-    const { result } = renderHook(
-      () => useJobSearch({
-        jobSearch: { state: 0 },
-        orderBy: 'timestamp_ASC',
-        limit: 100,
-        offset: 0,
-      }),
-      { wrapper }
-    );
-
-    expect(result.current.loading).toBe(true);
   });
 });

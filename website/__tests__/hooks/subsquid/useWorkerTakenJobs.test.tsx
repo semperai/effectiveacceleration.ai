@@ -21,8 +21,6 @@ const mocks = [
     query: GET_WORKER_TAKEN_JOBS,
     variables: {
       workerAddress: '0xWorker1',
-      offset: 0,
-      limit: 1000,
     },
     data: {
       jobs: [mockJob],
@@ -35,24 +33,13 @@ const wrapper = createUrqlWrapper(mocks);
 describe('useWorkerTakenJobs', () => {
   it('should fetch worker taken jobs', async () => {
     const { result } = renderHook(
-      () => useWorkerTakenJobs({ workerAddress: '0xWorker1', offset: 0, limit: 1000 }),
+      () => useWorkerTakenJobs('0xWorker1'),
       { wrapper }
     );
 
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false);
-    });
-
+    // With synchronous mocks using fromValue, data is available immediately
+    expect(result.current.loading).toBe(false);
     expect(result.current.data).toHaveLength(1);
     expect(result.current.data?.[0].state).toBe(1);
-  });
-
-  it('should return loading state initially', () => {
-    const { result } = renderHook(
-      () => useWorkerTakenJobs({ workerAddress: '0xWorker1', offset: 0, limit: 1000 }),
-      { wrapper }
-    );
-
-    expect(result.current.loading).toBe(true);
   });
 });

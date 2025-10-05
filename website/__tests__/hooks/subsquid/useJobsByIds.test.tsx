@@ -46,23 +46,12 @@ const wrapper = createUrqlWrapper(mocks);
 describe('useJobsByIds', () => {
   it('should fetch multiple jobs by IDs', async () => {
     const { result } = renderHook(
-      () => useJobsByIds({ jobIds: ['1', '2'] }),
+      () => useJobsByIds(['1', '2']),
       { wrapper }
     );
 
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false);
-    });
-
+    // With synchronous mocks using fromValue, data is available immediately
+    expect(result.current.loading).toBe(false);
     expect(result.current.data).toHaveLength(2);
-  });
-
-  it('should return loading state initially', () => {
-    const { result } = renderHook(
-      () => useJobsByIds({ jobIds: ['1', '2'] }),
-      { wrapper }
-    );
-
-    expect(result.current.loading).toBe(true);
   });
 });

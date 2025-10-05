@@ -1,6 +1,19 @@
 import { GET } from '../../src/app/api/market_cap/route';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 
+// Mock Next.js Response
+vi.mock('next/server', () => ({
+  NextResponse: vi.fn().mockImplementation((body, options) => ({
+    text: async () => String(body),
+    json: async () => {
+      const num = Number(body);
+      return { marketCap: isNaN(num) ? 0 : num };
+    },
+    status: options?.status || 200,
+    headers: options?.headers || {},
+  })),
+}));
+
 // Mock fetch for price data
 global.fetch = vi.fn();
 

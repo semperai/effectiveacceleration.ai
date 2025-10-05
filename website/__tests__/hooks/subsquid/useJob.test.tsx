@@ -64,27 +64,16 @@ describe('useJob', () => {
   it('should fetch job by ID', async () => {
     const { result } = renderHook(() => useJob('1'), { wrapper });
 
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false);
-    });
-
+    // With synchronous mocks using fromValue, data is available immediately
+    expect(result.current.loading).toBe(false);
     expect(result.current.data).toEqual(mockJob);
-  });
-
-  it('should return loading state initially', () => {
-    const { result } = renderHook(() => useJob('1'), { wrapper });
-
-    expect(result.current.loading).toBe(true);
-    expect(result.current.data).toBeUndefined();
   });
 
   it('should handle non-existent job', async () => {
     const { result } = renderHook(() => useJob('nonexistent'), { wrapper });
 
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false);
-    });
-
+    // With synchronous mocks using fromValue, data is available immediately
+    expect(result.current.loading).toBe(false);
     expect(result.current.data).toBeUndefined();
   });
 

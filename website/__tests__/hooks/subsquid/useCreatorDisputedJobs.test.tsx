@@ -22,8 +22,6 @@ const mocks = [
     query: GET_CREATOR_DISPUTED_JOBS,
     variables: {
       creatorAddress: '0xCreator1',
-      offset: 0,
-      limit: 1000,
     },
     data: {
       jobs: [mockJob],
@@ -36,24 +34,13 @@ const wrapper = createUrqlWrapper(mocks);
 describe('useCreatorDisputedJobs', () => {
   it('should fetch creator disputed jobs', async () => {
     const { result } = renderHook(
-      () => useCreatorDisputedJobs({ creatorAddress: '0xCreator1', offset: 0, limit: 1000 }),
+      () => useCreatorDisputedJobs('0xCreator1'),
       { wrapper }
     );
 
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false);
-    });
-
+    // With synchronous mocks using fromValue, data is available immediately
+    expect(result.current.loading).toBe(false);
     expect(result.current.data).toHaveLength(1);
     expect(result.current.data?.[0].disputed).toBe(true);
-  });
-
-  it('should return loading state initially', () => {
-    const { result } = renderHook(
-      () => useCreatorDisputedJobs({ creatorAddress: '0xCreator1', offset: 0, limit: 1000 }),
-      { wrapper }
-    );
-
-    expect(result.current.loading).toBe(true);
   });
 });

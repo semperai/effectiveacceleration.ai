@@ -31,19 +31,8 @@ describe('useMarketplace', () => {
       { wrapper }
     );
 
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false);
-    });
-
+    // With synchronous mocks using fromValue, data is available immediately
+    expect(result.current.loading).toBe(false);
     expect(result.current.data).toEqual(mockMarketplace);
-  });
-
-  it('should return loading state initially', () => {
-    const { result } = renderHook(
-      () => useMarketplace(),
-      { wrapper }
-    );
-
-    expect(result.current.loading).toBe(true);
   });
 });

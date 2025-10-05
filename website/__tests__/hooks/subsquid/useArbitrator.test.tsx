@@ -74,6 +74,6 @@ describe('useArbitrator', () => {
       { wrapper }
     );
 
-    expect(result.current.data).toBeUndefined();
+    expect(result.current.data).toBeNull();
   });
 });

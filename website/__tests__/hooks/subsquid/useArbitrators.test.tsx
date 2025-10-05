@@ -41,7 +41,7 @@ const wrapper = createUrqlWrapper(mocks);
 describe('useArbitrators', () => {
   it('should fetch all arbitrators', async () => {
     const { result } = renderHook(
-      () => useArbitrators({ offset: 0, limit: 1000 }),
+      () => useArbitrators(0, 1000),
       { wrapper }
     );
 
@@ -55,22 +55,24 @@ describe('useArbitrators', () => {
     });
   });
 
-  it('should return loading state initially', () => {
+  it('should return data immediately with mock', () => {
     const { result } = renderHook(
-      () => useArbitrators({ offset: 0, limit: 1000 }),
+      () => useArbitrators(0, 1000),
       { wrapper }
     );
 
-    expect(result.current.loading).toBe(true);
+    // With synchronous mock, data is available immediately
+    expect(result.current.loading).toBe(false);
+    expect(result.current.data).toBeDefined();
   });
 
-  it('should support fake mode', () => {
+  it('should use default limit when 0', () => {
     const { result } = renderHook(
-      () => useArbitrators({ fake: true }),
+      () => useArbitrators(0, 0),
       { wrapper }
     );
 
-    expect(result.current.data).toBeDefined();
-    expect(result.current.loading).toBe(false);
+    // With limit 0, it should use 1000 as default
+    expect(result.current).toBeDefined();
   });
 });

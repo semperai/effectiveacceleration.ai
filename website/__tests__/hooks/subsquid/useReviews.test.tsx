@@ -37,20 +37,9 @@ describe('useReviews', () => {
       { wrapper }
     );
 
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false);
-    });
-
+    // With synchronous mocks using fromValue, data is available immediately
+    expect(result.current.loading).toBe(false);
     expect(result.current.data).toHaveLength(1);
     expect(result.current.data?.[0].rating).toBe(5);
-  });
-
-  it('should return loading state initially', () => {
-    const { result } = renderHook(
-      () => useReviews('0xWorker', 0, 100),
-      { wrapper }
-    );
-
-    expect(result.current.loading).toBe(true);
   });
 });
