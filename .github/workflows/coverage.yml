@@ -30,6 +30,17 @@ jobs:
       - name: Run coverage
         run: cd ${{ matrix.package }} && npm run test:coverage
 
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: (!cancelled())
+        with:
+          files: |
+            ${{ matrix.package }}/test-results/**/*.xml
+            ${{ matrix.package }}/test-results/**/*.trx
+            ${{ matrix.package }}/test-results/**/*.json
+          check_name: Test Results (${{ matrix.package }})
+        continue-on-error: true
+
       - name: Determine lcov path
         id: lcov-path
         run: |

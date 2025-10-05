@@ -17,6 +17,12 @@ if (!MNEMONIC) {
 
 export function configWithPkey(privateKey: string): HardhatUserConfig {
   return {
+    mocha: {
+      reporter: process.env.CI ? 'mocha-junit-reporter' : 'spec',
+      reporterOptions: {
+        mochaFile: 'test-results/junit.xml'
+      }
+    },
     solidity: {
       compilers: [
         {

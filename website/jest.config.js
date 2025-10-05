@@ -26,6 +26,7 @@ const config = {
   ],
   coverageReporters: ['text', 'lcov', 'html'],
   coverageDirectory: './coverage',
+  reporters: ['default', ['jest-junit', { outputDirectory: './test-results', outputName: 'junit.xml' }]],
   moduleDirectories: ['node_modules', '<rootDir>/'],
   testPathIgnorePatterns: ['/node_modules/', '/.next/'],
   transformIgnorePatterns: [
