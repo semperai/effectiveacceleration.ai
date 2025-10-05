@@ -11,6 +11,7 @@ const withSerwist = withSerwistInit({
 const nextConfig = {
   reactStrictMode: true,
   pageExtensions: ['js', 'jsx', 'ts', 'tsx'],
+  transpilePackages: ['@effectiveacceleration/contracts'],
 
   webpack: (config) => {
     config.externals.push('pino-pretty', 'lokijs', 'encoding');
