@@ -18,6 +18,7 @@ import { LocalStorageWrapper, CachePersistor } from 'apollo3-cache-persist';
 import { useEffect, useState } from 'react';
 import { useMediaDownloadHandler } from '@/hooks/useMediaDownloadHandler';
 import { useRegisterWebPushNotifications } from '@/hooks/useRegisterWebPushNotifications';
+import { AAWalletProvider } from '@/lib/arbius-wallet';
 
 declare module 'abitype' {
   export interface Register {
@@ -172,9 +173,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <ApolloProvider client={apolloClient}>
       <WagmiProvider config={config}>
         <QueryClientProvider client={queryClient}>
-          <RainbowKitProvider initialChain={initialChain}>
-            <Inititalizers>{children}</Inititalizers>
-          </RainbowKitProvider>
+          <AAWalletProvider>
+            <RainbowKitProvider initialChain={initialChain}>
+              <Inititalizers>{children}</Inititalizers>
+            </RainbowKitProvider>
+          </AAWalletProvider>
         </QueryClientProvider>
       </WagmiProvider>
     </ApolloProvider>

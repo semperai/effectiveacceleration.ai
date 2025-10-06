@@ -15,6 +15,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
 import useSquidStatus from '@/hooks/subsquid/useSquidStatus';
+import { AAWalletDisplay } from '@/lib/arbius-wallet';
+import arbiusLogoRound from '@/images/arbius_logo_round.png'
 
 interface NavbarProps {
   setSidebarOpen: (value: boolean) => void;
@@ -320,6 +322,7 @@ const Navbar = ({
         <div className='flex items-center justify-end gap-x-3'>
           <IndexerStatusIcon lagStatus={lagStatus} />
           <EACCBalance />
+          <AAWalletDisplay arbiusLogoSrc={arbiusLogoRound.src} />
           <NotificationsButton />
           <UserButton user={user} arbitrator={arbitrator} />
         </div>
