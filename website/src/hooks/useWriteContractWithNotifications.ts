@@ -19,6 +19,7 @@ import { MARKETPLACE_DATA_V1_ABI } from '@effectiveacceleration/contracts/wagmi/
 import { MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/MarketplaceV1';
 import { E_A_C_C_TOKEN_ABI as EACC_TOKEN_ABI } from '@effectiveacceleration/contracts/wagmi/EACCToken';
 import { useClient } from 'urql';
+import { useCacheInvalidation } from '@/contexts/CacheInvalidationContext';
 
 type ParsedEvent = {
   contractName: string;
@@ -92,6 +93,7 @@ type WriteContractConfig = {
 export function useWriteContractWithNotifications() {
   const config = useConfig();
   const urqlClient = useClient();
+  const { invalidate } = useCacheInvalidation();
   const { showError, showSuccess, showLoading, toast } = useToast();
   const [simulateError, setSimulateError] = useState<
     WriteContractErrorType | undefined
@@ -246,10 +248,12 @@ export function useWriteContractWithNotifications() {
       const parsedEvents = parseEvents(receipt);
       onSuccessCallbackRef.current?.(receipt, parsedEvents);
 
-      // URQL doesn't need manual cache reset - it handles this automatically
-      // The cache will be invalidated when new queries are made
+      // Trigger cache invalidation after delay to allow Subsquid to index the data
+      setTimeout(() => {
+        invalidate();
+      }, 3000);
     }
-  }, [isConfirmed, receipt, parseEvents]);
+  }, [isConfirmed, receipt, parseEvents, invalidate]);
 
   // Handle confirmation and success
   useEffect(() => {

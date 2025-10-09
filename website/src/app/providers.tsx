@@ -12,6 +12,7 @@ import { urqlClient } from '@/lib/urql-client';
 import { useEffect, useState } from 'react';
 import { useMediaDownloadHandler } from '@/hooks/useMediaDownloadHandler';
 import { useRegisterWebPushNotifications } from '@/hooks/useRegisterWebPushNotifications';
+import { CacheInvalidationProvider } from '@/contexts/CacheInvalidationContext';
 
 declare module 'abitype' {
   export interface Register {
@@ -82,14 +83,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
   useMediaDownloadHandler();
 
   return (
-    <UrqlProvider value={urqlClient}>
-      <WagmiProvider config={config}>
-        <QueryClientProvider client={queryClient}>
-          <RainbowKitProvider initialChain={initialChain}>
-            <Inititalizers>{children}</Inititalizers>
-          </RainbowKitProvider>
-        </QueryClientProvider>
-      </WagmiProvider>
-    </UrqlProvider>
+    <CacheInvalidationProvider>
+      <UrqlProvider value={urqlClient}>
+        <WagmiProvider config={config}>
+          <QueryClientProvider client={queryClient}>
+            <RainbowKitProvider initialChain={initialChain}>
+              <Inititalizers>{children}</Inititalizers>
+            </RainbowKitProvider>
+          </QueryClientProvider>
+        </WagmiProvider>
+      </UrqlProvider>
+    </CacheInvalidationProvider>
   );
 }

@@ -8,6 +8,7 @@ import {
   JobEventType,
   JobMessageEvent,
 } from '@effectiveacceleration/contracts';
+import { useCacheInvalidation } from '@/contexts/CacheInvalidationContext';
 
 export interface NotificationWithJob {
   id: string;
@@ -33,6 +34,8 @@ export default function useUserNotifications(
   limit?: number,
   fetchMessageContent: boolean = false // Optional flag to enable message fetching
 ) {
+  const { timestamp } = useCacheInvalidation();
+
   const [result] = useQuery({
     query: GET_USER_NOTIFICATIONS,
     variables: {
@@ -42,6 +45,10 @@ export default function useUserNotifications(
       limit: limit ?? 10,
     },
     pause: !userAddress,
+    requestPolicy: 'cache-and-network',
+    context: useMemo(() => ({
+      _invalidationTimestamp: timestamp,
+    }), [timestamp]),
   });
 
   // Extract unique job IDs from notifications with proper typing
