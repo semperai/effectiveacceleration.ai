@@ -71,7 +71,7 @@ export function Layout({
       />
       <div
         className={clsx(
-          'h-full overflow-x-hidden transition-all duration-300',
+          'h-full overflow-x-scroll sm:overflow-x-hidden transition-all duration-300',
           // Add left padding when sidebar is open on desktop
           shouldAddPadding ? 'lg:pl-72' : ''
         )}

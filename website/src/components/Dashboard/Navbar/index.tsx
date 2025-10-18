@@ -121,7 +121,7 @@ const EACCBalance = () => {
 
 // Loading skeleton component for the right side actions
 const NavbarLoadingSkeleton = () => (
-  <div className='flex items-center justify-end gap-x-3'>
+  <div className='flex items-center justify-end gap-x-1.5 sm:gap-x-3'>
     {/* EACC Balance skeleton */}
     <div className='h-8 w-20 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700' />
     {/* Notification button skeleton */}
@@ -138,11 +138,11 @@ const SignUpButton = () => {
   return (
     <button
       onClick={() => router.push('/register')}
-      className='flex items-center gap-2 rounded-full bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600'
+      className='flex items-center gap-1.5 rounded-full bg-blue-600 px-2.5 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-blue-700 sm:gap-2 sm:px-3 dark:bg-blue-500 dark:hover:bg-blue-600'
       title='Sign up for an account'
     >
-      <UserPlus className='h-4 w-4 text-white' />
-      <span className='text-white'>Sign Up</span>
+      <UserPlus className='h-4 w-4 flex-shrink-0 text-white' />
+      <span className='hidden text-white xs:inline'>Sign Up</span>
     </button>
   );
 };
@@ -319,7 +319,7 @@ const Navbar = ({
     // Show full UI if user is registered
     if (isRegistered) {
       return (
-        <div className='flex items-center justify-end gap-x-3'>
+        <div className='flex items-center justify-end gap-x-1.5 sm:gap-x-3'>
           <IndexerStatusIcon lagStatus={lagStatus} />
           <EACCBalance />
           <AAWalletDisplay arbiusLogoSrc={arbiusLogoRound.src} />
@@ -331,7 +331,7 @@ const Navbar = ({
 
     // Show connect/signup for unregistered or disconnected users
     return (
-      <div className='flex items-center justify-end gap-x-3'>
+      <div className='flex items-center justify-end gap-x-1.5 sm:gap-x-3'>
         <IndexerStatusIcon lagStatus={lagStatus} />
         <ConnectButton variant='navbar' />
         <SignUpButton />
@@ -346,7 +346,7 @@ const Navbar = ({
         <div className='absolute inset-0 bg-white/80 backdrop-blur-md dark:bg-black/80' />
 
         {/* Navbar content */}
-        <div className='relative flex h-16 items-center gap-x-4 border-b border-gray-200 px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8 dark:border-gray-800'>
+        <div className='relative flex h-16 items-center gap-x-2 border-b border-gray-200 px-2 shadow-sm sm:gap-x-4 sm:px-4 md:px-6 lg:px-8 dark:border-gray-800'>
           {/* Mobile menu button - now handles hiddenSidebar */}
           <button
             type='button'
@@ -371,7 +371,7 @@ const Navbar = ({
           />
 
           {/* Main navbar content */}
-          <div className='flex flex-1 items-center justify-end gap-x-4 md:justify-between lg:gap-x-6'>
+          <div className='flex flex-1 items-center justify-end gap-x-2 md:justify-between md:gap-x-4 lg:gap-x-6'>
             {/* Breadcrumbs or Page Title */}
             <div className='hidden flex-1 md:block'>
               {is404 ? (

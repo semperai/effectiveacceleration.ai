@@ -478,7 +478,7 @@ const PostJob = () => {
   ]);
 
   return (
-    <div className='relative min-h-screen overflow-x-hidden'>
+    <div className='relative min-h-screen overflow-x-scroll sm:overflow-x-hidden'>
       {/* Background blur elements */}
       <div className='pointer-events-none fixed right-4 top-40 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl sm:right-20 sm:h-96 sm:w-96' />
       <div className='pointer-events-none fixed bottom-40 left-4 h-64 w-64 rounded-full bg-purple-500/10 blur-3xl sm:left-20 sm:h-96 sm:w-96' />
