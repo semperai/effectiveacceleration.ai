@@ -1,6 +1,7 @@
 import ProfileImage from '@/components/ProfileImage';
 import type { Job, User } from '@effectiveacceleration/contracts';
 import type { Dispatch, SetStateAction } from 'react';
+import useReviews from '@/hooks/subsquid/useReviews';
 import {
   PiUsers,
   PiUserCircle,
@@ -9,6 +10,88 @@ import {
   PiCheckCircle,
   PiClock,
 } from 'react-icons/pi';
+
+// Applicant item component to fetch reviews for each worker
+const ApplicantItem = ({
+  workerAddress,
+  user,
+  isSelected,
+  onClick,
+}: {
+  workerAddress: string;
+  user: User;
+  isSelected: boolean;
+  onClick: () => void;
+}) => {
+  const { actualAverageRating = 0 } = useReviews(workerAddress);
+
+  return (
+    <li
+      className={`group relative cursor-pointer transition-all duration-200 ${
+        isSelected
+          ? 'bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30'
+          : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'
+      } `}
+      onClick={onClick}
+    >
+      {/* Active indicator */}
+      {isSelected && (
+        <div className='absolute bottom-0 left-0 top-0 w-1 bg-gradient-to-b from-blue-500 to-purple-500' />
+      )}
+
+      <div className='flex items-center gap-3 p-4'>
+        {/* Profile image with online indicator */}
+        <div className='relative flex-shrink-0'>
+          <ProfileImage user={user} />
+          <div className='absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500 dark:border-gray-900' />
+        </div>
+
+        {/* User info */}
+        <div className='min-w-0 flex-1'>
+          <div className='flex items-center gap-2'>
+            <span className='truncate text-sm font-medium text-gray-900 dark:text-white'>
+              {user.name}
+            </span>
+            {actualAverageRating > 4.5 && (
+              <PiSparkle className='w-3 h-3 text-yellow-500' />
+            )}
+          </div>
+          <p className='mt-0.5 truncate text-xs text-gray-500 dark:text-gray-400'>
+            {user.bio || 'No bio available'}
+          </p>
+
+          {/* Stats */}
+          <div className='mt-2 flex items-center gap-3'>
+            <span className='text-xs text-gray-400 dark:text-gray-500'>
+              ⭐ {actualAverageRating.toFixed(1)}
+            </span>
+            <span className='text-xs text-gray-400 dark:text-gray-500'>
+              {user.reputationUp || 0} jobs
+            </span>
+          </div>
+        </div>
+
+        {/* Selection indicator */}
+        {isSelected && (
+          <div
+            className='flex flex-col items-end gap-1'
+            aria-label='Selected applicant'
+          >
+            <div className='rounded-full bg-blue-500 p-1'>
+              <PiCheckCircle className='h-3 w-3 text-white' />
+            </div>
+            <span className='text-xs font-medium text-blue-600 dark:text-blue-400'>
+              Selected
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Hover effect gradient */}
+      <div className='pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
+    </li>
+  );
+};
 
 const JobChatsList = ({
   users,
@@ -96,78 +179,16 @@ const JobChatsList = ({
           <ul className='divide-y divide-gray-100 dark:divide-gray-800'>
             {Object.entries(users).map(([key, value]) =>
               job?.roles.creator !== key ? (
-                <li
+                <ApplicantItem
                   key={key}
-                  className={`group relative cursor-pointer transition-all duration-200 ${
-                    selectedWorker === key
-                      ? 'bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30'
-                      : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'
-                  } `}
+                  workerAddress={key}
+                  user={value}
+                  isSelected={selectedWorker === key}
                   onClick={() => {
                     setSelectedWorker(key);
                     if (setSidebarOpen) setSidebarOpen(false);
                   }}
-                >
-                  {/* Active indicator */}
-                  {selectedWorker === key && (
-                    <div className='absolute bottom-0 left-0 top-0 w-1 bg-gradient-to-b from-blue-500 to-purple-500' />
-                  )}
-
-                  <div className='flex items-center gap-3 p-4'>
-                    {/* Profile image with online indicator */}
-                    <div className='relative flex-shrink-0'>
-                      <ProfileImage user={value} />
-                      <div className='absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500 dark:border-gray-900' />
-                    </div>
-
-                    {/* User info */}
-                    <div className='min-w-0 flex-1'>
-                      <div className='flex items-center gap-2'>
-                        <span className='truncate text-sm font-medium text-gray-900 dark:text-white'>
-                          {value.name}
-                        </span>
-                        {/* TODO
-                        {value.rating && value.rating > 4.5 && (
-                          <PiSparkle className='w-3 h-3 text-yellow-500' />
-                        )}
-                        */}
-                      </div>
-                      <p className='mt-0.5 truncate text-xs text-gray-500 dark:text-gray-400'>
-                        {value.bio || 'No bio available'}
-                      </p>
-
-                      {/* Stats */}
-                      <div className='mt-2 flex items-center gap-3'>
-                        {/* TODO
-                        <span className='text-xs text-gray-400 dark:text-gray-500'>
-                          ⭐ {value.rating?.toFixed(1) || '0.0'}
-                        </span>
-                        */}
-                        <span className='text-xs text-gray-400 dark:text-gray-500'>
-                          {value.reputationUp || 0} jobs
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Selection indicator */}
-                    {selectedWorker === key && (
-                      <div
-                        className='flex flex-col items-end gap-1'
-                        aria-label='Selected applicant'
-                      >
-                        <div className='rounded-full bg-blue-500 p-1'>
-                          <PiCheckCircle className='h-3 w-3 text-white' />
-                        </div>
-                        <span className='text-xs font-medium text-blue-600 dark:text-blue-400'>
-                          Selected
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Hover effect gradient */}
-                  <div className='pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
-                </li>
+                />
               ) : null
             )}
           </ul>

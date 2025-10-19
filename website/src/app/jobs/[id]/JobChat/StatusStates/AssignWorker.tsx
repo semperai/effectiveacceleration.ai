@@ -7,6 +7,7 @@ import {
 } from '@effectiveacceleration/contracts';
 import { AssignWorkerButton } from '../../JobActions';
 import ProfileImage from '@/components/ProfileImage';
+import useReviews from '@/hooks/subsquid/useReviews';
 import {
   PiSparkle,
   PiHandshake,
@@ -38,7 +39,10 @@ const AssignWorker: React.FC<AssignWorkerProps> = ({
   // Get selected worker details if users data is available
   const workerData = users?.[selectedWorker];
   const workerName = workerData?.name || 'Selected Worker';
-  const workerRating = 0; // workerData?.rating || 0;
+
+  // Get worker reviews and rating
+  const { actualAverageRating = 0 } = useReviews(selectedWorker);
+  const workerRating = actualAverageRating;
   const workerJobs = workerData?.reputationUp || 0;
 
   // Get initials for fallback avatar

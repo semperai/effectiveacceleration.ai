@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/Button';
 import useUsers from '@/hooks/subsquid/useUsers';
+import useReviews from '@/hooks/subsquid/useReviews';
 import { useConfig } from '@/hooks/useConfig';
 import { useToast } from '@/hooks/useToast';
 import { useWriteContractWithNotifications } from '@/hooks/useWriteContractWithNotifications';
@@ -49,6 +50,9 @@ export function AssignWorkerButton({
   const { data: users } = useUsers();
   const jobMeceTag = jobMeceTags.find((tag) => tag.id === job?.tags[0])?.name;
   const selectedWorkerData = users?.find((u) => u.address_ === selectedWorker);
+
+  // Get worker reviews and rating
+  const { actualAverageRating = 0, totalReviews = 0 } = useReviews(selectedWorker);
 
   const [isAssigning, setIsAssigning] = useState(false);
   const { showError } = useToast();
@@ -295,10 +299,8 @@ export function AssignWorkerButton({
                           </div>
                           {selectedWorkerData && (
                             <div className='flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400'>
-                              {/* TODO
-                              <span>⭐ {selectedWorkerData.rating?.toFixed(1) || '0.0'}</span>
+                              <span>⭐ {actualAverageRating.toFixed(1)}</span>
                               <span>{selectedWorkerData.reputationUp || 0} jobs</span>
-                              */}
                             </div>
                           )}
                         </div>
