@@ -619,37 +619,60 @@ export function UpdateButton({
 
                               {/* Whitelist Workers - Editable */}
                               <div className='rounded-xl border border-blue-500/10 bg-gradient-to-r from-blue-500/5 to-purple-500/5 p-4'>
-                                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                                  <div className='min-w-0 flex-1'>
-                                    <div className='flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300'>
-                                      <PiUsersThree className='h-4 w-4 flex-shrink-0 text-blue-500' />
-                                      <span>Whitelist Workers</span>
+                                <div className='flex flex-col gap-4'>
+                                  <div className='flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
+                                    <div className='min-w-0 flex-1'>
+                                      <div className='flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300'>
+                                        <PiUsersThree className='h-4 w-4 flex-shrink-0 text-blue-500' />
+                                        <span>Whitelist Workers</span>
+                                      </div>
+                                      <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
+                                        Control who can apply to your job by manually selecting trusted workers
+                                      </p>
                                     </div>
-                                    <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
-                                      Restrict who can apply to work on your job
-                                    </p>
+                                    <div className='flex gap-4'>
+                                      {whitelistWorkersValues.map((option) => (
+                                        <label
+                                          key={option}
+                                          className='flex cursor-pointer items-center'
+                                        >
+                                          <input
+                                            type='radio'
+                                            name='whitelistWorkers'
+                                            value={option}
+                                            checked={whitelistWorkers === option}
+                                            onChange={(e) =>
+                                              setWhitelistWorkers(e.target.value)
+                                            }
+                                            className='mr-2 border-gray-300 text-blue-600 focus:ring-blue-500'
+                                          />
+                                          <span className='text-sm text-gray-700 dark:text-gray-300'>
+                                            {option}
+                                          </span>
+                                        </label>
+                                      ))}
+                                    </div>
                                   </div>
-                                  <div className='flex gap-4'>
-                                    {whitelistWorkersValues.map((option) => (
-                                      <label
-                                        key={option}
-                                        className='flex cursor-pointer items-center'
-                                      >
-                                        <input
-                                          type='radio'
-                                          name='whitelistWorkers'
-                                          value={option}
-                                          checked={whitelistWorkers === option}
-                                          onChange={(e) =>
-                                            setWhitelistWorkers(e.target.value)
-                                          }
-                                          className='mr-2 border-gray-300 text-blue-600 focus:ring-blue-500'
-                                        />
-                                        <span className='text-sm text-gray-700 dark:text-gray-300'>
-                                          {option}
-                                        </span>
-                                      </label>
-                                    ))}
+
+                                  {/* Info box explaining whitelist feature */}
+                                  <div className='rounded-lg border border-blue-200/50 bg-blue-50/50 p-3 dark:border-blue-800/30 dark:bg-blue-950/20'>
+                                    <div className='flex gap-2'>
+                                      <PiInfo className='mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600 dark:text-blue-400' />
+                                      <div className='min-w-0 flex-1 space-y-1.5 text-xs text-blue-800 dark:text-blue-300'>
+                                        <p className='font-medium'>What does this mean?</p>
+                                        <ul className='ml-4 list-disc space-y-1 text-blue-700 dark:text-blue-400'>
+                                          <li>
+                                            <strong>Yes:</strong> Only workers you manually add to the whitelist can apply. Great for trusted collaborators or private jobs.
+                                          </li>
+                                          <li>
+                                            <strong>No:</strong> Any worker on the platform can apply to your job. Recommended for getting the widest pool of applicants.
+                                          </li>
+                                        </ul>
+                                        <p className='pt-1 text-blue-600 dark:text-blue-400'>
+                                          💡 Tip: Enable whitelist for sensitive projects or when you want to work with specific people you trust.
+                                        </p>
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
