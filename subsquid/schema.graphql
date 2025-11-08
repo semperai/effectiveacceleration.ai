@@ -12,6 +12,7 @@ type Marketplace @entity {
   jobCount: Int!
   userCount: Int!
   arbitratorCount: Int!
+  serviceCount: Int!
 }
 
 type JobRoles {
@@ -165,13 +166,180 @@ type JobMessageEvent {
   recipientAddress: String!
 }
 
+# Service Marketplace Entities
+
+type Service @entity {
+  id: ID! @index
+  seller: String! @index
+  title: String!
+  descriptionHash: String!
+  description: String!
+  tags: [String!]!
+  paymentToken: String!
+  price: BigInt!
+  deliveryTime: Int!
+  deliveryMethod: String!
+  arbitrator: String!
+  state: Int! # 0=Active, 1=Paused, 2=Deleted
+  totalOrders: Int!
+  completedOrders: Int!
+  averageRating: Int! # scaled by 10000
+  numberOfRatings: Int!
+  timestamp: Int!
+  updatedAt: Int!
+
+  orders: [ServiceOrder!]! @derivedFrom(field: "service")
+  events: [ServiceEvent!]! @derivedFrom(field: "service")
+  reviews: [ServiceReview!]! @derivedFrom(field: "serviceLoaded")
+}
+
+type ServiceOrderRoles {
+  buyer: String!
+  seller: String!
+}
+
+type ServiceOrder @entity {
+  id: ID! @index
+  serviceId: BigInt! @index
+  buyer: String! @index
+  seller: String! @index
+  roles: ServiceOrderRoles!
+  price: BigInt!
+  paymentToken: String!
+  escrowId: BigInt!
+  state: Int! # 0=Pending, 1=InProgress, 2=Delivered, 3=Completed, 4=Disputed, 5=Refunded, 6=Cancelled
+  requirementsHash: String!
+  requirements: String!
+  resultHash: String!
+  result: String!
+  disputed: Boolean!
+  createdAt: Int!
+  deliveredAt: Int!
+  completedAt: Int!
+  eventCount: Int!
+
+  service: Service!
+  events: [ServiceEvent!]! @derivedFrom(field: "order")
+  lastEvent: ServiceEvent
+}
+
+type ServiceEvent @entity {
+  serviceId: BigInt
+  orderId: BigInt
+  type_: Int!
+  address_: String!
+  data_: String!
+  timestamp_: Int!
+  details: CustomServiceEvent
+
+  service: Service
+  order: ServiceOrder
+}
+
+type ServiceReview @entity {
+  serviceId: BigInt! @index
+  orderId: BigInt! @index
+  reviewer: String! @index
+  rating: Int!
+  text: String!
+  timestamp: Int!
+
+  serviceLoaded: Service!
+  reviewerLoaded: User!
+}
+
+union CustomServiceEvent = ServiceCreatedEvent | ServiceUpdatedEvent | ServicePausedEvent | ServiceActivatedEvent | ServiceDeletedEvent | OrderCreatedEvent | OrderStartedEvent | OrderDeliveredEvent | OrderCompletedEvent | OrderCancelledEvent | OrderRefundedEvent | OrderDisputedEvent | OrderArbitratedEvent | OrderMessageEvent
+
+type ServiceCreatedEvent {
+  seller: String!
+  title: String!
+  descriptionHash: String!
+  tags: [String!]!
+  paymentToken: String!
+  price: BigInt!
+  deliveryTime: Int!
+  deliveryMethod: String!
+  arbitrator: String!
+}
+
+type ServiceUpdatedEvent {
+  title: String!
+  descriptionHash: String!
+  tags: [String!]!
+  price: BigInt!
+  deliveryTime: Int!
+  deliveryMethod: String!
+}
+
+type ServicePausedEvent {
+  seller: String!
+}
+
+type ServiceActivatedEvent {
+  seller: String!
+}
+
+type ServiceDeletedEvent {
+  seller: String!
+}
+
+type OrderCreatedEvent {
+  serviceId: BigInt!
+  buyer: String!
+  seller: String!
+  price: BigInt!
+  requirementsHash: String!
+}
+
+type OrderStartedEvent {
+  seller: String!
+}
+
+type OrderDeliveredEvent {
+  seller: String!
+  resultHash: String!
+}
+
+type OrderCompletedEvent {
+  buyer: String!
+  rating: Int
+  review: String
+}
+
+type OrderCancelledEvent {
+  reason: String!
+}
+
+type OrderRefundedEvent {
+  seller: String!
+}
+
+type OrderDisputedEvent {
+  disputeInitiator: String!
+}
+
+type OrderArbitratedEvent {
+  arbitrator: String!
+  buyerShare: Int!
+  sellerShare: Int!
+  reasonHash: String!
+}
+
+type OrderMessageEvent {
+  messageHash: String!
+  sender: String!
+  isSeller: Boolean!
+}
+
 type Notification @entity {
   id: ID! @index # this is effectively an eventId
   type: Int!
   address: String!
   timestamp: Int!
 
-  jobId: String!
+  jobId: String
+  serviceId: String
+  orderId: String
 }
 
 # # Manually added types which are not visible in graphql api

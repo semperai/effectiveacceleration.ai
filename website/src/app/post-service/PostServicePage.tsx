@@ -1,0 +1,712 @@
+'use client';
+import { AddToHomescreen } from '@/components/AddToHomescreen';
+import { ConnectButton } from '@/components/ConnectButton';
+import { Field, FieldGroup, Fieldset, Label } from '@/components/Fieldset';
+import { Input } from '@/components/Input';
+import TagsInput from '@/components/TagsInput';
+import { Textarea } from '@/components/Textarea';
+import { DeliveryTimelineInput } from '@/components/DeliveryTimelineInput';
+import { PaymentInput } from '@/components/PaymentInput';
+import { ArbitratorSelector } from '@/components/ArbitratorSelector';
+import ListBox from '@/components/ListBox';
+import MinimalField from '@/components/MinimalField';
+import useArbitrators from '@/hooks/subsquid/useArbitrators';
+import useUser from '@/hooks/subsquid/useUser';
+import { useConfig } from '@/hooks/useConfig';
+import type { ComboBoxOption, Tag } from '@/service/FormsTypes';
+import { type Token, tokens } from '@/lib/tokens';
+import { serviceMeceTags, deliveryMethods } from '@/lib/constants';
+import {
+  convertToSeconds,
+  unitsDeliveryTime,
+  getUnitAndValueFromSeconds,
+} from '@/lib/utils';
+import React from 'react';
+import {
+  type ChangeEvent,
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useMemo,
+} from 'react';
+import { zeroAddress } from 'viem';
+import { useAccount } from 'wagmi';
+import LoadingModal from '../post-job/LoadingModal';
+import RegisterModal from '../post-job/RegisterModal';
+import ServiceSummary from './ServiceSummary';
+import {
+  PiStorefront,
+  PiCurrencyDollar,
+  PiClock,
+  PiScales,
+  PiTag,
+  PiTruck,
+} from 'react-icons/pi';
+import { ArrowRight } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+
+export interface PostServiceParams {
+  title?: string;
+  amount?: string;
+  content?: string;
+  token?: string;
+  maxTime?: string;
+  deliveryMethod?: string;
+  roles?: {
+    arbitrator?: string;
+  };
+  tags: string[];
+}
+
+const PostService = () => {
+  const Config = useConfig();
+  const { address, isConnected } = useAccount();
+  const { data: user } = useUser(address!);
+  const { data: arbitrators } = useArbitrators();
+  const [tokenBalance, setTokenBalance] = useState<string | undefined>(
+    undefined
+  );
+  const searchParams = useSearchParams();
+
+  const arbitratorAddresses = useMemo(
+    () => [
+      zeroAddress,
+      ...(arbitrators?.map((worker) => worker.address_) ?? []),
+    ],
+    [arbitrators]
+  );
+
+  const arbitratorNames = useMemo(
+    () => ['None', ...(arbitrators?.map((worker) => worker.name) ?? [])],
+    [arbitrators]
+  );
+
+  const arbitratorFees = useMemo(
+    () => ['0', ...(arbitrators?.map((worker) => worker.fee) ?? [])],
+    [arbitrators]
+  );
+
+  // Convert between utils format and DeliveryTimelineInput format
+  const convertUnitForDisplay = (unit: ComboBoxOption): ComboBoxOption => {
+    const nameMap: { [key: string]: { name: string; id: string } } = {
+      minutes: { name: 'Minute', id: '1' },
+      hours: { name: 'Hour', id: '2' },
+      days: { name: 'Day', id: '3' },
+      weeks: { name: 'Week', id: '4' },
+      months: { name: 'Day', id: '3' },
+      years: { name: 'Day', id: '3' },
+    };
+
+    const mapped = nameMap[unit.name];
+    return mapped ? { ...unit, name: mapped.name, id: mapped.id } : unit;
+  };
+
+  const convertUnitFromDisplay = (unit: ComboBoxOption): ComboBoxOption => {
+    const idMap: { [key: string]: { name: string; id: string } } = {
+      '1': { name: 'minutes', id: '0' },
+      '2': { name: 'hours', id: '1' },
+      '3': { name: 'days', id: '2' },
+      '4': { name: 'weeks', id: '3' },
+    };
+
+    const mapped = idMap[unit.id];
+    if (mapped) {
+      return { ...unit, name: mapped.name, id: mapped.id };
+    }
+
+    const nameMap: { [key: string]: string } = {
+      Minute: 'minutes',
+      Minutes: 'minutes',
+      Hour: 'hours',
+      Hours: 'hours',
+      Day: 'days',
+      Days: 'days',
+      Week: 'weeks',
+      Weeks: 'weeks',
+    };
+
+    return {
+      ...unit,
+      name: nameMap[unit.name] || unit.name,
+    };
+  };
+
+  const getInitialValues = useCallback(() => {
+    const title = searchParams.get('title') || '';
+    const content = searchParams.get('content') || '';
+    const tokenAddress = searchParams.get('token');
+    const maxTime = searchParams.get('maxTime');
+    const deliveryMethod =
+      searchParams.get('deliveryMethod') || deliveryMethods[0].id;
+    const defaultHardcodedArbitrator = '0xa4DA2B49aDb3d1cFd1DbBB0Fb50803a2ea26cFdd';
+    const arbitrator = searchParams.get('arbitrator') || defaultHardcodedArbitrator;
+    const tags = searchParams.getAll('tags');
+    const amount = searchParams.get('amount') || '';
+
+    let initialToken = tokens.find((token) => token.symbol === 'USDC');
+    if (tokenAddress) {
+      const foundToken = tokens.find(
+        (token) => token.id.toLowerCase() === tokenAddress.toLowerCase()
+      );
+      if (foundToken) initialToken = foundToken;
+    }
+
+    let deadline = 1;
+    let unit = unitsDeliveryTime[2];
+
+    if (maxTime) {
+      const seconds = parseInt(maxTime);
+      if (!isNaN(seconds)) {
+        const result = getUnitAndValueFromSeconds(seconds);
+        deadline = result.value;
+        unit =
+          unitsDeliveryTime.find((u) => u.name === result.unit) ||
+          unitsDeliveryTime[2];
+      }
+    }
+
+    let category: { id: string; name: string } | undefined;
+    const remainingTags: Tag[] = [];
+    tags.forEach((tag, idx) => {
+      const foundCategory = serviceMeceTags.find((cat) => cat.id === tag);
+      if (foundCategory && !category) {
+        category = foundCategory;
+      } else {
+        remainingTags.push({ id: Date.now() + idx, name: tag });
+      }
+    });
+
+    return {
+      title,
+      content,
+      token: initialToken,
+      deadline,
+      unit,
+      deliveryMethod,
+      arbitrator,
+      tags: remainingTags,
+      category,
+      amount,
+    };
+  }, [searchParams]);
+
+  const initialValues = useMemo(() => getInitialValues(), [getInitialValues]);
+
+  const [selectedToken, setSelectedToken] = useState<Token | undefined>(
+    initialValues.token
+  );
+  const [showSummary, setShowSummary] = useState(false);
+  const [title, setTitle] = useState<string>(initialValues.title);
+  const [deliveryMethod, setDeliveryMethod] = useState(
+    initialValues.deliveryMethod
+  );
+  const [description, setDescription] = useState<string>(initialValues.content);
+  const [amount, setAmount] = useState(initialValues.amount);
+  const [deadline, setDeadline] = useState<number>(initialValues.deadline || 1);
+  const [selectedUnitTime, setselectedUnitTime] = useState<ComboBoxOption>(
+    convertUnitForDisplay(initialValues.unit || unitsDeliveryTime[2])
+  );
+  const [tags, setTags] = useState<Tag[]>(initialValues.tags);
+  const [selectedCategory, setSelectedCategory] = useState<
+    { id: string; name: string } | undefined
+  >(initialValues.category);
+  const [selectedArbitratorAddress, setSelectedArbitratorAddress] =
+    useState<string>(initialValues.arbitrator);
+
+  const [titleError, setTitleError] = useState<string>('');
+  const [descriptionError, setDescriptionError] = useState<string>('');
+  const [categoryError, setCategoryError] = useState<string>('');
+  const [paymentTokenError, setPaymentTokenError] = useState<string>('');
+  const [arbitratorError, setArbitratorError] = useState<string>('');
+  const [deadlineError, setDeadlineError] = useState<string>('');
+  const [validationAttempted, setValidationAttempted] = useState(false);
+
+  // Create wrapper divs for scroll refs
+  const serviceTitleRef = useRef<HTMLDivElement>(null);
+  const serviceDescriptionRef = useRef<HTMLDivElement>(null);
+  const serviceCategoryRef = useRef<HTMLDivElement>(null);
+  const serviceAmountRef = useRef<HTMLDivElement>(null);
+  const serviceDeadlineRef = useRef<HTMLDivElement>(null);
+  const serviceArbitratorRef = useRef<HTMLDivElement>(null);
+
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+  const [isLoadingModalOpen, setIsLoadingModalOpen] = useState(false);
+
+  const handleTransactionSubmit = useCallback(() => {
+    setIsLoadingModalOpen(true);
+  }, []);
+
+  const handleTransactionComplete = useCallback(() => {
+    setIsLoadingModalOpen(false);
+  }, []);
+
+  const handleBalanceUpdate = useCallback(
+    (balance: string | undefined) => {
+      setTokenBalance(balance);
+      if (
+        paymentTokenError === 'Insufficient balance' ||
+        paymentTokenError === 'Amount exceeds available balance'
+      ) {
+        setPaymentTokenError('');
+      }
+    },
+    [paymentTokenError]
+  );
+
+  const handleSummary = useCallback(() => {
+    if (!user) {
+      setIsRegisterModalOpen(true);
+      return;
+    }
+    setShowSummary(!showSummary);
+  }, [user, showSummary]);
+
+  const validateTitle = useCallback((value: string) => {
+    setTitle(value);
+    if (value === '') {
+      setTitleError('This field is required');
+      return;
+    }
+    if (value.length < 3) {
+      setTitleError('Must be at least 3 characters long');
+      return;
+    }
+    setTitleError('');
+  }, []);
+
+  const validatePaymentAmount = useCallback((paymentAmount: string) => {
+    setAmount(paymentAmount);
+    const value = parseFloat(paymentAmount);
+
+    if (paymentAmount === '' || isNaN(value) || value === 0) {
+      setPaymentTokenError('Please enter a valid amount');
+      return;
+    }
+
+    setPaymentTokenError('');
+  }, []);
+
+  const validateArbitrator = useCallback(
+    (addr: string) => {
+      setSelectedArbitratorAddress(addr);
+      if (addr == address) {
+        setArbitratorError('You cannot be your own arbitrator');
+        return;
+      }
+      setArbitratorError('');
+    },
+    [address]
+  );
+
+  const validateDeadline = useCallback((deadlineStr: string) => {
+    if (deadlineStr === '') {
+      setDeadline(NaN);
+      setDeadlineError('');
+      return;
+    }
+    let deadline = parseInt(deadlineStr);
+    if (deadline < 0) deadline = -deadline;
+    if (deadline === 0 || isNaN(deadline)) {
+      setDeadlineError('Please enter a valid deadline');
+      return;
+    }
+    setDeadline(deadline);
+    setDeadlineError('');
+  }, []);
+
+  useEffect(() => {
+    if (validationAttempted) {
+      if (title && title.length >= 3) setTitleError('');
+      if (selectedCategory) setCategoryError('');
+      if (amount && parseFloat(amount) > 0) {
+        setPaymentTokenError('');
+      }
+      if (deadline && !isNaN(deadline) && deadline > 0) setDeadlineError('');
+      if (selectedArbitratorAddress && selectedArbitratorAddress !== address) {
+        setArbitratorError('');
+      }
+    }
+  }, [
+    title,
+    selectedCategory,
+    amount,
+    deadline,
+    selectedArbitratorAddress,
+    address,
+    validationAttempted,
+  ]);
+
+  useEffect(() => {
+    if (initialValues.title) validateTitle(initialValues.title);
+    if (initialValues.amount) validatePaymentAmount(initialValues.amount);
+    if (initialValues.arbitrator) validateArbitrator(initialValues.arbitrator);
+    if (initialValues.deadline)
+      validateDeadline(initialValues.deadline.toString());
+  }, [
+    initialValues.title,
+    initialValues.amount,
+    initialValues.arbitrator,
+    initialValues.deadline,
+    validateTitle,
+    validatePaymentAmount,
+    validateArbitrator,
+    validateDeadline,
+  ]);
+
+  const handleSubmit = useCallback(() => {
+    setValidationAttempted(true);
+    setTitleError('');
+    setDescriptionError('');
+    setCategoryError('');
+    setPaymentTokenError('');
+    setArbitratorError('');
+    setDeadlineError('');
+
+    let hasErrors = false;
+    const errorFields: Array<{
+      ref: React.RefObject<HTMLDivElement>;
+      setter: (msg: string) => void;
+      message: string;
+    }> = [];
+
+    if (!title || title.length < 3) {
+      const msg = !title
+        ? 'Service title is required'
+        : 'Service title must be at least 3 characters';
+      errorFields.push({
+        ref: serviceTitleRef,
+        setter: setTitleError,
+        message: msg,
+      });
+      hasErrors = true;
+    }
+
+    if (!selectedCategory) {
+      errorFields.push({
+        ref: serviceCategoryRef,
+        setter: setCategoryError,
+        message: 'Please select a category',
+      });
+      hasErrors = true;
+    }
+
+    if (!amount || parseFloat(amount) <= 0) {
+      errorFields.push({
+        ref: serviceAmountRef,
+        setter: setPaymentTokenError,
+        message: 'Please enter a valid payment amount',
+      });
+      hasErrors = true;
+    } else if (tokenBalance) {
+      const amountValue = parseFloat(amount);
+      const balanceValue = parseFloat(tokenBalance);
+      if (
+        !isNaN(amountValue) &&
+        !isNaN(balanceValue) &&
+        amountValue > balanceValue
+      ) {
+        errorFields.push({
+          ref: serviceAmountRef,
+          setter: () => {},
+          message: '',
+        });
+        hasErrors = true;
+      }
+    }
+
+    if (!deadline || isNaN(deadline) || deadline <= 0) {
+      errorFields.push({
+        ref: serviceDeadlineRef,
+        setter: setDeadlineError,
+        message: 'Please enter a valid deadline',
+      });
+      hasErrors = true;
+    }
+
+    if (selectedArbitratorAddress && selectedArbitratorAddress === address) {
+      errorFields.push({
+        ref: serviceArbitratorRef,
+        setter: setArbitratorError,
+        message: 'You cannot be your own arbitrator',
+      });
+      hasErrors = true;
+    }
+
+    if (hasErrors) {
+      errorFields.forEach(({ setter, message }) => {
+        if (message) setter(message);
+      });
+      if (errorFields.length > 0 && errorFields[0].ref.current) {
+        errorFields[0].ref.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
+      }
+      return;
+    }
+
+    handleSummary();
+  }, [
+    title,
+    amount,
+    tokenBalance,
+    selectedCategory,
+    deadline,
+    selectedArbitratorAddress,
+    address,
+    handleSummary,
+  ]);
+
+  return (
+    <div className='relative min-h-screen overflow-x-scroll sm:overflow-x-hidden'>
+      {/* Background blur elements */}
+      <div className='pointer-events-none fixed right-4 top-40 h-64 w-64 rounded-full bg-green-500/10 blur-3xl sm:right-20 sm:h-96 sm:w-96' />
+      <div className='pointer-events-none fixed bottom-40 left-4 h-64 w-64 rounded-full bg-emerald-500/10 blur-3xl sm:left-20 sm:h-96 sm:w-96' />
+
+      {!showSummary && (
+        <Fieldset className='relative w-full px-2 sm:px-0'>
+          <div className='mb-10'>
+            <div className='mb-4 flex items-center gap-3'>
+              <div className='flex-shrink-0 rounded-xl border border-green-500/20 bg-gradient-to-br from-green-500/10 to-emerald-500/10 p-3 backdrop-blur-sm'>
+                <PiStorefront className='h-7 w-7 text-green-500' />
+              </div>
+              <div className='min-w-0 flex-1'>
+                <h1 className='text-2xl font-bold text-gray-900 sm:text-3xl dark:text-gray-100'>
+                  Create a Service Listing
+                </h1>
+                <span className='block text-sm text-gray-600 sm:text-base dark:text-gray-400'>
+                  Complete the form below to list your service and connect with
+                  potential clients.
+                </span>
+              </div>
+            </div>
+            <div className='mt-6 flex gap-2'>
+              <div className='h-1 flex-1 rounded-full bg-gradient-to-r from-green-500 to-emerald-500' />
+              <div className='h-1 flex-1 rounded-full bg-gray-200 dark:bg-gray-700' />
+            </div>
+          </div>
+
+          <div className='flex w-full flex-col gap-8 lg:flex-row lg:gap-12'>
+            <div className='min-w-0 flex-1'>
+              <div className='rounded-2xl border border-gray-200/50 bg-white/50 p-3 shadow-xl backdrop-blur-xl sm:p-6 dark:border-gray-700/50 dark:bg-gray-900/50'>
+                <h2 className='mb-6 flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100'>
+                  <PiStorefront className='h-5 w-5 flex-shrink-0 text-green-500' />
+                  <span className='min-w-0'>Service Details</span>
+                </h2>
+
+                <FieldGroup className='space-y-6'>
+                  <div ref={serviceTitleRef} className='scroll-mt-24'>
+                    <MinimalField
+                      error={titleError}
+                      label='Service Title'
+                      helperText='A short descriptive title for your service'
+                      required
+                    >
+                      <Input
+                        name='title'
+                        value={title}
+                        placeholder='e.g., Professional Web Development Service'
+                        required
+                        minLength={3}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                          validateTitle(e.target.value)
+                        }
+                        className={`bg-white/50 dark:bg-gray-800/50 ${titleError ? '!border-red-500' : ''}`}
+                        data-invalid={titleError ? true : undefined}
+                      />
+                    </MinimalField>
+                  </div>
+
+                  <div ref={serviceDescriptionRef} className='scroll-mt-24'>
+                    <MinimalField
+                      error={descriptionError}
+                      label='Description'
+                      helperText='Provide a thorough description of your service'
+                    >
+                      <Textarea
+                        rows={10}
+                        name='description'
+                        placeholder='Describe what you offer, your expertise, deliverables...'
+                        value={description}
+                        onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                          setDescription(e.target.value)
+                        }
+                        className={`bg-white/50 dark:bg-gray-800/50 ${descriptionError ? '!border-red-500' : ''}`}
+                        data-invalid={descriptionError ? true : undefined}
+                      />
+                    </MinimalField>
+                  </div>
+
+                  <div ref={serviceCategoryRef} className='scroll-mt-24'>
+                    <MinimalField
+                      error={categoryError}
+                      label='Category'
+                      icon={<PiTag className='h-4 w-4' />}
+                      helperText='Select the category that best describes your service'
+                      required
+                    >
+                      <ListBox
+                        placeholder='Select Category'
+                        value={selectedCategory}
+                        onChange={(category) => {
+                          if (typeof category !== 'string') {
+                            setSelectedCategory(category);
+                            setCategoryError('');
+                          }
+                        }}
+                        options={serviceMeceTags}
+                      />
+                    </MinimalField>
+                  </div>
+
+                  <MinimalField
+                    label='Tags'
+                    helperText='Add relevant tags to help clients find your service'
+                  >
+                    <TagsInput tags={tags} setTags={setTags} />
+                  </MinimalField>
+                </FieldGroup>
+              </div>
+            </div>
+
+            <div className='min-w-0 flex-1'>
+              <div className='rounded-2xl border border-gray-200/50 bg-white/50 p-3 shadow-xl backdrop-blur-xl sm:p-6 dark:border-gray-700/50 dark:bg-gray-900/50'>
+                <h2 className='mb-6 flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100'>
+                  <PiCurrencyDollar className='h-5 w-5 flex-shrink-0 text-green-500' />
+                  <span className='min-w-0'>Pricing & Delivery</span>
+                </h2>
+
+                <FieldGroup className='space-y-6'>
+                  <div ref={serviceAmountRef} className='scroll-mt-24'>
+                    <MinimalField
+                      error={paymentTokenError}
+                      label='Service Price'
+                      icon={<PiCurrencyDollar className='h-4 w-4' />}
+                      helperText='Set the price for your service'
+                      required
+                    >
+                      <PaymentInput
+                        amount={amount}
+                        onAmountChange={validatePaymentAmount}
+                        selectedToken={selectedToken}
+                        onTokenSelect={setSelectedToken}
+                        onBalanceUpdate={handleBalanceUpdate}
+                        placeholder='Enter amount'
+                        required
+                        validateAmount={true}
+                      />
+                    </MinimalField>
+                  </div>
+
+                  <MinimalField
+                    label='Delivery Method'
+                    icon={<PiTruck className='h-4 w-4' />}
+                    helperText='Choose how the service will be delivered'
+                  >
+                    <ListBox
+                      placeholder='Select Delivery Method'
+                      value={deliveryMethod}
+                      onChange={(method) => {
+                        if (typeof method !== 'string') {
+                          setDeliveryMethod(method.id);
+                        }
+                      }}
+                      options={deliveryMethods}
+                    />
+                  </MinimalField>
+
+                  <div ref={serviceDeadlineRef} className='scroll-mt-24'>
+                    <MinimalField
+                      error={deadlineError}
+                      label='Delivery Timeline'
+                      icon={<PiClock className='h-4 w-4' />}
+                      helperText='Set the expected delivery time for this service'
+                      required
+                    >
+                      <DeliveryTimelineInput
+                        value={deadline}
+                        onValueChange={validateDeadline}
+                        selectedUnit={selectedUnitTime}
+                        onUnitChange={(unit) => setselectedUnitTime(unit)}
+                        placeholder='Enter time'
+                      />
+                    </MinimalField>
+                  </div>
+
+                  <div ref={serviceArbitratorRef} className='scroll-mt-24'>
+                    <MinimalField
+                      error={arbitratorError}
+                      label='Dispute Resolution'
+                      icon={<PiScales className='h-4 w-4' />}
+                      helperText='Select an arbitrator for third-party dispute resolution (optional)'
+                    >
+                      <ArbitratorSelector
+                        arbitrators={arbitrators || []}
+                        selectedAddress={selectedArbitratorAddress}
+                        onChange={validateArbitrator}
+                        disabled={false}
+                        showExternalLink={true}
+                        showNoArbitrator={true}
+                      />
+                    </MinimalField>
+                  </div>
+                </FieldGroup>
+              </div>
+            </div>
+          </div>
+
+          {!showSummary && (
+            <div className='mt-8 flex justify-end gap-4 px-2 pb-20 sm:px-0'>
+              {isConnected ? (
+                <button
+                  onClick={handleSubmit}
+                  className='group relative rounded-xl border border-white/10 bg-slate-800 px-6 py-3 font-medium shadow-lg transition-all duration-200 hover:bg-slate-700 sm:px-8'
+                >
+                  <span className='relative flex items-center gap-2 text-white'>
+                    <span className='text-white'>Continue to Review</span>
+                    <ArrowRight className='h-4 w-4 text-white transition-transform group-hover:translate-x-0.5' />
+                  </span>
+                </button>
+              ) : (
+                <ConnectButton />
+              )}
+            </div>
+          )}
+        </Fieldset>
+      )}
+
+      {showSummary && (
+        <ServiceSummary
+          handleSummary={handleSummary}
+          title={title}
+          description={description}
+          tags={tags}
+          deliveryMethod={deliveryMethod}
+          selectedToken={selectedToken}
+          amount={amount}
+          selectedCategory={selectedCategory as { id: string; name: string }}
+          deadline={convertToSeconds(
+            deadline,
+            convertUnitFromDisplay(selectedUnitTime).name
+          )}
+          selectedArbitratorAddress={selectedArbitratorAddress}
+          onTransactionStart={handleTransactionSubmit}
+          onTransactionComplete={handleTransactionComplete}
+        />
+      )}
+
+      <RegisterModal
+        open={isRegisterModalOpen}
+        close={() => setIsRegisterModalOpen(false)}
+      />
+      <LoadingModal
+        open={isLoadingModalOpen}
+        close={() => setIsLoadingModalOpen(false)}
+      />
+      <AddToHomescreen />
+    </div>
+  );
+};
+
+export default PostService;

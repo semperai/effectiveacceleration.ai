@@ -11,6 +11,7 @@ export const MarketplaceFields = `
       jobCount
       userCount
       arbitratorCount
+      serviceCount
 `;
 
 export const JobFields = `
@@ -138,6 +139,141 @@ export const JobEventFields = `
     ... on JobMessageEvent {
       contentHash
       recipientAddress
+    }
+  }
+`;
+
+export const ServiceFields = `
+      id
+      seller
+      title
+      descriptionHash
+      description
+      tags
+      paymentToken
+      price
+      deliveryTime
+      deliveryMethod
+      arbitrator
+      state
+      totalOrders
+      completedOrders
+      averageRating
+      numberOfRatings
+      timestamp
+      updatedAt
+`;
+
+export const ServiceOrderFields = `
+      id
+      serviceId
+      buyer
+      seller
+      roles {
+        buyer
+        seller
+      }
+      price
+      paymentToken
+      escrowId
+      state
+      requirementsHash
+      requirements
+      resultHash
+      result
+      disputed
+      createdAt
+      deliveredAt
+      completedAt
+      eventCount
+`;
+
+export const ServiceReviewFields = `
+      id
+      serviceId
+      orderId
+      reviewer
+      rating
+      text
+      timestamp
+`;
+
+export const ServiceEventFields = `
+  id
+  type_
+  address_
+  timestamp_
+  serviceId
+  orderId
+  data_
+  details {
+    __typename
+    ... on ServiceCreatedEvent {
+      seller
+      title
+      descriptionHash
+      tags
+      paymentToken
+      price
+      deliveryTime
+      deliveryMethod
+      arbitrator
+    }
+    ... on ServiceUpdatedEvent {
+      title
+      descriptionHash
+      tags
+      price
+      deliveryTime
+      deliveryMethod
+    }
+    ... on ServicePausedEvent {
+      seller
+    }
+    ... on ServiceActivatedEvent {
+      seller
+    }
+    ... on ServiceDeletedEvent {
+      seller
+    }
+    ... on OrderCreatedEvent {
+      serviceId
+      buyer
+      seller
+      price
+      requirementsHash
+    }
+    ... on OrderStartedEvent {
+      seller
+    }
+    ... on OrderDeliveredEvent {
+      seller
+      resultHash
+    }
+    ... on OrderCompletedEvent {
+      buyer
+      rating
+      review
+    }
+    ... on OrderCancelledEvent {
+      reason
+    }
+    ... on OrderRefundedEvent {
+      seller
+    }
+    ... on OrderDisputedEvent {
+      disputeInitiator
+    }
+    ... on OrderArbitratedEvent {
+      arbitrator
+      buyerShare
+      sellerShare
+      reasonHash
+    }
+    ... on OrderMessageEvent {
+      messageHash
+      sender
+      isSeller
     }
   }
 `;

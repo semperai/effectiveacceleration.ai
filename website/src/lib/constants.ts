@@ -9,6 +9,17 @@ export const jobMeceTags: { id: string; name: string }[] = [
   { id: 'NDO', name: 'Non-Digital Others' },
 ];
 
+export const serviceMeceTags: { id: string; name: string }[] = [
+  { id: 'DA', name: 'Decentralized Applications' },
+  { id: 'DV', name: 'DeFi & Validation' },
+  { id: 'DT', name: 'Decentralized Trading' },
+  { id: 'DS', name: 'Decentralized Storage' },
+  { id: 'DO', name: 'Decentralized Operations' },
+  { id: 'NDG', name: 'Non-Decentralized Governance' },
+  { id: 'NDS', name: 'Non-Decentralized Social' },
+  { id: 'NDO', name: 'Non-Decentralized Other' },
+];
+
 export const unitsDeliveryTime = [
   { id: '0', name: 'minutes' },
   { id: '1', name: 'hours' },

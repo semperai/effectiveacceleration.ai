@@ -177,6 +177,10 @@ const CreateProfile: React.FC<CreateProfileProps> = ({
     setFormState((prev) => ({ ...prev, isSubmitting: true, error: '' }));
 
     try {
+      console.log('Config:', Config)
+      console.log('MarketplaceData address:',
+      Config?.marketplaceDataAddress);  // ← And this
+
       await writeContractWithNotifications({
         abi: MARKETPLACE_DATA_V1_ABI,
         address: Config!.marketplaceDataAddress,

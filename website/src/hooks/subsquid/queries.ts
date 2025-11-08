@@ -6,6 +6,10 @@ import {
   MarketplaceFields,
   ReviewFields,
   UserFields,
+  ServiceFields,
+  ServiceOrderFields,
+  ServiceReviewFields,
+  ServiceEventFields,
 } from './fields';
 
 export const GET_MARKETPLACES = gql`
@@ -303,6 +307,116 @@ export const GET_USER_JOB_NOTIFICATIONS = gql`
       address
       timestamp
       jobId
+    }
+  }
+`;
+
+// Service Marketplace Queries
+
+export const GET_SERVICE_BY_ID = gql`
+  query GetServiceById($serviceId: String!) {
+    services(where: { id_eq: $serviceId }) {
+      ${ServiceFields}
+    }
+  }
+`;
+
+export const GET_SERVICES = gql`
+  query GetServices($offset: Int!, $limit: Int!) {
+    services(orderBy: timestamp_DESC, offset: $offset, limit: $limit) {
+      ${ServiceFields}
+    }
+  }
+`;
+
+export const GET_ACTIVE_SERVICES = gql`
+  query GetActiveServices($offset: Int!, $limit: Int!) {
+    services(orderBy: timestamp_DESC, offset: $offset, limit: $limit, where: { state_eq: 0 }) {
+      ${ServiceFields}
+    }
+  }
+`;
+
+export const GET_SERVICES_BY_SELLER = gql`
+  query GetServicesBySeller($sellerAddress: String!, $offset: Int!, $limit: Int!) {
+    services(orderBy: timestamp_DESC, where: { seller_eq: $sellerAddress }, offset: $offset, limit: $limit) {
+      ${ServiceFields}
+    }
+  }
+`;
+
+export const GET_SERVICE_SEARCH = ({
+  search,
+  orderBy,
+  limit,
+  offset,
+}: {
+  search: string;
+  orderBy: string;
+  limit: number;
+  offset: number;
+}) => gql`
+  query GetServiceSearch {
+    services(limit: ${limit}, offset: ${offset}, orderBy: ${orderBy}, where: {
+      ${search}
+    }) {
+      ${ServiceFields}
+    }
+  }
+`;
+
+export const GET_SERVICE_ORDER_BY_ID = gql`
+  query GetServiceOrderById($orderId: String!) {
+    serviceOrders(where: { id_eq: $orderId }) {
+      ${ServiceOrderFields}
+    }
+  }
+`;
+
+export const GET_SERVICE_ORDERS_BY_BUYER = gql`
+  query GetServiceOrdersByBuyer($buyerAddress: String!, $orderBy: [ServiceOrderOrderByInput!]) {
+    serviceOrders(orderBy: $orderBy, where: { buyer_eq: $buyerAddress }) {
+      ${ServiceOrderFields}
+    }
+  }
+`;
+
+export const GET_SERVICE_ORDERS_BY_SELLER = gql`
+  query GetServiceOrdersBySeller($sellerAddress: String!, $orderBy: [ServiceOrderOrderByInput!]) {
+    serviceOrders(orderBy: $orderBy, where: { seller_eq: $sellerAddress }) {
+      ${ServiceOrderFields}
+    }
+  }
+`;
+
+export const GET_SERVICE_ORDERS_BY_SERVICE = gql`
+  query GetServiceOrdersByService($serviceId: BigInt!, $offset: Int!, $limit: Int!) {
+    serviceOrders(orderBy: createdAt_DESC, where: { serviceId_eq: $serviceId }, offset: $offset, limit: $limit) {
+      ${ServiceOrderFields}
+    }
+  }
+`;
+
+export const GET_SERVICE_EVENTS = gql`
+  query GetServiceEvents($serviceId: BigInt!) {
+    serviceEvents(orderBy: timestamp__ASC, where: { serviceId_eq: $serviceId }) {
+      ${ServiceEventFields}
+    }
+  }
+`;
+
+export const GET_SERVICE_ORDER_EVENTS = gql`
+  query GetServiceOrderEvents($orderId: BigInt!) {
+    serviceEvents(orderBy: timestamp__ASC, where: { orderId_eq: $orderId }) {
+      ${ServiceEventFields}
+    }
+  }
+`;
+
+export const GET_SERVICE_REVIEWS = gql`
+  query GetServiceReviews($serviceId: BigInt!, $offset: Int!, $limit: Int!) {
+    serviceReviews(orderBy: timestamp_DESC, where: { serviceId_eq: $serviceId }, offset: $offset, limit: $limit) {
+      ${ServiceReviewFields}
     }
   }
 `;

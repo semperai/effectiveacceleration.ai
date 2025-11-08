@@ -8,6 +8,8 @@ import {
   PiListHeart,
   PiBooks,
   PiTrendUp,
+  PiStorefront,
+  PiShoppingBag,
 } from 'react-icons/pi';
 import { NavigationMenu } from './NavigationMenu';
 import { UserInfo } from './UserInfo';
@@ -21,6 +23,13 @@ const navigationItems = [
     name: 'Post job',
     href: '/post-job',
     icon: <PiPaperPlaneTilt className='h-5 w-5' />,
+    target: '_self',
+    special: true,
+  },
+  {
+    name: 'Post Service',
+    href: '/post-service',
+    icon: <PiShoppingBag className='h-5 w-5' />,
     target: '_self',
     special: true,
   },
@@ -40,6 +49,12 @@ const navigationItems = [
     name: 'Worker Jobs',
     href: '/worker-job-list',
     icon: <PiBriefcase className='h-5 w-5' />,
+    target: '_self',
+  },
+  {
+    name: 'Browse Services',
+    href: '/services',
+    icon: <PiStorefront className='h-5 w-5' />,
     target: '_self',
   },
   {
