@@ -14,12 +14,14 @@ import {
 } from 'react-icons/pi';
 import { ShoppingCart, AlertCircle, CheckCircle2, Pause } from 'lucide-react';
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi';
 import { SERVICE_MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/ServiceMarketplaceV1';
+import { publishToIpfs } from '@effectiveacceleration/contracts';
 import { useConfig } from '@/hooks/useConfig';
 import { toast } from 'sonner';
-import { parseUnits, erc20Abi } from 'viem';
+import { parseUnits, erc20Abi, keccak256, toHex, formatUnits } from 'viem';
 import useUser from '@/hooks/subsquid/useUser';
+import * as Sentry from '@sentry/nextjs';
 
 type ServiceSidebarProps = {
   service: Service;
@@ -35,6 +37,7 @@ export default function ServiceSidebar({
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [requirements, setRequirements] = useState('');
   const [showRequirementsModal, setShowRequirementsModal] = useState(false);
+  const [purchaseStep, setPurchaseStep] = useState<'idle' | 'approving' | 'purchasing'>('idle');
   const { data: user } = useUser(address || '');
   const Config = useConfig();
 
@@ -45,6 +48,40 @@ export default function ServiceSidebar({
     useWaitForTransactionReceipt({
       hash,
     });
+
+  // Get token address and service marketplace address
+  const tokenAddress = service.paymentToken as `0x${string}`;
+  const serviceMarketplaceAddress = (Config as any)?.serviceMarketplaceAddress as `0x${string}`;
+  const isNativeETH = tokenAddress === '0x0000000000000000000000000000000000000000';
+  const priceValue = typeof service.price === 'bigint' ? service.price : BigInt(service.price || 0);
+
+  // Check user's token balance
+  const { data: tokenBalance, refetch: refetchBalance } = useReadContract({
+    address: tokenAddress,
+    abi: erc20Abi,
+    functionName: 'balanceOf',
+    args: address ? [address] : undefined,
+    query: {
+      enabled: !!address && !isNativeETH && tokenAddress !== '0x0000000000000000000000000000000000000000',
+    },
+  });
+
+  // Check current allowance
+  const { data: tokenAllowance, refetch: refetchAllowance } = useReadContract({
+    address: tokenAddress,
+    abi: erc20Abi,
+    functionName: 'allowance',
+    args: address && serviceMarketplaceAddress ? [address, serviceMarketplaceAddress] : undefined,
+    query: {
+      enabled: !!address && !!serviceMarketplaceAddress && !isNativeETH && tokenAddress !== '0x0000000000000000000000000000000000000000',
+    },
+  });
+
+  // Calculate readiness states
+  const hasEnoughBalance = tokenBalance !== undefined && tokenBalance >= priceValue;
+  const hasEnoughAllowance = tokenAllowance !== undefined && tokenAllowance >= priceValue;
+  const needsApproval = !hasEnoughAllowance;
+  const canPurchase = hasEnoughBalance && hasEnoughAllowance;
 
   // Dismiss loading toast and show success/error
   const dismissLoadingToast = useCallback(() => {
@@ -76,13 +113,48 @@ export default function ServiceSidebar({
 
   // Handle transaction confirmation
   useEffect(() => {
-    if (isConfirmed) {
+    if (isConfirmed && purchaseStep === 'approving') {
+      // Approval confirmed, refetch allowance and proceed to purchase
+      showSuccess('Token approval confirmed!');
+      refetchAllowance();
+
+      // Small delay to ensure allowance is updated
+      setTimeout(() => {
+        setPurchaseStep('purchasing');
+        const serviceMarketplaceAddress = (Config as any)?.serviceMarketplaceAddress as `0x${string}`;
+
+        // Upload requirements to IPFS first
+        (async () => {
+          try {
+            showLoading('Uploading requirements to IPFS...');
+            const { hash: ipfsHash } = await publishToIpfs(requirements);
+
+            showLoading('Purchasing service...');
+            writeContract({
+              address: serviceMarketplaceAddress,
+              abi: SERVICE_MARKETPLACE_V1_ABI,
+              functionName: 'purchaseService',
+              args: [BigInt(service.id), ipfsHash as `0x${string}`],
+            });
+          } catch (error) {
+            Sentry.captureException(error);
+            showError('Failed to upload requirements to IPFS');
+            setPurchaseStep('idle');
+            setIsPurchasing(false);
+          }
+        })();
+      }, 1000);
+    } else if (isConfirmed && purchaseStep === 'purchasing') {
+      // Purchase confirmed, refetch balance
       showSuccess('Service purchased successfully! Your order has been created.');
+      refetchBalance();
+      refetchAllowance();
       setIsPurchasing(false);
       setRequirements('');
       setShowRequirementsModal(false);
+      setPurchaseStep('idle');
     }
-  }, [isConfirmed, showSuccess]);
+  }, [isConfirmed, purchaseStep, showSuccess, showError, showLoading, Config, service.id, requirements, writeContract, refetchBalance, refetchAllowance]);
 
   // Enhanced section component with gradient backgrounds
   const InfoSection = ({
@@ -228,6 +300,28 @@ export default function ServiceSidebar({
       return;
     }
 
+    // Check for native ETH (not supported)
+    if (isNativeETH) {
+      toast.error('This service uses native ETH which is not supported. Please contact the seller.');
+      return;
+    }
+
+    // Check token balance
+    if (tokenBalance === undefined) {
+      toast.error('Unable to check your token balance. Please try again.');
+      return;
+    }
+
+    if (!hasEnoughBalance) {
+      const balance = formatUnits(tokenBalance, 18);
+      const required = formatUnits(priceValue, 18);
+      const tokenName = formatTokenNameAndAmount(service.paymentToken, service.price).split(' ')[1];
+      toast.error(`Insufficient ${tokenName} balance. You have ${balance} but need ${required}`, {
+        duration: 5000,
+      });
+      return;
+    }
+
     setShowRequirementsModal(true);
   };
 
@@ -239,39 +333,78 @@ export default function ServiceSidebar({
 
     try {
       setIsPurchasing(true);
-      showLoading('Preparing purchase transaction...');
 
-      // First, approve the token transfer
-      const tokenAddress = service.paymentToken as `0x${string}`;
-      const serviceMarketplaceAddress = (Config as any)?.serviceMarketplaceAddress as `0x${string}`;
+      // Double-check balance (shouldn't happen, but safety check)
+      if (!hasEnoughBalance) {
+        showError('Insufficient token balance');
+        setIsPurchasing(false);
+        return;
+      }
 
-      // Check allowance first
-      showLoading('Checking token allowance...');
+      if (!serviceMarketplaceAddress || serviceMarketplaceAddress === '0x0000000000000000000000000000000000000000') {
+        showError('Service marketplace address not configured. Please check your network connection.');
+        setIsPurchasing(false);
+        return;
+      }
 
-      // Request token approval
-      showLoading('Requesting token approval...');
-      writeContract({
-        address: tokenAddress,
-        abi: erc20Abi,
-        functionName: 'approve',
-        args: [serviceMarketplaceAddress, service.price],
-      });
+      // Check if we need approval
+      if (hasEnoughAllowance) {
+        // Already approved, go straight to purchase
+        console.log('Sufficient allowance detected, skipping approval');
+        setPurchaseStep('purchasing');
 
-      // Wait a bit for approval to process
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+        try {
+          showLoading('Uploading requirements to IPFS...');
+          const { hash: ipfsHash } = await publishToIpfs(requirements);
 
-      // Now purchase the service
-      showLoading('Purchasing service...');
-      writeContract({
-        address: serviceMarketplaceAddress,
-        abi: SERVICE_MARKETPLACE_V1_ABI,
-        functionName: 'purchaseService',
-        args: [BigInt(service.id), requirements],
-      });
+          showLoading('Purchasing service...');
+          writeContract({
+            address: serviceMarketplaceAddress,
+            abi: SERVICE_MARKETPLACE_V1_ABI,
+            functionName: 'purchaseService',
+            args: [BigInt(service.id), ipfsHash as `0x${string}`],
+          });
+        } catch (error) {
+          Sentry.captureException(error);
+          showError('Failed to upload requirements to IPFS');
+          setPurchaseStep('idle');
+          setIsPurchasing(false);
+        }
+      } else {
+        // Need approval - approve unlimited amount to avoid future approvals
+        setPurchaseStep('approving');
+        showLoading('Requesting unlimited token approval (you won\'t need to approve again)...');
+
+        try {
+          // Use MaxUint256 for unlimited approval
+          const result = writeContract({
+            address: tokenAddress,
+            abi: erc20Abi,
+            functionName: 'approve',
+            args: [serviceMarketplaceAddress, BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')], // MaxUint256
+          });
+          console.log('writeContract (approve) result:', result);
+        } catch (err) {
+          console.error('writeContract (approve) threw error:', err);
+          throw err;
+        }
+      }
     } catch (error: any) {
       console.error('Purchase error:', error);
-      showError(error.message || 'Failed to purchase service');
+
+      // Better error messages
+      let errorMessage = 'Failed to purchase service';
+      if (error.message?.includes('User rejected')) {
+        errorMessage = 'Transaction was rejected';
+      } else if (error.message?.includes('insufficient funds')) {
+        errorMessage = 'Insufficient funds for gas';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      showError(errorMessage);
       setIsPurchasing(false);
+      setPurchaseStep('idle');
     }
   };
 
@@ -348,6 +481,84 @@ export default function ServiceSidebar({
           </div>
         </InfoSection>
 
+        {/* Token Readiness Indicator - Only show for non-owners when connected */}
+        {!isOwner && address && service.state === 0 && !isNativeETH && (
+          <InfoSection
+            title='Your Readiness'
+            icon={PiCoin}
+            variant={canPurchase ? 'success' : 'warning'}
+          >
+            <div className='space-y-3'>
+              {/* Balance Check */}
+              <div className={`flex items-center justify-between rounded-lg p-3 ${hasEnoughBalance ? 'bg-green-50 dark:bg-green-950/20' : 'bg-red-50 dark:bg-red-950/20'}`}>
+                <div className='flex items-center gap-2'>
+                  {hasEnoughBalance ? (
+                    <CheckCircle2 className='h-4 w-4 text-green-600 dark:text-green-400' />
+                  ) : (
+                    <AlertCircle className='h-4 w-4 text-red-600 dark:text-red-400' />
+                  )}
+                  <span className={`text-sm font-medium ${hasEnoughBalance ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
+                    Token Balance
+                  </span>
+                </div>
+                <span className='text-xs text-gray-600 dark:text-gray-400'>
+                  {tokenBalance !== undefined ? (
+                    <>
+                      {formatUnits(tokenBalance, 18).slice(0, 8)} / {formatUnits(priceValue, 18)} {formatTokenNameAndAmount(service.paymentToken, service.price).split(' ')[1]}
+                    </>
+                  ) : (
+                    'Checking...'
+                  )}
+                </span>
+              </div>
+
+              {/* Approval Check */}
+              <div className={`flex items-center justify-between rounded-lg p-3 ${hasEnoughAllowance ? 'bg-green-50 dark:bg-green-950/20' : 'bg-amber-50 dark:bg-amber-950/20'}`}>
+                <div className='flex items-center gap-2'>
+                  {hasEnoughAllowance ? (
+                    <CheckCircle2 className='h-4 w-4 text-green-600 dark:text-green-400' />
+                  ) : (
+                    <AlertCircle className='h-4 w-4 text-amber-600 dark:text-amber-400' />
+                  )}
+                  <span className={`text-sm font-medium ${hasEnoughAllowance ? 'text-green-700 dark:text-green-300' : 'text-amber-700 dark:text-amber-300'}`}>
+                    Token Approval
+                  </span>
+                </div>
+                <span className='text-xs text-gray-600 dark:text-gray-400'>
+                  {tokenAllowance !== undefined ? (
+                    hasEnoughAllowance ? 'Approved' : 'Needed'
+                  ) : (
+                    'Checking...'
+                  )}
+                </span>
+              </div>
+
+              {/* Status Message */}
+              {!hasEnoughBalance && (
+                <div className='rounded-lg bg-red-50 p-3 dark:bg-red-950/20'>
+                  <p className='text-xs text-red-700 dark:text-red-300'>
+                    ❌ You need more {formatTokenNameAndAmount(service.paymentToken, service.price).split(' ')[1]} tokens to purchase this service.
+                  </p>
+                </div>
+              )}
+              {hasEnoughBalance && !hasEnoughAllowance && (
+                <div className='rounded-lg bg-amber-50 p-3 dark:bg-amber-950/20'>
+                  <p className='text-xs text-amber-700 dark:text-amber-300'>
+                    ⚠️ You'll be asked to approve token spending when you click Purchase.
+                  </p>
+                </div>
+              )}
+              {canPurchase && (
+                <div className='rounded-lg bg-green-50 p-3 dark:bg-green-950/20'>
+                  <p className='text-xs text-green-700 dark:text-green-300'>
+                    ✅ You're all set! Ready to purchase this service.
+                  </p>
+                </div>
+              )}
+            </div>
+          </InfoSection>
+        )}
+
         {/* Purchase Button */}
         <div className='p-6'>
           {isOwner ? (
@@ -369,21 +580,30 @@ export default function ServiceSidebar({
               </p>
             </div>
           ) : (
-            <button
-              onClick={handlePurchaseClick}
-              disabled={isPurchasing || isPending || isConfirming}
-              className='group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 px-6 py-4 font-semibold text-white shadow-lg shadow-green-500/25 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-green-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100'
-            >
-              <div className='absolute inset-0 bg-gradient-to-r from-green-600 to-emerald-600 opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
-              <div className='relative flex items-center justify-center gap-2'>
-                <ShoppingCart className='h-5 w-5' />
-                <span>
-                  {isPurchasing || isPending || isConfirming
-                    ? 'Processing...'
-                    : 'Purchase Service'}
-                </span>
-              </div>
-            </button>
+            <>
+              <button
+                onClick={handlePurchaseClick}
+                disabled={isPurchasing || isPending || isConfirming || !hasEnoughBalance || tokenBalance === undefined}
+                className='group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 px-6 py-4 font-semibold text-white shadow-lg shadow-green-500/25 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-green-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100'
+              >
+                <div className='absolute inset-0 bg-gradient-to-r from-green-600 to-emerald-600 opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
+                <div className='relative flex items-center justify-center gap-2'>
+                  <ShoppingCart className='h-5 w-5' />
+                  <span>
+                    {isPurchasing || isPending || isConfirming
+                      ? 'Processing...'
+                      : !hasEnoughBalance && tokenBalance !== undefined
+                      ? 'Insufficient Balance'
+                      : 'Purchase Service'}
+                  </span>
+                </div>
+              </button>
+              {!hasEnoughBalance && tokenBalance !== undefined && (
+                <p className='mt-2 text-center text-xs text-red-600 dark:text-red-400'>
+                  You need more tokens to purchase this service
+                </p>
+              )}
+            </>
           )}
         </div>
 

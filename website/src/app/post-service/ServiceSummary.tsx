@@ -153,6 +153,10 @@ const ServiceSummary: React.FC<ServiceSummaryProps> = ({
   // For display purposes, we'll show them separately
   const additionalTags = tags.map((tag) => tag.name);
 
+  // Debug logging
+  console.log('ServiceSummary - selectedToken:', selectedToken);
+  console.log('ServiceSummary - token ID:', selectedToken?.id);
+
   if (!selectedToken || !Config) {
     return (
       <div className='flex min-h-screen items-center justify-center'>

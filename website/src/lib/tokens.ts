@@ -7,17 +7,13 @@ export interface Token {
 }
 
 export const tokens: Token[] = [
-  ...(process.env.NODE_ENV === 'development'
-    ? [
-        {
-          id: '0x1235747639a5da96d3B52EffC0E179957C94Dc71',
-          name: 'Fake Token',
-          symbol: 'FAKE',
-          icon: 'https://assets.coingecko.com/coins/images/279/standard/ethereum.png',
-          decimals: 18,
-        },
-      ]
-    : []),
+  {
+    id: '0x8A791620dd6260079BF849Dc5567aDC3F2FdC318',
+    name: 'Fake Token',
+    symbol: 'FAKE',
+    icon: 'https://assets.coingecko.com/coins/images/279/standard/ethereum.png',
+    decimals: 18,
+  },
   {
     id: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
     name: 'USD Coin',

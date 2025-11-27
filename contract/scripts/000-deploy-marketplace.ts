@@ -42,7 +42,7 @@ async function main() {
   await marketplaceData.waitForDeployment();
   console.log("MarketplaceData deployed to:", await marketplaceData.getAddress());
 
-  await marketplace.connect(deployer).setMarketplaceDataAddress(await marketplace.getAddress());
+  await marketplace.connect(deployer).setMarketplaceDataAddress(await marketplaceData.getAddress());
 
   const FakeToken = await ethers.getContractFactory(
     "FakeToken"

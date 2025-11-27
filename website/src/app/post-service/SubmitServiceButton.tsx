@@ -61,6 +61,7 @@ export const SubmitServiceButton = ({
     isError: allowanceIsError,
     isLoading: allowanceIsLoading,
     refetch: refetchAllowance,
+    error: allowanceError,
   } = useReadContract({
     address: token,
     abi: ERC20_ABI,
@@ -73,6 +74,19 @@ export const SubmitServiceButton = ({
       enabled: !!address && !!token && !!(Config as any)?.serviceMarketplaceAddress,
     },
   });
+
+  // Log allowance check details
+  useEffect(() => {
+    console.log('Allowance check:', {
+      token,
+      address,
+      serviceMarketplaceAddress: (Config as any)?.serviceMarketplaceAddress,
+      allowanceData,
+      allowanceIsError,
+      allowanceError,
+      isLoading: allowanceIsLoading,
+    });
+  }, [token, address, Config, allowanceData, allowanceIsError, allowanceError, allowanceIsLoading]);
 
   const {
     writeContractWithNotifications,
@@ -236,10 +250,16 @@ export const SubmitServiceButton = ({
 
   // Show error state
   if (allowanceIsError) {
+    console.error('Allowance check error:', allowanceError);
     return (
-      <button className='group relative min-w-[180px] rounded-xl border border-red-500/20 bg-red-500/10 px-6 py-3 font-medium text-red-600 backdrop-blur-sm transition-all duration-200 dark:text-red-400'>
-        Error checking approval
-      </button>
+      <div className='flex flex-col gap-2'>
+        <button className='group relative min-w-[180px] rounded-xl border border-red-500/20 bg-red-500/10 px-6 py-3 font-medium text-red-600 backdrop-blur-sm transition-all duration-200 dark:text-red-400'>
+          Error checking approval
+        </button>
+        <p className='text-xs text-red-600 dark:text-red-400'>
+          {allowanceError?.message || 'Failed to check token approval'}
+        </p>
+      </div>
     );
   }
 

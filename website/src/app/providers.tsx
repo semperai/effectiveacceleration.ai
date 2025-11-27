@@ -115,6 +115,25 @@ const cacheConfig: InMemoryCacheConfig = {
         arbitratorAmount: bigintPolicy,
       },
     },
+    Service: {
+      fields: {
+        serviceId: bigintPolicy,
+        price: bigintPolicy,
+      },
+    },
+    ServiceOrder: {
+      fields: {
+        serviceId: bigintPolicy,
+        price: bigintPolicy,
+        escrowId: bigintPolicy,
+      },
+    },
+    ServiceEvent: {
+      fields: {
+        serviceId: bigintPolicy,
+        orderId: bigintPolicy,
+      },
+    },
   },
 };
 

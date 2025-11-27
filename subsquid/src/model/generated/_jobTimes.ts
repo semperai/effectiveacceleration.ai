@@ -1,8 +1,7 @@
 import assert from "assert"
 import * as marshal from "./marshal"
-import { JobTimes as IJobTimes } from "@effectiveacceleration/contracts"
 
-export class JobTimes implements IJobTimes {
+export class JobTimes {
     private _createdAt!: number
     private _openedAt!: number
     private _assignedAt!: number

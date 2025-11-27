@@ -3,10 +3,9 @@ import * as marshal from "./marshal"
 import {JobRoles} from "./_jobRoles"
 import {JobTimes} from "./_jobTimes"
 import {JobEvent} from "./jobEvent.model"
-import {Job as IJob} from "@effectiveacceleration/contracts";
 
 @Entity_()
-export class Job implements IJob {
+export class Job {
     constructor(props?: Partial<Job>) {
         Object.assign(this, props)
     }
@@ -82,5 +81,5 @@ export class Job implements IJob {
 
     @Index_()
     @ManyToOne_(() => JobEvent, {nullable: true})
-    lastJobEvent!: JobEvent | undefined
+    lastJobEvent!: JobEvent | undefined | null
 }

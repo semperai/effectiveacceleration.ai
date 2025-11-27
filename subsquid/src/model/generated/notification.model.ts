@@ -18,6 +18,12 @@ export class Notification {
     @IntColumn_({nullable: false})
     timestamp!: number
 
-    @StringColumn_({nullable: false})
-    jobId!: string
+    @StringColumn_({nullable: true})
+    jobId!: string | undefined | null
+
+    @StringColumn_({nullable: true})
+    serviceId!: string | undefined | null
+
+    @StringColumn_({nullable: true})
+    orderId!: string | undefined | null
 }

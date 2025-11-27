@@ -14,9 +14,12 @@ import { Play, Package, CheckCircle2, XCircle, AlertCircle, Loader2 } from 'luci
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { SERVICE_MARKETPLACE_V1_ABI } from '@effectiveacceleration/contracts/wagmi/ServiceMarketplaceV1';
+import { publishToIpfs } from '@effectiveacceleration/contracts';
 import { useConfig } from '@/hooks/useConfig';
 import { toast } from 'sonner';
 import moment from 'moment';
+import * as Sentry from '@sentry/nextjs';
+import { cp } from 'fs';
 
 type OrderSidebarProps = {
   order: ServiceOrder;
@@ -200,16 +203,22 @@ export default function OrderSidebar({
 
     try {
       setIsProcessing(true);
+      showLoading('Uploading delivery to IPFS...');
+
+      // Upload delivery result to IPFS
+      const { hash: ipfsHash } = await publishToIpfs(deliveryResult);
+
       showLoading('Submitting delivery...');
 
       writeContract({
         address: (Config as any)?.serviceMarketplaceAddress as `0x${string}`,
         abi: SERVICE_MARKETPLACE_V1_ABI,
         functionName: 'deliverOrder',
-        args: [BigInt(order.id), deliveryResult],
+        args: [BigInt(order.id), ipfsHash as `0x${string}`],
       });
     } catch (error: any) {
       console.error('Deliver error:', error);
+      Sentry.captureException(error);
       showError(error.message || 'Failed to deliver order');
       setIsProcessing(false);
     }
@@ -341,15 +350,15 @@ export default function OrderSidebar({
                 <button
                   onClick={handleStartOrder}
                   disabled={isProcessing || isPending || isConfirming}
-                  className='group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100'
+                  className='group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 font-semibold  shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100'
                 >
                   <div className='relative flex items-center justify-center gap-2'>
                     {isProcessing || isPending || isConfirming ? (
-                      <Loader2 className='h-5 w-5 animate-spin' />
+                      <Loader2 className='h-5 w-5 animate-spin text-[#fff]' />
                     ) : (
-                      <Play className='h-5 w-5' />
+                      <Play className='h-5 w-5 text-[#fff]' />
                     )}
-                    <span>Start Order</span>
+                    <span className='text-[#fff]'>Start Order</span>
                   </div>
                 </button>
               )}
@@ -362,11 +371,11 @@ export default function OrderSidebar({
                 >
                   <div className='relative flex items-center justify-center gap-2'>
                     {isProcessing || isPending || isConfirming ? (
-                      <Loader2 className='h-5 w-5 animate-spin' />
+                      <Loader2 className='h-5 w-5 animate-spin text-[#fff]' />
                     ) : (
-                      <Package className='h-5 w-5' />
+                      <Package className='h-5 w-5 text-[#fff]' />
                     )}
-                    <span>Deliver Work</span>
+                    <span className='text-[#fff]'>Deliver Work</span>
                   </div>
                 </button>
               )}
@@ -375,15 +384,15 @@ export default function OrderSidebar({
                 <button
                   onClick={handleApprove}
                   disabled={isProcessing || isPending || isConfirming}
-                  className='group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 px-6 py-3 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100'
+                  className='group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 px-6 py-3 font-semibold  shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100'
                 >
                   <div className='relative flex items-center justify-center gap-2'>
                     {isProcessing || isPending || isConfirming ? (
-                      <Loader2 className='h-5 w-5 animate-spin' />
+                      <Loader2 className='h-5 w-5 animate-spin text-[#fff]' />
                     ) : (
-                      <CheckCircle2 className='h-5 w-5' />
+                      <CheckCircle2 className='h-5 w-5 text-[#fff] ' />
                     )}
-                    <span>Approve & Release Payment</span>
+                    <span className='text-[#fff]'>Approve & Release Payment</span>
                   </div>
                 </button>
               )}
@@ -400,7 +409,7 @@ export default function OrderSidebar({
                     ) : (
                       <XCircle className='h-5 w-5' />
                     )}
-                    <span>Refund Order</span>
+                    <span className=''>Refund Order</span>
                   </div>
                 </button>
               )}
@@ -417,7 +426,7 @@ export default function OrderSidebar({
                     ) : (
                       <AlertCircle className='h-5 w-5' />
                     )}
-                    <span>Raise Dispute</span>
+                    <span className=''>Raise Dispute</span>
                   </div>
                 </button>
               )}

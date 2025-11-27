@@ -2,10 +2,9 @@ import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, B
 import * as marshal from "./marshal"
 import {CustomJobEvent, fromJsonCustomJobEvent} from "./_customJobEvent"
 import {Job} from "./job.model"
-import {JobEvent as IJobEvent} from "@effectiveacceleration/contracts";
 
 @Entity_()
-export class JobEvent implements IJobEvent {
+export class JobEvent {
     constructor(props?: Partial<JobEvent>) {
         Object.assign(this, props)
     }
@@ -29,7 +28,7 @@ export class JobEvent implements IJobEvent {
     timestamp_!: number
 
     @Column_("jsonb", {transformer: {to: obj => obj == null ? undefined : obj.toJSON(), from: obj => obj == null ? undefined : fromJsonCustomJobEvent(obj)}, nullable: true})
-    details!: CustomJobEvent | undefined
+    details!: CustomJobEvent | undefined | null
 
     @Index_()
     @ManyToOne_(() => Job, {nullable: true})

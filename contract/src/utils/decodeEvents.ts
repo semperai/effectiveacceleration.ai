@@ -1,7 +1,7 @@
 import { BytesLike, getBytes, hexlify, toUtf8String, toBigInt, getAddress } from "ethers";
 import { decodeString, decodeBytes32, decodeBool, decodeStringArray, decodeAddress, decodeUint256, decodeUint32, decodeBytes } from "./decodeData";
 import { decryptBinaryData, decryptUtf8Data } from "./encryption";
-import { JobCreatedEvent, JobUpdatedEvent, JobSignedEvent, JobRatedEvent, JobDisputedEvent, JobArbitratedEvent, JobMessageEvent, JobEventType, CustomJobEvent } from "../interfaces";
+import { JobCreatedEvent, JobUpdatedEvent, JobSignedEvent, JobRatedEvent, JobDisputedEvent, JobArbitratedEvent, JobMessageEvent, JobEventType, CustomJobEvent, ServiceCreatedEvent, ServiceUpdatedEvent, ServiceEventType, CustomServiceEvent, OrderCreatedEvent, OrderRatedEvent, ServiceOrderDisputedEvent, ServiceOrderArbitratedEvent, ServiceOrderMessageEvent } from "../interfaces";
 
 export const decodeJobCreatedEvent = (rawData: BytesLike): JobCreatedEvent => {
   const bytes = getBytes(rawData);
@@ -125,6 +125,113 @@ export const decodeCustomJobEvent = (eventType: JobEventType, rawData: BytesLike
     case JobEventType.WorkerMessage:
     case JobEventType.OwnerMessage:
       return decodeJobMessageEvent(rawData);
+    default:
+      return undefined;
+  }
+}
+
+// Service event decoders
+export const decodeServiceCreatedEvent = (rawData: BytesLike): ServiceCreatedEvent => {
+  const bytes = getBytes(rawData);
+  let ptr = {bytes, index: 0};
+
+  const result = {} as ServiceCreatedEvent;
+  result.title = decodeString(ptr);
+  result.descriptionHash = decodeBytes32(ptr);
+  result.tags = decodeStringArray(ptr);
+  result.token = decodeAddress(ptr);
+  result.price = decodeUint256(ptr);
+  result.deliveryTime = decodeUint32(ptr);
+  result.deliveryMethod = decodeString(ptr);
+  result.arbitrator = decodeAddress(ptr);
+  return result;
+};
+
+export const decodeServiceUpdatedEvent = (rawData: BytesLike): ServiceUpdatedEvent => {
+  const bytes = getBytes(rawData);
+  let ptr = {bytes, index: 0};
+
+  const result = {} as ServiceUpdatedEvent;
+  result.title = decodeString(ptr);
+  result.descriptionHash = decodeBytes32(ptr);
+  result.tags = decodeStringArray(ptr);
+  result.price = decodeUint256(ptr);
+  result.deliveryTime = decodeUint32(ptr);
+  result.arbitrator = decodeAddress(ptr);
+  return result;
+};
+
+export const decodeOrderCreatedEvent = (rawData: BytesLike): OrderCreatedEvent => {
+  const bytes = getBytes(rawData);
+  let ptr = {bytes, index: 0};
+
+  const result = {} as OrderCreatedEvent;
+  result.orderId = decodeUint256(ptr);
+  result.buyer = decodeAddress(ptr);
+  result.seller = decodeAddress(ptr);
+  result.price = decodeUint256(ptr);
+  result.token = decodeAddress(ptr);
+  result.requirementsHash = decodeString(ptr);
+  return result;
+};
+
+export const decodeOrderRatedEvent = (rawData: BytesLike): OrderRatedEvent => {
+  const bytes = getBytes(rawData);
+  return {
+    rating: new DataView(bytes.buffer, 0).getUint8(0),
+    review: toUtf8String(bytes.slice(1)),
+  };
+};
+
+export const decodeServiceOrderDisputedEvent = (rawData: BytesLike): ServiceOrderDisputedEvent => {
+  const bytes = getBytes(rawData);
+  let ptr = {bytes, index: 0};
+
+  const result = {} as ServiceOrderDisputedEvent;
+  result.encryptedSessionKey = decodeBytes(ptr);
+  result.encryptedContent = decodeBytes(ptr);
+  return result;
+};
+
+export const decodeServiceOrderArbitratedEvent = (rawData: BytesLike): ServiceOrderArbitratedEvent => {
+  const bytes = getBytes(rawData);
+  const data = new DataView(bytes.buffer, 0);
+  return {
+    buyerShare: data.getUint16(0),
+    buyerAmount: toBigInt(bytes.slice(2, 34)),
+    sellerShare: data.getUint16(34),
+    sellerAmount: toBigInt(bytes.slice(36, 68)),
+    reasonHash: hexlify(bytes.slice(68, 100)),
+    sellerAddress: getAddress(hexlify(bytes.slice(100, 120))),
+    arbitratorAmount: toBigInt(bytes.slice(120, 152)),
+  };
+};
+
+export const decodeServiceOrderMessageEvent = (rawData: BytesLike): ServiceOrderMessageEvent => {
+  const bytes = getBytes(rawData);
+  return {
+    contentHash: hexlify(bytes.slice(0, 32)),
+    recipientAddress: getAddress(hexlify(bytes.slice(32, 52))),
+  };
+};
+
+export const decodeCustomServiceEvent = (eventType: ServiceEventType, rawData: BytesLike): CustomServiceEvent | undefined => {
+  switch (eventType) {
+    case ServiceEventType.ServiceCreated:
+      return decodeServiceCreatedEvent(rawData);
+    case ServiceEventType.ServiceUpdated:
+      return decodeServiceUpdatedEvent(rawData);
+    case ServiceEventType.OrderCreated:
+      return decodeOrderCreatedEvent(rawData);
+    case ServiceEventType.OrderCompleted:
+      return decodeOrderRatedEvent(rawData);
+    case ServiceEventType.OrderDisputed:
+      return decodeServiceOrderDisputedEvent(rawData);
+    case ServiceEventType.OrderArbitrated:
+      return decodeServiceOrderArbitratedEvent(rawData);
+    case ServiceEventType.OrderBuyerMessage:
+    case ServiceEventType.OrderSellerMessage:
+      return decodeServiceOrderMessageEvent(rawData);
     default:
       return undefined;
   }

@@ -144,7 +144,7 @@ const PostService = () => {
     const tags = searchParams.getAll('tags');
     const amount = searchParams.get('amount') || '';
 
-    let initialToken = tokens.find((token) => token.symbol === 'USDC');
+    let initialToken = tokens.find((token) => token.symbol === 'FAKE') || tokens.find((token) => token.symbol === 'USDC');
     if (tokenAddress) {
       const foundToken = tokens.find(
         (token) => token.id.toLowerCase() === tokenAddress.toLowerCase()

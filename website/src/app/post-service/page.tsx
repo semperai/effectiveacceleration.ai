@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Layout } from '@/components/Dashboard/Layout';
 import PostServicePage from './PostServicePage';
 
 export const metadata: Metadata = {
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <PostServicePage />;
+  return (
+    <Layout>
+      <PostServicePage />
+    </Layout>
+  );
 }

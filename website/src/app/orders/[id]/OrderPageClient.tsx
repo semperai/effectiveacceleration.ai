@@ -63,7 +63,62 @@ export default function OrderPageClient({ id }: OrderPageClientProps) {
   const isSeller = !!(address && order?.seller.toLowerCase() === address.toLowerCase());
   const isParticipant = isBuyer || isSeller;
 
-  // Get order state badge
+  // Get order status based on the last event in the event list
+  const getOrderStatusFromEvents = () => {
+    if (!events || events.length === 0) {
+      // Fallback to order state if no events
+      return getOrderStateBadge();
+    }
+
+    // Get the last event (most recent)
+    const lastEvent = events[events.length - 1];
+    const eventType = Number(lastEvent.type_);
+
+    // Map event types to display configuration
+    // ServiceEventType enum:
+    // 0-4: Service events (not relevant for orders)
+    // 5: OrderCreated, 6: OrderStarted, 7: OrderDelivered, 8: OrderCompleted
+    // 9: OrderCancelled, 10: OrderRefunded, 11: OrderDisputed, 12: OrderArbitrated
+    // 13: ArbitrationRefused, 14: OrderBuyerMessage, 15: OrderSellerMessage
+
+    const eventConfig: { [key: number]: { icon: any; color: string; label: string } } = {
+      5: { icon: Clock, color: 'blue', label: 'ORDER CREATED' },
+      6: { icon: Package, color: 'yellow', label: 'ORDER STARTED' },
+      7: { icon: CheckCircle2, color: 'cyan', label: 'ORDER DELIVERED' },
+      8: { icon: CheckCircle2, color: 'green', label: 'ORDER COMPLETED' },
+      9: { icon: XCircle, color: 'gray', label: 'ORDER CANCELLED' },
+      10: { icon: XCircle, color: 'purple', label: 'ORDER REFUNDED' },
+      11: { icon: AlertCircle, color: 'red', label: 'ORDER DISPUTED' },
+      12: { icon: CheckCircle2, color: 'indigo', label: 'ORDER ARBITRATED' },
+      13: { icon: AlertCircle, color: 'orange', label: 'ARBITRATION REFUSED' },
+      14: { icon: MessageSquare, color: 'blue', label: 'BUYER MESSAGE' },
+      15: { icon: MessageSquare, color: 'yellow', label: 'SELLER MESSAGE' },
+    };
+
+    const config = eventConfig[eventType] || { icon: Clock, color: 'gray', label: 'UNKNOWN STATUS' };
+    const Icon = config.icon;
+
+    const colorClasses = {
+      blue: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+      yellow: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
+      cyan: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300',
+      green: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+      red: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
+      gray: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300',
+      purple: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
+      indigo: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300',
+      orange: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+    }[config.color];
+
+    return (
+      <div className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 ${colorClasses}`}>
+        <Icon className='h-5 w-5' />
+        <span className='font-medium'>{config.label}</span>
+      </div>
+    );
+  };
+
+  // Fallback function for when no events are available
   const getOrderStateBadge = () => {
     if (!order) return null;
 
@@ -126,7 +181,7 @@ export default function OrderPageClient({ id }: OrderPageClientProps) {
       </Layout>
     );
   }
-
+  console.log(events, order)
   return (
     <Layout>
       <div className='mx-auto max-w-7xl'>
@@ -151,7 +206,7 @@ export default function OrderPageClient({ id }: OrderPageClientProps) {
                 <h1 className='text-2xl font-bold text-gray-900 dark:text-gray-100'>
                   Order #{orderId}
                 </h1>
-                {getOrderStateBadge()}
+                {getOrderStatusFromEvents()}
               </div>
 
               {service && (
@@ -172,7 +227,11 @@ export default function OrderPageClient({ id }: OrderPageClientProps) {
                   <p className='mb-2 text-sm text-gray-500 dark:text-gray-400'>
                     Buyer
                   </p>
-                  <Link
+                  <p className='font-medium text-gray-900 dark:text-gray-100'>
+                    {buyerUser?.name ||
+                      `${order.buyer.slice(0, 6)}...${order.buyer.slice(-4)}`}
+                  </p>
+                  {/* <Link
                     href={`/profile/${order.buyer}`}
                     className='flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700'
                   >
@@ -196,7 +255,7 @@ export default function OrderPageClient({ id }: OrderPageClientProps) {
                         </span>
                       )}
                     </div>
-                  </Link>
+                  </Link> */}
                 </div>
 
                 {/* Seller */}
@@ -204,7 +263,11 @@ export default function OrderPageClient({ id }: OrderPageClientProps) {
                   <p className='mb-2 text-sm text-gray-500 dark:text-gray-400'>
                     Seller
                   </p>
-                  <Link
+                  <p className='font-medium text-gray-900 dark:text-gray-100'>
+                        {sellerUser?.name ||
+                          `${order.seller.slice(0, 6)}...${order.seller.slice(-4)}`}
+                  </p>
+                  {/* <Link
                     href={`/profile/${order.seller}`}
                     className='flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700'
                   >
@@ -228,7 +291,7 @@ export default function OrderPageClient({ id }: OrderPageClientProps) {
                         </span>
                       )}
                     </div>
-                  </Link>
+                  </Link> */}
                 </div>
               </div>
             </div>
@@ -241,8 +304,13 @@ export default function OrderPageClient({ id }: OrderPageClientProps) {
               </h2>
               <div className='rounded-lg bg-gray-50 p-4 dark:bg-gray-900'>
                 <p className='whitespace-pre-wrap text-gray-700 dark:text-gray-300'>
-                  {order.requirementsHash || 'No requirements provided'}
+                  {order.requirements || 'No requirements provided'}
                 </p>
+                {!order.requirements && order.requirementsHash && (
+                  <p className='mt-2 text-xs text-gray-500 dark:text-gray-400'>
+                    IPFS Hash: {order.requirementsHash}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -255,8 +323,13 @@ export default function OrderPageClient({ id }: OrderPageClientProps) {
                 </h2>
                 <div className='rounded-lg bg-gray-50 p-4 dark:bg-gray-900'>
                   <p className='whitespace-pre-wrap text-gray-700 dark:text-gray-300'>
-                    {order.resultHash}
+                    {order.result || 'No delivery result yet'}
                   </p>
+                  {!order.result && order.resultHash && (
+                    <p className='mt-2 text-xs text-gray-500 dark:text-gray-400'>
+                      IPFS Hash: {order.resultHash}
+                    </p>
+                  )}
                   {order.deliveredAt && (
                     <p className='mt-2 text-sm text-gray-500 dark:text-gray-400'>
                       Delivered {moment.unix(order.deliveredAt).fromNow()}
@@ -274,21 +347,38 @@ export default function OrderPageClient({ id }: OrderPageClientProps) {
                   Order Timeline
                 </h2>
                 <div className='space-y-4'>
-                  {events.map((event, index) => (
-                    <div
-                      key={event.id}
-                      className='flex gap-4 border-l-2 border-gray-200 pl-4 dark:border-gray-700'
-                    >
-                      <div className='flex-1'>
-                        <p className='font-medium text-gray-900 dark:text-gray-100'>
-                          Event Type: {event.type_}
-                        </p>
-                        <p className='text-sm text-gray-500 dark:text-gray-400'>
-                          {moment.unix(event.timestamp_).format('MMM D, YYYY h:mm A')}
-                        </p>
+                  {events.map((event, index) => {
+                    const eventType = Number(event.type_);
+                    const eventNames: { [key: number]: string } = {
+                      5: 'Order Created',
+                      6: 'Order Started',
+                      7: 'Order Delivered',
+                      8: 'Order Completed',
+                      9: 'Order Cancelled',
+                      10: 'Order Refunded',
+                      11: 'Order Disputed',
+                      12: 'Order Arbitrated',
+                      13: 'Arbitration Refused',
+                      14: 'Buyer Message',
+                      15: 'Seller Message',
+                    };
+
+                    return (
+                      <div
+                        key={event.id}
+                        className='flex gap-4 border-l-2 border-gray-200 pl-4 dark:border-gray-700'
+                      >
+                        <div className='flex-1'>
+                          <p className='font-medium text-gray-900 dark:text-gray-100'>
+                            {eventNames[eventType] || `Event Type ${eventType}`}
+                          </p>
+                          <p className='text-sm text-gray-500 dark:text-gray-400'>
+                            {moment.unix(event.timestamp_).format('MMM D, YYYY h:mm A')}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

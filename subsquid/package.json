@@ -3,7 +3,13 @@
   "version": "1.0.0",
   "scripts": {
     "build": "rm -rf lib && tsc",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "codegen": "sqd codegen",
+    "typegen": "sqd typegen",
+    "migration:generate": "sqd migration:generate",
+    "migration:apply": "sqd migration:apply",
+    "process": "node -r dotenv/config lib/main.js",
+    "serve": "cross-env GQL_PORT=4350 npx squid-graphql-server --subscriptions"
   },
   "repository": {
     "type": "git",
@@ -22,7 +28,7 @@
   ],
   "main": "lib/index.js",
   "dependencies": {
-    "@effectiveacceleration/contracts": "^1.0.18",
+    "@effectiveacceleration/contracts": "file:../contract",
     "@mainnet-pat/json5-bigint": "^2.2.12",
     "@subsquid/evm-abi": "^0.3.0",
     "@subsquid/evm-processor": "^1.19.1",

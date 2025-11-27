@@ -10,20 +10,23 @@ import webPush from "web-push";
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
 
-if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
-  console.log(
-    "You must set the VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY environment variables.",
-    "These must match the same-named variables set in 'notifications' service"
-  );
-  process.exit(1);
-}
+// Temporarily disabled for local development
+// if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
+//   console.log(
+//     "You must set the VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY environment variables.",
+//     "These must match the same-named variables set in 'notifications' service"
+//   );
+//   process.exit(1);
+// }
 
-// Set the keys used for encrypting the push messages.
-webPush.setVapidDetails(
-  "https://effectiveacceleration.ai",
-  VAPID_PUBLIC_KEY,
-  VAPID_PRIVATE_KEY
-);
+// Set the keys used for encrypting the push messages (if provided)
+if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+  webPush.setVapidDetails(
+    "https://effectiveacceleration.ai",
+    VAPID_PUBLIC_KEY,
+    VAPID_PRIVATE_KEY
+  );
+}
 
 
 // EvmBatchProcessor is the class responsible for data retrieval and processing.
@@ -33,6 +36,8 @@ import { Store, TypeormDatabase } from "@subsquid/typeorm-store";
 
 import * as marketplaceAbi from "./abi/MarketplaceV1";
 import * as marketplaceDataAbi from "./abi/MarketplaceDataV1";
+import * as serviceMarketplaceAbi from "./abi/ServiceMarketplaceV1";
+import * as serviceMarketplaceDataAbi from "./abi/ServiceMarketplaceDataV1";
 import { Config } from "@effectiveacceleration/contracts";
 
 import {
@@ -53,6 +58,11 @@ import {
   PushSubscription,
   JobTimes,
   Notification,
+  Service,
+  ServiceOrder,
+  ServiceEvent,
+  ServiceReview,
+  ServiceOrderRoles,
 } from "./model";
 import {
   decodeJobArbitratedEvent,
@@ -62,6 +72,8 @@ import {
   decodeJobRatedEvent,
   decodeJobSignedEvent,
   decodeJobUpdatedEvent,
+  decodeServiceCreatedEvent,
+  decodeServiceUpdatedEvent,
   getFromIpfs,
   JobEventType,
   JobState,
@@ -69,6 +81,8 @@ import {
 import { getAddress, toBigInt, ZeroAddress, ZeroHash } from "ethers";
 import JSON5 from "@mainnet-pat/json5-bigint";
 import "@mainnet-pat/json5-bigint/lib/presets/extended";
+import * as fs from "fs";
+import * as path from "path";
 
 // const MARKETPLACE_CONTRACT_ADDRESS =
 //   "0x60a1561455c9Bd8fe6B0F05976d7F84ff2eff5a3".toLowerCase();
@@ -79,6 +93,28 @@ const networkName = process.env.NETWORK ?? "Hardhat";
 const RpcNetworkName = networkName.toUpperCase().replace(" ", "_");
 const MARKETPLACE_CONTRACT_ADDRESS = Config(networkName).marketplaceAddress.toLowerCase();
 const MARKETPLACEDATA_CONTRACT_ADDRESS = Config(networkName).marketplaceDataAddress.toLowerCase();
+
+// Load Service Marketplace addresses from local config or Config
+let SERVICE_MARKETPLACE_CONTRACT_ADDRESS: string;
+let SERVICE_MARKETPLACE_DATA_CONTRACT_ADDRESS: string;
+
+if (networkName === "Hardhat") {
+  // Load from local config.json for Hardhat
+  try {
+    const configPath = path.join(__dirname, "../../contract/scripts/config.json");
+    const configData = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+    SERVICE_MARKETPLACE_CONTRACT_ADDRESS = (configData.serviceMarketplaceAddress || "").toLowerCase();
+    SERVICE_MARKETPLACE_DATA_CONTRACT_ADDRESS = (configData.serviceMarketplaceDataAddress || "").toLowerCase();
+  } catch (e) {
+    console.warn("Could not load Service Marketplace addresses from config.json, using defaults");
+    SERVICE_MARKETPLACE_CONTRACT_ADDRESS = "";
+    SERVICE_MARKETPLACE_DATA_CONTRACT_ADDRESS = "";
+  }
+} else {
+  // For other networks, use Config (when addresses are added to the contracts package)
+  SERVICE_MARKETPLACE_CONTRACT_ADDRESS = (Config(networkName) as any).serviceMarketplaceAddress?.toLowerCase() || "";
+  SERVICE_MARKETPLACE_DATA_CONTRACT_ADDRESS = (Config(networkName) as any).serviceMarketplaceDataAddress?.toLowerCase() || "";
+}
 
 console.log("Using rpc endpoint:", process.env[`RPC_${RpcNetworkName}_HTTP`] ?? process.env.RPC_ENDPOINT);
 
@@ -103,7 +139,12 @@ const processor = new EvmBatchProcessor()
   // Other .addXXX() methods (.addTransaction(), .addTrace(), .addStateDiff()
   // on EVM) are similarly feature-rich.
   .addLog({
-    address: [MARKETPLACE_CONTRACT_ADDRESS, MARKETPLACEDATA_CONTRACT_ADDRESS],
+    address: [
+      MARKETPLACE_CONTRACT_ADDRESS,
+      MARKETPLACEDATA_CONTRACT_ADDRESS,
+      SERVICE_MARKETPLACE_CONTRACT_ADDRESS,
+      SERVICE_MARKETPLACE_DATA_CONTRACT_ADDRESS
+    ],
     range: {
       from: process.env.BLOCK_FROM ? Number(process.env.BLOCK_FROM) : 0,
     },
@@ -128,8 +169,12 @@ processor.run(db, async (ctx) => {
   const jobCache: Record<string, Job> = {};
   const userCache: Record<string, User> = {};
   const arbitratorCache: Record<string, Arbitrator> = {};
+  const serviceCache: Record<string, Service> = {};
+  const serviceOrderCache: Record<string, ServiceOrder> = {};
   const eventList: JobEvent[] = [];
+  const serviceEventList: ServiceEvent[] = [];
   const reviewList: Review[] = [];
+  const serviceReviewList: ServiceReview[] = [];
   let marketplace: Marketplace | undefined;
 
   for (const block of ctx.blocks) {
@@ -170,64 +215,65 @@ processor.run(db, async (ctx) => {
           case marketplaceAbi.events.Initialized.topic: {
             const { version } = marketplaceAbi.events.Initialized.decode(log);
 
-            // TODO: workaround for currently deployed contracts, remove after upgrade
-            if (process.env.GATEWAY?.includes("arbitrum")) {
-              const contract = new marketplaceAbi.Contract(
-                ctx,
-                block.header,
-                MARKETPLACE_CONTRACT_ADDRESS
-              );
-              try {
-                const unicrowAddress = await contract.unicrowAddress();
-                const unicrowDisputeAddress =
-                  await contract.unicrowDisputeAddress();
-                const unicrowArbitratorAddress =
-                  await contract.unicrowArbitratorAddress();
-                const treasuryAddress = await contract.treasuryAddress();
-                const unicrowMarketplaceFee =
-                  await contract.unicrowMarketplaceFee();
-                const owner = await contract.owner();
+            // Fetch contract data from chain
+            const contract = new marketplaceAbi.Contract(
+              ctx,
+              block.header,
+              MARKETPLACE_CONTRACT_ADDRESS
+            );
+            try {
+              const unicrowAddress = await contract.unicrowAddress();
+              const unicrowDisputeAddress =
+                await contract.unicrowDisputeAddress();
+              const unicrowArbitratorAddress =
+                await contract.unicrowArbitratorAddress();
+              const treasuryAddress = await contract.treasuryAddress();
+              const unicrowMarketplaceFee =
+                await contract.unicrowMarketplaceFee();
+              const owner = await contract.owner();
 
-                marketplace = new Marketplace({
-                  id: getAddress(MARKETPLACE_CONTRACT_ADDRESS),
-                  unicrowAddress: getAddress(unicrowAddress),
-                  unicrowDisputeAddress: getAddress(unicrowDisputeAddress),
-                  unicrowArbitratorAddress: getAddress(unicrowArbitratorAddress),
-                  treasuryAddress: getAddress(treasuryAddress),
-                  owner: getAddress(owner),
-                  unicrowMarketplaceFee,
-                  marketplaceData: getAddress(MARKETPLACEDATA_CONTRACT_ADDRESS),
-                  paused: false,
-                  jobCount: 0,
-                  userCount: 0,
-                  arbitratorCount: 0,
-                });
-              } catch (e) {
-                const unicrowAddress = ZeroAddress;
-                const unicrowDisputeAddress = ZeroAddress;
-                const unicrowArbitratorAddress = ZeroAddress;
-                const treasuryAddress = ZeroAddress;
-                const owner = ZeroAddress;
-                const unicrowMarketplaceFee = 0;
+              marketplace = new Marketplace({
+                id: getAddress(MARKETPLACE_CONTRACT_ADDRESS),
+                unicrowAddress: getAddress(unicrowAddress),
+                unicrowDisputeAddress: getAddress(unicrowDisputeAddress),
+                unicrowArbitratorAddress: getAddress(unicrowArbitratorAddress),
+                treasuryAddress: getAddress(treasuryAddress),
+                owner: getAddress(owner),
+                unicrowMarketplaceFee,
+                marketplaceData: getAddress(MARKETPLACEDATA_CONTRACT_ADDRESS),
+                paused: false,
+                jobCount: 0,
+                userCount: 0,
+                arbitratorCount: 0,
+                serviceCount: 0,
+              });
+            } catch (e) {
+              const unicrowAddress = ZeroAddress;
+              const unicrowDisputeAddress = ZeroAddress;
+              const unicrowArbitratorAddress = ZeroAddress;
+              const treasuryAddress = ZeroAddress;
+              const owner = ZeroAddress;
+              const unicrowMarketplaceFee = 0;
 
-                marketplace = new Marketplace({
-                  id: getAddress(MARKETPLACE_CONTRACT_ADDRESS),
-                  unicrowAddress: getAddress(unicrowAddress),
-                  unicrowDisputeAddress: getAddress(unicrowDisputeAddress),
-                  unicrowArbitratorAddress: getAddress(unicrowArbitratorAddress),
-                  treasuryAddress: getAddress(treasuryAddress),
-                  owner: getAddress(owner),
-                  unicrowMarketplaceFee,
-                  marketplaceData: getAddress(MARKETPLACEDATA_CONTRACT_ADDRESS),
-                  paused: false,
-                  jobCount: 0,
-                  userCount: 0,
-                  arbitratorCount: 0,
-                });
-              }
+              marketplace = new Marketplace({
+                id: getAddress(MARKETPLACE_CONTRACT_ADDRESS),
+                unicrowAddress: getAddress(unicrowAddress),
+                unicrowDisputeAddress: getAddress(unicrowDisputeAddress),
+                unicrowArbitratorAddress: getAddress(unicrowArbitratorAddress),
+                treasuryAddress: getAddress(treasuryAddress),
+                owner: getAddress(owner),
+                unicrowMarketplaceFee,
+                marketplaceData: getAddress(MARKETPLACEDATA_CONTRACT_ADDRESS),
+                paused: false,
+                jobCount: 0,
+                userCount: 0,
+                arbitratorCount: 0,
+                serviceCount: 0,
+              });
             }
 
-            marketplace.version = Number(version);
+            // Handle uint64 max value (uninitialized contract version)
+            marketplace.version = version >= 18446744073709551615n ? 0 : Number(version);
 
             break;
           }
@@ -263,7 +309,8 @@ processor.run(db, async (ctx) => {
           case marketplaceAbi.events.VersionChanged.topic: {
             const { version } =
               marketplaceAbi.events.VersionChanged.decode(log);
-            marketplace.version = Number(version);
+            // Handle uint64 max value (uninitialized contract version)
+            marketplace.version = version >= 18446744073709551615n ? 0 : Number(version);
             break;
           }
           case marketplaceAbi.events.Paused.topic: {
@@ -868,6 +915,391 @@ processor.run(db, async (ctx) => {
           default:
             break;
         }
+      } else if (log.address === SERVICE_MARKETPLACE_DATA_CONTRACT_ADDRESS) {
+        // Log which Service event we're processing
+        const eventIndex = Object.values(serviceMarketplaceDataAbi.events).findIndex(
+          (event) => event.topic === log.topics[0]
+        );
+        if (eventIndex !== -1) {
+          console.log(
+            "Processing ServiceMarketplaceData Event Log:",
+            Object.keys(serviceMarketplaceDataAbi.events)[eventIndex]
+          );
+        }
+
+        switch (log.topics[0]) {
+          case serviceMarketplaceDataAbi.events.ServiceEvent.topic: {
+            const decoded = serviceMarketplaceDataAbi.events.ServiceEvent.decode(log);
+            const serviceId = decoded.serviceId.toString();
+
+            console.log("Processing Service Event, serviceId:", serviceId);
+
+            let service: Service =
+              serviceCache[serviceId] ??
+              (await ctx.store.findOneBy(Service, { id: serviceId }))!;
+
+            const event = decoded.eventData;
+            const serviceEvent = new ServiceEvent({
+              id: log.id,
+              serviceId: decoded.serviceId,
+              type_: event.type_,
+              address_: event.address_ === "0x" ? event.address_ : getAddress(event.address_),
+              data_: event.data_,
+              timestamp_: event.timestamp_,
+              service: new Service({ id: serviceId }),
+            });
+
+            // Handle different service event types based on type_
+            switch (Number(event.type_)) {
+              case 0: { // ServiceCreated
+                if (!service) {
+                  service = new Service({
+                    id: serviceId,
+                    seller: getAddress(event.address_),
+                    title: "",
+                    descriptionHash: "",
+                    description: "",
+                    tags: [],
+                    paymentToken: ZeroAddress,
+                    price: 0n,
+                    deliveryTime: 0,
+                    deliveryMethod: "",
+                    arbitrator: ZeroAddress,
+                    state: 0,
+                    totalOrders: 0,
+                    completedOrders: 0,
+                    averageRating: 0,
+                    numberOfRatings: 0,
+                    timestamp: event.timestamp_,
+                    updatedAt: event.timestamp_,
+                  });
+
+                  // Decode service created data using custom decoder
+                  try {
+                    const serviceCreated = decodeServiceCreatedEvent(event.data_);
+                    service.title = serviceCreated.title;
+                    service.descriptionHash = serviceCreated.descriptionHash;
+                    service.tags = serviceCreated.tags;
+                    service.paymentToken = getAddress(serviceCreated.token);
+                    service.price = serviceCreated.price;
+                    service.deliveryTime = serviceCreated.deliveryTime;
+                    service.deliveryMethod = serviceCreated.deliveryMethod;
+                    service.arbitrator = getAddress(serviceCreated.arbitrator);
+
+                    // Try to fetch description from IPFS
+                    try {
+                      service.description = await getFromIpfs(service.descriptionHash);
+                    } catch {
+                      service.description = "";
+                    }
+                  } catch (e) {
+                    console.error("Error decoding ServiceCreated event:", e);
+                  }
+
+                  marketplace =
+                    marketplace ??
+                    await ctx.store.findOneByOrFail(Marketplace, {
+                      id: getAddress(MARKETPLACE_CONTRACT_ADDRESS),
+                    });
+                  if (!marketplace.serviceCount) {
+                    marketplace.serviceCount = 0;
+                  }
+                  marketplace.serviceCount += 1;
+                }
+                break;
+              }
+              case 1: { // ServiceUpdated
+                if (service) {
+                  try {
+                    const serviceUpdated = decodeServiceUpdatedEvent(event.data_);
+                    service.title = serviceUpdated.title;
+                    service.descriptionHash = serviceUpdated.descriptionHash;
+                    service.tags = serviceUpdated.tags;
+                    service.price = serviceUpdated.price;
+                    service.deliveryTime = serviceUpdated.deliveryTime;
+                    service.arbitrator = getAddress(serviceUpdated.arbitrator);
+                    service.updatedAt = event.timestamp_;
+
+                    // Try to update description from IPFS
+                    try {
+                      service.description = await getFromIpfs(service.descriptionHash);
+                    } catch {
+                      // keep old description
+                    }
+                  } catch (e) {
+                    console.error("Error decoding ServiceUpdated event:", e);
+                  }
+                }
+                break;
+              }
+              case 2: { // ServicePaused
+                if (service) {
+                  service.state = 1; // Paused
+                  service.updatedAt = event.timestamp_;
+                }
+                break;
+              }
+              case 3: { // ServiceActivated
+                if (service) {
+                  service.state = 0; // Active
+                  service.updatedAt = event.timestamp_;
+                }
+                break;
+              }
+              case 4: { // ServiceDeleted
+                if (service) {
+                  service.state = 2; // Deleted
+                  service.updatedAt = event.timestamp_;
+                }
+                break;
+              }
+              default:
+                break;
+            }
+
+            if (service) {
+              serviceCache[serviceId] = service;
+            }
+            serviceEventList.push(serviceEvent);
+            break;
+          }
+          case serviceMarketplaceDataAbi.events.OrderEvent.topic: {
+            const decoded = serviceMarketplaceDataAbi.events.OrderEvent.decode(log);
+            const orderId = decoded.orderId.toString();
+
+            console.log("Processing Order Event, orderId:", orderId);
+
+            let order: ServiceOrder =
+              serviceOrderCache[orderId] ??
+              (await ctx.store.findOneBy(ServiceOrder, { id: orderId }))!;
+
+            // For OrderCreated event, we'll get serviceId from the event data
+            // For other events, we'll get it from the existing order
+            let serviceId: string | null = null;
+            const event = decoded.eventData;
+
+            if (Number(event.type_) === 5 && event.data_) {
+              // OrderCreated - decode serviceId from data
+              // Data structure: abi.encodePacked(serviceId_, order.escrowId, requirementsHash_)
+              // Since it's encodePacked, we need to manually extract: uint256(32 bytes) + uint256(32 bytes) + bytes32(32 bytes)
+              try {
+                const dataHex = event.data_.startsWith('0x') ? event.data_.slice(2) : event.data_;
+                // First 32 bytes (64 hex chars) = serviceId
+                serviceId = BigInt('0x' + dataHex.slice(0, 64)).toString();
+              } catch (e) {
+                console.error("Error decoding OrderCreated serviceId:", e);
+              }
+            } else if (order) {
+              // Use serviceId from existing order
+              serviceId = order.serviceId.toString();
+            }
+
+            if (!serviceId) {
+              console.warn("Cannot process Order Event without serviceId, orderId:", orderId);
+              break;
+            }
+
+            let service: Service =
+              serviceCache[serviceId] ??
+              (await ctx.store.findOneBy(Service, { id: serviceId }))!;
+
+            const serviceEvent = new ServiceEvent({
+              id: log.id,
+              serviceId: toBigInt(serviceId),
+              orderId: decoded.orderId,
+              type_: event.type_,
+              address_: event.address_ === "0x" ? event.address_ : getAddress(event.address_),
+              data_: event.data_,
+              timestamp_: event.timestamp_,
+              service: new Service({ id: serviceId }),
+              order: new ServiceOrder({ id: orderId }),
+            });
+
+            // Handle different order event types
+            switch (Number(event.type_)) {
+              case 5: { // OrderCreated
+                if (!order) {
+                  order = new ServiceOrder({
+                    id: orderId,
+                    serviceId: toBigInt(serviceId),
+                    buyer: getAddress(event.address_),
+                    seller: ZeroAddress,
+                    roles: new ServiceOrderRoles({
+                      buyer: getAddress(event.address_),
+                      seller: ZeroAddress,
+                    }),
+                    price: 0n,
+                    paymentToken: ZeroAddress,
+                    escrowId: 0n,
+                    state: 0, // Pending
+                    requirementsHash: "",
+                    requirements: "",
+                    resultHash: "",
+                    result: "",
+                    disputed: false,
+                    createdAt: event.timestamp_,
+                    deliveredAt: 0,
+                    completedAt: 0,
+                    eventCount: 0,
+                    service: new Service({ id: serviceId }),
+                  });
+
+                  // Decode order created data: serviceId, escrowId, requirementsHash (all abi.encodePacked)
+                  // Data structure: uint256(32) + uint256(32) + bytes32(32) = 96 bytes total
+                  try {
+                    const dataHex = event.data_.startsWith('0x') ? event.data_.slice(2) : event.data_;
+                    // serviceId: bytes 0-31 (already extracted above)
+                    // escrowId: bytes 32-63
+                    const escrowId = BigInt('0x' + dataHex.slice(64, 128));
+                    // requirementsHash: bytes 64-95
+                    const requirementsHash = '0x' + dataHex.slice(128, 192);
+
+                    order.escrowId = escrowId;
+                    order.requirementsHash = requirementsHash;
+
+                    // Get seller from service
+                    order.seller = service.seller;
+                    order.roles.seller = service.seller;
+                    order.price = service.price;
+                    order.paymentToken = service.paymentToken;
+
+                    // Try to fetch requirements from IPFS
+                    try {
+                      order.requirements = await getFromIpfs(order.requirementsHash);
+                    } catch {
+                      order.requirements = "";
+                    }
+                  } catch (e) {
+                    console.error("Error decoding OrderCreated event:", e);
+                  }
+
+                  if (service) {
+                    service.totalOrders += 1;
+                  }
+                }
+                break;
+              }
+              case 6: { // OrderStarted
+                if (order) {
+                  order.state = 1; // InProgress
+                }
+                break;
+              }
+              case 7: { // OrderDelivered
+                if (order) {
+                  order.state = 2; // Delivered
+                  order.deliveredAt = event.timestamp_;
+
+                  // Decode result hash from abi.encodePacked(bytes32)
+                  // Data structure: bytes32(32 bytes)
+                  try {
+                    const dataHex = event.data_.startsWith('0x') ? event.data_.slice(2) : event.data_;
+                    // bytes32 = 32 bytes = 64 hex chars
+                    const resultHash = '0x' + dataHex.slice(0, 64);
+                    order.resultHash = resultHash;
+
+                    // Try to fetch result from IPFS
+                    try {
+                      order.result = await getFromIpfs(order.resultHash);
+                    } catch {
+                      order.result = "";
+                    }
+                  } catch (e) {
+                    console.error("Error decoding OrderDelivered event:", e);
+                  }
+                }
+                break;
+              }
+              case 8: { // OrderCompleted
+                if (order) {
+                  order.state = 3; // Completed
+                  order.completedAt = event.timestamp_;
+
+                  if (service) {
+                    service.completedOrders += 1;
+                  }
+
+                  // Try to decode rating and review
+                  try {
+                    const abiCoder = new (await import("ethers")).AbiCoder();
+                    const decoded = abiCoder.decode(["uint8", "string"], event.data_);
+                    const rating = Number(decoded[0]);
+                    const reviewText = decoded[1];
+
+                    if (rating > 0) {
+                      // Create service review
+                      const serviceReview = new ServiceReview({
+                        id: `${serviceId}-${orderId}`,
+                        serviceId: toBigInt(serviceId),
+                        orderId: toBigInt(orderId),
+                        reviewer: order.buyer,
+                        rating: rating * 10000, // Scale rating
+                        text: reviewText,
+                        timestamp: event.timestamp_,
+                        serviceLoaded: new Service({ id: serviceId }),
+                        reviewerLoaded: new User({ id: order.buyer }),
+                      });
+                      serviceReviewList.push(serviceReview);
+
+                      // Update service average rating
+                      if (service) {
+                        const totalRating = service.averageRating * service.numberOfRatings;
+                        service.numberOfRatings += 1;
+                        service.averageRating = Math.floor((totalRating + rating * 10000) / service.numberOfRatings);
+                      }
+                    }
+                  } catch (e) {
+                    console.error("Error decoding OrderCompleted event:", e);
+                  }
+                }
+                break;
+              }
+              case 9: { // OrderCancelled
+                if (order) {
+                  order.state = 6; // Cancelled
+                }
+                break;
+              }
+              case 10: { // OrderRefunded
+                if (order) {
+                  order.state = 5; // Refunded
+                }
+                break;
+              }
+              case 11: { // OrderDisputed
+                if (order) {
+                  order.state = 4; // Disputed
+                  order.disputed = true;
+                }
+                break;
+              }
+              case 12: { // OrderArbitrated
+                if (order) {
+                  order.disputed = false;
+                  // Arbitration resolves the dispute, state depends on outcome
+                }
+                break;
+              }
+              default:
+                break;
+            }
+
+            if (order) {
+              order.eventCount += 1;
+              order.lastEvent = serviceEvent;
+              serviceOrderCache[orderId] = order;
+            }
+
+            if (service) {
+              serviceCache[serviceId] = service;
+            }
+
+            serviceEventList.push(serviceEvent);
+            break;
+          }
+          default:
+            break;
+        }
       }
     }
   }
@@ -878,9 +1310,61 @@ processor.run(db, async (ctx) => {
 
   await ctx.store.upsert(Object.values(userCache));
   await ctx.store.upsert(Object.values(arbitratorCache));
+
+  // CRITICAL: Circular reference fix for Job <-> JobEvent and Service <-> ServiceEvent
+  // Step 1: Save jobs/services/orders first WITHOUT lastEvent references
+  const jobEventBackup: Map<string, JobEvent | undefined | null> = new Map();
+  const orderEventBackup: Map<string, ServiceEvent | undefined | null> = new Map();
+
+  Object.values(jobCache).forEach(job => {
+    if (job.lastJobEvent) {
+      jobEventBackup.set(job.id, job.lastJobEvent);
+      job.lastJobEvent = undefined;
+    }
+  });
+
+  Object.values(serviceOrderCache).forEach(order => {
+    if (order.lastEvent) {
+      orderEventBackup.set(order.id, order.lastEvent);
+      order.lastEvent = undefined;
+    }
+  });
+
+  // Step 2: Save jobs/services/orders WITHOUT event references
   await ctx.store.upsert(Object.values(jobCache));
+  await ctx.store.upsert(Object.values(serviceCache));
+  await ctx.store.upsert(Object.values(serviceOrderCache));
+
+  // Step 3: Save events (which reference jobs/services that now exist)
   await ctx.store.upsert(eventList);
+  await ctx.store.upsert(serviceEventList);
+
+  // Step 4: Restore lastJobEvent/lastEvent references
+  jobEventBackup.forEach((event, jobId) => {
+    if (jobCache[jobId]) {
+      jobCache[jobId].lastJobEvent = event;
+    }
+  });
+
+  orderEventBackup.forEach((event, orderId) => {
+    if (serviceOrderCache[orderId]) {
+      serviceOrderCache[orderId].lastEvent = event;
+    }
+  });
+
+  // Step 5: Update jobs/orders with event references restored
+  const jobsToUpdate = Array.from(jobEventBackup.keys()).map(id => jobCache[id]).filter(Boolean);
+  const ordersToUpdate = Array.from(orderEventBackup.keys()).map(id => serviceOrderCache[id]).filter(Boolean);
+
+  if (jobsToUpdate.length > 0) {
+    await ctx.store.upsert(jobsToUpdate);
+  }
+  if (ordersToUpdate.length > 0) {
+    await ctx.store.upsert(ordersToUpdate);
+  }
+
   await ctx.store.upsert(reviewList);
+  await ctx.store.upsert(serviceReviewList);
 });
 
 // inserts a notification into the database and sends a web push notification

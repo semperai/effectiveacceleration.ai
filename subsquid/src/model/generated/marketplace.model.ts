@@ -44,4 +44,7 @@ export class Marketplace {
 
     @IntColumn_({nullable: false})
     arbitratorCount!: number
+
+    @IntColumn_({nullable: false})
+    serviceCount!: number
 }
