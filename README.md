@@ -27,3 +27,6 @@ View the full documentation at https://docs.effectiveacceleration.ai/
 ## License
 
 MIT
+
+
+<!-- Security scan triggered at 2026-08-31 16:48:50 -->
